@@ -1,0 +1,39 @@
+{
+  "name": "msaljs",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/temp-msalforjs.git"
+  },
+  "version": "0.0.0",
+  "description": "Microsoft Authentication Library for js",
+  "keywords": [
+    "implicit",
+    "js",
+    "AAD",
+    "msal",
+    "oauth"
+  ],
+  "main": "./lib/msal.js",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine-node": "~1.14.5",
+    "jshint": "*",
+    "atob": "~1.1.2",
+    "grunt-jasmine-node": "~0.2.1"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jasmine-node tests/unit"
+  }
+}
