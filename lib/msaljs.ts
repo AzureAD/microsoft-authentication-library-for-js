@@ -6,86 +6,218 @@
 
 namespace MSAL {
 
-    export class ClientApplication {
+    enum ResponseTypes {
+        id_token,
+        token
+    }
 
-        private loginInProgress: boolean;
-        User: User;
-        ERROR_DESCRIPTION: string = "error_description";
-        ID_TOKEN: string = "id_token";
-        ACCESS_TOKEN: string = "access_token";
-        EXPIRES_IN: string = 'expires_in';
-        SESSION_STATE: string = 'session_state';
-        TOKEN_KEYS: string = 'adal.token.keys';
-        ACCESS_TOKEN_KEY: string = 'adal.access.token.key';
-        EXPIRATION_KEY: string = 'adal.expiration.key';
-        STATE_LOGIN: string = 'adal.state.login';
-        STATE_RENEW: string = 'adal.state.renew';
-        NONCE_IDTOKEN: string = 'adal.nonce.idtoken';
-        USERNAME: string = 'adal.username';
-        IDTOKEN: string = 'adal.idtoken';
-        ERROR: string = 'adal.error';
-        LOGIN_REQUEST: string = 'adal.login.request';
-        LOGIN_ERROR: string = 'adal.login.error';
-        RENEW_STATUS: string = 'adal.token.renew.status';
-        RESOURCE_DELIMETER: string = '|';
-        LOADFRAME_TIMEOUT: number = 6000;
-        TOKEN_RENEW_STATUS_CANCELED: string = 'Canceled';
-        TOKEN_RENEW_STATUS_COMPLETED: string = 'Completed';
-        TOKEN_RENEW_STATUS_IN_PROGRESS: string = 'In Progress';
-        POPUP_WIDTH: number = 483;
-        POPUP_HEIGHT: number = 600;
-        LOGIN: string = 'LOGIN';
-        RENEW_TOKEN: string = 'RENEW_TOKEN';
-        UNKNOWN: string = 'UNKNOWN';
+    enum LoggingLevel {
+        ERROR,
+        WARN,
+        INFO,
+        VERBOSE
+    }
 
-        ClientId: string;
-        Authority: string;
-        AuthenticationMode: AuthenticationModes;
-        RedirectUri: string;
-        ClockSkew: number;
-        PostLogoutRedirectUri: string;
-        CorrelationId: string;
-        CacheLocation: CacheLocations;
-        CheckSessionIframe: HTMLIFrameElement;
-        RenewStates: Array<string>;
-        ActiveRenewals: Object;
-        SessionState: string;
+    export class Logging {
+        static _logLevel: number = 0;
+        static _loginCallback: Function = null;
+        static _correlationId: string = null;
+        static initialize(logLevel: number, loginCallback: Function, correlationId?: string) {
+            this._logLevel = logLevel;
+            this._loginCallback = loginCallback;
+            this._correlationId = correlationId;
+        }
+    }
 
+    export class Constants {
+        static get errorDescription(): string { return "error_description"; }
+        static get idToken(): string { return "id_token"; }
+        static get accessToken(): string { return "access_token"; }
+        static get expiresIn(): string { return "expires_in"; }
+        static get sessionState(): string { return "session_state"; }
+        static get tokenKeys(): string { return "adal.token.keys"; }
+        static get accessTokenKey(): string { return "adal.access.token.key"; }
+        static get expirationKey(): string { return "adal.expiration.key"; }
+        static get stateLogin(): string { return "adal.state.login"; }
+        static get stateAcquireToken(): string { return "adal.state.acquireToken"; }
+        static get stateRenew(): string { return "adal.state.renew"; }
+        static get nonceIdToken(): string { return "adal.nonce.idtoken"; }
+        static get userName(): string { return "adal.username"; }
+        static get idTokenKey(): string { return "adal.idtoken"; }
+        static get error(): string { return "adal.error"; }
+        static get loginRequest(): string { return "adal.login.request"; }
+        static get loginError(): string { return "adal.login.error"; }
+        static get renewStatus(): string { return "adal.token.renew.status"; }
+        static get resourceDelimeter(): string { return "|"; }
+        private static _loadFrameTimeout: number = 6000;
+        static get loadFrameTimeout(): number {
+            return this._loadFrameTimeout;
+        };
+        static set loadFrameTimeout(timeout: number) {
+            this._loadFrameTimeout = timeout;
+        };
+        static get tokenRenewStatusCancelled(): string { return "Canceled"; }
+        static get tokenRenewStatusCompleted(): string { return "Completed"; }
+        static get tokenRenewStatusInProgress(): string { return "In Progress"; }
+        private static _popUpWidth: number = 483;
+        static get popUpWidth(): number { return this._popUpWidth; }
+        static set popUpWidth(width: number) {
+            this._popUpWidth = width;
+        };
+        private static _popUpHeight: number = 600;
+        static get popUpHeight(): number { return this._popUpHeight; }
+        static set popUpHeight(height: number) {
+            this._popUpHeight = height;
+        };
+        static get login(): string { return "LOGIN"; }
+        static get renewToken(): string { return "renewToken"; }
+        static get unknown(): string { return "UNKNOWN"; }
+    }
 
-        constructor(clientId: string) {
-            this.ClientId = clientId;
-            this.Authority = "https://login.microsoftonline.com/common";
-            this.RedirectUri = window.location.href;
-            this.ClockSkew = 300;
-            this.PostLogoutRedirectUri = this.RedirectUri;
-            this.CacheLocation = CacheLocations.SessionStorage;
-            this.AuthenticationMode = AuthenticationModes.Redirect;
+    export class UserAgentApplication {
 
-            this.loginInProgress = false;
-            this.RenewStates = [];
-            this.CheckSessionIframe = null;
-            this.ActiveRenewals = {};
+        private _cacheLocations = {
+            localStorage: 'localStorage',
+            sessionStorage: 'sessionStorage'
+        };
+        private _cacheLocation: string = 'sessionStorage';
+        set cacheLocation(cache: string) {
+            this._cacheLocation = cache;
+            if (this._cacheLocations[cache])
+                this._cacheStorage = new Storage(this._cacheLocations[cache]);
+            else
+                throw new Error('Cache Location is not valid. Provided value:' + this._cacheLocation + '.Possible values are: ' + this._cacheLocations.localStorage + ', ' + this._cacheLocations.sessionStorage);
+        }
+        get cacheLocation() {
+            return this._cacheLocation;
+        }
+        private _interactionModes = {
+            popUp: 'popUp',
+            redirect: 'redirect'
+        }
+        private _interactionMode: string = 'redirect';
+        set interactionMode(mode: string) {
+            if (this._interactionModes[mode])
+                this._interactionMode = this._interactionModes[mode];
+            else
+                throw new Error('Interantion mode is not valid. Provided value:' + this._interactionMode + '.Possible values are: ' + this._interactionModes.redirect + ',' + this._interactionModes.popUp);
+        }
+        get interactionMode() {
+            return this._interactionMode;
+        }
+        private _loginInProgress: boolean;
+        private _acquireTokenInProgress: boolean;
+        private _checkSessionIframe: HTMLIFrameElement;
+        private _renewStates: Array<string>;
+        private _activeRenewals: Object;
+        private _sessionState: string;
+        private _clockSkew: number = 300;
+        private _cacheStorage: Storage;
+        private _userCallback: Function = null;
+        user: User;
+        clientId: string;
+        authority: string = "https://login.microsoftonline.com/common";
+        redirectUri: string;
+        postLogoutredirectUri: string;
+        correlationId: string;
+        // validatAuthority: boolean = true; This will be implemented after the build. Only scenarios that will be affected are the ones where the authority is dynamically discovered.
+        navigateToLoginRequestUrl: boolean = true;
+
+        constructor(clientId: string, authority?: string, userCallback?: Function) {
+            this.clientId = clientId;
+            if (authority)
+                this.authority = authority;
+            if (userCallback)
+                this._userCallback = userCallback;
+            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this.postLogoutredirectUri = this.redirectUri;
+            this._loginInProgress = false;
+            this._acquireTokenInProgress = false;
+            this._renewStates = [];
+            this._checkSessionIframe = null;
+            this._activeRenewals = {};
+            this._cacheStorage = new Storage(this._cacheLocation);
             window.MSAL = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            this.SessionState = null;
         }
 
-        GetUser(): User {
-            // IDToken is first call
-            if (this.User) {
-                return this.User;
+        login(): void {
+            /*
+            1. Create navigate url
+            2. saves value in cache
+            3. redirect user to AAD
+            */
+            if (this._loginInProgress) {
+                return;
             }
-
-            // frame is used to get idtoken
-            var idtoken = this.getItem(this.IDTOKEN);
-            if (!this.isEmpty(idtoken)) {
-                this.User = this.createUser(idtoken);
-                return this.User;
+            let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, null, ResponseTypes[ResponseTypes.id_token], this.redirectUri);
+            this._cacheStorage.saveItem(Constants.loginRequest, window.location.href);
+            this._cacheStorage.saveItem(Constants.loginError, '');
+            this._cacheStorage.saveItem(Constants.stateLogin, authenticationRequest.state);
+            this._cacheStorage.saveItem(Constants.nonceIdToken, authenticationRequest.nonce);
+            this._cacheStorage.saveItem(Constants.error, '');
+            this._cacheStorage.saveItem(Constants.errorDescription, '');
+            let urlNavigate: string = authenticationRequest.CreateNavigateUrl(null);
+            this._loginInProgress = true;
+            if (this._interactionMode === this._interactionModes.popUp) {
+                this.openConsentWindow(urlNavigate, 'login', 20, this, this._userCallback);
+                return;
             }
+            else {
+                if (urlNavigate) {
+                    window.location.replace(urlNavigate);
+                }
+            }
+        }
 
-            return null;
-        };
+        private openConsentWindow(urlNavigate: string, title: string, interval: number, instance: this, callback: Function): void {
+            let popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
+            if (popupWindow == null) {
+                instance._loginInProgress = false;
+                instance._acquireTokenInProgress = false
+                Logger.warn('Popup Window is null. This can happen if you are using IE');
+                this._cacheStorage.saveItem(Constants.error, 'Error opening popup');
+                this._cacheStorage.saveItem(Constants.errorDescription, 'Popup Window is null. This can happen if you are using IE');
+                this._cacheStorage.saveItem(Constants.loginError, 'Popup Window is null. This can happen if you are using IE');
+                if (callback)
+                    callback(this._cacheStorage.getItem(Constants.loginError), null, null);
+                return;
+            }
+            var self = this;
+            var pollTimer = window.setInterval(function () {
+                if (!popupWindow || popupWindow.closed || popupWindow.closed === undefined) {
+                    instance._loginInProgress = false;
+                    instance._acquireTokenInProgress = false
+                    window.clearInterval(pollTimer);
+                }
+                try {
+                    if (popupWindow.location.href.indexOf(self.redirectUri) != -1) {
+                        self.handleAuthenticationResponse(popupWindow.location.hash);
+                        window.clearInterval(pollTimer);
+                        instance._loginInProgress = false;
+                        instance._acquireTokenInProgress = false;
+                        Logger.info("Closing popup window");
+                        popupWindow.close();
+                    }
+                } catch (e) {
+                    //Cross Domain url check error. Will be thrown until AAD redirects the user back to the app's root page with the token. No need to log or throw this error as it will create unnecessary traffic.
+                }
+            }, interval);
+        }
+
+        logout(): void {
+            this._cacheStorage.clear();
+            this.user = null;
+            var logout = '';
+            if (this.postLogoutredirectUri) {
+                logout = 'post_logout_redirect_uri=' + encodeURIComponent(this.postLogoutredirectUri);
+            }
+            let urlNavigate: string = this.authority + '/oauth2/v2.0/logout?' + logout;
+            if (urlNavigate) {
+                window.location.replace(urlNavigate);
+            }
+        }
 
         private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
             try {
@@ -110,206 +242,96 @@ namespace MSAL {
                 }
                 return popupWindow;
             } catch (e) {
-                console.log('Error opening popup, ' + e.message);
-                this.loginInProgress = false;
+                Logger.warn('error opening popup, ' + e.message);
+                this._loginInProgress = false;
                 return null;
             }
-
-        }
-
-        AcquireToken(scopes: Array<string>, callback: Function): void;
-        AcquireToken(scopes: Array<string>, callback: Function, loginHint: string): void;
-        AcquireToken(scopes: Array<string>, callback: Function, loginHint: string, extraQueryParameters: string): void;
-
-        AcquireToken(scopes: Array<string>, callback: Function, loginHint?: string, extraQueryParameters?: string):void {
-            this.validateInputScope(scopes);
-            //var token = this.getCachedToken(resource);
-            //if (token) {
-            //    console.log('Token is already in cache for resource:' + resource);
-            //    callback(null, token);
-            //    return;
-            //}
-
-            if (!this.User) {
-                callback('User login is required', null);
-                return;
-            }
-
-            let scope: string = scopes.join(' ');
-
-            // refresh attept with iframe
-            //Already renewing for this resource, callback when we get the token.
-            //if (this.ActiveRenewals[scope]) {
-            //    //Active renewals contains the state for each renewal.
-            //    this.registerCallback(this.ActiveRenewals[scope], scope, callback);
-            //}
-            //else {
-                let parameters: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.Authority, this.ClientId, this.AuthenticationMode, null, ResponseTypes.Token, this.RedirectUri);
-                let expectedState = parameters.State + '|' + scope;
-                this.saveItem(this.NONCE_IDTOKEN, parameters.Nonce);
-                parameters.State = expectedState;
-
-                if (extraQueryParameters) parameters.ExtraQueryParameters = extraQueryParameters;
-                let urlNavigate: string = parameters.CreateNavigateUrl(scopes);
-                urlNavigate = this.addHintParameters(urlNavigate, loginHint);
-                this.RenewStates.push(expectedState);
-                this.registerCallback(expectedState, scope, callback);
-                console.log('Navigate to:' + urlNavigate);
-                let popupWindow = this.openPopup(urlNavigate, "acquireToken", this.POPUP_WIDTH, this.POPUP_HEIGHT);
-                if (popupWindow == null) {
-                    return;
-                }
-                if (this.RedirectUri.indexOf('#') != -1)
-                    var registeredRedirectUri = this.RedirectUri.split("#")[0];
-                else
-                    var registeredRedirectUri = this.RedirectUri;
-                var that = this;
-                var pollTimer = window.setInterval(function () {
-                    if (!popupWindow || popupWindow.closed || popupWindow.closed === undefined) {
-                        window.clearInterval(pollTimer);
-                    }
-                    try {
-                        if (popupWindow.location.href.indexOf(registeredRedirectUri) != -1) {
-                            that.HandleAuthenticationResponse(popupWindow.location.hash);
-                            window.clearInterval(pollTimer);
-                            console.log("Closing popup window");
-                            popupWindow.close();
-                        }
-                    } catch (e) {
-                    }
-                }, 1);
-
-            //}
-       
-        }
-
-        AcquireTokenSilent(scopes: Array<string>, callback: Function): void {
-            this.validateInputScope(scopes);
-            //var token = this.getCachedToken(resource);
-            //if (token) {
-            //    console.log('Token is already in cache for resource:' + resource);
-            //    callback(null, token);
-            //    return;
-            //}
-
-            if (!this.User) {
-                callback('User login is required', null);
-                return;
-            }
-
-            let scope: string = scopes.join(' ');
-
-            // refresh attept with iframe
-            //Already renewing for this resource, callback when we get the token.
-            if (this.ActiveRenewals[scope]) {
-                //Active renewals contains the state for each renewal.
-                this.registerCallback(this.ActiveRenewals[scope], scope, callback);
-            }
-            else {
-                if (!this.isEmpty(scope) && scope.indexOf(this.ClientId) > -1) {
-                    // App uses idtoken to send to api endpoints
-                    // Default resource is tracked as clientid to store this token
-                    console.log('renewing idtoken');
-                    this.renewIdToken(scopes, callback);
-                } else {
-                    console.log('renewing accesstoken');
-                    this.renewToken(scopes, callback);
-                }
-            }
-        }
-
-        private renewToken(scopes: Array<string>, callback: Function): void {
-            var scope = scopes.join(' ');
-            console.log('renewToken is called for resource:' + scope);
-            var frameHandle = this.addAdalFrame('adalRenewFrame' + scope);
-            let parameters: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.Authority, this.ClientId, this.AuthenticationMode, scopes, ResponseTypes.Token, this.RedirectUri);
-            var expectedState = Utils.Guid() + '|' + scope;
-            parameters.State = expectedState;
-            // renew happens in iframe, so it keeps javascript context
-            this.RenewStates.push(expectedState);
-            console.log('Renew token Expected state: ' + expectedState);
-            var urlNavigate = parameters.CreateNavigateUrl(scopes) + '&prompt=none';
-            urlNavigate = this.addHintParameters(urlNavigate);
-            this.registerCallback(expectedState, scope, callback);
-            console.log('Navigate to:' + urlNavigate);
-            //this.saveItem(this.CONSTANTS.STORAGE.LOGIN_REQUEST, '');
-            frameHandle.src = 'about:blank';
-            this.loadFrameTimeout(urlNavigate, 'adalRenewFrame' + scope, scope);
-        }
-
-        private renewIdToken(scopes: Array<string>, callback: Function): void {
-            console.log('renewIdToken is called');
-            let frameHandle = this.addAdalFrame('adalIdTokenFrame');
-            let parameters: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.Authority, this.ClientId, this.AuthenticationMode, scopes, ResponseTypes.IdToken, this.RedirectUri);
-            let expectedState = parameters.State + '|' + this.ClientId;
-            this.saveItem(this.NONCE_IDTOKEN, parameters.Nonce);
-            parameters.State = expectedState;
-            let urlNavigate: string = parameters.CreateNavigateUrl(scopes) + '&prompt=none';
-            urlNavigate = this.addHintParameters(urlNavigate);
-            this.RenewStates.push(expectedState);
-            this.registerCallback(expectedState, this.ClientId, callback);
-            console.log('Navigate to:' + urlNavigate);
-            //this._saveItem(this.CONSTANTS.STORAGE.LOGIN_REQUEST, '');
-            frameHandle.src = 'about:blank';
-            this.loadFrameTimeout(urlNavigate, 'adalIdTokenFrame', this.ClientId);
         }
 
         private validateInputScope(scopes: Array<string>): void {
             if (!scopes || scopes.length < 1) {
                 return;
             }
-
             if (!Array.isArray(scopes)) {
                 throw new Error('API does not accept non-array scopes');
             }
-
             if (scopes.indexOf('openid') > -1) {
                 throw new Error('API does not accept openid as a user-provided scope');
             }
-
             if (scopes.indexOf('offline_access') > -1) {
                 throw new Error('API does not accept offline_access as a user-provided scope');
             }
-
-            if (scopes.indexOf(this.ClientId) > -1) {
+            if (scopes.indexOf(this.clientId) > -1) {
                 if (scopes.length > 1) {
                     throw new Error('Client Id can only be provided as a single scope');
                 }
             }
-
         }
 
-        private registerCallback(expectedState: string, resource: string, callback: Function): void {
-            this.ActiveRenewals[resource] = expectedState;
+        private registerCallback(expectedState: string, scope: string, callback: Function): void {
+            this._activeRenewals[scope] = expectedState;
             if (!window.callBacksMappedToRenewStates[expectedState]) {
                 window.callBacksMappedToRenewStates[expectedState] = [];
             }
             var self = this;
             window.callBacksMappedToRenewStates[expectedState].push(callback);
             if (!window.callBackMappedToRenewStates[expectedState]) {
-                window.callBackMappedToRenewStates[expectedState] = function (message: string, token: string) {
+                window.callBackMappedToRenewStates[expectedState] = function (errorDesc: string, token: string, error: string) {
+                    self._activeRenewals[scope] = null;
                     for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
-                        window.callBacksMappedToRenewStates[expectedState][i](message, token);
+                        try {
+                            window.callBacksMappedToRenewStates[expectedState][i](errorDesc, token, error);
+                        }
+                        catch (error) {
+                            Logger.warn(error);
+                        }
                     }
-                    self.ActiveRenewals[resource] = null;
                     window.callBacksMappedToRenewStates[expectedState] = null;
                     window.callBackMappedToRenewStates[expectedState] = null;
                 };
             }
         }
 
+        private getCachedToken(scopes: Array<string>): string {
+            let accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, this.authority);
+            let accessTokenItems: Array<AccessTokenCacheItem> = []; // Array to store multiple accessTokens for the same set of scopes
+            for (let i = 0; i < accessTokenCacheItems.length; i++) {
+                let accessTokenCacheItem = accessTokenCacheItems[i];
+                if (accessTokenCacheItem.key.user.profile.oid === this.user.profile.oid) {
+                    let cachedScopes = accessTokenCacheItem.key.Scopes.split(' ');
+                    if (Utils.containsScope(cachedScopes, scopes)) {
+                        accessTokenItems.push(accessTokenCacheItem);
+                    }
+                }
+            }
+            if (accessTokenItems.length === 0 || accessTokenCacheItems.length > 1)
+                return null; //access token not found
+            else {
+                let accessTokenCacheItem = accessTokenItems[0];
+                var expired: number = Number(accessTokenCacheItem.value.ExpiresIn);
+                // If expiration is within offset, it will force renew
+                var offset = this._clockSkew || 300;
+                if (expired && (expired > Utils.now() + offset)) {
+                    return accessTokenCacheItem.value.AccessToken;
+                } else {
+                    this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[0]));
+                    return null;
+                }
+            }
+        }
+
         private addHintParameters(urlNavigate: string, loginHint?: string): string {
-            if (this.User && this.User.profile && this.User.profile.hasOwnProperty('preferred_username')) {
+            if (this.user && this.user.profile && this.user.profile.hasOwnProperty('preferred_username')) {
                 // add login_hint
                 if (loginHint) {
                     urlNavigate += '&login_hint=' + encodeURIComponent(loginHint);
                 }
                 else {
-                    urlNavigate += '&login_hint=' + encodeURIComponent(this.User.profile.preferred_username);
+                    urlNavigate += '&login_hint=' + encodeURIComponent(this.user.profile.preferred_username);
                 }
                 // don't add domain_hint twice if user provided it in the extraQueryParameter value
-                if (!this.urlContainsQueryStringParameter('domain_hint', urlNavigate) && this.User.profile.hasOwnProperty('tid')) {
-                    if (this.User.profile.tid === '9188040d-6c67-4c5b-b112-36a304b66dad') {
+                if (!this.urlContainsQueryStringParameter('domain_hint', urlNavigate) && this.user.profile.hasOwnProperty('tid')) {
+                    if (this.user.profile.tid === '9188040d-6c67-4c5b-b112-36a304b66dad') {
                         urlNavigate += '&domain_hint=' + encodeURIComponent("consumers");
                     }
                     else {
@@ -317,7 +339,6 @@ namespace MSAL {
                     }
                 }
             }
-
             return urlNavigate;
         }
 
@@ -327,31 +348,102 @@ namespace MSAL {
             return regex.test(url);
         }
 
-        private loadFrameTimeout(urlNavigate: string, frameName: string, resource: string): void {
+        acquireToken(scopes: Array<string>, callback: Function): void;
+        acquireToken(scopes: Array<string>, callback: Function, loginHint: string): void;
+        acquireToken(scopes: Array<string>, callback: Function, loginHint: string, extraQueryParameters: string): void;
+
+        acquireToken(scopes: Array<string>, callback: Function, loginHint?: string, extraQueryParameters?: string): void {
+            if (this._acquireTokenInProgress) {
+                return;
+            }
+            this.validateInputScope(scopes);
+            let scope: string = scopes.join(' ');
+            if (!this.user) {
+                callback('user login is required', null);
+                return;
+            }
+            this._acquireTokenInProgress = true;
+            let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes[ResponseTypes.token], this.redirectUri);
+            authenticationRequest.state = authenticationRequest.state + '|' + scope;
+            if (extraQueryParameters)
+                authenticationRequest.extraQueryParameters = extraQueryParameters;
+            let urlNavigate: string = authenticationRequest.CreateNavigateUrl(scopes);
+            if (loginHint)
+                urlNavigate = this.addHintParameters(urlNavigate, loginHint);
+            else
+                urlNavigate = this.addHintParameters(urlNavigate);
+            if (this._interactionMode === this._interactionModes.popUp) {
+                this._renewStates.push(authenticationRequest.state);
+                this.registerCallback(authenticationRequest.state, scope, callback);
+                this.openConsentWindow(urlNavigate, 'acquireToken', 1, this, callback);
+                return;
+            }
+            else {
+                if (urlNavigate) {
+                    this._cacheStorage.saveItem(Constants.stateAcquireToken, authenticationRequest.state);
+                    window.location.replace(urlNavigate);
+                }
+            }
+
+        }
+
+        acquireTokenSilent(scopes: Array<string>, callback: Function): void {
+            this.validateInputScope(scopes);
+            var token = this.getCachedToken(scopes);
+            let scope: string = scopes.join(' ');
+            if (token) {
+                Logger.info('Token is already in cache for scope:' + scope);
+                callback(null, token);
+                return;
+            }
+            if (!this.user) {
+                callback('user login is required', null);
+                return;
+            }
+            // refresh attept with iframe
+            //Already renewing for this scope, callback when we get the token.
+            if (this._activeRenewals[scope]) {
+                //Active renewals contains the state for each renewal.
+                this.registerCallback(this._activeRenewals[scope], scope, callback);
+            }
+            else {
+                if (!Utils.isEmpty(scope) && scope.indexOf(this.clientId) > -1) {
+                    // App uses idToken to send to api endpoints
+                    // Default scope is tracked as clientId to store this token
+                    Logger.verbose('renewing idToken');
+                    this.renewIdToken(scopes, callback);
+                } else {
+                    Logger.verbose('renewing accesstoken');
+                    this.renewToken(scopes, callback);
+                }
+            }
+        }
+
+        private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string): void {
             //set iframe session to pending
-            console.log('Set loading state to pending for: ' + resource);
-            this.saveItem(this.RENEW_STATUS + resource, this.TOKEN_RENEW_STATUS_IN_PROGRESS);
+            Logger.verbose('Set loading state to pending for: ' + scope);
+            this._cacheStorage.saveItem(Constants.renewStatus + scope, Constants.tokenRenewStatusInProgress);
             this.loadFrame(urlNavigate, frameName);
             var self = this;
             setTimeout(function () {
-                if (self.getItem(self.RENEW_STATUS + resource) === self.TOKEN_RENEW_STATUS_IN_PROGRESS) {
+                if (self._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
                     // fail the iframe session if it's in pending state
-                    console.log('Loading frame has timed out after: ' + (self.LOADFRAME_TIMEOUT / 1000) + ' seconds for resource ' + resource);
-                    var expectedState = self.ActiveRenewals[resource];
+                    Logger.verbose('Loading frame has timed out after: ' + (Constants.loadFrameTimeout / 1000) + ' seconds for scope ' + scope);
+                    var expectedState = self._activeRenewals[scope];
                     if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
                         window.callBackMappedToRenewStates[expectedState]('Token renewal operation failed due to timeout', null);
                     }
 
-                    self.saveItem(self.RENEW_STATUS + resource, self.TOKEN_RENEW_STATUS_CANCELED);
+                    self._cacheStorage.saveItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCancelled);
                 }
-            }, self.LOADFRAME_TIMEOUT);
+            }, Constants.loadFrameTimeout);
         }
 
         private loadFrame(urlNavigate: string, frameName: string): void {
             // This trick overcomes iframe navigation in IE
             // IE does not load the page consistently in iframe
             var self = this;
-            console.log('LoadFrame: ' + frameName);
+            Logger.info('LoadFrame: ' + frameName);
             var frameCheck = frameName;
             setTimeout(function () {
                 var frameHandle = self.addAdalFrame(frameCheck);
@@ -366,10 +458,8 @@ namespace MSAL {
             if (typeof iframeId === 'undefined') {
                 return;
             }
-
-            console.log('Add adal frame to document:' + iframeId);
+            Logger.info('Add adal frame to document:' + iframeId);
             var adalFrame = <HTMLIFrameElement>document.getElementById(iframeId);
-
             if (!adalFrame) {
                 if (document.createElement && document.documentElement &&
                     (window.navigator.userAgent.indexOf('MSIE 5.0') === -1)) {
@@ -378,7 +468,6 @@ namespace MSAL {
                     ifr.style.visibility = 'hidden';
                     ifr.style.position = 'absolute';
                     ifr.style.width = ifr.style.height = '0px';
-
                     adalFrame = <HTMLIFrameElement>document.getElementsByTagName('body')[0].appendChild(ifr);
                 }
                 else if (document.body && document.body.insertAdjacentHTML) {
@@ -388,209 +477,186 @@ namespace MSAL {
                     adalFrame = window.frames[iframeId];
                 }
             }
-
             return adalFrame;
         }
 
-        Logout(): void {
-            this.clearCache();
-            this.User = null;
-            var urlNavigate: string;
-
-            var logout = '';
-
-            if (this.PostLogoutRedirectUri) {
-                logout = 'post_logout_redirect_uri=' + encodeURIComponent(this.PostLogoutRedirectUri);
-            }
-
-            urlNavigate = this.Authority + '/oauth2/v2.0/logout?' + logout;
-
-            if (urlNavigate) {
-                window.location.replace(urlNavigate);
-            }
+        private renewToken(scopes: Array<string>, callback: Function): void {
+            var scope = scopes.join(' ');
+            Logger.verbose('renewToken is called for scope:' + scope);
+            var frameHandle = this.addAdalFrame('adalRenewFrame' + scope);
+            let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes[ResponseTypes.token], this.redirectUri);
+            authenticationRequest.state = authenticationRequest.state + '|' + scope;
+            // renew happens in iframe, so it keeps javascript context
+            this._renewStates.push(authenticationRequest.state);
+            Logger.verbose('Renew token Expected state: ' + authenticationRequest.state);
+            let urlNavigate: string = authenticationRequest.CreateNavigateUrl(scopes) + '&prompt=none';
+            urlNavigate = this.addHintParameters(urlNavigate);
+            this.registerCallback(authenticationRequest.state, scope, callback);
+            Logger.verbose('Navigate to:' + urlNavigate);
+            frameHandle.src = 'about:blank';
+            this.loadFrameTimeout(urlNavigate, 'adalRenewFrame' + scope, scope);
         }
 
-        Login(): void {
-            /*
-            1. Create navigate url
-            2. saves value in cache
-            3. redirect user to AAD
-            */
-
-            let parameters: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.Authority, this.ClientId, this.AuthenticationMode, null , ResponseTypes.IdToken, this.RedirectUri);
-            if (this.loginInProgress) {
-                return;
-            }
-
-            this.saveItem(this.LOGIN_REQUEST, window.location.href);
-            this.saveItem(this.LOGIN_ERROR, '');
-            this.saveItem(this.STATE_LOGIN, parameters.State);
-            this.saveItem(this.NONCE_IDTOKEN, parameters.Nonce);
-            this.saveItem(this.ERROR, '');
-            this.saveItem(this.ERROR_DESCRIPTION, '');
-
-            let scopes = [this.ClientId];
-            let urlNavigate: string = parameters.CreateNavigateUrl(scopes);
-            console.log(urlNavigate);
-            this.loginInProgress = true;
-            if (this.AuthenticationMode == AuthenticationModes.PopUp) {
-                return;
-            }
-            else {
-                if (urlNavigate) {
-                    window.location.replace(urlNavigate);
-                }
-            }
+        private renewIdToken(scopes: Array<string>, callback: Function): void {
+            Logger.info('renewidToken is called');
+            let frameHandle = this.addAdalFrame('adalIdTokenFrame');
+            let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes[ResponseTypes.id_token], this.redirectUri);
+            authenticationRequest.state = authenticationRequest.state + '|' + this.clientId;
+            this._cacheStorage.saveItem(Constants.nonceIdToken, authenticationRequest.nonce);
+            Logger.verbose('Renew Idtoken Expected state: ' + authenticationRequest.state);
+            let urlNavigate = authenticationRequest.CreateNavigateUrl(scopes) + '&prompt=none';
+            urlNavigate = this.addHintParameters(urlNavigate);
+            this._renewStates.push(authenticationRequest.state);
+            this.registerCallback(authenticationRequest.state, this.clientId, callback);
+            Logger.verbose('Navigate to:' + urlNavigate);
+            frameHandle.src = 'about:blank';
+            this.loadFrameTimeout(urlNavigate, 'adalIdTokenFrame', this.clientId);
         }
 
-        HandleAuthenticationResponse(hash:string): void {
+        private hasScope(key: string): boolean {
+            var keys = this._cacheStorage.getItem(Constants.tokenKeys);
+            return keys && !Utils.isEmpty(keys) && (keys.indexOf(key + Constants.resourceDelimeter) > -1);
+        };
+
+        getUser(): User {
+            // idToken is first call
+            if (this.user) {
+                return this.user;
+            }
+            // frame is used to get idToken
+            var idToken = this._cacheStorage.getItem(Constants.idTokenKey);
+            if (!Utils.isEmpty(idToken)) {
+                this.user = this.createUser(idToken);
+                return this.user;
+            }
+            return null;
+        };
+
+        handleAuthenticationResponse(hash: string): void {
+            if (hash == null)
+                hash = window.location.hash;
             if (this.isCallback(hash)) {
                 let requestInfo: RequestInfo = this.getRequestInfo(hash);
+                Logger.info('Returned from redirect url');
                 this.saveTokenFromHash(requestInfo);
-                let token: string = null, callback: any = null;
-                if ((requestInfo.requestType === this.RENEW_TOKEN) && window.parent) {
-                    // iframe call but same single page
-                    console.log('Window is in iframe');
-                    callback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-                    if (callback)
-                        callback(this.getItem(this.ERROR_DESCRIPTION), requestInfo.parameters[this.ACCESS_TOKEN] || requestInfo.parameters[this.ID_TOKEN]);
-                    return;
+                let token: string = null, callback: Function = null;
+                if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
+                    if (window.parent !== window)
+                        Logger.verbose('Window is in iframe, acquiring token silently');
+                    else
+                        Logger.verbose('acquiring token interactive in progress');
+                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+                        callback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+                    }
+                    else
+                        callback = this._userCallback;
+                    token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
+                } else if (requestInfo.requestType === Constants.login) {
+                    callback = this._userCallback;
+                    token = requestInfo.parameters[Constants.idToken];
                 }
                 try {
                     if (callback)
-                        callback(this.getItem(this.ERROR_DESCRIPTION), token, this.getItem(this.ERROR));
+                        callback(this._cacheStorage.getItem(Constants.errorDescription), token, this._cacheStorage.getItem(Constants.error));
                 } catch (err) {
+                    Logger.error('Error occurred in user defined callback function', err)
                 }
-                if (!(this.AuthenticationMode == AuthenticationModes.PopUp)) {
+                if (this._interactionMode !== this._interactionModes.popUp) {
                     window.location.hash = '';
-                    window.location.href = this.getItem(this.LOGIN_REQUEST);
+                    if (this.navigateToLoginRequestUrl && window.location.href.replace('#', '') !== this._cacheStorage.getItem(Constants.loginRequest))
+                        window.location.href = this._cacheStorage.getItem(Constants.loginRequest);
                 }
             }
         }
 
-        checkSession(): void {
-            console.log("checkSession");
-            try {
-                let frameId = "adalSession";
-                this.CheckSessionIframe = this.addAdalFrame("adalSession");
-                this.CheckSessionIframe.src = this.Authority + "/oauth2/checkSession";
-                let boundMessageEvent = this.receiveMessage.bind(this);
-                if (window.addEventListener) {  // For all major browsers, except IE 8 and earlier
-                    window.addEventListener("message", boundMessageEvent, false);
+        private saveAccessToken(requestInfo: RequestInfo): void {
+            if (requestInfo.parameters.hasOwnProperty('scope')) {
+                this.user = this.getUser();
+                let scopes = requestInfo.parameters['scope'];
+                let consentedScopes = scopes.split(' ');
+                let accessTokenCacheItems: Array<AccessTokenCacheItem> = this._cacheStorage.getAllAccessTokens(this.clientId, this.authority);
+                for (let i = 0; i < accessTokenCacheItems.length; i++) {
+                    let accessTokenCacheItem = accessTokenCacheItems[i];
+                    if (accessTokenCacheItem.key.user.profile.oid === this.user.profile.oid) {
+                        var cachedScopes = accessTokenCacheItem.key.Scopes.split(' ');
+                        if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
+                            this._cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem));
+                        }
+                    }
                 }
-                let self = this;
-                setTimeout(function () {
-                    var sessionState = self.getItem(self.SESSION_STATE) || Utils.Guid();
-                    var expectedState = self.ClientId + ' ' + sessionState;
-                    self.CheckSessionIframe.contentWindow.postMessage(expectedState, self.Authority.replace("/common", ""));
-                }, 300);
-            } catch (err) {
-                console.log('Error navigating iframe to checkSession endpoint', err);
+                let accessTokenKey = new AccessTokenKey(this.authority, this.clientId, this.user, scopes);
+                let accessTokenValue = new AccessTokenValue(requestInfo.parameters[Constants.accessToken], Utils.expiresIn(requestInfo.parameters[Constants.expiresIn]).toString());
+                this._cacheStorage.saveItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             }
-        }
-
-        receiveMessage(e: MessageEvent): void {
-            if (e.origin === this.Authority.replace("/common", "") && e.source === this.CheckSessionIframe.contentWindow) {
-                if (e.data === "error") {
-                    console.log("error message from check session op iframe");
-                    this.SessionState = e.data;
-                }
-                else if (e.data === "changed") {
-                    console.log("Session state: " + e.data + " received from check session op iframe");
-                    this.SessionState = e.data;
-                    this.userSessionChanged(e.data);
-                }
-                else {
-                    console.log("Session state: " + e.data + " received from check session op iframe");
-                    this.SessionState = e.data;
-                    this.userSessionChanged(e.data);
-                }
-            }
-        }
-
-        private userSessionChanged(sessionState: string): void {
-            var evt = new CustomEvent('adal:userSessionChanged', { detail: sessionState });
-            window.dispatchEvent(evt);
         }
 
         private saveTokenFromHash(requestInfo: RequestInfo): void {
-            this.saveItem(this.ERROR, '');
-            this.saveItem(this.ERROR_DESCRIPTION, '');
-
-            var resource = this.getResourceFromState(requestInfo.stateResponse);
-
+            Logger.info('State status:' + requestInfo.stateMatch + '; Request type:' + requestInfo.requestType);
+            this._cacheStorage.saveItem(Constants.error, '');
+            this._cacheStorage.saveItem(Constants.errorDescription, '');
+            var scope = this.getScopeFromState(requestInfo.stateResponse);
             // Record error
-            if (requestInfo.parameters.hasOwnProperty(this.ERROR_DESCRIPTION)) {
-                this.saveItem(this.ERROR, requestInfo.parameters["error"]);
-                this.saveItem(this.ERROR_DESCRIPTION, requestInfo.parameters[this.ERROR_DESCRIPTION]);
-
-                if (requestInfo.requestType === this.LOGIN) {
-                    this.loginInProgress = false;
-                    this.saveItem(this.LOGIN_ERROR, requestInfo.parameters["error_description"]);
+            if (requestInfo.parameters.hasOwnProperty(Constants.errorDescription)) {
+                Logger.info('Error :' + requestInfo.parameters[Constants.error] + '; Error description:' + requestInfo.parameters[Constants.errorDescription]);
+                this._cacheStorage.saveItem(Constants.error, requestInfo.parameters["error"]);
+                this._cacheStorage.saveItem(Constants.errorDescription, requestInfo.parameters[Constants.errorDescription]);
+                if (requestInfo.requestType === Constants.login) {
+                    this._loginInProgress = false;
+                    this._cacheStorage.saveItem(Constants.loginError, requestInfo.parameters["errorDescription"]);
                 }
             } else {
                 // It must verify the state from redirect
                 if (requestInfo.stateMatch) {
                     // record tokens to storage if exists
-                    if (requestInfo.parameters.hasOwnProperty(this.SESSION_STATE)) {
-                        this.saveItem(this.SESSION_STATE, requestInfo.parameters[this.SESSION_STATE]);
+                    Logger.info('State is right');
+                    if (requestInfo.parameters.hasOwnProperty(Constants.sessionState)) {
+                        this._cacheStorage.saveItem(Constants.sessionState, requestInfo.parameters[Constants.sessionState]);
                     }
-
                     var keys: string;
-
-                    if (requestInfo.parameters.hasOwnProperty(this.ACCESS_TOKEN)) {
-                        if (!this.hasResource(resource)) {
-                            keys = this.getItem(this.TOKEN_KEYS) || '';
-                            this.saveItem(this.TOKEN_KEYS, keys + resource + this.RESOURCE_DELIMETER);
-                        }
-                        // save token with related resource
-                        this.saveItem(this.ACCESS_TOKEN_KEY + resource, requestInfo.parameters[this.ACCESS_TOKEN]);
-                        this.saveItem(this.EXPIRATION_KEY + resource, this.expiresIn(requestInfo.parameters[this.EXPIRES_IN]).toString());
+                    if (requestInfo.parameters.hasOwnProperty(Constants.accessToken)) {
+                        Logger.info('Fragment has access token');
+                        this.saveAccessToken(requestInfo);
                     }
-
-                    if (requestInfo.parameters.hasOwnProperty(this.ID_TOKEN)) {
-                        this.loginInProgress = false;
-
-                        this.User = this.createUser(requestInfo.parameters[this.ID_TOKEN]);
-
-                        if (this.User && this.User.profile) {
-                            if (this.User.profile.nonce !== this.getItem(this.NONCE_IDTOKEN)) {
-                                this.User = null;
-                                this.saveItem(this.LOGIN_ERROR, 'Nonce is not same');
+                    if (requestInfo.parameters.hasOwnProperty(Constants.idToken)) {
+                        Logger.info('Fragment has id token');
+                        this._loginInProgress = false;
+                        this.user = this.createUser(requestInfo.parameters[Constants.idToken]);
+                        if (this.user && this.user.profile) {
+                            if (this.user.profile.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
+                                this.user = null;
+                                this._cacheStorage.saveItem(Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Constants.nonceIdToken) + ',' + 'Actual: ' + this.user.profile.nonce);
                             } else {
-                                this.saveItem(this.IDTOKEN, requestInfo.parameters[this.ID_TOKEN]);
-
-                                // Save idtoken as access token for app itself
-                                resource = this.ClientId;
-
-                                if (!this.hasResource(resource)) {
-                                    keys = this.getItem(this.TOKEN_KEYS) || '';
-                                    this.saveItem(this.TOKEN_KEYS, keys + resource + this.RESOURCE_DELIMETER);
+                                this._cacheStorage.saveItem(Constants.idTokenKey, requestInfo.parameters[Constants.idToken]);
+                                // Save idToken as access token for app itself
+                                scope = this.clientId;
+                                if (!this.hasScope(scope)) {
+                                    keys = this._cacheStorage.getItem(Constants.tokenKeys) || '';
+                                    this._cacheStorage.saveItem(Constants.tokenKeys, keys + scope + Constants.resourceDelimeter);
                                 }
-                                this.saveItem(this.ACCESS_TOKEN_KEY + resource, requestInfo.parameters[this.ID_TOKEN]);
-                                this.saveItem(this.EXPIRATION_KEY + resource, this.User.profile.exp);
+                                this._cacheStorage.saveItem(Constants.accessTokenKey + scope, requestInfo.parameters[Constants.idToken]);
+                                this._cacheStorage.saveItem(Constants.expirationKey + scope, this.user.profile.exp);
                             }
                         }
                         else {
-                            this.saveItem(this.ERROR, 'invalid id_token');
-                            this.saveItem(this.ERROR_DESCRIPTION, 'Invalid id_token. id_token: ' + requestInfo.parameters[this.ID_TOKEN]);
+                            this._cacheStorage.saveItem(Constants.error, 'invalid idToken');
+                            this._cacheStorage.saveItem(Constants.errorDescription, 'Invalid idToken. idToken: ' + requestInfo.parameters[Constants.idToken]);
                         }
                     }
                 } else {
-                    this.saveItem(this.ERROR, 'Invalid_state');
-                    this.saveItem(this.ERROR_DESCRIPTION, 'Invalid_state. state: ' + requestInfo.stateResponse);
+                    this._cacheStorage.saveItem(Constants.error, 'Invalid_state');
+                    this._cacheStorage.saveItem(Constants.errorDescription, 'Invalid_state. state: ' + requestInfo.stateResponse);
                 }
             }
-            this.saveItem(this.RENEW_STATUS + resource, this.TOKEN_RENEW_STATUS_COMPLETED);
+            this._cacheStorage.saveItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);
         };
 
         isCallback(hash: string): boolean {
             hash = this.getHash(hash);
-            var parameters = this.deserialize(hash);
+            var parameters = Utils.deserialize(hash);
             return (
-                parameters.hasOwnProperty(this.ERROR_DESCRIPTION) ||
-                parameters.hasOwnProperty(this.ACCESS_TOKEN) ||
-                parameters.hasOwnProperty(this.ID_TOKEN)
+                parameters.hasOwnProperty(Constants.errorDescription) ||
+                parameters.hasOwnProperty(Constants.accessToken) ||
+                parameters.hasOwnProperty(Constants.idToken)
             );
         }
 
@@ -604,170 +670,16 @@ namespace MSAL {
             return hash;
         };
 
-        private deserialize(query: string): any {
-            let match: Array<string>,
-                pl = /\+/g,  // Regex for replacing addition symbol with a space
-                search = /([^&=]+)=([^&]*)/g,
-                decode = function (s: string) {
-                    return decodeURIComponent(s.replace(pl, ' '));
-                },
-                obj = {};
-            match = search.exec(query);
-            while (match) {
-                obj[decode(match[1])] = decode(match[2]);
-                match = search.exec(query);
-            }
-
-            return obj;
-        };
-
-        private hasResource(key: string): boolean {
-            var keys = this.getItem(this.TOKEN_KEYS);
-            return keys && !this.isEmpty(keys) && (keys.indexOf(key + this.RESOURCE_DELIMETER) > -1);
-        };
-
-        private isEmpty(str: string): boolean {
-            return (typeof str === 'undefined' || !str || 0 === str.length);
-        };
-
-        private createUser(idToken: string): User {
-            var user: User;
-            var parsedJson = this.extractIdToken(idToken);
-            if (parsedJson && parsedJson.hasOwnProperty('aud')) {
-                if (parsedJson.aud.toLowerCase() === this.ClientId.toLowerCase()) {
-
-                    user = {
-                        username: '',
-                        profile: parsedJson
-                    };
-
-                    if (parsedJson.hasOwnProperty('upn')) {
-                        user.username = parsedJson.upn;
-                    } else if (parsedJson.hasOwnProperty('email')) {
-                        user.username = parsedJson.email;
-                    }
-                } else {
-                }
-
-            }
-
-            return user;
-        };
-
-        private extractIdToken(encodedIdToken: string): any {
-            // id token will be decoded to get the username
-            var decodedToken = this.decodeJwt(encodedIdToken);
-            if (!decodedToken) {
-                return null;
-            }
-
-            try {
-                var base64IdToken = decodedToken.JWSPayload;
-                var base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
-                if (!base64Decoded) {
-                    return null;
-                }
-
-                // ECMA script has JSON built-in support
-                return JSON.parse(base64Decoded);
-            } catch (err) {
-            }
-
-            return null;
-        };
-
-        private base64DecodeStringUrlSafe(base64IdToken: string): string {
-            // html5 should support atob function for decoding
-            base64IdToken = base64IdToken.replace(/-/g, '+').replace(/_/g, '/');
-            if (window.atob) {
-                return decodeURIComponent(window.atob(base64IdToken)); // jshint ignore:line
-            }
-            else {
-                return decodeURIComponent(this.decode(base64IdToken));
-            }
-        };
-
-        private decode(base64IdToken: string): string {
-            var codes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-            base64IdToken = String(base64IdToken).replace(/=+$/, '');
-
-            var length = base64IdToken.length;
-            if (length % 4 === 1) {
-                throw new Error('The token to be decoded is not correctly encoded.');
-            }
-
-            let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = '';
-            for (var i = 0; i < length; i += 4) {
-                //Every 4 base64 encoded character will be converted to 3 byte string, which is 24 bits
-                // then 6 bits per base64 encoded character
-                h1 = codes.indexOf(base64IdToken.charAt(i));
-                h2 = codes.indexOf(base64IdToken.charAt(i + 1));
-                h3 = codes.indexOf(base64IdToken.charAt(i + 2));
-                h4 = codes.indexOf(base64IdToken.charAt(i + 3));
-
-                // For padding, if last two are '='
-                if (i + 2 === length - 1) {
-                    bits = h1 << 18 | h2 << 12 | h3 << 6;
-                    c1 = bits >> 16 & 255;
-                    c2 = bits >> 8 & 255;
-                    decoded += String.fromCharCode(c1, c2);
-                    break;
-                }
-                // if last one is '='
-                else if (i + 1 === length - 1) {
-                    bits = h1 << 18 | h2 << 12
-                    c1 = bits >> 16 & 255;
-                    decoded += String.fromCharCode(c1);
-                    break;
-                }
-
-                bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
-
-                // then convert to 3 byte chars
-                c1 = bits >> 16 & 255;
-                c2 = bits >> 8 & 255;
-                c3 = bits & 255;
-
-                decoded += String.fromCharCode(c1, c2, c3);
-            }
-
-            return decoded;
-        };
-
-        private decodeJwt(jwtToken: string): any {
-            if (this.isEmpty(jwtToken)) {
-                return null;
-            };
-
-            var idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-
-            var matches = idTokenPartsRegex.exec(jwtToken);
-            if (!matches || matches.length < 4) {
-                return null;
-            }
-
-            var crackedToken = {
-                header: matches[1],
-                JWSPayload: matches[2],
-                JWSSig: matches[3]
-            };
-
-            return crackedToken;
-        };
-
-
         private getRequestInfo(hash: string): RequestInfo {
             hash = this.getHash(hash);
-            let parameters = this.deserialize(hash);
+            let parameters = Utils.deserialize(hash);
             let requestInfo: RequestInfo = new RequestInfo();
             if (parameters) {
                 requestInfo.parameters = parameters;
-                if (parameters.hasOwnProperty(this.ERROR_DESCRIPTION) ||
-                    parameters.hasOwnProperty(this.ACCESS_TOKEN) ||
-                    parameters.hasOwnProperty(this.ID_TOKEN)) {
-
+                if (parameters.hasOwnProperty(Constants.errorDescription) ||
+                    parameters.hasOwnProperty(Constants.accessToken) ||
+                    parameters.hasOwnProperty(Constants.idToken)) {
                     requestInfo.valid = true;
-
                     // which call
                     var stateResponse = '';
                     if (parameters.hasOwnProperty('state')) {
@@ -775,24 +687,26 @@ namespace MSAL {
                     } else {
                         return requestInfo;
                     }
-
                     requestInfo.stateResponse = stateResponse;
-
                     // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                     // incoming callback needs to be looked up to find the request type
-                    if (stateResponse === this.getItem(this.STATE_LOGIN)) {
-                        requestInfo.requestType = this.LOGIN;
+                    if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) {
+                        requestInfo.requestType = Constants.login;
                         requestInfo.stateMatch = true;
                         return requestInfo;
                     }
-
+                    else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken)) {
+                        requestInfo.requestType = Constants.renewToken;
+                        requestInfo.stateMatch = true;
+                        return requestInfo;
+                    }
                     // external api requests may have many renewtoken requests for different resource
                     if (!requestInfo.stateMatch && window.parent && window.parent.MSAL) {
-                        var clientApplication = <ClientApplication>window.parent.MSAL;
-                        var statesInParentContext: Array<string> = clientApplication.RenewStates;
+                        var clientApplication = <UserAgentApplication>window.parent.MSAL;
+                        var statesInParentContext: Array<string> = clientApplication._renewStates;
                         for (var i = 0; i < statesInParentContext.length; i++) {
                             if (statesInParentContext[i] === requestInfo.stateResponse) {
-                                requestInfo.requestType = this.RENEW_TOKEN;
+                                requestInfo.requestType = Constants.renewToken;
                                 requestInfo.stateMatch = true;
                                 break;
                             }
@@ -804,130 +718,36 @@ namespace MSAL {
             return requestInfo;
         };
 
-        private getResourceFromState(state: string): string {
+        private getScopeFromState(state: string): string {
             if (state) {
                 var splitIndex = state.indexOf('|');
                 if (splitIndex > -1 && splitIndex + 1 < state.length) {
                     return state.substring(splitIndex + 1);
                 }
             }
-
             return '';
         };
 
-        private expiresIn(expires: string): number {
-            // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-            if (!expires) expires = '3599';
-            return this.now() + parseInt(expires, 10);
-        };
-
-        private now(): number {
-            return Math.round(new Date().getTime() / 1000.0);
-        };
-
-        private clearCache(): void {
-            this.saveItem(this.ACCESS_TOKEN_KEY, '');
-            this.saveItem(this.EXPIRATION_KEY, "0");
-            this.saveItem(this.SESSION_STATE, '');
-            this.saveItem(this.STATE_LOGIN, '');
-            this.saveItem(this.USERNAME, '');
-            this.saveItem(this.IDTOKEN, '');
-            this.saveItem(this.ERROR, '');
-            this.saveItem(this.ERROR_DESCRIPTION, '');
-            var key = this.getItem(this.TOKEN_KEYS);
-
-            if (!this.isEmpty(key)) {
-                var keys: Array<string> = key.split(this.RESOURCE_DELIMETER);
-                for (var i = 0; i < keys.length; i++) {
-                    this.saveItem(this.ACCESS_TOKEN_KEY + keys[i], '');
-                    this.saveItem(this.EXPIRATION_KEY + keys[i], "0");
+        private createUser(idToken: string): User {
+            var user: User;
+            var parsedJson = Utils.extractIdToken(idToken);
+            if (parsedJson && parsedJson.hasOwnProperty('aud')) {
+                if (parsedJson.aud.toLowerCase() === this.clientId.toLowerCase()) {
+                    user = {
+                        username: '',
+                        profile: parsedJson
+                    };
+                    if (parsedJson.hasOwnProperty('preferred_username')) {
+                        user.username = parsedJson.preferred_username;
+                    } else if (parsedJson.hasOwnProperty('email')) {
+                        user.username = parsedJson.email;
+                    }
+                } else {
                 }
             }
-            this.saveItem(this.TOKEN_KEYS, '');
+            return user;
         };
 
-        private saveItem(key: string, obj: string): boolean {
-
-            if (this.CacheLocation && this.CacheLocation == CacheLocations.LocalStorage) {
-                if (!this.supportsLocalStorage()) {
-                    return false;
-                }
-                localStorage.setItem(key, obj);
-                return true;
-            }
-
-            // Default as session storage
-            if (!this.supportsSessionStorage()) {
-                return false;
-            }
-            sessionStorage.setItem(key, obj);
-            return true;
-        };
-
-        private getItem(key: string): string {
-
-            if (this.CacheLocation && this.CacheLocation == CacheLocations.LocalStorage) {
-                if (!this.supportsLocalStorage()) {
-                    return null;
-                }
-
-                return localStorage.getItem(key);
-            }
-
-            // Default as session storage
-            if (!this.supportsSessionStorage()) {
-                return null;
-            }
-
-            return sessionStorage.getItem(key);
-        };
-
-        private supportsLocalStorage(): boolean {
-            try {
-                var supportsLocalStorage = 'localStorage' in window && window['localStorage'];
-                if (supportsLocalStorage) {
-                    window.localStorage.setItem('storageTest', '');
-                    window.localStorage.removeItem('storageTest');
-                }
-                return true;
-            } catch (e) {
-                return false;
-            }
-        };
-
-        private supportsSessionStorage(): boolean {
-            try {
-                var supportsSessionStorage = 'sessionStorage' in window && window['sessionStorage'];
-                if (supportsSessionStorage) {
-                    window.sessionStorage.setItem('storageTest', '');
-                    window.sessionStorage.removeItem('storageTest');
-                }
-                return true;
-            } catch (e) {
-                return false;
-            }
-        };
-
-    }
-
-    enum AuthenticationModes {
-        Redirect,
-        PopUp
-    }
-
-    enum CacheLocations {
-        SessionStorage,
-        LocalStorage
-    }
-
-    class PromptValues {
-        static None: string = "none";
-        static SelectAccount: string = "select_account";
-    }
-
-    class ResponseTypes {
-        static IdToken: string = "id_token";
-        static Token: string = "token";
     }
 
     class User {
@@ -951,79 +771,98 @@ namespace MSAL {
         }
     }
 
-    class AuthenticationResult {
+    class AccessTokenCacheItem {
+        key: AccessTokenKey;
+        value: AccessTokenValue;
+        constructor(key: AccessTokenKey, value: AccessTokenValue) {
+            this.key = key;
+            this.value = value;
+        }
+    }
 
+    class AccessTokenValue {
+        AccessToken: string;
+        ExpiresIn: string;
+        constructor(accessToken: string, expiresIn: string) {
+            this.AccessToken = accessToken;
+            this.ExpiresIn = expiresIn;
+        }
+    }
+
+    class AccessTokenKey {
+        authority: string;
+        clientId: string;
+        user: User;
+        Scopes: string;
+
+        constructor(authority: string, clientId: string, user: User, scopes: string) {
+            this.authority = authority;
+            this.clientId = clientId;
+            this.Scopes = scopes;
+            this.user = user;
+        }
     }
 
     class AuthenticationRequestParameters {
+        authority: string;
+        clientId: string;
+        nonce: string;
+        state: string;
+        correlationId: string;
+        xClientVer: string;
+        xClientSku: string;
+        scopes: Array<string>;
+        responseType: string;
+        promptValue: string;
+        extraQueryParameters: string;
+        loginHint: string;
+        domainHint: string;
+        redirectUri: string;
 
-        Authority: string;
-        ClientId: string;
-        Nonce: string;
-        State: string;
-        CorrelationId: string;
-        PromptValue: AuthenticationModes;
-        XClientVer: string;
-        XClientSku: string;
-        Scopes: Array<string>;
-        ResponseType: string;
-        ExtraQueryParameters: string;
-        LoginHint: string;
-        DomainHint: string;
-        RedirectUri: string;
-
-        constructor(authority: string, clientId: string, promptValue: AuthenticationModes, scopes: Array<string>, responseType: string, redirectUri: string) {
-            this.Authority = authority;
-            this.ClientId = clientId;
-            this.PromptValue = promptValue;
-            this.Scopes = scopes;
-            this.ResponseType = responseType;
-            this.RedirectUri = redirectUri;
-
+        constructor(authority: string, clientId: string, scope: Array<string>, responseType: string, redirectUri: string) {
+            this.authority = authority;
+            this.clientId = clientId;
+            this.scopes = scope;
+            this.responseType = responseType;
+            this.redirectUri = redirectUri;
             // randomly generated values
             if (responseType !== "token") {
-                this.Nonce = Utils.Guid();
+                this.nonce = Utils.Guid();
             }
-
-            if (this.Scopes == null) this.Scopes = new Array<string>();
-            this.CorrelationId = Utils.Guid();
-            this.State = Utils.Guid();
-            this.Nonce = Utils.Guid();
-
+            this.correlationId = Utils.Guid();
+            this.state = Utils.Guid();
+            this.nonce = Utils.Guid();
             // telemetry information
-            this.XClientSku = "Js";
-            this.XClientVer = Utils.GetLibraryVersion();
+            this.xClientSku = "Js";
+            this.xClientVer = Utils.GetLibraryVersion();
         }
 
         CreateNavigateUrl(scopes: Array<string>): string {
+            if (!scopes)
+                scopes = [this.clientId];
             let requestUrl = "";
             let str: Array<string> = [];
-            str.push('?response_type=' + this.ResponseType);
-            if (scopes) {
-                this.Scopes = this.Scopes.concat(scopes);
-            }
-            if (this.ResponseType === ResponseTypes.IdToken) {
-                if (this.Scopes.indexOf(this.ClientId) > -1) {
-                    this.translateClientIdUsedInScope(this.Scopes);
+            str.push('?response_type=' + this.responseType);
+            if (this.responseType === ResponseTypes[ResponseTypes.id_token]) {
+                if (scopes.indexOf(this.clientId) > -1) {
+                    this.translateclientIdUsedInScope(scopes);
                 }
             }
-
-            str.push('scope=' + encodeURIComponent(this.parseScope(this.Scopes)));
-            str.push('client_id=' + encodeURIComponent(this.ClientId));
-            str.push('redirect_uri=' + encodeURIComponent(this.RedirectUri));
-            str.push('state=' + encodeURIComponent(this.State));
-            str.push('nonce=' + encodeURIComponent(this.Nonce));
-            if (this.ExtraQueryParameters) {
-                str.push(this.ExtraQueryParameters);
+            str.push('scope=' + encodeURIComponent(this.parseScope(scopes)));
+            str.push('client_id=' + encodeURIComponent(this.clientId));
+            str.push('redirect_uri=' + encodeURIComponent(this.redirectUri));
+            str.push('state=' + encodeURIComponent(this.state));
+            str.push('nonce=' + encodeURIComponent(this.nonce));
+            if (this.extraQueryParameters) {
+                str.push(this.extraQueryParameters);
             }
-
-            str.push('client-request-id=' + encodeURIComponent(this.CorrelationId));
-            requestUrl = this.Authority + '/oauth2/v2.0/authorize' + str.join('&') + "&x-client-SKU=" + this.XClientSku + "&x-client-Ver=" + this.XClientVer;
+            str.push('client-request-id=' + encodeURIComponent(this.correlationId));
+            requestUrl = this.authority + '/oauth2/v2.0/authorize' + str.join('&') + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
             return requestUrl;
         }
 
-        private translateClientIdUsedInScope(scopes: Array<string>): void {
-            var clientIdIndex = scopes.indexOf(this.ClientId);
+        translateclientIdUsedInScope(scopes: Array<string>): void {
+            var clientIdIndex = scopes.indexOf(this.clientId);
             if (clientIdIndex >= 0) {
                 scopes.splice(clientIdIndex, 1);
                 scopes.push('openid');
@@ -1031,7 +870,7 @@ namespace MSAL {
             }
         }
 
-        private parseScope(scopes: Array<string>): string {
+        parseScope(scopes: Array<string>): string {
             var scopeList = '';
             if (scopes) {
                 for (var i = 0; i < scopes.length; ++i) {
@@ -1042,7 +881,253 @@ namespace MSAL {
         }
     }
 
+    class Storage {
+
+        private _localStorageSupported: boolean;
+        private _sessionStorageSupported: boolean;
+        private _cacheLocation: string;
+
+        constructor(cacheLocation: string) {
+            this._cacheLocation = cacheLocation;
+            this._localStorageSupported = typeof window[this._cacheLocation] != "undefined" && window[this._cacheLocation] != null;
+            this._sessionStorageSupported = typeof window[cacheLocation] != "undefined" && window[cacheLocation] != null;
+            if (!this._localStorageSupported && !this._sessionStorageSupported)
+                throw new Error('localStorage and sessionStorage not supported');
+        }
+
+        // add value to storage
+        saveItem(key: string, value: string): void {
+            if (window[this._cacheLocation])
+                window[this._cacheLocation].setItem(key, value);
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+        }
+
+        // get one item by key from storage
+        getItem(key: string): string {
+            if (window[this._cacheLocation])
+                return window[this._cacheLocation].getItem(key);
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+        }
+
+        // remove value from storage
+        removeItem(key: string): void {
+            if (window[this._cacheLocation])
+                return window[this._cacheLocation].removeItem(key);
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+        }
+
+        // clear storage (remove all items from it)
+        clear(): void {
+            if (window[this._cacheLocation])
+                return window[this._cacheLocation].clear();
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+        }
+
+        getAllAccessTokens(clientId: string, authority: string): Array<AccessTokenCacheItem> {
+            let key: string;
+            let results: Array<AccessTokenCacheItem> = [];
+            let accessTokenCacheItem: AccessTokenCacheItem;
+            let storage = window[this._cacheLocation];
+            if (storage) {
+                for (key in storage) {
+                    if (storage.hasOwnProperty(key)) {
+                        if (key.match(clientId) && key.match(authority)) {
+                            let value = this.getItem(key);
+                            accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                            results.push(accessTokenCacheItem);
+                        }
+                    }
+                }
+            }
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+            return results;
+        }
+
+    }
+
+
+    class Logger {
+
+        static log(level: number, message: string, error: string): void {
+            if (level <= Logging._logLevel) {
+                var timestamp = new Date().toUTCString();
+                var formattedMessage = '';
+                if (Logging._correlationId)
+                    formattedMessage = timestamp + ':' + Logging._correlationId + '-' + this.libVersion() + '-' + LoggingLevel[level] + ' ' + message;
+                else
+                    formattedMessage = timestamp + ':' + this.libVersion() + '-' + LoggingLevel[level] + ' ' + message;
+                if (error) {
+                    formattedMessage += '\nstack:\n' + error;
+                }
+
+                if (Logging._loginCallback)
+                    Logging._loginCallback(formattedMessage);
+            }
+        }
+
+        static error(message: string, error: string): void {
+            this.log(LoggingLevel.ERROR, message, error);
+        }
+
+        static warn(message: string): void {
+            this.log(LoggingLevel.WARN, message, null);
+        }
+
+        static info(message: string): void {
+            this.log(LoggingLevel.INFO, message, null);
+        }
+
+        static verbose(message: string): void {
+            this.log(LoggingLevel.VERBOSE, message, null);
+        }
+
+        static libVersion(): string {
+            return '1.0.0';
+        }
+    }
+
     class Utils {
+
+        static expiresIn(expires: string): number {
+            // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
+            if (!expires) expires = '3599';
+            return this.now() + parseInt(expires, 10);
+        };
+
+        static now(): number {
+            return Math.round(new Date().getTime() / 1000.0);
+        };
+
+        static isEmpty(str: string): boolean {
+            return (typeof str === 'undefined' || !str || 0 === str.length);
+        };
+
+        static extractIdToken(encodedIdToken: string): any {
+            // id token will be decoded to get the username
+            var decodedToken = this.decodeJwt(encodedIdToken);
+            if (!decodedToken) {
+                return null;
+            }
+            try {
+                var base64IdToken = decodedToken.JWSPayload;
+                var base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
+                if (!base64Decoded) {
+                    Logger.info('The returned id_token could not be base64 url safe decoded.');
+                    return null;
+                }
+                // ECMA script has JSON built-in support
+                return JSON.parse(base64Decoded);
+            } catch (err) {
+                Logger.error('The returned id_token could not be decoded', err);
+            }
+
+            return null;
+        };
+
+        static base64DecodeStringUrlSafe(base64IdToken: string): string {
+            // html5 should support atob function for decoding
+            base64IdToken = base64IdToken.replace(/-/g, '+').replace(/_/g, '/');
+            if (window.atob) {
+                return decodeURIComponent(window.atob(base64IdToken)); // jshint ignore:line
+            }
+            else {
+                return decodeURIComponent(this.decode(base64IdToken));
+            }
+        };
+
+        static decode(base64IdToken: string): string {
+            var codes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+            base64IdToken = String(base64IdToken).replace(/=+$/, '');
+            var length = base64IdToken.length;
+            if (length % 4 === 1) {
+                throw new Error('The token to be decoded is not correctly encoded.');
+            }
+            let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = '';
+            for (var i = 0; i < length; i += 4) {
+                //Every 4 base64 encoded character will be converted to 3 byte string, which is 24 bits
+                // then 6 bits per base64 encoded character
+                h1 = codes.indexOf(base64IdToken.charAt(i));
+                h2 = codes.indexOf(base64IdToken.charAt(i + 1));
+                h3 = codes.indexOf(base64IdToken.charAt(i + 2));
+                h4 = codes.indexOf(base64IdToken.charAt(i + 3));
+                // For padding, if last two are '='
+                if (i + 2 === length - 1) {
+                    bits = h1 << 18 | h2 << 12 | h3 << 6;
+                    c1 = bits >> 16 & 255;
+                    c2 = bits >> 8 & 255;
+                    decoded += String.fromCharCode(c1, c2);
+                    break;
+                }
+                // if last one is '='
+                else if (i + 1 === length - 1) {
+                    bits = h1 << 18 | h2 << 12
+                    c1 = bits >> 16 & 255;
+                    decoded += String.fromCharCode(c1);
+                    break;
+                }
+                bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
+                // then convert to 3 byte chars
+                c1 = bits >> 16 & 255;
+                c2 = bits >> 8 & 255;
+                c3 = bits & 255;
+                decoded += String.fromCharCode(c1, c2, c3);
+            }
+            return decoded;
+        };
+
+        static decodeJwt(jwtToken: string): any {
+            if (this.isEmpty(jwtToken)) {
+                return null;
+            };
+            var idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
+            var matches = idTokenPartsRegex.exec(jwtToken);
+            if (!matches || matches.length < 4) {
+                Logger.warn('The returned id_token is not parseable.');
+                return null;
+            }
+            var crackedToken = {
+                header: matches[1],
+                JWSPayload: matches[2],
+                JWSSig: matches[3]
+            };
+            return crackedToken;
+        };
+
+
+        static deserialize(query: string): any {
+            let match: Array<string>,
+                pl = /\+/g,  // Regex for replacing addition symbol with a space
+                search = /([^&=]+)=([^&]*)/g,
+                decode = function (s: string) {
+                    return decodeURIComponent(s.replace(pl, ' '));
+                },
+                obj = {};
+            match = search.exec(query);
+            while (match) {
+                obj[decode(match[1])] = decode(match[2]);
+                match = search.exec(query);
+            }
+            return obj;
+        };
+
+        static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+            for (let i = 0; i < scopes.length; i++) {
+                if (cachedScopes.indexOf(scopes[i]) > -1)
+                    return true;
+            }
+            return false;
+        }
+
+        static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+            return scopes.every(function (value) {
+                return cachedScopes.indexOf(value) >= 0;
+            });
+        }
 
         static DecimalToHex(num: number): string {
             var hex: string = num.toString(16);
