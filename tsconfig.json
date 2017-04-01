@@ -1,14 +1,18 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-   "target": "es5",
-    "module": "commonjs",
+    "target": "es5",
+    "module": "system",
     "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "outFile": "out/msal.js"
   },
-  "files": [
-    "lib/msaljs.ts",
-    "lib/set.ts"
+  "include": [
+    "lib/**/*"
+  ],
+  "exclude": [
+    "**/*Spec.js",
+    "**/*.spec.ts"
   ]
 }
