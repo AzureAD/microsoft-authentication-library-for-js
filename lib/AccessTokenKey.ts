@@ -1,5 +1,3 @@
-/// <reference path='User.ts' />
-
 namespace MSAL {
     export class AccessTokenKey {
         authority: string;
