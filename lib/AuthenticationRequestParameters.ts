@@ -1,4 +1,10 @@
 namespace MSAL {
+
+    export enum ResponseTypes {
+        id_token,
+        token
+    }
+
     export class AuthenticationRequestParameters {
         authority: string;
         clientId: string;
@@ -22,9 +28,8 @@ namespace MSAL {
             this.responseType = responseType;
             this.redirectUri = redirectUri;
             // randomly generated values
-            if (responseType !== "token") {
+            if (responseType !== "token")
                 this.nonce = Utils.Guid();
-            }
             this.correlationId = Utils.Guid();
             this.state = Utils.Guid();
             this.nonce = Utils.Guid();
@@ -40,18 +45,17 @@ namespace MSAL {
             let str: Array<string> = [];
             str.push('?response_type=' + this.responseType);
             if (this.responseType === ResponseTypes[ResponseTypes.id_token]) {
-                if (scopes.indexOf(this.clientId) > -1) {
+                if (scopes.indexOf(this.clientId) > -1)
                     this.translateclientIdUsedInScope(scopes);
-                }
             }
+
             str.push('scope=' + encodeURIComponent(this.parseScope(scopes)));
             str.push('client_id=' + encodeURIComponent(this.clientId));
             str.push('redirect_uri=' + encodeURIComponent(this.redirectUri));
             str.push('state=' + encodeURIComponent(this.state));
             str.push('nonce=' + encodeURIComponent(this.nonce));
-            if (this.extraQueryParameters) {
+            if (this.extraQueryParameters)
                 str.push(this.extraQueryParameters);
-            }
             str.push('client-request-id=' + encodeURIComponent(this.correlationId));
             requestUrl = this.authority + '/oauth2/v2.0/authorize' + str.join('&') + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
             return requestUrl;

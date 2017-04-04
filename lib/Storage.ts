@@ -1,13 +1,18 @@
 namespace MSAL {
-    export class Storage {
+    export class Storage {// Singleton
+        private static _instance: Storage;
         private _localStorageSupported: boolean;
         private _sessionStorageSupported: boolean;
         private _cacheLocation: string;
 
         constructor(cacheLocation: string) {
+            if (Storage._instance) {
+                return Storage._instance;
+            }
             this._cacheLocation = cacheLocation;
             this._localStorageSupported = typeof window[this._cacheLocation] != "undefined" && window[this._cacheLocation] != null;
             this._sessionStorageSupported = typeof window[cacheLocation] != "undefined" && window[cacheLocation] != null;
+            Storage._instance = this;
             if (!this._localStorageSupported && !this._sessionStorageSupported)
                 throw new Error('localStorage and sessionStorage not supported');
         }

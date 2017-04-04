@@ -1,6 +1,3 @@
-///<reference path='AccessTokenKey.ts'/>
-///<reference path='AccessTokenValue.ts'/>
-
 namespace MSAL {
     export class AccessTokenCacheItem {
         key: AccessTokenKey;
