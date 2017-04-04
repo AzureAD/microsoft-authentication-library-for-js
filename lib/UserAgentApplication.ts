@@ -1,5 +1,3 @@
-///<reference path='Storage.ts'/>
-
 namespace MSAL {
     export class UserAgentApplication {
         private _cacheLocations = {
@@ -46,6 +44,7 @@ namespace MSAL {
         redirectUri: string;
         postLogoutredirectUri: string;
         correlationId: string;
+        window: any;
         // validatAuthority: boolean = true; This will be implemented after the build. Only scenarios that will be affected are the ones where the authority is dynamically discovered.
         navigateToLoginRequestUrl: boolean = true;
 
@@ -63,9 +62,12 @@ namespace MSAL {
             this._checkSessionIframe = null;
             this._activeRenewals = {};
             this._cacheStorage = new Storage(this._cacheLocation);
-            window.MSAL = this;
-            window.callBackMappedToRenewStates = {};
-            window.callBacksMappedToRenewStates = {};
+
+            // define globals
+            this.window = window;
+            this.window.MSAL = this;
+            this.window.callBackMappedToRenewStates = {};
+            this.window.callBacksMappedToRenewStates = {};
         }
 
         login(): void {
@@ -195,6 +197,7 @@ namespace MSAL {
         }
 
         private registerCallback(expectedState: string, scope: string, callback: Function): void {
+            let window = this.window;
             this._activeRenewals[scope] = expectedState;
             if (!window.callBacksMappedToRenewStates[expectedState]) {
                 window.callBacksMappedToRenewStates[expectedState] = [];
@@ -350,7 +353,8 @@ namespace MSAL {
             this._cacheStorage.saveItem(Constants.renewStatus + scope, Constants.tokenRenewStatusInProgress);
             this.loadFrame(urlNavigate, frameName);
             var self = this;
-            setTimeout(function () {
+            setTimeout(() => {
+                let window = this.window;
                 if (self._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
                     // fail the iframe session if it's in pending state
                     Logger.verbose('Loading frame has timed out after: ' + (Constants.loadFrameTimeout / 1000) + ' seconds for scope ' + scope);
@@ -458,6 +462,7 @@ namespace MSAL {
         };
 
         handleAuthenticationResponse(hash: string): void {
+            let window = this.window;
             if (hash == null)
                 hash = window.location.hash;
             if (this.isCallback(hash)) {
@@ -596,6 +601,7 @@ namespace MSAL {
         };
 
         private getRequestInfo(hash: string): RequestInfo {
+            let window = this.window;
             hash = this.getHash(hash);
             let parameters = Utils.deserialize(hash);
             let requestInfo: RequestInfo = new RequestInfo();
