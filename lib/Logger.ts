@@ -1,7 +1,7 @@
 namespace MSAL {
 
     export interface ILoggerCallback {
-        (level: LogLevel, message: string,containsPii:boolean): boolean;
+        (level: LogLevel, message: string,containsPii:boolean): void;
     }
 
     export enum LogLevel {
@@ -15,11 +15,15 @@ namespace MSAL {
         private static _instance: Logger;
         private _correlationId: string;
         get correlationId(): string { return this._correlationId; }
+        set correlationId(correlationId: string) {
+            this._correlationId = correlationId;
+        };
         private _level: LogLevel = LogLevel.Info;
         get level(): LogLevel { return this._level; }
         set level(logLevel: LogLevel) {
-            if (LogLevel[logLevel])
+            if (LogLevel[logLevel]) {
                 this._level = logLevel;
+            }
             else throw new Error("Provide a valid value for level. Possibles range for logLevel is 0-3");
         };
 
@@ -32,6 +36,9 @@ namespace MSAL {
         private _localCallback: ILoggerCallback;
         get localCallback(): ILoggerCallback { return this._localCallback; }
         set localCallback(localCallback: ILoggerCallback) {
+            if (this.localCallback) {
+                throw new Error("MSAL logging callback can only be set once per process and should never change once set.");
+            }
             this._localCallback = localCallback;
         };
 
@@ -49,18 +56,19 @@ namespace MSAL {
             }
             var timestamp = new Date().toUTCString();
             var log: string = '';
-            if (!Utils.isEmpty(this.correlationId))
+            if (!Utils.isEmpty(this.correlationId)) {
                 log = timestamp + ':' + this._correlationId + '-' + Utils.GetLibraryVersion() + '-' + LogLevel[logLevel] + ' ' + logMessage;
-            else
+            }
+            else {
                 log = timestamp + ':' + Utils.GetLibraryVersion() + '-' + LogLevel[logLevel] + ' ' + logMessage;
-
+            }
             this.executeCallback(logLevel, log, containsPii);
-
         }
 
         executeCallback(level: LogLevel, message: string, containsPii: boolean) {
-            if (this.localCallback)
+            if (this.localCallback) {
                 this.localCallback(level, message, containsPii);
+            }
         }
 
         error(message: string): void {
@@ -94,7 +102,5 @@ namespace MSAL {
         verbosePii(message: string): void {
             this.LogMessage(message, LogLevel.Verbose, true);
         }
-       
     }
-
 }

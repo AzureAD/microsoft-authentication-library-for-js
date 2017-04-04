@@ -1,16 +1,4 @@
-
-interface Window {
-    MSAL: Object,
-    callBackMappedToRenewStates: Object;
-    callBacksMappedToRenewStates: Object;
-}
-
 namespace MSAL {
-
-    interface User {
-        username: string;
-        profile: any;
-    }
 
     export class UserAgentApplication {
 
@@ -93,8 +81,9 @@ namespace MSAL {
             2. saves value in cache
             3. redirect user to AAD
             */
-            if (this._loginInProgress)
+            if (this._loginInProgress) {
                 return;
+            }
 
             let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, null, ResponseTypes[ResponseTypes.id_token], this.redirectUri);
             this._cacheStorage.saveItem(Constants.loginRequest, window.location.href);
@@ -109,10 +98,10 @@ namespace MSAL {
                 this.openConsentWindow(urlNavigate, 'login', 20, this, this._userCallback);
                 return;
             }
-
             else {
-                if (urlNavigate)
+                if (urlNavigate) {
                     window.location.replace(urlNavigate);
+                }
             }
         }
 
@@ -125,8 +114,9 @@ namespace MSAL {
                 this._cacheStorage.saveItem(Constants.error, 'Error opening popup');
                 this._cacheStorage.saveItem(Constants.errorDescription, 'Popup Window is null. This can happen if you are using IE');
                 this._cacheStorage.saveItem(Constants.loginError, 'Popup Window is null. This can happen if you are using IE');
-                if (callback)
+                if (callback) {
                     callback(this._cacheStorage.getItem(Constants.loginError), null, null);
+                }
                 return;
             }
 
@@ -160,9 +150,11 @@ namespace MSAL {
             if (this.postLogoutredirectUri) {
                 logout = 'post_logout_redirect_uri=' + encodeURIComponent(this.postLogoutredirectUri);
             }
+
             let urlNavigate: string = this.authority + '/oauth2/v2.0/logout?' + logout;
-            if (urlNavigate)
+            if (urlNavigate) {
                 window.location.replace(urlNavigate);
+            }
         }
 
         private clearCache(): void {
@@ -180,6 +172,7 @@ namespace MSAL {
                     this._cacheStorage.saveItem(Constants.expirationKey + keysArray[i], '0');
                 }
             }
+
             this._cacheStorage.saveItem(Constants.tokenKeys, '');
         }
 
@@ -201,15 +194,16 @@ namespace MSAL {
                 let top = ((height / 2) - (popUpHeight / 2)) + winTop;
 
                 let popupWindow = window.open(urlNavigate, title, 'width=' + popUpWidth + ', height=' + popUpHeight + ', top=' + top + ', left=' + left);
-                if (popupWindow.focus)
+                if (popupWindow.focus) {
                     popupWindow.focus();
+                }
+
                 return popupWindow;
             } catch (e) {
                 this._requestContext.logger.error('error opening popup ' + e.message);
                 this._loginInProgress = false;
                 return null;
             }
-
         }
 
         private validateInputScope(scopes: Array<string>): void {
@@ -261,7 +255,7 @@ namespace MSAL {
             let accessTokenItems: Array<AccessTokenCacheItem> = []; // Array to store multiple accessTokens for the same set of scopes
             for (let i = 0; i < accessTokenCacheItems.length; i++) {
                 let accessTokenCacheItem = accessTokenCacheItems[i];
-                if (accessTokenCacheItem.key.homeObjectId === this.user.profile.oid) {
+                if (accessTokenCacheItem.key.userIdentifier === this.user.profile.oid) {
                     let cachedScopes = accessTokenCacheItem.key.Scopes.split(' ');
                     if (Utils.containsScope(cachedScopes, scopes))
                         accessTokenItems.push(accessTokenCacheItem);
@@ -286,18 +280,24 @@ namespace MSAL {
         private addHintParameters(urlNavigate: string, loginHint?: string): string {
             if (this.user && this.user.profile && this.user.profile.hasOwnProperty('preferred_username')) {
                 // add login_hint
-                if (loginHint)
+                if (loginHint) {
                     urlNavigate += '&login_hint=' + encodeURIComponent(loginHint);
-                else
+                }
+                else {
                     urlNavigate += '&login_hint=' + encodeURIComponent(this.user.profile.preferred_username);
+                }
+
                 // don't add domain_hint twice if user provided it in the extraQueryParameter value
                 if (!this.urlContainsQueryStringParameter('domain_hint', urlNavigate) && this.user.profile.hasOwnProperty('tid')) {
-                    if (this.user.profile.tid === '9188040d-6c67-4c5b-b112-36a304b66dad')
+                    if (this.user.profile.tid === '9188040d-6c67-4c5b-b112-36a304b66dad') {
                         urlNavigate += '&domain_hint=' + encodeURIComponent("consumers");
-                    else
+                    }
+                    else {
                         urlNavigate += '&domain_hint=' + encodeURIComponent("organizations");
+                    }
                 }
             }
+
             return urlNavigate;
         }
 
@@ -312,8 +312,10 @@ namespace MSAL {
         acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint: string, extraQueryParameters: string): void;
 
         acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint?: string, extraQueryParameters?: string): void {
-            if (this._acquireTokenInProgress)
+            if (this._acquireTokenInProgress) {
                 return;
+            }
+
             this.validateInputScope(scopes);
             let scope: string = scopes.join(' ');
             if (!this.user) {
@@ -330,6 +332,7 @@ namespace MSAL {
                 urlNavigate = this.addHintParameters(urlNavigate, loginHint);
             else
                 urlNavigate = this.addHintParameters(urlNavigate);
+			
             if (this._interactionMode === this._interactionModes.popUp) {
                 this._renewStates.push(authenticationRequest.state);
                 this.registerCallback(authenticationRequest.state, scope, callback);
@@ -353,10 +356,12 @@ namespace MSAL {
                 callback(null, token,null);
                 return;
             }
+
             if (!this.user) {
                 callback('user login is required', null,null);
                 return;
             }
+
             // refresh attept with iframe
             //Already renewing for this scope, callback when we get the token.
             if (this._activeRenewals[scope]) {
@@ -406,12 +411,15 @@ namespace MSAL {
                     frameHandle.src = urlNavigate;
                     self.loadFrame(urlNavigate, frameCheck);
                 }
+
             }, 500);
         }
 
         private addAdalFrame(iframeId: string): HTMLIFrameElement {
-            if (typeof iframeId === 'undefined')
+            if (typeof iframeId === 'undefined') {
                 return;
+            }
+
             this._requestContext.logger.info('Add msal frame to document:' + iframeId);
             var adalFrame = <HTMLIFrameElement>document.getElementById(iframeId);
             if (!adalFrame) {
@@ -424,10 +432,14 @@ namespace MSAL {
                     ifr.style.width = ifr.style.height = '0px';
                     adalFrame = <HTMLIFrameElement>document.getElementsByTagName('body')[0].appendChild(ifr);
                 }
-                else if (document.body && document.body.insertAdjacentHTML)
+
+                else if (document.body && document.body.insertAdjacentHTML) {
                     document.body.insertAdjacentHTML('beforeEnd', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
-                if (window.frames && window.frames[iframeId])
+                }
+                   
+                if (window.frames && window.frames[iframeId]) {
                     adalFrame = window.frames[iframeId];
+                }
             }
 
             return adalFrame;
@@ -473,8 +485,10 @@ namespace MSAL {
 
         getUser(): User {
             // idToken is first call
-            if (this.user)
+            if (this.user) {
                 return this.user;
+            }
+
             // frame is used to get idToken
             var idToken = this._cacheStorage.getItem(Constants.idTokenKey);
             if (!Utils.isEmpty(idToken)) {
@@ -486,8 +500,9 @@ namespace MSAL {
         };
 
         handleAuthenticationResponse(hash: string): void {
-            if (hash == null)
+            if (hash == null) {
                 hash = window.location.hash;
+            }
             if (this.isCallback(hash)) {
                 let requestInfo: RequestInfo = this.getRequestInfo(hash);
                 this._requestContext.logger.info('Returned from redirect url');
@@ -504,6 +519,7 @@ namespace MSAL {
                         callback = this._userCallback;
                     token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
                 }
+
                 else if (requestInfo.requestType === Constants.login) {
                     callback = this._userCallback;
                     token = requestInfo.parameters[Constants.idToken];
@@ -532,12 +548,14 @@ namespace MSAL {
                 let accessTokenCacheItems: Array<AccessTokenCacheItem> = this._cacheStorage.getAllAccessTokens(this.clientId, this.authority);
                 for (let i = 0; i < accessTokenCacheItems.length; i++) {
                     let accessTokenCacheItem = accessTokenCacheItems[i];
-                    if (accessTokenCacheItem.key.homeObjectId === this.user.profile.oid) {
+                    if (accessTokenCacheItem.key.userIdentifier === this.user.profile.oid) {
                         var cachedScopes = accessTokenCacheItem.key.Scopes.split(' ');
                         if (Utils.isIntersectingScopes(cachedScopes, consentedScopes))
                             this._cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                     }
+
                 }
+
                 let accessTokenKey = new AccessTokenKey(this.authority, this.clientId, scopes, this.user.profile.oid);
                 let accessTokenValue = new AccessTokenValue(requestInfo.parameters[Constants.accessToken], Utils.expiresIn(requestInfo.parameters[Constants.expiresIn]).toString());
                 this._cacheStorage.saveItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -596,12 +614,14 @@ namespace MSAL {
                             this._cacheStorage.saveItem(Constants.error, 'invalid idToken');
                             this._cacheStorage.saveItem(Constants.errorDescription, 'Invalid idToken. idToken: ' + requestInfo.parameters[Constants.idToken]);
                         }
+
                     }
 
                 } else {
                     this._cacheStorage.saveItem(Constants.error, 'Invalid_state');
                     this._cacheStorage.saveItem(Constants.errorDescription, 'Invalid_state. state: ' + requestInfo.stateResponse);
                 }
+				
             }
 
             this._cacheStorage.saveItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);
@@ -623,6 +643,7 @@ namespace MSAL {
             } else if (hash.indexOf('#') > -1) {
                 hash = hash.substring(1);
             }
+
             return hash;
         };
 
@@ -698,12 +719,16 @@ namespace MSAL {
                     } else if (parsedJson.hasOwnProperty('email')) {
                         user.username = parsedJson.email;
                     }
+
                 } else {
                     this._requestContext.logger.warning('IdToken has invalid aud field');
                 }
+
             }
+
             return user;
         };
 
     }
+
 }

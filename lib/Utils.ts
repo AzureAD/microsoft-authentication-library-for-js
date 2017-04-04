@@ -150,7 +150,7 @@ namespace MSAL {
             return "0.1";
         }
 
-        static Guid(): string {
+        static CreateNewGuid(): string {
             // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
             // pseudo-random numbers.
             // The algorithm is as follows:
@@ -220,4 +220,5 @@ namespace MSAL {
         };
 
     }
+
 }
