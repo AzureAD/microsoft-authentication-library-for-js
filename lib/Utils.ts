@@ -1,4 +1,5 @@
 namespace MSAL {
+
     export class Utils {
 
         static expiresIn(expires: string): number {
@@ -25,13 +26,13 @@ namespace MSAL {
                 var base64IdToken = decodedToken.JWSPayload;
                 var base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
                 if (!base64Decoded) {
-                    Logger.info('The returned id_token could not be base64 url safe decoded.');
+                    //this._requestContext.logger.info('The returned id_token could not be base64 url safe decoded.');
                     return null;
                 }
                 // ECMA script has JSON built-in support
                 return JSON.parse(base64Decoded);
             } catch (err) {
-                Logger.error('The returned id_token could not be decoded', err);
+                //this._requestContext.logger.error('The returned id_token could not be decoded' + err);
             }
 
             return null;
@@ -95,7 +96,7 @@ namespace MSAL {
             var idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
             var matches = idTokenPartsRegex.exec(jwtToken);
             if (!matches || matches.length < 4) {
-                Logger.warn('The returned id_token is not parseable.');
+                //this._requestContext.logger.warn('The returned id_token is not parseable.');
                 return null;
             }
             var crackedToken = {
@@ -149,7 +150,7 @@ namespace MSAL {
             return "0.1";
         }
 
-        static Guid(): string {
+        static CreateNewGuid(): string {
             // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
             // pseudo-random numbers.
             // The algorithm is as follows:
@@ -217,5 +218,7 @@ namespace MSAL {
                 return guidResponse;
             }
         };
+
     }
+
 }

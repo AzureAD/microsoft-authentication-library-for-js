@@ -1,5 +1,5 @@
 namespace MSAL {
-    export class User {
+    export interface User {
         username: string;
         profile: any;
     }

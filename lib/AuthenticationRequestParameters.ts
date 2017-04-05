@@ -1,4 +1,10 @@
 namespace MSAL {
+
+    export enum ResponseTypes {
+        id_token,
+        token
+    }
+
     export class AuthenticationRequestParameters {
         authority: string;
         clientId: string;
@@ -23,19 +29,20 @@ namespace MSAL {
             this.redirectUri = redirectUri;
             // randomly generated values
             if (responseType !== "token") {
-                this.nonce = Utils.Guid();
+                this.nonce = Utils.CreateNewGuid();
             }
-            this.correlationId = Utils.Guid();
-            this.state = Utils.Guid();
-            this.nonce = Utils.Guid();
+            this.correlationId = Utils.CreateNewGuid();
+            this.state = Utils.CreateNewGuid();
+            this.nonce = Utils.CreateNewGuid();
             // telemetry information
             this.xClientSku = "Js";
             this.xClientVer = Utils.GetLibraryVersion();
         }
 
         CreateNavigateUrl(scopes: Array<string>): string {
-            if (!scopes)
+            if (!scopes) {
                 scopes = [this.clientId];
+            }
             let requestUrl = "";
             let str: Array<string> = [];
             str.push('?response_type=' + this.responseType);

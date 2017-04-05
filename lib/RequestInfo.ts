@@ -5,7 +5,6 @@ namespace MSAL {
         stateMatch: boolean;
         stateResponse: string;
         requestType: string;
-
         constructor() {
             this.valid = false;
             this.parameters = {};

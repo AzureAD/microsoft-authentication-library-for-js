@@ -1,7 +1,10 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es5",
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "target": "es6",
     "module": "system",
     "removeComments": true,
     "preserveConstEnums": true,

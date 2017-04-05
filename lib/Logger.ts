@@ -1,47 +1,106 @@
 namespace MSAL {
-    export enum LoggingLevel {
-        ERROR,
-        WARN,
-        INFO,
-        VERBOSE
+
+    export interface ILoggerCallback {
+        (level: LogLevel, message: string,containsPii:boolean): void;
     }
 
-    export class Logger {
-        static log(level: number, message: string, error: string): void {
-            if (level <= Logging._logLevel) {
-                var timestamp = new Date().toUTCString();
-                var formattedMessage = '';
-                if (Logging._correlationId)
-                    formattedMessage = timestamp + ':' + Logging._correlationId + '-' + this.libVersion() + '-' + LoggingLevel[level] + ' ' + message;
-                else
-                    formattedMessage = timestamp + ':' + this.libVersion() + '-' + LoggingLevel[level] + ' ' + message;
-                if (error) {
-                    formattedMessage += '\nstack:\n' + error;
-                }
+    export enum LogLevel {
+        Error,
+        Warning,
+        Info,
+        Verbose
+    }
 
-                if (Logging._loginCallback)
-                    Logging._loginCallback(formattedMessage);
+    export class Logger {// Singleton Class
+        private static _instance: Logger;
+        private _correlationId: string;
+        get correlationId(): string { return this._correlationId; }
+        set correlationId(correlationId: string) {
+            this._correlationId = correlationId;
+        };
+        private _level: LogLevel = LogLevel.Info;
+        get level(): LogLevel { return this._level; }
+        set level(logLevel: LogLevel) {
+            if (LogLevel[logLevel]) {
+                this._level = logLevel;
+            }
+            else throw new Error("Provide a valid value for level. Possibles range for logLevel is 0-3");
+        };
+
+        private _piiLoggingEnabled: boolean = false;
+        get piiLoggingEnabled(): boolean { return this._piiLoggingEnabled; }
+        set piiLoggingEnabled(piiLoggingEnabled: boolean) {
+            this._piiLoggingEnabled = piiLoggingEnabled;
+        };
+
+        private _localCallback: ILoggerCallback;
+        get localCallback(): ILoggerCallback { return this._localCallback; }
+        set localCallback(localCallback: ILoggerCallback) {
+            if (this.localCallback) {
+                throw new Error("MSAL logging callback can only be set once per process and should never change once set.");
+            }
+            this._localCallback = localCallback;
+        };
+
+        constructor(correlationId: string) {
+            if (Logger._instance) {
+                return Logger._instance;
+            }
+            this._correlationId = correlationId;
+            Logger._instance = this;
+        }
+
+        private LogMessage(logMessage: string, logLevel: LogLevel, containsPii: boolean) {
+            if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
+                return;
+            }
+            var timestamp = new Date().toUTCString();
+            var log: string = '';
+            if (!Utils.isEmpty(this.correlationId)) {
+                log = timestamp + ':' + this._correlationId + '-' + Utils.GetLibraryVersion() + '-' + LogLevel[logLevel] + ' ' + logMessage;
+            }
+            else {
+                log = timestamp + ':' + Utils.GetLibraryVersion() + '-' + LogLevel[logLevel] + ' ' + logMessage;
+            }
+            this.executeCallback(logLevel, log, containsPii);
+        }
+
+        executeCallback(level: LogLevel, message: string, containsPii: boolean) {
+            if (this.localCallback) {
+                this.localCallback(level, message, containsPii);
             }
         }
 
-        static error(message: string, error: string): void {
-            this.log(LoggingLevel.ERROR, message, error);
+        error(message: string): void {
+            this.LogMessage(message, LogLevel.Error, false);
         }
 
-        static warn(message: string): void {
-            this.log(LoggingLevel.WARN, message, null);
+        errorPii(message: string): void {
+            this.LogMessage(message, LogLevel.Error, true);
         }
 
-        static info(message: string): void {
-            this.log(LoggingLevel.INFO, message, null);
+        warning(message: string): void {
+            this.LogMessage(message, LogLevel.Warning, false);
         }
 
-        static verbose(message: string): void {
-            this.log(LoggingLevel.VERBOSE, message, null);
+        warningPii(message: string): void {
+            this.LogMessage(message, LogLevel.Warning, true);
         }
 
-        static libVersion(): string {
-            return '1.0.0';
+        info(message: string): void {
+            this.LogMessage(message, LogLevel.Info, false);
+        }
+
+        infoPii(message: string): void {
+            this.LogMessage(message, LogLevel.Info, true);
+        }
+
+        verbose(message: string): void {
+            this.LogMessage(message, LogLevel.Verbose, false);
+        }
+
+        verbosePii(message: string): void {
+            this.LogMessage(message, LogLevel.Verbose, true);
         }
     }
 }

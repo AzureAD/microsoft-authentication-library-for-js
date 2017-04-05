@@ -5,19 +5,19 @@ namespace MSAL {
         static get accessToken(): string { return "access_token"; }
         static get expiresIn(): string { return "expires_in"; }
         static get sessionState(): string { return "session_state"; }
-        static get tokenKeys(): string { return "adal.token.keys"; }
-        static get accessTokenKey(): string { return "adal.access.token.key"; }
-        static get expirationKey(): string { return "adal.expiration.key"; }
-        static get stateLogin(): string { return "adal.state.login"; }
-        static get stateAcquireToken(): string { return "adal.state.acquireToken"; }
-        static get stateRenew(): string { return "adal.state.renew"; }
-        static get nonceIdToken(): string { return "adal.nonce.idtoken"; }
-        static get userName(): string { return "adal.username"; }
-        static get idTokenKey(): string { return "adal.idtoken"; }
-        static get error(): string { return "adal.error"; }
-        static get loginRequest(): string { return "adal.login.request"; }
-        static get loginError(): string { return "adal.login.error"; }
-        static get renewStatus(): string { return "adal.token.renew.status"; }
+        static get tokenKeys(): string { return "msal.token.keys"; }
+        static get accessTokenKey(): string { return "msal.access.token.key"; }
+        static get expirationKey(): string { return "msal.expiration.key"; }
+        static get stateLogin(): string { return "msal.state.login"; }
+        static get stateAcquireToken(): string { return "msal.state.acquireToken"; }
+        static get stateRenew(): string { return "msal.state.renew"; }
+        static get nonceIdToken(): string { return "msal.nonce.idtoken"; }
+        static get userName(): string { return "msal.username"; }
+        static get idTokenKey(): string { return "msal.idtoken"; }
+        static get error(): string { return "msal.error"; }
+        static get loginRequest(): string { return "msal.login.request"; }
+        static get loginError(): string { return "msal.login.error"; }
+        static get renewStatus(): string { return "msal.token.renew.status"; }
         static get resourceDelimeter(): string { return "|"; }
         private static _loadFrameTimeout: number = 6000;
         static get loadFrameTimeout(): number {

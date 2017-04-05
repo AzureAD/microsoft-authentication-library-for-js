@@ -256,4 +256,3 @@ lib/*.js
 lib/*.js.map
 #tests/unit/*.js # TODO add these once the unit tests are in TS
 #tests/unit/*.js.map
-out
