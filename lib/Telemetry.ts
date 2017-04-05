@@ -1,6 +1,6 @@
 namespace MSAL {
-    class Telmetry {
-        private static instance: Telmetry;
+    export class Telemetry {
+        private static instance: Telemetry;
         private receiverCallback: (r: Array<Object>) => void;
 
         private constructor() {
@@ -10,7 +10,7 @@ namespace MSAL {
             this.receiverCallback = receiverCallback;
         }
 
-        static GetInstance(): Telmetry {
+        static GetInstance(): Telemetry {
             return this.instance || (this.instance = new this());
         }
     }
