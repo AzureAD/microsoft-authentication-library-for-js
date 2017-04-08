@@ -8,7 +8,7 @@ namespace MSAL {
         };
 
         private _cacheLocation: string = 'sessionStorage';
-        get cacheLocation() {
+        get cacheLocation(): string {
             return this._cacheLocation;
         }
 
@@ -26,7 +26,7 @@ namespace MSAL {
         }
 
         private _interactionMode: string = 'redirect';
-        get interactionMode() {
+        get interactionMode(): string {
             return this._interactionMode;
         }
 
@@ -40,7 +40,6 @@ namespace MSAL {
         private _requestContext: RequestContext;
         private _loginInProgress: boolean;
         private _acquireTokenInProgress: boolean;
-        private _checkSessionIframe: HTMLIFrameElement;
         private _renewStates: Array<string>;
         private _activeRenewals: Object;
         private _clockSkew: number = 300;
@@ -66,7 +65,6 @@ namespace MSAL {
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
-            this._checkSessionIframe = null;
             this._activeRenewals = {};
             this._cacheStorage = new Storage(this._cacheLocation);//cache keys msal
             this._requestContext = new RequestContext('');
@@ -75,7 +73,7 @@ namespace MSAL {
             window.callBacksMappedToRenewStates = {};
         }
 
-        login(): void {
+        login(extraQueryParameters?: Array<string>): void {
             /*
             1. Create navigate url
             2. saves value in cache
@@ -86,6 +84,8 @@ namespace MSAL {
             }
 
             let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, null, ResponseTypes[ResponseTypes.id_token], this.redirectUri);
+            if (extraQueryParameters)
+                authenticationRequest.extraQueryParameters = extraQueryParameters;
             this._cacheStorage.saveItem(Constants.loginRequest, window.location.href);
             this._cacheStorage.saveItem(Constants.loginError, '');
             this._cacheStorage.saveItem(Constants.stateLogin, authenticationRequest.state);
@@ -98,11 +98,13 @@ namespace MSAL {
                 this.openConsentWindow(urlNavigate, 'login', 20, this, this._userCallback);
                 return;
             }
+
             else {
                 if (urlNavigate) {
                     window.location.replace(urlNavigate);
                 }
             }
+
         }
 
         private openConsentWindow(urlNavigate: string, title: string, interval: number, instance: this, callback: Function): void {
@@ -117,6 +119,7 @@ namespace MSAL {
                 if (callback) {
                     callback(this._cacheStorage.getItem(Constants.loginError), null, null);
                 }
+
                 return;
             }
 
@@ -162,18 +165,22 @@ namespace MSAL {
             this._cacheStorage.saveItem(Constants.stateLogin, '');
             this._renewStates = [];
             this._cacheStorage.saveItem(Constants.idTokenKey, '');
+            this._cacheStorage.saveItem(Constants.clientInfo, '');
             this._cacheStorage.saveItem(Constants.error, '');
             this._cacheStorage.saveItem(Constants.errorDescription, '');
             var keys = this._cacheStorage.getItem(Constants.tokenKeys);
             if (!Utils.isEmpty(keys)) {
-                let keysArray:Array<string> = keys.split(Constants.resourceDelimeter);
-                for (var i = 0; i < keysArray.length-1; i++) {
+                let keysArray: Array<string> = keys.split(Constants.resourceDelimeter);
+                for (var i = 0; i < keysArray.length - 1; i++) {
                     this._cacheStorage.saveItem(Constants.accessTokenKey + keysArray[i], '');
                     this._cacheStorage.saveItem(Constants.expirationKey + keysArray[i], '0');
                 }
             }
-
             this._cacheStorage.saveItem(Constants.tokenKeys, '');
+            let accessTokenItems: Array<AccessTokenCacheItem> = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
+            for (let i = 0; i < accessTokenItems.length; i++) {
+                this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
+            }
         }
 
         private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
@@ -204,6 +211,7 @@ namespace MSAL {
                 this._loginInProgress = false;
                 return null;
             }
+
         }
 
         private validateInputScope(scopes: Array<string>): void {
@@ -250,12 +258,13 @@ namespace MSAL {
             }
         }
 
-        private getCachedToken(scopes: Array<string>): string {
-            let accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, this.authority);
+        private getCachedToken(scopes: Array<string>, user?: User): string {
+            let userObject = user ? user : this.user;
+            let accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user.identityProvider);
             let accessTokenItems: Array<AccessTokenCacheItem> = []; // Array to store multiple accessTokens for the same set of scopes
             for (let i = 0; i < accessTokenCacheItems.length; i++) {
                 let accessTokenCacheItem = accessTokenCacheItems[i];
-                if (accessTokenCacheItem.key.userIdentifier === this.user.profile.oid) {
+                if (accessTokenCacheItem.key.userIdentifier === userObject.userIdentifier) {
                     let cachedScopes = accessTokenCacheItem.key.Scopes.split(' ');
                     if (Utils.containsScope(cachedScopes, scopes))
                         accessTokenItems.push(accessTokenCacheItem);
@@ -265,11 +274,11 @@ namespace MSAL {
                 return null; //access token not found
             else {
                 let accessTokenCacheItem = accessTokenItems[0];
-                var expired: number = Number(accessTokenCacheItem.value.ExpiresIn);
+                var expired: number = Number(accessTokenCacheItem.value.expiresIn);
                 // If expiration is within offset, it will force renew
                 var offset = this._clockSkew || 300;
                 if (expired && (expired > Utils.now() + offset))
-                    return accessTokenCacheItem.value.AccessToken;
+                    return accessTokenCacheItem.value.accessToken;
                 else {
                     this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[0].key));
                     return null;
@@ -277,24 +286,35 @@ namespace MSAL {
             }
         }
 
-        private addHintParameters(urlNavigate: string, loginHint?: string): string {
-            if (this.user && this.user.profile && this.user.profile.hasOwnProperty('preferred_username')) {
-                // add login_hint
-                if (loginHint) {
-                    urlNavigate += '&login_hint=' + encodeURIComponent(loginHint);
+        getAllUsers(): Array<User> {
+            let users: Array<User> = [];
+            let accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
+            for (let i = 0; i < accessTokenCacheItems.length; i++) {
+                let idToken: IdToken = new IdToken(accessTokenCacheItems[i].value.idToken);
+                let clientInfo: ClientInfo = new ClientInfo(accessTokenCacheItems[i].value.clientInfo);
+                let user: User = User.createUser(idToken, clientInfo);
+                users.push(user);
+            }
+            return users;
+        }
+
+        private addHintParameters(urlNavigate: string, user: User): string {
+            let userObject: User = user ? user : this.user;
+            if (!Utils.isEmpty(userObject.displayableId)) {
+                urlNavigate += '&login_hint=' + encodeURIComponent(user.displayableId);
+            }
+            if (!this.urlContainsQueryStringParameter('domain_req', urlNavigate) && !Utils.isEmpty(userObject.utid)) {
+                urlNavigate += '&domain_req=' + encodeURIComponent(userObject.utid);
+            }
+            if (!this.urlContainsQueryStringParameter('login_req', urlNavigate) && !Utils.isEmpty(userObject.uid)) {
+                urlNavigate += '&login_req=' + encodeURIComponent(user.uid);
+            }
+            if (!this.urlContainsQueryStringParameter('domain_hint', urlNavigate) && !Utils.isEmpty(userObject.utid)) {
+                if (user.utid === '9188040d-6c67-4c5b-b112-36a304b66dad') {
+                    urlNavigate += '&domain_hint=' + encodeURIComponent("consumers");
                 }
                 else {
-                    urlNavigate += '&login_hint=' + encodeURIComponent(this.user.profile.preferred_username);
-                }
-
-                // don't add domain_hint twice if user provided it in the extraQueryParameter value
-                if (!this.urlContainsQueryStringParameter('domain_hint', urlNavigate) && this.user.profile.hasOwnProperty('tid')) {
-                    if (this.user.profile.tid === '9188040d-6c67-4c5b-b112-36a304b66dad') {
-                        urlNavigate += '&domain_hint=' + encodeURIComponent("consumers");
-                    }
-                    else {
-                        urlNavigate += '&domain_hint=' + encodeURIComponent("organizations");
-                    }
+                    urlNavigate += '&domain_hint=' + encodeURIComponent("organizations");
                 }
             }
 
@@ -308,18 +328,19 @@ namespace MSAL {
         }
 
         acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void): void;
-        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint: string): void;
-        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint: string, extraQueryParameters: string): void;
+        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, user: User): void;
+        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, user: User, extraQueryParameters: Array<string>): void;
 
-        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint?: string, extraQueryParameters?: string): void {
+        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, user?: User, extraQueryParameters?: Array<string>): void {
+            let userObject = user ? user : this.user;
             if (this._acquireTokenInProgress) {
                 return;
             }
 
             this.validateInputScope(scopes);
             let scope: string = scopes.join(' ');
-            if (!this.user) {
-                callback('user login is required', null,null);
+            if (!userObject) {
+                callback('user login is required', null, null);
                 return;
             }
             this._acquireTokenInProgress = true;
@@ -328,11 +349,7 @@ namespace MSAL {
             if (extraQueryParameters)
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             let urlNavigate: string = authenticationRequest.CreateNavigateUrl(scopes);
-            if (loginHint)
-                urlNavigate = this.addHintParameters(urlNavigate, loginHint);
-            else
-                urlNavigate = this.addHintParameters(urlNavigate);
-			
+            urlNavigate = this.addHintParameters(urlNavigate, userObject);
             if (this._interactionMode === this._interactionModes.popUp) {
                 this._renewStates.push(authenticationRequest.state);
                 this.registerCallback(authenticationRequest.state, scope, callback);
@@ -347,18 +364,19 @@ namespace MSAL {
             }
         }
 
-        acquireTokenSilent(scopes: Array<string>, callback: (errorDesc:string,token:string,error:string)=> void): void {
+        acquireTokenSilent(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, user?: User): void {
             this.validateInputScope(scopes);
-            var token = this.getCachedToken(scopes);
+            let userObject = user ? user : this.user;
+            var token = this.getCachedToken(scopes, userObject);
             let scope: string = scopes.join(' ');
             if (token) {
-                this._requestContext.logger.warning('Token is already in cache for scope:' + scope);
-                callback(null, token,null);
+                this._requestContext.logger.info('Token is already in cache for scope:' + scope);
+                callback(null, token, null);
                 return;
             }
 
-            if (!this.user) {
-                callback('user login is required', null,null);
+            if (!userObject) {
+                callback('user login is required', null, null);
                 return;
             }
 
@@ -373,12 +391,14 @@ namespace MSAL {
                     // App uses idToken to send to api endpoints
                     // Default scope is tracked as clientId to store this token
                     this._requestContext.logger.verbose('renewing idToken');
-                    this.renewIdToken(scopes, callback);
+                    this.renewIdToken(scopes, callback, userObject);
                 } else {
                     this._requestContext.logger.verbose('renewing accesstoken');
-                    this.renewToken(scopes, callback);
+                    this.renewToken(scopes, callback, userObject);
                 }
+
             }
+
         }
 
         private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string): void {
@@ -390,7 +410,7 @@ namespace MSAL {
             setTimeout(function () {
                 if (self._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
                     // fail the iframe session if it's in pending state
-                    this._requestContext.logger.verbose('Loading frame has timed out after: ' + (Constants.loadFrameTimeout / 1000) + ' seconds for scope ' + scope);
+                    self._requestContext.logger.verbose('Loading frame has timed out after: ' + (Constants.loadFrameTimeout / 1000) + ' seconds for scope ' + scope);
                     var expectedState = self._activeRenewals[scope];
                     if (expectedState && window.callBackMappedToRenewStates[expectedState])
                         window.callBackMappedToRenewStates[expectedState]('Token renewal operation failed due to timeout', null);
@@ -413,6 +433,7 @@ namespace MSAL {
                 }
 
             }, 500);
+
         }
 
         private addAdalFrame(iframeId: string): HTMLIFrameElement {
@@ -436,16 +457,17 @@ namespace MSAL {
                 else if (document.body && document.body.insertAdjacentHTML) {
                     document.body.insertAdjacentHTML('beforeEnd', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
                 }
-                   
+
                 if (window.frames && window.frames[iframeId]) {
                     adalFrame = window.frames[iframeId];
                 }
+
             }
 
             return adalFrame;
         }
 
-        private renewToken(scopes: Array<string>, callback: Function): void {
+        private renewToken(scopes: Array<string>, callback: Function, user: User): void {
             var scope = scopes.join(' ');
             this._requestContext.logger.verbose('renewToken is called for scope:' + scope);
             var frameHandle = this.addAdalFrame('adalRenewFrame' + scope);
@@ -455,14 +477,14 @@ namespace MSAL {
             this._renewStates.push(authenticationRequest.state);
             this._requestContext.logger.verbose('Renew token Expected state: ' + authenticationRequest.state);
             let urlNavigate: string = authenticationRequest.CreateNavigateUrl(scopes) + '&prompt=none';
-            urlNavigate = this.addHintParameters(urlNavigate);
+            urlNavigate = this.addHintParameters(urlNavigate, user);
             this.registerCallback(authenticationRequest.state, scope, callback);
             this._requestContext.logger.verbose('Navigate to:' + urlNavigate);
             frameHandle.src = 'about:blank';
             this.loadFrameTimeout(urlNavigate, 'adalRenewFrame' + scope, scope);
         }
 
-        private renewIdToken(scopes: Array<string>, callback: Function): void {
+        private renewIdToken(scopes: Array<string>, callback: Function, user: User): void {
             this._requestContext.logger.info('renewidToken is called');
             let frameHandle = this.addAdalFrame('adalIdTokenFrame');
             let authenticationRequest: AuthenticationRequestParameters = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes[ResponseTypes.id_token], this.redirectUri);
@@ -470,7 +492,7 @@ namespace MSAL {
             this._cacheStorage.saveItem(Constants.nonceIdToken, authenticationRequest.nonce);
             this._requestContext.logger.verbose('Renew Idtoken Expected state: ' + authenticationRequest.state);
             let urlNavigate = authenticationRequest.CreateNavigateUrl(scopes) + '&prompt=none';
-            urlNavigate = this.addHintParameters(urlNavigate);
+            urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
             this.registerCallback(authenticationRequest.state, this.clientId, callback);
             this._requestContext.logger.verbose('Navigate to:' + urlNavigate);
@@ -490,9 +512,12 @@ namespace MSAL {
             }
 
             // frame is used to get idToken
-            var idToken = this._cacheStorage.getItem(Constants.idTokenKey);
-            if (!Utils.isEmpty(idToken)) {
-                this.user = this.createUser(idToken);
+            var rawIdToken = this._cacheStorage.getItem(Constants.idTokenKey);
+            var rawClientInfo = this._cacheStorage.getItem(Constants.clientInfo);
+            if (!Utils.isEmpty(rawIdToken)) {
+                let idToken: IdToken = new IdToken(rawIdToken);
+                let clientInfo: ClientInfo = new ClientInfo(rawClientInfo);
+                this.user = User.createUser(idToken, clientInfo);
                 return this.user;
             }
 
@@ -537,29 +562,31 @@ namespace MSAL {
                     if (this.navigateToLoginRequestUrl && window.location.href.replace('#', '') !== this._cacheStorage.getItem(Constants.loginRequest))
                         window.location.href = this._cacheStorage.getItem(Constants.loginRequest);
                 }
+
             }
+
         }
 
-        private saveAccessToken(requestInfo: RequestInfo): void {
+        private saveAccessToken(requestInfo: RequestInfo, user: User, clientInfo: string): void {
+            let userObject = user ? user : this.user;
             if (requestInfo.parameters.hasOwnProperty('scope')) {
-                this.user = this.getUser();
                 let scopes = requestInfo.parameters['scope'];
                 let consentedScopes = scopes.split(' ');
-                let accessTokenCacheItems: Array<AccessTokenCacheItem> = this._cacheStorage.getAllAccessTokens(this.clientId, this.authority);
+                let accessTokenCacheItems: Array<AccessTokenCacheItem> = this._cacheStorage.getAllAccessTokens(this.clientId, user.identityProvider);
                 for (let i = 0; i < accessTokenCacheItems.length; i++) {
                     let accessTokenCacheItem = accessTokenCacheItems[i];
-                    if (accessTokenCacheItem.key.userIdentifier === this.user.profile.oid) {
+                    if (accessTokenCacheItem.key.userIdentifier === user.userIdentifier) {
                         var cachedScopes = accessTokenCacheItem.key.Scopes.split(' ');
                         if (Utils.isIntersectingScopes(cachedScopes, consentedScopes))
                             this._cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                     }
 
                 }
-
-                let accessTokenKey = new AccessTokenKey(this.authority, this.clientId, scopes, this.user.profile.oid);
-                let accessTokenValue = new AccessTokenValue(requestInfo.parameters[Constants.accessToken], Utils.expiresIn(requestInfo.parameters[Constants.expiresIn]).toString());
+                let accessTokenKey = new AccessTokenKey(user.identityProvider, this.clientId, scopes, user.uid, user.utid);
+                let accessTokenValue = new AccessTokenValue(requestInfo.parameters[Constants.idToken], requestInfo.parameters[Constants.accessToken], Utils.expiresIn(requestInfo.parameters[Constants.expiresIn]).toString(), clientInfo);
                 this._cacheStorage.saveItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             }
+
         }
 
         private saveTokenFromHash(requestInfo: RequestInfo): void {
@@ -585,21 +612,45 @@ namespace MSAL {
                     if (requestInfo.parameters.hasOwnProperty(Constants.sessionState))
                         this._cacheStorage.saveItem(Constants.sessionState, requestInfo.parameters[Constants.sessionState]);
                     var keys: string;
-                    if (requestInfo.parameters.hasOwnProperty(Constants.accessToken)) {
-                        this._requestContext.logger.info('Fragment has access token');
-                        this.saveAccessToken(requestInfo);
+                    if (requestInfo.parameters.hasOwnProperty(Constants.accessToken) && requestInfo.parameters.hasOwnProperty(Constants.idToken) && requestInfo.requestType === Constants.renewToken) {
+                        this._requestContext.logger.info('Fragment has access token and idtoken');
+                        this._acquireTokenInProgress = false;
+                        var idToken: IdToken = new IdToken(requestInfo.parameters[Constants.idToken]);
+                        var clientInfo: string;
+                        let user: User
+                        if (requestInfo.parameters.hasOwnProperty(Constants.clientInfo)) {
+                            clientInfo = requestInfo.parameters[Constants.clientInfo];
+                            user = User.createUser(idToken, new ClientInfo(clientInfo));
+                            this.saveAccessToken(requestInfo, user, clientInfo);
+                        }
+                        else {
+                            user = this.getUser();
+                            clientInfo = '';
+                            this.saveAccessToken(requestInfo, user, '');
+                        }
+
                     }
 
-                    if (requestInfo.parameters.hasOwnProperty(Constants.idToken)) {
+                    if (requestInfo.parameters.hasOwnProperty(Constants.idToken) && requestInfo.requestType === Constants.login) {
                         this._requestContext.logger.info('Fragment has id token');
                         this._loginInProgress = false;
-                        this.user = this.createUser(requestInfo.parameters[Constants.idToken]);
-                        if (this.user && this.user.profile) {
-                            if (this.user.profile.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
+                        var idToken: IdToken = new IdToken(requestInfo.parameters[Constants.idToken]);
+                        var clientInfo: string;
+                        if (requestInfo.parameters.hasOwnProperty(Constants.clientInfo)) {
+                            clientInfo = requestInfo.parameters[Constants.clientInfo];
+                        }
+                        else {
+                            clientInfo = '';
+                        }
+
+                        this.user = User.createUser(idToken, new ClientInfo(clientInfo));
+                        if (idToken && idToken.nonce) {
+                            if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
                                 this.user = null;
-                                this._cacheStorage.saveItem(Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Constants.nonceIdToken) + ',' + 'Actual: ' + this.user.profile.nonce);
+                                this._cacheStorage.saveItem(Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Constants.nonceIdToken) + ',' + 'Actual: ' + idToken.nonce);
                             } else {
                                 this._cacheStorage.saveItem(Constants.idTokenKey, requestInfo.parameters[Constants.idToken]);
+                                this._cacheStorage.saveItem(Constants.clientInfo, requestInfo.parameters[Constants.clientInfo]);
                                 // Save idToken as access token for app itself
                                 scope = this.clientId;
                                 if (!this.hasScope(scope)) {
@@ -607,7 +658,7 @@ namespace MSAL {
                                     this._cacheStorage.saveItem(Constants.tokenKeys, keys + scope + Constants.resourceDelimeter);
                                 }
                                 this._cacheStorage.saveItem(Constants.accessTokenKey + scope, requestInfo.parameters[Constants.idToken]);
-                                this._cacheStorage.saveItem(Constants.expirationKey + scope, this.user.profile.exp);
+                                this._cacheStorage.saveItem(Constants.expirationKey + scope, idToken.expiration);
                             }
                         }
                         else {
@@ -621,7 +672,6 @@ namespace MSAL {
                     this._cacheStorage.saveItem(Constants.error, 'Invalid_state');
                     this._cacheStorage.saveItem(Constants.errorDescription, 'Invalid_state. state: ' + requestInfo.stateResponse);
                 }
-				
             }
 
             this._cacheStorage.saveItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);
@@ -703,30 +753,6 @@ namespace MSAL {
                 }
             }
             return '';
-        };
-
-        private createUser(idToken: string): User {
-            var user: User;
-            var parsedJson = Utils.extractIdToken(idToken);
-            if (parsedJson && parsedJson.hasOwnProperty('aud')) {
-                if (parsedJson.aud.toLowerCase() === this.clientId.toLowerCase()) {
-                    user = {
-                        username: '',
-                        profile: parsedJson
-                    };
-                    if (parsedJson.hasOwnProperty('preferred_username')) {
-                        user.username = parsedJson.preferred_username;
-                    } else if (parsedJson.hasOwnProperty('email')) {
-                        user.username = parsedJson.email;
-                    }
-
-                } else {
-                    this._requestContext.logger.warning('IdToken has invalid aud field');
-                }
-
-            }
-
-            return user;
         };
 
     }

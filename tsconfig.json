@@ -6,8 +6,6 @@
     "noEmitOnError": true,
     "target": "es6",
     "module": "system",
-    "removeComments": true,
-    "preserveConstEnums": true,
     "sourceMap": true,
     "outFile": "out/msal.js"
   },
@@ -17,5 +15,6 @@
   "exclude": [
     "**/*Spec.js",
     "**/*.spec.ts"
+	"typings/index.d.ts"
   ]
 }

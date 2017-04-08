@@ -1,7 +1,10 @@
 namespace MSAL {
     export class Constants {
         static get errorDescription(): string { return "error_description"; }
+        static get clientId(): string { return "clientId"; }
+        static get authority(): string { return "authority"; }
         static get idToken(): string { return "id_token"; }
+        static get clientInfo(): string { return "client_info"; }
         static get accessToken(): string { return "access_token"; }
         static get expiresIn(): string { return "expires_in"; }
         static get sessionState(): string { return "session_state"; }
@@ -39,8 +42,8 @@ namespace MSAL {
         static set popUpHeight(height: number) {
             this._popUpHeight = height;
         };
-        static get login(): string { return "LOGIN"; }
+        static get login(): string { return "Login"; }
         static get renewToken(): string { return "renewToken"; }
-        static get unknown(): string { return "UNKNOWN"; }
+        static get unknown(): string { return "Unknown"; }
     }
 }
