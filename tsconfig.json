@@ -6,7 +6,8 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "outFile": "out/msal.js"
+    "outFile": "out/msal.js",
+    "declaration": true
   },
   "include": [
     "lib/**/*"
