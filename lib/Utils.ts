@@ -2,6 +2,24 @@ namespace MSAL {
 
     export class Utils {
 
+        static compareObjects(o1: Object, o2: Object): boolean {
+            for (var p in o1) {
+                if (o1.hasOwnProperty(p)) {
+                    if (o1[p] !== o2[p]) {
+                        return false;
+                    }
+                }
+            }
+            for (var p in o2) {
+                if (o2.hasOwnProperty(p)) {
+                    if (o1[p] !== o2[p]) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        };
+
         static expiresIn(expires: string): number {
             // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
             if (!expires) expires = '3599';
@@ -38,6 +56,16 @@ namespace MSAL {
             return null;
         };
 
+        static base64EncodeStringUrlSafe(input: string): string {
+            // html5 should support atob function for decoding
+            if (window.btoa) {
+                return window.btoa(input);
+            }
+            else {
+                return this.encode(input);
+            }
+        }
+
         static base64DecodeStringUrlSafe(base64IdToken: string): string {
             // html5 should support atob function for decoding
             base64IdToken = base64IdToken.replace(/-/g, '+').replace(/_/g, '/');
@@ -48,6 +76,65 @@ namespace MSAL {
                 return decodeURIComponent(this.decode(base64IdToken));
             }
         };
+
+        static encode(input: string): string {
+            let _keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+            var output = "";
+            var chr1: number, chr2: number, chr3: number, enc1: number, enc2: number, enc3: number, enc4: number;
+            var i = 0;
+
+            input = this.utf8Encode(input);
+
+            while (i < input.length) {
+
+                chr1 = input.charCodeAt(i++);
+                chr2 = input.charCodeAt(i++);
+                chr3 = input.charCodeAt(i++);
+
+                enc1 = chr1 >> 2;
+                enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+                enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+                enc4 = chr3 & 63;
+
+                if (isNaN(chr2)) {
+                    enc3 = enc4 = 64;
+                } else if (isNaN(chr3)) {
+                    enc4 = 64;
+                }
+
+                output = output + _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+
+            }
+
+            return output.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+        }
+
+        static utf8Encode(input: string): string {
+            input = input.replace(/\r\n/g, "\n");
+            var utftext = "";
+
+            for (var n = 0; n < input.length; n++) {
+
+                var c = input.charCodeAt(n);
+
+                if (c < 128) {
+                    utftext += String.fromCharCode(c);
+                }
+                else if ((c > 127) && (c < 2048)) {
+                    utftext += String.fromCharCode((c >> 6) | 192);
+                    utftext += String.fromCharCode((c & 63) | 128);
+                }
+                else {
+                    utftext += String.fromCharCode((c >> 12) | 224);
+                    utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                    utftext += String.fromCharCode((c & 63) | 128);
+                }
+
+            }
+
+            return utftext;
+        }
 
         static decode(base64IdToken: string): string {
             var codes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
@@ -125,16 +212,34 @@ namespace MSAL {
         };
 
         static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+            cachedScopes = this.convertToLowerCase(cachedScopes);
             for (let i = 0; i < scopes.length; i++) {
-                if (cachedScopes.indexOf(scopes[i]) > -1)
+                if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1)
                     return true;
             }
             return false;
         }
 
         static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+            cachedScopes = this.convertToLowerCase(cachedScopes);
+            if (scopes.length == 0)
+                return false;
+            if (cachedScopes.length < scopes.length)
+                return false;
             return scopes.every(function (value) {
-                return cachedScopes.indexOf(value) >= 0;
+                return cachedScopes.indexOf(value.toString().toLowerCase()) >= 0;
+            });
+        }
+
+        static convertToLowerCase(scopes: Array<string>): Array<string> {
+            return scopes.map(function (scope) {
+                return scope.toLowerCase();
+            });
+        }
+
+        static removeElement(scopes: Array<string>, scope: string): Array<string> {
+            return scopes.filter(function (value) {
+                return value !== scope;
             });
         }
 

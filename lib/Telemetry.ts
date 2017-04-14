@@ -3,7 +3,7 @@ namespace MSAL {
         private static instance: Telemetry;
         private receiverCallback: (r: Array<Object>) => void;
 
-        private constructor() {
+        constructor() {
         }
 
         RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void {

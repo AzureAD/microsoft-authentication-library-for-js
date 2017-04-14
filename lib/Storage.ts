@@ -69,5 +69,37 @@ namespace MSAL {
                 throw new Error('localStorage and sessionStorage are not supported');
             return results;
         }
+
+        removeAcquireTokenEntries(acquireTokenUser:string,acquireTokenStatus:string): void {
+            let key: string;
+            let storage = window[this._cacheLocation];
+            if (storage) {
+                for (key in storage) {
+                    if (storage.hasOwnProperty(key)) {
+                        if ((key.indexOf(acquireTokenUser) > -1) || (key.indexOf(acquireTokenStatus)>-1 )){
+                            this.removeItem(key);
+                        }
+                    }
+                }
+            }
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+        }
+
+        resetCacheItems(): void {
+            let key: string;
+            let storage = window[this._cacheLocation];
+            if (storage) {
+                for (key in storage) {
+                    if (storage.hasOwnProperty(key)) {
+                        storage[key] = '';
+                    }
+                }
+            }
+            else
+                throw new Error('localStorage and sessionStorage are not supported');
+        }
+
     }
 }
+

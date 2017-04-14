@@ -1,9 +1,10 @@
 namespace MSAL {
 
-    export enum ResponseTypes {
-        id_token,
-        token
-    }
+    let ResponseTypes = {
+        id_token: 'id_token',
+        token: "token",
+        id_tokenToken: 'id_token token'
+    };
 
     export class AuthenticationRequestParameters {
         authority: string;
@@ -16,7 +17,7 @@ namespace MSAL {
         scopes: Array<string>;
         responseType: string;
         promptValue: string;
-        extraQueryParameters: string;
+        extraQueryParameters: Array<string>;
         loginHint: string;
         domainHint: string;
         redirectUri: string;
@@ -28,9 +29,6 @@ namespace MSAL {
             this.responseType = responseType;
             this.redirectUri = redirectUri;
             // randomly generated values
-            if (responseType !== "token") {
-                this.nonce = Utils.CreateNewGuid();
-            }
             this.correlationId = Utils.CreateNewGuid();
             this.state = Utils.CreateNewGuid();
             this.nonce = Utils.CreateNewGuid();
@@ -43,21 +41,23 @@ namespace MSAL {
             if (!scopes) {
                 scopes = [this.clientId];
             }
+            if (scopes.indexOf(this.clientId) == -1) {
+                scopes.push(this.clientId);
+            }
             let requestUrl = "";
             let str: Array<string> = [];
             str.push('?response_type=' + this.responseType);
-            if (this.responseType === ResponseTypes[ResponseTypes.id_token]) {
-                if (scopes.indexOf(this.clientId) > -1) {
-                    this.translateclientIdUsedInScope(scopes);
-                }
-            }
+            this.translateclientIdUsedInScope(scopes);
             str.push('scope=' + encodeURIComponent(this.parseScope(scopes)));
             str.push('client_id=' + encodeURIComponent(this.clientId));
             str.push('redirect_uri=' + encodeURIComponent(this.redirectUri));
             str.push('state=' + encodeURIComponent(this.state));
             str.push('nonce=' + encodeURIComponent(this.nonce));
+            str.push('client_info=1');
             if (this.extraQueryParameters) {
-                str.push(this.extraQueryParameters);
+                for (let i = 0; i < this.extraQueryParameters.length; i++) {
+                    str.push(this.extraQueryParameters[i]);
+                }
             }
             str.push('client-request-id=' + encodeURIComponent(this.correlationId));
             requestUrl = this.authority + '/oauth2/v2.0/authorize' + str.join('&') + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
