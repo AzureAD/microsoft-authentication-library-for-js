@@ -1,10 +1,14 @@
 namespace MSAL {
     export class AccessTokenValue {
-        AccessToken: string;
-        ExpiresIn: string;
-        constructor(accessToken: string, expiresIn: string) {
-            this.AccessToken = accessToken;
-            this.ExpiresIn = expiresIn;
+        accessToken: string;
+        idToken: string;
+        expiresIn: string;
+        clientInfo: string;
+        constructor(idToken: string, accessToken: string, expiresIn: string, clientInfo: string) {
+            this.idToken = idToken;
+            this.accessToken = accessToken;
+            this.expiresIn = expiresIn;
+            this.clientInfo = clientInfo;
         }
     }
 }
