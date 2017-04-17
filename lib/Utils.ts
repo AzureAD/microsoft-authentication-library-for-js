@@ -1,28 +1,21 @@
-namespace MSAL {
+"use strict";
 
+namespace Msal {
     export class Utils {
-
-        static compareObjects(o1: Object, o2: Object): boolean {
-            for (var p in o1) {
-                if (o1.hasOwnProperty(p)) {
-                    if (o1[p] !== o2[p]) {
-                        return false;
-                    }
+        static compareObjects(u1: User, u2: User): boolean {
+            if (!u1 || !u2)
+                return false;
+            if (u1.userIdentifier && u2.userIdentifier) {
+                if (u1.userIdentifier === u2.userIdentifier) {
+                    return true;
                 }
             }
-            for (var p in o2) {
-                if (o2.hasOwnProperty(p)) {
-                    if (o1[p] !== o2[p]) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return false;
         };
 
         static expiresIn(expires: string): number {
             // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-            if (!expires) expires = '3599';
+            if (!expires) expires = "3599";
             return this.now() + parseInt(expires, 10);
         };
 
@@ -31,18 +24,18 @@ namespace MSAL {
         };
 
         static isEmpty(str: string): boolean {
-            return (typeof str === 'undefined' || !str || 0 === str.length);
+            return (typeof str === "undefined" || !str || 0 === str.length);
         };
 
         static extractIdToken(encodedIdToken: string): any {
             // id token will be decoded to get the username
-            var decodedToken = this.decodeJwt(encodedIdToken);
+            const decodedToken = this.decodeJwt(encodedIdToken);
             if (!decodedToken) {
                 return null;
             }
             try {
-                var base64IdToken = decodedToken.JWSPayload;
-                var base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
+                const base64IdToken = decodedToken.JWSPayload;
+                const base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
                 if (!base64Decoded) {
                     //this._requestContext.logger.info('The returned id_token could not be base64 url safe decoded.');
                     return null;
@@ -68,7 +61,7 @@ namespace MSAL {
 
         static base64DecodeStringUrlSafe(base64IdToken: string): string {
             // html5 should support atob function for decoding
-            base64IdToken = base64IdToken.replace(/-/g, '+').replace(/_/g, '/');
+            base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
             if (window.atob) {
                 return decodeURIComponent(window.atob(base64IdToken)); // jshint ignore:line
             }
@@ -78,15 +71,14 @@ namespace MSAL {
         };
 
         static encode(input: string): string {
-            let _keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-            var output = "";
-            var chr1: number, chr2: number, chr3: number, enc1: number, enc2: number, enc3: number, enc4: number;
+            const keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+            let output = "";
+            let chr1: number, chr2: number, chr3: number, enc1: number, enc2: number, enc3: number, enc4: number;
             var i = 0;
 
             input = this.utf8Encode(input);
 
             while (i < input.length) {
-
                 chr1 = input.charCodeAt(i++);
                 chr2 = input.charCodeAt(i++);
                 chr3 = input.charCodeAt(i++);
@@ -102,12 +94,10 @@ namespace MSAL {
                     enc4 = 64;
                 }
 
-                output = output + _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
-
+                output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) + keyStr.charAt(enc3) + keyStr.charAt(enc4);
             }
 
-            return output.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
+            return output.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
         }
 
         static utf8Encode(input: string): string {
@@ -115,7 +105,6 @@ namespace MSAL {
             var utftext = "";
 
             for (var n = 0; n < input.length; n++) {
-
                 var c = input.charCodeAt(n);
 
                 if (c < 128) {
@@ -130,20 +119,19 @@ namespace MSAL {
                     utftext += String.fromCharCode(((c >> 6) & 63) | 128);
                     utftext += String.fromCharCode((c & 63) | 128);
                 }
-
             }
 
             return utftext;
         }
 
         static decode(base64IdToken: string): string {
-            var codes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-            base64IdToken = String(base64IdToken).replace(/=+$/, '');
+            var codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+            base64IdToken = String(base64IdToken).replace(/=+$/, "");
             var length = base64IdToken.length;
             if (length % 4 === 1) {
-                throw new Error('The token to be decoded is not correctly encoded.');
+                throw new Error("The token to be decoded is not correctly encoded.");
             }
-            let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = '';
+            let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = "";
             for (var i = 0; i < length; i += 4) {
                 //Every 4 base64 encoded character will be converted to 3 byte string, which is 24 bits
                 // then 6 bits per base64 encoded character
@@ -161,7 +149,7 @@ namespace MSAL {
                 }
                 // if last one is '='
                 else if (i + 1 === length - 1) {
-                    bits = h1 << 18 | h2 << 12
+                    bits = h1 << 18 | h2 << 12;
                     c1 = bits >> 16 & 255;
                     decoded += String.fromCharCode(c1);
                     break;
@@ -180,13 +168,13 @@ namespace MSAL {
             if (this.isEmpty(jwtToken)) {
                 return null;
             };
-            var idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-            var matches = idTokenPartsRegex.exec(jwtToken);
+            const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
+            const matches = idTokenPartsRegex.exec(jwtToken);
             if (!matches || matches.length < 4) {
                 //this._requestContext.logger.warn('The returned id_token is not parseable.');
                 return null;
             }
-            var crackedToken = {
+            const crackedToken = {
                 header: matches[1],
                 JWSPayload: matches[2],
                 JWSSig: matches[3]
@@ -194,15 +182,12 @@ namespace MSAL {
             return crackedToken;
         };
 
-
         static deserialize(query: string): any {
-            let match: Array<string>,
-                pl = /\+/g,  // Regex for replacing addition symbol with a space
-                search = /([^&=]+)=([^&]*)/g,
-                decode = function (s: string) {
-                    return decodeURIComponent(s.replace(pl, ' '));
-                },
-                obj = {};
+            let match: Array<string>; // Regex for replacing addition symbol with a space
+            const pl = /\+/g;
+            const search = /([^&=]+)=([^&]*)/g;
+            const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));
+            const obj: {} = {};
             match = search.exec(query);
             while (match) {
                 obj[decode(match[1])] = decode(match[2]);
@@ -222,40 +207,53 @@ namespace MSAL {
 
         static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
             cachedScopes = this.convertToLowerCase(cachedScopes);
-            if (scopes.length == 0)
-                return false;
-            if (cachedScopes.length < scopes.length)
-                return false;
-            return scopes.every(function (value) {
-                return cachedScopes.indexOf(value.toString().toLowerCase()) >= 0;
-            });
+            return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
         }
 
         static convertToLowerCase(scopes: Array<string>): Array<string> {
-            return scopes.map(function (scope) {
-                return scope.toLowerCase();
-            });
+            return scopes.map(scope => scope.toLowerCase());
         }
 
         static removeElement(scopes: Array<string>, scope: string): Array<string> {
-            return scopes.filter(function (value) {
-                return value !== scope;
-            });
+            return scopes.filter(value => value !== scope);
         }
 
-        static DecimalToHex(num: number): string {
+        static decimalToHex(num: number): string {
             var hex: string = num.toString(16);
             while (hex.length < 2) {
-                hex = '0' + hex;
+                hex = "0" + hex;
             }
             return hex;
         }
 
-        static GetLibraryVersion(): string {
-            return "0.1";
+        static getLibraryVersion(): string {
+            return "0.1.0";
         }
 
-        static CreateNewGuid(): string {
+        static replaceFirstPath(href:string,tenantId:string):string {
+            var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
+            if (match) {
+                var urlObject = {
+                    href: href,
+                    protocol: match[1],
+                    host: match[2],
+                    hostname: match[3],
+                    port: match[4],
+                    pathname: match[5],
+                    search: match[6],
+                    hash: match[7]
+                }
+                var pathArray = urlObject.pathname.split('/');
+                pathArray.shift();
+                if (pathArray[0] && pathArray[0] === 'common' || pathArray[0] === 'organizations') {
+                    pathArray[0] = tenantId;
+                    href = urlObject.protocol + "//" + urlObject.host + "/" + pathArray.join('/');
+                }
+            }
+            return href;
+        }
+
+        static createNewGuid(): string {
             // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
             // pseudo-random numbers.
             // The algorithm is as follows:
@@ -277,9 +275,9 @@ namespace MSAL {
             // y could be 1000, 1001, 1010, 1011 since most significant two bits needs to be 10
             // y values are 8, 9, A, B
 
-            var cryptoObj: Crypto = window.crypto; // for IE 11
+            const cryptoObj: Crypto = window.crypto; // for IE 11
             if (cryptoObj && cryptoObj.getRandomValues) {
-                var buffer: Uint8Array = new Uint8Array(16);
+                const buffer: Uint8Array = new Uint8Array(16);
                 cryptoObj.getRandomValues(buffer);
 
                 //buffer[6] and buffer[7] represents the time_hi_and_version field. We will set the four most significant bits (4 through 7) of buffer[6] to represent decimal number 4 (UUID version number).
@@ -290,28 +288,28 @@ namespace MSAL {
                 buffer[8] |= 0x80; //buffer[8] | 10000000 will set the 7 bit to 1.
                 buffer[8] &= 0xbf; //buffer[8] & 10111111 will set the 6 bit to 0.
 
-                return this.DecimalToHex(buffer[0]) + this.DecimalToHex(buffer[1])
-                    + this.DecimalToHex(buffer[2]) + this.DecimalToHex(buffer[3])
-                    + '-' + this.DecimalToHex(buffer[4]) + this.DecimalToHex(buffer[5])
-                    + '-' + this.DecimalToHex(buffer[6]) + this.DecimalToHex(buffer[7])
-                    + '-' + this.DecimalToHex(buffer[8]) + this.DecimalToHex(buffer[9])
-                    + '-' + this.DecimalToHex(buffer[10]) + this.DecimalToHex(buffer[11])
-                    + this.DecimalToHex(buffer[12]) + this.DecimalToHex(buffer[13])
-                    + this.DecimalToHex(buffer[14]) + this.DecimalToHex(buffer[15]);
+                return Utils.decimalToHex(buffer[0]) + Utils.decimalToHex(buffer[1])
+                    + Utils.decimalToHex(buffer[2]) + Utils.decimalToHex(buffer[3])
+                    + "-" + Utils.decimalToHex(buffer[4]) + Utils.decimalToHex(buffer[5])
+                    + "-" + Utils.decimalToHex(buffer[6]) + Utils.decimalToHex(buffer[7])
+                    + "-" + Utils.decimalToHex(buffer[8]) + Utils.decimalToHex(buffer[9])
+                    + "-" + Utils.decimalToHex(buffer[10]) + Utils.decimalToHex(buffer[11])
+                    + Utils.decimalToHex(buffer[12]) + Utils.decimalToHex(buffer[13])
+                    + Utils.decimalToHex(buffer[14]) + Utils.decimalToHex(buffer[15]);
             }
             else {
-                var guidHolder: string = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
-                var hex: string = '0123456789abcdef';
-                var r: number = 0;
-                var guidResponse: string = "";
-                for (var i: number = 0; i < 36; i++) {
-                    if (guidHolder[i] !== '-' && guidHolder[i] !== '4') {
+                const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+                const hex: string = "0123456789abcdef";
+                let r: number = 0;
+                let guidResponse: string = "";
+                for (let i: number = 0; i < 36; i++) {
+                    if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
                         // each x and y needs to be random
                         r = Math.random() * 16 | 0;
                     }
-                    if (guidHolder[i] === 'x') {
+                    if (guidHolder[i] === "x") {
                         guidResponse += hex[r];
-                    } else if (guidHolder[i] === 'y') {
+                    } else if (guidHolder[i] === "y") {
                         // clock-seq-and-reserved first hex is filtered and remaining hex values are random
                         r &= 0x3; // bit and with 0011 to set pos 2 to zero ?0??
                         r |= 0x8; // set pos 3 to 1 as 1???
@@ -323,7 +321,5 @@ namespace MSAL {
                 return guidResponse;
             }
         };
-
     }
-
 }

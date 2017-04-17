@@ -1,12 +1,9 @@
-namespace MSAL {
+"use strict";
 
-    let ResponseTypes = {
-        id_token: 'id_token',
-        token: "token",
-        id_tokenToken: 'id_token token'
-    };
+namespace Msal {
 
     export class AuthenticationRequestParameters {
+
         authority: string;
         clientId: string;
         nonce: string;
@@ -17,7 +14,7 @@ namespace MSAL {
         scopes: Array<string>;
         responseType: string;
         promptValue: string;
-        extraQueryParameters: Array<string>;
+        extraQueryParameters: string;
         loginHint: string;
         domainHint: string;
         redirectUri: string;
@@ -29,57 +26,58 @@ namespace MSAL {
             this.responseType = responseType;
             this.redirectUri = redirectUri;
             // randomly generated values
-            this.correlationId = Utils.CreateNewGuid();
-            this.state = Utils.CreateNewGuid();
-            this.nonce = Utils.CreateNewGuid();
+            this.correlationId = Utils.createNewGuid();
+            this.state = Utils.createNewGuid();
+            this.nonce = Utils.createNewGuid();
             // telemetry information
-            this.xClientSku = "Js";
-            this.xClientVer = Utils.GetLibraryVersion();
+            this.xClientSku = "MSAL.JS";
+            this.xClientVer = Utils.getLibraryVersion();
         }
 
-        CreateNavigateUrl(scopes: Array<string>): string {
+        createNavigateUrl(scopes: Array<string>): string {
             if (!scopes) {
                 scopes = [this.clientId];
             }
-            if (scopes.indexOf(this.clientId) == -1) {
+
+            if (scopes.indexOf(this.clientId) === -1) {
                 scopes.push(this.clientId);
             }
-            let requestUrl = "";
-            let str: Array<string> = [];
-            str.push('?response_type=' + this.responseType);
+
+            const str: Array<string> = [];
+            str.push("?response_type=" + this.responseType);
             this.translateclientIdUsedInScope(scopes);
-            str.push('scope=' + encodeURIComponent(this.parseScope(scopes)));
-            str.push('client_id=' + encodeURIComponent(this.clientId));
-            str.push('redirect_uri=' + encodeURIComponent(this.redirectUri));
-            str.push('state=' + encodeURIComponent(this.state));
-            str.push('nonce=' + encodeURIComponent(this.nonce));
-            str.push('client_info=1');
+            str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
+            str.push("client_id=" + encodeURIComponent(this.clientId));
+            str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
+            str.push("state=" + encodeURIComponent(this.state));
+            str.push("nonce=" + encodeURIComponent(this.nonce));
+            str.push("client_info=1");
             if (this.extraQueryParameters) {
-                for (let i = 0; i < this.extraQueryParameters.length; i++) {
-                    str.push(this.extraQueryParameters[i]);
-                }
+                str.push(this.extraQueryParameters);
             }
-            str.push('client-request-id=' + encodeURIComponent(this.correlationId));
-            requestUrl = this.authority + '/oauth2/v2.0/authorize' + str.join('&') + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
+
+            str.push("client-request-id=" + encodeURIComponent(this.correlationId));
+            const requestUrl: string = this.authority + "/oauth2/v2.0/authorize" + str.join("&") + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
             return requestUrl;
         }
 
         translateclientIdUsedInScope(scopes: Array<string>): void {
-            var clientIdIndex = scopes.indexOf(this.clientId);
+            const clientIdIndex: number = scopes.indexOf(this.clientId);
             if (clientIdIndex >= 0) {
                 scopes.splice(clientIdIndex, 1);
-                scopes.push('openid');
-                scopes.push('profile');
+                scopes.push("openid");
+                scopes.push("profile");
             }
         }
 
         parseScope(scopes: Array<string>): string {
-            var scopeList = '';
+            let scopeList: string = "";
             if (scopes) {
-                for (var i = 0; i < scopes.length; ++i) {
-                    scopeList += (i !== scopes.length - 1) ? scopes[i] + ' ' : scopes[i];
+                for (let i = 0; i < scopes.length; ++i) {
+                    scopeList += (i !== scopes.length - 1) ? scopes[i] + " " : scopes[i];
                 }
             }
+
             return scopeList;
         }
     }
