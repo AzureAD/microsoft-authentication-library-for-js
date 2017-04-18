@@ -32,7 +32,7 @@ namespace MSAL {
                 return resultPromise;
             }
 
-            // throw UnsupportedAuthorityValidation
+            // TODO: (shivb) throw UnsupportedAuthorityValidation
         }
     }
 }
