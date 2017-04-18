@@ -1,5 +1,5 @@
 namespace MSAL {
-    enum AuthorityType {
+    export enum AuthorityType {
         Aad,
         Adfs,
         B2C
@@ -10,6 +10,8 @@ namespace MSAL {
             this.IsValidationEnabled = validateAuthority;
             this.CanonicalAuthority = authority;
         }
+
+        public abstract get AuthorityType(): AuthorityType;
 
         public IsValidationEnabled: boolean;
 
@@ -74,12 +76,11 @@ namespace MSAL {
         * XHR client for JSON endpoints
         * https://www.npmjs.com/package/async-promise
         */
-        private sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
+        protected sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
             return new Promise<string>((resolve, reject) => {
                 var xhr = new XMLHttpRequest();
 
                 if (enableCaching) {
-                    // TODO: add headers that cache this request
                     xhr.setRequestHeader("Cache-Control", "Public");
                 }
 

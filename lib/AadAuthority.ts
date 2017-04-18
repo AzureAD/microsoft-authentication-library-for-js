@@ -1,10 +1,19 @@
 namespace MSAL {
     export class AadAuthority extends Authority {
+        private static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
+
+        private get AadInstanceDiscoveryEndpointUrl(): string {
+            return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
+        }
         protected constructor(authority: string, validateAuthority: boolean) {
             super(authority, validateAuthority);
         }
 
-        private static TrustedHostList: any = {
+        public get AuthorityType(): AuthorityType {
+            return AuthorityType.Aad;
+        }
+
+        private static readonly TrustedHostList: any = {
             "login.windows.net": "login.windows.net",
             "login.chinacloudapi.cn": "login.chinacloudapi.cn",
             "login.cloudgovapi.us": "login.cloudgovapi.us",
@@ -13,27 +22,35 @@ namespace MSAL {
         };
 
         /*
-        * Returns a promise.
-        * Checks to see if the authority is in the cache
-        * Discover endpoints via openid-configuration
-        * If successful, caches the endpoint for later use in OIDC
+        * Returns a promise which resolves to the OIDC endpoint
+        * Only responds with the endpoint
         */
-        public ResolveEndpointsAsync() {
-            //
-        }
+        public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+            var resultPromise = new Promise<string>((resolve, reject) =>
+                resolve(this.DefaultOpenIdConfigurationEndpoint));
 
-        /*
-        * Returns a promise with the TenantDiscoveryEndpoint
-        */
-        public GetOpenIdConfigurationEndpointAsync(): string {
-            throw "not implemented";
+            if (!this.IsValidationEnabled) {
+                return resultPromise;
+            }
+
+            if (this.IsInTrustedHostList(this.CanonicalAuthority)) {
+                return resultPromise;
+            }
+
+            return this.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
+                .then((response) => {
+                    // TODO: (shivb) validate response data
+                    return response.tenant_discovery_endpoint;
+                });
         }
 
         /*
         * Checks to see if the host is in a list of trusted hosts
+        * @param {string} The URL
         */
-        public IsInTrustedHostList(host: string): boolean {
-            throw "not implemented";
+        public IsInTrustedHostList(url: string): boolean {
+            let host = Utils.GetHostFromUrl(url);
+            return AadAuthority.TrustedHostList[host.toLowerCase()];
         }
     }
 }

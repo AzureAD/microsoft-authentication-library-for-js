@@ -1,7 +1,5 @@
 namespace MSAL {
-
     export class Utils {
-
         static expiresIn(expires: string): number {
             // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
             if (!expires) expires = '3599';
@@ -106,7 +104,6 @@ namespace MSAL {
             };
             return crackedToken;
         };
-
 
         static deserialize(query: string): any {
             let match: Array<string>,
@@ -219,6 +216,23 @@ namespace MSAL {
             }
         };
 
-    }
+        static GetUrlComponents(url: string): IUri {
+            var regEx = new RegExp([
+                '^(https?:)//', // protocol
+                '(([^:/?#]*)(?::([0-9]+))?)', // host (hostname and port)
+                '(/{0,1}[^?#]*)', // pathname
+                '(\\?[^#]*|)', // search
+                '(#.*|)$' // hash
+            ].join(''));
 
+            var match = url.match(regEx);
+
+            // TODO: (shivb) input and regex validation
+            return <IUri>{
+                Protocol: match[1],
+                HostNameAndPort: match[2],
+                AbsolutePath: match[3]
+            };
+        }
+    }
 }

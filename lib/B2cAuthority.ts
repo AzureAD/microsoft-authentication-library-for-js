@@ -2,23 +2,37 @@ namespace MSAL {
     export class B2cAuthority extends AadAuthority {
         private constructor(authority: string, validateAuthority: boolean) {
             super(authority, validateAuthority);
+            let urlComponents = Utils.GetUrlComponents(authority);
+
+            let pathSegments = urlComponents.AbsolutePath.split("/", /*limit:*/4);
+            pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
+            if (pathSegments.length < 3) {
+                throw "B2cAuthorityUriInvalidPath" // TODO: (shivb) throw formal exception
+            }
+
+            this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}`;
         }
 
-        /*
-        * Returns a promise.
-        * Checks to see if the authority is in the cache
-        * Discover endpoints via openid-configuration
-        * If successful, caches the endpoint for later use in OIDC
-        */
-        public ResolveEndpointsAsync() {
-            //
+        public get AuthorityType(): AuthorityType {
+            return AuthorityType.B2C;
         }
 
         /*
         * Returns a promise with the TenantDiscoveryEndpoint
         */
-        public GetOpenIdConfigurationEndpointAsync(): string {
-            throw "not implemented";
+        public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+            var resultPromise = new Promise<string>((resolve, reject) =>
+                resolve(this.DefaultOpenIdConfigurationEndpoint));
+
+            if (!this.IsValidationEnabled) {
+                return resultPromise;
+            }
+
+            if (this.IsInTrustedHostList(this.CanonicalAuthority)) {
+                return resultPromise;
+            }
+
+            // throw UnsupportedAuthorityValidation
         }
     }
 }
