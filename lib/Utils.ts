@@ -216,6 +216,10 @@ namespace MSAL {
             }
         };
 
+        /*
+        * Parses out the components from a url string.
+        * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
+        */
         static GetUrlComponents(url: string): IUri {
             var regEx = new RegExp([
                 '^(https?:)//', // protocol
@@ -233,6 +237,21 @@ namespace MSAL {
                 HostNameAndPort: match[2],
                 AbsolutePath: match[3]
             };
+        }
+
+        /*
+        * Given a url or path, append a trailing slash if one doesnt exist
+        */
+        static CanonicalizeUri(url: string): string {
+            if (url) {
+                url = url.toLowerCase();
+            }
+
+            if (url && !url.endsWith("/")) {
+                url += "/";
+            }
+
+            return url;
         }
     }
 }

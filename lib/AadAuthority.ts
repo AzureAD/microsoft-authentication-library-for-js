@@ -5,7 +5,8 @@ namespace MSAL {
         private get AadInstanceDiscoveryEndpointUrl(): string {
             return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
         }
-        protected constructor(authority: string, validateAuthority: boolean) {
+
+        public constructor(authority: string, validateAuthority: boolean) {
             super(authority, validateAuthority);
         }
 
@@ -33,7 +34,8 @@ namespace MSAL {
                 return resultPromise;
             }
 
-            if (this.IsInTrustedHostList(this.CanonicalAuthority)) {
+            let host = this.CanonicalAuthorityUrlComponents.HostNameAndPort;
+            if (this.IsInTrustedHostList(host)) {
                 return resultPromise;
             }
 
@@ -46,10 +48,9 @@ namespace MSAL {
 
         /*
         * Checks to see if the host is in a list of trusted hosts
-        * @param {string} The URL
+        * @param {string} The host to look up
         */
-        public IsInTrustedHostList(url: string): boolean {
-            let host = Utils.GetHostFromUrl(url);
+        public IsInTrustedHostList(host: string): boolean {
             return AadAuthority.TrustedHostList[host.toLowerCase()];
         }
     }

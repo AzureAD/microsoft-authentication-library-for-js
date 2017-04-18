@@ -16,14 +16,58 @@ namespace MSAL {
         public IsValidationEnabled: boolean;
 
         public get Tenant(): string {
-            // TODO: (shivb) extract the tenant from the Canonical authority
-            throw "not implemented";
+            let path = this.CanonicalAuthorityUrlComponents.AbsolutePath;
+            return path.substr(0, path.indexOf("/"));
+        }
+
+        private tenantDiscoveryResponse: ITenantDiscoveryResponse;
+
+        public get Host(): string {
+            return this.CanonicalAuthorityUrlComponents.HostNameAndPort;
+        }
+        public get AuthorizationEndpoint(): string {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
+        }
+
+        public get TokenEndpoint(): string {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.TokenEndpoint.replace("{tenant}", this.Tenant);
+        }
+
+        public get SelfSignedJwtAudience(): string {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.Tenant);
+        }
+
+        private validateResolved() {
+            if (!this.tenantDiscoveryResponse) {
+                throw "Please call ResolveEndpointsAsync first"; // TODO: (shivb) formal exception
+            }
         }
 
         /*
         * A URL that is the authority set by the developer
         */
-        public CanonicalAuthority: string;
+        public get CanonicalAuthority(): string {
+            return this.canonicalAuthority;
+        };
+
+        public set CanonicalAuthority(url: string) {
+            this.canonicalAuthority = Utils.CanonicalizeUri(url);
+            this.canonicalAuthorityUrlComponents = null;
+        }
+
+        private canonicalAuthority: string;
+        private canonicalAuthorityUrlComponents: IUri;
+
+        protected get CanonicalAuthorityUrlComponents(): IUri {
+            if (!this.canonicalAuthorityUrlComponents) {
+                this.canonicalAuthorityUrlComponents = Utils.GetUrlComponents(this.CanonicalAuthority);
+            }
+
+            return this.canonicalAuthorityUrlComponents;
+        }
 
         /*
         * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
@@ -34,16 +78,27 @@ namespace MSAL {
 
         /*
         * Given a string, validate that it is of the form https://domain/path
-        * @Returns: true if input is a valid uri
         */
-        private static ValidateAsUri(uri: string): boolean {
-            throw "not implemented";
+        private static validateAsUri(uri: string) {
+            // throw "not implemented"; // TODO: (shivb) complete implementation
         }
 
         /*
         * Parse the url and determine the type of authority
         */
-        private static DetectAuthorityFromUrl(url: string) {
+        private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
+            authorityUrl = Utils.CanonicalizeUri(authorityUrl);
+            let components = Utils.GetUrlComponents(authorityUrl);
+            let pathSegments = components.AbsolutePath.split("/");
+
+            switch (pathSegments[0]) {
+                case "tfp":
+                    return AuthorityType.B2C;
+                case "adfs":
+                    return AuthorityType.Adfs;
+                default:
+                    return AuthorityType.Aad;
+            }
         }
 
         /*
@@ -51,10 +106,18 @@ namespace MSAL {
         * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
         */
         public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
-            // this.ValidateAsUri(authorityUrl);
-            // this.DetectAuthorityFromUrl(authorityUrl);
+            Authority.validateAsUri(authorityUrl);
+
+            let type = Authority.DetectAuthorityFromUrl(authorityUrl);
             // Depending on above detection, create the right type.
-            throw "not implemented";
+            switch (type) {
+                case AuthorityType.B2C:
+                    return new B2cAuthority(authorityUrl, validateAuthority);
+                case AuthorityType.Aad:
+                    return new AadAuthority(authorityUrl, validateAuthority);
+                default:
+                    throw "InvalidAuthorityType"; // TODO: (shivb) throw format exception
+            }
         }
 
         /*
@@ -119,7 +182,7 @@ namespace MSAL {
                 openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;
                 return this.DiscoverEndpoints(openIdConfigurationEndpoint);
             }).then((tenantDiscoveryResponse: ITenantDiscoveryResponse) => {
-                // TODO: (shivb) replace {tenant} with this.Tenant
+                this.tenantDiscoveryResponse = tenantDiscoveryResponse;
                 return this;
             });
         }

@@ -1,6 +1,6 @@
 namespace MSAL {
     export class B2cAuthority extends AadAuthority {
-        private constructor(authority: string, validateAuthority: boolean) {
+        public constructor(authority: string, validateAuthority: boolean) {
             super(authority, validateAuthority);
             let urlComponents = Utils.GetUrlComponents(authority);
 
