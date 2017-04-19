@@ -9,9 +9,11 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "outFile": "out/msal.js"
+    "outFile": "out/msal.js",
+    "skipLibCheck":  true
   },
   "include": [
+    "gulpfile.ts",
     "lib/**/*"
   ],
   "exclude": [
