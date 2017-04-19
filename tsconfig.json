@@ -11,6 +11,7 @@
     "sourceMap": true,
     "outFile": "out/msal.js",
     "skipLibCheck":  true
+    "declaration": true
   },
   "include": [
     "gulpfile.ts",
