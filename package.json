@@ -25,10 +25,14 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "atob": "~1.1.2",
+    "grunt-jasmine-node": "~0.2.1",
+    "jasmine-core": "^2.5.2",
     "jasmine-node": "~1.14.5",
     "jshint": "*",
-    "atob": "~1.1.2",
-    "grunt-jasmine-node": "~0.2.1"
+    "tslint": "^5.1.0",
+    "typedoc": "^0.5.10",
+    "typescript": "^2.2.2"
   },
   "directories": {
     "test": "tests"

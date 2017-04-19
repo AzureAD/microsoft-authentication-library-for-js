@@ -15,6 +15,7 @@
     "lib/**/*"
   ],
   "exclude": [
+    "node_modules",
     "**/*Spec.js",
     "**/*.spec.ts"
   ]
