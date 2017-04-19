@@ -124,7 +124,7 @@ namespace MSAL {
         * Calls the OIDC endpoint and returns the response
         */
         private DiscoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-            return this.sendRequestAsync("GET", openIdConfigurationEndpoint, /*enableCaching:*/ true)
+            return this.sendRequestAsync(openIdConfigurationEndpoint, "GET",/*enableCaching:*/ true)
                 .then((response: any) => {
                     // TODO: (shivb) validate that the following properties are not null or empty
                     return <ITenantDiscoveryResponse>{
@@ -142,12 +142,13 @@ namespace MSAL {
         protected sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
             return new Promise<string>((resolve, reject) => {
                 var xhr = new XMLHttpRequest();
+                xhr.open(method, url,/*async:*/ true);
 
                 if (enableCaching) {
-                    xhr.setRequestHeader("Cache-Control", "Public");
+                    // TODO: (shivb) ensure that this can be cached
+                    // xhr.setRequestHeader("Cache-Control", "Public");
                 }
 
-                xhr.open(method, url,/*async:*/ true);
                 xhr.onload = (ev) => {
                     if (xhr.status < 200 || xhr.status >= 300) {
                         reject(xhr.responseText);

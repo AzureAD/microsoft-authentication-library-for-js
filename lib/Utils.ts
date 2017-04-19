@@ -221,22 +221,22 @@ namespace MSAL {
         * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
         */
         static GetUrlComponents(url: string): IUri {
-            var regEx = new RegExp([
-                '^(https?:)//', // protocol
-                '(([^:/?#]*)(?::([0-9]+))?)', // host (hostname and port)
-                '(/{0,1}[^?#]*)', // pathname
-                '(\\?[^#]*|)', // search
-                '(#.*|)$' // hash
-            ].join(''));
+            // http://stackoverflow.com/a/26766402
+            var regEx = new RegExp(/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/);
 
             var match = url.match(regEx);
 
             // TODO: (shivb) input and regex validation
-            return <IUri>{
+            let urlComponents = <IUri>{
                 Protocol: match[1],
-                HostNameAndPort: match[2],
-                AbsolutePath: match[3]
+                HostNameAndPort: match[4],
+                AbsolutePath: match[5]
             };
+
+            let pathSegments = urlComponents.AbsolutePath.split("/");
+            pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
+            urlComponents.PathSegments = pathSegments;
+            return urlComponents;
         }
 
         /*

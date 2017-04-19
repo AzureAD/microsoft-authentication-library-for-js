@@ -5,5 +5,6 @@ namespace MSAL {
         AbsolutePath: string;
         Search: string;
         Hash: string;
+        PathSegments: string[];
     }
 }

@@ -4,8 +4,7 @@ namespace MSAL {
             super(authority, validateAuthority);
             let urlComponents = Utils.GetUrlComponents(authority);
 
-            let pathSegments = urlComponents.AbsolutePath.split("/", /*limit:*/4);
-            pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
+            let pathSegments = urlComponents.PathSegments;
             if (pathSegments.length < 3) {
                 throw "B2cAuthorityUriInvalidPath" // TODO: (shivb) throw formal exception
             }
