@@ -321,5 +321,43 @@ namespace Msal {
                 return guidResponse;
             }
         };
+
+        /*
+        * Parses out the components from a url string.
+        * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
+        */
+        static GetUrlComponents(url: string): IUri {
+            // http://stackoverflow.com/a/26766402
+            var regEx = new RegExp(/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/);
+
+            var match = url.match(regEx);
+
+            // TODO: (shivb) input and regex validation
+            let urlComponents = <IUri>{
+                Protocol: match[1],
+                HostNameAndPort: match[4],
+                AbsolutePath: match[5]
+            };
+
+            let pathSegments = urlComponents.AbsolutePath.split("/");
+            pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
+            urlComponents.PathSegments = pathSegments;
+            return urlComponents;
+        }
+
+        /*
+        * Given a url or path, append a trailing slash if one doesnt exist
+        */
+        static CanonicalizeUri(url: string): string {
+            if (url) {
+                url = url.toLowerCase();
+            }
+
+            if (url && !url.endsWith("/")) {
+                url += "/";
+            }
+
+            return url;
+        }
     }
 }

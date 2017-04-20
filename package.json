@@ -25,10 +25,15 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@types/jasmine": "^2.5.47",
+    "@types/jasmine-ajax": "^3.1.35",
+    "atob": "~1.1.2",
+    "grunt-jasmine-node": "~0.2.1",
+    "jasmine-ajax": "^3.3.1",
     "jasmine-node": "~1.14.5",
     "jshint": "*",
-    "atob": "~1.1.2",
-    "grunt-jasmine-node": "~0.2.1"
+    "typescript": "^2.2.2",
+    "typings": "^2.1.1"
   },
   "directories": {
     "test": "tests"

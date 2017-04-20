@@ -1,0 +1,15 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "target": "es6",
+    "module": "amd",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outDir": "out",
+    "skipLibCheck": true
+  }
+}
