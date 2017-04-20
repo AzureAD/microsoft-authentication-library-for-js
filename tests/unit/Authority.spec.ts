@@ -49,14 +49,6 @@ describe("Authority", () => {
     });
 
     describe("B2cAuthority", () => {
-        beforeEach(function () {
-            jasmine.Ajax.install();
-        });
-
-        afterEach(function () {
-            jasmine.Ajax.uninstall();
-        });
-
         it("can be created", () => {
             // Arrange
             let url = "https://login.microsoftonline.in:444/tfp/tenant/policy";
@@ -96,6 +88,20 @@ describe("Authority", () => {
                 expect(error).toEqual("UnsupportedAuthorityValidation");
                 done();
             });
+        });
+    });
+
+    describe("AdfsAuthority", () => {
+        it("cannot be created", () => {
+            // Arrange
+            let url = "https://fs.contoso.com/adfs/";
+            let validate = false;
+
+            // Act
+            let call = () => MSAL.Authority.CreateInstance(url, validate);
+
+            // Assert
+            expect(call).toThrow("InvalidAuthorityType");
         });
     });
 });
