@@ -7,10 +7,6 @@ node_js:
 
 sudo: false
 
-branches:
-  only:
-  - dev
-
 install:
   - npm install
 
