@@ -10,12 +10,15 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "outFile": "out/msal.js",
+    "skipLibCheck":  true
     "declaration": true
   },
   "include": [
+    "gulpfile.ts",
     "lib/**/*"
   ],
   "exclude": [
+    "node_modules",
     "**/*Spec.js",
     "**/*.spec.ts"
   ]
