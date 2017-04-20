@@ -38,13 +38,7 @@ describe("Authority", () => {
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
-            promise.then((authority) => {
-                expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.Aad);
-                expect(authority.AuthorizationEndpoint).toEqual("https://authorization_endpoint");
-                expect(authority.TokenEndpoint).toEqual("https://token_endpoint");
-                expect(authority.SelfSignedJwtAudience).toEqual("https://fakeIssuer");
-                done();
-            });
+            verifyAuthority(promise, authority, done);
         });
 
         it("can be resolved for untrusted hosts", (done) => {
@@ -63,15 +57,19 @@ describe("Authority", () => {
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
-            promise.then((authority) => {
-                expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.Aad);
-                expect(authority.AuthorizationEndpoint).toEqual("https://authorization_endpoint");
-                expect(authority.TokenEndpoint).toEqual("https://token_endpoint");
-                expect(authority.SelfSignedJwtAudience).toEqual("https://fakeIssuer");
-                done();
-            });
+            verifyAuthority(promise, authority, done);
         });
     });
+
+    function verifyAuthority(promise: Promise<MSAL.Authority>, authority: MSAL.Authority, done: DoneFn) {
+        promise.then((authority) => {
+            expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.Aad);
+            expect(authority.AuthorizationEndpoint).toEqual("https://authorization_endpoint");
+            expect(authority.TokenEndpoint).toEqual("https://token_endpoint");
+            expect(authority.SelfSignedJwtAudience).toEqual("https://fakeIssuer");
+            done();
+        });
+    }
 
     describe("B2cAuthority", () => {
         it("can be created", () => {
