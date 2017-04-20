@@ -9,7 +9,7 @@ namespace MSAL {
                 throw "B2cAuthorityUriInvalidPath" // TODO: (shivb) throw formal exception
             }
 
-            this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}`;
+            this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}/`;
         }
 
         public get AuthorityType(): AuthorityType {

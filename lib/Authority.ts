@@ -16,23 +16,19 @@ namespace MSAL {
         public IsValidationEnabled: boolean;
 
         public get Tenant(): string {
-            let path = this.CanonicalAuthorityUrlComponents.AbsolutePath;
-            return path.substr(0, path.indexOf("/"));
+            return this.CanonicalAuthorityUrlComponents.PathSegments[0];
         }
 
         private tenantDiscoveryResponse: ITenantDiscoveryResponse;
 
-        public get Host(): string {
-            return this.CanonicalAuthorityUrlComponents.HostNameAndPort;
-        }
         public get AuthorizationEndpoint(): string {
             this.validateResolved();
             return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
         }
 
-        public get TokenEndpoint(): string {
+        public get EndSessionEndpoint(): string {
             this.validateResolved();
-            return this.tenantDiscoveryResponse.TokenEndpoint.replace("{tenant}", this.Tenant);
+            return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.Tenant);
         }
 
         public get SelfSignedJwtAudience(): string {
@@ -61,7 +57,7 @@ namespace MSAL {
         private canonicalAuthority: string;
         private canonicalAuthorityUrlComponents: IUri;
 
-        protected get CanonicalAuthorityUrlComponents(): IUri {
+        public get CanonicalAuthorityUrlComponents(): IUri {
             if (!this.canonicalAuthorityUrlComponents) {
                 this.canonicalAuthorityUrlComponents = Utils.GetUrlComponents(this.CanonicalAuthority);
             }
@@ -129,7 +125,7 @@ namespace MSAL {
                     // TODO: (shivb) validate that the following properties are not null or empty
                     return <ITenantDiscoveryResponse>{
                         AuthorizationEndpoint: response.authorization_endpoint,
-                        TokenEndpoint: response.token_endpoint,
+                        EndSessionEndpoint: response.end_session_endpoint,
                         Issuer: response.issuer
                     }
                 })
