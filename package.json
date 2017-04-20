@@ -39,6 +39,6 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jasmine-node tests/unit"
+    "test": "jasmine-node tests/spec"
   }
 }

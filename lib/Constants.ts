@@ -1,6 +1,15 @@
-namespace MSAL {
+"use strict";
+
+namespace Msal {
+
     export class Constants {
+
         static get errorDescription(): string { return "error_description"; }
+        static get scope(): string { return "scope"; }
+        static get acquireTokenUser(): string { return "msal_acquireTokenUser"; }
+        static get clientInfo(): string { return "client_info"; }
+        static get clientId(): string { return "clientId"; }
+        static get authority(): string { return "authority"; }
         static get idToken(): string { return "id_token"; }
         static get accessToken(): string { return "access_token"; }
         static get expiresIn(): string { return "expires_in"; }

@@ -1,5 +1,7 @@
+"use strict";
+
 interface Window {
-    MSAL: Object,
+    msal: Object,
     callBackMappedToRenewStates: Object;
     callBacksMappedToRenewStates: Object;
 }
