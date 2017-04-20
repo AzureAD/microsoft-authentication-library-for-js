@@ -46,6 +46,31 @@ describe("Authority", () => {
                 done();
             });
         });
+
+        it("can be resolved for untrusted hosts", (done) => {
+            // Arrange
+            let url = "https://login.microsoftonline.in/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
+            let validate = true;
+            jasmine.Ajax.stubRequest(/.*tenant_discovery_endpoint.*openid-configuration/i).andReturn({
+                responseText: '{"authorization_endpoint":"https://authorization_endpoint","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer"}'
+            });
+            jasmine.Ajax.stubRequest(/.*discovery\/instance/i).andReturn({
+                responseText: '{"tenant_discovery_endpoint":"https://tenant_discovery_endpoint/openid-configuration"}'
+            });
+
+            // Act
+            let authority = MSAL.Authority.CreateInstance(url, validate);
+            let promise = authority.ResolveEndpointsAsync();
+
+            // Assert
+            promise.then((authority) => {
+                expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.Aad);
+                expect(authority.AuthorizationEndpoint).toEqual("https://authorization_endpoint");
+                expect(authority.TokenEndpoint).toEqual("https://token_endpoint");
+                expect(authority.SelfSignedJwtAudience).toEqual("https://fakeIssuer");
+                done();
+            });
+        });
     });
 
     describe("B2cAuthority", () => {
