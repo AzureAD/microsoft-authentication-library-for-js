@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
+
 ## Our new SDK is under development!
 
 MSAL for Javascript is in active development, but not yet ready. We encourage you to look at our work in progress and provide feedback!
