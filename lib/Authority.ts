@@ -89,7 +89,7 @@ namespace MSAL {
         private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
             authorityUrl = Utils.CanonicalizeUri(authorityUrl);
             let components = Utils.GetUrlComponents(authorityUrl);
-            let pathSegments = components.AbsolutePath.split("/");
+            let pathSegments = components.PathSegments;
 
             switch (pathSegments[0]) {
                 case "tfp":
@@ -154,7 +154,7 @@ namespace MSAL {
                         reject(xhr.responseText);
                     }
 
-                    var jsonResponse = JSON.parse(xhr.responseText);
+                    var jsonResponse = JSON.parse(xhr.responseText); // TODO: (shivb) handle scenario where data is not json
                     resolve(jsonResponse);
                 }
 

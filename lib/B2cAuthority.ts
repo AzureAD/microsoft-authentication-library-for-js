@@ -31,7 +31,8 @@ namespace MSAL {
                 return resultPromise;
             }
 
-            // TODO: (shivb) throw UnsupportedAuthorityValidation
+            return new Promise<string>((resolve, reject) =>
+                reject("UnsupportedAuthorityValidation")); // TODO: (shivb) throw formal exception
         }
     }
 }
