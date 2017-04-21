@@ -230,24 +230,20 @@ namespace Msal {
             return "0.1.0";
         }
 
-        static replaceFirstPath(href:string,tenantId:string):string {
+        /**
+         * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
+         * @param href The url
+         * @param tenantId The tenant id to replace
+         */
+        static replaceFirstPath(href: string, tenantId: string): string {
             var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
             if (match) {
-                var urlObject = {
-                    href: href,
-                    protocol: match[1],
-                    host: match[2],
-                    hostname: match[3],
-                    port: match[4],
-                    pathname: match[5],
-                    search: match[6],
-                    hash: match[7]
-                }
-                var pathArray = urlObject.pathname.split('/');
+                var urlObject = Utils.GetUrlComponents(href);
+                var pathArray = urlObject.PathSegments;
                 pathArray.shift();
                 if (pathArray[0] && pathArray[0] === 'common' || pathArray[0] === 'organizations') {
                     pathArray[0] = tenantId;
-                    href = urlObject.protocol + "//" + urlObject.host + "/" + pathArray.join('/');
+                    href = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join('/');
                 }
             }
             return href;
