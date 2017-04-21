@@ -18,11 +18,11 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let authority = MSAL.Authority.CreateInstance(url, validate);
+            let authority = Msal.Authority.CreateInstance(url, validate);
 
             // Assert
             expect(authority.CanonicalAuthority).toEqual("https://login.microsoftonline.in/mytenant.com/");
-            expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.Aad);
+            expect(authority.AuthorityType).toEqual(Msal.AuthorityType.Aad);
         });
 
         it("can be resolved", (done) => {
@@ -34,7 +34,7 @@ describe("Authority", () => {
             });
 
             // Act
-            let authority = MSAL.Authority.CreateInstance(url, validate);
+            let authority = Msal.Authority.CreateInstance(url, validate);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -53,7 +53,7 @@ describe("Authority", () => {
             });
 
             // Act
-            let authority = MSAL.Authority.CreateInstance(url, validate);
+            let authority = Msal.Authority.CreateInstance(url, validate);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -61,9 +61,9 @@ describe("Authority", () => {
         });
     });
 
-    function verifyAuthority(promise: Promise<MSAL.Authority>, authority: MSAL.Authority, done: DoneFn) {
+    function verifyAuthority(promise: Promise<Msal.Authority>, authority: Msal.Authority, done: DoneFn) {
         promise.then((authority) => {
-            expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.Aad);
+            expect(authority.AuthorityType).toEqual(Msal.AuthorityType.Aad);
             expect(authority.AuthorizationEndpoint).toEqual("https://authorization_endpoint");
             expect(authority.EndSessionEndpoint).toEqual("https://end_session_endpoint");
             expect(authority.SelfSignedJwtAudience).toEqual("https://fakeIssuer");
@@ -78,11 +78,11 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let authority = MSAL.Authority.CreateInstance(url, validate);
+            let authority = Msal.Authority.CreateInstance(url, validate);
 
             // Assert
             expect(authority.CanonicalAuthority).toEqual(`${url}/`);
-            expect(authority.AuthorityType).toEqual(MSAL.AuthorityType.B2C);
+            expect(authority.AuthorityType).toEqual(Msal.AuthorityType.B2C);
         });
 
         it("should fail when path doesnt have enough segments", () => {
@@ -91,7 +91,7 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let call = () => MSAL.Authority.CreateInstance(url, validate);
+            let call = () => Msal.Authority.CreateInstance(url, validate);
 
             // Assert
             expect(call).toThrow("B2cAuthorityUriInvalidPath");
@@ -103,7 +103,7 @@ describe("Authority", () => {
             let validate = true;
 
             // Act
-            let authority = MSAL.Authority.CreateInstance(url, validate);
+            let authority = Msal.Authority.CreateInstance(url, validate);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -121,7 +121,7 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let call = () => MSAL.Authority.CreateInstance(url, validate);
+            let call = () => Msal.Authority.CreateInstance(url, validate);
 
             // Assert
             expect(call).toThrow("InvalidAuthorityType");

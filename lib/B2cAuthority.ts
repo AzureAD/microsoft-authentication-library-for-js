@@ -1,4 +1,4 @@
-namespace MSAL {
+namespace Msal {
     export class B2cAuthority extends AadAuthority {
         public constructor(authority: string, validateAuthority: boolean) {
             super(authority, validateAuthority);

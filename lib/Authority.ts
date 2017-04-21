@@ -1,4 +1,4 @@
-namespace MSAL {
+namespace Msal {
     export enum AuthorityType {
         Aad,
         Adfs,
