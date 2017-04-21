@@ -40,6 +40,6 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jasmine-node tests/spec"
+    "test": "tsc && tsc -p tsconfig.test.json && jasmine-node tests/spec"
   }
 }
