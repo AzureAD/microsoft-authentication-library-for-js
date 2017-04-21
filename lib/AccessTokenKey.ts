@@ -1,9 +1,5 @@
-"use strict";
-
 namespace Msal {
-
     export class AccessTokenKey {
-
         authority: string;
         clientId: string;
         userIdentifier: string;

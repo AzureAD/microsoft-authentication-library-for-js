@@ -1,9 +1,5 @@
-"use strict";
-
 namespace Msal {
-
     export class User {
-
         displayableId: string;
         name: string;
         identityProvider: string;
@@ -27,7 +23,7 @@ namespace Msal {
                 uid = clientInfo.uid;
                 utid = clientInfo.utid;
             }
-			
+
             const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
             return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
         }

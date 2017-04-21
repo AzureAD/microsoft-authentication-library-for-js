@@ -1,9 +1,5 @@
-"use strict";
-
 namespace Msal {
-
     export class Storage {// Singleton
-
         private static _instance: Storage;
         private _localStorageSupported: boolean;
         private _sessionStorageSupported: boolean;

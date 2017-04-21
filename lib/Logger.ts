@@ -1,5 +1,3 @@
-"use strict";
-
 namespace Msal {
     export interface ILoggerCallback {
         (level: LogLevel, message: string, containsPii: boolean): void;
@@ -63,7 +61,7 @@ namespace Msal {
             return Logger._instance;
         }
 
-        private logMessage(logMessage: string, logLevel: LogLevel, containsPii: boolean) :void {
+        private logMessage(logMessage: string, logLevel: LogLevel, containsPii: boolean): void {
             if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
                 return;
             }

@@ -1,7 +1,4 @@
-"use strict";
-
 namespace Msal {
-
     let ResponseTypes = {
         id_token: "id_token",
         token: "token",
@@ -889,7 +886,7 @@ namespace Msal {
          * @param {IdToken} idToken idToken received as part of the response.
          * @ignore
          */
-        private saveAccessToken(authority:string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
+        private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
             let scope: string;
             let clientObj: ClientInfo = new ClientInfo(clientInfo);
             if (tokenResponse.parameters.hasOwnProperty("scope")) {
@@ -969,7 +966,6 @@ namespace Msal {
                         if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
                             clientInfo = tokenResponse.parameters[Constants.clientInfo];
                             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
-
                         } else {
                             this._requestContext.logger.info("ClientInfo not received in the response from AAD");
                             clientInfo = "";
@@ -1034,7 +1030,7 @@ namespace Msal {
             }
             this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);
             this._cacheStorage.removeAcquireTokenEntries(Constants.acquireTokenUser, Constants.renewStatus);
-            this._cacheStorage.removeAcquireTokenEntries(Constants.authority+Constants.resourceDelimeter, Constants.renewStatus);
+            this._cacheStorage.removeAcquireTokenEntries(Constants.authority + Constants.resourceDelimeter, Constants.renewStatus);
         };
 
         /**

@@ -1,9 +1,5 @@
-"use strict";
-
 namespace Msal {
-
     export class AccessTokenValue {
-
         accessToken: string;
         idToken: string;
         expiresIn: string;

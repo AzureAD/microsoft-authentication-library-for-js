@@ -10,6 +10,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "outDir": "out",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "alwaysStrict": true
   }
 }

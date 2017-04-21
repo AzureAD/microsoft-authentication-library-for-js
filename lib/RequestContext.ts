@@ -1,9 +1,5 @@
-"use strict";
-
 namespace Msal {// Singleton Class
-
     export class RequestContext {
-
         private static _instance: RequestContext;
         private _correlationId: string;
         get correlationId(): string { return this._correlationId; }

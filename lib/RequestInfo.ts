@@ -1,7 +1,4 @@
-"use strict";
-
 namespace Msal {
-
     export class TokenResponse {
         valid: boolean;
         parameters: Object;

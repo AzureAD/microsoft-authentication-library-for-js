@@ -1,9 +1,5 @@
-"use strict";
-
 namespace Msal {
-
     export class IdToken {
-
         rawIdToken: string;
         issuer: string;
         objectId: string;
@@ -64,6 +60,5 @@ namespace Msal {
                 throw new Error("Failed to parse the returned id token");
             }
         }
-
     }
 }

@@ -1,9 +1,5 @@
-﻿"use strict";
-
-namespace Msal {
-
+﻿namespace Msal {
     export class ClientInfo {
-
         private _uid: string;
         get uid(): string {
             return this._uid ? this._uid : "";
