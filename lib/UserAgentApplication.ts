@@ -1,7 +1,6 @@
 "use strict";
 
 namespace Msal {
-
     let ResponseTypes = {
         id_token: "id_token",
         token: "token",
@@ -63,7 +62,16 @@ namespace Msal {
         private _tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
         user: User;
         clientId: string;
-        authority = "https://login.microsoftonline.com/common";
+        private authorityInstance: Authority;
+
+        public set authority(val) {
+            this.authorityInstance = Authority.CreateInstance(val, this.validateAuthority);
+        }
+
+        public get authority(): string {
+            return this.authorityInstance.CanonicalAuthority;
+        }
+        validateAuthority: boolean;
         redirectUri: string;
         postLogoutredirectUri: string;
         correlationId: string;
@@ -72,9 +80,9 @@ namespace Msal {
 
         constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void) {
             this.clientId = clientId;
-            if (authority) {
-                this.authority = authority;
-            }
+
+            this.validateAuthority = true; // TODO: (shivb) Validation flag should come from constructor params
+            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
 
             if (tokenReceivedCallback) {
                 this._tokenReceivedCallback = tokenReceivedCallback;
@@ -139,7 +147,6 @@ namespace Msal {
             const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
             this._loginInProgress = true;
             this.promptUser(urlNavigate);
-
         }
 
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
@@ -161,7 +168,7 @@ namespace Msal {
                         return;
                     }
                 }
-              
+
                 const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
                 if (extraQueryParameters) {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
@@ -183,7 +190,6 @@ namespace Msal {
                 this._loginInProgress = true;
                 this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
             });
-
         }
 
         /**
@@ -356,7 +362,6 @@ namespace Msal {
                                 else if (token) {
                                     window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
                                 }
-
                             } catch (e) {
                                 this._requestContext.logger.warning(e);
                             }
@@ -397,7 +402,8 @@ namespace Msal {
                 //if only one cached token found
                 if (filteredItems.length === 1) {
                     accessTokenCacheItem = filteredItems[0];
-                    authenticationRequest.authority = accessTokenCacheItem.key.authority;
+
+                    authenticationRequest.authorityInstance = Authority.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
                 }
                 else if (filteredItems.length > 1) {
                     return {
@@ -417,7 +423,7 @@ namespace Msal {
                         };
                     }
 
-                    authenticationRequest.authority = authorityList[0];
+                    authenticationRequest.authorityInstance = Authority.CreateInstance(authorityList[0], this.validateAuthority);
                 }
             }
             else {
@@ -607,7 +613,8 @@ namespace Msal {
 
             this._acquireTokenInProgress = true;
             let authenticationRequest: AuthenticationRequestParameters;
-            const acquireTokenAuthority = authority ? authority : this.authority;
+            let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+
             if (Utils.compareObjects(userObject, this.user)) {
                 authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
             } else {
@@ -623,7 +630,7 @@ namespace Msal {
 
             const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
             if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
+                this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
             }
 
             if (extraQueryParameters) {
@@ -728,12 +735,13 @@ namespace Msal {
                         return;
                     }
 
-                    let authenticationRequest: AuthenticationRequestParameters;
-                    if (Utils.compareObjects(userObject, this.user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                    } else {
-                        authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                    }
+                let authenticationRequest: AuthenticationRequestParameters;
+                let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+                if (Utils.compareObjects(userObject, this.user)) {
+                    authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                } else {
+                    authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                }
 
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
                     if (cacheResult) {
@@ -766,9 +774,7 @@ namespace Msal {
                         }
                     }
                 }
-
             });
-
         }
 
         /**
@@ -1081,7 +1087,6 @@ namespace Msal {
                         if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
                             clientInfo = tokenResponse.parameters[Constants.clientInfo];
                             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
-
                         } else {
                             this._requestContext.logger.info("ClientInfo not received in the response from AAD");
                             clientInfo = "";
@@ -1254,7 +1259,7 @@ namespace Msal {
             return "";
         };
     }
-    
+
     declare var module: any;
     (module).exports = Msal;
 }
