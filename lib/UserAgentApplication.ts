@@ -96,17 +96,30 @@ namespace Msal {
         /**
         * Initiates the login process by redirecting the user to Azure AD authorization endpoint.
         */
-        login(extraQueryParameters?: string): void {
+        loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void {
             /*
             1. Create navigate url
             2. saves value in cache
             3. redirect user to AAD
             */
             if (this._loginInProgress) {
-                return;
+                if (this._tokenReceivedCallback) {
+                    this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken);
+                    return;
+                }
             }
 
-            const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, null, ResponseTypes.id_token, this.redirectUri);
+            if (scopes) {
+                const isValidScope = this.validateInputScope(scopes);
+                if (isValidScope && !Utils.isEmpty(isValidScope)) {
+                    if (this._tokenReceivedCallback) {
+                        this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken);
+                        return;
+                    }
+                }
+            }
+
+            const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -123,14 +136,54 @@ namespace Msal {
                 this._cacheStorage.setItem(authorityKey, this.authority);
             }
 
-            const urlNavigate = authenticationRequest.createNavigateUrl(null);
+            const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
             this._loginInProgress = true;
-            if (this._interactionMode === this._interactionModes.popUp) {
-                this.openWindow(urlNavigate, "login", 20, this, this._tokenReceivedCallback, Constants.idToken);
-                return;
-            } else {
-                this.promptUser(urlNavigate);
-            }
+            this.promptUser(urlNavigate);
+
+        }
+
+        loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
+            /*
+            1. Create navigate url
+            2. saves value in cache
+            3. redirect user to AAD
+            */
+            return new Promise<string>((resolve, reject) => {
+                if (this._loginInProgress) {
+                    reject("Login is in progress");
+                    return;
+                }
+
+                if (scopes) {
+                    const isValidScope = this.validateInputScope(scopes);
+                    if (isValidScope && !Utils.isEmpty(isValidScope)) {
+                        reject(isValidScope);
+                        return;
+                    }
+                }
+              
+                const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
+
+                authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
+                this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+                this._cacheStorage.setItem(Constants.loginError, "");
+                this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                this._cacheStorage.setItem(Constants.error, "");
+                this._cacheStorage.setItem(Constants.errorDescription, "");
+                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                    this._cacheStorage.setItem(authorityKey, this.authority);
+                }
+
+                const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                this._loginInProgress = true;
+                this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+            });
+
         }
 
         /**
@@ -151,7 +204,7 @@ namespace Msal {
         * attached to the URI fragment as an id_token field. It closes popup window after redirection.
         * @ignore
         */
-        private openWindow(urlNavigate: string, title: string, interval: number, instance: this, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, tokenType: string): void {
+        private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): void {
             const popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
             if (popupWindow == null) {
                 instance._loginInProgress = false;
@@ -160,12 +213,10 @@ namespace Msal {
                 this._cacheStorage.setItem(Constants.error, "Error opening popup");
                 this._cacheStorage.setItem(Constants.errorDescription,
                     "Popup Window is null. This can happen if you are using IE");
-                this._cacheStorage.setItem(Constants.loginError,
-                    "Popup Window is null. This can happen if you are using IE");
-                if (tokenReceivedCallback) {
-                    tokenReceivedCallback(this._cacheStorage.getItem(Constants.loginError), null, null, tokenType);
+                if (reject) {
+                    reject("Popup Window is null. This can happen if you are using IE");
+                    return;
                 }
-
                 return;
             }
 
@@ -178,7 +229,7 @@ namespace Msal {
 
                 try {
                     if (popupWindow.location.href.indexOf(this.redirectUri) !== -1) {
-                        this.handleAuthenticationResponse(popupWindow.location.hash);
+                        this.handleAuthenticationResponse(popupWindow.location.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
                         instance._acquireTokenInProgress = false;
@@ -272,18 +323,6 @@ namespace Msal {
                 throw new Error("API does not accept non-array scopes");
             }
 
-            if (scopes.indexOf("openid") > -1) {
-                return "API does not accept openid as a user- provided scope";
-            }
-
-            if (scopes.indexOf("profile") > -1) {
-                return "API does not accept profile as a user- provided scope";
-            }
-
-            if (scopes.indexOf("offline_access") > -1) {
-                return "API does not accept offline_access as a user- provided scope";
-            }
-
             if (scopes.indexOf(this.clientId) > -1) {
                 if (scopes.length > 1) {
                     return "ClientId can only be provided as a single scope";
@@ -299,19 +338,25 @@ namespace Msal {
         * @param {tokenReceivedCallback} callback - The callback provided by the caller. It will be called with token or error and tokenType.
         * @ignore
         */
-        private registerCallback(expectedState: string, scope: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void): void {
+        private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
             this._activeRenewals[scope] = expectedState;
             if (!window.callBacksMappedToRenewStates[expectedState]) {
                 window.callBacksMappedToRenewStates[expectedState] = [];
             }
-            window.callBacksMappedToRenewStates[expectedState].push(tokenReceivedCallback);
+            window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
             if (!window.callBackMappedToRenewStates[expectedState]) {
                 window.callBackMappedToRenewStates[expectedState] =
                     (errorDesc: string, token: string, error: string, tokenType: string) => {
                         this._activeRenewals[scope] = null;
                         for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
                             try {
-                                window.callBacksMappedToRenewStates[expectedState][i](errorDesc, token, error, tokenType);
+                                if (errorDesc || error) {
+                                    window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);;
+                                }
+                                else if (token) {
+                                    window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                                }
+
                             } catch (e) {
                                 this._requestContext.logger.warning(e);
                             }
@@ -530,15 +575,15 @@ namespace Msal {
         /**
         * Sends interactive request to AAD to obtain a new token.
         * @param {Array<string>} scopes   -  scopes requested by the user
-        * @param {tokenReceivedCallback} callback -  The callback provided by the caller. It will be called with tokentype and token or error.
+        * @param {string} authority -  extraQueryParameters to add to the authentication request.
         * @param {User} user -  The user for which the scopes is requested.The default user is the logged in user.
         * @param {string} extraQueryParameters -  extraQueryParameters to add to the authentication request.
         */
-        acquireToken(scopes: Array<string>): void;
-        acquireToken(scopes: Array<string>, authority: string): void;
-        acquireToken(scopes: Array<string>, authority: string, user: User): void;
-        acquireToken(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
-        acquireToken(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
+        acquireTokenRedirect(scopes: Array<string>): void;
+        acquireTokenRedirect(scopes: Array<string>, authority: string): void;
+        acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
+        acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
+        acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
             const isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
@@ -585,21 +630,76 @@ namespace Msal {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
 
-            let urlNavigate = authenticationRequest.createNavigateUrl(scopes);
+            let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
             urlNavigate = this.addHintParameters(urlNavigate, userObject);
-            if (this._interactionMode === this._interactionModes.popUp) {
-                this._renewStates.push(authenticationRequest.state);
-                this.registerCallback(authenticationRequest.state, scope, this._tokenReceivedCallback);
-                this.openWindow(urlNavigate, "acquireToken", 1, this, this._tokenReceivedCallback, Constants.accessToken);
-                return;
-            } else {
-                if (urlNavigate) {
-                    this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
-                    window.location.replace(urlNavigate);
-                }
+            if (urlNavigate) {
+                this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
+                window.location.replace(urlNavigate);
             }
         }
 
+        /**
+      * Sends interactive request to AAD to obtain a new token.
+      * @param {Array<string>} scopes   -  scopes requested by the user
+      * @param {string} authority -  extraQueryParameters to add to the authentication request.
+      * @param {User} user -  The user for which the scopes is requested.The default user is the logged in user.
+      * @param {string} extraQueryParameters -  extraQueryParameters to add to the authentication request.
+      */
+        acquireTokenPopup(scopes: Array<string>): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
+            return new Promise<string>((resolve, reject) => {
+                const isValidScope = this.validateInputScope(scopes);
+                if (isValidScope && !Utils.isEmpty(isValidScope)) {
+                    reject(isValidScope);
+                }
+
+                const userObject = user ? user : this.user;
+                if (this._acquireTokenInProgress) {
+                    reject("AcquireToken is in progress");
+                    return;
+                }
+
+                const scope = scopes.join(" ").toLowerCase();
+                if (!userObject) {
+                    reject("user login is required");
+                    return;
+                }
+
+                this._acquireTokenInProgress = true;
+                let authenticationRequest: AuthenticationRequestParameters;
+                const acquireTokenAuthority = authority ? authority : this.authority;
+                if (Utils.compareObjects(userObject, this.user)) {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                } else {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                }
+
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                }
+
+                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
+                }
+
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
+
+                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                this._renewStates.push(authenticationRequest.state);
+                this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+            });
+        }
         /**
         * @callback tokenReceivedCallback
         * @param {string} error_description error description returned from AAD if token request fails.
@@ -615,57 +715,60 @@ namespace Msal {
          * @param {User} user -  The user for which the scopes is requested.The default user is the logged in user.
          * @param {string} extraQueryParameters -  extraQueryParameters to add to the authentication request.
          */
-        acquireTokenSilent(scopes: Array<string>, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, authority?: string, user?: User, extraQueryParameters?: string): void {
-            const isValidScope = this.validateInputScope(scopes);
-            if (isValidScope && !Utils.isEmpty(isValidScope)) {
-                tokenReceivedCallback(isValidScope, null, null, Constants.accessToken);
-                return;
-            } else {
-                const scope = scopes.join(" ").toLowerCase();
-                const userObject = user ? user : this.user;
-                if (!userObject) {
-                    tokenReceivedCallback("user login is required", null, null, Constants.accessToken);
-                    return;
-                }
-
-                let authenticationRequest: AuthenticationRequestParameters;
-                if (Utils.compareObjects(userObject, this.user)) {
-                    authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
+            return new Promise<string>((resolve, reject) => {
+                const isValidScope = this.validateInputScope(scopes);
+                if (isValidScope && !Utils.isEmpty(isValidScope)) {
+                    reject(isValidScope);
                 } else {
-                    authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                }
-
-                const cacheResult = this.getCachedToken(authenticationRequest, userObject);
-                if (cacheResult) {
-                    if (cacheResult.token) {
-                        this._requestContext.logger.info('Token is already in cache for scope:' + scope);
-                        tokenReceivedCallback(null, cacheResult.token, null, Constants.accessToken);
+                    const scope = scopes.join(" ").toLowerCase();
+                    const userObject = user ? user : this.user;
+                    if (!userObject) {
+                        reject("user login is required");
                         return;
                     }
-                    else if (cacheResult.errorDesc || cacheResult.error) {
-                        this._requestContext.logger.info(cacheResult.errorDesc + ":" + cacheResult.error);
-                        tokenReceivedCallback(cacheResult.error, null, cacheResult.errorDesc, Constants.accessToken);
-                        return;
-                    }
-                }
 
-                // refresh attept with iframe
-                //Already renewing for this scope, callback when we get the token.
-                if (this._activeRenewals[scope]) {
-                    //Active renewals contains the state for each renewal.
-                    this.registerCallback(this._activeRenewals[scope], scope, tokenReceivedCallback);
-                } else {
-                    if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                        // App uses idToken to send to api endpoints
-                        // Default scope is tracked as clientId to store this token
-                        this._requestContext.logger.verbose("renewing idToken");
-                        this.renewIdToken(scopes, tokenReceivedCallback, userObject, authenticationRequest, extraQueryParameters);
+                    let authenticationRequest: AuthenticationRequestParameters;
+                    if (Utils.compareObjects(userObject, this.user)) {
+                        authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     } else {
-                        this._requestContext.logger.verbose("renewing accesstoken");
-                        this.renewToken(scopes, tokenReceivedCallback, userObject, authenticationRequest, extraQueryParameters);
+                        authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                    }
+
+                    const cacheResult = this.getCachedToken(authenticationRequest, userObject);
+                    if (cacheResult) {
+                        if (cacheResult.token) {
+                            this._requestContext.logger.info('Token is already in cache for scope:' + scope);
+                            resolve(cacheResult.token);
+                            return;
+                        }
+                        else if (cacheResult.errorDesc || cacheResult.error) {
+                            this._requestContext.logger.info(cacheResult.errorDesc + ":" + cacheResult.error);
+                            reject(cacheResult.errorDesc + ": " + cacheResult.error);
+                            return;
+                        }
+                    }
+
+                    // refresh attept with iframe
+                    //Already renewing for this scope, callback when we get the token.
+                    if (this._activeRenewals[scope]) {
+                        //Active renewals contains the state for each renewal.
+                        this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+                    } else {
+                        if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+                            // App uses idToken to send to api endpoints
+                            // Default scope is tracked as clientId to store this token
+                            this._requestContext.logger.verbose("renewing idToken");
+                            this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                        } else {
+                            this._requestContext.logger.verbose("renewing accesstoken");
+                            this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                        }
                     }
                 }
-            }
+
+            });
+
         }
 
         /**
@@ -703,7 +806,6 @@ namespace Msal {
                 var frameHandle = this.addAdalFrame(frameCheck);
                 if (frameHandle.src === "" || frameHandle.src === "about:blank") {
                     frameHandle.src = urlNavigate;
-                    this.loadFrame(urlNavigate, frameCheck);
                 }
             },
                 500);
@@ -746,7 +848,7 @@ namespace Msal {
         * Acquires access token with hidden iframe
         * @ignore
         */
-        private renewToken(scopes: Array<string>, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
+        private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
             const scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.verbose('renewToken is called for scope:' + scope);
             const frameHandle = this.addAdalFrame('msalRenewFrame' + scope);
@@ -771,7 +873,7 @@ namespace Msal {
             let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
             urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
-            this.registerCallback(authenticationRequest.state, scope, tokenReceivedCallback);
+            this.registerCallback(authenticationRequest.state, scope, resolve, reject);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
             frameHandle.src = "about:blank";
             this.loadFrameTimeout(urlNavigate, 'msalRenewFrame' + scope, scope);
@@ -781,7 +883,7 @@ namespace Msal {
         * Renews idtoken for app's own backend when resource is clientId and calls the callback with token/error and tokenType.
         * @ignore
         */
-        private renewIdToken(scopes: Array<string>, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
+        private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
             const scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.info('renewidToken is called');
             const frameHandle = this.addAdalFrame("msalIdTokenFrame");
@@ -805,7 +907,7 @@ namespace Msal {
             let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
             urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
-            this.registerCallback(authenticationRequest.state, this.clientId, tokenReceivedCallback);
+            this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
             frameHandle.src = "about:blank";
             this.loadFrameTimeout(urlNavigate, "adalIdTokenFrame", this.clientId);
@@ -837,7 +939,7 @@ namespace Msal {
         * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
         * @param {string} [hash=window.location.hash] - Hash fragment of Url.
         */
-        handleAuthenticationResponse(hash: string): void {
+        handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void {
             if (hash == null) {
                 hash = window.location.hash;
             }
@@ -866,7 +968,17 @@ namespace Msal {
                 }
 
                 try {
-                    if (tokenReceivedCallback) {
+                    var errorDesc = this._cacheStorage.getItem(Constants.errorDescription);
+                    var error = this._cacheStorage.getItem(Constants.error);
+                    if (error || errorDesc) {
+                        if (reject) {
+                            reject(errorDesc + ": " + error);
+                        }
+                    }
+                    if (resolve) {
+                        resolve(token);
+                    }
+                    else if (tokenReceivedCallback) {
                         tokenReceivedCallback(this._cacheStorage.getItem(Constants.errorDescription), token, this._cacheStorage.getItem(Constants.error), tokenType);
                     }
                 } catch (err) {
@@ -889,7 +1001,7 @@ namespace Msal {
          * @param {IdToken} idToken idToken received as part of the response.
          * @ignore
          */
-        private saveAccessToken(authority:string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
+        private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
             let scope: string;
             let clientObj: ClientInfo = new ClientInfo(clientInfo);
             if (tokenResponse.parameters.hasOwnProperty("scope")) {
@@ -1034,7 +1146,7 @@ namespace Msal {
             }
             this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);
             this._cacheStorage.removeAcquireTokenEntries(Constants.acquireTokenUser, Constants.renewStatus);
-            this._cacheStorage.removeAcquireTokenEntries(Constants.authority+Constants.resourceDelimeter, Constants.renewStatus);
+            this._cacheStorage.removeAcquireTokenEntries(Constants.authority + Constants.resourceDelimeter, Constants.renewStatus);
         };
 
         /**
@@ -1142,7 +1254,4 @@ namespace Msal {
             return "";
         };
     }
-
-    declare var module: any;
-    (module).exports = Msal;
 }
