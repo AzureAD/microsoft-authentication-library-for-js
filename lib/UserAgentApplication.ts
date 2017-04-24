@@ -615,27 +615,28 @@ namespace Msal {
             let authenticationRequest: AuthenticationRequestParameters;
             let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
-            if (Utils.compareObjects(userObject, this.user)) {
-                authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-            } else {
-                authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-            }
+            acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+                if (Utils.compareObjects(userObject, this.user)) {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                } else {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                }
 
-            this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-            authenticationRequest.state = authenticationRequest.state + "|" + scope;
-            const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-                this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-            }
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                }
 
-            const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
-            }
+                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+                }
 
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
 
             let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
             urlNavigate = this.addHintParameters(urlNavigate, userObject);
