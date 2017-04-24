@@ -1,4 +1,4 @@
-declare namespace MSAL {
+declare namespace Msal {
     enum AuthorityType {
         Aad = 0,
         Adfs = 1,
@@ -10,15 +10,14 @@ declare namespace MSAL {
         IsValidationEnabled: boolean;
         readonly Tenant: string;
         private tenantDiscoveryResponse;
-        readonly Host: string;
         readonly AuthorizationEndpoint: string;
-        readonly TokenEndpoint: string;
+        readonly EndSessionEndpoint: string;
         readonly SelfSignedJwtAudience: string;
         private validateResolved();
         CanonicalAuthority: string;
         private canonicalAuthority;
         private canonicalAuthorityUrlComponents;
-        protected readonly CanonicalAuthorityUrlComponents: IUri;
+        readonly CanonicalAuthorityUrlComponents: IUri;
         protected readonly DefaultOpenIdConfigurationEndpoint: string;
         private static validateAsUri(uri);
         private static DetectAuthorityFromUrl(authorityUrl);
@@ -29,7 +28,7 @@ declare namespace MSAL {
         abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class AadAuthority extends Authority {
         private static readonly AadInstanceDiscoveryEndpoint;
         private readonly AadInstanceDiscoveryEndpointUrl;
@@ -40,34 +39,32 @@ declare namespace MSAL {
         IsInTrustedHostList(host: string): boolean;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class AccessTokenCacheItem {
         key: AccessTokenKey;
         value: AccessTokenValue;
         constructor(key: AccessTokenKey, value: AccessTokenValue);
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class AccessTokenKey {
         authority: string;
         clientId: string;
         userIdentifier: string;
-        Scopes: string;
-        constructor(authority: string, clientId: string, scopes: string, userIdentifier: string);
+        scopes: string;
+        constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string);
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class AccessTokenValue {
-        AccessToken: string;
-        ExpiresIn: string;
-        constructor(accessToken: string, expiresIn: string);
+        accessToken: string;
+        idToken: string;
+        expiresIn: string;
+        clientInfo: string;
+        constructor(accessToken: string, idToken: string, expiresIn: string, clientInfo: string);
     }
 }
-declare namespace MSAL {
-    enum ResponseTypes {
-        id_token = 0,
-        token = 1,
-    }
+declare namespace Msal {
     class AuthenticationRequestParameters {
         authority: string;
         clientId: string;
@@ -84,21 +81,35 @@ declare namespace MSAL {
         domainHint: string;
         redirectUri: string;
         constructor(authority: string, clientId: string, scope: Array<string>, responseType: string, redirectUri: string);
-        CreateNavigateUrl(scopes: Array<string>): string;
+        createNavigateUrl(scopes: Array<string>): string;
         translateclientIdUsedInScope(scopes: Array<string>): void;
         parseScope(scopes: Array<string>): string;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class B2cAuthority extends AadAuthority {
         constructor(authority: string, validateAuthority: boolean);
         readonly AuthorityType: AuthorityType;
         GetOpenIdConfigurationEndpointAsync(): Promise<string>;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
+    class ClientInfo {
+        private _uid;
+        uid: string;
+        private _utid;
+        utid: string;
+        constructor(rawClientInfo: string);
+    }
+}
+declare namespace Msal {
     class Constants {
         static readonly errorDescription: string;
+        static readonly scope: string;
+        static readonly acquireTokenUser: string;
+        static readonly clientInfo: string;
+        static readonly clientId: string;
+        static readonly authority: string;
         static readonly idToken: string;
         static readonly accessToken: string;
         static readonly expiresIn: string;
@@ -131,19 +142,35 @@ declare namespace MSAL {
         static readonly unknown: string;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
+    class IdToken {
+        rawIdToken: string;
+        issuer: string;
+        objectId: string;
+        subject: string;
+        tenantId: string;
+        version: string;
+        preferredName: string;
+        name: string;
+        homeObjectId: string;
+        nonce: string;
+        expiration: string;
+        constructor(rawIdToken: string);
+    }
+}
+declare namespace Msal {
     interface IInstanceDiscoveryResponse {
         TenantDiscoveryEndpoint: string;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     interface ITenantDiscoveryResponse {
         AuthorizationEndpoint: string;
-        TokenEndpoint: string;
+        EndSessionEndpoint: string;
         Issuer: string;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     interface IUri {
         Protocol: string;
         HostNameAndPort: string;
@@ -153,7 +180,7 @@ declare namespace MSAL {
         PathSegments: string[];
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     interface ILoggerCallback {
         (level: LogLevel, message: string, containsPii: boolean): void;
     }
@@ -174,7 +201,7 @@ declare namespace MSAL {
         private _localCallback;
         localCallback: ILoggerCallback;
         constructor(correlationId: string);
-        private LogMessage(logMessage, logLevel, containsPii);
+        private logMessage(logMessage, logLevel, containsPii);
         executeCallback(level: LogLevel, message: string, containsPii: boolean): void;
         error(message: string): void;
         errorPii(message: string): void;
@@ -186,7 +213,7 @@ declare namespace MSAL {
         verbosePii(message: string): void;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class RequestContext {
         private static _instance;
         private _correlationId;
@@ -196,8 +223,8 @@ declare namespace MSAL {
         constructor(correlationId: string);
     }
 }
-declare namespace MSAL {
-    class RequestInfo {
+declare namespace Msal {
+    class TokenResponse {
         valid: boolean;
         parameters: Object;
         stateMatch: boolean;
@@ -206,36 +233,42 @@ declare namespace MSAL {
         constructor();
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class Storage {
         private static _instance;
         private _localStorageSupported;
         private _sessionStorageSupported;
         private _cacheLocation;
         constructor(cacheLocation: string);
-        saveItem(key: string, value: string): void;
+        setItem(key: string, value: string): void;
         getItem(key: string): string;
         removeItem(key: string): void;
         clear(): void;
-        getAllAccessTokens(clientId: string, authority: string): Array<AccessTokenCacheItem>;
+        getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem>;
+        removeAcquireTokenEntries(acquireTokenUser: string, acquireTokenStatus: string): void;
+        resetCacheItems(): void;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class Telemetry {
         private static instance;
         private receiverCallback;
-        private constructor();
+        constructor();
         RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void;
         static GetInstance(): Telemetry;
     }
 }
-declare namespace MSAL {
-    interface User {
-        username: string;
-        profile: any;
+declare namespace Msal {
+    class User {
+        displayableId: string;
+        name: string;
+        identityProvider: string;
+        userIdentifier: string;
+        constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string);
+        static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User;
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class UserAgentApplication {
         private _cacheLocations;
         private _cacheLocation;
@@ -246,12 +279,11 @@ declare namespace MSAL {
         private _requestContext;
         private _loginInProgress;
         private _acquireTokenInProgress;
-        private _checkSessionIframe;
         private _renewStates;
         private _activeRenewals;
         private _clockSkew;
         private _cacheStorage;
-        private _userCallback;
+        private _tokenReceivedCallback;
         user: User;
         clientId: string;
         authority: string;
@@ -259,59 +291,74 @@ declare namespace MSAL {
         postLogoutredirectUri: string;
         correlationId: string;
         navigateToLoginRequestUrl: boolean;
-        constructor(clientId: string, authority: string, userCallback: (errorDesc: string, token: string, error: string) => void);
-        login(): void;
-        private openConsentWindow(urlNavigate, title, interval, instance, callback);
+        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void);
+        loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
+        loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
+        private promptUser(urlNavigate);
+        private openWindow(urlNavigate, title, interval, instance, resolve?, reject?);
         logout(): void;
         private clearCache();
         private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
         private validateInputScope(scopes);
-        private registerCallback(expectedState, scope, callback);
-        private getCachedToken(scopes);
-        private addHintParameters(urlNavigate, loginHint?);
+        private registerCallback(expectedState, scope, resolve, reject);
+        private getCachedToken(authenticationRequest, user);
+        getAllUsers(): Array<User>;
+        private getUniqueUsers(users);
+        private getUniqueAuthority(accessTokenCacheItems, property);
+        private addHintParameters(urlNavigate, user);
         private urlContainsQueryStringParameter(name, url);
-        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void): void;
-        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint: string): void;
-        acquireToken(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void, loginHint: string, extraQueryParameters: string): void;
-        acquireTokenSilent(scopes: Array<string>, callback: (errorDesc: string, token: string, error: string) => void): void;
+        acquireTokenRedirect(scopes: Array<string>): void;
+        acquireTokenRedirect(scopes: Array<string>, authority: string): void;
+        acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
+        acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
+        acquireTokenPopup(scopes: Array<string>): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
+        acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
+        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
         private loadFrameTimeout(urlNavigate, frameName, scope);
         private loadFrame(urlNavigate, frameName);
         private addAdalFrame(iframeId);
-        private renewToken(scopes, callback);
-        private renewIdToken(scopes, callback);
-        private hasScope(key);
+        private renewToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
+        private renewIdToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         getUser(): User;
-        handleAuthenticationResponse(hash: string): void;
-        private saveAccessToken(requestInfo);
-        private saveTokenFromHash(requestInfo);
+        handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void;
+        private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
+        private saveTokenFromHash(tokenResponse);
         isCallback(hash: string): boolean;
         private getHash(hash);
         private getRequestInfo(hash);
         private getScopeFromState(state);
-        private createUser(idToken);
     }
 }
-declare namespace MSAL {
+declare namespace Msal {
     class Utils {
+        static compareObjects(u1: User, u2: User): boolean;
         static expiresIn(expires: string): number;
         static now(): number;
         static isEmpty(str: string): boolean;
         static extractIdToken(encodedIdToken: string): any;
+        static base64EncodeStringUrlSafe(input: string): string;
         static base64DecodeStringUrlSafe(base64IdToken: string): string;
+        static encode(input: string): string;
+        static utf8Encode(input: string): string;
         static decode(base64IdToken: string): string;
         static decodeJwt(jwtToken: string): any;
         static deserialize(query: string): any;
         static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean;
         static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean;
-        static DecimalToHex(num: number): string;
-        static GetLibraryVersion(): string;
-        static CreateNewGuid(): string;
+        static convertToLowerCase(scopes: Array<string>): Array<string>;
+        static removeElement(scopes: Array<string>, scope: string): Array<string>;
+        static decimalToHex(num: number): string;
+        static getLibraryVersion(): string;
+        static replaceFirstPath(href: string, tenantId: string): string;
+        static createNewGuid(): string;
         static GetUrlComponents(url: string): IUri;
         static CanonicalizeUri(url: string): string;
     }
 }
 interface Window {
-    MSAL: Object;
+    msal: Object;
     callBackMappedToRenewStates: Object;
     callBacksMappedToRenewStates: Object;
 }

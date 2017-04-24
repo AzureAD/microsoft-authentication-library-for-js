@@ -52,6 +52,8 @@ namespace Msal {
             str.push("state=" + encodeURIComponent(this.state));
             str.push("nonce=" + encodeURIComponent(this.nonce));
             str.push("client_info=1");
+            str.push("slice=testslice");
+            str.push("uid=true");
             if (this.extraQueryParameters) {
                 str.push(this.extraQueryParameters);
             }
@@ -65,8 +67,12 @@ namespace Msal {
             const clientIdIndex: number = scopes.indexOf(this.clientId);
             if (clientIdIndex >= 0) {
                 scopes.splice(clientIdIndex, 1);
-                scopes.push("openid");
-                scopes.push("profile");
+                if (scopes.indexOf("openid") === -1) {
+                    scopes.push("openid");
+                }
+                if (scopes.indexOf("profile") === -1) {
+                    scopes.push("profile");
+                }
             }
         }
 
