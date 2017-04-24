@@ -136,7 +136,7 @@ describe('Msal', function () {
         msal.redirectUri = 'contoso_site';
         msal.loginRedirect();
         expect(msal.promptUser).toHaveBeenCalledWith(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile' + '&client_id=' + msal.clientId + '&redirect_uri=contoso_site&state=33333333-3333-4333-b333-333333333333' + encodeURI(RESOURCE_DELIMETER) + msal.clientId
-            + '&nonce=33333333-3333-4333-b333-333333333333' + '&client_info=1' + '&client-request-id=33333333-3333-4333-b333-333333333333' + '&x-client-SKU=MSAL.JS' + '&x-client-Ver=' + MsalModule.Utils.getLibraryVersion());
+            + '&nonce=33333333-3333-4333-b333-333333333333' + '&client_info=1&slice=testslice&uid=true' + '&client-request-id=33333333-3333-4333-b333-333333333333' + '&x-client-SKU=MSAL.JS' + '&x-client-Ver=' + MsalModule.Utils.getLibraryVersion());
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
