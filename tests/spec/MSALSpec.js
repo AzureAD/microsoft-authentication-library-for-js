@@ -95,6 +95,7 @@ describe('Msal', function () {
 
         // one item in cache
         storageFake.clear();
+
         var secondsNow = mathMock.round(0);
         window = {
             location: {
@@ -105,6 +106,7 @@ describe('Msal', function () {
             },
             localStorage: {},
             sessionStorage: {},
+
             atob: atobHelper,
             innerWidth: 100,
             innerHeight: 100
@@ -132,7 +134,7 @@ describe('Msal', function () {
         expect(msal.redirectUri).toBe('href');
         spyOn(msal, 'promptUser');
         msal.redirectUri = 'contoso_site';
-        msal.login();
+        msal.loginRedirect();
         expect(msal.promptUser).toHaveBeenCalledWith(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile' + '&client_id=' + msal.clientId + '&redirect_uri=contoso_site&state=33333333-3333-4333-b333-333333333333' + encodeURI(RESOURCE_DELIMETER) + msal.clientId
             + '&nonce=33333333-3333-4333-b333-333333333333' + '&client_info=1' + '&client-request-id=33333333-3333-4333-b333-333333333333' + '&x-client-SKU=MSAL.JS' + '&x-client-Ver=' + MsalModule.Utils.getLibraryVersion());
     });
@@ -165,6 +167,7 @@ describe('Msal', function () {
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
             userIdentifer: "1234"
+            
         }
         var accessTokenValue = {
             accessToken: "accessToken",
