@@ -1,9 +1,8 @@
 "use strict";
 
 namespace Msal {
-
     export class AuthenticationRequestParameters {
-
+        authorityInstance: Authority;
         authority: string;
         clientId: string;
         nonce: string;
@@ -18,9 +17,12 @@ namespace Msal {
         loginHint: string;
         domainHint: string;
         redirectUri: string;
+        public get authority(): string {
+            return this.authorityInstance.CanonicalAuthority;
+        }
 
-        constructor(authority: string, clientId: string, scope: Array<string>, responseType: string, redirectUri: string) {
-            this.authority = authority;
+        constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string) {
+            this.authorityInstance = authority;
             this.clientId = clientId;
             this.scopes = scope;
             this.responseType = responseType;
@@ -59,7 +61,7 @@ namespace Msal {
             }
 
             str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-            const requestUrl: string = this.authority + "/oauth2/v2.0/authorize" + str.join("&") + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
+            const requestUrl: string = `${this.authorityInstance.AuthorizationEndpoint}${str.join("&")}&x-client-SKU=${this.xClientSku}&x-client-Ver=${this.xClientVer}`;
             return requestUrl;
         }
 
