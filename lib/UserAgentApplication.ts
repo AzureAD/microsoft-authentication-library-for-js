@@ -186,9 +186,11 @@ namespace Msal {
                     this._cacheStorage.setItem(authorityKey, this.authority);
                 }
 
-                const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-                this._loginInProgress = true;
-                this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                this.authorityInstance.ResolveEndpointsAsync().then(() => {
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    this._loginInProgress = true;
+                    this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                });
             });
         }
 
@@ -1265,7 +1267,4 @@ namespace Msal {
             return "";
         };
     }
-
-    declare var module: any;
-    (module).exports = Msal;
 }

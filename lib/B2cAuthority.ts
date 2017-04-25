@@ -27,7 +27,7 @@ namespace Msal {
                 return resultPromise;
             }
 
-            if (this.IsInTrustedHostList(this.CanonicalAuthority)) {
+            if (this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
                 return resultPromise;
             }
 

@@ -45,7 +45,7 @@ namespace Msal {
             }
 
             const str: Array<string> = [];
-            str.push("?response_type=" + this.responseType);
+            str.push("response_type=" + this.responseType);
             this.translateclientIdUsedInScope(scopes);
             str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
             str.push("client_id=" + encodeURIComponent(this.clientId));
@@ -55,12 +55,22 @@ namespace Msal {
             str.push("client_info=1");
             str.push("slice=testslice");
             str.push("uid=true");
+            str.push(`x-client-SKU=${this.xClientSku}`);
+            str.push(`x-client-Ver=${this.xClientVer}`);
+
             if (this.extraQueryParameters) {
                 str.push(this.extraQueryParameters);
             }
 
             str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-            const requestUrl: string = `${this.authorityInstance.AuthorizationEndpoint}${str.join("&")}&x-client-SKU=${this.xClientSku}&x-client-Ver=${this.xClientVer}`;
+            let authEndpoint = this.authorityInstance.AuthorizationEndpoint;
+            if (authEndpoint.indexOf("?") < 0) {
+                authEndpoint += '?';
+            }
+            else {
+                authEndpoint += '&';
+            }
+            let requestUrl: string = `${authEndpoint}${str.join("&")}`;
             return requestUrl;
         }
 
