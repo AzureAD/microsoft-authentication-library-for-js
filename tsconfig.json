@@ -8,7 +8,6 @@
   "exclude": [
     "node_modules",
     "out",
-    "tests",
-    "devApps"
+    "tests"
   ]
 }

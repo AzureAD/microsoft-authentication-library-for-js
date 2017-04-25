@@ -6,7 +6,6 @@
   "exclude": [
     "node_modules",
     "lib",
-    "out",
-    "devApps"
+    "out"
   ]
 }
