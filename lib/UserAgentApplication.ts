@@ -127,7 +127,7 @@ namespace Msal {
                 }
             }
 
-            const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+            const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -169,7 +169,7 @@ namespace Msal {
                     }
                 }
 
-                const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
                 if (extraQueryParameters) {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
                 }
@@ -638,12 +638,13 @@ namespace Msal {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
                 }
 
-            let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-            urlNavigate = this.addHintParameters(urlNavigate, userObject);
-            if (urlNavigate) {
-                this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
-                window.location.replace(urlNavigate);
-            }
+                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                if (urlNavigate) {
+                    this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
+                    window.location.replace(urlNavigate);
+                }
+            });
         }
 
         /**
@@ -678,7 +679,7 @@ namespace Msal {
 
                 this._acquireTokenInProgress = true;
                 let authenticationRequest: AuthenticationRequestParameters;
-                const acquireTokenAuthority = authority ? authority : this.authority;
+                let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
                 if (Utils.compareObjects(userObject, this.user)) {
                     authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                 } else {
@@ -694,7 +695,7 @@ namespace Msal {
 
                 const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
                 if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
+                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
                 }
 
                 if (extraQueryParameters) {
@@ -736,13 +737,13 @@ namespace Msal {
                         return;
                     }
 
-                let authenticationRequest: AuthenticationRequestParameters;
-                let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-                if (Utils.compareObjects(userObject, this.user)) {
-                    authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                } else {
-                    authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                }
+                    let authenticationRequest: AuthenticationRequestParameters;
+                    let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+                    if (Utils.compareObjects(userObject, this.user)) {
+                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                    } else {
+                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                    }
 
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
                     if (cacheResult) {
@@ -1260,7 +1261,4 @@ namespace Msal {
             return "";
         };
     }
-
-    declare var module: any;
-    (module).exports = Msal;
 }
