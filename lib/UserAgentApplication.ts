@@ -759,22 +759,26 @@ namespace Msal {
                         }
                     }
 
-                    // refresh attept with iframe
-                    //Already renewing for this scope, callback when we get the token.
-                    if (this._activeRenewals[scope]) {
-                        //Active renewals contains the state for each renewal.
-                        this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
-                    } else {
-                        if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                            // App uses idToken to send to api endpoints
-                            // Default scope is tracked as clientId to store this token
-                            this._requestContext.logger.verbose("renewing idToken");
-                            this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-                        } else {
-                            this._requestContext.logger.verbose("renewing accesstoken");
-                            this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-                        }
-                    }
+                    // cache miss
+                    return this.authorityInstance.ResolveEndpointsAsync()
+                        .then(() => {
+                            // refresh attept with iframe
+                            //Already renewing for this scope, callback when we get the token.
+                            if (this._activeRenewals[scope]) {
+                                //Active renewals contains the state for each renewal.
+                                this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+                            } else {
+                                if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+                                    // App uses idToken to send to api endpoints
+                                    // Default scope is tracked as clientId to store this token
+                                    this._requestContext.logger.verbose("renewing idToken");
+                                    this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                                } else {
+                                    this._requestContext.logger.verbose("renewing accesstoken");
+                                    this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                                }
+                            }
+                        });
                 }
             });
         }
@@ -1261,4 +1265,7 @@ namespace Msal {
             return "";
         };
     }
+
+    declare var module: any;
+    (module).exports = Msal;
 }
