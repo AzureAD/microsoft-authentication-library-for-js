@@ -3,7 +3,6 @@
 namespace Msal {
     export class AuthenticationRequestParameters {
         authorityInstance: Authority;
-        authority: string;
         clientId: string;
         nonce: string;
         state: string;
