@@ -284,7 +284,7 @@ declare namespace Msal {
         private _clockSkew;
         private _cacheStorage;
         private _tokenReceivedCallback;
-        user: User;
+        private user;
         clientId: string;
         authority: string;
         redirectUri: string;
@@ -304,7 +304,7 @@ declare namespace Msal {
         private getCachedToken(authenticationRequest, user);
         getAllUsers(): Array<User>;
         private getUniqueUsers(users);
-        private getUniqueAuthority(accessTokenCacheItems, property);
+        private getUniqueAuthority(accessTokenCacheItems, authority);
         private addHintParameters(urlNavigate, user);
         private urlContainsQueryStringParameter(name, url);
         acquireTokenRedirect(scopes: Array<string>): void;
