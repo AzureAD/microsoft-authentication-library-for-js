@@ -1077,13 +1077,13 @@ var Msal;
             }
             return uniqueUsers;
         }
-        getUniqueAuthority(accessTokenCacheItems, property) {
+        getUniqueAuthority(accessTokenCacheItems, authority) {
             const authorityList = [];
             const flags = [];
             accessTokenCacheItems.forEach(element => {
-                if (element.key.hasOwnProperty(property) && (flags.indexOf(element.key[property]) === -1)) {
-                    flags.push(element.key[property]);
-                    authorityList.push(element.key[property]);
+                if (element.key.hasOwnProperty(authority) && (flags.indexOf(element.key[authority]) === -1)) {
+                    flags.push(element.key[authority]);
+                    authorityList.push(element.key[authority]);
                 }
             });
             return authorityList;
@@ -1633,6 +1633,7 @@ var Msal;
         ;
     }
     Msal.UserAgentApplication = UserAgentApplication;
+    (module).exports = Msal;
 })(Msal || (Msal = {}));
 "use strict";
 var Msal;
