@@ -35,7 +35,7 @@
             graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
             graphScopes: ["user.read", "mail.send"],
             b2cScopes: ["https://B2CSriniDev1.onmicrosoft.com/cd1fdffa-0c1e-4490-a070-812701100306/running"],
-            authority: "https://login.microsoftonline.com/tfp/B2CSriniDev1.onmicrosoft.com/B2C_1_testsignin/"
+            authority: "https://login.microsoftonline.com/tfp/B2CSriniDev1.onmicrosoft.com/B2C_1_testsignin"
         };
     </script>
 
@@ -67,12 +67,15 @@
         function login() {
             clientApplication.loginPopup(applicationConfig.b2cScopes)
                 .then(function (idToken) {
+                    return clientApplication.acquireTokenSilent(applicationConfig.b2cScopes);
+                })
+                .then(function (accessToken) {
                     // Change button to Sign Out
                     var authButton = document.getElementById('auth');
                     authButton.innerHTML = 'logout';
                     authButton.setAttribute('onclick', 'logout();');
                     var label = document.getElementById('label');
-                    label.innerText = "Hello " + clientApplication.user.profile.name + "! Please send an email with Microsoft Graph";
+                    label.innerText = "Hello " + clientApplication.user.name + "! Please send an email with Microsoft Graph";
 
                     // Show the email address part
                     var sendEmailSpan = document.getElementById('sendEmail');

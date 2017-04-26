@@ -127,26 +127,29 @@ namespace Msal {
                 }
             }
 
-            const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
+            this.authorityInstance.ResolveEndpointsAsync()
+                .then(() => {
+                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
 
-            authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
-            this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
-            this._cacheStorage.setItem(Constants.loginError, "");
-            this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-            this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-            this._cacheStorage.setItem(Constants.error, "");
-            this._cacheStorage.setItem(Constants.errorDescription, "");
-            const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, this.authority);
-            }
+                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
+                    this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+                    this._cacheStorage.setItem(Constants.loginError, "");
+                    this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+                    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                    this._cacheStorage.setItem(Constants.error, "");
+                    this._cacheStorage.setItem(Constants.errorDescription, "");
+                    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, this.authority);
+                    }
 
-            const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-            this._loginInProgress = true;
-            this.promptUser(urlNavigate);
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    this._loginInProgress = true;
+                    this.promptUser(urlNavigate);
+                });
         }
 
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
@@ -169,24 +172,24 @@ namespace Msal {
                     }
                 }
 
-                const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
-                if (extraQueryParameters) {
-                    authenticationRequest.extraQueryParameters = extraQueryParameters;
-                }
-
-                authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
-                this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
-                this._cacheStorage.setItem(Constants.loginError, "");
-                this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                this._cacheStorage.setItem(Constants.error, "");
-                this._cacheStorage.setItem(Constants.errorDescription, "");
-                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                    this._cacheStorage.setItem(authorityKey, this.authority);
-                }
-
                 this.authorityInstance.ResolveEndpointsAsync().then(() => {
+                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
+
+                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
+                    this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+                    this._cacheStorage.setItem(Constants.loginError, "");
+                    this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+                    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                    this._cacheStorage.setItem(Constants.error, "");
+                    this._cacheStorage.setItem(Constants.errorDescription, "");
+                    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, this.authority);
+                    }
+
                     const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
                     this._loginInProgress = true;
                     this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
@@ -682,35 +685,39 @@ namespace Msal {
                 this._acquireTokenInProgress = true;
                 let authenticationRequest: AuthenticationRequestParameters;
                 let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-                if (Utils.compareObjects(userObject, this.user)) {
-                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                } else {
-                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                }
 
-                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                authenticationRequest.state = authenticationRequest.state + "|" + scope;
-                const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-                if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-                }
+                acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+                    if (Utils.compareObjects(userObject, this.user)) {
+                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                    } else {
+                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                    }
 
-                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
-                }
+                    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                    authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                    const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                    }
 
-                if (extraQueryParameters) {
-                    authenticationRequest.extraQueryParameters = extraQueryParameters;
-                }
+                    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+                    }
 
-                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-                urlNavigate = this.addHintParameters(urlNavigate, userObject);
-                this._renewStates.push(authenticationRequest.state);
-                this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
+
+                    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                    this._renewStates.push(authenticationRequest.state);
+                    this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                });
             });
         }
+
         /**
         * @callback tokenReceivedCallback
         * @param {string} error_description error description returned from AAD if token request fails.
