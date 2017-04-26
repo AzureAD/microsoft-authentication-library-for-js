@@ -64,12 +64,15 @@ namespace Msal {
 
             str.push("client-request-id=" + encodeURIComponent(this.correlationId));
             let authEndpoint = this.authorityInstance.AuthorizationEndpoint;
+
+            // If the endpoint already has queryparams, lets add to it, otherwise add the first one
             if (authEndpoint.indexOf("?") < 0) {
                 authEndpoint += '?';
             }
             else {
                 authEndpoint += '&';
             }
+
             let requestUrl: string = `${authEndpoint}${str.join("&")}`;
             return requestUrl;
         }
