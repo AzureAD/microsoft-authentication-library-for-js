@@ -1477,7 +1477,7 @@ var Msal;
                     if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.sessionState))
                         this._cacheStorage.setItem(Msal.Constants.sessionState, tokenResponse.parameters[Msal.Constants.sessionState]);
                     var idToken;
-                    var clientInfo;
+                    var clientInfo = '';
                     if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.accessToken)) {
                         this._requestContext.logger.info("Fragment has access token");
                         this._acquireTokenInProgress = false;
@@ -1499,8 +1499,7 @@ var Msal;
                             user = Msal.User.createUser(idToken, new Msal.ClientInfo(clientInfo), authority);
                         }
                         else {
-                            this._requestContext.logger.info("ClientInfo not received in the response from AAD");
-                            clientInfo = "";
+                            this._requestContext.logger.warning("ClientInfo not received in the response from AAD");
                             user = Msal.User.createUser(idToken, new Msal.ClientInfo(clientInfo), authority);
                         }
                         let acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + user.userIdentifier + Msal.Constants.resourceDelimeter + tokenResponse.stateResponse;
@@ -1512,7 +1511,7 @@ var Msal;
                                 this._requestContext.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
                             }
                             else {
-                                this._requestContext.logger.warning("The user object received in the response is not same as the one passed in the acquireToken request");
+                                this._requestContext.logger.warning("The user object created from the response is not the same as the one passed in the acquireToken request");
                             }
                         }
                     }
@@ -1525,7 +1524,7 @@ var Msal;
                                 clientInfo = tokenResponse.parameters[Msal.Constants.clientInfo];
                             }
                             else {
-                                clientInfo = "";
+                                this._requestContext.logger.warning("ClientInfo not received in the response from AAD");
                             }
                             let authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + tokenResponse.stateResponse;
                             let authority;
@@ -1541,7 +1540,7 @@ var Msal;
                                 }
                                 else {
                                     this._cacheStorage.setItem(Msal.Constants.idTokenKey, tokenResponse.parameters[Msal.Constants.idToken]);
-                                    this._cacheStorage.setItem(Msal.Constants.clientInfo, tokenResponse.parameters[Msal.Constants.clientInfo]);
+                                    this._cacheStorage.setItem(Msal.Constants.clientInfo, clientInfo);
                                     this.saveAccessToken(authority, tokenResponse, this.user, clientInfo, idToken);
                                 }
                             }
@@ -1633,6 +1632,7 @@ var Msal;
         ;
     }
     Msal.UserAgentApplication = UserAgentApplication;
+    (module).exports = Msal;
 })(Msal || (Msal = {}));
 "use strict";
 var Msal;

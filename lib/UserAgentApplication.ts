@@ -1060,7 +1060,7 @@ namespace Msal {
                         this._cacheStorage.setItem(Constants.sessionState,
                             tokenResponse.parameters[Constants.sessionState]);
                     var idToken: IdToken;
-                    var clientInfo: string;
+                    var clientInfo: string = '';
                     if (tokenResponse.parameters.hasOwnProperty(Constants.accessToken)) {
                         this._requestContext.logger.info("Fragment has access token");
                         this._acquireTokenInProgress = false;
@@ -1083,8 +1083,7 @@ namespace Msal {
                             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
 
                         } else {
-                            this._requestContext.logger.info("ClientInfo not received in the response from AAD");
-                            clientInfo = "";
+                            this._requestContext.logger.warning("ClientInfo not received in the response from AAD");
                             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
                         }
 
@@ -1098,7 +1097,7 @@ namespace Msal {
                                     "The user object received in the response is the same as the one passed in the acquireToken request");
                             } else {
                                 this._requestContext.logger.warning(
-                                    "The user object received in the response is not same as the one passed in the acquireToken request");
+                                    "The user object created from the response is not the same as the one passed in the acquireToken request");
                             }
                         }
                     }
@@ -1111,7 +1110,7 @@ namespace Msal {
                             if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
                                 clientInfo = tokenResponse.parameters[Constants.clientInfo];
                             } else {
-                                clientInfo = "";
+                                this._requestContext.logger.warning("ClientInfo not received in the response from AAD");
                             }
 
                             let authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
@@ -1128,7 +1127,7 @@ namespace Msal {
                                     this._cacheStorage.setItem(Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Constants.nonceIdToken) + ',' + 'Actual: ' + idToken.nonce);
                                 } else {
                                     this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
-                                    this._cacheStorage.setItem(Constants.clientInfo, tokenResponse.parameters[Constants.clientInfo]);
+                                    this._cacheStorage.setItem(Constants.clientInfo, clientInfo);
 
                                     // Save idToken as access token for app itself
                                     this.saveAccessToken(authority, tokenResponse, this.user, clientInfo, idToken);
