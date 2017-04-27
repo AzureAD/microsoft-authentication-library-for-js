@@ -86,7 +86,7 @@ namespace Msal {
                 throw ErrorMessage.invalidAuthorityType;
             }
 
-            if (components.Protocol.toLowerCase() !== "https:") {
+            if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
                 throw ErrorMessage.authorityUriInsecure;
             };
 
