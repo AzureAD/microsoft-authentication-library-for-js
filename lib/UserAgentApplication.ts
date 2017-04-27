@@ -75,13 +75,12 @@ namespace Msal {
         redirectUri: string;
         postLogoutredirectUri: string;
         correlationId: string;
-        // validatAuthority: boolean = true; This will be implemented after the build. Only scenarios that will be affected are the ones where the authority is dynamically discovered.
         navigateToLoginRequestUrl = true;
 
-        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void) {
+        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean) {
             this.clientId = clientId;
 
-            this.validateAuthority = true; // TODO: (shivb) Validation flag should come from constructor params
+            this.validateAuthority = validateAuthority === true;
             this.authority = authority ? authority : "https://login.microsoftonline.com/common";
 
             if (tokenReceivedCallback) {

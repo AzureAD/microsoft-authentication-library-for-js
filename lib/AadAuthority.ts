@@ -41,9 +41,10 @@ namespace Msal {
                 return resultPromise;
             }
 
-            return this.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
+            let client = new XhrClient();
+
+            return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
                 .then((response) => {
-                    // TODO: (shivb) validate response data
                     return response.tenant_discovery_endpoint;
                 });
         }

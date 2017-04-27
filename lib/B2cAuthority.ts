@@ -6,7 +6,7 @@ namespace Msal {
 
             let pathSegments = urlComponents.PathSegments;
             if (pathSegments.length < 3) {
-                throw "B2cAuthorityUriInvalidPath" // TODO: (shivb) throw formal exception
+                throw ErrorMessage.b2cAuthorityUriInvalidPath
             }
 
             this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}/`;
@@ -32,7 +32,7 @@ namespace Msal {
             }
 
             return new Promise<string>((resolve, reject) =>
-                reject("UnsupportedAuthorityValidation")); // TODO: (shivb) throw formal exception
+                reject(ErrorMessage.unsupportedAuthorityValidation));
         }
     }
 }
