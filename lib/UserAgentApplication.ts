@@ -1273,7 +1273,4 @@ namespace Msal {
             return "";
         };
     }
-
-    declare var module: any;
-    (module).exports = Msal;
 }
