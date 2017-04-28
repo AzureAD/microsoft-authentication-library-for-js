@@ -3,15 +3,17 @@
 /// <reference path="../../node_modules/@types/jasmine-ajax/index.d.ts" />
 
 describe("Authority", () => {
+    const validOpenIdConfigurationResponse = '{"authorization_endpoint":"https://authorization_endpoint","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}';
+
+    beforeEach(function () {
+        jasmine.Ajax.install();
+    });
+
+    afterEach(function () {
+        jasmine.Ajax.uninstall();
+    });
+
     describe("AadAuthority", () => {
-        beforeEach(function () {
-            jasmine.Ajax.install();
-        });
-
-        afterEach(function () {
-            jasmine.Ajax.uninstall();
-        });
-
         it("can be created", () => {
             // Arrange
             let url = "https://login.microsoftonline.in/MYTENANT.com";
@@ -30,7 +32,7 @@ describe("Authority", () => {
             let url = "https://login.microsoftonline.com/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
             let validate = true;
             jasmine.Ajax.stubRequest(/.*openid-configuration/i).andReturn({
-                responseText: '{"authorization_endpoint":"https://authorization_endpoint","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}'
+                responseText: validOpenIdConfigurationResponse
             });
 
             // Act
@@ -46,7 +48,7 @@ describe("Authority", () => {
             let url = "https://login.microsoftonline.in/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
             let validate = true;
             jasmine.Ajax.stubRequest(/.*tenant_discovery_endpoint.*openid-configuration/i).andReturn({
-                responseText: '{"authorization_endpoint":"https://authorization_endpoint","end_session_endpoint":"https://end_session_endpoint","issuer":"https://fakeIssuer"}'
+                responseText: validOpenIdConfigurationResponse
             });
             jasmine.Ajax.stubRequest(/.*discovery\/instance/i).andReturn({
                 responseText: '{"tenant_discovery_endpoint":"https://tenant_discovery_endpoint/openid-configuration"}'
@@ -94,7 +96,7 @@ describe("Authority", () => {
             let call = () => Msal.Authority.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow("B2cAuthorityUriInvalidPath");
+            expect(call).toThrow(Msal.ErrorMessage.b2cAuthorityUriInvalidPath);
         });
 
         it("should fail when validation is not supported", (done) => {
@@ -108,7 +110,7 @@ describe("Authority", () => {
 
             // Assert
             promise.catch((error) => {
-                expect(error).toEqual("UnsupportedAuthorityValidation");
+                expect(error).toEqual(Msal.ErrorMessage.unsupportedAuthorityValidation);
                 done();
             });
         });
@@ -124,7 +126,52 @@ describe("Authority", () => {
             let call = () => Msal.Authority.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow("InvalidAuthorityType");
+            expect(call).toThrow(Msal.ErrorMessage.invalidAuthorityType);
+        });
+    });
+
+    describe("Error", () => {
+        function verifyError(done: DoneFn, response: any, expectedError: string) {
+            // Arrange
+            let url = "https://login.microsoftonline.in/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
+            let validate = true;
+            jasmine.Ajax.stubRequest(/.*/i).andReturn(response);
+
+            // Act
+            let authority = Msal.Authority.CreateInstance(url, validate);
+            let promise = authority.ResolveEndpointsAsync();
+
+            // Assert
+            promise.catch((error) => {
+                expect(error).toEqual(expectedError);
+                done();
+            });
+        }
+
+        it("is thrown when tenant discovery endpoint fails with invalid data", (done) => {
+            verifyError(done, {
+                status: 500,
+                responseText: 'fatalError'
+            }, "fatalError");
+        });
+
+        it("is thrown when tenant discovery endpoint fails with error details", (done) => {
+            verifyError(done, {
+                status: 400,
+                responseText: '{"error": "OMG_EPIC_FAIL"}'
+            }, "OMG_EPIC_FAIL");
+        });
+
+        it("is thrown when authority is not https", () => {
+            // Arrange
+            let url = "http://login.microsoftonline.in/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
+            let validate = true;
+
+            // Act
+            let call = () => Msal.Authority.CreateInstance(url, validate);
+
+            // Assert
+            expect(call).toThrow(Msal.ErrorMessage.authorityUriInsecure);
         });
     });
 });

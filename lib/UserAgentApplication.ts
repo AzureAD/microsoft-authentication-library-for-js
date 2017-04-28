@@ -1,7 +1,6 @@
 "use strict";
 
 namespace Msal {
-
     let ResponseTypes = {
         id_token: "id_token",
         token: "token",
@@ -63,18 +62,26 @@ namespace Msal {
         private _tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
         user: User;
         clientId: string;
-        authority = "https://login.microsoftonline.com/common";
+        private authorityInstance: Authority;
+
+        public set authority(val) {
+            this.authorityInstance = Authority.CreateInstance(val, this.validateAuthority);
+        }
+
+        public get authority(): string {
+            return this.authorityInstance.CanonicalAuthority;
+        }
+        validateAuthority: boolean;
         redirectUri: string;
         postLogoutredirectUri: string;
         correlationId: string;
-        // validatAuthority: boolean = true; This will be implemented after the build. Only scenarios that will be affected are the ones where the authority is dynamically discovered.
         navigateToLoginRequestUrl = true;
 
-        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void) {
+        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean) {
             this.clientId = clientId;
-            if (authority) {
-                this.authority = authority;
-            }
+
+            this.validateAuthority = validateAuthority === true;
+            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
 
             if (tokenReceivedCallback) {
                 this._tokenReceivedCallback = tokenReceivedCallback;
@@ -119,27 +126,29 @@ namespace Msal {
                 }
             }
 
-            const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
+            this.authorityInstance.ResolveEndpointsAsync()
+                .then(() => {
+                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
 
-            authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
-            this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
-            this._cacheStorage.setItem(Constants.loginError, "");
-            this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-            this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-            this._cacheStorage.setItem(Constants.error, "");
-            this._cacheStorage.setItem(Constants.errorDescription, "");
-            const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, this.authority);
-            }
+                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
+                    this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+                    this._cacheStorage.setItem(Constants.loginError, "");
+                    this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+                    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                    this._cacheStorage.setItem(Constants.error, "");
+                    this._cacheStorage.setItem(Constants.errorDescription, "");
+                    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, this.authority);
+                    }
 
-            const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-            this._loginInProgress = true;
-            this.promptUser(urlNavigate);
-
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    this._loginInProgress = true;
+                    this.promptUser(urlNavigate);
+                });
         }
 
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
@@ -161,29 +170,30 @@ namespace Msal {
                         return;
                     }
                 }
-              
-                const authenticationRequest = new AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
-                if (extraQueryParameters) {
-                    authenticationRequest.extraQueryParameters = extraQueryParameters;
-                }
 
-                authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
-                this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
-                this._cacheStorage.setItem(Constants.loginError, "");
-                this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                this._cacheStorage.setItem(Constants.error, "");
-                this._cacheStorage.setItem(Constants.errorDescription, "");
-                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                    this._cacheStorage.setItem(authorityKey, this.authority);
-                }
+                this.authorityInstance.ResolveEndpointsAsync().then(() => {
+                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
 
-                const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-                this._loginInProgress = true;
-                this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
+                    this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+                    this._cacheStorage.setItem(Constants.loginError, "");
+                    this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+                    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                    this._cacheStorage.setItem(Constants.error, "");
+                    this._cacheStorage.setItem(Constants.errorDescription, "");
+                    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, this.authority);
+                    }
+
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    this._loginInProgress = true;
+                    this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                });
             });
-
         }
 
         /**
@@ -356,7 +366,6 @@ namespace Msal {
                                 else if (token) {
                                     window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
                                 }
-
                             } catch (e) {
                                 this._requestContext.logger.warning(e);
                             }
@@ -397,7 +406,8 @@ namespace Msal {
                 //if only one cached token found
                 if (filteredItems.length === 1) {
                     accessTokenCacheItem = filteredItems[0];
-                    authenticationRequest.authority = accessTokenCacheItem.key.authority;
+
+                    authenticationRequest.authorityInstance = Authority.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
                 }
                 else if (filteredItems.length > 1) {
                     return {
@@ -417,7 +427,7 @@ namespace Msal {
                         };
                     }
 
-                    authenticationRequest.authority = authorityList[0];
+                    authenticationRequest.authorityInstance = Authority.CreateInstance(authorityList[0], this.validateAuthority);
                 }
             }
             else {
@@ -607,35 +617,38 @@ namespace Msal {
 
             this._acquireTokenInProgress = true;
             let authenticationRequest: AuthenticationRequestParameters;
-            const acquireTokenAuthority = authority ? authority : this.authority;
-            if (Utils.compareObjects(userObject, this.user)) {
-                authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-            } else {
-                authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-            }
+            let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
-            this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-            authenticationRequest.state = authenticationRequest.state + "|" + scope;
-            const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-                this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-            }
+            acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+                if (Utils.compareObjects(userObject, this.user)) {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                } else {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                }
 
-            const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
-            }
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                }
 
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
+                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+                }
 
-            let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-            urlNavigate = this.addHintParameters(urlNavigate, userObject);
-            if (urlNavigate) {
-                this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
-                window.location.replace(urlNavigate);
-            }
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
+
+                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                if (urlNavigate) {
+                    this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
+                    window.location.replace(urlNavigate);
+                }
+            });
         }
 
         /**
@@ -670,36 +683,40 @@ namespace Msal {
 
                 this._acquireTokenInProgress = true;
                 let authenticationRequest: AuthenticationRequestParameters;
-                const acquireTokenAuthority = authority ? authority : this.authority;
-                if (Utils.compareObjects(userObject, this.user)) {
-                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                } else {
-                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                }
+                let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
-                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                authenticationRequest.state = authenticationRequest.state + "|" + scope;
-                const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-                if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-                }
+                acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+                    if (Utils.compareObjects(userObject, this.user)) {
+                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                    } else {
+                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                    }
 
-                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
-                }
+                    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                    authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                    const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                    }
 
-                if (extraQueryParameters) {
-                    authenticationRequest.extraQueryParameters = extraQueryParameters;
-                }
+                    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+                    }
 
-                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-                urlNavigate = this.addHintParameters(urlNavigate, userObject);
-                this._renewStates.push(authenticationRequest.state);
-                this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
+
+                    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                    this._renewStates.push(authenticationRequest.state);
+                    this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                });
             });
         }
+
         /**
         * @callback tokenReceivedCallback
         * @param {string} error_description error description returned from AAD if token request fails.
@@ -729,10 +746,11 @@ namespace Msal {
                     }
 
                     let authenticationRequest: AuthenticationRequestParameters;
+                    let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
                     if (Utils.compareObjects(userObject, this.user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     } else {
-                        authenticationRequest = new AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
                     }
 
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
@@ -749,26 +767,28 @@ namespace Msal {
                         }
                     }
 
-                    // refresh attept with iframe
-                    //Already renewing for this scope, callback when we get the token.
-                    if (this._activeRenewals[scope]) {
-                        //Active renewals contains the state for each renewal.
-                        this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
-                    } else {
-                        if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                            // App uses idToken to send to api endpoints
-                            // Default scope is tracked as clientId to store this token
-                            this._requestContext.logger.verbose("renewing idToken");
-                            this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-                        } else {
-                            this._requestContext.logger.verbose("renewing accesstoken");
-                            this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-                        }
-                    }
+                    // cache miss
+                    return this.authorityInstance.ResolveEndpointsAsync()
+                        .then(() => {
+                            // refresh attept with iframe
+                            //Already renewing for this scope, callback when we get the token.
+                            if (this._activeRenewals[scope]) {
+                                //Active renewals contains the state for each renewal.
+                                this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+                            } else {
+                                if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+                                    // App uses idToken to send to api endpoints
+                                    // Default scope is tracked as clientId to store this token
+                                    this._requestContext.logger.verbose("renewing idToken");
+                                    this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                                } else {
+                                    this._requestContext.logger.verbose("renewing accesstoken");
+                                    this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                                }
+                            }
+                        });
                 }
-
             });
-
         }
 
         /**
@@ -1081,7 +1101,6 @@ namespace Msal {
                         if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
                             clientInfo = tokenResponse.parameters[Constants.clientInfo];
                             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
-
                         } else {
                             this._requestContext.logger.warning("ClientInfo not received in the response from AAD");
                             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
@@ -1253,7 +1272,4 @@ namespace Msal {
             return "";
         };
     }
-    
-    declare var module: any;
-    (module).exports = Msal;
 }

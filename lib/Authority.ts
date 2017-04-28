@@ -9,6 +9,8 @@ namespace Msal {
         protected constructor(authority: string, validateAuthority: boolean) {
             this.IsValidationEnabled = validateAuthority;
             this.CanonicalAuthority = authority;
+
+            this.validateAsUri();
         }
 
         public abstract get AuthorityType(): AuthorityType;
@@ -38,7 +40,7 @@ namespace Msal {
 
         private validateResolved() {
             if (!this.tenantDiscoveryResponse) {
-                throw "Please call ResolveEndpointsAsync first"; // TODO: (shivb) formal exception
+                throw "Please call ResolveEndpointsAsync first";
             }
         }
 
@@ -75,8 +77,22 @@ namespace Msal {
         /*
         * Given a string, validate that it is of the form https://domain/path
         */
-        private static validateAsUri(uri: string) {
-            // throw "not implemented"; // TODO: (shivb) complete implementation
+        private validateAsUri() {
+            let components;
+            try {
+                components = this.CanonicalAuthorityUrlComponents;
+            }
+            catch (e) {
+                throw ErrorMessage.invalidAuthorityType;
+            }
+
+            if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
+                throw ErrorMessage.authorityUriInsecure;
+            };
+
+            if (!components.PathSegments || components.PathSegments.length < 1) {
+                throw ErrorMessage.authorityUriInvalidPath;
+            }
         }
 
         /*
@@ -102,8 +118,6 @@ namespace Msal {
         * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
         */
         public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
-            Authority.validateAsUri(authorityUrl);
-
             let type = Authority.DetectAuthorityFromUrl(authorityUrl);
             // Depending on above detection, create the right type.
             switch (type) {
@@ -112,7 +126,7 @@ namespace Msal {
                 case AuthorityType.Aad:
                     return new AadAuthority(authorityUrl, validateAuthority);
                 default:
-                    throw "InvalidAuthorityType"; // TODO: (shivb) throw format exception
+                    throw ErrorMessage.invalidAuthorityType;
             }
         }
 
@@ -120,51 +134,15 @@ namespace Msal {
         * Calls the OIDC endpoint and returns the response
         */
         private DiscoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-            return this.sendRequestAsync(openIdConfigurationEndpoint, "GET",/*enableCaching:*/ true)
+            let client = new XhrClient();
+            return client.sendRequestAsync(openIdConfigurationEndpoint, "GET",/*enableCaching:*/ true)
                 .then((response: any) => {
-                    // TODO: (shivb) validate that the following properties are not null or empty
                     return <ITenantDiscoveryResponse>{
                         AuthorizationEndpoint: response.authorization_endpoint,
                         EndSessionEndpoint: response.end_session_endpoint,
                         Issuer: response.issuer
                     }
                 })
-        }
-
-        /*
-        * XHR client for JSON endpoints
-        * https://www.npmjs.com/package/async-promise
-        */
-        protected sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
-            return new Promise<string>((resolve, reject) => {
-                var xhr = new XMLHttpRequest();
-                xhr.open(method, url,/*async:*/ true);
-
-                if (enableCaching) {
-                    // TODO: (shivb) ensure that this can be cached
-                    // xhr.setRequestHeader("Cache-Control", "Public");
-                }
-
-                xhr.onload = (ev) => {
-                    if (xhr.status < 200 || xhr.status >= 300) {
-                        reject(xhr.responseText);
-                    }
-
-                    var jsonResponse = JSON.parse(xhr.responseText); // TODO: (shivb) handle scenario where data is not json
-                    resolve(jsonResponse);
-                }
-
-                xhr.onerror = (ev) => {
-                    reject(xhr.status);
-                };
-
-                if (method == 'GET') {
-                    xhr.send();
-                }
-                else {
-                    throw "not implemented";
-                }
-            });
         }
 
         /*

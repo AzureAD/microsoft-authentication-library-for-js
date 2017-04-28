@@ -1,10 +1,8 @@
 "use strict";
 
 namespace Msal {
-
     export class AuthenticationRequestParameters {
-
-        authority: string;
+        authorityInstance: Authority;
         clientId: string;
         nonce: string;
         state: string;
@@ -18,9 +16,12 @@ namespace Msal {
         loginHint: string;
         domainHint: string;
         redirectUri: string;
+        public get authority(): string {
+            return this.authorityInstance.CanonicalAuthority;
+        }
 
-        constructor(authority: string, clientId: string, scope: Array<string>, responseType: string, redirectUri: string) {
-            this.authority = authority;
+        constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string) {
+            this.authorityInstance = authority;
             this.clientId = clientId;
             this.scopes = scope;
             this.responseType = responseType;
@@ -44,7 +45,7 @@ namespace Msal {
             }
 
             const str: Array<string> = [];
-            str.push("?response_type=" + this.responseType);
+            str.push("response_type=" + this.responseType);
             this.translateclientIdUsedInScope(scopes);
             str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
             str.push("client_id=" + encodeURIComponent(this.clientId));
@@ -54,12 +55,25 @@ namespace Msal {
             str.push("client_info=1");
             str.push("slice=testslice");
             str.push("uid=true");
+            str.push(`x-client-SKU=${this.xClientSku}`);
+            str.push(`x-client-Ver=${this.xClientVer}`);
+
             if (this.extraQueryParameters) {
                 str.push(this.extraQueryParameters);
             }
 
             str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-            const requestUrl: string = this.authority + "/oauth2/v2.0/authorize" + str.join("&") + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
+            let authEndpoint = this.authorityInstance.AuthorizationEndpoint;
+
+            // If the endpoint already has queryparams, lets add to it, otherwise add the first one
+            if (authEndpoint.indexOf("?") < 0) {
+                authEndpoint += '?';
+            }
+            else {
+                authEndpoint += '&';
+            }
+
+            let requestUrl: string = `${authEndpoint}${str.join("&")}`;
             return requestUrl;
         }
 

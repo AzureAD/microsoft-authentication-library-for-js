@@ -323,12 +323,19 @@ namespace Msal {
         * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
         */
         static GetUrlComponents(url: string): IUri {
+            if (!url) {
+                throw "Url required";
+            }
+
             // http://stackoverflow.com/a/26766402
             var regEx = new RegExp(/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/);
 
             var match = url.match(regEx);
 
-            // TODO: (shivb) input and regex validation
+            if (!match || match.length < 6) {
+                throw "Valid url required";
+            }
+
             let urlComponents = <IUri>{
                 Protocol: match[1],
                 HostNameAndPort: match[4],
@@ -349,11 +356,25 @@ namespace Msal {
                 url = url.toLowerCase();
             }
 
-            if (url && !url.endsWith("/")) {
+            if (url && !Utils.endsWith(url, "/")) {
                 url += "/";
             }
 
             return url;
+        }
+
+        /**
+         * Checks to see if the url ends with the suffix
+         * Required because we are compiling for es5 instead of es6
+         * @param url
+         * @param str
+         */
+        static endsWith(url: string, suffix: string): boolean {
+            if (!url || !suffix) {
+                return false;
+            }
+
+            return url.indexOf(suffix, url.length - suffix.length) !== -1;
         }
     }
 }
