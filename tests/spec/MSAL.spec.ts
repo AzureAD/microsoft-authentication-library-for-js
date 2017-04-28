@@ -91,7 +91,7 @@ describe('Msal', function (): any {
         // one item in cache
         storageFake.clear();
         var secondsNow = mathMock.round(0);
-        let $window = {
+        let $window: any = {
             location: {
                 hash: '#hash',
                 href: 'href',
@@ -102,7 +102,7 @@ describe('Msal', function (): any {
             sessionStorage: {},
             atob: atob,
             innerWidth: 100,
-            innerHeight: 100
+            innerHeight: 100,
         };
         $window.localStorage = storageFake;
         $window.sessionStorage = storageFake;
@@ -124,7 +124,7 @@ describe('Msal', function (): any {
 
         jasmine.Ajax.install();
 
-        const validOpenIdConfigurationResponse = '{"authorization_endpoint":"https://authorization_endpoint","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}';
+        const validOpenIdConfigurationResponse = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
 
         jasmine.Ajax.stubRequest(/.*openid-configuration/i).andReturn({
             responseText: validOpenIdConfigurationResponse
@@ -140,13 +140,18 @@ describe('Msal', function (): any {
 
     it('navigates user to login by default', (done) => {
         expect(msal.redirectUri.endsWith("SpecRunner.html")).toBeTruthy();
-        msal.promptUser = jasmine.createSpy("promptUser", function () {
-            //expect(msal.promptUser).toHaveBeenCalledWith(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile' + '&client_id=' + msal.clientId + '&redirect_uri=contoso_site&state=33333333-3333-4333-b333-333333333333' + encodeURI(RESOURCE_DELIMETER) + msal.clientId
-            //    + '&nonce=33333333-3333-4333-b333-333333333333' + '&client_info=1' + '&client-request-id=33333333-3333-4333-b333-333333333333' + '&x-client-SKU=MSAL.JS' + '&x-client-Ver=' + Msal.Utils.getLibraryVersion());
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=contoso_site');
+            expect(args).toContain('&state');
+            expect(args).toContain(encodeURI(RESOURCE_DELIMETER) + msal.clientId);;
+            expect(args).toContain('&redirect_uri=contoso_site');
+            expect(args).toContain('&client_info=1');
 
             done();
-        });
-        spyOn(msal, 'promptUser');
+        };
+
         msal.redirectUri = 'contoso_site';
         msal.loginRedirect();
     });
@@ -161,7 +166,7 @@ describe('Msal', function (): any {
         var accessTokenValue = {
             accessToken: "accessToken",
             idToken: "idToken",
-            expiresIn: "1400",
+            expiresIn: "150000000000000",
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -183,7 +188,7 @@ describe('Msal', function (): any {
         var accessTokenValue = {
             accessToken: "accessToken",
             idToken: "idToken",
-            expiresIn: "1400",
+            expiresIn: "150000000000000",
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -208,7 +213,7 @@ describe('Msal', function (): any {
         var accessTokenValue = {
             accessToken: "accessToken",
             idToken: "idToken",
-            expiresIn: "1400",
+            expiresIn: "150000000000000",
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -234,7 +239,7 @@ describe('Msal', function (): any {
         var accessTokenValue = {
             accessToken: "accessToken",
             idToken: "idToken",
-            expiresIn: "1400",
+            expiresIn: "150000000000000",
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -254,7 +259,7 @@ describe('Msal', function (): any {
         var accessTokenValue = {
             accessToken: "accessToken1",
             idToken: "idToken",
-            expiresIn: "1400",
+            expiresIn: "150000000000000",
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -283,7 +288,7 @@ describe('Msal', function (): any {
         var accessTokenValue = {
             accessToken: "accessToken1",
             idToken: "idToken",
-            expiresIn: "1400",
+            expiresIn: "150000000000000",
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
