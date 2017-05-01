@@ -9,9 +9,9 @@ sudo: false
 
 install:
   - npm install
-  - npm install karma -g
-  - npm install karma-cli -g
-  - npm install karma-chrome-launcher -g
+  - npm install -g karma 
+  - npm install -g karma-cli
+  - npm install -g karma-chrome-launcher
 
 cache:
   directories:
