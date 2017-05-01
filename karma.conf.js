@@ -1,59 +1,43 @@
 // Karma configuration
-module.exports = function(config) {
-  config.set({
-    // base path, that will be used to resolve files and exclude
-    basePath: '',
+module.exports = function (config) {
+    config.set({
+        // base path, that will be used to resolve files and exclude
+        basePath: '',
 
-    // testing framework to use (jasmine/mocha/qunit/...)
-     frameworks: ['jasmine-ajax', 'jasmine'],
+        // testing framework to use (jasmine/mocha/qunit/...)
+        frameworks: ['jasmine-ajax', 'jasmine'],
 
-	
-	preprocessors: {
-    '**/*.ts': ['typescript']
-    },
-	
-	typescriptPreprocessor: {
-	options: {
-    sourceMap: true, // generate source maps
-    noResolve: false // enforce type resolution
-	},
-	transformPath: function(path) {
-    return path.replace(/\.ts$/, '.js');
-	}
-	},
+        // list of files / patterns to load in the browser
+        files: [
+            'out/*.js',
+            'out/spec/*.js',
+        ],
 
-    // list of files / patterns to load in the browser
-    files: [
-      'out/*.js',
-      'tests/spec/*.ts',
-    ],
+        // list of files / patterns to exclude
+        exclude: [],
 
-    // list of files / patterns to exclude
-    exclude: [],
+        // web server port
+        port: 8080,
 
-    // web server port
-    port: 8080,
+        // level of logging
+        // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
+        logLevel: config.LOG_INFO,
 
-    // level of logging
-    // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
-    logLevel: config.LOG_INFO,
+        // enable / disable watching file and executing tests whenever any file changes
+        autoWatch: false,
 
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
+        // Start these browsers, currently available:
+        // - Chrome
+        // - ChromeCanary
+        // - Firefox
+        // - Opera
+        // - Safari (only Mac)
+        // - PhantomJS
+        // - IE (only Windows)
+        browsers: ['Chrome'],
 
-    // Start these browsers, currently available:
-    // - Chrome
-    // - ChromeCanary
-    // - Firefox
-    // - Opera
-    // - Safari (only Mac)
-    // - PhantomJS
-    // - IE (only Windows)
-    browsers: ['Chrome'],
-
-
-    // Continuous Integration mode
-    // if true, it capture browsers, run tests and exit
-    singleRun: true
-  });
+        // Continuous Integration mode
+        // if true, it capture browsers, run tests and exit
+        singleRun: true
+    });
 };
