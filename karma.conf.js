@@ -13,6 +13,8 @@ module.exports = function (config) {
             'out/spec/*.js',
         ],
 
+        reporters: ['verbose'],
+
         // list of files / patterns to exclude
         exclude: [],
 
