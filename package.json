@@ -23,7 +23,9 @@
   "engines": {
     "node": ">=0.8.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "es6-promise": "^4.1.0"
+  },
   "devDependencies": {
     "@types/jasmine": "^2.5.47",
     "@types/jasmine-ajax": "^3.1.35",

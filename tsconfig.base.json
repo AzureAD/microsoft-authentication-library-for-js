@@ -4,12 +4,17 @@
     "suppressImplicitAnyIndexErrors": true,
     "noImplicitAny": true,
     "noEmitOnError": true,
-    "target": "es6",
+    "target": "es5",
     "module": "amd",
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
     "outDir": "out",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "lib": [
+            "dom",
+            "es5",
+            "es2015.promise"
+        ]
   }
 }
