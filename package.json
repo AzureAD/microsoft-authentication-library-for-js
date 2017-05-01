@@ -34,6 +34,7 @@
     "jasmine-node": "~1.14.5",
     "jshint": "*",
     "karma": "^1.6.0",
+    "karma-firefox-launcher": "~0.1",
     "karma-chrome-launcher": "^2.0.0",
     "karma-cli": "^1.0.1",
     "karma-html-reporter": "^0.2.7",
