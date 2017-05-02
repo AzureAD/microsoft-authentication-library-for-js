@@ -1,3 +1,6 @@
+addons:
+  firefox: "latest"
+
 language: node_js
 
 node_js:
