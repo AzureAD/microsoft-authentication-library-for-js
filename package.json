@@ -49,6 +49,6 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "tsc && tsc -p tsconfig.test.json && ./node_modules/.bin/karma start"
+    "test": "tsc && tsc -p tsconfig.test.json && karma start"
   }
 }
