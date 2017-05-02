@@ -1,3 +1,4 @@
+"use strict";
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -10,6 +11,7 @@ var Msal;
         constructor(authority, validateAuthority) {
             this.IsValidationEnabled = validateAuthority;
             this.CanonicalAuthority = authority;
+            this.validateAsUri();
         }
         get Tenant() {
             return this.CanonicalAuthorityUrlComponents.PathSegments[0];
@@ -48,7 +50,21 @@ var Msal;
         get DefaultOpenIdConfigurationEndpoint() {
             return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
         }
-        static validateAsUri(uri) {
+        validateAsUri() {
+            let components;
+            try {
+                components = this.CanonicalAuthorityUrlComponents;
+            }
+            catch (e) {
+                throw Msal.ErrorMessage.invalidAuthorityType;
+            }
+            if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
+                throw Msal.ErrorMessage.authorityUriInsecure;
+            }
+            ;
+            if (!components.PathSegments || components.PathSegments.length < 1) {
+                throw Msal.ErrorMessage.authorityUriInvalidPath;
+            }
         }
         static DetectAuthorityFromUrl(authorityUrl) {
             authorityUrl = Msal.Utils.CanonicalizeUri(authorityUrl);
@@ -64,7 +80,6 @@ var Msal;
             }
         }
         static CreateInstance(authorityUrl, validateAuthority) {
-            Authority.validateAsUri(authorityUrl);
             let type = Authority.DetectAuthorityFromUrl(authorityUrl);
             switch (type) {
                 case AuthorityType.B2C:
@@ -72,41 +87,18 @@ var Msal;
                 case AuthorityType.Aad:
                     return new Msal.AadAuthority(authorityUrl, validateAuthority);
                 default:
-                    throw "InvalidAuthorityType";
+                    throw Msal.ErrorMessage.invalidAuthorityType;
             }
         }
         DiscoverEndpoints(openIdConfigurationEndpoint) {
-            return this.sendRequestAsync(openIdConfigurationEndpoint, "GET", true)
+            let client = new Msal.XhrClient();
+            return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", true)
                 .then((response) => {
                 return {
                     AuthorizationEndpoint: response.authorization_endpoint,
                     EndSessionEndpoint: response.end_session_endpoint,
                     Issuer: response.issuer
                 };
-            });
-        }
-        sendRequestAsync(url, method, enableCaching) {
-            return new Promise((resolve, reject) => {
-                var xhr = new XMLHttpRequest();
-                xhr.open(method, url, true);
-                if (enableCaching) {
-                }
-                xhr.onload = (ev) => {
-                    if (xhr.status < 200 || xhr.status >= 300) {
-                        reject(xhr.responseText);
-                    }
-                    var jsonResponse = JSON.parse(xhr.responseText);
-                    resolve(jsonResponse);
-                };
-                xhr.onerror = (ev) => {
-                    reject(xhr.status);
-                };
-                if (method == 'GET') {
-                    xhr.send();
-                }
-                else {
-                    throw "not implemented";
-                }
             });
         }
         ResolveEndpointsAsync() {
@@ -143,7 +135,8 @@ var Msal;
             if (this.IsInTrustedHostList(host)) {
                 return resultPromise;
             }
-            return this.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
+            let client = new Msal.XhrClient();
+            return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
                 .then((response) => {
                 return response.tenant_discovery_endpoint;
             });
@@ -162,7 +155,6 @@ var Msal;
     };
     Msal.AadAuthority = AadAuthority;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class AccessTokenCacheItem {
@@ -173,7 +165,6 @@ var Msal;
     }
     Msal.AccessTokenCacheItem = AccessTokenCacheItem;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class AccessTokenKey {
@@ -186,7 +177,6 @@ var Msal;
     }
     Msal.AccessTokenKey = AccessTokenKey;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class AccessTokenValue {
@@ -199,12 +189,11 @@ var Msal;
     }
     Msal.AccessTokenValue = AccessTokenValue;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class AuthenticationRequestParameters {
         constructor(authority, clientId, scope, responseType, redirectUri) {
-            this.authority = authority;
+            this.authorityInstance = authority;
             this.clientId = clientId;
             this.scopes = scope;
             this.responseType = responseType;
@@ -215,6 +204,9 @@ var Msal;
             this.xClientSku = "MSAL.JS";
             this.xClientVer = Msal.Utils.getLibraryVersion();
         }
+        get authority() {
+            return this.authorityInstance.CanonicalAuthority;
+        }
         createNavigateUrl(scopes) {
             if (!scopes) {
                 scopes = [this.clientId];
@@ -223,7 +215,7 @@ var Msal;
                 scopes.push(this.clientId);
             }
             const str = [];
-            str.push("?response_type=" + this.responseType);
+            str.push("response_type=" + this.responseType);
             this.translateclientIdUsedInScope(scopes);
             str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
             str.push("client_id=" + encodeURIComponent(this.clientId));
@@ -233,11 +225,20 @@ var Msal;
             str.push("client_info=1");
             str.push("slice=testslice");
             str.push("uid=true");
+            str.push(`x-client-SKU=${this.xClientSku}`);
+            str.push(`x-client-Ver=${this.xClientVer}`);
             if (this.extraQueryParameters) {
                 str.push(this.extraQueryParameters);
             }
             str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-            const requestUrl = this.authority + "/oauth2/v2.0/authorize" + str.join("&") + "&x-client-SKU=" + this.xClientSku + "&x-client-Ver=" + this.xClientVer;
+            let authEndpoint = this.authorityInstance.AuthorizationEndpoint;
+            if (authEndpoint.indexOf("?") < 0) {
+                authEndpoint += '?';
+            }
+            else {
+                authEndpoint += '&';
+            }
+            let requestUrl = `${authEndpoint}${str.join("&")}`;
             return requestUrl;
         }
         translateclientIdUsedInScope(scopes) {
@@ -272,7 +273,7 @@ var Msal;
             let urlComponents = Msal.Utils.GetUrlComponents(authority);
             let pathSegments = urlComponents.PathSegments;
             if (pathSegments.length < 3) {
-                throw "B2cAuthorityUriInvalidPath";
+                throw Msal.ErrorMessage.b2cAuthorityUriInvalidPath;
             }
             this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}/`;
         }
@@ -284,15 +285,14 @@ var Msal;
             if (!this.IsValidationEnabled) {
                 return resultPromise;
             }
-            if (this.IsInTrustedHostList(this.CanonicalAuthority)) {
+            if (this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
                 return resultPromise;
             }
-            return new Promise((resolve, reject) => reject("UnsupportedAuthorityValidation"));
+            return new Promise((resolve, reject) => reject(Msal.ErrorMessage.unsupportedAuthorityValidation));
         }
     }
     Msal.B2cAuthority = B2cAuthority;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class ClientInfo {
@@ -333,7 +333,6 @@ var Msal;
     }
     Msal.ClientInfo = ClientInfo;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class Constants {
@@ -391,7 +390,17 @@ var Msal;
     Constants._popUpHeight = 600;
     Msal.Constants = Constants;
 })(Msal || (Msal = {}));
-"use strict";
+var Msal;
+(function (Msal) {
+    class ErrorMessage {
+        static get authorityUriInvalidPath() { return "AuthorityUriInvalidPath"; }
+        static get authorityUriInsecure() { return "AuthorityUriInsecure"; }
+        static get invalidAuthorityType() { return "InvalidAuthorityType"; }
+        static get unsupportedAuthorityValidation() { return "UnsupportedAuthorityValidation"; }
+        static get b2cAuthorityUriInvalidPath() { return "B2cAuthorityUriInvalidPath"; }
+    }
+    Msal.ErrorMessage = ErrorMessage;
+})(Msal || (Msal = {}));
 var Msal;
 (function (Msal) {
     class IdToken {
@@ -439,7 +448,6 @@ var Msal;
     }
     Msal.IdToken = IdToken;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var LogLevel;
@@ -533,7 +541,6 @@ var Msal;
     }
     Msal.Logger = Logger;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class RequestContext {
@@ -550,7 +557,6 @@ var Msal;
     }
     Msal.RequestContext = RequestContext;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class TokenResponse {
@@ -564,7 +570,6 @@ var Msal;
     }
     Msal.TokenResponse = TokenResponse;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class Storage {
@@ -683,7 +688,6 @@ var Msal;
     }
     Msal.Telemetry = Telemetry;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class User {
@@ -710,7 +714,6 @@ var Msal;
     }
     Msal.User = User;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     let ResponseTypes = {
@@ -719,7 +722,7 @@ var Msal;
         id_token_token: "id_token token"
     };
     class UserAgentApplication {
-        constructor(clientId, authority, tokenReceivedCallback) {
+        constructor(clientId, authority, tokenReceivedCallback, validateAuthority) {
             this._cacheLocations = {
                 localStorage: "localStorage",
                 sessionStorage: "sessionStorage"
@@ -732,12 +735,10 @@ var Msal;
             this._interactionMode = "redirect";
             this._clockSkew = 300;
             this._tokenReceivedCallback = null;
-            this.authority = "https://login.microsoftonline.com/common";
             this.navigateToLoginRequestUrl = true;
             this.clientId = clientId;
-            if (authority) {
-                this.authority = authority;
-            }
+            this.validateAuthority = validateAuthority === true;
+            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
             if (tokenReceivedCallback) {
                 this._tokenReceivedCallback = tokenReceivedCallback;
             }
@@ -776,6 +777,12 @@ var Msal;
                 throw new Error('Interantion mode is not valid. Provided value:' + this._interactionMode + '.Possible values are: ' + this._interactionModes.redirect + ',' + this._interactionModes.popUp);
             }
         }
+        set authority(val) {
+            this.authorityInstance = Msal.Authority.CreateInstance(val, this.validateAuthority);
+        }
+        get authority() {
+            return this.authorityInstance.CanonicalAuthority;
+        }
         loginRedirect(scopes, extraQueryParameters) {
             if (this._loginInProgress) {
                 if (this._tokenReceivedCallback) {
@@ -792,39 +799,9 @@ var Msal;
                     }
                 }
             }
-            const authenticationRequest = new Msal.AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
-            authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
-            this._cacheStorage.setItem(Msal.Constants.loginRequest, window.location.href);
-            this._cacheStorage.setItem(Msal.Constants.loginError, "");
-            this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
-            this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-            this._cacheStorage.setItem(Msal.Constants.error, "");
-            this._cacheStorage.setItem(Msal.Constants.errorDescription, "");
-            const authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
-            if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, this.authority);
-            }
-            const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-            this._loginInProgress = true;
-            this.promptUser(urlNavigate);
-        }
-        loginPopup(scopes, extraQueryParameters) {
-            return new Promise((resolve, reject) => {
-                if (this._loginInProgress) {
-                    reject("Login is in progress");
-                    return;
-                }
-                if (scopes) {
-                    const isValidScope = this.validateInputScope(scopes);
-                    if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
-                        reject(isValidScope);
-                        return;
-                    }
-                }
-                const authenticationRequest = new Msal.AuthenticationRequestParameters(this.authority, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+            this.authorityInstance.ResolveEndpointsAsync()
+                .then(() => {
+                const authenticationRequest = new Msal.AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
                 if (extraQueryParameters) {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
                 }
@@ -841,7 +818,42 @@ var Msal;
                 }
                 const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
                 this._loginInProgress = true;
-                this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                this.promptUser(urlNavigate);
+            });
+        }
+        loginPopup(scopes, extraQueryParameters) {
+            return new Promise((resolve, reject) => {
+                if (this._loginInProgress) {
+                    reject("Login is in progress");
+                    return;
+                }
+                if (scopes) {
+                    const isValidScope = this.validateInputScope(scopes);
+                    if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
+                        reject(isValidScope);
+                        return;
+                    }
+                }
+                this.authorityInstance.ResolveEndpointsAsync().then(() => {
+                    const authenticationRequest = new Msal.AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
+                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
+                    this._cacheStorage.setItem(Msal.Constants.loginRequest, window.location.href);
+                    this._cacheStorage.setItem(Msal.Constants.loginError, "");
+                    this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
+                    this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+                    this._cacheStorage.setItem(Msal.Constants.error, "");
+                    this._cacheStorage.setItem(Msal.Constants.errorDescription, "");
+                    const authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, this.authority);
+                    }
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    this._loginInProgress = true;
+                    this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                });
             });
         }
         promptUser(urlNavigate) {
@@ -990,7 +1002,7 @@ var Msal;
                 }
                 if (filteredItems.length === 1) {
                     accessTokenCacheItem = filteredItems[0];
-                    authenticationRequest.authority = accessTokenCacheItem.key.authority;
+                    authenticationRequest.authorityInstance = Msal.Authority.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
                 }
                 else if (filteredItems.length > 1) {
                     return {
@@ -1008,7 +1020,7 @@ var Msal;
                             error: "multiple_matching_tokens_detected"
                         };
                     }
-                    authenticationRequest.authority = authorityList[0];
+                    authenticationRequest.authorityInstance = Msal.Authority.CreateInstance(authorityList[0], this.validateAuthority);
                 }
             }
             else {
@@ -1139,32 +1151,34 @@ var Msal;
             }
             this._acquireTokenInProgress = true;
             let authenticationRequest;
-            const acquireTokenAuthority = authority ? authority : this.authority;
-            if (Msal.Utils.compareObjects(userObject, this.user)) {
-                authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-            }
-            else {
-                authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-            }
-            this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-            authenticationRequest.state = authenticationRequest.state + "|" + scope;
-            const acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + userObject.userIdentifier + Msal.Constants.resourceDelimeter + authenticationRequest.state;
-            if (Msal.Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-                this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-            }
-            const authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
-            if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
-            }
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
-            let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-            urlNavigate = this.addHintParameters(urlNavigate, userObject);
-            if (urlNavigate) {
-                this._cacheStorage.setItem(Msal.Constants.stateAcquireToken, authenticationRequest.state);
-                window.location.replace(urlNavigate);
-            }
+            let acquireTokenAuthority = authority ? Msal.Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+            acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+                if (Msal.Utils.compareObjects(userObject, this.user)) {
+                    authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                }
+                else {
+                    authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                }
+                this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+                authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                const acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + userObject.userIdentifier + Msal.Constants.resourceDelimeter + authenticationRequest.state;
+                if (Msal.Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                }
+                const authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
+                if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+                }
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
+                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                if (urlNavigate) {
+                    this._cacheStorage.setItem(Msal.Constants.stateAcquireToken, authenticationRequest.state);
+                    window.location.replace(urlNavigate);
+                }
+            });
         }
         acquireTokenPopup(scopes, authority, user, extraQueryParameters) {
             return new Promise((resolve, reject) => {
@@ -1184,31 +1198,33 @@ var Msal;
                 }
                 this._acquireTokenInProgress = true;
                 let authenticationRequest;
-                const acquireTokenAuthority = authority ? authority : this.authority;
-                if (Msal.Utils.compareObjects(userObject, this.user)) {
-                    authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                }
-                else {
-                    authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                }
-                this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-                authenticationRequest.state = authenticationRequest.state + "|" + scope;
-                const acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + userObject.userIdentifier + Msal.Constants.resourceDelimeter + authenticationRequest.state;
-                if (Msal.Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-                    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-                }
-                const authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
-                if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                    this._cacheStorage.setItem(authorityKey, acquireTokenAuthority);
-                }
-                if (extraQueryParameters) {
-                    authenticationRequest.extraQueryParameters = extraQueryParameters;
-                }
-                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
-                urlNavigate = this.addHintParameters(urlNavigate, userObject);
-                this._renewStates.push(authenticationRequest.state);
-                this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                let acquireTokenAuthority = authority ? Msal.Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+                acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+                    if (Msal.Utils.compareObjects(userObject, this.user)) {
+                        authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                    }
+                    else {
+                        authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                    }
+                    this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+                    authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                    const acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + userObject.userIdentifier + Msal.Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Msal.Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+                        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+                    }
+                    const authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
+                    if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+                    }
+                    if (extraQueryParameters) {
+                        authenticationRequest.extraQueryParameters = extraQueryParameters;
+                    }
+                    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    urlNavigate = this.addHintParameters(urlNavigate, userObject);
+                    this._renewStates.push(authenticationRequest.state);
+                    this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                });
             });
         }
         acquireTokenSilent(scopes, authority, user, extraQueryParameters) {
@@ -1225,11 +1241,12 @@ var Msal;
                         return;
                     }
                     let authenticationRequest;
+                    let newAuthority = authority ? Msal.Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
                     if (Msal.Utils.compareObjects(userObject, this.user)) {
-                        authenticationRequest = new Msal.AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                        authenticationRequest = new Msal.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     }
                     else {
-                        authenticationRequest = new Msal.AuthenticationRequestParameters(authority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                        authenticationRequest = new Msal.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
                     }
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
                     if (cacheResult) {
@@ -1244,19 +1261,22 @@ var Msal;
                             return;
                         }
                     }
-                    if (this._activeRenewals[scope]) {
-                        this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
-                    }
-                    else {
-                        if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                            this._requestContext.logger.verbose("renewing idToken");
-                            this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                    return this.authorityInstance.ResolveEndpointsAsync()
+                        .then(() => {
+                        if (this._activeRenewals[scope]) {
+                            this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
                         }
                         else {
-                            this._requestContext.logger.verbose("renewing accesstoken");
-                            this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                            if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+                                this._requestContext.logger.verbose("renewing idToken");
+                                this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                            }
+                            else {
+                                this._requestContext.logger.verbose("renewing accesstoken");
+                                this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                            }
                         }
-                    }
+                    });
                 }
             });
         }
@@ -1632,9 +1652,7 @@ var Msal;
         ;
     }
     Msal.UserAgentApplication = UserAgentApplication;
-    (module).exports = Msal;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     class Utils {
@@ -1895,8 +1913,14 @@ var Msal;
         }
         ;
         static GetUrlComponents(url) {
+            if (!url) {
+                throw "Url required";
+            }
             var regEx = new RegExp(/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/);
             var match = url.match(regEx);
+            if (!match || match.length < 6) {
+                throw "Valid url required";
+            }
             let urlComponents = {
                 Protocol: match[1],
                 HostNameAndPort: match[4],
@@ -1911,13 +1935,67 @@ var Msal;
             if (url) {
                 url = url.toLowerCase();
             }
-            if (url && !url.endsWith("/")) {
+            if (url && !Utils.endsWith(url, "/")) {
                 url += "/";
             }
             return url;
         }
+        static endsWith(url, suffix) {
+            if (!url || !suffix) {
+                return false;
+            }
+            return url.indexOf(suffix, url.length - suffix.length) !== -1;
+        }
     }
     Msal.Utils = Utils;
 })(Msal || (Msal = {}));
-"use strict";
+var Msal;
+(function (Msal) {
+    class XhrClient {
+        sendRequestAsync(url, method, enableCaching) {
+            return new Promise((resolve, reject) => {
+                var xhr = new XMLHttpRequest();
+                xhr.open(method, url, true);
+                if (enableCaching) {
+                }
+                xhr.onload = (ev) => {
+                    if (xhr.status < 200 || xhr.status >= 300) {
+                        reject(this.handleError(xhr.responseText));
+                    }
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                    }
+                    catch (e) {
+                        reject(this.handleError(xhr.responseText));
+                    }
+                    resolve(jsonResponse);
+                };
+                xhr.onerror = (ev) => {
+                    reject(xhr.status);
+                };
+                if (method == 'GET') {
+                    xhr.send();
+                }
+                else {
+                    throw "not implemented";
+                }
+            });
+        }
+        handleError(responseText) {
+            var jsonResponse;
+            try {
+                jsonResponse = JSON.parse(responseText);
+                if (jsonResponse.error) {
+                    return jsonResponse.error;
+                }
+                else
+                    throw responseText;
+            }
+            catch (e) {
+                return responseText;
+            }
+        }
+    }
+    Msal.XhrClient = XhrClient;
+})(Msal || (Msal = {}));
 //# sourceMappingURL=msal.js.map

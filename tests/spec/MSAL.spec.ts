@@ -139,7 +139,7 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login by default', (done) => {
-        expect(msal.redirectUri.endsWith("SpecRunner.html")).toBeTruthy();
+        expect(msal.redirectUri).toBe("http://localhost:8080/context.html");
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(args).toContain('&client_id=' + msal.clientId);

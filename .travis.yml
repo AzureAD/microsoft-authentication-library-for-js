@@ -1,15 +1,15 @@
+addons:
+  firefox: "latest"
+
 language: node_js
 
 node_js:
   - 'stable'
-  - '6'
-  - '4'
 
-sudo: false
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 
-install:
+install:		
   - npm install
-
-cache:
-  directories:
-    - node_modules
+  - npm install -g karma

@@ -19,11 +19,10 @@ declare namespace Msal {
         private canonicalAuthorityUrlComponents;
         readonly CanonicalAuthorityUrlComponents: IUri;
         protected readonly DefaultOpenIdConfigurationEndpoint: string;
-        private static validateAsUri(uri);
+        private validateAsUri();
         private static DetectAuthorityFromUrl(authorityUrl);
         static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority;
         private DiscoverEndpoints(openIdConfigurationEndpoint);
-        protected sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any>;
         ResolveEndpointsAsync(): Promise<Authority>;
         abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;
     }
@@ -66,7 +65,7 @@ declare namespace Msal {
 }
 declare namespace Msal {
     class AuthenticationRequestParameters {
-        authority: string;
+        authorityInstance: Authority;
         clientId: string;
         nonce: string;
         state: string;
@@ -80,7 +79,8 @@ declare namespace Msal {
         loginHint: string;
         domainHint: string;
         redirectUri: string;
-        constructor(authority: string, clientId: string, scope: Array<string>, responseType: string, redirectUri: string);
+        readonly authority: string;
+        constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string);
         createNavigateUrl(scopes: Array<string>): string;
         translateclientIdUsedInScope(scopes: Array<string>): void;
         parseScope(scopes: Array<string>): string;
@@ -140,6 +140,15 @@ declare namespace Msal {
         static readonly login: string;
         static readonly renewToken: string;
         static readonly unknown: string;
+    }
+}
+declare namespace Msal {
+    class ErrorMessage {
+        static readonly authorityUriInvalidPath: string;
+        static readonly authorityUriInsecure: string;
+        static readonly invalidAuthorityType: string;
+        static readonly unsupportedAuthorityValidation: string;
+        static readonly b2cAuthorityUriInvalidPath: string;
     }
 }
 declare namespace Msal {
@@ -286,12 +295,14 @@ declare namespace Msal {
         private _tokenReceivedCallback;
         user: User;
         clientId: string;
+        private authorityInstance;
         authority: string;
+        validateAuthority: boolean;
         redirectUri: string;
         postLogoutredirectUri: string;
         correlationId: string;
         navigateToLoginRequestUrl: boolean;
-        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void);
+        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean);
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
         private promptUser(urlNavigate);
@@ -355,10 +366,17 @@ declare namespace Msal {
         static createNewGuid(): string;
         static GetUrlComponents(url: string): IUri;
         static CanonicalizeUri(url: string): string;
+        static endsWith(url: string, suffix: string): boolean;
     }
 }
 interface Window {
     msal: Object;
     callBackMappedToRenewStates: Object;
     callBacksMappedToRenewStates: Object;
+}
+declare namespace Msal {
+    class XhrClient {
+        sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any>;
+        protected handleError(responseText: string): any;
+    }
 }
