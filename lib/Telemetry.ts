@@ -1,4 +1,8 @@
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export class Telemetry {
         private static instance: Telemetry;
         private receiverCallback: (r: Array<Object>) => void;

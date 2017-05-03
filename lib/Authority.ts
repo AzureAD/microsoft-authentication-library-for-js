@@ -1,10 +1,17 @@
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export enum AuthorityType {
         Aad,
         Adfs,
         B2C
     }
 
+    /**
+    * @hidden
+    */
     export abstract class Authority {
         protected constructor(authority: string, validateAuthority: boolean) {
             this.IsValidationEnabled = validateAuthority;

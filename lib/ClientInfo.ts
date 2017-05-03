@@ -2,6 +2,9 @@
 
 namespace Msal {
 
+    /**
+    * @hidden
+    */
     export class ClientInfo {
 
         private _uid: string;

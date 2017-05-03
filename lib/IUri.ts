@@ -1,4 +1,8 @@
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export interface IUri {
         Protocol: string;
         HostNameAndPort: string;

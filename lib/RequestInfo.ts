@@ -2,6 +2,9 @@
 
 namespace Msal {
 
+    /**
+    * @hidden
+    */
     export class TokenResponse {
         valid: boolean;
         parameters: Object;

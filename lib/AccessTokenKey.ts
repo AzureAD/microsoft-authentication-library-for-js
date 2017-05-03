@@ -1,7 +1,10 @@
 "use strict";
 
 namespace Msal {
-
+	
+	/**
+    * @hidden
+    */
     export class AccessTokenKey {
 
         authority: string;

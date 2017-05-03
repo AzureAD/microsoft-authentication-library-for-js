@@ -1,4 +1,3 @@
-"use strict";
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -155,6 +154,7 @@ var Msal;
     };
     Msal.AadAuthority = AadAuthority;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class AccessTokenCacheItem {
@@ -165,6 +165,7 @@ var Msal;
     }
     Msal.AccessTokenCacheItem = AccessTokenCacheItem;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class AccessTokenKey {
@@ -177,6 +178,7 @@ var Msal;
     }
     Msal.AccessTokenKey = AccessTokenKey;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class AccessTokenValue {
@@ -189,6 +191,7 @@ var Msal;
     }
     Msal.AccessTokenValue = AccessTokenValue;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class AuthenticationRequestParameters {
@@ -293,6 +296,7 @@ var Msal;
     }
     Msal.B2cAuthority = B2cAuthority;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class ClientInfo {
@@ -401,6 +405,7 @@ var Msal;
     }
     Msal.ErrorMessage = ErrorMessage;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class IdToken {
@@ -448,6 +453,7 @@ var Msal;
     }
     Msal.IdToken = IdToken;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     var LogLevel;
@@ -541,6 +547,7 @@ var Msal;
     }
     Msal.Logger = Logger;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class RequestContext {
@@ -557,19 +564,7 @@ var Msal;
     }
     Msal.RequestContext = RequestContext;
 })(Msal || (Msal = {}));
-var Msal;
-(function (Msal) {
-    class TokenResponse {
-        constructor() {
-            this.valid = false;
-            this.parameters = {};
-            this.stateMatch = false;
-            this.stateResponse = "";
-            this.requestType = "unknown";
-        }
-    }
-    Msal.TokenResponse = TokenResponse;
-})(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class Storage {
@@ -688,6 +683,21 @@ var Msal;
     }
     Msal.Telemetry = Telemetry;
 })(Msal || (Msal = {}));
+"use strict";
+var Msal;
+(function (Msal) {
+    class TokenResponse {
+        constructor() {
+            this.valid = false;
+            this.parameters = {};
+            this.stateMatch = false;
+            this.stateResponse = "";
+            this.requestType = "unknown";
+        }
+    }
+    Msal.TokenResponse = TokenResponse;
+})(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class User {
@@ -714,6 +724,7 @@ var Msal;
     }
     Msal.User = User;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     let ResponseTypes = {
@@ -902,7 +913,7 @@ var Msal;
         }
         logout() {
             this.clearCache();
-            this.user = null;
+            this._user = null;
             let logout = "";
             if (this.postLogoutredirectUri) {
                 logout = 'post_logout_redirect_uri=' + encodeURIComponent(this.postLogoutredirectUri);
@@ -1101,7 +1112,7 @@ var Msal;
             return authorityList;
         }
         addHintParameters(urlNavigate, user) {
-            const userObject = user ? user : this.user;
+            const userObject = user ? user : this._user;
             const decodedClientInfo = userObject.userIdentifier.split('.');
             const uid = Msal.Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
             const utid = Msal.Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
@@ -1138,7 +1149,7 @@ var Msal;
                     return;
                 }
             }
-            const userObject = user ? user : this.user;
+            const userObject = user ? user : this._user;
             if (this._acquireTokenInProgress) {
                 return;
             }
@@ -1153,7 +1164,7 @@ var Msal;
             let authenticationRequest;
             let acquireTokenAuthority = authority ? Msal.Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
             acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-                if (Msal.Utils.compareObjects(userObject, this.user)) {
+                if (Msal.Utils.compareObjects(userObject, this._user)) {
                     authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                 }
                 else {
@@ -1186,7 +1197,7 @@ var Msal;
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                     reject(isValidScope);
                 }
-                const userObject = user ? user : this.user;
+                const userObject = user ? user : this._user;
                 if (this._acquireTokenInProgress) {
                     reject("AcquireToken is in progress");
                     return;
@@ -1200,7 +1211,7 @@ var Msal;
                 let authenticationRequest;
                 let acquireTokenAuthority = authority ? Msal.Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
                 acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-                    if (Msal.Utils.compareObjects(userObject, this.user)) {
+                    if (Msal.Utils.compareObjects(userObject, this._user)) {
                         authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     }
                     else {
@@ -1235,14 +1246,14 @@ var Msal;
                 }
                 else {
                     const scope = scopes.join(" ").toLowerCase();
-                    const userObject = user ? user : this.user;
+                    const userObject = user ? user : this._user;
                     if (!userObject) {
                         reject("user login is required");
                         return;
                     }
                     let authenticationRequest;
                     let newAuthority = authority ? Msal.Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-                    if (Msal.Utils.compareObjects(userObject, this.user)) {
+                    if (Msal.Utils.compareObjects(userObject, this._user)) {
                         authenticationRequest = new Msal.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     }
                     else {
@@ -1383,16 +1394,16 @@ var Msal;
             this.loadFrameTimeout(urlNavigate, "adalIdTokenFrame", this.clientId);
         }
         getUser() {
-            if (this.user) {
-                return this.user;
+            if (this._user) {
+                return this._user;
             }
             const rawIdToken = this._cacheStorage.getItem(Msal.Constants.idTokenKey);
             const rawClientInfo = this._cacheStorage.getItem(Msal.Constants.clientInfo);
             if (!Msal.Utils.isEmpty(rawIdToken) && !Msal.Utils.isEmpty(rawClientInfo)) {
                 const idToken = new Msal.IdToken(rawIdToken);
                 const clientInfo = new Msal.ClientInfo(rawClientInfo);
-                this.user = Msal.User.createUser(idToken, clientInfo, this.authority);
-                return this.user;
+                this._user = Msal.User.createUser(idToken, clientInfo, this.authority);
+                return this._user;
             }
             return null;
         }
@@ -1552,16 +1563,16 @@ var Msal;
                                 authority = this._cacheStorage.getItem(authorityKey);
                                 authority = Msal.Utils.replaceFirstPath(authority, idToken.tenantId);
                             }
-                            this.user = Msal.User.createUser(idToken, new Msal.ClientInfo(clientInfo), authority);
+                            this._user = Msal.User.createUser(idToken, new Msal.ClientInfo(clientInfo), authority);
                             if (idToken && idToken.nonce) {
                                 if (idToken.nonce !== this._cacheStorage.getItem(Msal.Constants.nonceIdToken)) {
-                                    this.user = null;
+                                    this._user = null;
                                     this._cacheStorage.setItem(Msal.Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Msal.Constants.nonceIdToken) + ',' + 'Actual: ' + idToken.nonce);
                                 }
                                 else {
                                     this._cacheStorage.setItem(Msal.Constants.idTokenKey, tokenResponse.parameters[Msal.Constants.idToken]);
                                     this._cacheStorage.setItem(Msal.Constants.clientInfo, clientInfo);
-                                    this.saveAccessToken(authority, tokenResponse, this.user, clientInfo, idToken);
+                                    this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
                                 }
                             }
                             else {
@@ -1653,6 +1664,7 @@ var Msal;
     }
     Msal.UserAgentApplication = UserAgentApplication;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class Utils {
@@ -1949,6 +1961,7 @@ var Msal;
     }
     Msal.Utils = Utils;
 })(Msal || (Msal = {}));
+"use strict";
 var Msal;
 (function (Msal) {
     class XhrClient {

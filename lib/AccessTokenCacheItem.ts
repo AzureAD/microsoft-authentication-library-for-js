@@ -1,7 +1,9 @@
 "use strict";
 
 namespace Msal {
-
+    /**
+    * @hidden
+    */
     export class AccessTokenCacheItem {
 
         key: AccessTokenKey;
