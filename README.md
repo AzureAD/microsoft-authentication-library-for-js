@@ -1,7 +1,7 @@
 Microsoft Authentication Library
 =====================================
 
-| [Getting Started](https://aka.ms/aaddev)| [Docs](https://aka.ms/aaddev) | [API Reference](http://htmlpreview.github.com/?https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/rohitn/apidoc/docs) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
+| [Getting Started](https://aka.ms/aaddev)| [Docs](https://aka.ms/aaddev) | [API Reference](http://htmlpreview.github.com/?https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/rohitn/apidoc/docs/index.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
