@@ -1,6 +1,10 @@
 /// <reference path="Authority.ts" /> // this is needed to work around error TS2690
 
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export class AadAuthority extends Authority {
         private static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
 

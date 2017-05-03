@@ -9,6 +9,9 @@ namespace Msal {
         identityProvider: string;
         userIdentifier:string;
 
+        /**
+        * @hidden
+        */
         constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string) {
             this.displayableId = displayableId;
             this.name = name;
@@ -16,6 +19,9 @@ namespace Msal {
             this.userIdentifier = userIdentifier;
         }
 
+        /**
+        * @hidden
+        */
         static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User {
             let uid: string;
             let utid: string;

@@ -2,6 +2,9 @@
 
 namespace Msal {// Singleton Class
 
+    /**
+    * @hidden
+    */
     export class RequestContext {
 
         private static _instance: RequestContext;

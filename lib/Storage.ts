@@ -2,6 +2,9 @@
 
 namespace Msal {
 
+    /**
+    * @hidden
+    */
     export class Storage {// Singleton
 
         private static _instance: Storage;

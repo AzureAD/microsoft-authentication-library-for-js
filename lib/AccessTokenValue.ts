@@ -2,6 +2,9 @@
 
 namespace Msal {
 
+    /**
+    * @hidden
+    */
     export class AccessTokenValue {
 
         accessToken: string;

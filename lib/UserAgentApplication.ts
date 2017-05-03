@@ -1,12 +1,19 @@
 "use strict";
 
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     let ResponseTypes = {
         id_token: "id_token",
         token: "token",
         id_token_token: "id_token token"
     };
 
+    /**
+    * @hidden
+    */
     interface cacheResult {
         errorDesc: string;
         token: string;
@@ -14,11 +21,18 @@ namespace Msal {
     }
 
     export class UserAgentApplication {
+
+        /**
+        * @hidden
+        */
         private _cacheLocations = {
             localStorage: "localStorage",
             sessionStorage: "sessionStorage"
         };
 
+        /**
+        * @hidden
+        */
         private _cacheLocation = "sessionStorage";
 
         get cacheLocation(): string {
@@ -34,10 +48,17 @@ namespace Msal {
             }
         }
 
+        /**
+        * @hidden
+        */
         private _interactionModes = {
             popUp: "popUp",
             redirect: "redirect"
         };
+
+        /**
+        * @hidden
+        */
         private _interactionMode = "redirect";
 
         get interactionMode(): string {
@@ -52,16 +73,59 @@ namespace Msal {
             }
         }
 
+        /**
+        * @hidden
+        */
         private _requestContext: RequestContext;
+
+        /**
+        * @hidden
+        */
         private _loginInProgress: boolean;
+
+        /**
+        * @hidden
+        */
         private _acquireTokenInProgress: boolean;
+
+        /**
+        * @hidden
+        */
         private _renewStates: Array<string>;
+
+        /**
+        * @hidden
+        */
         private _activeRenewals: Object;
+
+        /***
+        * @hidden
+        */
         private _clockSkew = 300;
+
+        /**
+        * @hidden
+        */
         private _cacheStorage: Storage;
+
+        /**
+        * @hidden
+        */
         private _tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
-        user: User;
+
+        /**
+        * @hidden
+        */
+        private _user: User;
+
+        /**
+        * Client ID assigned to your app by Azure Active Directory.
+        */
         clientId: string;
+
+        /***
+        * @hidden
+        */
         private authorityInstance: Authority;
 
         public set authority(val) {
@@ -71,12 +135,43 @@ namespace Msal {
         public get authority(): string {
             return this.authorityInstance.CanonicalAuthority;
         }
+
+        /**
+        * Flag to turn authority validation on/off.
+        */
         validateAuthority: boolean;
+
+        /**
+        * Endpoint at which you expect to receive tokens. Defaults to `window.location.href`. Should match the value in the application registration portal.
+        */
         redirectUri: string;
+
+        /**
+        * Redirects the user to postLogoutRedirectUri after logout. Defaults to `window.location.href`.
+        */
         postLogoutredirectUri: string;
-        correlationId: string;
+
+        /**
+        * If true, redirects the user back to the redirectUri after login.
+        */
         navigateToLoginRequestUrl = true;
 
+         /**
+        * @callback tokenReceivedCallback This callback will be called when you call loginRedirect or acquireTokenRedirect api's with either an id_token or an access_token.
+        * @param {string} error_description error description returned from AAD if token request fails.
+        * @param {string} token token returned from AAD if token request is successful.
+        * @param {string} error error message returned from AAD if token request fails.
+        * @param {string} tokenType tokenType returned from AAD. Is either id_token or access_token.
+        */
+
+        /**
+        * Represents a userAgentApplication.
+        * @constructor
+        * @param {string} clientId - Client ID assigned to your app by Azure Active Directory.
+        * @param {string} [authority] - "https://login.microsoftonline.com/common".
+        * @param {tokenReceivedCallback} callback -  The callback provided by the caller. It will be called with token or error and tokenType.
+        * @param {boolean} validateAuthority -  Turns authority validation on/off.
+        */
         constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean) {
             this.clientId = clientId;
 
@@ -102,6 +197,8 @@ namespace Msal {
 
         /**
         * Initiates the login process by redirecting the user to Azure AD authorization endpoint.
+        * @param {Array.<string>} scopes - The scopes for which consent is requested.
+        * @param {string} extraQueryParameters - extraQueryParameters to add to the authentication request.
         */
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void {
             /*
@@ -151,6 +248,12 @@ namespace Msal {
                 });
         }
 
+        /**
+        * Initiates the login process by opening a popUp window.
+        * @param {Array.<string>} scopes - The scopes for which consent is requested.
+        * @param {string} extraQueryParameters - extraQueryParameters to add to the authentication request.
+        * @returns {Promise.<string>} Returns the token or error
+        */
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
             /*
             1. Create navigate url
@@ -199,6 +302,7 @@ namespace Msal {
         /**
         * Redirects the browser to Azure AD authorization endpoint.
         * @param {string}   urlNavigate  Url of the authorization endpoint.
+        * @hidden
         */
         private promptUser(urlNavigate: string) {
             if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
@@ -211,7 +315,8 @@ namespace Msal {
 
         /**
         * After authorization, the user will be sent to your specified redirect_uri with the user's bearer token
-        * attached to the URI fragment as an id_token field. It closes popup window after redirection.
+        * attached to the URI fragment as an id_token/access_token field. It closes popup window after redirection.
+        * @hidden
         * @ignore
         */
         private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): void {
@@ -259,7 +364,7 @@ namespace Msal {
         */
         logout(): void {
             this.clearCache();
-            this.user = null;
+            this._user = null;
             let logout = "";
             if (this.postLogoutredirectUri) {
                 logout = 'post_logout_redirect_uri=' + encodeURIComponent(this.postLogoutredirectUri);
@@ -271,6 +376,7 @@ namespace Msal {
 
         /**
         * Clears cache items.
+        * @hidden
         */
         private clearCache(): void {
             this._renewStates = [];
@@ -287,6 +393,7 @@ namespace Msal {
         /**
         * Configures popup window for login.
         * @ignore
+        * @hidden
         */
         private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
             try {
@@ -323,6 +430,7 @@ namespace Msal {
         * Validates the scopes passed by the user.
         * @param {Array<string>}   scopes User requested scopes.
         * @ignore
+        * @hidden
         */
         private validateInputScope(scopes: Array<string>): string {
             if (!scopes || scopes.length < 1) {
@@ -345,8 +453,10 @@ namespace Msal {
         * Adds the passed callback to the array of callbacks for the specified resource and puts the array on the window object.
         * @param {string}   scope User requested scopes.
         * @param {string}   expectedState A unique identifier (guid).
-        * @param {tokenReceivedCallback} callback - The callback provided by the caller. It will be called with token or error and tokenType.
+        * @param {Function} resolve - The resolve function of the promise object.
+        * @param {Function} reject - The reject function of the promise object.
         * @ignore
+        * @hidden
         */
         private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
             this._activeRenewals[scope] = expectedState;
@@ -378,10 +488,9 @@ namespace Msal {
 
         /**
         * Gets token for the specified resource from the cache.
-        * @param {Array<string>}   scopes User requested scopes.
-        * @param {User}  user user for which the scopes were requested.
-        * @param {authority}  authority passed in authority by the developer. The default value is "https://login.microsoftonline.com/common"
-        * @returns {string} token if if it exists and not expired, otherwise null.
+        * @param {AuthenticationRequestParameters}   authenticationRequest Request sent to AAD to obtain an id_token/access_token.
+        * @param {User}  user User for which the scopes were requested.
+        * @hidden
         */
         private getCachedToken(authenticationRequest: AuthenticationRequestParameters, user: User): cacheResult {
             let accessTokenCacheItem: AccessTokenCacheItem = null;
@@ -478,9 +587,9 @@ namespace Msal {
         }
 
         /**
-       * Gets unique users based on userIdentifier saved in the cache fro whom access Token has been issued.
-       * @param {Array<User>}  Users saved in the cache
-       */
+        * Gets unique users based on userIdentifier saved in the cache for whom access token has been issued.
+        * @param {Array<User>}  Users saved in the cache
+        */
         getAllUsers(): Array<User> {
             const users: Array<User> = [];
             const accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
@@ -498,6 +607,7 @@ namespace Msal {
         * Filters users based on userIdentifier.
         * @param {Array<User>}  Users saved in the cache
         * @ignore
+        * @hidden
         */
         private getUniqueUsers(users: Array<User>): Array<User> {
             if (!users || users.length <= 1) {
@@ -517,9 +627,10 @@ namespace Msal {
         }
 
         /**
-       * Filters users based on userIdentifier.
-       * @param {Array<User>}  Users saved in the cache
+       * Gets cache items with a distinct authority value.
+       * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems accessTokenCacheItems saved in the cache
        * @ignore
+       * @hidden
        */
         private getUniqueAuthority(accessTokenCacheItems: Array<AccessTokenCacheItem>, property: string): Array<string> {
             const authorityList: Array<string> = [];
@@ -538,12 +649,13 @@ namespace Msal {
         * domain_hint can be one of users/organisations which when added skips the email based discovery process of the user.
         * domain_req utid received as part of the clientInfo.
         * login_req uid received as part of clientInfo.
-        * @param {string}   urlNavigate authentication request url.
-        * @param {User}   user user for which the token is requested.
+        * @param {string}   urlNavigate Authentication request url.
+        * @param {User}   user User for which the token is requested.
         * @ignore
+        * @hidden
         */
         private addHintParameters(urlNavigate: string, user: User): string {
-            const userObject = user ? user : this.user;
+            const userObject = user ? user : this._user;
             const decodedClientInfo = userObject.userIdentifier.split('.');
             const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
             const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
@@ -575,6 +687,7 @@ namespace Msal {
         /**
         * Checks if the authorization endpoint URL contains query string parameters
         * @ignore
+        * @hidden
         */
         private urlContainsQueryStringParameter(name: string, url: string): boolean {
             // regex to detect pattern of a ? or & followed by the name parameter and an equals character
@@ -583,11 +696,11 @@ namespace Msal {
         }
 
         /**
-        * Sends interactive request to AAD to obtain a new token.
-        * @param {Array<string>} scopes   -  scopes requested by the user
-        * @param {string} authority -  extraQueryParameters to add to the authentication request.
-        * @param {User} user -  The user for which the scopes is requested.The default user is the logged in user.
-        * @param {string} extraQueryParameters -  extraQueryParameters to add to the authentication request.
+        * Sends interactive request to AAD to obtain an access_token by redirecting the user to the authorization endpoint. To renew idToken, clientId should be passed as the only scope in the scopes array.
+        * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {string} [authority] - "https://login.microsoftonline.com/common".
+        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
         */
         acquireTokenRedirect(scopes: Array<string>): void;
         acquireTokenRedirect(scopes: Array<string>, authority: string): void;
@@ -602,7 +715,7 @@ namespace Msal {
                 }
             }
 
-            const userObject = user ? user : this.user;
+            const userObject = user ? user : this._user;
             if (this._acquireTokenInProgress) {
                 return;
             }
@@ -620,7 +733,7 @@ namespace Msal {
             let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
             acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-                if (Utils.compareObjects(userObject, this.user)) {
+                if (Utils.compareObjects(userObject, this._user)) {
                     authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                 } else {
                     authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
@@ -652,12 +765,13 @@ namespace Msal {
         }
 
         /**
-      * Sends interactive request to AAD to obtain a new token.
-      * @param {Array<string>} scopes   -  scopes requested by the user
-      * @param {string} authority -  extraQueryParameters to add to the authentication request.
-      * @param {User} user -  The user for which the scopes is requested.The default user is the logged in user.
-      * @param {string} extraQueryParameters -  extraQueryParameters to add to the authentication request.
-      */
+        * Sends interactive request to AAD to obtain an access_token using a popUpWindow. To renew idToken, clientId should be passed as the only scope in the scopes array.
+        * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {string} [authority] - "https://login.microsoftonline.com/common".
+        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
+        * @returns {Promise.<string>} Resolved with token or rejected with error.
+        */
         acquireTokenPopup(scopes: Array<string>): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
@@ -669,7 +783,7 @@ namespace Msal {
                     reject(isValidScope);
                 }
 
-                const userObject = user ? user : this.user;
+                const userObject = user ? user : this._user;
                 if (this._acquireTokenInProgress) {
                     reject("AcquireToken is in progress");
                     return;
@@ -686,7 +800,7 @@ namespace Msal {
                 let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
                 acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-                    if (Utils.compareObjects(userObject, this.user)) {
+                    if (Utils.compareObjects(userObject, this._user)) {
                         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     } else {
                         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
@@ -718,20 +832,13 @@ namespace Msal {
         }
 
         /**
-        * @callback tokenReceivedCallback
-        * @param {string} error_description error description returned from AAD if token request fails.
-        * @param {string} token token returned from AAD if token request is successful.
-        * @param {string} error error message returned from AAD if token request fails.
-        * @param {string} tokenType tokenType will be either id_token or access_token.
+        * Gets token from the cache if it is not expired. Otherwise sends request to AAD to obtain an access_token using a hidden iframe. To renew idToken, clientId should be passed as the only scope in the scopes array.
+        * @param {Array<string>} scopes   -  Scopes requested by the user.  Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {string} authority -  Authority
+        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
+        * @returns {Promise.<string>} Resolved with token or rejected with error.
         */
-
-        /**
-         * Acquires token from the cache if it is not expired. Otherwise sends request to AAD to obtain a new token.
-         * @param {Array<string>} scopes   -  scopes requested by the user
-         * @param {tokenReceivedCallback} callback -  The callback provided by the caller. It will be called with tokentype and token or error.
-         * @param {User} user -  The user for which the scopes is requested.The default user is the logged in user.
-         * @param {string} extraQueryParameters -  extraQueryParameters to add to the authentication request.
-         */
         acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
             return new Promise<string>((resolve, reject) => {
                 const isValidScope = this.validateInputScope(scopes);
@@ -739,7 +846,7 @@ namespace Msal {
                     reject(isValidScope);
                 } else {
                     const scope = scopes.join(" ").toLowerCase();
-                    const userObject = user ? user : this.user;
+                    const userObject = user ? user : this._user;
                     if (!userObject) {
                         reject("user login is required");
                         return;
@@ -747,7 +854,7 @@ namespace Msal {
 
                     let authenticationRequest: AuthenticationRequestParameters;
                     let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-                    if (Utils.compareObjects(userObject, this.user)) {
+                    if (Utils.compareObjects(userObject, this._user)) {
                         authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
                     } else {
                         authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
@@ -792,9 +899,10 @@ namespace Msal {
         }
 
         /**
-        *Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left
-        *registered when network errors occur and subsequent token requests for same resource are registered to the pending request
+        * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left
+        * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
         * @ignore
+        * @hidden
         */
         private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string): void {
             //set iframe session to pending
@@ -816,6 +924,7 @@ namespace Msal {
         /**
         * Loads iframe with authorization endpoint URL
         * @ignore
+        * @hidden
         */
         private loadFrame(urlNavigate: string, frameName: string): void {
             // This trick overcomes iframe navigation in IE
@@ -832,8 +941,9 @@ namespace Msal {
         }
 
         /**
-        * Adds the hidden iframe for silent token renewal
+        * Adds the hidden iframe for silent token renewal.
         * @ignore
+        * @hidden
         */
         private addAdalFrame(iframeId: string): HTMLIFrameElement {
             if (typeof iframeId === "undefined") {
@@ -865,8 +975,9 @@ namespace Msal {
         }
 
         /**
-        * Acquires access token with hidden iframe
+        * Acquires access token using a hidden iframe.
         * @ignore
+        * @hidden
         */
         private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
             const scope = scopes.join(" ").toLowerCase();
@@ -900,8 +1011,9 @@ namespace Msal {
         }
 
         /**
-        * Renews idtoken for app's own backend when resource is clientId and calls the callback with token/error and tokenType.
+        * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
         * @ignore
+        * @hidden
         */
         private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
             const scope = scopes.join(" ").toLowerCase();
@@ -934,12 +1046,12 @@ namespace Msal {
         }
 
         /**
-         * Returns the signed in User if any else returns null.
+         * Returns the signed in user if any, else returns null.
          */
         getUser(): User {
             // idToken is first call
-            if (this.user) {
-                return this.user;
+            if (this._user) {
+                return this._user;
             }
 
             // frame is used to get idToken
@@ -948,16 +1060,19 @@ namespace Msal {
             if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
                 const idToken = new IdToken(rawIdToken);
                 const clientInfo = new ClientInfo(rawClientInfo);
-                this.user = User.createUser(idToken, clientInfo, this.authority);
-                return this.user;
+                this._user = User.createUser(idToken, clientInfo, this.authority);
+                return this._user;
             }
 
             return null;
         };
 
-        /**
-        * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
+       /**
+        * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error and saves it in the cache. It then
+        * calls the registered callbacks in case of redirect or resolves the promises with the result.
         * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+        * @param {Function} resolve - The resolve function of the promise object.
+        * @param {Function} reject - The reject function of the promise object.
         */
         handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void {
             if (hash == null) {
@@ -1013,13 +1128,16 @@ namespace Msal {
             }
         }
 
-        /**
+         /**
          * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-         * @param {RequestInfo} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
+         * @param {string} authority authority received in the redirect response from AAD.
+         * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
          * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
          * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
          * @param {IdToken} idToken idToken received as part of the response.
          * @ignore
+         * @private
+         * @hidden
          */
         private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
             let scope: string;
@@ -1051,6 +1169,7 @@ namespace Msal {
         /**
         * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the user object.
         * @ignore
+        * @hidden
         */
         private saveTokenFromHash(tokenResponse: TokenResponse): void {
             this._requestContext.logger.info('State status:' + tokenResponse.stateMatch + '; Request type:' + tokenResponse.requestType);
@@ -1139,17 +1258,17 @@ namespace Msal {
                                 authority = Utils.replaceFirstPath(authority, idToken.tenantId);
                             }
 
-                            this.user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
+                            this._user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
                             if (idToken && idToken.nonce) {
                                 if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
-                                    this.user = null;
+                                    this._user = null;
                                     this._cacheStorage.setItem(Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Constants.nonceIdToken) + ',' + 'Actual: ' + idToken.nonce);
                                 } else {
                                     this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
                                     this._cacheStorage.setItem(Constants.clientInfo, clientInfo);
 
                                     // Save idToken as access token for app itself
-                                    this.saveAccessToken(authority, tokenResponse, this.user, clientInfo, idToken);
+                                    this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
                                 }
                             } else {
                                 this._cacheStorage.setItem(Constants.error, 'invalid idToken');
@@ -1168,7 +1287,7 @@ namespace Msal {
         };
 
         /**
-        * Checks if the URL fragment contains access token, id token or error_description.
+        * Checks if the redirect response is received from AAD. In case of redirect, the url fragment has either id_token, access_token or error.
         * @param {string} hash  -  Hash passed from redirect page
         * @returns {Boolean} true if response contains id_token, access_token or error, false otherwise.
         */
@@ -1185,6 +1304,7 @@ namespace Msal {
         /**
         * Returns the anchor part(#) of the URL
         * @ignore
+        * @hidden
         */
         private getHash(hash: string): string {
             if (hash.indexOf("#/") > -1) {
@@ -1197,19 +1317,11 @@ namespace Msal {
         };
 
         /**
-        * Request info object created from the response received from AAD.
-        *  @class RequestInfo
-        *  @property {object} parameters - object comprising of fields such as id_token/error, session_state, state, e.t.c.
-        *  @property {REQUEST_TYPE} requestType - either LOGIN, RENEW_TOKEN or UNKNOWN.
-        *  @property {boolean} stateMatch - true if state is valid, false otherwise.
-        *  @property {string} stateResponse - unique guid used to match the response with the request.
-        *  @property {boolean} valid - true if requestType contains id_token, access_token or error, false otherwise.
-        */
-
-        /**
          * Creates a requestInfo object from the URL fragment and returns it.
-         * @returns {RequestInfo} an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
+         * @param {string} hash  -  Hash passed from redirect page
+         * @returns {TokenResponse} an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
          * @ignore
+         * @hidden
          */
         private getRequestInfo(hash: string): TokenResponse {
             hash = this.getHash(hash);
@@ -1261,6 +1373,7 @@ namespace Msal {
          * Extracts scope value from the state sent with the authentication request.
          * @returns {string} scope.
          * @ignore
+         * @hidden
          */
         private getScopeFromState(state: string): string {
             if (state) {

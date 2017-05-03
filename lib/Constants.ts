@@ -1,4 +1,8 @@
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export class Constants {
         static get errorDescription(): string { return "error_description"; }
         static get scope(): string { return "scope"; }

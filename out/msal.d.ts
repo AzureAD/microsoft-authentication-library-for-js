@@ -233,16 +233,6 @@ declare namespace Msal {
     }
 }
 declare namespace Msal {
-    class TokenResponse {
-        valid: boolean;
-        parameters: Object;
-        stateMatch: boolean;
-        stateResponse: string;
-        requestType: string;
-        constructor();
-    }
-}
-declare namespace Msal {
     class Storage {
         private static _instance;
         private _localStorageSupported;
@@ -265,6 +255,16 @@ declare namespace Msal {
         constructor();
         RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void;
         static GetInstance(): Telemetry;
+    }
+}
+declare namespace Msal {
+    class TokenResponse {
+        valid: boolean;
+        parameters: Object;
+        stateMatch: boolean;
+        stateResponse: string;
+        requestType: string;
+        constructor();
     }
 }
 declare namespace Msal {
@@ -293,14 +293,13 @@ declare namespace Msal {
         private _clockSkew;
         private _cacheStorage;
         private _tokenReceivedCallback;
-        user: User;
+        private _user;
         clientId: string;
         private authorityInstance;
         authority: string;
         validateAuthority: boolean;
         redirectUri: string;
         postLogoutredirectUri: string;
-        correlationId: string;
         navigateToLoginRequestUrl: boolean;
         constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean);
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;

@@ -28,7 +28,10 @@
     "@types/jasmine": "^2.5.47",
     "@types/jasmine-ajax": "^3.1.35",
     "atob": "~1.1.2",
+    "grunt": "^1.0.1",
+    "grunt-contrib-uglify": "^2.3.0",
     "grunt-jasmine-node": "~0.2.1",
+    "grunt-typedoc": "^0.2.4",
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.5.2",
     "jasmine-node": "~1.14.5",
@@ -42,6 +45,7 @@
     "karma-jasmine-ajax": "^0.1.13",
     "karma-phantomjs-launcher": "*",
     "karma-verbose-reporter": "0.0.6",
+    "typedoc": "^0.6.0",
     "typescript": "^2.2.2",
     "typings": "^2.1.1"
   },

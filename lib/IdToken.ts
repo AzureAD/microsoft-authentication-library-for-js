@@ -2,6 +2,9 @@
 
 namespace Msal {
 
+    /**
+    * @hidden
+    */
     export class IdToken {
 
         rawIdToken: string;

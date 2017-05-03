@@ -1,6 +1,10 @@
 "use strict";
 
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export class Utils {
         static compareObjects(u1: User, u2: User): boolean {
             if (!u1 || !u2)

@@ -1,6 +1,10 @@
 "use strict";
 
 namespace Msal {
+
+    /**
+    * @hidden
+    */
     export class AuthenticationRequestParameters {
         authorityInstance: Authority;
         clientId: string;

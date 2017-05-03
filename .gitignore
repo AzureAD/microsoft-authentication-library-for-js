@@ -252,6 +252,7 @@ paket-files/
 *.sln.iml
 
 # MSAL specific ignore files
+docs/
 lib/*.js
 lib/*.js.map
 *.spec.js
