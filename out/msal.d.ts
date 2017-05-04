@@ -233,6 +233,16 @@ declare namespace Msal {
     }
 }
 declare namespace Msal {
+    class TokenResponse {
+        valid: boolean;
+        parameters: Object;
+        stateMatch: boolean;
+        stateResponse: string;
+        requestType: string;
+        constructor();
+    }
+}
+declare namespace Msal {
     class Storage {
         private static _instance;
         private _localStorageSupported;
@@ -255,16 +265,6 @@ declare namespace Msal {
         constructor();
         RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void;
         static GetInstance(): Telemetry;
-    }
-}
-declare namespace Msal {
-    class TokenResponse {
-        valid: boolean;
-        parameters: Object;
-        stateMatch: boolean;
-        stateResponse: string;
-        requestType: string;
-        constructor();
     }
 }
 declare namespace Msal {
