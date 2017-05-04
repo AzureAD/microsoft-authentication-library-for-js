@@ -9,7 +9,7 @@ module.exports = function (grunt) {
 			options: {
 				module: 'amd',
 				out: './docs',
-				target: 'es6'
+				target: 'es5'
 			},
 			src: ['./lib/**/*']
 			}
