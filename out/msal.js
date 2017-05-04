@@ -567,6 +567,20 @@ var Msal;
 "use strict";
 var Msal;
 (function (Msal) {
+    class TokenResponse {
+        constructor() {
+            this.valid = false;
+            this.parameters = {};
+            this.stateMatch = false;
+            this.stateResponse = "";
+            this.requestType = "unknown";
+        }
+    }
+    Msal.TokenResponse = TokenResponse;
+})(Msal || (Msal = {}));
+"use strict";
+var Msal;
+(function (Msal) {
     class Storage {
         constructor(cacheLocation) {
             if (Storage._instance) {
@@ -682,20 +696,6 @@ var Msal;
         }
     }
     Msal.Telemetry = Telemetry;
-})(Msal || (Msal = {}));
-"use strict";
-var Msal;
-(function (Msal) {
-    class TokenResponse {
-        constructor() {
-            this.valid = false;
-            this.parameters = {};
-            this.stateMatch = false;
-            this.stateResponse = "";
-            this.requestType = "unknown";
-        }
-    }
-    Msal.TokenResponse = TokenResponse;
 })(Msal || (Msal = {}));
 "use strict";
 var Msal;
