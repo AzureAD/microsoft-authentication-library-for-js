@@ -61,18 +61,6 @@ namespace Msal {
         */
         private _interactionMode = "redirect";
 
-        get interactionMode(): string {
-            return this._interactionMode;
-        }
-
-        set interactionMode(mode: string) {
-            if (this._interactionModes[mode]) {
-                this._interactionMode = this._interactionModes[mode];
-            } else {
-                throw new Error('Interantion mode is not valid. Provided value:' + this._interactionMode + '.Possible values are: ' + this._interactionModes.redirect + ',' + this._interactionModes.popUp);
-            }
-        }
-
         /**
         * @hidden
         */
@@ -156,13 +144,13 @@ namespace Msal {
         */
         navigateToLoginRequestUrl = true;
 
-         /**
-        * @callback tokenReceivedCallback This callback will be called when you call loginRedirect or acquireTokenRedirect api's with either an id_token or an access_token.
-        * @param {string} error_description error description returned from AAD if token request fails.
-        * @param {string} token token returned from AAD if token request is successful.
-        * @param {string} error error message returned from AAD if token request fails.
-        * @param {string} tokenType tokenType returned from AAD. Is either id_token or access_token.
-        */
+        /**
+       * @callback tokenReceivedCallback This callback will be called when you call loginRedirect or acquireTokenRedirect api's with either an id_token or an access_token.
+       * @param {string} error_description error description returned from AAD if token request fails.
+       * @param {string} token token returned from AAD if token request is successful.
+       * @param {string} error error message returned from AAD if token request fails.
+       * @param {string} tokenType tokenType returned from AAD. Is either id_token or access_token.
+       */
 
         /**
         * Represents a userAgentApplication.
@@ -193,6 +181,9 @@ namespace Msal {
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
+            var isCallback = this.isCallback(window.location.hash);
+            if (isCallback)
+                this.handleAuthenticationResponse(window.location.hash);
         }
 
         /**
@@ -261,17 +252,23 @@ namespace Msal {
             3. redirect user to AAD
             */
             return new Promise<string>((resolve, reject) => {
+                this._interactionMode = this._interactionModes.popUp;
                 if (this._loginInProgress) {
-                    reject("Login is in progress");
+                    reject(Msal.ErrorCodes.loginProgressError + ':' + Msal.ErrorDescription.loginProgressError);
                     return;
                 }
 
                 if (scopes) {
                     const isValidScope = this.validateInputScope(scopes);
                     if (isValidScope && !Utils.isEmpty(isValidScope)) {
-                        reject(isValidScope);
+                        reject(Msal.ErrorCodes.inputScopesError + ':' + Msal.ErrorDescription.inputScopesError);
                         return;
                     }
+                }
+
+                var popUpWindow = this.openWindow('about:blank', '_blank', 20, this, resolve, reject);
+                if (!popUpWindow) {
+                    return;
                 }
 
                 this.authorityInstance.ResolveEndpointsAsync().then(() => {
@@ -294,7 +291,21 @@ namespace Msal {
 
                     const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
                     this._loginInProgress = true;
-                    this.openWindow(urlNavigate, "login", 20, this, resolve, reject);
+                    if (popUpWindow) {
+                        popUpWindow.location.href = urlNavigate;
+                    }
+
+                }, () => {
+                    this._requestContext.logger.info(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.error, Msal.ErrorCodes.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.errorDescription, Msal.ErrorDescription.endpointResolutionError);
+                    if (reject) {
+                        reject(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
+                    }
+
+                    if (popUpWindow) {
+                        popUpWindow.close();
+                    }
                 });
             });
         }
@@ -319,20 +330,18 @@ namespace Msal {
         * @hidden
         * @ignore
         */
-        private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): void {
-            const popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
+        private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): Window {
+            var popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
             if (popupWindow == null) {
                 instance._loginInProgress = false;
                 instance._acquireTokenInProgress = false;
-                this._requestContext.logger.info("Popup Window is null. This can happen if you are using IE");
-                this._cacheStorage.setItem(Constants.error, "Error opening popup");
-                this._cacheStorage.setItem(Constants.errorDescription,
-                    "Popup Window is null. This can happen if you are using IE");
+                this._requestContext.logger.info(Msal.ErrorCodes.popUpWindowError + ':' + Msal.ErrorDescription.popUpWindowError);
+                this._cacheStorage.setItem(Constants.error, Msal.ErrorCodes.popUpWindowError);
+                this._cacheStorage.setItem(Constants.errorDescription, Msal.ErrorDescription.popUpWindowError);
                 if (reject) {
-                    reject("Popup Window is null. This can happen if you are using IE");
-                    return;
+                    reject(Msal.ErrorCodes.popUpWindowError + ':' + Msal.ErrorDescription.popUpWindowError);
                 }
-                return;
+                return null;
             }
 
             var pollTimer = window.setInterval(() => {
@@ -356,6 +365,8 @@ namespace Msal {
                 }
             },
                 interval);
+
+            return popupWindow;
         }
 
         /**
@@ -723,7 +734,7 @@ namespace Msal {
             const scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback("user login is required", null, null, Constants.accessToken);
+                    this._tokenReceivedCallback(Msal.ErrorDescription.userLoginError, null, Msal.ErrorCodes.userLoginError, Constants.accessToken);
                     return;
                 }
             }
@@ -778,26 +789,31 @@ namespace Msal {
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
             return new Promise<string>((resolve, reject) => {
+                this._interactionMode = this._interactionModes.popUp;
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
-                    reject(isValidScope);
+                    reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
                 }
 
                 const userObject = user ? user : this._user;
                 if (this._acquireTokenInProgress) {
-                    reject("AcquireToken is in progress");
+                    reject(Msal.ErrorCodes.acquireTokenProgressError + ':' + Msal.ErrorDescription.acquireTokenProgressError);
                     return;
                 }
 
                 const scope = scopes.join(" ").toLowerCase();
                 if (!userObject) {
-                    reject("user login is required");
+                    reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
                     return;
                 }
 
                 this._acquireTokenInProgress = true;
                 let authenticationRequest: AuthenticationRequestParameters;
                 let acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+                var popUpWindow = this.openWindow('about:blank', '_blank', 1, this, resolve, reject);
+                if (!popUpWindow) {
+                    return;
+                }
 
                 acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
                     if (Utils.compareObjects(userObject, this._user)) {
@@ -826,7 +842,19 @@ namespace Msal {
                     urlNavigate = this.addHintParameters(urlNavigate, userObject);
                     this._renewStates.push(authenticationRequest.state);
                     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                    this.openWindow(urlNavigate, "acquireToken", 1, this, resolve, reject);
+                    if (popUpWindow) {
+                        popUpWindow.location.href = urlNavigate;
+                    }
+
+                }, () => {
+                    this._requestContext.logger.info(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.error, Msal.ErrorCodes.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.errorDescription, Msal.ErrorDescription.endpointResolutionError);
+                    if (reject) {
+                        reject(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
+                    }
+                    if (popUpWindow)
+                        popUpWindow.close();
                 });
             });
         }
@@ -843,12 +871,12 @@ namespace Msal {
             return new Promise<string>((resolve, reject) => {
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
-                    reject(isValidScope);
+                    reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
                 } else {
                     const scope = scopes.join(" ").toLowerCase();
                     const userObject = user ? user : this._user;
                     if (!userObject) {
-                        reject("user login is required");
+                        reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
                         return;
                     }
 
@@ -1067,13 +1095,13 @@ namespace Msal {
             return null;
         };
 
-       /**
-        * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error and saves it in the cache. It then
-        * calls the registered callbacks in case of redirect or resolves the promises with the result.
-        * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-        * @param {Function} resolve - The resolve function of the promise object.
-        * @param {Function} reject - The reject function of the promise object.
-        */
+        /**
+         * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error and saves it in the cache. It then
+         * calls the registered callbacks in case of redirect or resolves the promises with the result.
+         * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+         * @param {Function} resolve - The resolve function of the promise object.
+         * @param {Function} reject - The reject function of the promise object.
+         */
         handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void {
             if (hash == null) {
                 hash = window.location.hash;
@@ -1128,17 +1156,17 @@ namespace Msal {
             }
         }
 
-         /**
-         * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-         * @param {string} authority authority received in the redirect response from AAD.
-         * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-         * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
-         * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
-         * @param {IdToken} idToken idToken received as part of the response.
-         * @ignore
-         * @private
-         * @hidden
-         */
+        /**
+        * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
+        * @param {string} authority authority received in the redirect response from AAD.
+        * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
+        * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
+        * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
+        * @param {IdToken} idToken idToken received as part of the response.
+        * @ignore
+        * @private
+        * @hidden
+        */
         private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
             let scope: string;
             let clientObj: ClientInfo = new ClientInfo(clientInfo);
