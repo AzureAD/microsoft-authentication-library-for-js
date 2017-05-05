@@ -53,7 +53,7 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 
 Via NPM:
 
-    npm install adal-angular
+    npm install msal
 
 Via CDN:
 
