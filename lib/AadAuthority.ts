@@ -1,7 +1,6 @@
 /// <reference path="Authority.ts" /> // this is needed to work around error TS2690
 
 namespace Msal {
-
     /**
     * @hidden
     */

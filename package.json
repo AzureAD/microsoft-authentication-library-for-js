@@ -1,5 +1,5 @@
 {
-  "name": "msaljs",
+  "name": "msal",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/temp-msalforjs.git"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -29,7 +29,10 @@
     "@types/jasmine-ajax": "^3.1.35",
     "atob": "~1.1.2",
     "grunt": "^1.0.1",
+    "grunt-banner": "^0.6.0",
     "grunt-contrib-uglify": "^2.3.0",
+    "grunt-exec": "^2.0.0",
+    "grunt-file-append": "0.0.7",
     "grunt-jasmine-node": "~0.2.1",
     "grunt-typedoc": "^0.2.4",
     "jasmine-ajax": "^3.3.1",

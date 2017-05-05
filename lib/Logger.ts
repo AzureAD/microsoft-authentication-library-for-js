@@ -1,5 +1,3 @@
-"use strict";
-
 namespace Msal {
     export interface ILoggerCallback {
         (level: LogLevel, message: string, containsPii: boolean): void;

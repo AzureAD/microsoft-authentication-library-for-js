@@ -1,6 +1,4 @@
-﻿"use strict";
-
-namespace Msal {
+﻿namespace Msal {
 
     /**
     * @hidden
