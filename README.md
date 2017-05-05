@@ -2,7 +2,7 @@
 Microsoft Authentication Library
 =====================================
 
-| [Getting Started](https://aka.ms/aaddevv2)| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/azure-activedirectory-library-for-js/dev/doc/index.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
+| [Getting Started](https://aka.ms/aaddevv2)| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/dev/doc/index.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
@@ -64,7 +64,7 @@ Via CDN:
 
 - [FAQ](../../wiki) for access to our frequently asked questions
 
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag MSAL
+- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag MSAL.
 We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. 
 
 - [GitHub Issues](../../issues) for reporting an bug or feature requests 
