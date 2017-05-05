@@ -1,15 +1,16 @@
 Microsoft Authentication Library
 =====================================
 
-| [Getting Started](https://aka.ms/aaddev)| [Docs](https://aka.ms/aaddev) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/azure-activedirectory-library-for-js/dev/doc/index.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
+| [Getting Started](https://aka.ms/aaddevv2)| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/azure-activedirectory-library-for-js/dev/doc/index.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library for JavaScript gives your app the ability to begin using the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) and [Microsoft Accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Microsoft Azure B2C](https://azure.microsoft.com/services/active-directory-b2c/) for those using our hosted identity management service.
+The MSAL library for JavaScript enables your app to authorize Enterprise users using Microsoft Azure Active Directory, Microsoft account users, users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR [Microsoft Graph] (https://graph.microsoft.io). 
+
+The identity management services that the library interacts with are [Microsoft Azure Active Directoryy](https://azure.microsoft.com/en-us/services/active-directory/), [Microsoft Azure B2C](https://azure.microsoft.com/services/active-directory-b2c/) and [Microsoft Accounts](https://account.microsoft.com).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
-## Our new SDK is under development!
 MSAL for Javascript is in active development, but not yet ready. We encourage you to look at our work in progress and provide feedback!
 **It should not be used in production environments.**
 
@@ -17,21 +18,57 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 
 This is a 
 
-`few lines of sample code to call the API. Should be aquireToken for whatever platform. Nothing more.`
+`  <script class="pre">
+        var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
+              //this callback is called after loginredirect OR acquiretokenredirect
+        });
+        
+        userAgentApplication.loginPopup("user.read").then( function(token) {
+            var user = userAgentApplication.getUser();
+            if (user) {
+               //signin successful
+            } else {
+               //signin failure
+            }
+        }, function (error) {
+            //handle error
+        });
+          //get an access token
+          userAgentApplication.acquireTokenSilent("user.read").then(function (token) {
+            console.log("ATS promise resolved");
+          }, function (error) {
+            //interaction required 
+            if(error.indexOf("interaction_required" != -1) {
+                userAgentApplication.acquireTokenPopup("mail.send").then(function (token) {
+                //success
+              }, function (error) {
+                //error
+               });
+            }
+          });
+    </script>`
 
 and larger documentation should go below, but really should be in docs.
 
 ## Installation
 
-A few sentences about how to install the library. Also shouldn't go in to deep detail. 
+Via NPM:
+    npm install msal
+
+Via CDN:
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script
 
 ## Community Help and Support
 
-We use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. 
+- [FAQ](../../wiki) for access to our frequently asked questions
 
-If you find an bug or have a feature request, please raise the issue on [GitHub Issues](../../issues). 
+- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag MSAL
+We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. 
 
-To provide a recommendation, visit our [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory).
+- [GitHub Issues](../../issues) for reporting an bug or feature requests 
+
+- [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
 
 ## Contribute
 
