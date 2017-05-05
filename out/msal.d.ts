@@ -141,6 +141,22 @@ declare namespace Msal {
         static readonly renewToken: string;
         static readonly unknown: string;
     }
+    class ErrorCodes {
+        static readonly loginProgressError: string;
+        static readonly acquireTokenProgressError: string;
+        static readonly inputScopesError: string;
+        static readonly endpointResolutionError: string;
+        static readonly popUpWindowError: string;
+        static readonly userLoginError: string;
+    }
+    class ErrorDescription {
+        static readonly loginProgressError: string;
+        static readonly acquireTokenProgressError: string;
+        static readonly inputScopesError: string;
+        static readonly endpointResolutionError: string;
+        static readonly popUpWindowError: string;
+        static readonly userLoginError: string;
+    }
 }
 declare namespace Msal {
     class ErrorMessage {
@@ -284,7 +300,6 @@ declare namespace Msal {
         cacheLocation: string;
         private _interactionModes;
         private _interactionMode;
-        interactionMode: string;
         private _requestContext;
         private _loginInProgress;
         private _acquireTokenInProgress;
