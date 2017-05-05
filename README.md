@@ -1,3 +1,4 @@
+
 Microsoft Authentication Library
 =====================================
 
@@ -16,13 +17,12 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 
 ## Example
 
-This is a 
+```JavaScript
 
-`  <script class="pre">
+        <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
               //this callback is called after loginredirect OR acquiretokenredirect
-        });
-        
+        })
         userAgentApplication.loginPopup("user.read").then( function(token) {
             var user = userAgentApplication.getUser();
             if (user) {
@@ -46,16 +46,15 @@ This is a
                });
             }
           });
-    </script>`
-
-and larger documentation should go below, but really should be in docs.
+    </script>
+```
 
 ## Installation
 
-Via NPM:
-    npm install msal
+###Via NPM:
+    `npm install msal`
 
-Via CDN:
+###Via CDN:
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script
 
