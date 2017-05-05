@@ -52,11 +52,13 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 ## Installation
 
 Via NPM:
-        npm install msal
+
+    npm install adal-angular
 
 Via CDN:
-        <!-- Latest compiled and minified JavaScript -->
-        <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script>
     
 ## Community Help and Support
 
