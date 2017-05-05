@@ -20,6 +20,15 @@ namespace Msal {
         error: string;
     }
 
+    /**
+    * A type alias of for a tokenReceivedCallback function.
+    * @param tokenReceivedCallback.errorDesc error description returned from the STS if API call fails.
+    * @param tokenReceivedCallback.token token returned from STS if token request is successful.
+    * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
+    * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
+    */
+    export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+
     export class UserAgentApplication {
 
         /**
@@ -35,10 +44,17 @@ namespace Msal {
         */
         private _cacheLocation = "sessionStorage";
 
+        /**
+        * Used to get the cache location
+        */
         get cacheLocation(): string {
             return this._cacheLocation;
         }
 
+        /**
+        * Used to set the cache location.
+        * @param {string} cache - location where the MSAL cache is stored. Can be either 'localStorage' or 'sessionStorage'.
+        */
         set cacheLocation(cache: string) {
             this._cacheLocation = cache;
             if (this._cacheLocations[cache]) {
@@ -99,7 +115,7 @@ namespace Msal {
         /**
         * @hidden
         */
-        private _tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
+        private _tokenReceivedCallback: tokenReceivedCallback = null;
 
         /**
         * @hidden
@@ -116,51 +132,60 @@ namespace Msal {
         */
         private authorityInstance: Authority;
 
+        /**
+        * Used to set the authority.
+        * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
+        * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+        * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
+        * - Default value is: "https://login.microsoftonline.com/common"
+        */
         public set authority(val) {
             this.authorityInstance = Authority.CreateInstance(val, this.validateAuthority);
         }
 
+        /**
+        * Used to get the authority.
+        */
         public get authority(): string {
             return this.authorityInstance.CanonicalAuthority;
         }
 
         /**
-        * Flag to turn authority validation on/off.
+        * Used to turn authority validation on/off.
+        * When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
         */
         validateAuthority: boolean;
 
         /**
-        * Endpoint at which you expect to receive tokens. Defaults to `window.location.href`. Should match the value in the application registration portal.
+        * The redirect URI of the application, this should be same as the value in the application registration portal.
+        * Defaults to `window.location.href`.
         */
         redirectUri: string;
 
         /**
-        * Redirects the user to postLogoutRedirectUri after logout. Defaults to `window.location.href`.
+        * Used to redirect the user to this location after logout.
+        * Defaults to `window.location.href`.
         */
         postLogoutredirectUri: string;
 
         /**
-        * If true, redirects the user back to the redirectUri after login.
+        * Used to redirect the user back to the redirectUri after login.
+        * True = redirects user to redirectUri
         */
         navigateToLoginRequestUrl = true;
 
         /**
-       * @callback tokenReceivedCallback This callback will be called when you call loginRedirect or acquireTokenRedirect api's with either an id_token or an access_token.
-       * @param {string} error_description error description returned from AAD if token request fails.
-       * @param {string} token token returned from AAD if token request is successful.
-       * @param {string} error error message returned from AAD if token request fails.
-       * @param {string} tokenType tokenType returned from AAD. Is either id_token or access_token.
-       */
-
-        /**
-        * Represents a userAgentApplication.
+        * Initialize a UserAgentApplication with a given clientId and authority.
         * @constructor
-        * @param {string} clientId - Client ID assigned to your app by Azure Active Directory.
-        * @param {string} [authority] - "https://login.microsoftonline.com/common".
-        * @param {tokenReceivedCallback} callback -  The callback provided by the caller. It will be called with token or error and tokenType.
-        * @param {boolean} validateAuthority -  Turns authority validation on/off.
+        * @param {string} clientId - The clientID of your application, you should get this from the application registration portal.
+        * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
+        * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;,\ where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+        * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
+        * - Default value is: "https://login.microsoftonline.com/common"
+        * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
+        * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
         */
-        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean) {
+        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean) {
             this.clientId = clientId;
 
             this.validateAuthority = validateAuthority === true;
@@ -187,9 +212,9 @@ namespace Msal {
         }
 
         /**
-        * Initiates the login process by redirecting the user to Azure AD authorization endpoint.
-        * @param {Array.<string>} scopes - The scopes for which consent is requested.
-        * @param {string} extraQueryParameters - extraQueryParameters to add to the authentication request.
+        * Initiate the login process by redirecting the user to the STS authorization endpoint.
+        * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
+        * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
         */
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void {
             /*
@@ -240,10 +265,10 @@ namespace Msal {
         }
 
         /**
-        * Initiates the login process by opening a popUp window.
-        * @param {Array.<string>} scopes - The scopes for which consent is requested.
-        * @param {string} extraQueryParameters - extraQueryParameters to add to the authentication request.
-        * @returns {Promise.<string>} Returns the token or error
+        * Initiate the login process by opening a popup window.
+        * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token returned.
+        * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
+        * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
         */
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
             /*
@@ -310,9 +335,9 @@ namespace Msal {
             });
         }
 
-        /**
-        * Redirects the browser to Azure AD authorization endpoint.
-        * @param {string}   urlNavigate  Url of the authorization endpoint.
+       /**
+        * Used to redirect the browser to the STS authorization endpoint
+        * @param {string} urlNavigate - URL of the authorization endpoint
         * @hidden
         */
         private promptUser(urlNavigate: string) {
@@ -325,8 +350,8 @@ namespace Msal {
         };
 
         /**
-        * After authorization, the user will be sent to your specified redirect_uri with the user's bearer token
-        * attached to the URI fragment as an id_token/access_token field. It closes popup window after redirection.
+        * Used to send the user to the redirect_uri after authentication is complete. The user's bearer token is attached to the URI fragment as an id_token/access_token field.
+        * This function also closes the popup window after redirection.
         * @hidden
         * @ignore
         */
@@ -370,8 +395,8 @@ namespace Msal {
         }
 
         /**
-        * Redirects user to logout endpoint.
-        * After logout, it will redirect to postLogoutRedirectUri. The default value is window.location.href.
+        * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
+        * Defaults behaviour is to redirect the user to `window.location.href`.
         */
         logout(): void {
             this.clearCache();
@@ -386,7 +411,8 @@ namespace Msal {
         }
 
         /**
-        * Clears cache items.
+        * Used to configure the popup window for login.
+        * @ignore
         * @hidden
         */
         private clearCache(): void {
@@ -438,8 +464,8 @@ namespace Msal {
         }
 
         /**
-        * Validates the scopes passed by the user.
-        * @param {Array<string>}   scopes User requested scopes.
+        * Used to validate the scopes input parameter requested  by the developer.
+        * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
         * @ignore
         * @hidden
         */
@@ -461,9 +487,9 @@ namespace Msal {
         }
 
         /**
-        * Adds the passed callback to the array of callbacks for the specified resource and puts the array on the window object.
-        * @param {string}   scope User requested scopes.
-        * @param {string}   expectedState A unique identifier (guid).
+        * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
+        * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+        * @param {string} expectedState - Unique state identifier (guid).
         * @param {Function} resolve - The resolve function of the promise object.
         * @param {Function} reject - The reject function of the promise object.
         * @ignore
@@ -498,9 +524,9 @@ namespace Msal {
         }
 
         /**
-        * Gets token for the specified resource from the cache.
-        * @param {AuthenticationRequestParameters}   authenticationRequest Request sent to AAD to obtain an id_token/access_token.
-        * @param {User}  user User for which the scopes were requested.
+        * Used to get token for the specified set of scopes from the cache
+        * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
+        * @param {User} user - User for which the scopes were requested
         * @hidden
         */
         private getCachedToken(authenticationRequest: AuthenticationRequestParameters, user: User): cacheResult {
@@ -598,8 +624,8 @@ namespace Msal {
         }
 
         /**
-        * Gets unique users based on userIdentifier saved in the cache for whom access token has been issued.
-        * @param {Array<User>}  Users saved in the cache
+        * Used to filter all cached items and return a list of unique users based on userIdentifier.
+        * @param {Array<User>} Users - users saved in the cache.
         */
         getAllUsers(): Array<User> {
             const users: Array<User> = [];
@@ -615,8 +641,8 @@ namespace Msal {
         }
 
         /**
-        * Filters users based on userIdentifier.
-        * @param {Array<User>}  Users saved in the cache
+        * Used to filter users based on userIdentifier
+        * @param {Array<User>}  Users - users saved in the cache
         * @ignore
         * @hidden
         */
@@ -638,8 +664,8 @@ namespace Msal {
         }
 
         /**
-       * Gets cache items with a distinct authority value.
-       * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems accessTokenCacheItems saved in the cache
+       * Used to get a unique list of authoritues from the cache 
+       * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems - accessTokenCacheItems saved in the cache
        * @ignore
        * @hidden
        */
@@ -656,12 +682,12 @@ namespace Msal {
         }
 
         /**
-        * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time.
-        * domain_hint can be one of users/organisations which when added skips the email based discovery process of the user.
-        * domain_req utid received as part of the clientInfo.
-        * login_req uid received as part of clientInfo.
-        * @param {string}   urlNavigate Authentication request url.
-        * @param {User}   user User for which the token is requested.
+        * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
+        * domain_hint can be one of users/organisations which when added skips the email based discovery process of the user
+        * domain_req utid received as part of the clientInfo
+        * login_req uid received as part of clientInfo
+        * @param {string} urlNavigate - Authentication request url
+        * @param {User} user - User for which the token is requested
         * @ignore
         * @hidden
         */
@@ -707,11 +733,15 @@ namespace Msal {
         }
 
         /**
-        * Sends interactive request to AAD to obtain an access_token by redirecting the user to the authorization endpoint. To renew idToken, clientId should be passed as the only scope in the scopes array.
-        * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request.
-        * @param {string} [authority] - "https://login.microsoftonline.com/common".
-        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
-        * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
+        * Used to obtain an access_token by redirecting the user to the authorization endpoint.
+        * To renew idToken, clientId should be passed as the only scope in the scopes array.
+        * @param {Array<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token. Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
+        * - In Azure AD, it is of the form https://{instance}/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+        * - In Azure B2C, it is of the form https://{instance}/tfp/&lt;tenant&gt;/<policyName>
+        * - Default value is: "https://login.microsoftonline.com/common"
+        * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
         */
         acquireTokenRedirect(scopes: Array<string>): void;
         acquireTokenRedirect(scopes: Array<string>, authority: string): void;
@@ -776,12 +806,16 @@ namespace Msal {
         }
 
         /**
-        * Sends interactive request to AAD to obtain an access_token using a popUpWindow. To renew idToken, clientId should be passed as the only scope in the scopes array.
-        * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request.
-        * @param {string} [authority] - "https://login.microsoftonline.com/common".
-        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
-        * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
-        * @returns {Promise.<string>} Resolved with token or rejected with error.
+        * Used to acquire an access token for a new user using interactive authentication via a popup Window.
+        * To request an id_token, pass the clientId as the only scope in the scopes array.
+        * @param {Array<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token. Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
+        * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+        * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
+        * - Default value is: "https://login.microsoftonline.com/common".
+        * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
+        * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
         */
         acquireTokenPopup(scopes: Array<string>): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
@@ -860,12 +894,17 @@ namespace Msal {
         }
 
         /**
-        * Gets token from the cache if it is not expired. Otherwise sends request to AAD to obtain an access_token using a hidden iframe. To renew idToken, clientId should be passed as the only scope in the scopes array.
-        * @param {Array<string>} scopes   -  Scopes requested by the user.  Scopes like 'openid' and 'profile' are sent with every request.
-        * @param {string} authority -  Authority
-        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
-        * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
-        * @returns {Promise.<string>} Resolved with token or rejected with error.
+        * Used to get the token from cache.
+        * MSAL will return the cached token if it is not expired.
+        * Or it will send a request to the STS to obtain an access_token using a hidden iframe. To renew idToken, clientId should be passed as the only scope in the scopes array.
+        * @param {Array<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token. Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
+        * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+        * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
+        * - Default value is: "https://login.microsoftonline.com/common"
+        * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
+        * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
         */
         acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
             return new Promise<string>((resolve, reject) => {
@@ -927,7 +966,7 @@ namespace Msal {
         }
 
         /**
-        * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left
+        * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
         * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
         * @ignore
         * @hidden
@@ -1074,7 +1113,7 @@ namespace Msal {
         }
 
         /**
-         * Returns the signed in user if any, else returns null.
+         * Returns the signed in user (received from a user object created at the time of login) or null.
          */
         getUser(): User {
             // idToken is first call
@@ -1096,12 +1135,13 @@ namespace Msal {
         };
 
         /**
-         * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error and saves it in the cache. It then
-         * calls the registered callbacks in case of redirect or resolves the promises with the result.
-         * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-         * @param {Function} resolve - The resolve function of the promise object.
-         * @param {Function} reject - The reject function of the promise object.
-         */
+        * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
+        * calls the registered callbacks in case of redirect or resolves the promises with the result.
+        * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+        * @param {Function} resolve - The resolve function of the promise object.
+        * @param {Function} reject - The reject function of the promise object.
+        * @hidden
+        */
         handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void {
             if (hash == null) {
                 hash = window.location.hash;
@@ -1156,17 +1196,17 @@ namespace Msal {
             }
         }
 
-        /**
-        * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-        * @param {string} authority authority received in the redirect response from AAD.
-        * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-        * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
-        * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
-        * @param {IdToken} idToken idToken received as part of the response.
-        * @ignore
-        * @private
-        * @hidden
-        */
+         /**
+         * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
+         * @param {string} authority authority received in the redirect response from AAD.
+         * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
+         * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
+         * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
+         * @param {IdToken} idToken idToken received as part of the response.
+         * @ignore
+         * @private
+         * @hidden
+         */
         private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
             let scope: string;
             let clientObj: ClientInfo = new ClientInfo(clientInfo);
@@ -1315,9 +1355,10 @@ namespace Msal {
         };
 
         /**
-        * Checks if the redirect response is received from AAD. In case of redirect, the url fragment has either id_token, access_token or error.
-        * @param {string} hash  -  Hash passed from redirect page
-        * @returns {Boolean} true if response contains id_token, access_token or error, false otherwise.
+        * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
+        * @param {string} hash - Hash passed from redirect page.
+        * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
+        * @hidden
         */
         isCallback(hash: string): boolean {
             hash = this.getHash(hash);

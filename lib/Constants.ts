@@ -53,6 +53,9 @@ namespace Msal {
         static get unknown(): string { return "UNKNOWN"; }
     }
 
+    /**
+    * @hidden
+    */
     export class ErrorCodes {
         static get loginProgressError(): string { return "login_progress_error"; }
         static get acquireTokenProgressError(): string { return "acquiretoken_progress_error"; }
@@ -63,6 +66,9 @@ namespace Msal {
 
     }
 
+    /**
+    * @hidden
+    */
     export class ErrorDescription {
         static get loginProgressError(): string { return "Login is in progress"; }
         static get acquireTokenProgressError(): string { return "Acquire token is in progress"; }
