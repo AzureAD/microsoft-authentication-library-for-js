@@ -51,10 +51,10 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 
 ## Installation
 
-###Via NPM:
-    `npm install msal`
+Via NPM:
+    npm install msal
 
-###Via CDN:
+Via CDN:
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script
 
