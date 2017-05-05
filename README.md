@@ -1,12 +1,12 @@
 
-Microsoft Authentication Library
-=====================================
+Microsoft Authentication Library for JavaScript (MSAL.js)
+=========================================================
 
 | [Getting Started](https://aka.ms/aaddevv2)| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/dev/doc/index.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory(AAD), microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io). 
+The MSAL library for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc.. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
 
 The identity management services that the library interacts with are [Microsoft Azure Active Directoryy](https://azure.microsoft.com/en-us/services/active-directory/), [Microsoft Azure B2C](https://azure.microsoft.com/services/active-directory-b2c/) and [Microsoft Accounts](https://account.microsoft.com).
 
@@ -21,28 +21,28 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 
         <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
-              //this callback is called after loginredirect OR acquiretokenredirect
+              // this callback is called after loginRedirect OR acquireTokenRedirect
         })
         userAgentApplication.loginPopup("user.read").then( function(token) {
             var user = userAgentApplication.getUser();
             if (user) {
-               //signin successful
+               // signin successful
             } else {
-               //signin failure
+               // signin failure
             }
         }, function (error) {
             //handle error
         });
-          //get an access token
+          // get an access token
           userAgentApplication.acquireTokenSilent("user.read").then(function (token) {
             console.log("ATS promise resolved");
           }, function (error) {
-            //interaction required 
+            // interaction required 
             if(error.indexOf("interaction_required" != -1) {
                 userAgentApplication.acquireTokenPopup("mail.send").then(function (token) {
-                //success
+                // success
               }, function (error) {
-                //error
+                // error
                });
             }
           });

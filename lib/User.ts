@@ -4,9 +4,24 @@ namespace Msal {
 
     export class User {
 
+        /**
+        * Human friendly representation of the identity of the user (for instance email address).
+        */
         displayableId: string;
+
+        /**
+        * Name of the user (not guarantied to be unique)
+        */
         name: string;
+
+        /**
+        * Unique identitfier of the identity provider (not necessarily human friendly)
+        */
         identityProvider: string;
+
+        /**
+        * Unique identitfier of the user in the identity provider (not necessarily human friendly)
+        */
         userIdentifier:string;
 
         /**

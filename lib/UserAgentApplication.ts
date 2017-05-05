@@ -142,7 +142,8 @@ namespace Msal {
         validateAuthority: boolean;
 
         /**
-        * Endpoint at which you expect to receive tokens. Defaults to `window.location.href`. Should match the value in the application registration portal.
+        * Endpoint at which you expect to receive tokens. Defaults to `window.location.href`. Should match one of the Redirect Uri values
+        * in the application registration portal.
         */
         redirectUri: string;
 
@@ -168,7 +169,7 @@ namespace Msal {
         * Represents a userAgentApplication.
         * @constructor
         * @param {string} clientId - Client ID assigned to your app by Azure Active Directory.
-        * @param {string} [authority] - "https://login.microsoftonline.com/common".
+        * @param {string} [authority] - For instance "https://login.microsoftonline.com/common". Can be different if you want tokens though AAD/B2C
         * @param {tokenReceivedCallback} callback -  The callback provided by the caller. It will be called with token or error and tokenType.
         * @param {boolean} validateAuthority -  Turns authority validation on/off.
         */
@@ -360,7 +361,7 @@ namespace Msal {
 
         /**
         * Redirects user to logout endpoint.
-        * After logout, it will redirect to postLogoutRedirectUri. The default value is window.location.href.
+        * After logout, it will redirect to postLogoutRedirectUri which default value is window.location.href.
         */
         logout(): void {
             this.clearCache();
@@ -698,8 +699,8 @@ namespace Msal {
         /**
         * Sends interactive request to AAD to obtain an access_token by redirecting the user to the authorization endpoint. To renew idToken, clientId should be passed as the only scope in the scopes array.
         * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request.
-        * @param {string} [authority] - "https://login.microsoftonline.com/common".
-        * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
+        * @param {string} [authority] - default is "https://login.microsoftonline.com/common".
+        * @param {User} user -  The user for which the scopes are requested. The default user is the logged in user.
         * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
         */
         acquireTokenRedirect(scopes: Array<string>): void;
@@ -766,7 +767,7 @@ namespace Msal {
 
         /**
         * Sends interactive request to AAD to obtain an access_token using a popUpWindow. To renew idToken, clientId should be passed as the only scope in the scopes array.
-        * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {Array<string>} scopes   -  Scopes requested by the user. Scopes like 'openid' and 'profile' are sent with every request anyway.
         * @param {string} [authority] - "https://login.microsoftonline.com/common".
         * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
         * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
@@ -833,7 +834,7 @@ namespace Msal {
 
         /**
         * Gets token from the cache if it is not expired. Otherwise sends request to AAD to obtain an access_token using a hidden iframe. To renew idToken, clientId should be passed as the only scope in the scopes array.
-        * @param {Array<string>} scopes   -  Scopes requested by the user.  Scopes like 'openid' and 'profile' are sent with every request.
+        * @param {Array<string>} scopes   -  Scopes requested by the user.  Scopes like 'openid' and 'profile' are sent with every request anyway.
         * @param {string} authority -  Authority
         * @param {User} user -  The user for which the scopes are requested.The default user is the logged in user.
         * @param {string} extraQueryParameters -  ExtraQueryParameters to add to the authentication request.
