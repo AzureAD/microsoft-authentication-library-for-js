@@ -294,6 +294,7 @@ declare namespace Msal {
     }
 }
 declare namespace Msal {
+    type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
     class UserAgentApplication {
         private _cacheLocations;
         private _cacheLocation;
@@ -316,7 +317,7 @@ declare namespace Msal {
         redirectUri: string;
         postLogoutredirectUri: string;
         navigateToLoginRequestUrl: boolean;
-        constructor(clientId: string, authority: string, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void, validateAuthority?: boolean);
+        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean);
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
         private promptUser(urlNavigate);

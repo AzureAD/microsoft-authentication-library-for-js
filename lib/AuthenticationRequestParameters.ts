@@ -57,8 +57,8 @@ namespace Msal {
             str.push("state=" + encodeURIComponent(this.state));
             str.push("nonce=" + encodeURIComponent(this.nonce));
             str.push("client_info=1");
-            str.push("slice=testslice");
-            str.push("uid=true");
+            //str.push("slice=testslice");
+            //str.push("uid=true");
             str.push(`x-client-SKU=${this.xClientSku}`);
             str.push(`x-client-Ver=${this.xClientVer}`);
 

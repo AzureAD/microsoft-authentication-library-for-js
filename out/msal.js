@@ -1,8 +1,14 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -202,7 +208,6 @@ var Msal;
     };
     Msal.AadAuthority = AadAuthority;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var AccessTokenCacheItem = (function () {
@@ -214,7 +219,6 @@ var Msal;
     }());
     Msal.AccessTokenCacheItem = AccessTokenCacheItem;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var AccessTokenKey = (function () {
@@ -228,7 +232,6 @@ var Msal;
     }());
     Msal.AccessTokenKey = AccessTokenKey;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var AccessTokenValue = (function () {
@@ -242,7 +245,6 @@ var Msal;
     }());
     Msal.AccessTokenValue = AccessTokenValue;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var AuthenticationRequestParameters = (function () {
@@ -281,8 +283,6 @@ var Msal;
             str.push("state=" + encodeURIComponent(this.state));
             str.push("nonce=" + encodeURIComponent(this.nonce));
             str.push("client_info=1");
-            str.push("slice=testslice");
-            str.push("uid=true");
             str.push("x-client-SKU=" + this.xClientSku);
             str.push("x-client-Ver=" + this.xClientVer);
             if (this.extraQueryParameters) {
@@ -364,7 +364,6 @@ var Msal;
     }(Msal.AadAuthority));
     Msal.B2cAuthority = B2cAuthority;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var ClientInfo = (function () {
@@ -712,7 +711,6 @@ var Msal;
     }());
     Msal.ErrorMessage = ErrorMessage;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var IdToken = (function () {
@@ -761,7 +759,6 @@ var Msal;
     }());
     Msal.IdToken = IdToken;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var LogLevel;
@@ -872,7 +869,6 @@ var Msal;
     }());
     Msal.Logger = Logger;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var RequestContext = (function () {
@@ -898,7 +894,6 @@ var Msal;
     }());
     Msal.RequestContext = RequestContext;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var TokenResponse = (function () {
@@ -913,7 +908,6 @@ var Msal;
     }());
     Msal.TokenResponse = TokenResponse;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var Storage = (function () {
@@ -1034,7 +1028,6 @@ var Msal;
     }());
     Msal.Telemetry = Telemetry;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var User = (function () {
@@ -1062,7 +1055,6 @@ var Msal;
     }());
     Msal.User = User;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var ResponseTypes = {
@@ -2045,7 +2037,6 @@ var Msal;
     }());
     Msal.UserAgentApplication = UserAgentApplication;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var Utils = (function () {
@@ -2345,7 +2336,6 @@ var Msal;
     }());
     Msal.Utils = Utils;
 })(Msal || (Msal = {}));
-"use strict";
 var Msal;
 (function (Msal) {
     var XhrClient = (function () {
