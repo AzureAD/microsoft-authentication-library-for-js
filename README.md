@@ -18,8 +18,9 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 ## Example
 
 ```JavaScript
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
 
-        <script class="pre">
+    <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
               // this callback is called after loginRedirect OR acquireTokenRedirect
         })
@@ -58,7 +59,9 @@ Via NPM:
 Via CDN:
 
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>   <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script>
+
+Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you target Internet Explorer, you might want to read the [FAQ](../../wiki)
     
 ## Community Help and Support
 
