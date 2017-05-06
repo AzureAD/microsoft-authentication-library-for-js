@@ -1,0 +1,20 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "target": "es5",
+    "module": "amd",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outDir": "out",
+    "skipLibCheck": true,
+	"lib": [
+           "dom",
+           "es5",
+           "es2015.promise"
+       ]
+  }
+}

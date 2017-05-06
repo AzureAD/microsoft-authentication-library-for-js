@@ -1,0 +1,61 @@
+{
+  "name": "msal",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "version": "0.1.0",
+  "description": "Microsoft Authentication Library for js",
+  "keywords": [
+    "implicit",
+    "js",
+    "AAD",
+    "msal",
+    "oauth"
+  ],
+  "main": "./out/msal.min.js",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jasmine": "^2.5.47",
+    "@types/jasmine-ajax": "^3.1.35",
+    "atob": "~1.1.2",
+    "grunt": "^1.0.1",
+    "grunt-banner": "^0.6.0",
+    "grunt-contrib-uglify": "^2.3.0",
+    "grunt-exec": "^2.0.0",
+    "grunt-file-append": "0.0.7",
+    "grunt-jasmine-node": "~0.2.1",
+    "grunt-typedoc": "^0.2.4",
+    "jasmine-ajax": "^3.3.1",
+    "jasmine-core": "^2.5.2",
+    "jasmine-node": "~1.14.5",
+    "jshint": "*",
+    "karma": "^1.6.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-cli": "^1.0.1",
+    "karma-firefox-launcher": "~0.1",
+    "karma-html-reporter": "^0.2.7",
+    "karma-jasmine": "^1.1.0",
+    "karma-jasmine-ajax": "^0.1.13",
+    "karma-phantomjs-launcher": "*",
+    "karma-verbose-reporter": "0.0.6",
+    "typedoc": "^0.6.0",
+    "typescript": "^2.2.2",
+    "typings": "^2.1.1"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "tsc && tsc -p tsconfig.test.json && karma start"
+  }
+}
