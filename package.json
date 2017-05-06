@@ -19,7 +19,7 @@
     "msal",
     "oauth"
   ],
-  "main": "./out/msal.min.js",
+  "main": "./out/msal.js",
   "engines": {
     "node": ">=0.8.0"
   },
