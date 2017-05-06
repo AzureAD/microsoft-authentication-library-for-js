@@ -5,10 +5,10 @@
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/temp-msalforjs.git"
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "version": "0.1.0",
   "description": "Microsoft Authentication Library for js",
@@ -19,7 +19,7 @@
     "msal",
     "oauth"
   ],
-  "main": "./lib/msal.js",
+  "main": "./out/msal.min.js",
   "engines": {
     "node": ">=0.8.0"
   },
