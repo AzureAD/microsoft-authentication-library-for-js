@@ -6,7 +6,7 @@ Microsoft Authentication Library for JavaScript (MSAL.js)
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io). 
+The MSAL library preview for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io). 
 
 The identity management services that the library interacts with are [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/), [Microsoft Azure B2C](https://azure.microsoft.com/services/active-directory-b2c/) and [Microsoft Accounts](https://account.microsoft.com).
 
@@ -56,10 +56,18 @@ Via NPM:
     npm install msal
 
 Via CDN:
-
+```JavaScript
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script>
-    
+```
+
+Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill. You might want to read more in the [FAQ](../../wiki)
+```JavaScript
+    <!-- IE support: add promises polyfill before msal.js  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"></script>
+```
+
 ## Community Help and Support
 
 - [FAQ](../../wiki) for access to our frequently asked questions
