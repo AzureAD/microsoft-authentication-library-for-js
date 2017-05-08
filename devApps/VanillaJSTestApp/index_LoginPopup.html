@@ -20,7 +20,7 @@
     <h1>Sending an email with msal.js and Microsoft Graph</h1>
     <div>
         <div id="label">Sign-in with Microsoft</div>
-        <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
+        <button id="auth" onclick="loginPopup();">Login (with Popup)</button>
     </div>
     <div id="sendEmail" class="hidden">
         <input id="emailToSendTo" type="text" />
@@ -42,30 +42,33 @@
         function authCallback(errorDesc, token, error, tokenType) {
             //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
             if (token) {
-                this.msal.acquireTokenSilent(applicationConfig.graphScopes)
-                    .then(function (accessToken) {
-                        // Change button to Sign Out
-                        var authButton = document.getElementById('auth');
-                        authButton.innerHTML = 'logout';
-                        authButton.setAttribute('onclick', 'logout();');
-                        var label = document.getElementById('label');
-                        label.innerText = "Hello " + userAgentApplication.getUser().name + "! Please send an email with Microsoft Graph";
-
-                        // Show the email address part
-                        var sendEmailSpan = document.getElementById('sendEmail');
-                        sendEmailSpan.className = "visible";
-                        var emailAddress = document.getElementById('emailToSendTo');
-                        emailAddress.value = userAgentApplication.getUser().displayableId;
-                    });
             }
             else {
                 log(error + ":" + errorDesc);
             }
         }
 
-        function loginRedirect() {
-            userAgentApplication.loginRedirect(applicationConfig.graphScopes);
+        function loginPopup() {
+            userAgentApplication.loginPopup(applicationConfig.graphScopes)
+                .then(function (idToken) {
+                    return userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes);
+                })
+                .then(function (accessToken) {
+                    // Change button to Sign Out
+                    var authButton = document.getElementById('auth');
+                    authButton.innerHTML = 'logout';
+                    authButton.setAttribute('onclick', 'logout();');
+                    var label = document.getElementById('label');
+                    label.innerText = "Hello " + userAgentApplication.getUser().name + "! Please send an email with Microsoft Graph";
+
+                    // Show the email address part
+                    var sendEmailSpan = document.getElementById('sendEmail');
+                    sendEmailSpan.className = "visible";
+                    var emailAddress = document.getElementById('emailToSendTo');
+                    emailAddress.value = userAgentApplication.getUser().displayableId;
+                });
         }
+
 
         function logout() {
             // Removes all sessions, need to call AAD endpoint to do full logout
