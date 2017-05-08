@@ -16,14 +16,13 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
 **It should not be used in production environments.**
 
 ## Example
-
+To login the user;
 ```JavaScript
-
         <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
-              // this callback is called after loginRedirect OR acquireTokenRedirect
+              // this callback is called after loginRedirect OR acquireTokenRedirect (not used for loginPopup/aquireTokenPopup)
         })
-        userAgentApplication.loginPopup("user.read").then( function(token) {
+        userAgentApplication.loginPopup(["user.read"]).then( function(token) {
             var user = userAgentApplication.getUser();
             if (user) {
                // signin successful
@@ -33,13 +32,19 @@ MSAL for Javascript is in active development, but not yet ready. We encourage yo
         }, function (error) {
             // handle error
         });
+    </script>
+```
+Then once user is logged-in:
+
+```JavaScript
+		<script>
           // get an access token
-          userAgentApplication.acquireTokenSilent("user.read").then(function (token) {
+          userAgentApplication.acquireTokenSilent(["user.read"]).then(function (token) {
             console.log("ATS promise resolved");
           }, function (error) {
             // interaction required 
-            if(error.indexOf("interaction_required" != -1) {
-                userAgentApplication.acquireTokenPopup("mail.send").then(function (token) {
+            if(error.indexOf("interaction_required" != -1)) {
+                userAgentApplication.acquireTokenPopup(["user.read"]).then(function (token) {
                 // success
               }, function (error) {
                 // error
