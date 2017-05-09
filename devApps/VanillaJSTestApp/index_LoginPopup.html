@@ -55,20 +55,30 @@
                 })
                 .then(function (accessToken) {
                     // Change button to Sign Out
-                    var authButton = document.getElementById('auth');
-                    authButton.innerHTML = 'logout';
-                    authButton.setAttribute('onclick', 'logout();');
-                    var label = document.getElementById('label');
-                    label.innerText = "Hello " + userAgentApplication.getUser().name + "! Please send an email with Microsoft Graph";
-
-                    // Show the email address part
-                    var sendEmailSpan = document.getElementById('sendEmail');
-                    sendEmailSpan.className = "visible";
-                    var emailAddress = document.getElementById('emailToSendTo');
-                    emailAddress.value = userAgentApplication.getUser().displayableId;
+                    updateUI();
+                }, function (error) {
+                    return userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes);
+                }).then(function (accessToken) {
+                    // Change button to Sign Out
+                    updateUI();
+                }, function (error) {
+                    console.log(error);
                 });
         }
 
+        function updateUI() {
+            var authButton = document.getElementById('auth');
+            authButton.innerHTML = 'logout';
+            authButton.setAttribute('onclick', 'logout();');
+            var label = document.getElementById('label');
+            label.innerText = "Hello " + userAgentApplication.getUser().name + "! Please send an email with Microsoft Graph";
+
+            // Show the email address part
+            var sendEmailSpan = document.getElementById('sendEmail');
+            sendEmailSpan.className = "visible";
+            var emailAddress = document.getElementById('emailToSendTo');
+            emailAddress.value = userAgentApplication.getUser().displayableId;
+        }
 
         function logout() {
             // Removes all sessions, need to call AAD endpoint to do full logout
