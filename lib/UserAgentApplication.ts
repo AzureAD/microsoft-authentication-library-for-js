@@ -248,7 +248,6 @@ namespace Msal {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
 
-                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
                     this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
                     this._cacheStorage.setItem(Constants.loginError, "");
                     this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
@@ -260,7 +259,7 @@ namespace Msal {
                         this._cacheStorage.setItem(authorityKey, this.authority);
                     }
 
-                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     this._loginInProgress = true;
                     this.promptUser(urlNavigate);
                 });
@@ -306,7 +305,6 @@ namespace Msal {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
 
-                    authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
                     this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
                     this._cacheStorage.setItem(Constants.loginError, "");
                     this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
@@ -318,7 +316,7 @@ namespace Msal {
                         this._cacheStorage.setItem(authorityKey, this.authority);
                     }
 
-                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     this._loginInProgress = true;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
@@ -490,7 +488,10 @@ namespace Msal {
             return "";
         }
 
-
+        /**
+         * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
+         * @hidden
+         */
         private filterScopes(scopes: Array<string>): Array<string> {
             scopes = scopes.filter(function (element) {
                 return element !== "openid";
@@ -772,7 +773,10 @@ namespace Msal {
                 }
             }
 
-            scopes = this.filterScopes(scopes);
+            if (scopes) {
+                scopes = this.filterScopes(scopes);
+            }
+
             const userObject = user ? user : this._user;
             if (this._acquireTokenInProgress) {
                 return;
@@ -798,7 +802,6 @@ namespace Msal {
                 }
 
                 this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                authenticationRequest.state = authenticationRequest.state + "|" + scope;
                 const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
                 if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
                     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
@@ -813,7 +816,7 @@ namespace Msal {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
                 }
 
-                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 urlNavigate = this.addHintParameters(urlNavigate, userObject);
                 if (urlNavigate) {
                     this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
@@ -878,7 +881,7 @@ namespace Msal {
                     }
 
                     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                    authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                    authenticationRequest.state = authenticationRequest.state;
                     const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
                     if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
                         this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
@@ -893,7 +896,7 @@ namespace Msal {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
 
-                    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     urlNavigate = this.addHintParameters(urlNavigate, userObject);
                     this._renewStates.push(authenticationRequest.state);
                     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
@@ -1073,7 +1076,6 @@ namespace Msal {
             const scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.verbose('renewToken is called for scope:' + scope);
             const frameHandle = this.addAdalFrame('msalRenewFrame' + scope);
-            authenticationRequest.state = authenticationRequest.state + "|" + scope;
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1109,7 +1111,6 @@ namespace Msal {
             const scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.info('renewidToken is called');
             const frameHandle = this.addAdalFrame("msalIdTokenFrame");
-            authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1194,19 +1195,20 @@ namespace Msal {
                 }
 
                 try {
-                    var errorDesc = this._cacheStorage.getItem(Constants.errorDescription);
-                    var error = this._cacheStorage.getItem(Constants.error);
-                    if (error || errorDesc) {
-                        if (reject) {
-                            reject(errorDesc + ": " + error);
+                    var errorDesc = requestInfo.parameters[Constants.errorDescription];
+                    var error = requestInfo.parameters[Constants.error];
+                    if (reject && resolve) {
+                        if (error || errorDesc) {
+                            reject(errorDesc + ":" + error);
+                        }
+                        else if (token) {
+                            resolve(token);
                         }
                     }
-                    if (resolve) {
-                        resolve(token);
-                    }
                     else if (tokenReceivedCallback) {
-                        tokenReceivedCallback(this._cacheStorage.getItem(Constants.errorDescription), token, this._cacheStorage.getItem(Constants.error), tokenType);
+                        tokenReceivedCallback(errorDesc, token, error, tokenType);
                     }
+                   
                 } catch (err) {
                     this._requestContext.logger.error('Error occurred in token received callback function: ' + err);
                 }
@@ -1266,16 +1268,22 @@ namespace Msal {
             this._requestContext.logger.info('State status:' + tokenResponse.stateMatch + '; Request type:' + tokenResponse.requestType);
             this._cacheStorage.setItem(Constants.error, "");
             this._cacheStorage.setItem(Constants.errorDescription, "");
-            var scope = this.getScopeFromState(tokenResponse.stateResponse);
+            var scope: string = '';
+            if (tokenResponse.parameters.hasOwnProperty("scope")) {
+                scope = tokenResponse.parameters["scope"];
+            }
+            else {
+                scope = this.clientId;
+            }
+
             // Record error
-            if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription)) {
+            if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
                 this._requestContext.logger.info('Error :' + tokenResponse.parameters[Constants.error] + '; Error description:' + tokenResponse.parameters[Constants.errorDescription]);
                 this._cacheStorage.setItem(Constants.error, tokenResponse.parameters["error"]);
-                this._cacheStorage.setItem(Constants.errorDescription,
-                    tokenResponse.parameters[Constants.errorDescription]);
+                this._cacheStorage.setItem(Constants.errorDescription, tokenResponse.parameters[Constants.errorDescription]);
                 if (tokenResponse.requestType === Constants.login) {
                     this._loginInProgress = false;
-                    this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters["errorDescription"]);
+                    this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ':' + tokenResponse.parameters[Constants.error]);
                 }
 
                 if (tokenResponse.requestType === Constants.renewToken) {
@@ -1388,8 +1396,10 @@ namespace Msal {
             const parameters = Utils.deserialize(hash);
             return (
                 parameters.hasOwnProperty(Constants.errorDescription) ||
+                parameters.hasOwnProperty(Constants.error) ||
                 parameters.hasOwnProperty(Constants.accessToken) ||
                 parameters.hasOwnProperty(Constants.idToken)
+
             );
         }
 
@@ -1422,6 +1432,7 @@ namespace Msal {
             if (parameters) {
                 tokenResponse.parameters = parameters;
                 if (parameters.hasOwnProperty(Constants.errorDescription) ||
+                    parameters.hasOwnProperty(Constants.error) ||
                     parameters.hasOwnProperty(Constants.accessToken) ||
                     parameters.hasOwnProperty(Constants.idToken)) {
                     tokenResponse.valid = true;
