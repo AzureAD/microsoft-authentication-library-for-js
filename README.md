@@ -15,12 +15,12 @@ The identity management services that the library interacts with are [Microsoft 
 
 ## Important Note about the MSAL Preview
 This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
-<
+
 
 ## Example
 This example shows how to acquire a token to read user information from Microsoft Graph.
 1. Register an application in Azure AD v2.0 (using the [application registration portal](https://identity.microsoft.com/)) to get your client_id.
-2. Instanciate a UserAgentApplication and login the user:
+2. Instantiate a UserAgentApplication and login the user:
 ```JavaScript
     <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
