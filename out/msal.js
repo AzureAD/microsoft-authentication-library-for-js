@@ -417,6 +417,11 @@ var Msal;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Constants, "error", {
+            get: function () { return "error"; },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Constants, "scope", {
             get: function () { return "scope"; },
             enumerable: true,
@@ -504,11 +509,6 @@ var Msal;
         });
         Object.defineProperty(Constants, "idTokenKey", {
             get: function () { return "msal.idtoken"; },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Constants, "error", {
-            get: function () { return "msal.error"; },
             enumerable: true,
             configurable: true
         });
@@ -1144,7 +1144,6 @@ var Msal;
                 if (extraQueryParameters) {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
                 }
-                authenticationRequest.state = authenticationRequest.state + "|" + _this.clientId;
                 _this._cacheStorage.setItem(Msal.Constants.loginRequest, window.location.href);
                 _this._cacheStorage.setItem(Msal.Constants.loginError, "");
                 _this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
@@ -1155,7 +1154,7 @@ var Msal;
                 if (Msal.Utils.isEmpty(_this._cacheStorage.getItem(authorityKey))) {
                     _this._cacheStorage.setItem(authorityKey, _this.authority);
                 }
-                var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 _this._loginInProgress = true;
                 _this.promptUser(urlNavigate);
             });
@@ -1185,7 +1184,6 @@ var Msal;
                     if (extraQueryParameters) {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
-                    authenticationRequest.state = authenticationRequest.state + "|" + _this.clientId;
                     _this._cacheStorage.setItem(Msal.Constants.loginRequest, window.location.href);
                     _this._cacheStorage.setItem(Msal.Constants.loginError, "");
                     _this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
@@ -1196,7 +1194,7 @@ var Msal;
                     if (Msal.Utils.isEmpty(_this._cacheStorage.getItem(authorityKey))) {
                         _this._cacheStorage.setItem(authorityKey, _this.authority);
                     }
-                    var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     _this._loginInProgress = true;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
@@ -1508,7 +1506,9 @@ var Msal;
                     return;
                 }
             }
-            scopes = this.filterScopes(scopes);
+            if (scopes) {
+                scopes = this.filterScopes(scopes);
+            }
             var userObject = user ? user : this._user;
             if (this._acquireTokenInProgress) {
                 return;
@@ -1531,7 +1531,6 @@ var Msal;
                     authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this.redirectUri);
                 }
                 _this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-                authenticationRequest.state = authenticationRequest.state + "|" + scope;
                 var acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + userObject.userIdentifier + Msal.Constants.resourceDelimeter + authenticationRequest.state;
                 if (Msal.Utils.isEmpty(_this._cacheStorage.getItem(acquireTokenUserKey))) {
                     _this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
@@ -1543,7 +1542,7 @@ var Msal;
                 if (extraQueryParameters) {
                     authenticationRequest.extraQueryParameters = extraQueryParameters;
                 }
-                var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 urlNavigate = _this.addHintParameters(urlNavigate, userObject);
                 if (urlNavigate) {
                     _this._cacheStorage.setItem(Msal.Constants.stateAcquireToken, authenticationRequest.state);
@@ -1587,7 +1586,7 @@ var Msal;
                         authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this.redirectUri);
                     }
                     _this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-                    authenticationRequest.state = authenticationRequest.state + "|" + scope;
+                    authenticationRequest.state = authenticationRequest.state;
                     var acquireTokenUserKey = Msal.Constants.acquireTokenUser + Msal.Constants.resourceDelimeter + userObject.userIdentifier + Msal.Constants.resourceDelimeter + authenticationRequest.state;
                     if (Msal.Utils.isEmpty(_this._cacheStorage.getItem(acquireTokenUserKey))) {
                         _this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
@@ -1599,7 +1598,7 @@ var Msal;
                     if (extraQueryParameters) {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
-                    var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account";
+                    var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     urlNavigate = _this.addHintParameters(urlNavigate, userObject);
                     _this._renewStates.push(authenticationRequest.state);
                     _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
@@ -1729,7 +1728,6 @@ var Msal;
             var scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.verbose('renewToken is called for scope:' + scope);
             var frameHandle = this.addAdalFrame('msalRenewFrame' + scope);
-            authenticationRequest.state = authenticationRequest.state + "|" + scope;
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1755,7 +1753,6 @@ var Msal;
             var scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.info('renewidToken is called');
             var frameHandle = this.addAdalFrame("msalIdTokenFrame");
-            authenticationRequest.state = authenticationRequest.state + "|" + this.clientId;
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1819,18 +1816,18 @@ var Msal;
                     tokenType = Msal.Constants.idToken;
                 }
                 try {
-                    var errorDesc = this._cacheStorage.getItem(Msal.Constants.errorDescription);
-                    var error = this._cacheStorage.getItem(Msal.Constants.error);
-                    if (error || errorDesc) {
-                        if (reject) {
-                            reject(errorDesc + ": " + error);
+                    var errorDesc = requestInfo.parameters[Msal.Constants.errorDescription];
+                    var error = requestInfo.parameters[Msal.Constants.error];
+                    if (reject && resolve) {
+                        if (error || errorDesc) {
+                            reject(errorDesc + ":" + error);
+                        }
+                        else if (token) {
+                            resolve(token);
                         }
                     }
-                    if (resolve) {
-                        resolve(token);
-                    }
                     else if (tokenReceivedCallback) {
-                        tokenReceivedCallback(this._cacheStorage.getItem(Msal.Constants.errorDescription), token, this._cacheStorage.getItem(Msal.Constants.error), tokenType);
+                        tokenReceivedCallback(errorDesc, token, error, tokenType);
                     }
                 }
                 catch (err) {
@@ -1873,14 +1870,20 @@ var Msal;
             this._requestContext.logger.info('State status:' + tokenResponse.stateMatch + '; Request type:' + tokenResponse.requestType);
             this._cacheStorage.setItem(Msal.Constants.error, "");
             this._cacheStorage.setItem(Msal.Constants.errorDescription, "");
-            var scope = this.getScopeFromState(tokenResponse.stateResponse);
-            if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.errorDescription)) {
+            var scope = '';
+            if (tokenResponse.parameters.hasOwnProperty("scope")) {
+                scope = tokenResponse.parameters["scope"];
+            }
+            else {
+                scope = this.clientId;
+            }
+            if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Msal.Constants.error)) {
                 this._requestContext.logger.info('Error :' + tokenResponse.parameters[Msal.Constants.error] + '; Error description:' + tokenResponse.parameters[Msal.Constants.errorDescription]);
                 this._cacheStorage.setItem(Msal.Constants.error, tokenResponse.parameters["error"]);
                 this._cacheStorage.setItem(Msal.Constants.errorDescription, tokenResponse.parameters[Msal.Constants.errorDescription]);
                 if (tokenResponse.requestType === Msal.Constants.login) {
                     this._loginInProgress = false;
-                    this._cacheStorage.setItem(Msal.Constants.loginError, tokenResponse.parameters["errorDescription"]);
+                    this._cacheStorage.setItem(Msal.Constants.loginError, tokenResponse.parameters[Msal.Constants.errorDescription] + ':' + tokenResponse.parameters[Msal.Constants.error]);
                 }
                 if (tokenResponse.requestType === Msal.Constants.renewToken) {
                     this._acquireTokenInProgress = false;
@@ -1980,6 +1983,8 @@ var Msal;
             hash = this.getHash(hash);
             var parameters = Msal.Utils.deserialize(hash);
             return (parameters.hasOwnProperty(Msal.Constants.errorDescription) ||
+                parameters.hasOwnProperty(Msal.Constants.error) ||
+                parameters.hasOwnProperty(Msal.Constants.error) ||
                 parameters.hasOwnProperty(Msal.Constants.accessToken) ||
                 parameters.hasOwnProperty(Msal.Constants.idToken));
         };
@@ -2000,6 +2005,7 @@ var Msal;
             if (parameters) {
                 tokenResponse.parameters = parameters;
                 if (parameters.hasOwnProperty(Msal.Constants.errorDescription) ||
+                    parameters.hasOwnProperty(Msal.Constants.error) ||
                     parameters.hasOwnProperty(Msal.Constants.accessToken) ||
                     parameters.hasOwnProperty(Msal.Constants.idToken)) {
                     tokenResponse.valid = true;
