@@ -1,8 +1,8 @@
 
-Microsoft Authentication Library for JavaScript (MSAL.js)
+Microsoft Authentication Library Preview for JavaScript (MSAL.js)
 =========================================================
 
-| [Getting Started](https://aka.ms/aaddevv2)| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.msal.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Sample](./devApps/VanillaJSTestApp )
+| [Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2 )| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.msal.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
@@ -10,15 +10,19 @@ The MSAL library preview for JavaScript enables your app to authorize enterprise
 
 The identity management services that the library interacts with are [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/), [Microsoft Azure B2C](https://azure.microsoft.com/services/active-directory-b2c/) and [Microsoft Accounts](https://account.microsoft.com).
 
+
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
 
-MSAL for Javascript is in active development, but not yet ready. We encourage you to look at our work in progress and provide feedback!
-**It should not be used in production environments.**
+## Important Note about the MSAL Preview
+This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
+<
 
 ## Example
-To login the user;
+This example shows how to acquire a token to read user information from Microsoft Graph.
+
+1. Create the UserAgentApplication and login the user:
 ```JavaScript
-        <script class="pre">
+    <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
               // this callback is called after loginRedirect OR acquireTokenRedirect (not used for loginPopup/aquireTokenPopup)
         })
@@ -34,10 +38,10 @@ To login the user;
         });
     </script>
 ```
-Then once user is logged-in:
+2. Then, once the user is logged-in, get an access token
 
 ```JavaScript
-		<script>
+   <script>
           // get an access token
           userAgentApplication.acquireTokenSilent(["user.read"]).then(function (token) {
             console.log("ATS promise resolved");
@@ -53,6 +57,8 @@ Then once user is logged-in:
           });
     </script>
 ```
+
+3. use the token in an [HTTP bearer request](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2/blob/master/TodoSPA/App/Scripts/Ctrls/todoListCtrl.js#L30), to call the Microsoft Graph or a Web API
 
 ## Installation
 
