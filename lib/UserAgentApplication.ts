@@ -1397,7 +1397,6 @@ namespace Msal {
             return (
                 parameters.hasOwnProperty(Constants.errorDescription) ||
                 parameters.hasOwnProperty(Constants.error) ||
-                parameters.hasOwnProperty(Constants.error) ||
                 parameters.hasOwnProperty(Constants.accessToken) ||
                 parameters.hasOwnProperty(Constants.idToken)
 
