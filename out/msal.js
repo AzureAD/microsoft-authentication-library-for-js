@@ -2265,7 +2265,7 @@ var Msal;
             return hex;
         };
         Utils.getLibraryVersion = function () {
-            return "0.1.0";
+            return "0.1.1";
         };
         Utils.replaceFirstPath = function (href, tenantId) {
             var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
