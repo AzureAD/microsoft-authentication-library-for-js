@@ -204,9 +204,12 @@ namespace Msal {
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            var isCallback = this.isCallback(window.location.hash);
-            if (isCallback)
-                this.handleAuthenticationResponse(window.location.hash);
+            if (!window.opener) {
+                var isCallback = this.isCallback(window.location.hash);
+                if (isCallback)
+                    this.handleAuthenticationResponse(window.location.hash);
+            }
+
         }
 
         /**
@@ -235,6 +238,7 @@ namespace Msal {
                         return;
                     }
                 }
+                scopes = this.filterScopes(scopes);
             }
 
             this.authorityInstance.ResolveEndpointsAsync()
@@ -287,9 +291,11 @@ namespace Msal {
                         reject(Msal.ErrorCodes.inputScopesError + ':' + Msal.ErrorDescription.inputScopesError);
                         return;
                     }
+
+                    scopes = this.filterScopes(scopes);
                 }
 
-                var popUpWindow = this.openWindow('about:blank', '_blank', 20, this, resolve, reject);
+                var popUpWindow = this.openWindow('about:blank', '_blank', 1, this, resolve, reject);
                 if (!popUpWindow) {
                     return;
                 }
@@ -333,11 +339,11 @@ namespace Msal {
             });
         }
 
-       /**
-        * Used to redirect the browser to the STS authorization endpoint
-        * @param {string} urlNavigate - URL of the authorization endpoint
-        * @hidden
-        */
+        /**
+         * Used to redirect the browser to the STS authorization endpoint
+         * @param {string} urlNavigate - URL of the authorization endpoint
+         * @hidden
+         */
         private promptUser(urlNavigate: string) {
             if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
                 this._requestContext.logger.info('Navigate to:' + urlNavigate);
@@ -484,6 +490,18 @@ namespace Msal {
             return "";
         }
 
+
+        private filterScopes(scopes: Array<string>): Array<string> {
+            scopes = scopes.filter(function (element) {
+                return element !== "openid";
+            });
+
+            scopes = scopes.filter(function (element) {
+                return element !== "profile";
+            });
+
+            return scopes;
+        }
         /**
         * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
         * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
@@ -754,6 +772,7 @@ namespace Msal {
                 }
             }
 
+            scopes = this.filterScopes(scopes);
             const userObject = user ? user : this._user;
             if (this._acquireTokenInProgress) {
                 return;
@@ -825,6 +844,10 @@ namespace Msal {
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
+                }
+
+                if (scopes) {
+                    scopes = this.filterScopes(scopes);
                 }
 
                 const userObject = user ? user : this._user;
@@ -910,6 +933,10 @@ namespace Msal {
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
                 } else {
+                    if (scopes) {
+                        scopes = this.filterScopes(scopes);
+                    }
+
                     const scope = scopes.join(" ").toLowerCase();
                     const userObject = user ? user : this._user;
                     if (!userObject) {
@@ -938,25 +965,23 @@ namespace Msal {
                             return;
                         }
                     }
-
+                    // refresh attept with iframe
+                    //Already renewing for this scope, callback when we get the token.
+                    if (this._activeRenewals[scope]) {
+                        //Active renewals contains the state for each renewal.
+                        this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+                    }
                     // cache miss
                     return this.authorityInstance.ResolveEndpointsAsync()
                         .then(() => {
-                            // refresh attept with iframe
-                            //Already renewing for this scope, callback when we get the token.
-                            if (this._activeRenewals[scope]) {
-                                //Active renewals contains the state for each renewal.
-                                this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+                            if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+                                // App uses idToken to send to api endpoints
+                                // Default scope is tracked as clientId to store this token
+                                this._requestContext.logger.verbose("renewing idToken");
+                                this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
                             } else {
-                                if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                                    // App uses idToken to send to api endpoints
-                                    // Default scope is tracked as clientId to store this token
-                                    this._requestContext.logger.verbose("renewing idToken");
-                                    this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-                                } else {
-                                    this._requestContext.logger.verbose("renewing accesstoken");
-                                    this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-                                }
+                                this._requestContext.logger.verbose("renewing accesstoken");
+                                this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
                             }
                         });
                 }
@@ -1194,17 +1219,17 @@ namespace Msal {
             }
         }
 
-         /**
-         * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-         * @param {string} authority authority received in the redirect response from AAD.
-         * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-         * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
-         * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
-         * @param {IdToken} idToken idToken received as part of the response.
-         * @ignore
-         * @private
-         * @hidden
-         */
+        /**
+        * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
+        * @param {string} authority authority received in the redirect response from AAD.
+        * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
+        * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
+        * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
+        * @param {IdToken} idToken idToken received as part of the response.
+        * @ignore
+        * @private
+        * @hidden
+        */
         private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
             let scope: string;
             let clientObj: ClientInfo = new ClientInfo(clientInfo);

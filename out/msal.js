@@ -1,16 +1,8 @@
-/*! msal v0.1.0 2017-05-05 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1096,9 +1088,11 @@ var Msal;
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            var isCallback = this.isCallback(window.location.hash);
-            if (isCallback)
-                this.handleAuthenticationResponse(window.location.hash);
+            if (!window.opener) {
+                var isCallback = this.isCallback(window.location.hash);
+                if (isCallback)
+                    this.handleAuthenticationResponse(window.location.hash);
+            }
         }
         Object.defineProperty(UserAgentApplication.prototype, "cacheLocation", {
             get: function () {
@@ -1142,6 +1136,7 @@ var Msal;
                         return;
                     }
                 }
+                scopes = this.filterScopes(scopes);
             }
             this.authorityInstance.ResolveEndpointsAsync()
                 .then(function () {
@@ -1179,8 +1174,9 @@ var Msal;
                         reject(Msal.ErrorCodes.inputScopesError + ':' + Msal.ErrorDescription.inputScopesError);
                         return;
                     }
+                    scopes = _this.filterScopes(scopes);
                 }
-                var popUpWindow = _this.openWindow('about:blank', '_blank', 20, _this, resolve, reject);
+                var popUpWindow = _this.openWindow('about:blank', '_blank', 1, _this, resolve, reject);
                 if (!popUpWindow) {
                     return;
                 }
@@ -1317,6 +1313,15 @@ var Msal;
                 }
             }
             return "";
+        };
+        UserAgentApplication.prototype.filterScopes = function (scopes) {
+            scopes = scopes.filter(function (element) {
+                return element !== "openid";
+            });
+            scopes = scopes.filter(function (element) {
+                return element !== "profile";
+            });
+            return scopes;
         };
         UserAgentApplication.prototype.registerCallback = function (expectedState, scope, resolve, reject) {
             var _this = this;
@@ -1503,6 +1508,7 @@ var Msal;
                     return;
                 }
             }
+            scopes = this.filterScopes(scopes);
             var userObject = user ? user : this._user;
             if (this._acquireTokenInProgress) {
                 return;
@@ -1552,6 +1558,9 @@ var Msal;
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
+                }
+                if (scopes) {
+                    scopes = _this.filterScopes(scopes);
                 }
                 var userObject = user ? user : _this._user;
                 if (_this._acquireTokenInProgress) {
@@ -1617,7 +1626,10 @@ var Msal;
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
                 }
                 else {
-                    var scope_1 = scopes.join(" ").toLowerCase();
+                    if (scopes) {
+                        scopes = _this.filterScopes(scopes);
+                    }
+                    var scope = scopes.join(" ").toLowerCase();
                     var userObject_1 = user ? user : _this._user;
                     if (!userObject_1) {
                         reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
@@ -1634,7 +1646,7 @@ var Msal;
                     var cacheResult = _this.getCachedToken(authenticationRequest_1, userObject_1);
                     if (cacheResult) {
                         if (cacheResult.token) {
-                            _this._requestContext.logger.info('Token is already in cache for scope:' + scope_1);
+                            _this._requestContext.logger.info('Token is already in cache for scope:' + scope);
                             resolve(cacheResult.token);
                             return;
                         }
@@ -1644,20 +1656,18 @@ var Msal;
                             return;
                         }
                     }
+                    if (_this._activeRenewals[scope]) {
+                        _this.registerCallback(_this._activeRenewals[scope], scope, resolve, reject);
+                    }
                     return _this.authorityInstance.ResolveEndpointsAsync()
                         .then(function () {
-                        if (_this._activeRenewals[scope_1]) {
-                            _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
+                        if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
+                            _this._requestContext.logger.verbose("renewing idToken");
+                            _this.renewIdToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                         else {
-                            if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
-                                _this._requestContext.logger.verbose("renewing idToken");
-                                _this.renewIdToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
-                            }
-                            else {
-                                _this._requestContext.logger.verbose("renewing accesstoken");
-                                _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
-                            }
+                            _this._requestContext.logger.verbose("renewing accesstoken");
+                            _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                     });
                 }

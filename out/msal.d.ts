@@ -326,6 +326,7 @@ declare namespace Msal {
         private clearCache();
         private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
         private validateInputScope(scopes);
+        private filterScopes(scopes);
         private registerCallback(expectedState, scope, resolve, reject);
         private getCachedToken(authenticationRequest, user);
         getAllUsers(): Array<User>;
