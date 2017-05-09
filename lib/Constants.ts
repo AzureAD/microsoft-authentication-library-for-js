@@ -5,6 +5,7 @@ namespace Msal {
     */
     export class Constants {
         static get errorDescription(): string { return "error_description"; }
+        static get error(): string { return "error"; }
         static get scope(): string { return "scope"; }
         static get acquireTokenUser(): string { return "msal_acquireTokenUser"; }
         static get clientInfo(): string { return "client_info"; }
@@ -23,7 +24,6 @@ namespace Msal {
         static get nonceIdToken(): string { return "msal.nonce.idtoken"; }
         static get userName(): string { return "msal.username"; }
         static get idTokenKey(): string { return "msal.idtoken"; }
-        static get error(): string { return "msal.error"; }
         static get loginRequest(): string { return "msal.login.request"; }
         static get loginError(): string { return "msal.login.error"; }
         static get renewStatus(): string { return "msal.token.renew.status"; }

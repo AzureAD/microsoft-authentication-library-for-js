@@ -20,7 +20,7 @@
     <h1>Sending an email with msal.js and Microsoft Graph</h1>
     <div>
         <div id="label">Sign-in with Microsoft</div>
-        <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
+        <button id="auth" onclick="loginPopup();">Login (with Popup)</button>
     </div>
     <div id="sendEmail" class="hidden">
         <input id="emailToSendTo" type="text" />
@@ -38,25 +38,34 @@
     </script>
 
     <script>
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback);
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback);
         function authCallback(errorDesc, token, error, tokenType) {
             //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
             if (token) {
-                this.msal.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
-                    // Change button to Sign Out
+            }
+            else {
+                log(error + ":" + errorDesc);
+            }
+        }
+
+        function loginPopup() {
+            userAgentApplication.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
+                //Login Success
+                userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+                    //AcquireToken Success
                     updateUI();
                 }, function (error) {
-                    console.log(error);
-                    this.msal.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                    //AcquireToken Failure, send an interactive request.
+                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
                         updateUI();
                     }, function (error) {
                         console.log(error);
                     });
-                });
-            }
-            else if (errorDesc || error) {
-                console.log(error + ':' + errorDesc);
-            }
+                })
+            }, function (error) {
+                console.log(error);
+            });
+               
         }
 
         function updateUI() {
@@ -71,10 +80,6 @@
             sendEmailSpan.className = "visible";
             var emailAddress = document.getElementById('emailToSendTo');
             emailAddress.value = userAgentApplication.getUser().displayableId;
-        }
-
-        function loginRedirect() {
-            userAgentApplication.loginRedirect(applicationConfig.graphScopes);
         }
 
         function logout() {

@@ -145,7 +145,6 @@ describe('Msal', function (): any {
             expect(args).toContain('&client_id=' + msal.clientId);
             expect(args).toContain('&redirect_uri=contoso_site');
             expect(args).toContain('&state');
-            expect(args).toContain(encodeURI(RESOURCE_DELIMETER) + msal.clientId);;
             expect(args).toContain('&redirect_uri=contoso_site');
             expect(args).toContain('&client_info=1');
 

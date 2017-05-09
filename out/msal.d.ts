@@ -105,6 +105,7 @@ declare namespace Msal {
 declare namespace Msal {
     class Constants {
         static readonly errorDescription: string;
+        static readonly error: string;
         static readonly scope: string;
         static readonly acquireTokenUser: string;
         static readonly clientInfo: string;
@@ -123,7 +124,6 @@ declare namespace Msal {
         static readonly nonceIdToken: string;
         static readonly userName: string;
         static readonly idTokenKey: string;
-        static readonly error: string;
         static readonly loginRequest: string;
         static readonly loginError: string;
         static readonly renewStatus: string;
@@ -326,6 +326,7 @@ declare namespace Msal {
         private clearCache();
         private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
         private validateInputScope(scopes);
+        private filterScopes(scopes);
         private registerCallback(expectedState, scope, resolve, reject);
         private getCachedToken(authenticationRequest, user);
         getAllUsers(): Array<User>;
