@@ -19,8 +19,8 @@ This library is suitable for use in a production environment. We provide the sam
 
 ## Example
 This example shows how to acquire a token to read user information from Microsoft Graph.
-1. Register an application in Azure AD v2.0 (using the [application registration portal](https://identity.microsoft.com/))
-2. Create the UserAgentApplication and login the user:
+1. Register an application in Azure AD v2.0 (using the [application registration portal](https://identity.microsoft.com/)) to get your client_id.
+2. Instanciate a UserAgentApplication and login the user:
 ```JavaScript
     <script class="pre">
         var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
