@@ -1059,7 +1059,7 @@ var Msal;
     var UserAgentApplication = (function () {
         function UserAgentApplication(clientId, authority, tokenReceivedCallback, validateAuthority, redirectUri) {
             if (authority === void 0) { authority = "https://login.microsoftonline.com/common"; }
-            if (redirectUri === void 0) { redirectUri = window.location.origin; }
+            if (redirectUri === void 0) { redirectUri = window.location.href.split("?")[0].split("#")[0]; }
             this._cacheLocations = {
                 localStorage: "localStorage",
                 sessionStorage: "sessionStorage"

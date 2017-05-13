@@ -188,7 +188,7 @@ namespace Msal {
              authority: string = "https://login.microsoftonline.com/common",
              tokenReceivedCallback: tokenReceivedCallback,
              validateAuthority?: boolean,
-             redirectUri: string = window.location.origin
+             redirectUri: string = window.location.href.split("?")[0].split("#")[0]
         ) {
             this.clientId = clientId;
 
