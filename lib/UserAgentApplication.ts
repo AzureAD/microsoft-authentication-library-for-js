@@ -188,10 +188,8 @@ namespace Msal {
             authority: string = "https://login.microsoftonline.com/common",
             tokenReceivedCallback: tokenReceivedCallback,
             validateAuthority?: boolean,
-            redirectUri: string = window.location.href.split("?")[0].split("#")[0]
         ) {
             this.clientId = clientId;
-
             this.validateAuthority = validateAuthority === true;
             this.authority = authority;
 
@@ -199,7 +197,7 @@ namespace Msal {
                 this._tokenReceivedCallback = tokenReceivedCallback;
             }
 
-            this.redirectUri = redirectUri;
+            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
