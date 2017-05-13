@@ -317,7 +317,7 @@ declare namespace Msal {
         redirectUri: string;
         postLogoutredirectUri: string;
         navigateToLoginRequestUrl: boolean;
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean);
+        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean, redirectUri?: string);
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
         private promptUser(urlNavigate);
