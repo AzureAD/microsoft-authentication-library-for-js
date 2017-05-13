@@ -185,10 +185,10 @@ namespace Msal {
         */
         constructor(
             clientId: string,
-             authority: string = "https://login.microsoftonline.com/common",
-             tokenReceivedCallback: tokenReceivedCallback,
-             validateAuthority?: boolean,
-             redirectUri: string = window.location.href.split("?")[0].split("#")[0]
+            authority: string = "https://login.microsoftonline.com/common",
+            tokenReceivedCallback: tokenReceivedCallback,
+            validateAuthority?: boolean,
+            redirectUri: string = window.location.href.split("?")[0].split("#")[0]
         ) {
             this.clientId = clientId;
 
