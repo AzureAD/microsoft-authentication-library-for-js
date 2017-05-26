@@ -48,8 +48,7 @@ namespace Msal {
         /**
         * @hidden
         */
-        private _cacheLocation = "sessionStorage";
-
+        private _cacheLocation: string;
         /**
         * Used to get the cache location
         */
@@ -193,34 +192,37 @@ namespace Msal {
         */
         constructor(
             clientId: string,
-            authority: string,
-            tokenReceivedCallback: tokenReceivedCallback,
-            validateAuthority?: boolean,
-            redirectUri: string = window.location.href.split("?")[0].split("#")[0]
-        ) {
+            {
+                tokenReceivedCallback,
+                validateAuthority,
+                cacheLocation = 'sessionStorage',
+                authority = 'https://login.microsoftonline.com/common',
+                redirectUri = window.location.href.split("?")[0].split("#")[0]
+            }: {
+                tokenReceivedCallback?: tokenReceivedCallback,
+                validateAuthority?: boolean,
+                cacheLocation?: string
+                authority?: string,
+                redirectUri?: string
+            }) {
             this.clientId = clientId;
-            this.validateAuthority = validateAuthority === true;
-            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
-            
-            if (tokenReceivedCallback) {
-                this._tokenReceivedCallback = tokenReceivedCallback;
-            }
-
+            this._tokenReceivedCallback = tokenReceivedCallback;
+            this.cacheLocation = cacheLocation;
+            this.validateAuthority = validateAuthority;
+            this.authority = authority;
             this.redirectUri = redirectUri;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
             this._activeRenewals = {};
-            this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
-            this._requestContext = new RequestContext("");
+            this._requestContext = new RequestContext('');
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
             if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback)
-                    this.handleAuthenticationResponse(window.location.hash);
+                const isCallback = this.isCallback(window.location.hash);
+                if (isCallback) this.handleAuthenticationResponse(window.location.hash);
             }
 
         }
