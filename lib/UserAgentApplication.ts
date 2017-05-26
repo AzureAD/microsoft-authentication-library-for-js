@@ -949,7 +949,6 @@ namespace Msal {
             tokenType: string = this.getResponseType(user)
         ): Promise<string> {
             return new Promise<string>((resolve, reject) => {
-                debugger
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);

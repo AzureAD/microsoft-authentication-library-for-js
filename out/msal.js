@@ -1640,7 +1640,6 @@ var Msal;
             var _this = this;
             if (tokenType === void 0) { tokenType = this.getResponseType(user); }
             return new Promise(function (resolve, reject) {
-                debugger;
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
