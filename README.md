@@ -23,8 +23,10 @@ This example shows how to acquire a token to read user information from Microsof
 2. Instantiate a UserAgentApplication and login the user:
 ```JavaScript
     <script class="pre">
-        var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
-              // this callback is called after loginRedirect OR acquireTokenRedirect (not used for loginPopup/aquireTokenPopup)
+        var userAgentApplication = new Msal.UserAgentApplication("your_client_id", {
+            tokenReceivedCallback: function (errorDes, token, error, tokenType) {
+                // this callback is called after loginRedirect OR acquireTokenRedirect (not used for loginPopup/aquireTokenPopup)
+            }
         })
         userAgentApplication.loginPopup(["user.read"]).then( function(token) {
             var user = userAgentApplication.getUser();

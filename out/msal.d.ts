@@ -317,7 +317,13 @@ declare namespace Msal {
         redirectUri: string;
         postLogoutredirectUri: string;
         navigateToLoginRequestUrl: boolean;
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean);
+        constructor(clientId: string, {tokenReceivedCallback, validateAuthority, cacheLocation, authority, redirectUri}: {
+            tokenReceivedCallback?: tokenReceivedCallback;
+            validateAuthority?: boolean;
+            cacheLocation?: string;
+            authority?: string;
+            redirectUri?: string;
+        });
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
         private promptUser(urlNavigate);
@@ -342,7 +348,7 @@ declare namespace Msal {
         acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
-        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
+        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string, tokenType?: string): Promise<string>;
         private loadFrameTimeout(urlNavigate, frameName, scope);
         private loadFrame(urlNavigate, frameName);
         private addAdalFrame(iframeId);
@@ -356,6 +362,8 @@ declare namespace Msal {
         private getHash(hash);
         private getRequestInfo(hash);
         private getScopeFromState(state);
+        private isInIframe();
+        private getResponseType(user);
     }
 }
 declare namespace Msal {

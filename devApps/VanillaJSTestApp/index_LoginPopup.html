@@ -38,8 +38,11 @@
     </script>
 
     <script>
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback);
-        function authCallback(errorDesc, token, error, tokenType) {
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, {
+            tokenReceivedCallback,
+            authority: applicationConfig.authority,
+        });
+        function tokenReceivedCallback(errorDesc, token, error, tokenType) {
             //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
             if (token) {
             }

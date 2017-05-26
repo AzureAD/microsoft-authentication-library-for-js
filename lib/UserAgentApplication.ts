@@ -26,7 +26,15 @@ namespace Msal {
     * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
     */
     export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
-
+    const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+        const tokenAcquisitionMethod = descriptor.value;
+        descriptor.value = function (...args: any[]) {
+            return this.isInIframe()
+                ? new Promise(() => {})
+                : tokenAcquisitionMethod.apply(this, args);
+        }
+        return descriptor
+    };
     export class UserAgentApplication {
 
         /**
@@ -40,8 +48,7 @@ namespace Msal {
         /**
         * @hidden
         */
-        private _cacheLocation = "sessionStorage";
-
+        private _cacheLocation: string;
         /**
         * Used to get the cache location
         */
@@ -183,31 +190,39 @@ namespace Msal {
         * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
         * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
         */
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean) {
+        constructor(
+            clientId: string,
+            {
+                tokenReceivedCallback,
+                validateAuthority,
+                cacheLocation = 'sessionStorage',
+                authority = 'https://login.microsoftonline.com/common',
+                redirectUri = window.location.href.split("?")[0].split("#")[0]
+            }: {
+                tokenReceivedCallback?: tokenReceivedCallback,
+                validateAuthority?: boolean,
+                cacheLocation?: string
+                authority?: string,
+                redirectUri?: string
+            }) {
             this.clientId = clientId;
-
-            this.validateAuthority = validateAuthority === true;
-            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
-
-            if (tokenReceivedCallback) {
-                this._tokenReceivedCallback = tokenReceivedCallback;
-            }
-
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this._tokenReceivedCallback = tokenReceivedCallback;
+            this.cacheLocation = cacheLocation;
+            this.validateAuthority = validateAuthority;
+            this.authority = authority;
+            this.redirectUri = redirectUri;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
             this._activeRenewals = {};
-            this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
-            this._requestContext = new RequestContext("");
+            this._requestContext = new RequestContext('');
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
             if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback)
-                    this.handleAuthenticationResponse(window.location.hash);
+                const isCallback = this.isCallback(window.location.hash);
+                if (isCallback) this.handleAuthenticationResponse(window.location.hash);
             }
 
         }
@@ -271,6 +286,7 @@ namespace Msal {
         * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
         * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
         */
+        @resolveTokenOnlyIfOutOfIframe
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
             /*
             1. Create navigate url
@@ -841,6 +857,7 @@ namespace Msal {
         acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
+        @resolveTokenOnlyIfOutOfIframe
         acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
             return new Promise<string>((resolve, reject) => {
                 this._interactionMode = this._interactionModes.popUp;
@@ -930,7 +947,14 @@ namespace Msal {
         * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
         * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
         */
-        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
+        @resolveTokenOnlyIfOutOfIframe
+        acquireTokenSilent(
+            scopes: Array<string>,
+            authority?: string,
+            user?: User,
+            extraQueryParameters?: string,
+            tokenType: string = this.getResponseType(user)
+        ): Promise<string> {
             return new Promise<string>((resolve, reject) => {
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
@@ -947,13 +971,8 @@ namespace Msal {
                         return;
                     }
 
-                    let authenticationRequest: AuthenticationRequestParameters;
-                    let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-                    if (Utils.compareObjects(userObject, this._user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                    } else {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                    }
+                    const newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+                    const authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, tokenType, this.redirectUri);
 
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
                     if (cacheResult) {
@@ -1176,7 +1195,7 @@ namespace Msal {
                 this.saveTokenFromHash(requestInfo);
                 let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string;
                 if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (this.isInIframe())
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
@@ -1487,5 +1506,25 @@ namespace Msal {
             }
             return "";
         };
+
+        /**
+         * Returns whether current window is in ifram for token renewal
+         * @ignore
+         * @hidden
+         */
+        private isInIframe() {
+            return window.parent !== window
+        }
+        /**
+         * Gets response type to be returned in the authentication request hash
+         * @returns {string} response type.
+         * @ignore
+         * @hidden
+         */
+        private getResponseType(user: User) {
+            return Utils.compareObjects(user, this._user) || !user
+                ? ResponseTypes.token
+                : ResponseTypes.id_token_token;
+        }
     }
 }

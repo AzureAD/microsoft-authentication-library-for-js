@@ -39,9 +39,11 @@
         // Msal helpers
         // ------------
         // Initialize Msal libraries by setting the Client Id, authority and a callback
-        var clientApplication= new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, function(errorDesc,token,error,tokenType){
+        var clientApplication= new Msal.UserAgentApplication(applicationConfig.clientID, {
+            authority: applicationConfig.authority,
+            tokenReceivedCallback: function(errorDesc,token,error,tokenType){
 		// Called after loginRedirect or acquireTokenPopup
-        });
+        }});
 
         function login() {
             clientApplication.loginPopup(applicationConfig.b2cScopes).then(function (idToken) {

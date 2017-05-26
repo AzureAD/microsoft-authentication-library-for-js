@@ -1,16 +1,14 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1064,13 +1062,26 @@ var Msal;
         token: "token",
         id_token_token: "id_token token"
     };
+    var resolveTokenOnlyIfOutOfIframe = function (target, propertyKey, descriptor) {
+        var tokenAcquisitionMethod = descriptor.value;
+        descriptor.value = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return this.isInIframe()
+                ? new Promise(function () { })
+                : tokenAcquisitionMethod.apply(this, args);
+        };
+        return descriptor;
+    };
     var UserAgentApplication = (function () {
-        function UserAgentApplication(clientId, authority, tokenReceivedCallback, validateAuthority) {
+        function UserAgentApplication(clientId, _a) {
+            var tokenReceivedCallback = _a.tokenReceivedCallback, validateAuthority = _a.validateAuthority, _b = _a.cacheLocation, cacheLocation = _b === void 0 ? 'sessionStorage' : _b, _c = _a.authority, authority = _c === void 0 ? 'https://login.microsoftonline.com/common' : _c, _d = _a.redirectUri, redirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d;
             this._cacheLocations = {
                 localStorage: "localStorage",
                 sessionStorage: "sessionStorage"
             };
-            this._cacheLocation = "sessionStorage";
             this._interactionModes = {
                 popUp: "popUp",
                 redirect: "redirect"
@@ -1080,19 +1091,17 @@ var Msal;
             this._tokenReceivedCallback = null;
             this.navigateToLoginRequestUrl = true;
             this.clientId = clientId;
-            this.validateAuthority = validateAuthority === true;
-            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
-            if (tokenReceivedCallback) {
-                this._tokenReceivedCallback = tokenReceivedCallback;
-            }
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this._tokenReceivedCallback = tokenReceivedCallback;
+            this.cacheLocation = cacheLocation;
+            this.validateAuthority = validateAuthority;
+            this.authority = authority;
+            this.redirectUri = redirectUri;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
             this._activeRenewals = {};
-            this._cacheStorage = new Msal.Storage(this._cacheLocation);
-            this._requestContext = new Msal.RequestContext("");
+            this._requestContext = new Msal.RequestContext('');
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
@@ -1625,8 +1634,9 @@ var Msal;
                 });
             });
         };
-        UserAgentApplication.prototype.acquireTokenSilent = function (scopes, authority, user, extraQueryParameters) {
+        UserAgentApplication.prototype.acquireTokenSilent = function (scopes, authority, user, extraQueryParameters, tokenType) {
             var _this = this;
+            if (tokenType === void 0) { tokenType = this.getResponseType(user); }
             return new Promise(function (resolve, reject) {
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
@@ -1642,14 +1652,8 @@ var Msal;
                         reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
                         return;
                     }
-                    var authenticationRequest_1;
                     var newAuthority = authority ? Msal.Authority.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
-                    if (Msal.Utils.compareObjects(userObject_1, _this._user)) {
-                        authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.token, _this.redirectUri);
-                    }
-                    else {
-                        authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this.redirectUri);
-                    }
+                    var authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, tokenType, _this.redirectUri);
                     var cacheResult = _this.getCachedToken(authenticationRequest_1, userObject_1);
                     if (cacheResult) {
                         if (cacheResult.token) {
@@ -1807,7 +1811,7 @@ var Msal;
                 this.saveTokenFromHash(requestInfo);
                 var token = null, tokenReceivedCallback = null, tokenType = void 0;
                 if ((requestInfo.requestType === Msal.Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (this.isInIframe())
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
@@ -2058,8 +2062,25 @@ var Msal;
             return "";
         };
         ;
+        UserAgentApplication.prototype.isInIframe = function () {
+            return window.parent !== window;
+        };
+        UserAgentApplication.prototype.getResponseType = function (user) {
+            return Msal.Utils.compareObjects(user, this._user) || !user
+                ? ResponseTypes.token
+                : ResponseTypes.id_token_token;
+        };
         return UserAgentApplication;
     }());
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "loginPopup", null);
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "acquireTokenPopup", null);
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "acquireTokenSilent", null);
     Msal.UserAgentApplication = UserAgentApplication;
 })(Msal || (Msal = {}));
 var Msal;
