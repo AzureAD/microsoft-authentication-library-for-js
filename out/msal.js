@@ -1,16 +1,8 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1065,7 +1057,8 @@ var Msal;
         id_token_token: "id_token token"
     };
     var UserAgentApplication = (function () {
-        function UserAgentApplication(clientId, authority, tokenReceivedCallback, validateAuthority) {
+        function UserAgentApplication(clientId, _a) {
+            var tokenReceivedCallback = _a.tokenReceivedCallback, validateAuthority = _a.validateAuthority, _b = _a.cacheLocation, cacheLocation = _b === void 0 ? 'sessionStorage' : _b, _c = _a.authority, authority = _c === void 0 ? 'https://login.microsoftonline.com/common' : _c;
             this._cacheLocations = {
                 localStorage: "localStorage",
                 sessionStorage: "sessionStorage"
@@ -1080,19 +1073,16 @@ var Msal;
             this._tokenReceivedCallback = null;
             this.navigateToLoginRequestUrl = true;
             this.clientId = clientId;
-            this.validateAuthority = validateAuthority === true;
-            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
-            if (tokenReceivedCallback) {
-                this._tokenReceivedCallback = tokenReceivedCallback;
-            }
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this._tokenReceivedCallback = tokenReceivedCallback;
+            this.cacheLocation = cacheLocation;
+            this.validateAuthority = validateAuthority;
+            this.authority = authority;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
             this._activeRenewals = {};
-            this._cacheStorage = new Msal.Storage(this._cacheLocation);
-            this._requestContext = new Msal.RequestContext("");
+            this._requestContext = new Msal.RequestContext('');
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};

@@ -114,7 +114,8 @@ describe('Msal', function (): any {
         global.document = documentMock;
         global.Math = mathMock;
 
-        msal = new Msal.UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        msal = new Msal.UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", {
+            tokenReceivedCallback: function (errorDes, token, error) { }
         });
         msal._user = null;
         msal._renewStates = [];

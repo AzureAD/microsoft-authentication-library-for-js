@@ -183,32 +183,38 @@ namespace Msal {
         * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
         * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
         */
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean) {
+        constructor(
+            clientId: string,
+            {
+                tokenReceivedCallback,
+                validateAuthority,
+                cacheLocation = 'sessionStorage',
+                authority = 'https://login.microsoftonline.com/common',
+            }: {
+                tokenReceivedCallback?: tokenReceivedCallback,
+                validateAuthority?: boolean,
+                cacheLocation?: string
+                authority?: string,
+            }) {
             this.clientId = clientId;
-
-            this.validateAuthority = validateAuthority === true;
-            this.authority = authority ? authority : "https://login.microsoftonline.com/common";
-
-            if (tokenReceivedCallback) {
-                this._tokenReceivedCallback = tokenReceivedCallback;
-            }
-
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this._tokenReceivedCallback = tokenReceivedCallback;
+            this.cacheLocation = cacheLocation;
+            this.validateAuthority = validateAuthority;
+            this.authority = authority;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
             this._activeRenewals = {};
-            this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
-            this._requestContext = new RequestContext("");
+            this._requestContext = new RequestContext('');
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
             if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback)
-                    this.handleAuthenticationResponse(window.location.hash);
+                const isCallback = this.isCallback(window.location.hash);
+                if (isCallback) this.handleAuthenticationResponse(window.location.hash);
             }
+
 
         }
 
