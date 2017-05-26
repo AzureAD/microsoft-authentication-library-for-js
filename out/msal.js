@@ -1639,7 +1639,6 @@ var Msal;
         UserAgentApplication.prototype.acquireTokenSilent = function (scopes, authority, user, extraQueryParameters) {
             var _this = this;
             return new Promise(function (resolve, reject) {
-                debugger;
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
