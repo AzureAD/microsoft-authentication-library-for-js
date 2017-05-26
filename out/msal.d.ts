@@ -356,6 +356,7 @@ declare namespace Msal {
         private getHash(hash);
         private getRequestInfo(hash);
         private getScopeFromState(state);
+        private isInIframe();
     }
 }
 declare namespace Msal {

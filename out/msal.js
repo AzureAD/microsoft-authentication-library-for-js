@@ -1,16 +1,14 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1064,6 +1062,19 @@ var Msal;
         token: "token",
         id_token_token: "id_token token"
     };
+    var resolveTokenOnlyIfOutOfIframe = function (target, propertyKey, descriptor) {
+        var originalMethod = descriptor.value;
+        descriptor.value = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return this.isInIframe()
+                ? new Promise(function () { })
+                : originalMethod.apply(this, args);
+        };
+        return descriptor;
+    };
     var UserAgentApplication = (function () {
         function UserAgentApplication(clientId, authority, tokenReceivedCallback, validateAuthority) {
             this._cacheLocations = {
@@ -1628,6 +1639,7 @@ var Msal;
         UserAgentApplication.prototype.acquireTokenSilent = function (scopes, authority, user, extraQueryParameters) {
             var _this = this;
             return new Promise(function (resolve, reject) {
+                debugger;
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                     reject(Msal.ErrorCodes.inputScopesError + ':' + isValidScope);
@@ -1807,7 +1819,7 @@ var Msal;
                 this.saveTokenFromHash(requestInfo);
                 var token = null, tokenReceivedCallback = null, tokenType = void 0;
                 if ((requestInfo.requestType === Msal.Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (this.isInIframe())
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
@@ -2058,8 +2070,20 @@ var Msal;
             return "";
         };
         ;
+        UserAgentApplication.prototype.isInIframe = function () {
+            return window.parent !== window;
+        };
         return UserAgentApplication;
     }());
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "loginPopup", null);
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "acquireTokenPopup", null);
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "acquireTokenSilent", null);
     Msal.UserAgentApplication = UserAgentApplication;
 })(Msal || (Msal = {}));
 var Msal;
