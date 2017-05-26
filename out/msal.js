@@ -1063,7 +1063,7 @@ var Msal;
         id_token_token: "id_token token"
     };
     var resolveTokenOnlyIfOutOfIframe = function (target, propertyKey, descriptor) {
-        var originalMethod = descriptor.value;
+        var tokenAcquisitionMethod = descriptor.value;
         descriptor.value = function () {
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
@@ -1071,7 +1071,7 @@ var Msal;
             }
             return this.isInIframe()
                 ? new Promise(function () { })
-                : originalMethod.apply(this, args);
+                : tokenAcquisitionMethod.apply(this, args);
         };
         return descriptor;
     };

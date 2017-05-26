@@ -27,11 +27,11 @@ namespace Msal {
     */
     export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
     const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-        const originalMethod = descriptor.value;
+        const tokenAcquisitionMethod = descriptor.value;
         descriptor.value = function (...args: any[]) {
             return this.isInIframe()
                 ? new Promise(() => {})
-                : originalMethod.apply(this, args);
+                : tokenAcquisitionMethod.apply(this, args);
         }
         return descriptor
     };
