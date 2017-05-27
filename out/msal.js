@@ -1072,6 +1072,7 @@ var Msal;
             this._clockSkew = 300;
             this._tokenReceivedCallback = null;
             this.navigateToLoginRequestUrl = true;
+            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
             this.clientId = clientId;
             this._tokenReceivedCallback = tokenReceivedCallback;
             this.cacheLocation = cacheLocation;

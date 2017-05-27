@@ -196,6 +196,7 @@ namespace Msal {
                 cacheLocation?: string
                 authority?: string,
             }) {
+            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
             this.clientId = clientId;
             this._tokenReceivedCallback = tokenReceivedCallback;
             this.cacheLocation = cacheLocation;
