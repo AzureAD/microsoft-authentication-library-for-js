@@ -42,8 +42,9 @@
         var clientApplication= new Msal.UserAgentApplication(applicationConfig.clientID, {
             authority: applicationConfig.authority,
             tokenReceivedCallback: function(errorDesc,token,error,tokenType){
-		// Called after loginRedirect or acquireTokenPopup
-        }});
+		        // Called after loginRedirect or acquireTokenPopup
+            }
+        });
 
         function login() {
             clientApplication.loginPopup(applicationConfig.b2cScopes).then(function (idToken) {
