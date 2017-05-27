@@ -40,7 +40,7 @@ namespace Msal {
         /**
         * @hidden
         */
-        private _cacheLocation = "sessionStorage";
+        private _cacheLocation: string;
 
         /**
         * Used to get the cache location
