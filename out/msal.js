@@ -1058,7 +1058,7 @@ var Msal;
     };
     var UserAgentApplication = (function () {
         function UserAgentApplication(clientId, _a) {
-            var tokenReceivedCallback = _a.tokenReceivedCallback, validateAuthority = _a.validateAuthority, _b = _a.cacheLocation, cacheLocation = _b === void 0 ? 'sessionStorage' : _b, _c = _a.authority, authority = _c === void 0 ? 'https://login.microsoftonline.com/common' : _c;
+            var tokenReceivedCallback = _a.tokenReceivedCallback, validateAuthority = _a.validateAuthority, _b = _a.cacheLocation, cacheLocation = _b === void 0 ? 'sessionStorage' : _b, _c = _a.authority, authority = _c === void 0 ? 'https://login.microsoftonline.com/common' : _c, _d = _a.redirectUri, redirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d;
             this._cacheLocations = {
                 localStorage: "localStorage",
                 sessionStorage: "sessionStorage"
@@ -1072,7 +1072,7 @@ var Msal;
             this._clockSkew = 300;
             this._tokenReceivedCallback = null;
             this.navigateToLoginRequestUrl = true;
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this.redirectUri = redirectUri;
             this.clientId = clientId;
             this._tokenReceivedCallback = tokenReceivedCallback;
             this.cacheLocation = cacheLocation;
