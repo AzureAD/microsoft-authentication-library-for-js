@@ -512,30 +512,39 @@ namespace Msal {
         * @ignore
         * @hidden
         */
-        private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
-            this._activeRenewals[scope] = expectedState;
-            if (!window.callBacksMappedToRenewStates[expectedState]) {
-                window.callBacksMappedToRenewStates[expectedState] = [];
+        private registerCallback(authenticationRequest: AuthenticationRequestParameters, scope: string, resolve: Function, reject: Function): void {
+            this._activeRenewals[scope] = authenticationRequest.responseType;
+            //Establish representative auth state for auth callback and associate it with equivalent renewal requests
+            if (window.callBacksMappedToRenewStates[scope] && window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]) {
+                window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType].push({ resolve, reject })
             }
-            window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
-            if (!window.callBackMappedToRenewStates[expectedState]) {
-                window.callBackMappedToRenewStates[expectedState] =
+            if (!window.callBacksMappedToRenewStates[scope]) {
+                window.callBacksMappedToRenewStates[scope] = { [authenticationRequest.responseType]: [{ resolve, reject }] }
+                window.callBacksMappedToRenewStates[authenticationRequest.state] = window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]
+            }
+            if (!window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]) {
+                window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType] = [{ resolve, reject }];
+                window.callBacksMappedToRenewStates[authenticationRequest.state] = window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]                
+            }
+            
+            if (!this.isRenewalState(authenticationRequest.state)) {
+                window.callBackMappedToRenewStates[authenticationRequest.state] =
                     (errorDesc: string, token: string, error: string, tokenType: string) => {
                         this._activeRenewals[scope] = null;
-                        for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
+                        for (let i = 0; i < window.callBacksMappedToRenewStates[authenticationRequest.state].length; ++i) {
                             try {
                                 if (errorDesc || error) {
-                                    window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);;
+                                    window.callBacksMappedToRenewStates[authenticationRequest.state][i].reject(errorDesc + ": " + error);;
                                 }
                                 else if (token) {
-                                    window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                                    window.callBacksMappedToRenewStates[authenticationRequest.state][i].resolve(token);
                                 }
                             } catch (e) {
                                 this._requestContext.logger.warning(e);
                             }
                         }
-                        window.callBacksMappedToRenewStates[expectedState] = null;
-                        window.callBackMappedToRenewStates[expectedState] = null;
+                        window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType] = null
+                        window.callBackMappedToRenewStates[authenticationRequest.state] = null;
                     };
             }
         }
@@ -899,7 +908,7 @@ namespace Msal {
                     let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     urlNavigate = this.addHintParameters(urlNavigate, userObject);
                     this._renewStates.push(authenticationRequest.state);
-                    this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    this.registerCallback(authenticationRequest, scope, resolve, reject);
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
                     }
@@ -972,7 +981,7 @@ namespace Msal {
                     //Already renewing for this scope, callback when we get the token.
                     if (this._activeRenewals[scope]) {
                         //Active renewals contains the state for each renewal.
-                        this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+                        this.registerCallback(authenticationRequest, scope, resolve, reject);
                     }
                     // cache miss
                     return this.authorityInstance.ResolveEndpointsAsync()
@@ -997,18 +1006,19 @@ namespace Msal {
         * @ignore
         * @hidden
         */
-        private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string): void {
+        private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string, state: string) {
             //set iframe session to pending
             this._requestContext.logger.verbose('Set loading state to pending for: ' + scope);
             this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusInProgress);
-            this.loadFrame(urlNavigate, frameName);
+            this.loadFrame(urlNavigate, frameName, state);
             setTimeout(() => {
                 if (this._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
                     // fail the iframe session if it's in pending state
                     this._requestContext.logger.verbose('Loading frame has timed out after: ' + (Constants.loadFrameTimeout / 1000) + ' seconds for scope ' + scope);
                     const expectedState = this._activeRenewals[scope];
-                    if (expectedState && window.callBackMappedToRenewStates[expectedState])
+                    if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
                         window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Constants.accessToken);
+                    }
                     this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCancelled);
                 }
             }, Constants.loadFrameTimeout);
@@ -1019,13 +1029,13 @@ namespace Msal {
         * @ignore
         * @hidden
         */
-        private loadFrame(urlNavigate: string, frameName: string): void {
+        private loadFrame(urlNavigate: string, frameName: string, state: string) {
             // This trick overcomes iframe navigation in IE
             // IE does not load the page consistently in iframe
             this._requestContext.logger.info('LoadFrame: ' + frameName);
             var frameCheck = frameName;
             setTimeout(() => {
-                var frameHandle = this.addAdalFrame(frameCheck);
+                var frameHandle = this.addAdalFrame(frameCheck, state);
                 if (frameHandle.src === "" || frameHandle.src === "about:blank") {
                     frameHandle.src = urlNavigate;
                 }
@@ -1038,14 +1048,14 @@ namespace Msal {
         * @ignore
         * @hidden
         */
-        private addAdalFrame(iframeId: string): HTMLIFrameElement {
+        private addAdalFrame(iframeId: string, state: string): HTMLIFrameElement {
             if (typeof iframeId === "undefined") {
                 return null;
             }
 
             this._requestContext.logger.info('Add msal frame to document:' + iframeId);
             let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
-            if (!adalFrame) {
+            if (!adalFrame && this.isRenewalState(state)) {
                 if (document.createElement &&
                     document.documentElement &&
                     (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
@@ -1075,7 +1085,6 @@ namespace Msal {
         private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
             const scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.verbose('renewToken is called for scope:' + scope);
-            const frameHandle = this.addAdalFrame('msalRenewFrame' + scope);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1089,17 +1098,21 @@ namespace Msal {
             if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                 this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
             }
+            this.registerCallback(authenticationRequest, scope, resolve, reject);
+            const frameHandle = this.addAdalFrame('msalRenewFrame' + scope, authenticationRequest.state);
 
             // renew happens in iframe, so it keeps javascript context
-            this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+            // Only set nonce for the renewal request representative, in the event of multipel async requests
+            if (window.callBackMappedToRenewStates[authenticationRequest.state]) {
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+            }
             this._requestContext.logger.verbose('Renew token Expected state: ' + authenticationRequest.state);
             let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
             urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
-            this.registerCallback(authenticationRequest.state, scope, resolve, reject);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
             frameHandle.src = "about:blank";
-            this.loadFrameTimeout(urlNavigate, 'msalRenewFrame' + scope, scope);
+            this.loadFrameTimeout(urlNavigate, 'msalRenewFrame' + scope, scope, authenticationRequest.state);
         }
 
         /**
@@ -1110,7 +1123,6 @@ namespace Msal {
         private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
             const scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.info('renewidToken is called');
-            const frameHandle = this.addAdalFrame("msalIdTokenFrame");
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1125,15 +1137,18 @@ namespace Msal {
                 this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
             }
 
-            this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+            this.registerCallback(authenticationRequest, this.clientId, resolve, reject);
+            const frameHandle = this.addAdalFrame("msalIdTokenFrame", authenticationRequest.state);
+
+            if (this.isRenewalState(authenticationRequest.state)) {
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+            }
             this._requestContext.logger.verbose('Renew Idtoken Expected state: ' + authenticationRequest.state);
-            let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
-            urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
-            this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
+            const urlNavigate = this.getRenewalUrl(authenticationRequest, scopes, user);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
-            frameHandle.src = "about:blank";
-            this.loadFrameTimeout(urlNavigate, "adalIdTokenFrame", this.clientId);
+            frameHandle.src = 'about:blank';
+            this.loadFrameTimeout(urlNavigate, 'adalIdTokenFrame', this.clientId, authenticationRequest.state);
         }
 
         /**
@@ -1176,15 +1191,18 @@ namespace Msal {
                 this.saveTokenFromHash(requestInfo);
                 let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string;
                 if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (window.parent !== window) {
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
-                    else
+                    }
+                    else {
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
-
-                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
+                    }
+                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
                         tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-                    else
+                    }
+                    else {
                         tokenReceivedCallback = this._tokenReceivedCallback;
+                    }
 
                     token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
                     tokenType = Constants.accessToken;
@@ -1487,5 +1505,19 @@ namespace Msal {
             }
             return "";
         };
+
+        /**
+         *Returns whether the provided authentication request state corresponds to the renewal request representative
+         * @ignore
+         * @hidden
+         */
+        private isRenewalState(state: string) {
+            return window.callBackMappedToRenewStates[state]
+        }
+
+        private getRenewalUrl (authenticationRequest: AuthenticationRequestParameters, scopes: string[], user: User) {
+            const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + '&prompt=none';
+            return this.addHintParameters(urlNavigate, user);
+        }
     }
 }
