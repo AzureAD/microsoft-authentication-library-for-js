@@ -1323,7 +1323,7 @@ var Msal;
         };
         UserAgentApplication.prototype.registerCallback = function (authenticationRequest, scope, resolve, reject) {
             var _this = this;
-            this._activeRenewals[scope] = authenticationRequest.responseType;
+            this._activeRenewals[scope] = authenticationRequest.state;
             if (window.callBacksMappedToRenewStates[scope] && window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]) {
                 window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType].push({ resolve: resolve, reject: reject });
             }

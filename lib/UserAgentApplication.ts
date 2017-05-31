@@ -513,7 +513,7 @@ namespace Msal {
         * @hidden
         */
         private registerCallback(authenticationRequest: AuthenticationRequestParameters, scope: string, resolve: Function, reject: Function): void {
-            this._activeRenewals[scope] = authenticationRequest.responseType;
+            this._activeRenewals[scope] = authenticationRequest.state;
             //Establish representative auth state for auth callback and associate it with equivalent renewal requests
             if (window.callBacksMappedToRenewStates[scope] && window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]) {
                 window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType].push({ resolve, reject })
