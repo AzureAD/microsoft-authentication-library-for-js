@@ -527,7 +527,7 @@ namespace Msal {
                 window.callBacksMappedToRenewStates[authenticationRequest.state] = window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]                
             }
             
-            if (!this.isRenewalState(authenticationRequest.state)) {
+            if (this.isRenewalState(authenticationRequest.state)) {
                 window.callBackMappedToRenewStates[authenticationRequest.state] =
                     (errorDesc: string, token: string, error: string, tokenType: string) => {
                         this._activeRenewals[scope] = null;
@@ -1512,7 +1512,7 @@ namespace Msal {
          * @hidden
          */
         private isRenewalState(state: string) {
-            return window.callBackMappedToRenewStates[state]
+            return window.callBacksMappedToRenewStates[state]
         }
 
         private getRenewalUrl (authenticationRequest: AuthenticationRequestParameters, scopes: string[], user: User) {

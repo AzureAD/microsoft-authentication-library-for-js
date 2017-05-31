@@ -1335,7 +1335,7 @@ var Msal;
                 window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType] = [{ resolve: resolve, reject: reject }];
                 window.callBacksMappedToRenewStates[authenticationRequest.state] = window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType];
             }
-            if (!this.isRenewalState(authenticationRequest.state)) {
+            if (this.isRenewalState(authenticationRequest.state)) {
                 window.callBackMappedToRenewStates[authenticationRequest.state] =
                     function (errorDesc, token, error, tokenType) {
                         _this._activeRenewals[scope] = null;
@@ -2067,7 +2067,7 @@ var Msal;
         };
         ;
         UserAgentApplication.prototype.isRenewalState = function (state) {
-            return window.callBackMappedToRenewStates[state];
+            return window.callBacksMappedToRenewStates[state];
         };
         UserAgentApplication.prototype.getRenewalUrl = function (authenticationRequest, scopes, user) {
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + '&prompt=none';
