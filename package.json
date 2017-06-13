@@ -20,6 +20,7 @@
     "oauth"
   ],
   "main": "./out/msal.js",
+  "typings": "./out/msal.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
