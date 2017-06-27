@@ -40,14 +40,14 @@
     <script>
         var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback);
         function authCallback(errorDesc, token, error, tokenType) {
-            //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
+            //This function is called after loginRedirect. Inside the function, this will refer to the userAgentApplication instance.
             if (token) {
-                this.msal.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+                this.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
                     // Change button to Sign Out
                     updateUI();
                 }, function (error) {
                     console.log(error);
-                    this.msal.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                    this.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
                         updateUI();
                     }, function (error) {
                         console.log(error);
