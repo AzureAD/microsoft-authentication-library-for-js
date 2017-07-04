@@ -50,19 +50,6 @@ namespace Msal {
         }
 
         /**
-        * Used to set the cache location.
-        * @param {string} cache - location where the MSAL cache is stored. Can be either 'localStorage' or 'sessionStorage'.
-        */
-        set cacheLocation(cache: string) {
-            this._cacheLocation = cache;
-            if (this._cacheLocations[cache]) {
-                this._cacheStorage = new Storage(this._cacheLocations[cache]);
-            } else {
-                throw new Error('Cache Location is not valid. Provided value:' + this._cacheLocation + '.Possible values are: ' + this._cacheLocations.localStorage + ', ' + this._cacheLocations.sessionStorage);
-            }
-        }
-
-        /**
         * @hidden
         */
         private _interactionModes = {
@@ -158,19 +145,19 @@ namespace Msal {
         * The redirect URI of the application, this should be same as the value in the application registration portal.
         * Defaults to `window.location.href`.
         */
-        redirectUri: string;
+        private _redirectUri: string;
 
         /**
         * Used to redirect the user to this location after logout.
         * Defaults to `window.location.href`.
         */
-        postLogoutredirectUri: string;
+        private _postLogoutredirectUri: string;
 
         /**
         * Used to redirect the user back to the redirectUri after login.
         * True = redirects user to redirectUri
         */
-        navigateToLoginRequestUrl = true;
+        private _navigateToLoginRequestUrl: boolean = true;
 
         /**
         * Initialize a UserAgentApplication with a given clientId and authority.
@@ -183,7 +170,7 @@ namespace Msal {
         * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
         * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
         */
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean) {
+        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean, cacheLocation?: string, redirectUri?: string, postLogoutRedirectUri?: string, navigateToLoginRequestUrl?: boolean) {
             this.clientId = clientId;
 
             this.validateAuthority = validateAuthority === true;
@@ -193,12 +180,18 @@ namespace Msal {
                 this._tokenReceivedCallback = tokenReceivedCallback;
             }
 
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
-            this.postLogoutredirectUri = this.redirectUri;
+            this._redirectUri = redirectUri || window.location.href.split("?")[0].split("#")[0];
+            this._postLogoutredirectUri = postLogoutRedirectUri || redirectUri;
+            this._navigateToLoginRequestUrl = navigateToLoginRequestUrl || true;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
             this._renewStates = [];
             this._activeRenewals = {};
+            if (cacheLocation && !this._cacheLocations[cacheLocation]) {
+                throw new Error('Cache Location is not valid. Provided value:' + this._cacheLocation + '.Possible values are: ' + this._cacheLocations.localStorage + ', ' + this._cacheLocations.sessionStorage);
+            }
+
+            this._cacheLocation = cacheLocation || 'sessionStorage';
             this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
             this._requestContext = new RequestContext("");
             window.msal = this;
@@ -243,7 +236,7 @@ namespace Msal {
 
             this.authorityInstance.ResolveEndpointsAsync()
                 .then(() => {
-                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
                     if (extraQueryParameters) {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
@@ -300,7 +293,7 @@ namespace Msal {
                 }
 
                 this.authorityInstance.ResolveEndpointsAsync().then(() => {
-                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.redirectUri);
+                    const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
                     if (extraQueryParameters) {
                         authenticationRequest.extraQueryParameters = extraQueryParameters;
                     }
@@ -379,7 +372,7 @@ namespace Msal {
                 }
 
                 try {
-                    if (popupWindow.location.href.indexOf(this.redirectUri) !== -1) {
+                    if (popupWindow.location.href.indexOf(this._redirectUri) !== -1) {
                         this.handleAuthenticationResponse(popupWindow.location.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
@@ -404,8 +397,8 @@ namespace Msal {
             this.clearCache();
             this._user = null;
             let logout = "";
-            if (this.postLogoutredirectUri) {
-                logout = 'post_logout_redirect_uri=' + encodeURIComponent(this.postLogoutredirectUri);
+            if (this._postLogoutredirectUri) {
+                logout = 'post_logout_redirect_uri=' + encodeURIComponent(this._postLogoutredirectUri);
             }
 
             const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
@@ -796,9 +789,9 @@ namespace Msal {
 
             acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
                 if (Utils.compareObjects(userObject, this._user)) {
-                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
                 } else {
-                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
                 }
 
                 this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -875,9 +868,9 @@ namespace Msal {
 
                 acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
                     if (Utils.compareObjects(userObject, this._user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
                     } else {
-                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
                     }
 
                     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -950,9 +943,9 @@ namespace Msal {
                     let authenticationRequest: AuthenticationRequestParameters;
                     let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
                     if (Utils.compareObjects(userObject, this._user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
+                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
                     } else {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
+                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
                     }
 
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
@@ -1056,7 +1049,7 @@ namespace Msal {
                     ifr.style.width = ifr.style.height = "0";
                     adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
                 } else if (document.body && document.body.insertAdjacentHTML) {
-                    document.body.insertAdjacentHTML('beforeEnd', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
+                    document.body.insertAdjacentHTML('beforeend', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
                 }
 
                 if (window.frames && window.frames[iframeId]) {
@@ -1216,7 +1209,7 @@ namespace Msal {
 
                 if (this._interactionMode !== this._interactionModes.popUp) {
                     window.location.hash = "";
-                    if (this.navigateToLoginRequestUrl && window.location.href.replace("#", "") !== this._cacheStorage.getItem(Constants.loginRequest))
+                    if (this._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== this._cacheStorage.getItem(Constants.loginRequest))
                         window.location.href = this._cacheStorage.getItem(Constants.loginRequest);
                 }
             }

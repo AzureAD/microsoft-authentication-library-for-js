@@ -38,7 +38,7 @@
     </script>
 
     <script>
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback);
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, null, 'localStorage');// cacheLocation defaults to sessionStorage if not set in the constructor
         function authCallback(errorDesc, token, error, tokenType) {
             //This function is called after loginRedirect. Inside the function, this will refer to the userAgentApplication instance.
             if (token) {
