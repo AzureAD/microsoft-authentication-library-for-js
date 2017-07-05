@@ -930,7 +930,7 @@ namespace Msal {
         * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
         * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
         */
-        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
+        acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string, tokenType: string = this.getResponseType(user)): Promise<string> {
             return new Promise<string>((resolve, reject) => {
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
@@ -947,13 +947,8 @@ namespace Msal {
                         return;
                     }
 
-                    let authenticationRequest: AuthenticationRequestParameters;
-                    let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-                    if (Utils.compareObjects(userObject, this._user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.redirectUri);
-                    } else {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.redirectUri);
-                    }
+                    const newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+                    const authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, tokenType, this.redirectUri);
 
                     const cacheResult = this.getCachedToken(authenticationRequest, userObject);
                     if (cacheResult) {
@@ -1487,5 +1482,17 @@ namespace Msal {
             }
             return "";
         };
+
+        /**
+         * Gets response type to be returned in the authentication request hash
+         * @returns {string} response type.
+         * @ignore
+         * @hidden
+         */
+        private getResponseType(user: User) {
+            return Utils.compareObjects(user, this._user) || !user
+                ? ResponseTypes.token
+                : ResponseTypes.id_token_token;
+        }
     }
 }

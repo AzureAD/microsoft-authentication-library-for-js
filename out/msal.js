@@ -1,16 +1,8 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1625,8 +1617,9 @@ var Msal;
                 });
             });
         };
-        UserAgentApplication.prototype.acquireTokenSilent = function (scopes, authority, user, extraQueryParameters) {
+        UserAgentApplication.prototype.acquireTokenSilent = function (scopes, authority, user, extraQueryParameters, tokenType) {
             var _this = this;
+            if (tokenType === void 0) { tokenType = this.getResponseType(user); }
             return new Promise(function (resolve, reject) {
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
@@ -1642,14 +1635,8 @@ var Msal;
                         reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
                         return;
                     }
-                    var authenticationRequest_1;
                     var newAuthority = authority ? Msal.Authority.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
-                    if (Msal.Utils.compareObjects(userObject_1, _this._user)) {
-                        authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.token, _this.redirectUri);
-                    }
-                    else {
-                        authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this.redirectUri);
-                    }
+                    var authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, tokenType, _this.redirectUri);
                     var cacheResult = _this.getCachedToken(authenticationRequest_1, userObject_1);
                     if (cacheResult) {
                         if (cacheResult.token) {
@@ -2058,6 +2045,11 @@ var Msal;
             return "";
         };
         ;
+        UserAgentApplication.prototype.getResponseType = function (user) {
+            return Msal.Utils.compareObjects(user, this._user) || !user
+                ? ResponseTypes.token
+                : ResponseTypes.id_token_token;
+        };
         return UserAgentApplication;
     }());
     Msal.UserAgentApplication = UserAgentApplication;
