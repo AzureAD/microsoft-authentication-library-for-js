@@ -183,17 +183,22 @@ namespace Msal {
         * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
         * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
         */
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean) {
+        constructor(
+            clientId: string,
+            authority: string,
+            tokenReceivedCallback: tokenReceivedCallback,
+            validateAuthority?: boolean,
+            redirectUri: string = window.location.href.split("?")[0].split("#")[0]
+        ) {
             this.clientId = clientId;
-
             this.validateAuthority = validateAuthority === true;
             this.authority = authority ? authority : "https://login.microsoftonline.com/common";
-
+            
             if (tokenReceivedCallback) {
                 this._tokenReceivedCallback = tokenReceivedCallback;
             }
 
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this.redirectUri = redirectUri;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;

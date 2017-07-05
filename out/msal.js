@@ -1,16 +1,8 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1065,7 +1057,8 @@ var Msal;
         id_token_token: "id_token token"
     };
     var UserAgentApplication = (function () {
-        function UserAgentApplication(clientId, authority, tokenReceivedCallback, validateAuthority) {
+        function UserAgentApplication(clientId, authority, tokenReceivedCallback, validateAuthority, redirectUri) {
+            if (redirectUri === void 0) { redirectUri = window.location.href.split("?")[0].split("#")[0]; }
             this._cacheLocations = {
                 localStorage: "localStorage",
                 sessionStorage: "sessionStorage"
@@ -1085,7 +1078,7 @@ var Msal;
             if (tokenReceivedCallback) {
                 this._tokenReceivedCallback = tokenReceivedCallback;
             }
-            this.redirectUri = window.location.href.split("?")[0].split("#")[0];
+            this.redirectUri = redirectUri;
             this.postLogoutredirectUri = this.redirectUri;
             this._loginInProgress = false;
             this._acquireTokenInProgress = false;
