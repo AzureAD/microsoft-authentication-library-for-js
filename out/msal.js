@@ -1118,7 +1118,7 @@ var Msal;
             var _this = this;
             if (this._loginInProgress) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback("Login is in progress", null, null, Msal.Constants.idToken);
+                    this._tokenReceivedCallback("Login is in progress", null, null, Msal.Constants.idToken, this);
                     return;
                 }
             }
@@ -1126,7 +1126,7 @@ var Msal;
                 var isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                     if (this._tokenReceivedCallback) {
-                        this._tokenReceivedCallback(isValidScope, null, null, Msal.Constants.idToken);
+                        this._tokenReceivedCallback(isValidScope, null, null, Msal.Constants.idToken, this);
                         return;
                     }
                 }
@@ -1496,7 +1496,7 @@ var Msal;
             var isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Msal.Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Msal.Constants.accessToken);
+                    this._tokenReceivedCallback(isValidScope, null, null, Msal.Constants.accessToken, this);
                     return;
                 }
             }
@@ -1510,7 +1510,7 @@ var Msal;
             var scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(Msal.ErrorDescription.userLoginError, null, Msal.ErrorCodes.userLoginError, Msal.Constants.accessToken);
+                    this._tokenReceivedCallback(Msal.ErrorDescription.userLoginError, null, Msal.ErrorCodes.userLoginError, Msal.Constants.accessToken, this);
                     return;
                 }
             }
@@ -1821,7 +1821,7 @@ var Msal;
                         }
                     }
                     else if (tokenReceivedCallback) {
-                        tokenReceivedCallback(errorDesc, token, error, tokenType);
+                        tokenReceivedCallback(errorDesc, token, error, tokenType, this);
                     }
                 }
                 catch (err) {
