@@ -327,7 +327,7 @@ declare namespace Msal {
         private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
         private validateInputScope(scopes);
         private filterScopes(scopes);
-        private registerCallback(expectedState, scope, resolve, reject);
+        private registerCallback(authenticationRequest, scope, resolve, reject);
         private getCachedToken(authenticationRequest, user);
         getAllUsers(): Array<User>;
         private getUniqueUsers(users);
@@ -343,9 +343,9 @@ declare namespace Msal {
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
         acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
-        private loadFrameTimeout(urlNavigate, frameName, scope);
-        private loadFrame(urlNavigate, frameName);
-        private addAdalFrame(iframeId);
+        private loadFrameTimeout(urlNavigate, frameName, scope, state);
+        private loadFrame(urlNavigate, frameName, state);
+        private addAdalFrame(iframeId, state);
         private renewToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         private renewIdToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         getUser(): User;
@@ -356,6 +356,8 @@ declare namespace Msal {
         private getHash(hash);
         private getRequestInfo(hash);
         private getScopeFromState(state);
+        private isRenewalState(state);
+        private getRenewalUrl(authenticationRequest, scopes, user);
     }
 }
 declare namespace Msal {

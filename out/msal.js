@@ -1,16 +1,8 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1329,35 +1321,43 @@ var Msal;
             });
             return scopes;
         };
-        UserAgentApplication.prototype.registerCallback = function (expectedState, scope, resolve, reject) {
+        UserAgentApplication.prototype.registerCallback = function (authenticationRequest, scope, resolve, reject) {
             var _this = this;
-            this._activeRenewals[scope] = expectedState;
-            if (!window.callBacksMappedToRenewStates[expectedState]) {
-                window.callBacksMappedToRenewStates[expectedState] = [];
+            this._activeRenewals[scope] = authenticationRequest.state;
+            if (window.callBacksMappedToRenewStates[scope] && window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]) {
+                window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType].push({ resolve: resolve, reject: reject });
             }
-            window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
-            if (!window.callBackMappedToRenewStates[expectedState]) {
-                window.callBackMappedToRenewStates[expectedState] =
+            if (!window.callBacksMappedToRenewStates[scope]) {
+                window.callBacksMappedToRenewStates[scope] = (_a = {}, _a[authenticationRequest.responseType] = [{ resolve: resolve, reject: reject }], _a);
+                window.callBacksMappedToRenewStates[authenticationRequest.state] = window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType];
+            }
+            if (!window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType]) {
+                window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType] = [{ resolve: resolve, reject: reject }];
+                window.callBacksMappedToRenewStates[authenticationRequest.state] = window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType];
+            }
+            if (this.isRenewalState(authenticationRequest.state)) {
+                window.callBackMappedToRenewStates[authenticationRequest.state] =
                     function (errorDesc, token, error, tokenType) {
                         _this._activeRenewals[scope] = null;
-                        for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
+                        for (var i = 0; i < window.callBacksMappedToRenewStates[authenticationRequest.state].length; ++i) {
                             try {
                                 if (errorDesc || error) {
-                                    window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);
+                                    window.callBacksMappedToRenewStates[authenticationRequest.state][i].reject(errorDesc + ": " + error);
                                     ;
                                 }
                                 else if (token) {
-                                    window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                                    window.callBacksMappedToRenewStates[authenticationRequest.state][i].resolve(token);
                                 }
                             }
                             catch (e) {
                                 _this._requestContext.logger.warning(e);
                             }
                         }
-                        window.callBacksMappedToRenewStates[expectedState] = null;
-                        window.callBackMappedToRenewStates[expectedState] = null;
+                        window.callBacksMappedToRenewStates[scope][authenticationRequest.responseType] = null;
+                        window.callBackMappedToRenewStates[authenticationRequest.state] = null;
                     };
             }
+            var _a;
         };
         UserAgentApplication.prototype.getCachedToken = function (authenticationRequest, user) {
             var accessTokenCacheItem = null;
@@ -1609,7 +1609,7 @@ var Msal;
                     var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     urlNavigate = _this.addHintParameters(urlNavigate, userObject);
                     _this._renewStates.push(authenticationRequest.state);
-                    _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    _this.registerCallback(authenticationRequest, scope, resolve, reject);
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
                     }
@@ -1664,7 +1664,7 @@ var Msal;
                         }
                     }
                     if (_this._activeRenewals[scope]) {
-                        _this.registerCallback(_this._activeRenewals[scope], scope, resolve, reject);
+                        _this.registerCallback(authenticationRequest_1, scope, resolve, reject);
                     }
                     return _this.authorityInstance.ResolveEndpointsAsync()
                         .then(function () {
@@ -1680,39 +1680,40 @@ var Msal;
                 }
             });
         };
-        UserAgentApplication.prototype.loadFrameTimeout = function (urlNavigate, frameName, scope) {
+        UserAgentApplication.prototype.loadFrameTimeout = function (urlNavigate, frameName, scope, state) {
             var _this = this;
             this._requestContext.logger.verbose('Set loading state to pending for: ' + scope);
             this._cacheStorage.setItem(Msal.Constants.renewStatus + scope, Msal.Constants.tokenRenewStatusInProgress);
-            this.loadFrame(urlNavigate, frameName);
+            this.loadFrame(urlNavigate, frameName, state);
             setTimeout(function () {
                 if (_this._cacheStorage.getItem(Msal.Constants.renewStatus + scope) === Msal.Constants.tokenRenewStatusInProgress) {
                     _this._requestContext.logger.verbose('Loading frame has timed out after: ' + (Msal.Constants.loadFrameTimeout / 1000) + ' seconds for scope ' + scope);
                     var expectedState = _this._activeRenewals[scope];
-                    if (expectedState && window.callBackMappedToRenewStates[expectedState])
+                    if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
                         window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Msal.Constants.accessToken);
+                    }
                     _this._cacheStorage.setItem(Msal.Constants.renewStatus + scope, Msal.Constants.tokenRenewStatusCancelled);
                 }
             }, Msal.Constants.loadFrameTimeout);
         };
-        UserAgentApplication.prototype.loadFrame = function (urlNavigate, frameName) {
+        UserAgentApplication.prototype.loadFrame = function (urlNavigate, frameName, state) {
             var _this = this;
             this._requestContext.logger.info('LoadFrame: ' + frameName);
             var frameCheck = frameName;
             setTimeout(function () {
-                var frameHandle = _this.addAdalFrame(frameCheck);
+                var frameHandle = _this.addAdalFrame(frameCheck, state);
                 if (frameHandle.src === "" || frameHandle.src === "about:blank") {
                     frameHandle.src = urlNavigate;
                 }
             }, 500);
         };
-        UserAgentApplication.prototype.addAdalFrame = function (iframeId) {
+        UserAgentApplication.prototype.addAdalFrame = function (iframeId, state) {
             if (typeof iframeId === "undefined") {
                 return null;
             }
             this._requestContext.logger.info('Add msal frame to document:' + iframeId);
             var adalFrame = document.getElementById(iframeId);
-            if (!adalFrame) {
+            if (!adalFrame && this.isRenewalState(state)) {
                 if (document.createElement &&
                     document.documentElement &&
                     (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
@@ -1735,7 +1736,6 @@ var Msal;
         UserAgentApplication.prototype.renewToken = function (scopes, resolve, reject, user, authenticationRequest, extraQueryParameters) {
             var scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.verbose('renewToken is called for scope:' + scope);
-            var frameHandle = this.addAdalFrame('msalRenewFrame' + scope);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1747,20 +1747,22 @@ var Msal;
             if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                 this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
             }
-            this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+            this.registerCallback(authenticationRequest, scope, resolve, reject);
+            var frameHandle = this.addAdalFrame('msalRenewFrame' + scope, authenticationRequest.state);
+            if (window.callBackMappedToRenewStates[authenticationRequest.state]) {
+                this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+            }
             this._requestContext.logger.verbose('Renew token Expected state: ' + authenticationRequest.state);
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
             urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
-            this.registerCallback(authenticationRequest.state, scope, resolve, reject);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
             frameHandle.src = "about:blank";
-            this.loadFrameTimeout(urlNavigate, 'msalRenewFrame' + scope, scope);
+            this.loadFrameTimeout(urlNavigate, 'msalRenewFrame' + scope, scope, authenticationRequest.state);
         };
         UserAgentApplication.prototype.renewIdToken = function (scopes, resolve, reject, user, authenticationRequest, extraQueryParameters) {
             var scope = scopes.join(" ").toLowerCase();
             this._requestContext.logger.info('renewidToken is called');
-            var frameHandle = this.addAdalFrame("msalIdTokenFrame");
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
@@ -1772,15 +1774,17 @@ var Msal;
             if (Msal.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                 this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
             }
-            this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+            this.registerCallback(authenticationRequest, this.clientId, resolve, reject);
+            var frameHandle = this.addAdalFrame("msalIdTokenFrame", authenticationRequest.state);
+            if (this.isRenewalState(authenticationRequest.state)) {
+                this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
+            }
             this._requestContext.logger.verbose('Renew Idtoken Expected state: ' + authenticationRequest.state);
-            var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
-            urlNavigate = this.addHintParameters(urlNavigate, user);
             this._renewStates.push(authenticationRequest.state);
-            this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
+            var urlNavigate = this.getRenewalUrl(authenticationRequest, scopes, user);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
-            frameHandle.src = "about:blank";
-            this.loadFrameTimeout(urlNavigate, "adalIdTokenFrame", this.clientId);
+            frameHandle.src = 'about:blank';
+            this.loadFrameTimeout(urlNavigate, 'adalIdTokenFrame', this.clientId, authenticationRequest.state);
         };
         UserAgentApplication.prototype.getUser = function () {
             if (this._user) {
@@ -1807,14 +1811,18 @@ var Msal;
                 this.saveTokenFromHash(requestInfo);
                 var token = null, tokenReceivedCallback = null, tokenType = void 0;
                 if ((requestInfo.requestType === Msal.Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (window.parent !== window) {
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
-                    else
+                    }
+                    else {
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
-                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
+                    }
+                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
                         tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-                    else
+                    }
+                    else {
                         tokenReceivedCallback = this._tokenReceivedCallback;
+                    }
                     token = requestInfo.parameters[Msal.Constants.accessToken] || requestInfo.parameters[Msal.Constants.idToken];
                     tokenType = Msal.Constants.accessToken;
                 }
@@ -2058,6 +2066,13 @@ var Msal;
             return "";
         };
         ;
+        UserAgentApplication.prototype.isRenewalState = function (state) {
+            return window.callBacksMappedToRenewStates[state];
+        };
+        UserAgentApplication.prototype.getRenewalUrl = function (authenticationRequest, scopes, user) {
+            var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + '&prompt=none';
+            return this.addHintParameters(urlNavigate, user);
+        };
         return UserAgentApplication;
     }());
     Msal.UserAgentApplication = UserAgentApplication;
