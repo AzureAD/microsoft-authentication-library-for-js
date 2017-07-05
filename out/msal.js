@@ -1,6 +1,3 @@
-/*! msal v0.1.1 2017-05-09 */
-
-'use strict';
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -1835,7 +1832,8 @@ var Msal;
                         }
                     }
                     else if (tokenReceivedCallback) {
-                        tokenReceivedCallback(errorDesc, token, error, tokenType);
+                        var callback = tokenReceivedCallback.bind(this);
+                        callback(errorDesc, token, error, tokenType);
                     }
                 }
                 catch (err) {

@@ -1206,7 +1206,8 @@ namespace Msal {
                         }
                     }
                     else if (tokenReceivedCallback) {
-                        tokenReceivedCallback(errorDesc, token, error, tokenType);
+                        var callback = tokenReceivedCallback.bind(this);
+                        callback(errorDesc, token, error, tokenType);
                     }
                    
                 } catch (err) {
