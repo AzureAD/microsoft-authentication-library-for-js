@@ -298,7 +298,7 @@ declare namespace Msal {
     class UserAgentApplication {
         private _cacheLocations;
         private _cacheLocation;
-        cacheLocation: string;
+        readonly cacheLocation: string;
         private _interactionModes;
         private _interactionMode;
         private _requestContext;
@@ -314,10 +314,10 @@ declare namespace Msal {
         private authorityInstance;
         authority: string;
         validateAuthority: boolean;
-        redirectUri: string;
-        postLogoutredirectUri: string;
-        navigateToLoginRequestUrl: boolean;
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean);
+        private _redirectUri;
+        private _postLogoutredirectUri;
+        private _navigateToLoginRequestUrl;
+        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, validateAuthority?: boolean, cacheLocation?: string, redirectUri?: string, postLogoutRedirectUri?: string, navigateToLoginRequestUrl?: boolean);
         loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
         private promptUser(urlNavigate);
