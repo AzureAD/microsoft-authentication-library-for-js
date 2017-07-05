@@ -13,7 +13,7 @@
 </head>
 <body>
     <!-- bluebird only needed if this page needs to run on Internet Explorer -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
     <script src="out/msal.js" class="pre"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
 
@@ -38,7 +38,7 @@
     </script>
 
     <script>
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback);
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { cacheLocation: 'localStorage' });// cacheLocation defaults to sessionStorage if not set in the constructor
         function authCallback(errorDesc, token, error, tokenType) {
             //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
             if (token) {
