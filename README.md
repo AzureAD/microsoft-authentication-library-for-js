@@ -43,7 +43,7 @@ This example shows how to acquire a token to read user information from Microsof
             console.log("ATS promise resolved");
           }, function (error) {
             // interaction required 
-            if(error.indexOf("interaction_required" != -1)) {
+            if(error.indexOf("interaction_required") != -1){
                 userAgentApplication.acquireTokenPopup(["user.read"]).then(function (token) {
                 // success
               }, function (error) {
