@@ -25,7 +25,7 @@ namespace Msal {
     * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
     * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
     */
-    export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+    export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userAgentApplication: UserAgentApplication) => void;
 
     export class UserAgentApplication {
 
@@ -228,7 +228,7 @@ namespace Msal {
             */
             if (this._loginInProgress) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken);
+                    this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken, this);
                     return;
                 }
             }
@@ -237,7 +237,7 @@ namespace Msal {
                 const isValidScope = this.validateInputScope(scopes);
                 if (isValidScope && !Utils.isEmpty(isValidScope)) {
                     if (this._tokenReceivedCallback) {
-                        this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken);
+                        this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken, this);
                         return;
                     }
                 }
@@ -771,7 +771,7 @@ namespace Msal {
             const isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken);
+                    this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken, this);
                     return;
                 }
             }
@@ -788,7 +788,7 @@ namespace Msal {
             const scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(Msal.ErrorDescription.userLoginError, null, Msal.ErrorCodes.userLoginError, Constants.accessToken);
+                    this._tokenReceivedCallback(Msal.ErrorDescription.userLoginError, null, Msal.ErrorCodes.userLoginError, Constants.accessToken, this);
                     return;
                 }
             }
@@ -1177,7 +1177,7 @@ namespace Msal {
                 const requestInfo = this.getRequestInfo(hash);
                 this._requestContext.logger.info("Returned from redirect url");
                 this.saveTokenFromHash(requestInfo);
-                let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string;
+                let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string, userAgentApplication: UserAgentApplication) => void = null, tokenType: string;
                 if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
                     if (window.parent !== window)
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
@@ -1209,7 +1209,7 @@ namespace Msal {
                         }
                     }
                     else if (tokenReceivedCallback) {
-                        tokenReceivedCallback(errorDesc, token, error, tokenType);
+                        tokenReceivedCallback(errorDesc, token, error, tokenType, this);
                     }
 
                 } catch (err) {

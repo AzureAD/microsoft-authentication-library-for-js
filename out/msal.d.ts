@@ -294,7 +294,7 @@ declare namespace Msal {
     }
 }
 declare namespace Msal {
-    type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+    type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userAgentApplication: UserAgentApplication) => void;
     class UserAgentApplication {
         private _cacheLocations;
         private _cacheLocation;
