@@ -209,8 +209,10 @@ namespace Msal {
             window.callBacksMappedToRenewStates = {};
             if (!window.opener) {
                 var isCallback = this.isCallback(window.location.hash);
-                if (isCallback)
-                    this.handleAuthenticationResponse(window.location.hash);
+                if (isCallback) {
+                    var self = this;
+                    setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
+                }
             }
 
         }
