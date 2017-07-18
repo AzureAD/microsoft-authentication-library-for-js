@@ -424,14 +424,21 @@ namespace Msal {
         */
         private clearCache(): void {
             this._renewStates = [];
-            const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
-            for (let i = 0; i < accessTokenItems.length; i++) {
-                this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
-            }
+            this.clearAccessTokens();
 
             this._cacheStorage.removeAcquireTokenEntries(Constants.acquireTokenUser, Constants.renewStatus);
             this._cacheStorage.removeAcquireTokenEntries(Constants.authority + Constants.resourceDelimeter, Constants.renewStatus);
             this._cacheStorage.resetCacheItems();
+        }
+
+        /**
+        * Used to clear the access tokens
+        */
+        clearAccessTokens(): void{
+            const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
+            for (let i = 0; i < accessTokenItems.length; i++) {
+                this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
+            }
         }
 
         /**
