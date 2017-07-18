@@ -330,6 +330,7 @@ declare namespace Msal {
         private openWindow(urlNavigate, title, interval, instance, resolve?, reject?);
         logout(): void;
         private clearCache();
+        clearAccessTokens(): void;
         private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
         private validateInputScope(scopes);
         private filterScopes(scopes);
