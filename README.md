@@ -1,5 +1,5 @@
 
-Microsoft Authentication Library for JavaScript (MSAL.js) Preview
+Microsoft Authentication Library Preview for JavaScript (MSAL.js)
 =========================================================
 
 | [Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2 )| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.msal.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](./devApps/VanillaJSTestApp )
