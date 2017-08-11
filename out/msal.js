@@ -1633,7 +1633,12 @@ var Msal;
                     var authenticationRequest_1;
                     var newAuthority = authority ? Msal.Authority.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
                     if (Msal.Utils.compareObjects(userObject_1, _this._user)) {
-                        authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                        if (scopes.indexOf(_this.clientId) > -1) {
+                            authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
+                        }
+                        else {
+                            authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                        }
                     }
                     else {
                         authenticationRequest_1 = new Msal.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this._redirectUri);
@@ -1768,7 +1773,7 @@ var Msal;
             this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
             frameHandle.src = "about:blank";
-            this.loadFrameTimeout(urlNavigate, "adalIdTokenFrame", this.clientId);
+            this.loadFrameTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
         };
         UserAgentApplication.prototype.getUser = function () {
             if (this._user) {

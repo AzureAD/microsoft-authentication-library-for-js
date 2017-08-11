@@ -955,7 +955,12 @@ namespace Msal {
                     let authenticationRequest: AuthenticationRequestParameters;
                     let newAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
                     if (Utils.compareObjects(userObject, this._user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+                        if (scopes.indexOf(this.clientId) > -1) {
+                            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+                        }
+                        else {
+                            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+                        }
                     } else {
                         authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
                     }
@@ -1138,7 +1143,7 @@ namespace Msal {
             this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
             this._requestContext.logger.infoPii('Navigate to:' + urlNavigate);
             frameHandle.src = "about:blank";
-            this.loadFrameTimeout(urlNavigate, "adalIdTokenFrame", this.clientId);
+            this.loadFrameTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
         }
 
         /**
