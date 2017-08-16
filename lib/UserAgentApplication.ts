@@ -284,7 +284,6 @@ namespace Msal {
         * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
         * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
         */
-        @resolveTokenOnlyIfOutOfIframe
         loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string> {
             /*
             1. Create navigate url
@@ -855,7 +854,6 @@ namespace Msal {
         acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
         acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
-        @resolveTokenOnlyIfOutOfIframe
         acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
             return new Promise<string>((resolve, reject) => {
                 this._interactionMode = this._interactionModes.popUp;
