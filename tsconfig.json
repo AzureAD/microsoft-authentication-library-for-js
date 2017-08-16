@@ -3,7 +3,8 @@
   "compileOnSave": true,
   "compilerOptions": {
     "outFile": "out/msal.js",
-    "declaration": true
+    "declaration": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules",

@@ -3,6 +3,12 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var Msal;
 (function (Msal) {
     var AuthorityType;
@@ -1056,6 +1062,19 @@ var Msal;
         token: "token",
         id_token_token: "id_token token"
     };
+    var resolveTokenOnlyIfOutOfIframe = function (target, propertyKey, descriptor) {
+        var tokenAcquisitionMethod = descriptor.value;
+        descriptor.value = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return this.isInIframe()
+                ? new Promise(function () { })
+                : tokenAcquisitionMethod.apply(this, args);
+        };
+        return descriptor;
+    };
     var UserAgentApplication = (function () {
         function UserAgentApplication(clientId, authority, tokenReceivedCallback, _a) {
             var _b = _a === void 0 ? {} : _a, _c = _b.validateAuthority, validateAuthority = _c === void 0 ? true : _c, _d = _b.cacheLocation, cacheLocation = _d === void 0 ? 'sessionStorage' : _d, _e = _b.redirectUri, redirectUri = _e === void 0 ? window.location.href.split("?")[0].split("#")[0] : _e, _f = _b.postLogoutRedirectUri, postLogoutRedirectUri = _f === void 0 ? redirectUri : _f, _g = _b.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
@@ -1800,7 +1819,7 @@ var Msal;
                 this.saveTokenFromHash(requestInfo);
                 var token = null, tokenReceivedCallback = null, tokenType = void 0;
                 if ((requestInfo.requestType === Msal.Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (this.isInIframe())
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
@@ -2051,8 +2070,20 @@ var Msal;
             return "";
         };
         ;
+        UserAgentApplication.prototype.isInIframe = function () {
+            return window.parent !== window;
+        };
         return UserAgentApplication;
     }());
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "loginPopup", null);
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "acquireTokenPopup", null);
+    __decorate([
+        resolveTokenOnlyIfOutOfIframe
+    ], UserAgentApplication.prototype, "acquireTokenSilent", null);
     Msal.UserAgentApplication = UserAgentApplication;
 })(Msal || (Msal = {}));
 var Msal;

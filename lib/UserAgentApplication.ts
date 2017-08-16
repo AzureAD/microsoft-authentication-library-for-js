@@ -26,7 +26,15 @@ namespace Msal {
     * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
     */
     export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
-
+    const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+        const tokenAcquisitionMethod = descriptor.value;
+        descriptor.value = function (...args: any[]) {
+            return this.isInIframe()
+                ? new Promise(() => {})
+                : tokenAcquisitionMethod.apply(this, args);
+        }
+        return descriptor
+    };
     export class UserAgentApplication {
 
         /**
@@ -935,6 +943,7 @@ namespace Msal {
         * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
         * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
         */
+        @resolveTokenOnlyIfOutOfIframe
         acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
             return new Promise<string>((resolve, reject) => {
                 const isValidScope = this.validateInputScope(scopes);
@@ -1186,7 +1195,7 @@ namespace Msal {
                 this.saveTokenFromHash(requestInfo);
                 let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string;
                 if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-                    if (window.parent !== window)
+                    if (this.isInIframe())
                         this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
                         this._requestContext.logger.verbose("acquiring token interactive in progress");
@@ -1497,5 +1506,14 @@ namespace Msal {
             }
             return "";
         };
+
+        /**
+         * Returns whether current window is in ifram for token renewal
+         * @ignore
+         * @hidden
+         */
+        private isInIframe() {
+            return window.parent !== window
+        }
     }
 }
