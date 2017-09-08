@@ -68,6 +68,7 @@ namespace Msal {
         static get endpointResolutionError(): string { return "endpoints_resolution_error"; }
         static get popUpWindowError(): string { return "popup_window_error"; }
         static get userLoginError(): string { return "user_login_error"; }
+        static get userCancelledError(): string { return "user_cancelled";}
 
     }
 
@@ -81,6 +82,7 @@ namespace Msal {
         static get endpointResolutionError(): string { return "Endpoints cannot be resolved"; }
         static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
         static get userLoginError(): string { return "User login is required"; }
+        static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
 
     }
 }

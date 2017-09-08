@@ -153,6 +153,7 @@ declare namespace Msal {
         static readonly endpointResolutionError: string;
         static readonly popUpWindowError: string;
         static readonly userLoginError: string;
+        static readonly userCancelledError: string;
     }
     class ErrorDescription {
         static readonly loginProgressError: string;
@@ -161,6 +162,7 @@ declare namespace Msal {
         static readonly endpointResolutionError: string;
         static readonly popUpWindowError: string;
         static readonly userLoginError: string;
+        static readonly userCancelledError: string;
     }
 }
 declare namespace Msal {

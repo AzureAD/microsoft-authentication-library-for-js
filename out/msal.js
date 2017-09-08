@@ -662,6 +662,11 @@ var Msal;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(ErrorCodes, "userCancelledError", {
+            get: function () { return "user_cancelled"; },
+            enumerable: true,
+            configurable: true
+        });
         return ErrorCodes;
     }());
     Msal.ErrorCodes = ErrorCodes;
@@ -695,6 +700,11 @@ var Msal;
         });
         Object.defineProperty(ErrorDescription, "userLoginError", {
             get: function () { return "User login is required"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ErrorDescription, "userCancelledError", {
+            get: function () { return "User closed the popup window and cancelled the flow"; },
             enumerable: true,
             configurable: true
         });
@@ -1277,14 +1287,18 @@ var Msal;
                 return null;
             }
             var pollTimer = window.setInterval(function () {
-                if (!popupWindow || popupWindow.closed || popupWindow.closed === undefined) {
+                if (popupWindow && popupWindow.closed && instance._loginInProgress) {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
+                    if (reject) {
+                        reject(Msal.ErrorCodes.userCancelledError + ':' + Msal.ErrorDescription.userCancelledError);
+                    }
                     window.clearInterval(pollTimer);
                 }
                 try {
-                    if (popupWindow.location.href.indexOf(_this._redirectUri) !== -1) {
-                        _this.handleAuthenticationResponse(popupWindow.location.hash, resolve, reject);
+                    var location = popupWindow.location;
+                    if (location.href.indexOf(_this._redirectUri) !== -1) {
+                        _this.handleAuthenticationResponse(location.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
                         instance._acquireTokenInProgress = false;

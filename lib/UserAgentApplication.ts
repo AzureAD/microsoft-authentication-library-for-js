@@ -385,15 +385,19 @@ namespace Msal {
             }
 
             var pollTimer = window.setInterval(() => {
-                if (!popupWindow || popupWindow.closed || popupWindow.closed === undefined) {
+                if (popupWindow && popupWindow.closed && instance._loginInProgress) {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
+                    if (reject) {
+                        reject(Msal.ErrorCodes.userCancelledError + ':' + Msal.ErrorDescription.userCancelledError);
+                    }
                     window.clearInterval(pollTimer);
                 }
 
                 try {
-                    if (popupWindow.location.href.indexOf(this._redirectUri) !== -1) {
-                        this.handleAuthenticationResponse(popupWindow.location.hash, resolve, reject);
+                    var location = popupWindow.location;
+                    if (location.href.indexOf(this._redirectUri) !== -1) {
+                        this.handleAuthenticationResponse(location.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
                         instance._acquireTokenInProgress = false;
