@@ -265,8 +265,8 @@ namespace Msal {
                     this._cacheStorage.setItem(Constants.loginError, "");
                     this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
                     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                    this._cacheStorage.setItem(Constants.error, "");
-                    this._cacheStorage.setItem(Constants.errorDescription, "");
+                    this._cacheStorage.setItem(Constants.msalError, "");
+                    this._cacheStorage.setItem(Constants.msalErrorDescription, "");
                     const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
                     if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                         this._cacheStorage.setItem(authorityKey, this.authority);
@@ -322,8 +322,8 @@ namespace Msal {
                     this._cacheStorage.setItem(Constants.loginError, "");
                     this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
                     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-                    this._cacheStorage.setItem(Constants.error, "");
-                    this._cacheStorage.setItem(Constants.errorDescription, "");
+                    this._cacheStorage.setItem(Constants.msalError, "");
+                    this._cacheStorage.setItem(Constants.msalErrorDescription, "");
                     const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
                     if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                         this._cacheStorage.setItem(authorityKey, this.authority);
@@ -337,8 +337,8 @@ namespace Msal {
 
                 }, () => {
                     this._requestContext.logger.info(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
-                    this._cacheStorage.setItem(Constants.error, Msal.ErrorCodes.endpointResolutionError);
-                    this._cacheStorage.setItem(Constants.errorDescription, Msal.ErrorDescription.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.msalError, Msal.ErrorCodes.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.msalErrorDescription, Msal.ErrorDescription.endpointResolutionError);
                     if (reject) {
                         reject(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
                     }
@@ -376,8 +376,8 @@ namespace Msal {
                 instance._loginInProgress = false;
                 instance._acquireTokenInProgress = false;
                 this._requestContext.logger.info(Msal.ErrorCodes.popUpWindowError + ':' + Msal.ErrorDescription.popUpWindowError);
-                this._cacheStorage.setItem(Constants.error, Msal.ErrorCodes.popUpWindowError);
-                this._cacheStorage.setItem(Constants.errorDescription, Msal.ErrorDescription.popUpWindowError);
+                this._cacheStorage.setItem(Constants.msalError, Msal.ErrorCodes.popUpWindowError);
+                this._cacheStorage.setItem(Constants.msalErrorDescription, Msal.ErrorDescription.popUpWindowError);
                 if (reject) {
                     reject(Msal.ErrorCodes.popUpWindowError + ':' + Msal.ErrorDescription.popUpWindowError);
                 }
@@ -919,8 +919,8 @@ namespace Msal {
 
                 }, () => {
                     this._requestContext.logger.info(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
-                    this._cacheStorage.setItem(Constants.error, Msal.ErrorCodes.endpointResolutionError);
-                    this._cacheStorage.setItem(Constants.errorDescription, Msal.ErrorDescription.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.msalError, Msal.ErrorCodes.endpointResolutionError);
+                    this._cacheStorage.setItem(Constants.msalErrorDescription, Msal.ErrorDescription.endpointResolutionError);
                     if (reject) {
                         reject(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
                     }
@@ -1285,8 +1285,8 @@ namespace Msal {
         */
         private saveTokenFromHash(tokenResponse: TokenResponse): void {
             this._requestContext.logger.info('State status:' + tokenResponse.stateMatch + '; Request type:' + tokenResponse.requestType);
-            this._cacheStorage.setItem(Constants.error, "");
-            this._cacheStorage.setItem(Constants.errorDescription, "");
+            this._cacheStorage.setItem(Constants.msalError, "");
+            this._cacheStorage.setItem(Constants.msalErrorDescription, "");
             var scope: string = '';
             if (tokenResponse.parameters.hasOwnProperty("scope")) {
                 scope = tokenResponse.parameters["scope"];
@@ -1298,8 +1298,8 @@ namespace Msal {
             // Record error
             if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
                 this._requestContext.logger.info('Error :' + tokenResponse.parameters[Constants.error] + '; Error description:' + tokenResponse.parameters[Constants.errorDescription]);
-                this._cacheStorage.setItem(Constants.error, tokenResponse.parameters["error"]);
-                this._cacheStorage.setItem(Constants.errorDescription, tokenResponse.parameters[Constants.errorDescription]);
+                this._cacheStorage.setItem(Constants.msalError, tokenResponse.parameters["error"]);
+                this._cacheStorage.setItem(Constants.msalErrorDescription, tokenResponse.parameters[Constants.errorDescription]);
                 if (tokenResponse.requestType === Constants.login) {
                     this._loginInProgress = false;
                     this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ':' + tokenResponse.parameters[Constants.error]);
@@ -1314,7 +1314,7 @@ namespace Msal {
                     // record tokens to storage if exists
                     this._requestContext.logger.info("State is right");
                     if (tokenResponse.parameters.hasOwnProperty(Constants.sessionState))
-                        this._cacheStorage.setItem(Constants.sessionState,
+                        this._cacheStorage.setItem(Constants.msalSessionState,
                             tokenResponse.parameters[Constants.sessionState]);
                     var idToken: IdToken;
                     var clientInfo: string = '';
@@ -1383,20 +1383,20 @@ namespace Msal {
                                     this._cacheStorage.setItem(Constants.loginError, 'Nonce Mismatch.Expected: ' + this._cacheStorage.getItem(Constants.nonceIdToken) + ',' + 'Actual: ' + idToken.nonce);
                                 } else {
                                     this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
-                                    this._cacheStorage.setItem(Constants.clientInfo, clientInfo);
+                                    this._cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
 
                                     // Save idToken as access token for app itself
                                     this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
                                 }
                             } else {
-                                this._cacheStorage.setItem(Constants.error, 'invalid idToken');
-                                this._cacheStorage.setItem(Constants.errorDescription, 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants.idToken]);
+                                this._cacheStorage.setItem(Constants.msalError, 'invalid idToken');
+                                this._cacheStorage.setItem(Constants.msalErrorDescription, 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants.idToken]);
                             }
                         }
                     }
                 } else {
-                    this._cacheStorage.setItem(Constants.error, 'Invalid_state');
-                    this._cacheStorage.setItem(Constants.errorDescription, 'Invalid_state. state: ' + tokenResponse.stateResponse);
+                    this._cacheStorage.setItem(Constants.msalError, 'Invalid_state');
+                    this._cacheStorage.setItem(Constants.msalErrorDescription, 'Invalid_state. state: ' + tokenResponse.stateResponse);
                 }
             }
             this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);

@@ -107,7 +107,7 @@ namespace Msal {
             if (storage) {
                 let key: string;
                 for (key in storage) {
-                    if (storage.hasOwnProperty(key)) {
+                    if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
                         storage[key] = "";
                     }
                 }
