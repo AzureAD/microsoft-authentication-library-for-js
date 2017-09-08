@@ -115,6 +115,10 @@ declare namespace Msal {
         static readonly accessToken: string;
         static readonly expiresIn: string;
         static readonly sessionState: string;
+        static readonly msalClientInfo: string;
+        static readonly msalError: string;
+        static readonly msalErrorDescription: string;
+        static readonly msalSessionState: string;
         static readonly tokenKeys: string;
         static readonly accessTokenKey: string;
         static readonly expirationKey: string;
@@ -127,6 +131,7 @@ declare namespace Msal {
         static readonly loginRequest: string;
         static readonly loginError: string;
         static readonly renewStatus: string;
+        static readonly msal: string;
         static readonly resourceDelimeter: string;
         private static _loadFrameTimeout;
         static loadFrameTimeout: number;
@@ -148,6 +153,7 @@ declare namespace Msal {
         static readonly endpointResolutionError: string;
         static readonly popUpWindowError: string;
         static readonly userLoginError: string;
+        static readonly userCancelledError: string;
     }
     class ErrorDescription {
         static readonly loginProgressError: string;
@@ -156,6 +162,7 @@ declare namespace Msal {
         static readonly endpointResolutionError: string;
         static readonly popUpWindowError: string;
         static readonly userLoginError: string;
+        static readonly userCancelledError: string;
     }
 }
 declare namespace Msal {

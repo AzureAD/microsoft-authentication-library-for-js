@@ -473,6 +473,26 @@ var Msal;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Constants, "msalClientInfo", {
+            get: function () { return "msal.client.info"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Constants, "msalError", {
+            get: function () { return "msal.error"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Constants, "msalErrorDescription", {
+            get: function () { return "msal.error.description"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Constants, "msalSessionState", {
+            get: function () { return "msal.session.state"; },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Constants, "tokenKeys", {
             get: function () { return "msal.token.keys"; },
             enumerable: true,
@@ -530,6 +550,11 @@ var Msal;
         });
         Object.defineProperty(Constants, "renewStatus", {
             get: function () { return "msal.token.renew.status"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Constants, "msal", {
+            get: function () { return "msal"; },
             enumerable: true,
             configurable: true
         });
@@ -637,6 +662,11 @@ var Msal;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(ErrorCodes, "userCancelledError", {
+            get: function () { return "user_cancelled"; },
+            enumerable: true,
+            configurable: true
+        });
         return ErrorCodes;
     }());
     Msal.ErrorCodes = ErrorCodes;
@@ -670,6 +700,11 @@ var Msal;
         });
         Object.defineProperty(ErrorDescription, "userLoginError", {
             get: function () { return "User login is required"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ErrorDescription, "userCancelledError", {
+            get: function () { return "User closed the popup window and cancelled the flow"; },
             enumerable: true,
             configurable: true
         });
@@ -1000,7 +1035,7 @@ var Msal;
             if (storage) {
                 var key = void 0;
                 for (key in storage) {
-                    if (storage.hasOwnProperty(key)) {
+                    if (storage.hasOwnProperty(key) && key.indexOf(Msal.Constants.msal) !== -1) {
                         storage[key] = "";
                     }
                 }
@@ -1163,8 +1198,8 @@ var Msal;
                 _this._cacheStorage.setItem(Msal.Constants.loginError, "");
                 _this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
                 _this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-                _this._cacheStorage.setItem(Msal.Constants.error, "");
-                _this._cacheStorage.setItem(Msal.Constants.errorDescription, "");
+                _this._cacheStorage.setItem(Msal.Constants.msalError, "");
+                _this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, "");
                 var authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
                 if (Msal.Utils.isEmpty(_this._cacheStorage.getItem(authorityKey))) {
                     _this._cacheStorage.setItem(authorityKey, _this.authority);
@@ -1203,8 +1238,8 @@ var Msal;
                     _this._cacheStorage.setItem(Msal.Constants.loginError, "");
                     _this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
                     _this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
-                    _this._cacheStorage.setItem(Msal.Constants.error, "");
-                    _this._cacheStorage.setItem(Msal.Constants.errorDescription, "");
+                    _this._cacheStorage.setItem(Msal.Constants.msalError, "");
+                    _this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, "");
                     var authorityKey = Msal.Constants.authority + Msal.Constants.resourceDelimeter + authenticationRequest.state;
                     if (Msal.Utils.isEmpty(_this._cacheStorage.getItem(authorityKey))) {
                         _this._cacheStorage.setItem(authorityKey, _this.authority);
@@ -1216,8 +1251,8 @@ var Msal;
                     }
                 }, function () {
                     _this._requestContext.logger.info(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
-                    _this._cacheStorage.setItem(Msal.Constants.error, Msal.ErrorCodes.endpointResolutionError);
-                    _this._cacheStorage.setItem(Msal.Constants.errorDescription, Msal.ErrorDescription.endpointResolutionError);
+                    _this._cacheStorage.setItem(Msal.Constants.msalError, Msal.ErrorCodes.endpointResolutionError);
+                    _this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, Msal.ErrorDescription.endpointResolutionError);
                     if (reject) {
                         reject(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
                     }
@@ -1244,22 +1279,26 @@ var Msal;
                 instance._loginInProgress = false;
                 instance._acquireTokenInProgress = false;
                 this._requestContext.logger.info(Msal.ErrorCodes.popUpWindowError + ':' + Msal.ErrorDescription.popUpWindowError);
-                this._cacheStorage.setItem(Msal.Constants.error, Msal.ErrorCodes.popUpWindowError);
-                this._cacheStorage.setItem(Msal.Constants.errorDescription, Msal.ErrorDescription.popUpWindowError);
+                this._cacheStorage.setItem(Msal.Constants.msalError, Msal.ErrorCodes.popUpWindowError);
+                this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, Msal.ErrorDescription.popUpWindowError);
                 if (reject) {
                     reject(Msal.ErrorCodes.popUpWindowError + ':' + Msal.ErrorDescription.popUpWindowError);
                 }
                 return null;
             }
             var pollTimer = window.setInterval(function () {
-                if (!popupWindow || popupWindow.closed || popupWindow.closed === undefined) {
+                if (popupWindow && popupWindow.closed && instance._loginInProgress) {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
+                    if (reject) {
+                        reject(Msal.ErrorCodes.userCancelledError + ':' + Msal.ErrorDescription.userCancelledError);
+                    }
                     window.clearInterval(pollTimer);
                 }
                 try {
-                    if (popupWindow.location.href.indexOf(_this._redirectUri) !== -1) {
-                        _this.handleAuthenticationResponse(popupWindow.location.hash, resolve, reject);
+                    var location = popupWindow.location;
+                    if (location.href.indexOf(_this._redirectUri) !== -1) {
+                        _this.handleAuthenticationResponse(location.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
                         instance._acquireTokenInProgress = false;
@@ -1622,8 +1661,8 @@ var Msal;
                     }
                 }, function () {
                     _this._requestContext.logger.info(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
-                    _this._cacheStorage.setItem(Msal.Constants.error, Msal.ErrorCodes.endpointResolutionError);
-                    _this._cacheStorage.setItem(Msal.Constants.errorDescription, Msal.ErrorDescription.endpointResolutionError);
+                    _this._cacheStorage.setItem(Msal.Constants.msalError, Msal.ErrorCodes.endpointResolutionError);
+                    _this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, Msal.ErrorDescription.endpointResolutionError);
                     if (reject) {
                         reject(Msal.ErrorCodes.endpointResolutionError + ':' + Msal.ErrorDescription.endpointResolutionError);
                     }
@@ -1888,8 +1927,8 @@ var Msal;
         };
         UserAgentApplication.prototype.saveTokenFromHash = function (tokenResponse) {
             this._requestContext.logger.info('State status:' + tokenResponse.stateMatch + '; Request type:' + tokenResponse.requestType);
-            this._cacheStorage.setItem(Msal.Constants.error, "");
-            this._cacheStorage.setItem(Msal.Constants.errorDescription, "");
+            this._cacheStorage.setItem(Msal.Constants.msalError, "");
+            this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, "");
             var scope = '';
             if (tokenResponse.parameters.hasOwnProperty("scope")) {
                 scope = tokenResponse.parameters["scope"];
@@ -1899,8 +1938,8 @@ var Msal;
             }
             if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Msal.Constants.error)) {
                 this._requestContext.logger.info('Error :' + tokenResponse.parameters[Msal.Constants.error] + '; Error description:' + tokenResponse.parameters[Msal.Constants.errorDescription]);
-                this._cacheStorage.setItem(Msal.Constants.error, tokenResponse.parameters["error"]);
-                this._cacheStorage.setItem(Msal.Constants.errorDescription, tokenResponse.parameters[Msal.Constants.errorDescription]);
+                this._cacheStorage.setItem(Msal.Constants.msalError, tokenResponse.parameters["error"]);
+                this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, tokenResponse.parameters[Msal.Constants.errorDescription]);
                 if (tokenResponse.requestType === Msal.Constants.login) {
                     this._loginInProgress = false;
                     this._cacheStorage.setItem(Msal.Constants.loginError, tokenResponse.parameters[Msal.Constants.errorDescription] + ':' + tokenResponse.parameters[Msal.Constants.error]);
@@ -1913,7 +1952,7 @@ var Msal;
                 if (tokenResponse.stateMatch) {
                     this._requestContext.logger.info("State is right");
                     if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.sessionState))
-                        this._cacheStorage.setItem(Msal.Constants.sessionState, tokenResponse.parameters[Msal.Constants.sessionState]);
+                        this._cacheStorage.setItem(Msal.Constants.msalSessionState, tokenResponse.parameters[Msal.Constants.sessionState]);
                     var idToken;
                     var clientInfo = '';
                     if (tokenResponse.parameters.hasOwnProperty(Msal.Constants.accessToken)) {
@@ -1978,20 +2017,20 @@ var Msal;
                                 }
                                 else {
                                     this._cacheStorage.setItem(Msal.Constants.idTokenKey, tokenResponse.parameters[Msal.Constants.idToken]);
-                                    this._cacheStorage.setItem(Msal.Constants.clientInfo, clientInfo);
+                                    this._cacheStorage.setItem(Msal.Constants.msalClientInfo, clientInfo);
                                     this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
                                 }
                             }
                             else {
-                                this._cacheStorage.setItem(Msal.Constants.error, 'invalid idToken');
-                                this._cacheStorage.setItem(Msal.Constants.errorDescription, 'Invalid idToken. idToken: ' + tokenResponse.parameters[Msal.Constants.idToken]);
+                                this._cacheStorage.setItem(Msal.Constants.msalError, 'invalid idToken');
+                                this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, 'Invalid idToken. idToken: ' + tokenResponse.parameters[Msal.Constants.idToken]);
                             }
                         }
                     }
                 }
                 else {
-                    this._cacheStorage.setItem(Msal.Constants.error, 'Invalid_state');
-                    this._cacheStorage.setItem(Msal.Constants.errorDescription, 'Invalid_state. state: ' + tokenResponse.stateResponse);
+                    this._cacheStorage.setItem(Msal.Constants.msalError, 'Invalid_state');
+                    this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, 'Invalid_state. state: ' + tokenResponse.stateResponse);
                 }
             }
             this._cacheStorage.setItem(Msal.Constants.renewStatus + scope, Msal.Constants.tokenRenewStatusCompleted);
@@ -2075,12 +2114,6 @@ var Msal;
         };
         return UserAgentApplication;
     }());
-    __decorate([
-        resolveTokenOnlyIfOutOfIframe
-    ], UserAgentApplication.prototype, "loginPopup", null);
-    __decorate([
-        resolveTokenOnlyIfOutOfIframe
-    ], UserAgentApplication.prototype, "acquireTokenPopup", null);
     __decorate([
         resolveTokenOnlyIfOutOfIframe
     ], UserAgentApplication.prototype, "acquireTokenSilent", null);
