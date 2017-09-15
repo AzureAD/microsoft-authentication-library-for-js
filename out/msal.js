@@ -1682,7 +1682,7 @@ var Msal;
                     if (scopes) {
                         scopes = _this.filterScopes(scopes);
                     }
-                    var scope = scopes.join(" ").toLowerCase();
+                    var scope_1 = scopes.join(" ").toLowerCase();
                     var userObject_1 = user ? user : _this._user;
                     if (!userObject_1) {
                         reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
@@ -1704,7 +1704,7 @@ var Msal;
                     var cacheResult = _this.getCachedToken(authenticationRequest_1, userObject_1);
                     if (cacheResult) {
                         if (cacheResult.token) {
-                            _this._requestContext.logger.info('Token is already in cache for scope:' + scope);
+                            _this._requestContext.logger.info('Token is already in cache for scope:' + scope_1);
                             resolve(cacheResult.token);
                             return;
                         }
@@ -1714,18 +1714,20 @@ var Msal;
                             return;
                         }
                     }
-                    if (_this._activeRenewals[scope]) {
-                        _this.registerCallback(_this._activeRenewals[scope], scope, resolve, reject);
-                    }
                     return _this.authorityInstance.ResolveEndpointsAsync()
                         .then(function () {
-                        if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
-                            _this._requestContext.logger.verbose("renewing idToken");
-                            _this.renewIdToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                        if (_this._activeRenewals[scope_1]) {
+                            _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
                         }
                         else {
-                            _this._requestContext.logger.verbose("renewing accesstoken");
-                            _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                            if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
+                                _this._requestContext.logger.verbose("renewing idToken");
+                                _this.renewIdToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                            }
+                            else {
+                                _this._requestContext.logger.verbose("renewing accesstoken");
+                                _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                            }
                         }
                     });
                 }
