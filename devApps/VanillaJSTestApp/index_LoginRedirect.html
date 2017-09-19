@@ -47,7 +47,7 @@
                     updateUI();
                 }, function (error) {
                     console.log(error);
-                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                    userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes).then(function (accessToken) {
                         updateUI();
                     }, function (error) {
                         console.log(error);
