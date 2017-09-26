@@ -362,6 +362,7 @@ declare namespace Msal {
         private renewToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         private renewIdToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         getUser(): User;
+        private validateLoginPopup(hash, msal);
         handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void;
         private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
         private saveTokenFromHash(tokenResponse);

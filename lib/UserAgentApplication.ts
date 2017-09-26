@@ -30,7 +30,7 @@ namespace Msal {
         const tokenAcquisitionMethod = descriptor.value;
         descriptor.value = function (...args: any[]) {
             return this.isInIframe()
-                ? new Promise(() => {})
+                ? new Promise(() => { })
                 : tokenAcquisitionMethod.apply(this, args);
         }
         return descriptor
@@ -215,12 +215,10 @@ namespace Msal {
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback) {
-                    var self = this;
-                    setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
-                }
+            var isCallback = this.isCallback(window.location.hash);
+            if (isCallback) {
+                var self = this;
+                setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
             }
 
         }
@@ -330,6 +328,7 @@ namespace Msal {
                     }
 
                     const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+                    this._renewStates.push(authenticationRequest.state);
                     this._loginInProgress = true;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
@@ -1181,6 +1180,17 @@ namespace Msal {
             return null;
         };
 
+        private validateLoginPopup(hash: string, msal: UserAgentApplication): boolean {
+            const parameters = Utils.deserialize(hash);
+            const statesInParentContext = msal._renewStates;
+            for (let i = 0; i < statesInParentContext.length; i++) {
+                if (statesInParentContext[i] === parameters.state) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /**
         * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
         * calls the registered callbacks in case of redirect or resolves the promises with the result.
@@ -1190,6 +1200,11 @@ namespace Msal {
         * @hidden
         */
         handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void {
+            if (window.opener && window.opener.msal) {
+                if (this.validateLoginPopup(hash, window.opener.msal))// In case of popup window, allow the popup to call this function.
+                    return;
+            }
+
             if (hash == null) {
                 hash = window.location.hash;
             }
