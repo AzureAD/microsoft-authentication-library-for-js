@@ -1145,12 +1145,10 @@ var Msal;
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback) {
-                    var self = this;
-                    setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
-                }
+            var isCallback = this.isCallback(window.location.hash);
+            if (isCallback) {
+                var self = this;
+                setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
             }
         }
         Object.defineProperty(UserAgentApplication.prototype, "cacheLocation", {
@@ -1245,6 +1243,7 @@ var Msal;
                         _this._cacheStorage.setItem(authorityKey, _this.authority);
                     }
                     var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+                    _this._renewStates.push(authenticationRequest.state);
                     _this._loginInProgress = true;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
@@ -1848,7 +1847,21 @@ var Msal;
             return null;
         };
         ;
+        UserAgentApplication.prototype.validateLoginPopup = function (hash, msal) {
+            var parameters = Msal.Utils.deserialize(hash);
+            var statesInParentContext = msal._renewStates;
+            for (var i = 0; i < statesInParentContext.length; i++) {
+                if (statesInParentContext[i] === parameters.state) {
+                    return true;
+                }
+            }
+            return false;
+        };
         UserAgentApplication.prototype.handleAuthenticationResponse = function (hash, resolve, reject) {
+            if (window.opener && window.opener.msal) {
+                if (this.validateLoginPopup(hash, window.opener.msal))
+                    return;
+            }
             if (hash == null) {
                 hash = window.location.hash;
             }
