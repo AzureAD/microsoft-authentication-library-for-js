@@ -30,7 +30,7 @@ namespace Msal {
         const tokenAcquisitionMethod = descriptor.value;
         descriptor.value = function (...args: any[]) {
             return this.isInIframe()
-                ? new Promise(() => {})
+                ? new Promise(() => { })
                 : tokenAcquisitionMethod.apply(this, args);
         }
         return descriptor
@@ -168,6 +168,16 @@ namespace Msal {
         private _navigateToLoginRequestUrl: boolean = true;
 
         /**
+        * Used to keep track of opened popup windows.
+        */
+        private _openedWindows: Array<Window>;
+
+        /**
+        * Used to track the authentication request.
+        */
+        private _requestType: string;
+
+        /**
         * Initialize a UserAgentApplication with a given clientId and authority.
         * @constructor
         * @param {string} clientId - The clientID of your application, you should get this from the application registration portal.
@@ -212,15 +222,15 @@ namespace Msal {
 
             this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
             this._requestContext = new RequestContext("");
+            this._openedWindows = [];
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback) {
-                    var self = this;
-                    setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
-                }
+
+            var isCallback = this.isCallback(window.location.hash);
+            if (isCallback) {
+                var self = this;
+                setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
             }
 
         }
@@ -274,6 +284,7 @@ namespace Msal {
 
                     const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                     this._loginInProgress = true;
+                    this._requestType = Constants.login;
                     this.promptUser(urlNavigate);
                 });
         }
@@ -307,6 +318,7 @@ namespace Msal {
                     scopes = this.filterScopes(scopes);
                 }
 
+                const scope = scopes.join(" ").toLowerCase();
                 var popUpWindow = this.openWindow('about:blank', '_blank', 1, this, resolve, reject);
                 if (!popUpWindow) {
                     return;
@@ -320,7 +332,6 @@ namespace Msal {
 
                     this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
                     this._cacheStorage.setItem(Constants.loginError, "");
-                    this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
                     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
                     this._cacheStorage.setItem(Constants.msalError, "");
                     this._cacheStorage.setItem(Constants.msalErrorDescription, "");
@@ -330,6 +341,9 @@ namespace Msal {
                     }
 
                     const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+                    this._renewStates.push(authenticationRequest.state);
+                    this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    this._requestType = Constants.login;
                     this._loginInProgress = true;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
@@ -384,6 +398,7 @@ namespace Msal {
                 return null;
             }
 
+            this._openedWindows.push(popupWindow);
             var pollTimer = window.setInterval(() => {
                 if (popupWindow && popupWindow.closed && instance._loginInProgress) {
                     instance._loginInProgress = false;
@@ -397,12 +412,10 @@ namespace Msal {
                 try {
                     var popUpWindowLocation = popupWindow.location;
                     if (popUpWindowLocation.href.indexOf(this._redirectUri) !== -1) {
-                        this.handleAuthenticationResponse(popUpWindowLocation.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
                         instance._acquireTokenInProgress = false;
                         this._requestContext.logger.info("Closing popup window");
-                        popupWindow.close();
                     }
                 } catch (e) {
                     //Cross Domain url check error. Will be thrown until AAD redirects the user back to the app's root page with the token. No need to log or throw this error as it will create unnecessary traffic.
@@ -837,6 +850,7 @@ namespace Msal {
                 urlNavigate = this.addHintParameters(urlNavigate, userObject);
                 if (urlNavigate) {
                     this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
+                    this._requestType = Constants.renewToken;
                     window.location.replace(urlNavigate);
                 }
             });
@@ -892,7 +906,12 @@ namespace Msal {
 
                 acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
                     if (Utils.compareObjects(userObject, this._user)) {
-                        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+                        if (scopes.indexOf(this.clientId) > -1) {
+                            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+                        }
+                        else {
+                            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+                        }
                     } else {
                         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
                     }
@@ -917,6 +936,7 @@ namespace Msal {
                     urlNavigate = this.addHintParameters(urlNavigate, userObject);
                     this._renewStates.push(authenticationRequest.state);
                     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    this._requestType = Constants.renewToken;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
                     }
@@ -991,7 +1011,8 @@ namespace Msal {
                             return;
                         }
                     }
-                  
+
+                    this._requestType = Constants.renewToken;
                     // cache miss
                     return this.authorityInstance.ResolveEndpointsAsync()
                         .then(() => {
@@ -1192,57 +1213,63 @@ namespace Msal {
         * @param {Function} reject - The reject function of the promise object.
         * @hidden
         */
-        handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void {
+        handleAuthenticationResponse(hash: string): void {
             if (hash == null) {
                 hash = window.location.hash;
             }
-            if (this.isCallback(hash)) {
-                const requestInfo = this.getRequestInfo(hash);
-                this._requestContext.logger.info("Returned from redirect url");
-                this.saveTokenFromHash(requestInfo);
+
+            var self = null;
+            if (window.opener && window.opener.msal) {
+                self = window.opener.msal;
+            }
+            else if(window.parent && window.parent.msal) {
+                self = window.parent.msal;
+            }
+
+            if (self.isCallback(hash)) {
+                const requestInfo = self.getRequestInfo(hash);
+                self._requestContext.logger.info("Returned from redirect url");
+                self.saveTokenFromHash(requestInfo);
                 let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string;
+
+                if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
+                    tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+                else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse])
+                    tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+                else
+                    tokenReceivedCallback = self._tokenReceivedCallback;
+
                 if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-                    if (this.isInIframe())
-                        this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
+                    if (self.isInIframe())
+                        self._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
-                        this._requestContext.logger.verbose("acquiring token interactive in progress");
-
-                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
-                        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-                    else
-                        tokenReceivedCallback = this._tokenReceivedCallback;
-
+                        self._requestContext.logger.verbose("acquiring token interactive in progress");
                     token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
                     tokenType = Constants.accessToken;
                 } else if (requestInfo.requestType === Constants.login) {
-                    tokenReceivedCallback = this._tokenReceivedCallback;
                     token = requestInfo.parameters[Constants.idToken];
                     tokenType = Constants.idToken;
                 }
 
+                var errorDesc = requestInfo.parameters[Constants.errorDescription];
+                var error = requestInfo.parameters[Constants.error];
                 try {
-                    var errorDesc = requestInfo.parameters[Constants.errorDescription];
-                    var error = requestInfo.parameters[Constants.error];
-                    if (reject && resolve) {
-                        if (error || errorDesc) {
-                            reject(errorDesc + ":" + error);
-                        }
-                        else if (token) {
-                            resolve(token);
-                        }
-                    }
-                    else if (tokenReceivedCallback) {
+                    if (tokenReceivedCallback) {
                         tokenReceivedCallback(errorDesc, token, error, tokenType);
                     }
 
                 } catch (err) {
-                    this._requestContext.logger.error('Error occurred in token received callback function: ' + err);
+                    self._requestContext.logger.error('Error occurred in token received callback function: ' + err);
                 }
 
-                if (this._interactionMode !== this._interactionModes.popUp) {
+                for (var i = 0; i < self._openedWindows.length; i++) {
+                    self._openedWindows[i].close();
+                }
+
+                if (self._interactionMode !== self._interactionModes.popUp) {
                     window.location.hash = "";
-                    if (this._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== this._cacheStorage.getItem(Constants.loginRequest))
-                        window.location.href = this._cacheStorage.getItem(Constants.loginRequest);
+                    if (self._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== self._cacheStorage.getItem(Constants.loginRequest))
+                        window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
                 }
             }
         }
@@ -1468,26 +1495,31 @@ namespace Msal {
                         stateResponse = parameters.state;
                     else
                         return tokenResponse;
+
                     tokenResponse.stateResponse = stateResponse;
                     // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                     // incoming callback needs to be looked up to find the request type
-                    if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) {
+                    if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) { // loginRedirect
                         tokenResponse.requestType = Constants.login;
                         tokenResponse.stateMatch = true;
                         return tokenResponse;
-                    } else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken)) {
+                    } else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken)) { //acquireTokenRedirect
                         tokenResponse.requestType = Constants.renewToken;
                         tokenResponse.stateMatch = true;
                         return tokenResponse;
                     }
-
+                    
                     // external api requests may have many renewtoken requests for different resource
-                    if (!tokenResponse.stateMatch && window.parent && window.parent.msal) {
-                        const clientApplication = window.parent.msal as UserAgentApplication;
-                        const statesInParentContext = clientApplication._renewStates;
+                    if (!tokenResponse.stateMatch) {
+                        if (window.parent && window.parent !== window) {
+                            tokenResponse.requestType = Constants.renewToken;
+                        }
+                        else {
+                            tokenResponse.requestType = this._requestType;
+                        }
+                        const statesInParentContext = this._renewStates;
                         for (let i = 0; i < statesInParentContext.length; i++) {
                             if (statesInParentContext[i] === tokenResponse.stateResponse) {
-                                tokenResponse.requestType = Constants.renewToken;
                                 tokenResponse.stateMatch = true;
                                 break;
                             }

@@ -1142,15 +1142,14 @@ var Msal;
             }
             this._cacheStorage = new Msal.Storage(this._cacheLocation);
             this._requestContext = new Msal.RequestContext("");
+            this._openedWindows = [];
             window.msal = this;
             window.callBackMappedToRenewStates = {};
             window.callBacksMappedToRenewStates = {};
-            if (!window.opener) {
-                var isCallback = this.isCallback(window.location.hash);
-                if (isCallback) {
-                    var self = this;
-                    setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
-                }
+            var isCallback = this.isCallback(window.location.hash);
+            if (isCallback) {
+                var self = this;
+                setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
             }
         }
         Object.defineProperty(UserAgentApplication.prototype, "cacheLocation", {
@@ -1206,6 +1205,7 @@ var Msal;
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 _this._loginInProgress = true;
+                _this._requestType = Msal.Constants.login;
                 _this.promptUser(urlNavigate);
             });
         };
@@ -1225,6 +1225,7 @@ var Msal;
                     }
                     scopes = _this.filterScopes(scopes);
                 }
+                var scope = scopes.join(" ").toLowerCase();
                 var popUpWindow = _this.openWindow('about:blank', '_blank', 1, _this, resolve, reject);
                 if (!popUpWindow) {
                     return;
@@ -1236,7 +1237,6 @@ var Msal;
                     }
                     _this._cacheStorage.setItem(Msal.Constants.loginRequest, window.location.href);
                     _this._cacheStorage.setItem(Msal.Constants.loginError, "");
-                    _this._cacheStorage.setItem(Msal.Constants.stateLogin, authenticationRequest.state);
                     _this._cacheStorage.setItem(Msal.Constants.nonceIdToken, authenticationRequest.nonce);
                     _this._cacheStorage.setItem(Msal.Constants.msalError, "");
                     _this._cacheStorage.setItem(Msal.Constants.msalErrorDescription, "");
@@ -1245,6 +1245,9 @@ var Msal;
                         _this._cacheStorage.setItem(authorityKey, _this.authority);
                     }
                     var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+                    _this._renewStates.push(authenticationRequest.state);
+                    _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    _this._requestType = Msal.Constants.login;
                     _this._loginInProgress = true;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
@@ -1286,6 +1289,7 @@ var Msal;
                 }
                 return null;
             }
+            this._openedWindows.push(popupWindow);
             var pollTimer = window.setInterval(function () {
                 if (popupWindow && popupWindow.closed && instance._loginInProgress) {
                     instance._loginInProgress = false;
@@ -1298,12 +1302,10 @@ var Msal;
                 try {
                     var popUpWindowLocation = popupWindow.location;
                     if (popUpWindowLocation.href.indexOf(_this._redirectUri) !== -1) {
-                        _this.handleAuthenticationResponse(popUpWindowLocation.hash, resolve, reject);
                         window.clearInterval(pollTimer);
                         instance._loginInProgress = false;
                         instance._acquireTokenInProgress = false;
                         _this._requestContext.logger.info("Closing popup window");
-                        popupWindow.close();
                     }
                 }
                 catch (e) {
@@ -1600,6 +1602,7 @@ var Msal;
                 urlNavigate = _this.addHintParameters(urlNavigate, userObject);
                 if (urlNavigate) {
                     _this._cacheStorage.setItem(Msal.Constants.stateAcquireToken, authenticationRequest.state);
+                    _this._requestType = Msal.Constants.renewToken;
                     window.location.replace(urlNavigate);
                 }
             });
@@ -1634,7 +1637,12 @@ var Msal;
                 }
                 acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
                     if (Msal.Utils.compareObjects(userObject, _this._user)) {
-                        authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                        if (scopes.indexOf(_this.clientId) > -1) {
+                            authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
+                        }
+                        else {
+                            authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                        }
                     }
                     else {
                         authenticationRequest = new Msal.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this._redirectUri);
@@ -1656,6 +1664,7 @@ var Msal;
                     urlNavigate = _this.addHintParameters(urlNavigate, userObject);
                     _this._renewStates.push(authenticationRequest.state);
                     _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                    _this._requestType = Msal.Constants.renewToken;
                     if (popUpWindow) {
                         popUpWindow.location.href = urlNavigate;
                     }
@@ -1714,6 +1723,8 @@ var Msal;
                             return;
                         }
                     }
+
+                    _this._requestType = Msal.Constants.renewToken;
                     return _this.authorityInstance.ResolveEndpointsAsync()
                         .then(function () {
                         if (_this._activeRenewals[scope_1]) {
@@ -1850,54 +1861,57 @@ var Msal;
             return null;
         };
         ;
-        UserAgentApplication.prototype.handleAuthenticationResponse = function (hash, resolve, reject) {
+        UserAgentApplication.prototype.handleAuthenticationResponse = function (hash) {
             if (hash == null) {
                 hash = window.location.hash;
             }
-            if (this.isCallback(hash)) {
-                var requestInfo = this.getRequestInfo(hash);
-                this._requestContext.logger.info("Returned from redirect url");
-                this.saveTokenFromHash(requestInfo);
+            var self = null;
+            if (window.opener && window.opener.msal) {
+                self = window.opener.msal;
+            }
+            else if (window.parent && window.parent.msal) {
+                self = window.parent.msal;
+            }
+            if (self.isCallback(hash)) {
+                var requestInfo = self.getRequestInfo(hash);
+                self._requestContext.logger.info("Returned from redirect url");
+                self.saveTokenFromHash(requestInfo);
                 var token = null, tokenReceivedCallback = null, tokenType = void 0;
+                if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
+                    tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+                else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse])
+                    tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+                else
+                    tokenReceivedCallback = self._tokenReceivedCallback;
                 if ((requestInfo.requestType === Msal.Constants.renewToken) && window.parent) {
-                    if (this.isInIframe())
-                        this._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
+                    if (self.isInIframe())
+                        self._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
                     else
-                        this._requestContext.logger.verbose("acquiring token interactive in progress");
-                    if (window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
-                        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-                    else
-                        tokenReceivedCallback = this._tokenReceivedCallback;
+                        self._requestContext.logger.verbose("acquiring token interactive in progress");
                     token = requestInfo.parameters[Msal.Constants.accessToken] || requestInfo.parameters[Msal.Constants.idToken];
                     tokenType = Msal.Constants.accessToken;
                 }
                 else if (requestInfo.requestType === Msal.Constants.login) {
-                    tokenReceivedCallback = this._tokenReceivedCallback;
                     token = requestInfo.parameters[Msal.Constants.idToken];
                     tokenType = Msal.Constants.idToken;
                 }
+                var errorDesc = requestInfo.parameters[Msal.Constants.errorDescription];
+                var error = requestInfo.parameters[Msal.Constants.error];
                 try {
-                    var errorDesc = requestInfo.parameters[Msal.Constants.errorDescription];
-                    var error = requestInfo.parameters[Msal.Constants.error];
-                    if (reject && resolve) {
-                        if (error || errorDesc) {
-                            reject(errorDesc + ":" + error);
-                        }
-                        else if (token) {
-                            resolve(token);
-                        }
-                    }
-                    else if (tokenReceivedCallback) {
+                    if (tokenReceivedCallback) {
                         tokenReceivedCallback(errorDesc, token, error, tokenType);
                     }
                 }
                 catch (err) {
-                    this._requestContext.logger.error('Error occurred in token received callback function: ' + err);
+                    self._requestContext.logger.error('Error occurred in token received callback function: ' + err);
                 }
-                if (this._interactionMode !== this._interactionModes.popUp) {
+                for (var i = 0; i < self._openedWindows.length; i++) {
+                    self._openedWindows[i].close();
+                }
+                if (self._interactionMode !== self._interactionModes.popUp) {
                     window.location.hash = "";
-                    if (this._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== this._cacheStorage.getItem(Msal.Constants.loginRequest))
-                        window.location.href = this._cacheStorage.getItem(Msal.Constants.loginRequest);
+                    if (self._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== self._cacheStorage.getItem(Msal.Constants.loginRequest))
+                        window.location.href = self._cacheStorage.getItem(Msal.Constants.loginRequest);
                 }
             }
         };
@@ -2085,12 +2099,16 @@ var Msal;
                         tokenResponse.stateMatch = true;
                         return tokenResponse;
                     }
-                    if (!tokenResponse.stateMatch && window.parent && window.parent.msal) {
-                        var clientApplication = window.parent.msal;
-                        var statesInParentContext = clientApplication._renewStates;
+                    if (!tokenResponse.stateMatch) {
+                        if (window.parent && window.parent !== window) {
+                            tokenResponse.requestType = Msal.Constants.renewToken;
+                        }
+                        else {
+                            tokenResponse.requestType = this._requestType;
+                        }
+                        var statesInParentContext = this._renewStates;
                         for (var i = 0; i < statesInParentContext.length; i++) {
                             if (statesInParentContext[i] === tokenResponse.stateResponse) {
-                                tokenResponse.requestType = Msal.Constants.renewToken;
                                 tokenResponse.stateMatch = true;
                                 break;
                             }
