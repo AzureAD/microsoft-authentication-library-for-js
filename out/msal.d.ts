@@ -324,6 +324,8 @@ declare namespace Msal {
         private _redirectUri;
         private _postLogoutredirectUri;
         private _navigateToLoginRequestUrl;
+        private _openedWindows;
+        private _requestType;
         constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, {validateAuthority, cacheLocation, redirectUri, postLogoutRedirectUri, navigateToLoginRequestUrl}?: {
             validateAuthority?: boolean;
             cacheLocation?: string;
@@ -362,7 +364,7 @@ declare namespace Msal {
         private renewToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         private renewIdToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
         getUser(): User;
-        handleAuthenticationResponse(hash: string, resolve?: Function, reject?: Function): void;
+        handleAuthenticationResponse(hash: string): void;
         private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
         private saveTokenFromHash(tokenResponse);
         isCallback(hash: string): boolean;
