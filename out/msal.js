@@ -1723,7 +1723,6 @@ var Msal;
                             return;
                         }
                     }
-
                     _this._requestType = Msal.Constants.renewToken;
                     return _this.authorityInstance.ResolveEndpointsAsync()
                         .then(function () {
