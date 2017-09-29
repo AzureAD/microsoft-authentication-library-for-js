@@ -2,7 +2,7 @@
 Microsoft Authentication Library Preview for JavaScript (MSAL.js)
 =========================================================
 
-| [Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2 )| [Docs](https://aka.ms/aaddevv2) | [API Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.msal.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](./devApps/VanillaJSTestApp )
+| [Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2 )| [Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.msal.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
@@ -43,7 +43,7 @@ This example shows how to acquire a token to read user information from Microsof
             console.log("ATS promise resolved");
           }, function (error) {
             // interaction required 
-            if(error.indexOf("interaction_required" != -1)) {
+            if(error.indexOf("interaction_required") != -1){
                 userAgentApplication.acquireTokenPopup(["user.read"]).then(function (token) {
                 // success
               }, function (error) {
@@ -88,7 +88,7 @@ We highly recommend you ask your questions on Stack Overflow first and browse ex
 
 ## Contribute
 
-We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. Read our [Contribution Guide](Contributing.md) for more information.
+We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. 
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
