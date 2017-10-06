@@ -340,6 +340,9 @@ namespace Msal {
 
                     scopes = this.filterScopes(scopes);
                 }
+                else {
+                    scopes = [this.clientId];
+                }
 
                 const scope = scopes.join(" ").toLowerCase();
                 var popUpWindow = this.openWindow('about:blank', '_blank', 1, this, resolve, reject);
