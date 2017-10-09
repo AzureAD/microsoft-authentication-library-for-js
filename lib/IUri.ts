@@ -21,17 +21,14 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Msal {
-
-    /**
-    * @hidden
-    */
-    export interface IUri {
-        Protocol: string;
-        HostNameAndPort: string;
-        AbsolutePath: string;
-        Search: string;
-        Hash: string;
-        PathSegments: string[];
-    }
+/**
+* @hidden
+*/
+export interface IUri {
+  Protocol: string;
+  HostNameAndPort: string;
+  AbsolutePath: string;
+  Search: string;
+  Hash: string;
+  PathSegments: string[];
 }

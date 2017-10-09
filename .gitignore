@@ -259,3 +259,5 @@ lib/*.js.map
 out/packages
 #tests/unit/*.js # TODO add these once the unit tests are in TS
 #tests/unit/*.js.map
+
+out

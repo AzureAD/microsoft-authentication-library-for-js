@@ -21,24 +21,21 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Msal {
+/**
+* @hidden
+*/
+export class Telemetry {
+  private static instance: Telemetry;
+  private receiverCallback: (r: Array<Object>) => void;
 
-    /**
-    * @hidden
-    */
-    export class Telemetry {
-        private static instance: Telemetry;
-        private receiverCallback: (r: Array<Object>) => void;
+  constructor() {
+  }
 
-        constructor() {
-        }
+  RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void {
+    this.receiverCallback = receiverCallback;
+  }
 
-        RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void {
-            this.receiverCallback = receiverCallback;
-        }
-
-        static GetInstance(): Telemetry {
-            return this.instance || (this.instance = new this());
-        }
-    }
+  static GetInstance(): Telemetry {
+    return this.instance || (this.instance = new this());
+  }
 }

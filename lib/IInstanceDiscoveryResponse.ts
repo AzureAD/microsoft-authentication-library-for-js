@@ -21,12 +21,9 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Msal {
-
-    /**
-    * @hidden
-    */
-    export interface IInstanceDiscoveryResponse {
-        TenantDiscoveryEndpoint: string;
-    }
+/**
+* @hidden
+*/
+export interface IInstanceDiscoveryResponse {
+  TenantDiscoveryEndpoint: string;
 }

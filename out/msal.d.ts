@@ -1,10 +1,118 @@
-declare namespace Msal {
-    enum AuthorityType {
+declare module "IUri" {
+    export interface IUri {
+        Protocol: string;
+        HostNameAndPort: string;
+        AbsolutePath: string;
+        Search: string;
+        Hash: string;
+        PathSegments: string[];
+    }
+}
+declare module "ClientInfo" {
+    export class ClientInfo {
+        private _uid;
+        uid: string;
+        private _utid;
+        utid: string;
+        constructor(rawClientInfo: string);
+    }
+}
+declare module "IdToken" {
+    export class IdToken {
+        rawIdToken: string;
+        issuer: string;
+        objectId: string;
+        subject: string;
+        tenantId: string;
+        version: string;
+        preferredName: string;
+        name: string;
+        homeObjectId: string;
+        nonce: string;
+        expiration: string;
+        constructor(rawIdToken: string);
+    }
+}
+declare module "User" {
+    import { ClientInfo } from "ClientInfo";
+    import { IdToken } from "IdToken";
+    export class User {
+        displayableId: string;
+        name: string;
+        identityProvider: string;
+        userIdentifier: string;
+        constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string);
+        static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User;
+    }
+}
+declare module "Utils" {
+    import { IUri } from "IUri";
+    import { User } from "User";
+    export class Utils {
+        static compareObjects(u1: User, u2: User): boolean;
+        static expiresIn(expires: string): number;
+        static now(): number;
+        static isEmpty(str: string): boolean;
+        static extractIdToken(encodedIdToken: string): any;
+        static base64EncodeStringUrlSafe(input: string): string;
+        static base64DecodeStringUrlSafe(base64IdToken: string): string;
+        static encode(input: string): string;
+        static utf8Encode(input: string): string;
+        static decode(base64IdToken: string): string;
+        static decodeJwt(jwtToken: string): any;
+        static deserialize(query: string): any;
+        static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean;
+        static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean;
+        static convertToLowerCase(scopes: Array<string>): Array<string>;
+        static removeElement(scopes: Array<string>, scope: string): Array<string>;
+        static decimalToHex(num: number): string;
+        static getLibraryVersion(): string;
+        static replaceFirstPath(href: string, tenantId: string): string;
+        static createNewGuid(): string;
+        static GetUrlComponents(url: string): IUri;
+        static CanonicalizeUri(url: string): string;
+        static endsWith(url: string, suffix: string): boolean;
+    }
+}
+declare module "ITenantDiscoveryResponse" {
+    export interface ITenantDiscoveryResponse {
+        AuthorizationEndpoint: string;
+        EndSessionEndpoint: string;
+        Issuer: string;
+    }
+}
+declare module "ErrorMessage" {
+    export class ErrorMessage {
+        static readonly authorityUriInvalidPath: string;
+        static readonly authorityUriInsecure: string;
+        static readonly invalidAuthorityType: string;
+        static readonly unsupportedAuthorityValidation: string;
+        static readonly b2cAuthorityUriInvalidPath: string;
+    }
+}
+declare module "B2cAuthority" {
+    import { AadAuthority } from "AadAuthority";
+    import { AuthorityType } from "Authority";
+    export class B2cAuthority extends AadAuthority {
+        constructor(authority: string, validateAuthority: boolean);
+        readonly AuthorityType: AuthorityType;
+        GetOpenIdConfigurationEndpointAsync(): Promise<string>;
+    }
+}
+declare module "XHRClient" {
+    export class XhrClient {
+        sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any>;
+        protected handleError(responseText: string): any;
+    }
+}
+declare module "Authority" {
+    import { IUri } from "IUri";
+    export enum AuthorityType {
         Aad = 0,
         Adfs = 1,
         B2C = 2,
     }
-    abstract class Authority {
+    export abstract class Authority {
         protected constructor(authority: string, validateAuthority: boolean);
         readonly abstract AuthorityType: AuthorityType;
         IsValidationEnabled: boolean;
@@ -27,8 +135,9 @@ declare namespace Msal {
         abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;
     }
 }
-declare namespace Msal {
-    class AadAuthority extends Authority {
+declare module "AadAuthority" {
+    import { Authority, AuthorityType } from "Authority";
+    export class AadAuthority extends Authority {
         private static readonly AadInstanceDiscoveryEndpoint;
         private readonly AadInstanceDiscoveryEndpointUrl;
         constructor(authority: string, validateAuthority: boolean);
@@ -38,15 +147,8 @@ declare namespace Msal {
         IsInTrustedHostList(host: string): boolean;
     }
 }
-declare namespace Msal {
-    class AccessTokenCacheItem {
-        key: AccessTokenKey;
-        value: AccessTokenValue;
-        constructor(key: AccessTokenKey, value: AccessTokenValue);
-    }
-}
-declare namespace Msal {
-    class AccessTokenKey {
+declare module "AccessTokenKey" {
+    export class AccessTokenKey {
         authority: string;
         clientId: string;
         userIdentifier: string;
@@ -54,8 +156,8 @@ declare namespace Msal {
         constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string);
     }
 }
-declare namespace Msal {
-    class AccessTokenValue {
+declare module "AccessTokenValue" {
+    export class AccessTokenValue {
         accessToken: string;
         idToken: string;
         expiresIn: string;
@@ -63,8 +165,18 @@ declare namespace Msal {
         constructor(accessToken: string, idToken: string, expiresIn: string, clientInfo: string);
     }
 }
-declare namespace Msal {
-    class AuthenticationRequestParameters {
+declare module "AccessTokenCacheItem" {
+    import { AccessTokenKey } from "AccessTokenKey";
+    import { AccessTokenValue } from "AccessTokenValue";
+    export class AccessTokenCacheItem {
+        key: AccessTokenKey;
+        value: AccessTokenValue;
+        constructor(key: AccessTokenKey, value: AccessTokenValue);
+    }
+}
+declare module "AuthenticationRequestParameters" {
+    import { Authority } from "Authority";
+    export class AuthenticationRequestParameters {
         authorityInstance: Authority;
         clientId: string;
         nonce: string;
@@ -86,24 +198,8 @@ declare namespace Msal {
         parseScope(scopes: Array<string>): string;
     }
 }
-declare namespace Msal {
-    class B2cAuthority extends AadAuthority {
-        constructor(authority: string, validateAuthority: boolean);
-        readonly AuthorityType: AuthorityType;
-        GetOpenIdConfigurationEndpointAsync(): Promise<string>;
-    }
-}
-declare namespace Msal {
-    class ClientInfo {
-        private _uid;
-        uid: string;
-        private _utid;
-        utid: string;
-        constructor(rawClientInfo: string);
-    }
-}
-declare namespace Msal {
-    class Constants {
+declare module "Constants" {
+    export class Constants {
         static readonly errorDescription: string;
         static readonly error: string;
         static readonly scope: string;
@@ -146,7 +242,7 @@ declare namespace Msal {
         static readonly renewToken: string;
         static readonly unknown: string;
     }
-    class ErrorCodes {
+    export class ErrorCodes {
         static readonly loginProgressError: string;
         static readonly acquireTokenProgressError: string;
         static readonly inputScopesError: string;
@@ -155,7 +251,7 @@ declare namespace Msal {
         static readonly userLoginError: string;
         static readonly userCancelledError: string;
     }
-    class ErrorDescription {
+    export class ErrorDescription {
         static readonly loginProgressError: string;
         static readonly acquireTokenProgressError: string;
         static readonly inputScopesError: string;
@@ -165,64 +261,22 @@ declare namespace Msal {
         static readonly userCancelledError: string;
     }
 }
-declare namespace Msal {
-    class ErrorMessage {
-        static readonly authorityUriInvalidPath: string;
-        static readonly authorityUriInsecure: string;
-        static readonly invalidAuthorityType: string;
-        static readonly unsupportedAuthorityValidation: string;
-        static readonly b2cAuthorityUriInvalidPath: string;
-    }
-}
-declare namespace Msal {
-    class IdToken {
-        rawIdToken: string;
-        issuer: string;
-        objectId: string;
-        subject: string;
-        tenantId: string;
-        version: string;
-        preferredName: string;
-        name: string;
-        homeObjectId: string;
-        nonce: string;
-        expiration: string;
-        constructor(rawIdToken: string);
-    }
-}
-declare namespace Msal {
-    interface IInstanceDiscoveryResponse {
+declare module "IInstanceDiscoveryResponse" {
+    export interface IInstanceDiscoveryResponse {
         TenantDiscoveryEndpoint: string;
     }
 }
-declare namespace Msal {
-    interface ITenantDiscoveryResponse {
-        AuthorizationEndpoint: string;
-        EndSessionEndpoint: string;
-        Issuer: string;
-    }
-}
-declare namespace Msal {
-    interface IUri {
-        Protocol: string;
-        HostNameAndPort: string;
-        AbsolutePath: string;
-        Search: string;
-        Hash: string;
-        PathSegments: string[];
-    }
-}
-declare namespace Msal {
-    interface ILoggerCallback {
+declare module "Logger" {
+    export interface ILoggerCallback {
         (level: LogLevel, message: string, containsPii: boolean): void;
     }
-    enum LogLevel {
+    export enum LogLevel {
         Error = 0,
         Warning = 1,
         Info = 2,
         Verbose = 3,
     }
-    class Logger {
+    export class Logger {
         private static _instance;
         private _correlationId;
         correlationId: string;
@@ -245,8 +299,9 @@ declare namespace Msal {
         verbosePii(message: string): void;
     }
 }
-declare namespace Msal {
-    class RequestContext {
+declare module "RequestContext" {
+    import { Logger } from "Logger";
+    export class RequestContext {
         private static _instance;
         private _correlationId;
         readonly correlationId: string;
@@ -255,18 +310,9 @@ declare namespace Msal {
         constructor(correlationId: string);
     }
 }
-declare namespace Msal {
-    class TokenResponse {
-        valid: boolean;
-        parameters: Object;
-        stateMatch: boolean;
-        stateResponse: string;
-        requestType: string;
-        constructor();
-    }
-}
-declare namespace Msal {
-    class Storage {
+declare module "Storage" {
+    import { AccessTokenCacheItem } from "AccessTokenCacheItem";
+    export class Storage {
         private static _instance;
         private _localStorageSupported;
         private _sessionStorageSupported;
@@ -281,28 +327,20 @@ declare namespace Msal {
         resetCacheItems(): void;
     }
 }
-declare namespace Msal {
-    class Telemetry {
-        private static instance;
-        private receiverCallback;
+declare module "RequestInfo" {
+    export class TokenResponse {
+        valid: boolean;
+        parameters: Object;
+        stateMatch: boolean;
+        stateResponse: string;
+        requestType: string;
         constructor();
-        RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void;
-        static GetInstance(): Telemetry;
     }
 }
-declare namespace Msal {
-    class User {
-        displayableId: string;
-        name: string;
-        identityProvider: string;
-        userIdentifier: string;
-        constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string);
-        static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User;
-    }
-}
-declare namespace Msal {
-    type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
-    class UserAgentApplication {
+declare module "UserAgentApplication" {
+    import { User } from "User";
+    export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+    export class UserAgentApplication {
         private _cacheLocations;
         private _cacheLocation;
         readonly cacheLocation: string;
@@ -326,7 +364,7 @@ declare namespace Msal {
         private _navigateToLoginRequestUrl;
         private _openedWindows;
         private _requestType;
-        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, {validateAuthority, cacheLocation, redirectUri, postLogoutRedirectUri, navigateToLoginRequestUrl}?: {
+        constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, options?: {
             validateAuthority?: boolean;
             cacheLocation?: string;
             redirectUri?: string;
@@ -374,41 +412,20 @@ declare namespace Msal {
         private isInIframe();
     }
 }
-declare namespace Msal {
-    class Utils {
-        static compareObjects(u1: User, u2: User): boolean;
-        static expiresIn(expires: string): number;
-        static now(): number;
-        static isEmpty(str: string): boolean;
-        static extractIdToken(encodedIdToken: string): any;
-        static base64EncodeStringUrlSafe(input: string): string;
-        static base64DecodeStringUrlSafe(base64IdToken: string): string;
-        static encode(input: string): string;
-        static utf8Encode(input: string): string;
-        static decode(base64IdToken: string): string;
-        static decodeJwt(jwtToken: string): any;
-        static deserialize(query: string): any;
-        static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean;
-        static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean;
-        static convertToLowerCase(scopes: Array<string>): Array<string>;
-        static removeElement(scopes: Array<string>, scope: string): Array<string>;
-        static decimalToHex(num: number): string;
-        static getLibraryVersion(): string;
-        static replaceFirstPath(href: string, tenantId: string): string;
-        static createNewGuid(): string;
-        static GetUrlComponents(url: string): IUri;
-        static CanonicalizeUri(url: string): string;
-        static endsWith(url: string, suffix: string): boolean;
+declare module "index" {
+    export { UserAgentApplication } from "UserAgentApplication";
+}
+declare module "Telemetry" {
+    export class Telemetry {
+        private static instance;
+        private receiverCallback;
+        constructor();
+        RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void;
+        static GetInstance(): Telemetry;
     }
 }
 interface Window {
     msal: Object;
     callBackMappedToRenewStates: Object;
     callBacksMappedToRenewStates: Object;
-}
-declare namespace Msal {
-    class XhrClient {
-        sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any>;
-        protected handleError(responseText: string): any;
-    }
 }
