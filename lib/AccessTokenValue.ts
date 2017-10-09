@@ -21,22 +21,20 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Msal {
-    /**
-    * @hidden
-    */
-    export class AccessTokenValue {
+/**
+* @hidden
+*/
+export class AccessTokenValue {
 
-        accessToken: string;
-        idToken: string;
-        expiresIn: string;
-        clientInfo: string;
+  accessToken: string;
+  idToken: string;
+  expiresIn: string;
+  clientInfo: string;
 
-        constructor(accessToken: string, idToken: string, expiresIn: string, clientInfo: string) {
-            this.accessToken = accessToken;
-            this.idToken = idToken;
-            this.expiresIn = expiresIn;
-            this.clientInfo = clientInfo;
-        }
-    }
+  constructor(accessToken: string, idToken: string, expiresIn: string, clientInfo: string) {
+    this.accessToken = accessToken;
+    this.idToken = idToken;
+    this.expiresIn = expiresIn;
+    this.clientInfo = clientInfo;
+  }
 }

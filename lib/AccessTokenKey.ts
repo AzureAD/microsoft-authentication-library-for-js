@@ -1,3 +1,5 @@
+import { Utils } from './Utils';
+
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -21,22 +23,20 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Msal {
-	/**
-    * @hidden
-    */
-    export class AccessTokenKey {
+/**
+  * @hidden
+  */
+export class AccessTokenKey {
 
-        authority: string;
-        clientId: string;
-        userIdentifier: string;
-        scopes: string;
+  authority: string;
+  clientId: string;
+  userIdentifier: string;
+  scopes: string;
 
-        constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string) {
-            this.authority = authority;
-            this.clientId = clientId;
-            this.scopes = scopes;
-            this.userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-        }
-    }
+  constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string) {
+    this.authority = authority;
+    this.clientId = clientId;
+    this.scopes = scopes;
+    this.userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
+  }
 }

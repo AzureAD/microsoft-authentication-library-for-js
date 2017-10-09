@@ -19,12 +19,14 @@
     "msal",
     "oauth"
   ],
-  "main": "./out/msal.js",
-  "typings": "./out/msal.d.ts",
+  "main": "./out/index.js",
+  "typings": "./out/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tslib": "^1.7.1"
+  },
   "devDependencies": {
     "@types/jasmine": "^2.5.47",
     "@types/jasmine-ajax": "^3.1.35",

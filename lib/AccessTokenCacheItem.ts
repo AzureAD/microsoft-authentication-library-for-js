@@ -1,3 +1,6 @@
+import { AccessTokenKey } from './AccessTokenKey';
+import { AccessTokenValue } from './AccessTokenValue';
+
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -21,18 +24,16 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Msal {
-    /**
-    * @hidden
-    */
-    export class AccessTokenCacheItem {
+/**
+* @hidden
+*/
+export class AccessTokenCacheItem {
 
-        key: AccessTokenKey;
-        value: AccessTokenValue;
+  key: AccessTokenKey;
+  value: AccessTokenValue;
 
-        constructor(key: AccessTokenKey, value: AccessTokenValue) {
-            this.key = key;
-            this.value = value;
-        }
-    }
+  constructor(key: AccessTokenKey, value: AccessTokenValue) {
+    this.key = key;
+    this.value = value;
+  }
 }

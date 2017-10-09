@@ -2,9 +2,11 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": true,
   "compilerOptions": {
-    "outFile": "out/msal.js",
     "declaration": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "target": "es5",
+    "importHelpers": true
   },
   "exclude": [
     "node_modules",
