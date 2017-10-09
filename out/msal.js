@@ -1568,7 +1568,7 @@ var Msal;
             if (scopes) {
                 scopes = this.filterScopes(scopes);
             }
-            var userObject = user ? user : this._user;
+            var userObject = user ? user : this.getUser();
             if (this._acquireTokenInProgress) {
                 return;
             }
@@ -1621,7 +1621,7 @@ var Msal;
                 if (scopes) {
                     scopes = _this.filterScopes(scopes);
                 }
-                var userObject = user ? user : _this._user;
+                var userObject = user ? user : _this.getUser();
                 if (_this._acquireTokenInProgress) {
                     reject(Msal.ErrorCodes.acquireTokenProgressError + ':' + Msal.ErrorDescription.acquireTokenProgressError);
                     return;
@@ -1695,7 +1695,7 @@ var Msal;
                         scopes = _this.filterScopes(scopes);
                     }
                     var scope_1 = scopes.join(" ").toLowerCase();
-                    var userObject_1 = user ? user : _this._user;
+                    var userObject_1 = user ? user : _this.getUser();
                     if (!userObject_1) {
                         reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
                         return;

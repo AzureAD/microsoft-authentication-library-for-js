@@ -833,7 +833,7 @@ namespace Msal {
                 scopes = this.filterScopes(scopes);
             }
 
-            const userObject = user ? user : this._user;
+            const userObject = user ? user : this.getUser();
             if (this._acquireTokenInProgress) {
                 return;
             }
@@ -910,7 +910,7 @@ namespace Msal {
                     scopes = this.filterScopes(scopes);
                 }
 
-                const userObject = user ? user : this._user;
+                const userObject = user ? user : this.getUser();
                 if (this._acquireTokenInProgress) {
                     reject(Msal.ErrorCodes.acquireTokenProgressError + ':' + Msal.ErrorDescription.acquireTokenProgressError);
                     return;
@@ -1005,7 +1005,7 @@ namespace Msal {
                     }
 
                     const scope = scopes.join(" ").toLowerCase();
-                    const userObject = user ? user : this._user;
+                    const userObject = user ? user : this.getUser();
                     if (!userObject) {
                         reject(Msal.ErrorCodes.userLoginError + ':' + Msal.ErrorDescription.userLoginError);
                         return;
