@@ -1,16 +1,13 @@
 {
   "extends": "./tsconfig.base.json",
-  "compileOnSave": true,
   "compilerOptions": {
-    "declaration": true,
-    "experimentalDecorators": true,
+    "moduleResolution": "node",
     "module": "commonjs",
     "target": "es5",
-    "importHelpers": true
+    "lib": [ "es2015", "dom", "es2015.promise" ],
+    "outDir": "lib"
   },
-  "exclude": [
-    "node_modules",
-    "out",
-    "tests"
+  "files": [
+    "./src/index.ts"
   ]
 }

@@ -1,5 +1,5 @@
-/// <reference path="../../out/msal.d.ts" />
-/// <reference path="../../node_modules/@types/jasmine/index.d.ts" />
+import {UserAgentApplication} from '../../src/index';
+import {Constants} from '../../src/Constants';
 
 describe('Msal', function (): any {
     let window: any;
@@ -114,13 +114,13 @@ describe('Msal', function (): any {
         global.document = documentMock;
         global.Math = mathMock;
 
-        msal = new Msal.UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
         });
         msal._user = null;
         msal._renewStates = [];
         msal._activeRenewals = {};
         msal._cacheStorage = storageFake;
-        Msal.Constants.loadFrameTimeout = 6000;
+        Constants.loadFrameTimeout = 6000;
 
         jasmine.Ajax.install();
 

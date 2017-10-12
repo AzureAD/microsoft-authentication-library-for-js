@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>msaljs</title>
+	<title>msal</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">msaljs</a>
+					<a href="index.html" class="title">msal</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -56,7 +56,7 @@
 					<a href="globals.html">Globals</a>
 				</li>
 			</ul>
-			<h1> msaljs</h1>
+			<h1> msal</h1>
 		</div>
 	</div>
 </header>
@@ -64,15 +64,15 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<h1 id="microsoft-authentication-library">Microsoft Authentication Library</h1>
+				<h1 id="microsoft-authentication-library-preview-for-javascript-msal-js-">Microsoft Authentication Library Preview for JavaScript (MSAL.js)</h1>
 				<table>
 					<thead>
 						<tr>
-							<th><a href="https://aka.ms/aaddevv2">Getting Started</a></th>
+							<th><a href="https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2">Getting Started</a></th>
 							<th><a href="https://aka.ms/aaddevv2">Docs</a></th>
-							<th><a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/dev/doc/index.html">API Reference</a></th>
+							<th><a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.msal.useragentapplication.html">Library Reference</a></th>
 							<th><a href="README.md#community-help-and-support">Support</a></th>
-							<th><a href="./devApps/VanillaJSTestApp">Sample</a></th>
+							<th><a href="./devApps/VanillaJSTestApp">Samples</a></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -81,49 +81,62 @@
 						</tr>
 					</tbody>
 				</table>
-				<p>The MSAL library for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory(AAD), microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>. </p>
-				<p>The identity management services that the library interacts with are <a href="https://azure.microsoft.com/en-us/services/active-directory/">Microsoft Azure Active Directoryy</a>, <a href="https://azure.microsoft.com/services/active-directory-b2c/">Microsoft Azure B2C</a> and <a href="https://account.microsoft.com">Microsoft Accounts</a>.</p>
-				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a></p>
-				<p>MSAL for Javascript is in active development, but not yet ready. We encourage you to look at our work in progress and provide feedback!
-				<strong>It should not be used in production environments.</strong></p>
+				<p>The MSAL library preview for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>. </p>
+				<p>The identity management services that the library interacts with are <a href="https://azure.microsoft.com/en-us/services/active-directory/">Microsoft Azure Active Directory</a>, <a href="https://azure.microsoft.com/services/active-directory-b2c/">Microsoft Azure B2C</a> and <a href="https://account.microsoft.com">Microsoft Accounts</a>.</p>
+				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a><a href="https://www.npmjs.com/package/msal"><img src="https://img.shields.io/npm/v/msal.svg?style=flat" alt="npm version"></a><a href="https://nodei.co/npm/msal/"><img src="https://img.shields.io/npm/dm/msal.svg" alt="npm version"></a></p>
+				<h2 id="important-note-about-the-msal-preview">Important Note about the MSAL Preview</h2>
+				<p>This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.</p>
 				<h2 id="example">Example</h2>
-				<pre><code class="lang-JavaScript">
-        &lt;script <span class="hljs-class"><span class="hljs-keyword">class</span></span>=<span class="hljs-string">"pre"</span>&gt;
-        <span class="hljs-keyword">var</span> userAgentApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(<span class="hljs-string">"your_client_id"</span>, <span class="hljs-literal">null</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">errorDes, token, error, tokenType</span>) </span>{
-              <span class="hljs-comment">//this callback is called after loginredirect OR acquiretokenredirect</span>
-        })
-        userAgentApplication.loginPopup(<span class="hljs-string">"user.read"</span>).then( <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">token</span>) </span>{
-            <span class="hljs-keyword">var</span> user = userAgentApplication.getUser();
-            <span class="hljs-keyword">if</span> (user) {
-               <span class="hljs-comment">//signin successful</span>
-            } <span class="hljs-keyword">else</span> {
-               <span class="hljs-comment">//signin failure</span>
-            }
-        }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-            <span class="hljs-comment">//handle error</span>
-        });
-          <span class="hljs-comment">//get an access token</span>
-          userAgentApplication.acquireTokenSilent(<span class="hljs-string">"user.read"</span>).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">token</span>) </span>{
+				<p>This example shows how to acquire a token to read user information from Microsoft Graph.</p>
+				<ol>
+					<li>Register an application in Azure AD v2.0 (using the <a href="https://apps.dev.microsoft.com/">application registration portal</a>) to get your client_id. you will also need to add the Web platform, check the &quot;Implicit Flow&quot; checkbox, and add the redirectURI to your application.</li>
+					<li>Instantiate a UserAgentApplication and login the user:<pre><code class="lang-JavaScript"> &lt;script <span class="hljs-class"><span class="hljs-keyword">class</span></span>=<span class="hljs-string">"pre"</span>&gt;
+     <span class="hljs-keyword">var</span> userAgentApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(<span class="hljs-string">"your_client_id"</span>, <span class="hljs-literal">null</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">errorDes, token, error, tokenType</span>) </span>{
+           <span class="hljs-comment">// this callback is called after loginRedirect OR acquireTokenRedirect (not used for loginPopup/aquireTokenPopup)</span>
+     })
+     userAgentApplication.loginPopup([<span class="hljs-string">"user.read"</span>]).then( <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">token</span>) </span>{
+         <span class="hljs-keyword">var</span> user = userAgentApplication.getUser();
+         <span class="hljs-comment">// signin successful</span>
+     }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+         <span class="hljs-comment">// handle error</span>
+     });
+ <span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
+</code></pre>
+					</li>
+					<li>Then, once the user is logged-in, get an access token</li>
+				</ol>
+				<pre><code class="lang-JavaScript">   &lt;script&gt;
+          <span class="hljs-comment">// get an access token</span>
+          userAgentApplication.acquireTokenSilent([<span class="hljs-string">"user.read"</span>]).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">token</span>) </span>{
             <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"ATS promise resolved"</span>);
           }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-            <span class="hljs-comment">//interaction required </span>
-            <span class="hljs-keyword">if</span>(error.indexOf(<span class="hljs-string">"interaction_required"</span> != <span class="hljs-number">-1</span>) {
-                userAgentApplication.acquireTokenPopup(<span class="hljs-string">"mail.send"</span>).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">token</span>) </span>{
-                <span class="hljs-comment">//success</span>
+            <span class="hljs-comment">// interaction required </span>
+            <span class="hljs-keyword">if</span>(error.indexOf(<span class="hljs-string">"interaction_required"</span>) != <span class="hljs-number">-1</span>){
+                userAgentApplication.acquireTokenPopup([<span class="hljs-string">"user.read"</span>]).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">token</span>) </span>{
+                <span class="hljs-comment">// success</span>
               }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-                <span class="hljs-comment">//error</span>
+                <span class="hljs-comment">// error</span>
                });
             }
           });
     <span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
 </code></pre>
+				<ol>
+					<li>use the token in an <a href="https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2/blob/master/TodoSPA/App/Scripts/Ctrls/todoListCtrl.js#L30">HTTP bearer request</a>, to call the Microsoft Graph or a Web API</li>
+				</ol>
 				<h2 id="installation">Installation</h2>
 				<p>Via NPM:</p>
-				<pre><code>npm <span class="hljs-keyword">install</span> adal-angular
+				<pre><code>npm <span class="hljs-keyword">install</span> msal
 </code></pre><p>Via CDN:</p>
-				<pre><code><span class="hljs-comment">&lt;!-- Latest compiled and minified JavaScript --&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/0.1.0/js/msal.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-</code></pre><h2 id="community-help-and-support">Community Help and Support</h2>
+				<pre><code class="lang-JavaScript">    &lt;!-- Latest compiled and minified JavaScript --&gt;
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/0.1.2/js/msal.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
+</code></pre>
+				<p>Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you&#39;ll need to add a reference to promises polyfill. You might want to read more in the <a href="../../wiki">FAQ</a></p>
+				<pre><code class="lang-JavaScript">    &lt;!-- IE support: add promises polyfill before msal.js  --&gt;
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"pre"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span> 
+    &lt;script src=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/0.1.2/js/msal.min.js"</span>&gt;<span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
+</code></pre>
+				<h2 id="community-help-and-support">Community Help and Support</h2>
 				<ul>
 					<li><p><a href="../../wiki">FAQ</a> for access to our frequently asked questions</p>
 					</li>
@@ -136,7 +149,7 @@
 					</li>
 				</ul>
 				<h2 id="contribute">Contribute</h2>
-				<p>We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. Read our <a href="Contributing.md">Contribution Guide</a> for more information.</p>
+				<p>We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. </p>
 				<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
 				<h2 id="security-library">Security Library</h2>
 				<p>This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use <a href="http://semver.org">semantic versioning</a> so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.<em>y</em>.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.</p>
@@ -155,76 +168,70 @@
 					<li class="globals  ">
 						<a href="globals.html"><em>Globals</em></a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_aadauthority_.html">"<wbr>Aad<wbr>Authority"</a>
+					<li class="label tsd-is-external">
+						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="modules/_index_.html">"index"</a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_accesstokencacheitem_.html">"<wbr>Access<wbr>Token<wbr>Cache<wbr>Item"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_accesstokenkey_.html">"<wbr>Access<wbr>Token<wbr>Key"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_accesstokenvalue_.html">"<wbr>Access<wbr>Token<wbr>Value"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_authenticationrequestparameters_.html">"<wbr>Authentication<wbr>Request<wbr>Parameters"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_authority_.html">"<wbr>Authority"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_b2cauthority_.html">"<wbr>B2c<wbr>Authority"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_clientinfo_.html">"<wbr>Client<wbr>Info"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_constants_.html">"<wbr>Constants"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_errormessage_.html">"<wbr>Error<wbr>Message"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_iinstancediscoveryresponse_.html">"IInstance<wbr>Discovery<wbr>Response"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_itenantdiscoveryresponse_.html">"ITenant<wbr>Discovery<wbr>Response"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_iuri_.html">"IUri"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_idtoken_.html">"<wbr>IdToken"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_logger_.html">"<wbr>Logger"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_requestcontext_.html">"<wbr>Request<wbr>Context"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_requestinfo_.html">"<wbr>Request<wbr>Info"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_storage_.html">"<wbr>Storage"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_telemetry_.html">"<wbr>Telemetry"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_user_.html">"<wbr>User"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_useragentapplication_.html">"<wbr>User<wbr>Agent<wbr>Application"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_utils_.html">"<wbr>Utils"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_window_.html">"<wbr>Window"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_xhrclient_.html">"XHRClient"</a>
 					</li>
 				</ul>

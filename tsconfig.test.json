@@ -1,11 +1,18 @@
 {
-  "extends": "./tsconfig.base.json",
+ "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "out/spec"
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "target": "es5",
+    "lib": [ "es2015", "dom", "es2015.promise" ],
+    "outDir": ".",
+    "sourceMap": false,
+    "declaration": false
   },
-  "exclude": [
-    "node_modules",
-    "lib",
-    "out"
+  "files": [
+    "./tests/spec/Authority.spec.ts",
+    "./tests/spec/MSAL.spec.ts"
+
   ]
+  
 }

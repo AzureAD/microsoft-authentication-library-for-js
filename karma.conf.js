@@ -1,45 +1,28 @@
-// Karma configuration
+var webpackConfig = require('./webpack.config');
+
 module.exports = function (config) {
     config.set({
-        // base path, that will be used to resolve files and exclude
         basePath: '',
-
-        // testing framework to use (jasmine/mocha/qunit/...)
         frameworks: ['jasmine-ajax', 'jasmine'],
-
-        // list of files / patterns to load in the browser
         files: [
-            'out/*.js',
-            'out/spec/*.js',
+          'tests/**/*.ts'
         ],
-
-        reporters: ['verbose'],
-
-        // list of files / patterns to exclude
-        exclude: [],
-
-        // web server port
-        port: 8080,
-
-        // level of logging
-        // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
+        exclude: [
+        ],
+        preprocessors: {
+            'test/**/*.ts': ['webpack']
+        },
+        webpack: {
+            module: webpackConfig.module,
+            resolve: webpackConfig.resolve
+        },
+        reporters: ['progress'],
+        port: 9876,
+        colors: true,
         logLevel: config.LOG_INFO,
-
-        // enable / disable watching file and executing tests whenever any file changes
-        autoWatch: false,
-
-        // Start these browsers, currently available:
-        // - Chrome
-        // - ChromeCanary
-        // - Firefox
-        // - Opera
-        // - Safari (only Mac)
-        // - PhantomJS
-        // - IE (only Windows)
+        autoWatch: true,
         browsers: ['Firefox'],
-
-        // Continuous Integration mode
-        // if true, it capture browsers, run tests and exit
-        singleRun: true
-    });
-};
+        singleRun: true,
+        concurrency: Infinity
+    })
+}

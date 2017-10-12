@@ -1,0 +1,10 @@
+{
+  "name": "TypescriptMochaWebpackDemo",
+  "globalDependencies": {
+    "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#5d0f2126c8dac8fce0ff020218aea06607213b0d",
+    "assertion-error": "github:DefinitelyTyped/DefinitelyTyped/assertion-error/assertion-error.d.ts#5d0f2126c8dac8fce0ff020218aea06607213b0d",
+    "chai": "github:DefinitelyTyped/DefinitelyTyped/chai/chai.d.ts#5d0f2126c8dac8fce0ff020218aea06607213b0d",
+    "jquery": "github:DefinitelyTyped/DefinitelyTyped/jquery/jquery.d.ts#717a5fdb079f8dd7c19f1b22f7f656dd990f0ccf",
+    "sinon": "github:DefinitelyTyped/DefinitelyTyped/sinon/sinon.d.ts#717a5fdb079f8dd7c19f1b22f7f656dd990f0ccf"
+  }
+}
