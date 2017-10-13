@@ -1,8 +1,0 @@
-{
-  "resolution": "main",
-  "tree": {
-    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/b91b67fc09fc34ae8f7e34b0d2a905421de101c5/jasmine-ajax/jasmine-ajax.d.ts",
-    "raw": "github:DefinitelyTyped/DefinitelyTyped/jasmine-ajax/jasmine-ajax.d.ts#b91b67fc09fc34ae8f7e34b0d2a905421de101c5",
-    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/b91b67fc09fc34ae8f7e34b0d2a905421de101c5/jasmine-ajax/jasmine-ajax.d.ts"
-  }
-}

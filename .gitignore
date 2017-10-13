@@ -256,5 +256,5 @@ node_modules/
 lib-commonjs/
 lib-es6/
 dist/
-docs/
+docs/**/*
 typings/
