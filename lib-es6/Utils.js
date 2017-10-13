@@ -27,8 +27,9 @@ var Utils = /** @class */ (function () {
     function Utils() {
     }
     Utils.compareObjects = function (u1, u2) {
-        if (!u1 || !u2)
+        if (!u1 || !u2) {
             return false;
+        }
         if (u1.userIdentifier && u2.userIdentifier) {
             if (u1.userIdentifier === u2.userIdentifier) {
                 return true;
@@ -36,22 +37,19 @@ var Utils = /** @class */ (function () {
         }
         return false;
     };
-    ;
     Utils.expiresIn = function (expires) {
         // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-        if (!expires)
+        if (!expires) {
             expires = "3599";
+        }
         return this.now() + parseInt(expires, 10);
     };
-    ;
     Utils.now = function () {
         return Math.round(new Date().getTime() / 1000.0);
     };
-    ;
     Utils.isEmpty = function (str) {
         return (typeof str === "undefined" || !str || 0 === str.length);
     };
-    ;
     Utils.extractIdToken = function (encodedIdToken) {
         // id token will be decoded to get the username
         var decodedToken = this.decodeJwt(encodedIdToken);
@@ -73,7 +71,6 @@ var Utils = /** @class */ (function () {
         }
         return null;
     };
-    ;
     Utils.base64EncodeStringUrlSafe = function (input) {
         // html5 should support atob function for decoding
         if (window.btoa) {
@@ -93,7 +90,6 @@ var Utils = /** @class */ (function () {
             return decodeURIComponent(this.decode(base64IdToken));
         }
     };
-    ;
     Utils.encode = function (input) {
         var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
         var output = "";
@@ -176,13 +172,11 @@ var Utils = /** @class */ (function () {
         }
         return decoded;
     };
-    ;
     Utils.decodeJwt = function (jwtToken) {
         if (this.isEmpty(jwtToken)) {
             return null;
         }
-        ;
-        var idTokenPartsRegex = /^([^\.\s] *)\.([^\.\s]+)\.([^\.\s] *)$/;
+        var idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
         var matches = idTokenPartsRegex.exec(jwtToken);
         if (!matches || matches.length < 4) {
             //this._requestContext.logger.warn("The returned id_token is not parseable.");
@@ -195,11 +189,10 @@ var Utils = /** @class */ (function () {
         };
         return crackedToken;
     };
-    ;
     Utils.deserialize = function (query) {
         var match; // Regex for replacing addition symbol with a space
         var pl = /\+/g;
-        var search = /([^&=]+)=([^&] *)/g;
+        var search = /([^&=]+)=([^&]*)/g;
         var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
         var obj = {};
         match = search.exec(query);
@@ -209,12 +202,12 @@ var Utils = /** @class */ (function () {
         }
         return obj;
     };
-    ;
     Utils.isIntersectingScopes = function (cachedScopes, scopes) {
         cachedScopes = this.convertToLowerCase(cachedScopes);
         for (var i = 0; i < scopes.length; i++) {
-            if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1)
+            if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
                 return true;
+            }
         }
         return false;
     };
@@ -322,7 +315,6 @@ var Utils = /** @class */ (function () {
             return guidResponse;
         }
     };
-    ;
     /*
      * Parses out the components from a url string.
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
@@ -331,8 +323,8 @@ var Utils = /** @class */ (function () {
         if (!url) {
             throw "Url required";
         }
-        // http://stackoverflow.com/a/26766402
-        var regEx = new RegExp(/^(([^:\/?#]+):)?(\/\/([^\/?#] *))?([^?#] *)(\?([^#] *))?(#(. *))?/);
+        // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
+        var regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
         var match = url.match(regEx);
         if (!match || match.length < 6) {
             throw "Valid url required";

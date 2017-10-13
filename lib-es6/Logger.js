@@ -53,20 +53,19 @@ var Logger = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
     Object.defineProperty(Logger.prototype, "level", {
         get: function () { return this._level; },
         set: function (logLevel) {
             if (LogLevel[logLevel]) {
                 this._level = logLevel;
             }
-            else
+            else {
                 throw new Error("Provide a valid value for level. Possibles range for logLevel is 0-3");
+            }
         },
         enumerable: true,
         configurable: true
     });
-    ;
     Object.defineProperty(Logger.prototype, "piiLoggingEnabled", {
         get: function () { return this._piiLoggingEnabled; },
         set: function (piiLoggingEnabled) {
@@ -75,7 +74,6 @@ var Logger = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
     Object.defineProperty(Logger.prototype, "localCallback", {
         get: function () { return this._localCallback; },
         set: function (localCallback) {
@@ -87,7 +85,6 @@ var Logger = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
     /*
      * @hidden
      */

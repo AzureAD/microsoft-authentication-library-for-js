@@ -24,7 +24,6 @@ import * as tslib_1 from "tslib";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 import { AuthenticationRequestParameters } from "./AuthenticationRequestParameters";
-import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
 import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
 import { IdToken } from "./IdToken";
@@ -33,6 +32,7 @@ import { Storage } from "./Storage";
 import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
+import { AuthorityFactory } from "./AuthorityFactory";
 /*
  * @hidden
  */
@@ -99,7 +99,7 @@ var UserAgentApplication = /** @class */ (function () {
          * True = redirects user to redirectUri
          */
         this._navigateToLoginRequestUrl = true;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? redirectUri : _d, _e = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _e === void 0 ? true : _e;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _e === void 0 ? true : _e;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
@@ -152,7 +152,7 @@ var UserAgentApplication = /** @class */ (function () {
          * - Default value is: "https://login.microsoftonline.com/common"
          */
         set: function (val) {
-            this.authorityInstance = Authority.CreateInstance(val, this.validateAuthority);
+            this.authorityInstance = AuthorityFactory.CreateInstance(val, this.validateAuthority);
         },
         enumerable: true,
         configurable: true
@@ -291,7 +291,6 @@ var UserAgentApplication = /** @class */ (function () {
             this._requestContext.logger.info("Navigate url is empty");
         }
     };
-    ;
     /*
      * Used to send the user to the redirect_uri after authentication is complete. The user"s bearer token is attached to the URI fragment as an id_token/access_token field.
      * This function also closes the popup window after redirection.
@@ -457,7 +456,6 @@ var UserAgentApplication = /** @class */ (function () {
                         try {
                             if (errorDesc || error) {
                                 window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);
-                                ;
                             }
                             else if (token) {
                                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -499,7 +497,7 @@ var UserAgentApplication = /** @class */ (function () {
             //if only one cached token found
             if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
-                authenticationRequest.authorityInstance = Authority.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
+                authenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
             }
             else if (filteredItems.length > 1) {
                 return {
@@ -518,7 +516,7 @@ var UserAgentApplication = /** @class */ (function () {
                         error: "multiple_matching_tokens_detected"
                     };
                 }
-                authenticationRequest.authorityInstance = Authority.CreateInstance(authorityList[0], this.validateAuthority);
+                authenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority);
             }
         }
         else {
@@ -689,7 +687,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._acquireTokenInProgress = true;
         var authenticationRequest;
-        var acquireTokenAuthority = authority ? Authority.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+        var acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
             if (Utils.compareObjects(userObject, _this._user)) {
                 authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
@@ -741,7 +739,7 @@ var UserAgentApplication = /** @class */ (function () {
             }
             _this._acquireTokenInProgress = true;
             var authenticationRequest;
-            var acquireTokenAuthority = authority ? Authority.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
+            var acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
             var popUpWindow = _this.openWindow("about:blank", "_blank", 1, _this, resolve, reject);
             if (!popUpWindow) {
                 return;
@@ -786,8 +784,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (reject) {
                     reject(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
                 }
-                if (popUpWindow)
+                if (popUpWindow) {
                     popUpWindow.close();
+                }
             });
         });
     };
@@ -822,7 +821,7 @@ var UserAgentApplication = /** @class */ (function () {
                     return;
                 }
                 var authenticationRequest_1;
-                var newAuthority = authority ? Authority.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
+                var newAuthority = authority ? AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
                 if (Utils.compareObjects(userObject_1, _this._user)) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest_1 = new AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
@@ -890,8 +889,9 @@ var UserAgentApplication = /** @class */ (function () {
                 // fail the iframe session if it"s in pending state
                 _this._requestContext.logger.verbose("Loading frame has timed out after: " + (Constants.loadFrameTimeout / 1000) + " seconds for scope " + scope);
                 var expectedState = _this._activeRenewals[scope];
-                if (expectedState && window.callBackMappedToRenewStates[expectedState])
+                if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
                     window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Constants.accessToken);
+                }
                 _this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCancelled);
             }
         }, Constants.loadFrameTimeout);
@@ -1025,7 +1025,6 @@ var UserAgentApplication = /** @class */ (function () {
         }
         return null;
     };
-    ;
     /*
      * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
      * calls the registered callbacks in case of redirect or resolves the promises with the result.
@@ -1050,17 +1049,22 @@ var UserAgentApplication = /** @class */ (function () {
             self._requestContext.logger.info("Returned from redirect url");
             self.saveTokenFromHash(requestInfo);
             var token = null, tokenReceivedCallback = null, tokenType = void 0;
-            if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse])
+            if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
                 tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-            else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse])
+            }
+            else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
                 tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
-            else
+            }
+            else {
                 tokenReceivedCallback = self._tokenReceivedCallback;
+            }
             if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-                if (self.isInIframe())
+                if (self.isInIframe()) {
                     self._requestContext.logger.verbose("Window is in iframe, acquiring token silently");
-                else
+                }
+                else {
                     self._requestContext.logger.verbose("acquiring token interactive in progress");
+                }
                 token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
                 tokenType = Constants.accessToken;
             }
@@ -1083,8 +1087,9 @@ var UserAgentApplication = /** @class */ (function () {
             }
             if (self._interactionMode !== self._interactionModes.popUp) {
                 window.location.hash = "";
-                if (self._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== self._cacheStorage.getItem(Constants.loginRequest))
+                if (self._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== self._cacheStorage.getItem(Constants.loginRequest)) {
                     window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
+                }
             }
         }
     };
@@ -1110,8 +1115,9 @@ var UserAgentApplication = /** @class */ (function () {
                 var accessTokenCacheItem = accessTokenCacheItems[i];
                 if (accessTokenCacheItem.key.userIdentifier === user.userIdentifier) {
                     var cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
-                    if (Utils.isIntersectingScopes(cachedScopes, consentedScopes))
+                    if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
                         this._cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
+                    }
                 }
             }
             var accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
@@ -1159,8 +1165,9 @@ var UserAgentApplication = /** @class */ (function () {
             if (tokenResponse.stateMatch) {
                 // record tokens to storage if exists
                 this._requestContext.logger.info("State is right");
-                if (tokenResponse.parameters.hasOwnProperty(Constants.sessionState))
+                if (tokenResponse.parameters.hasOwnProperty(Constants.sessionState)) {
                     this._cacheStorage.setItem(Constants.msalSessionState, tokenResponse.parameters[Constants.sessionState]);
+                }
                 var idToken;
                 var clientInfo = "";
                 if (tokenResponse.parameters.hasOwnProperty(Constants.accessToken)) {
@@ -1246,7 +1253,6 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage.removeAcquireTokenEntries(Constants.acquireTokenUser, Constants.renewStatus);
         this._cacheStorage.removeAcquireTokenEntries(Constants.authority + Constants.resourceDelimeter, Constants.renewStatus);
     };
-    ;
     /*
      * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
      * @param {string} hash - Hash passed from redirect page.
@@ -1275,7 +1281,6 @@ var UserAgentApplication = /** @class */ (function () {
         }
         return hash;
     };
-    ;
     /*
       * Creates a requestInfo object from the URL fragment and returns it.
       * @param {string} hash  -  Hash passed from redirect page
@@ -1296,10 +1301,12 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenResponse.valid = true;
                 // which call
                 var stateResponse = void 0;
-                if (parameters.hasOwnProperty("state"))
+                if (parameters.hasOwnProperty("state")) {
                     stateResponse = parameters.state;
-                else
+                }
+                else {
                     return tokenResponse;
+                }
                 tokenResponse.stateResponse = stateResponse;
                 // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                 // incoming callback needs to be looked up to find the request type
@@ -1333,7 +1340,6 @@ var UserAgentApplication = /** @class */ (function () {
         }
         return tokenResponse;
     };
-    ;
     /*
       * Extracts scope value from the state sent with the authentication request.
       * @returns {string} scope.
@@ -1349,7 +1355,6 @@ var UserAgentApplication = /** @class */ (function () {
         }
         return "";
     };
-    ;
     /*
       * Returns whether current window is in ifram for token renewal
       * @ignore

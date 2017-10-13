@@ -19,8 +19,8 @@
     "msal",
     "oauth"
   ],
-  "main": "./out/index.js",
-  "typings": "./out/index.d.ts",
+  "main": "./lib-commonjs/index.js",
+  "typings": "./lib-commonjs/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
@@ -31,9 +31,9 @@
     "@types/handlebars": "4.0.33",
     "@types/jasmine": "^2.6.0",
     "@types/jasmine-ajax": "^3.1.35",
-    "@types/mocha": "^2.2.43",
     "atob": "~1.1.2",
     "awesome-typescript-loader": "^3.2.3",
+    "babel-polyfill": "^6.26.0",
     "grunt": "^1.0.1",
     "grunt-banner": "^0.6.0",
     "grunt-contrib-uglify": "^2.3.0",
@@ -58,6 +58,7 @@
     "karma-typescript": "^3.0.7",
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.5",
+    "phantomjs-polyfill": "0.0.2",
     "shx": "^0.2.2",
     "typedoc": "^0.6.0",
     "typescript": "^2.5.3",
@@ -68,10 +69,10 @@
     "test": "tests"
   },
   "scripts": {
-    "clean": "shx rm -rf dist docs lib lib-es6",
+    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
     "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
-    "build": "npm run clean && npm run doc && npm run build:modules && webpack && grunt",
-    "test": "typings install && karma start"
+    "build": "npm run clean && npm run doc && npm run build:modules && webpack && grunt && npm test",
+    "test": "typings install && karma start && jasmine-node tests/MSALSpec.js"
   }
 }

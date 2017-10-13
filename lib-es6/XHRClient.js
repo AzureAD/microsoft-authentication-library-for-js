@@ -52,7 +52,7 @@ var XhrClient = /** @class */ (function () {
             xhr.onerror = function (ev) {
                 reject(xhr.status);
             };
-            if (method == "GET") {
+            if (method === "GET") {
                 xhr.send();
             }
             else {
@@ -67,8 +67,9 @@ var XhrClient = /** @class */ (function () {
             if (jsonResponse.error) {
                 return jsonResponse.error;
             }
-            else
+            else {
                 throw responseText;
+            }
         }
         catch (e) {
             return responseText;

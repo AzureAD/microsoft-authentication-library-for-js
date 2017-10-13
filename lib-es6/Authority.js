@@ -91,7 +91,6 @@ var Authority = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
     Object.defineProperty(Authority.prototype, "CanonicalAuthorityUrlComponents", {
         get: function () {
             if (!this.canonicalAuthorityUrlComponents) {
@@ -126,38 +125,9 @@ var Authority = /** @class */ (function () {
         if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
             throw ErrorMessage.authorityUriInsecure;
         }
-        ;
         if (!components.PathSegments || components.PathSegments.length < 1) {
             throw ErrorMessage.authorityUriInvalidPath;
         }
-    };
-    /*
-     * Parse the url and determine the type of authority
-     */
-    Authority.DetectAuthorityFromUrl = function (authorityUrl) {
-        authorityUrl = Utils.CanonicalizeUri(authorityUrl);
-        var components = Utils.GetUrlComponents(authorityUrl);
-        var pathSegments = components.PathSegments;
-        switch (pathSegments[0]) {
-            case "tfp":
-                return AuthorityType.B2C;
-            case "adfs":
-                return AuthorityType.Adfs;
-            default:
-                return AuthorityType.Aad;
-        }
-    };
-    /*
-     * Create an authority object of the correct type based on the url
-     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
-     */
-    Authority.CreateInstance = function (authorityUrl, validateAuthority) {
-        var type = Authority.DetectAuthorityFromUrl(authorityUrl);
-        var instance = Authority.InstanceTypes[type];
-        if (!instance) {
-            throw ErrorMessage.invalidAuthorityType;
-        }
-        return new instance(authorityUrl, validateAuthority);
     };
     /*
      * Calls the OIDC endpoint and returns the response
@@ -190,10 +160,6 @@ var Authority = /** @class */ (function () {
             return _this;
         });
     };
-    /*
-      * Map of instance types to be created using CreateInstance.
-      */
-    Authority.InstanceTypes = {};
     return Authority;
 }());
 export { Authority };

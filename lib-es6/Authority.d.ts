@@ -42,11 +42,6 @@ export declare abstract class Authority {
     readonly CanonicalAuthorityUrlComponents: IUri;
     protected readonly DefaultOpenIdConfigurationEndpoint: string;
     private validateAsUri();
-    private static DetectAuthorityFromUrl(authorityUrl);
-    static InstanceTypes: {
-        [type: number]: new (authorityUrl: string, validateAuthority: boolean) => Authority;
-    };
-    static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority;
     private DiscoverEndpoints(openIdConfigurationEndpoint);
     ResolveEndpointsAsync(): Promise<Authority>;
     abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;

@@ -181,8 +181,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
-    ;
     Object.defineProperty(Constants, "tokenRenewStatusCancelled", {
         get: function () { return "Canceled"; },
         enumerable: true,
@@ -206,7 +204,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
     Object.defineProperty(Constants, "popUpHeight", {
         get: function () { return this._popUpHeight; },
         set: function (height) {
@@ -215,7 +212,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    ;
     Object.defineProperty(Constants, "login", {
         get: function () { return "LOGIN"; },
         enumerable: true,

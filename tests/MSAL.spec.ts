@@ -1,5 +1,5 @@
-import {UserAgentApplication} from '../../src/index';
-import {Constants} from '../../src/Constants';
+import {UserAgentApplication} from '../src/index';
+import {Constants} from '../src/Constants';
 
 describe('Msal', function (): any {
     let window: any;
