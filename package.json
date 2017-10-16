@@ -19,23 +19,30 @@
     "msal",
     "oauth"
   ],
-  "main": "./out/msal.js",
-  "typings": "./out/msal.d.ts",
+  "main": "./lib-commonjs/index.js",
+  "typings": "./lib-commonjs/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tslib": "^1.7.1"
+  },
   "devDependencies": {
-    "@types/jasmine": "^2.5.47",
+    "@types/handlebars": "4.0.33",
+    "@types/jasmine": "^2.6.0",
     "@types/jasmine-ajax": "^3.1.35",
     "atob": "~1.1.2",
+    "awesome-typescript-loader": "^3.2.3",
+    "babel-polyfill": "^6.26.0",
     "grunt": "^1.0.1",
     "grunt-banner": "^0.6.0",
     "grunt-contrib-uglify": "^2.3.0",
     "grunt-exec": "^2.0.0",
     "grunt-file-append": "0.0.7",
     "grunt-jasmine-node": "~0.2.1",
+    "grunt-tslint": "^5.0.1",
     "grunt-typedoc": "^0.2.4",
+    "jasmine": "^2.8.0",
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.5.2",
     "jasmine-node": "~1.14.5",
@@ -48,15 +55,24 @@
     "karma-jasmine": "^1.1.0",
     "karma-jasmine-ajax": "^0.1.13",
     "karma-phantomjs-launcher": "*",
+    "karma-typescript": "^3.0.7",
     "karma-verbose-reporter": "0.0.6",
+    "karma-webpack": "^2.0.5",
+    "phantomjs-polyfill": "0.0.2",
+    "shx": "^0.2.2",
     "typedoc": "^0.6.0",
-    "typescript": "^2.2.2",
-    "typings": "^2.1.1"
+    "typescript": "^2.5.3",
+    "typings": "^2.1.1",
+    "webpack": "^3.6.0"
   },
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "tsc && tsc -p tsconfig.test.json && karma start"
+    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
+    "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
+    "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
+    "build": "npm run clean && npm run doc && npm run build:modules && webpack && grunt && npm test",
+    "test": "typings install && karma start && jasmine-node tests/MSALSpec.js"
   }
 }

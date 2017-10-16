@@ -1,14 +1,22 @@
 {
   "extends": "./tsconfig.base.json",
-  "compileOnSave": true,
   "compilerOptions": {
-    "outFile": "out/msal.js",
-    "declaration": true,
-    "experimentalDecorators": true
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "target": "es5",
+    "lib": [ "es2015", "dom", "es2015.promise" ],
+    "outDir": "lib-commonjs"
   },
-  "exclude": [
-    "node_modules",
-    "out",
-    "tests"
-  ]
+  "files": [
+    "./src/index.ts"
+  ],
+  "types": [
+    "jasmine",
+    "node",
+    "jasmine-ajax"
+  ],
+   "typeRoots": [
+      "../node_modules/@types"
+    ]
+
 }
