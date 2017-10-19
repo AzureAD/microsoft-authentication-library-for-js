@@ -103,19 +103,6 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  private _interactionModes = {
-    popUp: "popUp",
-    redirect: "redirect"
-  };
-
-  /*
-   * @hidden
-   */
-  private _interactionMode = "redirect";
-
-  /*
-   * @hidden
-   */
   private _requestContext: RequestContext;
 
   /*
@@ -273,11 +260,10 @@ export class UserAgentApplication {
     window.msal = this;
     window.callBackMappedToRenewStates = {};
     window.callBacksMappedToRenewStates = {};
-
-    var isCallback = this.isCallback(window.location.hash);
+    var urlHash = window.location.hash;
+    var isCallback = this.isCallback(urlHash);
     if (isCallback) {
-      var self = this;
-      setTimeout(function () { self.handleAuthenticationResponse(window.location.hash); }, 0);
+        this.handleAuthenticationResponse.call(this, urlHash);
     }
 
   }
@@ -349,7 +335,6 @@ export class UserAgentApplication {
     3. redirect user to AAD
      */
     return new Promise<string>((resolve, reject) => {
-      this._interactionMode = this._interactionModes.popUp;
       if (this._loginInProgress) {
         reject(ErrorCodes.loginProgressError + ":" + ErrorDescription.loginProgressError);
         return;
@@ -924,7 +909,6 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      this._interactionMode = this._interactionModes.popUp;
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         reject(ErrorCodes.inputScopesError + ":" + isValidScope);
@@ -1272,8 +1256,10 @@ export class UserAgentApplication {
     }
 
     var self = null;
+    var isPopup: boolean = false;
     if (window.opener && window.opener.msal) {
-      self = window.opener.msal;
+        self = window.opener.msal;
+        isPopup = true;
     }
     else if (window.parent && window.parent.msal) {
       self = window.parent.msal;
@@ -1320,15 +1306,14 @@ export class UserAgentApplication {
         self._requestContext.logger.error("Error occurred in token received callback function: " + err);
       }
 
-      for (var i = 0; i < self._openedWindows.length; i++) {
-        self._openedWindows[i].close();
-      }
-
-      if (self._interactionMode !== self._interactionModes.popUp) {
-        window.location.hash = "";
-        if (self._navigateToLoginRequestUrl && window.location.href.replace("#", "") !== self._cacheStorage.getItem(Constants.loginRequest)) {
+      if (window.parent === window && !isPopup) {
+        if (self._navigateToLoginRequestUrl) {
             window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
         }
+      }
+
+      for (var i = 0; i < self._openedWindows.length; i++) {
+          self._openedWindows[i].close();
       }
     }
   }
