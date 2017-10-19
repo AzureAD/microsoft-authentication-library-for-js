@@ -11,8 +11,6 @@ export declare class UserAgentApplication {
     private _cacheLocations;
     private _cacheLocation;
     readonly cacheLocation: string;
-    private _interactionModes;
-    private _interactionMode;
     private _requestContext;
     private _loginInProgress;
     private _acquireTokenInProgress;
