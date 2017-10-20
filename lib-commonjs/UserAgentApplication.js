@@ -617,7 +617,7 @@ var UserAgentApplication = /** @class */ (function () {
      * @hidden
      */
     UserAgentApplication.prototype.addHintParameters = function (urlNavigate, user) {
-        var userObject = user ? user : this._user;
+        var userObject = user ? user : this.getUser();
         var decodedClientInfo = userObject.userIdentifier.split(".");
         var uid = Utils_1.Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
         var utid = Utils_1.Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
@@ -664,7 +664,7 @@ var UserAgentApplication = /** @class */ (function () {
         if (scopes) {
             scopes = this.filterScopes(scopes);
         }
-        var userObject = user ? user : this._user;
+        var userObject = user ? user : this.getUser();
         if (this._acquireTokenInProgress) {
             return;
         }
@@ -716,7 +716,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (scopes) {
                 scopes = _this.filterScopes(scopes);
             }
-            var userObject = user ? user : _this._user;
+            var userObject = user ? user : _this.getUser();
             if (_this._acquireTokenInProgress) {
                 reject(Constants_1.ErrorCodes.acquireTokenProgressError + ":" + Constants_1.ErrorDescription.acquireTokenProgressError);
                 return;
@@ -804,7 +804,7 @@ var UserAgentApplication = /** @class */ (function () {
                     scopes = _this.filterScopes(scopes);
                 }
                 var scope_1 = scopes.join(" ").toLowerCase();
-                var userObject_1 = user ? user : _this._user;
+                var userObject_1 = user ? user : _this.getUser();
                 if (!userObject_1) {
                     reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
                     return;
