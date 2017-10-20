@@ -774,7 +774,7 @@ export class UserAgentApplication {
    * @hidden
    */
   private addHintParameters(urlNavigate: string, user: User): string {
-    const userObject = user ? user : this._user;
+    const userObject = user ? user : this.getUser();
     const decodedClientInfo = userObject.userIdentifier.split(".");
     const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
     const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
@@ -842,7 +842,7 @@ export class UserAgentApplication {
       scopes = this.filterScopes(scopes);
     }
 
-    const userObject = user ? user : this._user;
+    const userObject = user ? user : this.getUser();
     if (this._acquireTokenInProgress) {
       return;
     }
@@ -918,7 +918,7 @@ export class UserAgentApplication {
         scopes = this.filterScopes(scopes);
       }
 
-      const userObject = user ? user : this._user;
+      const userObject = user ? user : this.getUser();
       if (this._acquireTokenInProgress) {
         reject(ErrorCodes.acquireTokenProgressError + ":" + ErrorDescription.acquireTokenProgressError);
         return;
@@ -1014,7 +1014,7 @@ export class UserAgentApplication {
         }
 
         const scope = scopes.join(" ").toLowerCase();
-        const userObject = user ? user : this._user;
+        const userObject = user ? user : this.getUser();
         if (!userObject) {
           reject(ErrorCodes.userLoginError + ":" + ErrorDescription.userLoginError);
           return;
