@@ -77,6 +77,7 @@ export class Constants {
   static get login(): string { return "LOGIN"; }
   static get renewToken(): string { return "renewToken"; }
   static get unknown(): string { return "UNKNOWN"; }
+  static get urlHash(): string { return "msal.urlHash"; }
 }
 
 /*

@@ -2,8 +2,6 @@ What are the dev apps?
 ----------------------
 index_loginPopup.html shows how to send an email with the Microsoft Graph, using msal.js loginPopup()/acquireTokenSilent-acquireTokenPopup() APIs. The authentication happens in a popup window of the browser. 
 
-indexRedirect.html shows how to send an email with the Microsoft Graph, using msal.js loginRedirect()/acquireTokenSilent-acquireTokenRedirect() APIs. The page for the application is replaced by the authentication page, and when authentication has happened, the application is called back (on its redirectUri) with the user's idToken.
-
 How to run the dev apps:
 --------------------
 Pre-requisite
