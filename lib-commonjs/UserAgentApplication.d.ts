@@ -1,3 +1,4 @@
+import { Logger } from "./Logger";
 import { User } from "./User";
 declare global  {
     interface Window {
@@ -11,7 +12,7 @@ export declare class UserAgentApplication {
     private _cacheLocations;
     private _cacheLocation;
     readonly cacheLocation: string;
-    private _requestContext;
+    private _logger;
     private _loginInProgress;
     private _acquireTokenInProgress;
     private _renewStates;
@@ -35,6 +36,7 @@ export declare class UserAgentApplication {
         redirectUri?: string;
         postLogoutRedirectUri?: string;
         navigateToLoginRequestUrl?: boolean;
+        logger?: Logger;
     });
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
