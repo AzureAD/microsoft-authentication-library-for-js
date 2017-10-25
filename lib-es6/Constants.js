@@ -227,6 +227,11 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Constants, "urlHash", {
+        get: function () { return "msal.urlHash"; },
+        enumerable: true,
+        configurable: true
+    });
     Constants._loadFrameTimeout = 6000;
     Constants._popUpWidth = 483;
     Constants._popUpHeight = 600;

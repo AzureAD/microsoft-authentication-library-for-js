@@ -7,7 +7,7 @@ declare global  {
         callBacksMappedToRenewStates: Object;
     }
 }
-export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, instance: UserAgentApplication) => void;
 export declare class UserAgentApplication {
     private _cacheLocations;
     private _cacheLocation;
@@ -38,6 +38,7 @@ export declare class UserAgentApplication {
         navigateToLoginRequestUrl?: boolean;
         logger?: Logger;
     });
+    _processCallBack(hash: string): void;
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
     private promptUser(urlNavigate);

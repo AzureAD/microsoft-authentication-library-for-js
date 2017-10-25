@@ -68,7 +68,7 @@ interface CacheResult {
  * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
-export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, instance: UserAgentApplication) => void;
 const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
   const tokenAcquisitionMethod = descriptor.value;
   descriptor.value = function (...args: any[]) {
@@ -264,12 +264,33 @@ export class UserAgentApplication {
     window.callBacksMappedToRenewStates = {};
     var urlHash = window.location.hash;
     var isCallback = this.isCallback(urlHash);
+    
     if (isCallback) {
-        this.handleAuthenticationResponse.call(this, urlHash);
+        this.handleAuthenticationResponse(urlHash);
     }
-
+    else {
+        var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+        if (pendingCallback) {
+            this._processCallBack(pendingCallback);
+        }
+    }
   }
 
+  _processCallBack(hash:string ): void {
+      var requestInfo = this.getRequestInfo(hash);
+      var token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
+      var errorDesc = requestInfo.parameters[Constants.errorDescription];
+      var error = requestInfo.parameters[Constants.error];
+      var tokenType:string;
+      if (requestInfo.parameters[Constants.accessToken]) {
+          tokenType = Constants.accessToken;
+      }
+      else {
+          tokenType = Constants.idToken;
+      }
+      this._cacheStorage.removeItem(Constants.urlHash);
+      this._tokenReceivedCallback(errorDesc, token, error, tokenType, this);
+  }
   /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
@@ -283,7 +304,7 @@ export class UserAgentApplication {
      */
     if (this._loginInProgress) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken);
+        this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken, this);
         return;
       }
     }
@@ -292,7 +313,7 @@ export class UserAgentApplication {
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         if (this._tokenReceivedCallback) {
-          this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken);
+          this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken, this);
           return;
         }
       }
@@ -835,7 +856,7 @@ export class UserAgentApplication {
     const isValidScope = this.validateInputScope(scopes);
     if (isValidScope && !Utils.isEmpty(isValidScope)) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken);
+        this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken, this);
         return;
       }
     }
@@ -852,7 +873,7 @@ export class UserAgentApplication {
     const scope = scopes.join(" ").toLowerCase();
     if (!userObject) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken);
+        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this);
         return;
       }
     }
@@ -1280,7 +1301,8 @@ export class UserAgentApplication {
           tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
       }
       else {
-          tokenReceivedCallback = self._tokenReceivedCallback;
+          tokenReceivedCallback = null;
+          self._cacheStorage.setItem(Constants.urlHash, hash);
       }
 
       if ((requestInfo.requestType === Constants.renewToken) && window.parent) {

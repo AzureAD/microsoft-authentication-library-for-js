@@ -1238,6 +1238,11 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Constants, "urlHash", {
+        get: function () { return "msal.urlHash"; },
+        enumerable: true,
+        configurable: true
+    });
     Constants._loadFrameTimeout = 6000;
     Constants._popUpWidth = 483;
     Constants._popUpHeight = 600;
@@ -1663,7 +1668,13 @@ var UserAgentApplication = /** @class */ (function () {
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
         if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
+            this.handleAuthenticationResponse(urlHash);
+        }
+        else {
+            var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+            if (pendingCallback) {
+                this._processCallBack(pendingCallback);
+            }
         }
     }
     Object.defineProperty(UserAgentApplication.prototype, "cacheLocation", {
@@ -1696,6 +1707,21 @@ var UserAgentApplication = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    UserAgentApplication.prototype._processCallBack = function (hash) {
+        var requestInfo = this.getRequestInfo(hash);
+        var token = requestInfo.parameters[Constants_1.Constants.accessToken] || requestInfo.parameters[Constants_1.Constants.idToken];
+        var errorDesc = requestInfo.parameters[Constants_1.Constants.errorDescription];
+        var error = requestInfo.parameters[Constants_1.Constants.error];
+        var tokenType;
+        if (requestInfo.parameters[Constants_1.Constants.accessToken]) {
+            tokenType = Constants_1.Constants.accessToken;
+        }
+        else {
+            tokenType = Constants_1.Constants.idToken;
+        }
+        this._cacheStorage.removeItem(Constants_1.Constants.urlHash);
+        this._tokenReceivedCallback(errorDesc, token, error, tokenType, this);
+    };
     /*
      * Initiate the login process by redirecting the user to the STS authorization endpoint.
      * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
@@ -1710,7 +1736,7 @@ var UserAgentApplication = /** @class */ (function () {
          */
         if (this._loginInProgress) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback("Login is in progress", null, null, Constants_1.Constants.idToken);
+                this._tokenReceivedCallback("Login is in progress", null, null, Constants_1.Constants.idToken, this);
                 return;
             }
         }
@@ -1718,7 +1744,7 @@ var UserAgentApplication = /** @class */ (function () {
             var isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.idToken);
+                    this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.idToken, this);
                     return;
                 }
             }
@@ -2205,7 +2231,7 @@ var UserAgentApplication = /** @class */ (function () {
         var isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.accessToken);
+                this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.accessToken, this);
                 return;
             }
         }
@@ -2219,7 +2245,7 @@ var UserAgentApplication = /** @class */ (function () {
         var scope = scopes.join(" ").toLowerCase();
         if (!userObject) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback(Constants_1.ErrorDescription.userLoginError, null, Constants_1.ErrorCodes.userLoginError, Constants_1.Constants.accessToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.userLoginError, null, Constants_1.ErrorCodes.userLoginError, Constants_1.Constants.accessToken, this);
                 return;
             }
         }
@@ -2595,7 +2621,8 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
             }
             else {
-                tokenReceivedCallback = self._tokenReceivedCallback;
+                tokenReceivedCallback = null;
+                self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
             }
             if ((requestInfo.requestType === Constants_1.Constants.renewToken) && window.parent) {
                 if (window.parent !== window) {
