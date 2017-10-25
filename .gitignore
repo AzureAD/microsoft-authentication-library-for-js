@@ -255,3 +255,6 @@ paket-files/
 node_modules/
 docs/**/*
 typings/
+lib-commonjs/
+lib-es6/
+dist/

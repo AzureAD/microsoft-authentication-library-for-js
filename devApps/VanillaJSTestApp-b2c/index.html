@@ -45,9 +45,19 @@
 
     <script>
         "use strict";
-        var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, function (errorDesc, token, error, tokenType) {
-            // Called after loginRedirect or acquireTokenPopup
-        });
+        var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose });
+        function loggerCallback(logLevel, message, piiEnabled) {
+            console.log(message);
+        }
+
+        var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, { logger: logger, cacheLocation: 'localStorage' });
+        function authCallback(errorDesc, token, error, tokenType, instance) {
+            if (token) {
+            }
+            else {
+                log(error + ":" + errorDesc);
+            }
+        }
 
         function login() {
             clientApplication.loginPopup(applicationConfig.b2cScopes).then(function (idToken) {
