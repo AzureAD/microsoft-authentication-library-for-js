@@ -10,15 +10,15 @@ export declare enum LogLevel {
 export declare class Logger {
     private static _instance;
     private _correlationId;
-    correlationId: string;
     private _level;
-    level: LogLevel;
     private _piiLoggingEnabled;
-    piiLoggingEnabled: boolean;
     private _localCallback;
-    localCallback: ILoggerCallback;
-    constructor(correlationId: string);
-    private logMessage(logMessage, logLevel, containsPii);
+    constructor(localCallback: ILoggerCallback, options?: {
+        correlationId?: string;
+        level?: LogLevel;
+        piiLoggingEnabled?: boolean;
+    });
+    private logMessage(logLevel, logMessage, containsPii);
     executeCallback(level: LogLevel, message: string, containsPii: boolean): void;
     error(message: string): void;
     errorPii(message: string): void;

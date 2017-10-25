@@ -29,7 +29,7 @@ module.exports = function (grunt) {
                     linebreak: true
                 },
                 files: {
-                    src: ['out/msal.js', 'out/msal.min.js']
+                    src: ['dist/msal.js', 'dist/msal.min.js']
                 }
             }
         },
