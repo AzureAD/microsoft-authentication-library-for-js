@@ -68,7 +68,7 @@ interface CacheResult {
  * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
-export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, instance: UserAgentApplication) => void;
+export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
 const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
   const tokenAcquisitionMethod = descriptor.value;
   descriptor.value = function (...args: any[]) {
@@ -276,7 +276,8 @@ export class UserAgentApplication {
     }
   }
 
-  _processCallBack(hash:string ): void {
+  _processCallBack(hash: string): void {
+      this._logger.info('Processing the callback from redirect response');
       var requestInfo = this.getRequestInfo(hash);
       var token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
       var errorDesc = requestInfo.parameters[Constants.errorDescription];
@@ -289,7 +290,7 @@ export class UserAgentApplication {
           tokenType = Constants.idToken;
       }
       this._cacheStorage.removeItem(Constants.urlHash);
-      this._tokenReceivedCallback(errorDesc, token, error, tokenType, this);
+      this._tokenReceivedCallback(errorDesc, token, error, tokenType);
   }
   /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
@@ -304,7 +305,7 @@ export class UserAgentApplication {
      */
     if (this._loginInProgress) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken, this);
+        this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken);
         return;
       }
     }
@@ -313,7 +314,7 @@ export class UserAgentApplication {
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         if (this._tokenReceivedCallback) {
-          this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken, this);
+          this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken);
           return;
         }
       }
@@ -856,7 +857,7 @@ export class UserAgentApplication {
     const isValidScope = this.validateInputScope(scopes);
     if (isValidScope && !Utils.isEmpty(isValidScope)) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken, this);
+        this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken);
         return;
       }
     }
@@ -873,7 +874,7 @@ export class UserAgentApplication {
     const scope = scopes.join(" ").toLowerCase();
     if (!userObject) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this);
+        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken);
         return;
       }
     }
@@ -1076,7 +1077,8 @@ export class UserAgentApplication {
           .then(() => {
             // refresh attept with iframe
             //Already renewing for this scope, callback when we get the token.
-            if (this._activeRenewals[scope]) {
+              if (this._activeRenewals[scope]) {
+              this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
               //Active renewals contains the state for each renewal.
               this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
             }
@@ -1323,7 +1325,7 @@ export class UserAgentApplication {
       var error = requestInfo.parameters[Constants.error];
       try {
         if (tokenReceivedCallback) {
-          tokenReceivedCallback(errorDesc, token, error, tokenType);
+          tokenReceivedCallback.call(this,errorDesc, token, error, tokenType);
         }
 
       } catch (err) {
