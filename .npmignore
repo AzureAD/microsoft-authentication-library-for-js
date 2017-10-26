@@ -252,19 +252,7 @@ paket-files/
 *.sln.iml
 
 # MSAL specific ignore files
-out/spec
-docs/
 devApps/
+node_modules/
 tests/
-.travis.yml
-Gruntfile.js
-karma.conf.js
-tsconfig*
-lib/
-lib/*.js
-lib/*.js.map
-*.spec.js
-*.spec.js.map
-out/packages
-#tests/unit/*.js # TODO add these once the unit tests are in TS
-#tests/unit/*.js.map
+typings/

@@ -1,0 +1,7 @@
+{
+  "name": "msal",
+  "globalDependencies": {
+    "jasmine": "github:DefinitelyTyped/DefinitelyTyped/jasmine/index.d.ts#db75c9ca79883dd7e5c7058ba5ec07207e5197c2",
+    "jasmine-ajax":"github:DefinitelyTyped/DefinitelyTyped/jasmine-ajax/jasmine-ajax.d.ts#b91b67fc09fc34ae8f7e34b0d2a905421de101c5"
+  }
+}

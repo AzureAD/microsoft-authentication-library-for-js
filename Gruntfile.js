@@ -4,45 +4,21 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 		
-        typedoc: {
-		build: {
-			options: {
-				module: 'amd',
-				out: './docs',
-				target: 'es5'
-			},
-			src: ['./lib/**/*']
-			}
-		},
-		
-        uglify: {
-            static_mappings: {
-                // Because these src-dest file mappings are manually specified, every
-                // time a new file is added or removed, the Gruntfile has to be updated.
-                files: [
-                  { src: 'out/msal.js', dest: 'out/msal.min.js' }
-                ],
-            }
-        },
-
         file_append: {
             default_options: {
                 files: [
                     {
                         prepend: "'use strict';\n",
-                        input: 'out/msal.js',
-                        output: 'out/msal.js'
+                        input: 'dist/msal.js',
+                        output: 'dist/msal.js'
+                    },
+                    {
+                        prepend: "'use strict';\n",
+                        input: 'dist/msal.min.js',
+                        output: 'dist/msal.min.js'
                     }
                 ]
             }
-        },
-
-        exec: {
-            tsc: {
-                command: 'tsc',
-                stdout: false,
-                stderr: false
-            },
         },
 
         usebanner: {
@@ -53,20 +29,34 @@ module.exports = function (grunt) {
                     linebreak: true
                 },
                 files: {
-                    src: ['out/msal.js', 'out/msal.min.js']
+                    src: ['dist/msal.js', 'dist/msal.min.js']
                 }
+            }
+        },
+
+        tslint: {
+            options: {
+                // can be a configuration object or a filepath to tslint.json
+                configuration: "tslint.json",
+                // If set to true, tslint errors will be reported, but not fail the task
+                // If set to false, tslint errors will be reported, and the task will fail
+                force: true,
+                fix: false
+            },
+            files: {
+                src: [
+                    "src/*.ts",
+                ]
             }
         }
     });
 
-    // Load the plugin that provides the "uglify" task.
-    grunt.loadNpmTasks('grunt-typedoc');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-exec');
     grunt.loadNpmTasks('grunt-file-append');
     grunt.loadNpmTasks('grunt-banner');
+    grunt.loadNpmTasks("grunt-tslint");
     // uglify task is producing invalid js file
     grunt.registerTask('doc', ['typedoc']);
-    grunt.registerTask('minify', ['uglify']);
-    grunt.registerTask('build', ['exec', 'file_append', 'uglify', 'usebanner']);  
+    grunt.registerTask('append', ['file_append']);
+    grunt.registerTask('ts-lint', ['tslint']);
+    grunt.registerTask('default', ['append', 'usebanner', 'ts-lint']);  
 };

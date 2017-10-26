@@ -23,34 +23,48 @@ This example shows how to acquire a token to read user information from Microsof
 2. Instantiate a UserAgentApplication and login the user:
 ```JavaScript
     <script class="pre">
-        var userAgentApplication = new Msal.UserAgentApplication("your_client_id", null, function (errorDes, token, error, tokenType) {
-              // this callback is called after loginRedirect OR acquireTokenRedirect (not used for loginPopup/aquireTokenPopup)
-        })
-        userAgentApplication.loginPopup(["user.read"]).then( function(token) {
-            var user = userAgentApplication.getUser();
-            // signin successful
-        }, function (error) {
-            // handle error
-        });
+        var applicationConfig = {
+            clientID: 'your_client_id',
+            graphScopes: ["user.read", "mail.send"]
+        };
+		
+        var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId:'12345' }); // level and correlationId are optional parameters.
+		//Logger has other optional parameters like piiLoggingEnabled which can be assigned as shown aabove. Please refer to the docs to see the full list and their default values.
+		
+        function loggerCallback(logLevel, message, piiLoggingEnabled) {
+            console.log(message);
+        }
+
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { logger: logger, cacheLocation: 'localStorage'}); //logger and cacheLocation are optional parameters.
+		//userAgentApplication has other optional parameters like redirectUri which can be assigned as shown above.Please refer to the docs to see the full list and their default values.
+        function authCallback(errorDesc, token, error, tokenType) {
+            if (token) {
+            }
+            else {
+                log(error + ":" + errorDesc);
+            }
+        }
     </script>
 ```
 3. Then, once the user is logged-in, get an access token
 
 ```JavaScript
    <script>
-          // get an access token
-          userAgentApplication.acquireTokenSilent(["user.read"]).then(function (token) {
-            console.log("ATS promise resolved");
-          }, function (error) {
-            // interaction required 
-            if(error.indexOf("interaction_required") != -1){
-                userAgentApplication.acquireTokenPopup(["user.read"]).then(function (token) {
-                // success
-              }, function (error) {
-                // error
-               });
-            }
-          });
+    userAgentApplication.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
+                //Login Success
+                userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+                    //AcquireToken Success
+                }, function (error) {
+                    //AcquireToken Failure, send an interactive request.
+                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                        updateUI();
+                    }, function (error) {
+                        console.log(error);
+                    });
+                })
+            }, function (error) {
+                console.log(error);
+            });
     </script>
 ```
 
@@ -65,14 +79,14 @@ Via NPM:
 Via CDN:
 ```JavaScript
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.2/js/msal.min.js"></script>
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.0/js/msal.min.js"></script>
 ```
 
 Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill. You might want to read more in the [FAQ](../../wiki)
 ```JavaScript
     <!-- IE support: add promises polyfill before msal.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.2/js/msal.min.js"></script>
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.0/js/msal.min.js"></script>
 ```
 
 ## Community Help and Support
