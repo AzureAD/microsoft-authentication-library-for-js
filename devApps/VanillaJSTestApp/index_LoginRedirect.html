@@ -65,6 +65,11 @@
                 console.log(error + ':' + errorDesc);
             }
         }
+        
+        var user = userAgentApplication.getUser();
+        if (user) {
+            console.log(user);
+        }
 
         function updateUI() {
             var authButton = document.getElementById('auth');
