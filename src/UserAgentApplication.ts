@@ -192,12 +192,6 @@ export class UserAgentApplication {
   private _postLogoutredirectUri: string;
 
   /*
-   * Used to redirect the user back to the redirectUri after login.
-   * True = redirects user to redirectUri
-   */
-  private _navigateToLoginRequestUrl: boolean = true;
-
-  /*
    * Used to keep track of opened popup windows.
    */
   private _openedWindows: Array<Window>;
@@ -228,7 +222,6 @@ export class UserAgentApplication {
         cacheLocation?: string,
         redirectUri?: string,
         postLogoutRedirectUri?: string,
-        navigateToLoginRequestUrl?: boolean,
         logger?: Logger,
       } = {}) {
       const {
@@ -236,7 +229,6 @@ export class UserAgentApplication {
           cacheLocation = "sessionStorage",
           redirectUri = window.location.href.split("?")[0].split("#")[0],
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
-          navigateToLoginRequestUrl = true,
           logger = new Logger(null)
       } = options;
 
@@ -246,7 +238,6 @@ export class UserAgentApplication {
     this._tokenReceivedCallback = tokenReceivedCallback;
     this._redirectUri = redirectUri;
     this._postLogoutredirectUri = postLogoutRedirectUri;
-    this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     this._loginInProgress = false;
     this._acquireTokenInProgress = false;
     this._renewStates = [];
@@ -278,19 +269,28 @@ export class UserAgentApplication {
 
   _processCallBack(hash: string): void {
       this._logger.info('Processing the callback from redirect response');
-      var requestInfo = this.getRequestInfo(hash);
-      var token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
-      var errorDesc = requestInfo.parameters[Constants.errorDescription];
-      var error = requestInfo.parameters[Constants.error];
-      var tokenType:string;
+      const requestInfo = this.getRequestInfo(hash);
+      this.saveTokenFromHash(requestInfo);
+      const token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
+      const errorDesc = requestInfo.parameters[Constants.errorDescription];
+      const error = requestInfo.parameters[Constants.error];
+      var tokenType: string;
+
       if (requestInfo.parameters[Constants.accessToken]) {
           tokenType = Constants.accessToken;
       }
       else {
           tokenType = Constants.idToken;
       }
+
       this._cacheStorage.removeItem(Constants.urlHash);
-      this._tokenReceivedCallback(errorDesc, token, error, tokenType);
+
+      try {
+           this._tokenReceivedCallback(errorDesc, token, error, tokenType);
+
+      } catch (err) {
+          this._logger.error("Error occurred in token received callback function: " + err);
+      }
   }
   /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
@@ -1290,58 +1290,58 @@ export class UserAgentApplication {
       self = window.parent.msal;
     }
 
-    if (self.isCallback(hash)) {
-      const requestInfo = self.getRequestInfo(hash);
-      self._logger.info("Returned from redirect url");
-      self.saveTokenFromHash(requestInfo);
-      let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string;
+    const requestInfo = self.getRequestInfo(hash);
+    let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken:boolean = true;
 
-      if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-          tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-      }
-      else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-          tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
-      }
-      else {
-          tokenReceivedCallback = null;
-          self._cacheStorage.setItem(Constants.urlHash, hash);
-      }
-
-      if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-          if (window.parent!==window) {
-              self._logger.verbose("Window is in iframe, acquiring token silently");
-          } else {
-              self._logger.verbose("acquiring token interactive in progress");
-          }
-
-        token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
-        tokenType = Constants.accessToken;
-      } else if (requestInfo.requestType === Constants.login) {
-        token = requestInfo.parameters[Constants.idToken];
-        tokenType = Constants.idToken;
-      }
-
-      var errorDesc = requestInfo.parameters[Constants.errorDescription];
-      var error = requestInfo.parameters[Constants.error];
-      try {
-        if (tokenReceivedCallback) {
-          tokenReceivedCallback.call(this,errorDesc, token, error, tokenType);
-        }
-
-      } catch (err) {
-        self._logger.error("Error occurred in token received callback function: " + err);
-      }
-
-      if (window.parent === window && !isPopup) {
-        if (self._navigateToLoginRequestUrl) {
-            window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
-        }
-      }
-
-      for (var i = 0; i < self._openedWindows.length; i++) {
-          self._openedWindows[i].close();
-      }
+    if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
+    else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+    }
+    else {
+        tokenReceivedCallback = null;
+        self._cacheStorage.setItem(Constants.urlHash, hash);
+        saveToken = false;
+    }
+
+    self._logger.info("Returned from redirect url");
+    if (saveToken) {
+        self.saveTokenFromHash(requestInfo);
+    }
+
+    if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
+        if (window.parent!==window) {
+            self._logger.verbose("Window is in iframe, acquiring token silently");
+        } else {
+            self._logger.verbose("acquiring token interactive in progress");
+        }
+
+    token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
+    tokenType = Constants.accessToken;
+    } else if (requestInfo.requestType === Constants.login) {
+    token = requestInfo.parameters[Constants.idToken];
+    tokenType = Constants.idToken;
+    }
+
+    var errorDesc = requestInfo.parameters[Constants.errorDescription];
+    var error = requestInfo.parameters[Constants.error];
+    try {
+        if (tokenReceivedCallback) {
+        tokenReceivedCallback(errorDesc, token, error, tokenType);
+        }
+
+    } catch (err) {
+        self._logger.error("Error occurred in token received callback function: " + err);
+    }
+
+    if (window.parent === window && !isPopup) {
+        window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
+    }
+
+    for (var i = 0; i < self._openedWindows.length; i++) {
+        self._openedWindows[i].close();
+      }
   }
 
   /*

@@ -85,19 +85,13 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        /*
-         * Used to redirect the user back to the redirectUri after login.
-         * True = redirects user to redirectUri
-         */
-        this._navigateToLoginRequestUrl = true;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _e === void 0 ? true : _e, _f = options.logger, logger = _f === void 0 ? new Logger_1.Logger(null) : _f;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
         this._tokenReceivedCallback = tokenReceivedCallback;
         this._redirectUri = redirectUri;
         this._postLogoutredirectUri = postLogoutRedirectUri;
-        this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
         this._renewStates = [];
@@ -157,6 +151,7 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype._processCallBack = function (hash) {
         this._logger.info('Processing the callback from redirect response');
         var requestInfo = this.getRequestInfo(hash);
+        this.saveTokenFromHash(requestInfo);
         var token = requestInfo.parameters[Constants_1.Constants.accessToken] || requestInfo.parameters[Constants_1.Constants.idToken];
         var errorDesc = requestInfo.parameters[Constants_1.Constants.errorDescription];
         var error = requestInfo.parameters[Constants_1.Constants.error];
@@ -168,7 +163,12 @@ var UserAgentApplication = /** @class */ (function () {
             tokenType = Constants_1.Constants.idToken;
         }
         this._cacheStorage.removeItem(Constants_1.Constants.urlHash);
-        this._tokenReceivedCallback(errorDesc, token, error, tokenType);
+        try {
+            this._tokenReceivedCallback(errorDesc, token, error, tokenType);
+        }
+        catch (err) {
+            this._logger.error("Error occurred in token received callback function: " + err);
+        }
     };
     /*
      * Initiate the login process by redirecting the user to the STS authorization endpoint.
@@ -1058,53 +1058,52 @@ var UserAgentApplication = /** @class */ (function () {
         else if (window.parent && window.parent.msal) {
             self = window.parent.msal;
         }
-        if (self.isCallback(hash)) {
-            var requestInfo = self.getRequestInfo(hash);
-            self._logger.info("Returned from redirect url");
+        var requestInfo = self.getRequestInfo(hash);
+        var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
+        if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+            tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+        }
+        else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+            tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+        }
+        else {
+            tokenReceivedCallback = null;
+            self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
+            saveToken = false;
+        }
+        self._logger.info("Returned from redirect url");
+        if (saveToken) {
             self.saveTokenFromHash(requestInfo);
-            var token = null, tokenReceivedCallback = null, tokenType = void 0;
-            if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-                tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-            }
-            else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-                tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+        }
+        if ((requestInfo.requestType === Constants_1.Constants.renewToken) && window.parent) {
+            if (window.parent !== window) {
+                self._logger.verbose("Window is in iframe, acquiring token silently");
             }
             else {
-                tokenReceivedCallback = null;
-                self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
+                self._logger.verbose("acquiring token interactive in progress");
             }
-            if ((requestInfo.requestType === Constants_1.Constants.renewToken) && window.parent) {
-                if (window.parent !== window) {
-                    self._logger.verbose("Window is in iframe, acquiring token silently");
-                }
-                else {
-                    self._logger.verbose("acquiring token interactive in progress");
-                }
-                token = requestInfo.parameters[Constants_1.Constants.accessToken] || requestInfo.parameters[Constants_1.Constants.idToken];
-                tokenType = Constants_1.Constants.accessToken;
+            token = requestInfo.parameters[Constants_1.Constants.accessToken] || requestInfo.parameters[Constants_1.Constants.idToken];
+            tokenType = Constants_1.Constants.accessToken;
+        }
+        else if (requestInfo.requestType === Constants_1.Constants.login) {
+            token = requestInfo.parameters[Constants_1.Constants.idToken];
+            tokenType = Constants_1.Constants.idToken;
+        }
+        var errorDesc = requestInfo.parameters[Constants_1.Constants.errorDescription];
+        var error = requestInfo.parameters[Constants_1.Constants.error];
+        try {
+            if (tokenReceivedCallback) {
+                tokenReceivedCallback(errorDesc, token, error, tokenType);
             }
-            else if (requestInfo.requestType === Constants_1.Constants.login) {
-                token = requestInfo.parameters[Constants_1.Constants.idToken];
-                tokenType = Constants_1.Constants.idToken;
-            }
-            var errorDesc = requestInfo.parameters[Constants_1.Constants.errorDescription];
-            var error = requestInfo.parameters[Constants_1.Constants.error];
-            try {
-                if (tokenReceivedCallback) {
-                    tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
-                }
-            }
-            catch (err) {
-                self._logger.error("Error occurred in token received callback function: " + err);
-            }
-            if (window.parent === window && !isPopup) {
-                if (self._navigateToLoginRequestUrl) {
-                    window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
-                }
-            }
-            for (var i = 0; i < self._openedWindows.length; i++) {
-                self._openedWindows[i].close();
-            }
+        }
+        catch (err) {
+            self._logger.error("Error occurred in token received callback function: " + err);
+        }
+        if (window.parent === window && !isPopup) {
+            window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
+        }
+        for (var i = 0; i < self._openedWindows.length; i++) {
+            self._openedWindows[i].close();
         }
     };
     /*

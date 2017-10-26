@@ -27,7 +27,6 @@ export declare class UserAgentApplication {
     validateAuthority: boolean;
     private _redirectUri;
     private _postLogoutredirectUri;
-    private _navigateToLoginRequestUrl;
     private _openedWindows;
     private _requestType;
     constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, options?: {
@@ -35,7 +34,6 @@ export declare class UserAgentApplication {
         cacheLocation?: string;
         redirectUri?: string;
         postLogoutRedirectUri?: string;
-        navigateToLoginRequestUrl?: boolean;
         logger?: Logger;
     });
     _processCallBack(hash: string): void;
