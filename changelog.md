@@ -13,8 +13,8 @@
 ```
 var userAgentApplication = new Msal.UserAgentApplication('your_client_id', 'authority', authCallback, { logger: logger });
 function authCallback(errorDesc, token, error, tokenType, instance) {
-console.log(userAgentApplication)//undefined
-console.log(self)// instance of userAgentApplication;
+  console.log(userAgentApplication)//undefined
+  console.log(self)// instance of userAgentApplication;
 }
 ```
 * navigateToLoginRequestUrl property is deleted from the object.
