@@ -21,7 +21,7 @@
 <body>
     <!-- bluebird only needed if this page needs to run on Internet Explorer -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
-    <script src="out/msal.js" class="pre"></script>
+    <script src="dist/msal.js" class="pre"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
 
     <h2>Getting an access token with Azure AD B2C and calling a Web API</h2>
@@ -45,9 +45,19 @@
 
     <script>
         "use strict";
-        var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, function (errorDesc, token, error, tokenType) {
-            // Called after loginRedirect or acquireTokenPopup
-        });
+        var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose });
+        function loggerCallback(logLevel, message, piiEnabled) {
+            console.log(message);
+        }
+
+        var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, { logger: logger, cacheLocation: 'localStorage' });
+        function authCallback(errorDesc, token, error, tokenType, instance) {
+            if (token) {
+            }
+            else {
+                log(error + ":" + errorDesc);
+            }
+        }
 
         function login() {
             clientApplication.loginPopup(applicationConfig.b2cScopes).then(function (idToken) {

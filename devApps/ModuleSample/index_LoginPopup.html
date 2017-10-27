@@ -1,0 +1,31 @@
+<html>
+<head>
+    <title>authentication with Msal.js app</title>
+    <style>
+        .hidden {
+            visibility: hidden
+        }
+
+        .visible {
+            visibility: visible
+        }
+    </style>
+</head>
+<body>
+    <h1>Sending an email with msal.js and Microsoft Graph</h1>
+    <div>
+        <div id="label">Sign-in with Microsoft</div>
+        <button id="login">Login (with Popup)</button>
+    </div>
+    <div id="sendEmail" class="hidden">
+        <input id="emailToSendTo" type="text" />
+        <button id="email">Send email</button>
+    </div>
+    <!-- bluebird only needed if this page needs to run on Internet Explorer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
+    <script src="dist/index.js" class="pre"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
+
+    <pre class="response"></pre>
+</body>
+</html>

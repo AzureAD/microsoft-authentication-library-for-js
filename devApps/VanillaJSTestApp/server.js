@@ -15,8 +15,7 @@ var port = 1530; // process.env.PORT || 8080;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-console.log(path.join(__dirname, '../../out'));
-app.use("/out", express.static(path.join(__dirname, "../../out")));
+app.use("/dist", express.static(path.join(__dirname, "../../dist")));
 app.use("/bower_components", express.static(path.join(__dirname, 'bower_components')));
 
 // Set up our one route to the index.html file.

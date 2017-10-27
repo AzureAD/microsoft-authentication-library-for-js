@@ -252,10 +252,9 @@ paket-files/
 *.sln.iml
 
 # MSAL specific ignore files
-lib/*.js
-lib/*.js.map
-*.spec.js
-*.spec.js.map
-out/packages
-#tests/unit/*.js # TODO add these once the unit tests are in TS
-#tests/unit/*.js.map
+node_modules/
+docs/**/*
+typings/
+lib-commonjs/
+lib-es6/
+dist/

@@ -14,7 +14,7 @@
 <body>
     <!-- bluebird only needed if this page needs to run on Internet Explorer -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
-    <script src="out/msal.js" class="pre"></script>
+    <script src="dist/msal.js" class="pre"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
 
     <h1>Sending an email with msal.js and Microsoft Graph</h1>
@@ -38,9 +38,14 @@
     </script>
 
     <script>
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback);
-        function authCallback(errorDesc, token, error, tokenType) {
-            //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
+      
+        var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId:'12345' });
+        function loggerCallback(logLevel, message, piiEnabled) {
+            console.log(message);
+        }
+
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { logger: logger, cacheLocation: 'localStorage'});
+        function authCallback(errorDesc, token, error, tokenType, instance) {
             if (token) {
             }
             else {

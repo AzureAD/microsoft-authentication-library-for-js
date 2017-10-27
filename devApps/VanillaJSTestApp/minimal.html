@@ -1,8 +1,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
-<script src="out/msal.js" class="pre"></script>
+<script src="dist/msal.js" class="pre"></script>
 <script class="pre">
-    var userAgentApplication = new Msal.UserAgentApplication('0813e1d1-ad72-46a9-8665-399bba48c201', null, function (errorDes, token, error, tokenType) {
+    var userAgentApplication = new Msal.UserAgentApplication('0813e1d1-ad72-46a9-8665-399bba48c201', null, function (errorDes, token, error, tokenType, instance) {
         // this callback is called after loginRedirect OR acquireTokenRedirect. It's not used with loginPopup,  acquireTokenPopup.
         if (error) {
             console.log(error + ": " + errorDes);
