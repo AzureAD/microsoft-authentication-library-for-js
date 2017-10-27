@@ -51,7 +51,7 @@
         }
 
         var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, { logger: logger, cacheLocation: 'localStorage' });
-        function authCallback(errorDesc, token, error, tokenType, instance) {
+        function authCallback(errorDesc, token, error, tokenType) {
             if (token) {
             }
             else {
