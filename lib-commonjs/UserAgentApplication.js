@@ -109,7 +109,8 @@ var UserAgentApplication = /** @class */ (function () {
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
         if (isCallback) {
-            this.handleAuthenticationResponse(urlHash);
+            var self = this;
+            setTimeout(function () { self.handleAuthenticationResponse(urlHash); }, 0);
         }
         else {
             var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
@@ -164,7 +165,12 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage.removeItem(Constants_1.Constants.urlHash);
         try {
-            this._tokenReceivedCallback(errorDesc, token, error, tokenType);
+            var self = this;
+            setTimeout(function () {
+                if (self._tokenReceivedCallback) {
+                    self._tokenReceivedCallback(errorDesc, token, error, tokenType);
+                }
+            }, 0);
         }
         catch (err) {
             this._logger.error("Error occurred in token received callback function: " + err);
