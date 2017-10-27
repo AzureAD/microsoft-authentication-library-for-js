@@ -17,7 +17,7 @@ var applicationConfig = {
 };
 
 var userAgentApplication = new UserAgentApplication(applicationConfig.clientID, null, authCallback);
-function authCallback(errorDesc: string, token: string, error: string, tokenType: string, instance) {
+function authCallback(errorDesc: string, token: string, error: string, tokenType: string) {
     //This function is called after loginRedirect. msal object is bound to the window object after the constructor is called.
     if (token) {
     }
