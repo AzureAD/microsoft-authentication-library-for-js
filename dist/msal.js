@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2017-10-26 */
+/*! msal v0.1.3 2017-10-30 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1670,7 +1670,7 @@ var UserAgentApplication = /** @class */ (function () {
         else {
             var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
             if (pendingCallback) {
-                this._processCallBack(pendingCallback);
+                this.processCallBack(pendingCallback);
             }
         }
     }
@@ -1704,7 +1704,12 @@ var UserAgentApplication = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    UserAgentApplication.prototype._processCallBack = function (hash) {
+    /*
+     * Used to call the constructor callback with the token/error
+     * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+     * @hidden
+     */
+    UserAgentApplication.prototype.processCallBack = function (hash) {
         this._logger.info('Processing the callback from redirect response');
         var requestInfo = this.getRequestInfo(hash);
         this.saveTokenFromHash(requestInfo);
@@ -2602,8 +2607,6 @@ var UserAgentApplication = /** @class */ (function () {
      * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
      * calls the registered callbacks in case of redirect or resolves the promises with the result.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-     * @param {Function} resolve - The resolve function of the promise object.
-     * @param {Function} reject - The reject function of the promise object.
      * @hidden
      */
     UserAgentApplication.prototype.handleAuthenticationResponse = function (hash) {
