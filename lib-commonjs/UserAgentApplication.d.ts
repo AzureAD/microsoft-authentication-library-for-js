@@ -36,7 +36,7 @@ export declare class UserAgentApplication {
         postLogoutRedirectUri?: string;
         logger?: Logger;
     });
-    _processCallBack(hash: string): void;
+    private processCallBack(hash);
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
     private promptUser(urlNavigate);
@@ -68,10 +68,10 @@ export declare class UserAgentApplication {
     private renewToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
     private renewIdToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
     getUser(): User;
-    handleAuthenticationResponse(hash: string): void;
+    private handleAuthenticationResponse(hash);
     private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
     private saveTokenFromHash(tokenResponse);
-    isCallback(hash: string): boolean;
+    private isCallback(hash);
     private getHash(hash);
     private getRequestInfo(hash);
     private getScopeFromState(state);

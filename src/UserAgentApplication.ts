@@ -263,12 +263,16 @@ export class UserAgentApplication {
     else {
         var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
         if (pendingCallback) {
-            this._processCallBack(pendingCallback);
+            this.processCallBack(pendingCallback);
         }
     }
   }
-
-  _processCallBack(hash: string): void {
+    /*
+     * Used to call the constructor callback with the token/error
+     * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+     * @hidden
+     */
+  private processCallBack(hash: string): void {
       this._logger.info('Processing the callback from redirect response');
       const requestInfo = this.getRequestInfo(hash);
       this.saveTokenFromHash(requestInfo);
@@ -1277,11 +1281,9 @@ export class UserAgentApplication {
    * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
    * calls the registered callbacks in case of redirect or resolves the promises with the result.
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-   * @param {Function} resolve - The resolve function of the promise object.
-   * @param {Function} reject - The reject function of the promise object.
    * @hidden
    */
-  handleAuthenticationResponse(hash: string): void {
+  private handleAuthenticationResponse(hash: string): void {
     if (hash == null) {
       hash = window.location.hash;
     }
@@ -1522,7 +1524,7 @@ export class UserAgentApplication {
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
    * @hidden
    */
-  isCallback(hash: string): boolean {
+  private isCallback(hash: string): boolean {
     hash = this.getHash(hash);
     const parameters = Utils.deserialize(hash);
     return (
