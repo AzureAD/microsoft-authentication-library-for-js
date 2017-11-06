@@ -94,11 +94,17 @@ export class IdToken {
     if (Utils.isEmpty(rawIdToken)) {
       throw new Error("null or empty raw idtoken");
     }
+
+    if(!logger){
+      throw new Error('null or undefined Logger');
+    }
     
     const decodedIdToken = Utils.extractIdToken(rawIdToken);
 
-    if (!decodedIdToken)
+    if (!decodedIdToken){
+      logger.warning('unable to decode id token.  raw id token: ' + rawIdToken);
       return null;
+    }
 
     return IdToken.getClaimInternal(claimName, decodedIdToken, logger);
   }
