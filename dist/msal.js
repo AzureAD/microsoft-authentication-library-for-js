@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2017-10-30 */
+/*! msal v0.1.3 2017-11-13 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1430,7 +1430,8 @@ var AadAuthority = /** @class */ (function (_super) {
         "login.chinacloudapi.cn": "login.chinacloudapi.cn",
         "login.cloudgovapi.us": "login.cloudgovapi.us",
         "login.microsoftonline.com": "login.microsoftonline.com",
-        "login.microsoftonline.de": "login.microsoftonline.de"
+        "login.microsoftonline.de": "login.microsoftonline.de",
+        "login.microsoftonline.us": "login.microsoftonline.us"
     };
     return AadAuthority;
 }(Authority_1.Authority));
