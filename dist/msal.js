@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2017-11-10 */
+/*! msal v0.1.3 2017-11-13 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {

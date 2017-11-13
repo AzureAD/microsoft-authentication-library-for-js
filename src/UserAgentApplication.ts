@@ -214,7 +214,7 @@ export class UserAgentApplication {
    */
   constructor(
     clientId: string,
-    authority: string,
+    authority: string | null,
     tokenReceivedCallback: tokenReceivedCallback,
     options:
       {

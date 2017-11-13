@@ -29,7 +29,7 @@ export declare class UserAgentApplication {
     private _postLogoutredirectUri;
     private _openedWindows;
     private _requestType;
-    constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, options?: {
+    constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
         redirectUri?: string;
