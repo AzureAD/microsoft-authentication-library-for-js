@@ -4,7 +4,9 @@
   "license": "MIT",
   "main": "server.js",
   "dependencies": {
+    "bluebird": "3.3.4",
     "express": "^4.12.3",
+    "jquery": "3.2.1",
     "morgan": "^1.5.2",
     "path": "^0.11.14"
   }

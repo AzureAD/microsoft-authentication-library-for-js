@@ -18,6 +18,7 @@ app.use(morgan('dev'));
 console.log(path.join(__dirname, '../../dist'));
 app.use("/dist", express.static(path.join(__dirname, "../../dist")));
 app.use("/bower_components", express.static(path.join(__dirname, 'bower_components')));
+app.use("/node_modules", express.static(path.join(__dirname, 'node_modules')));
 
 // Set up our one route to the index.html file.
 app.get('*', function (req, res) {
