@@ -1,6 +1,3 @@
-/*! msal v0.1.3 2017-11-13 */
-
-'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -475,6 +472,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["__asyncGenerator"] = __asyncGenerator;
 /* harmony export (immutable) */ __webpack_exports__["__asyncDelegator"] = __asyncDelegator;
 /* harmony export (immutable) */ __webpack_exports__["__asyncValues"] = __asyncValues;
+/* harmony export (immutable) */ __webpack_exports__["__makeTemplateObject"] = __makeTemplateObject;
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -537,7 +535,7 @@ function __metadata(metadataKey, metadataValue) {
 function __awaiter(thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
@@ -636,6 +634,12 @@ function __asyncValues(o) {
     var m = o[Symbol.asyncIterator];
     return m ? m.call(o) : typeof __values === "function" ? __values(o) : o[Symbol.iterator]();
 }
+
+function __makeTemplateObject(cooked, raw) {
+    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+    return cooked;
+};
+
 
 /***/ }),
 /* 2 */
@@ -880,7 +884,7 @@ var Authority = /** @class */ (function () {
          * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
          */
         get: function () {
-            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
+            return this.CanonicalAuthority + ".well-known/openid-configuration";
         },
         enumerable: true,
         configurable: true
@@ -1383,7 +1387,7 @@ var AadAuthority = /** @class */ (function (_super) {
     }
     Object.defineProperty(AadAuthority.prototype, "AadInstanceDiscoveryEndpointUrl", {
         get: function () {
-            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/v2.0/authorize";
+            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/authorize";
         },
         enumerable: true,
         configurable: true
@@ -1926,7 +1930,7 @@ var UserAgentApplication = /** @class */ (function () {
         if (this._postLogoutredirectUri) {
             logout = "post_logout_redirect_uri=" + encodeURIComponent(this._postLogoutredirectUri);
         }
-        var urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
+        var urlNavigate = this.authority + "/oauth2/logout?" + logout;
         this.promptUser(urlNavigate);
     };
     /*

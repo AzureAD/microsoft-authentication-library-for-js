@@ -31,15 +31,17 @@ export class User {
   name: string;
   identityProvider: string;
   userIdentifier: string;
+  roles: string[];
 
   /*
    * @hidden
    */
-  constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string) {
+  constructor(displayableId: string, name: string, identityProvider: string, roles: string[], userIdentifier: string) {
     this.displayableId = displayableId;
     this.name = name;
     this.identityProvider = identityProvider;
     this.userIdentifier = userIdentifier;
+    this.roles = roles;
   }
 
   /*
@@ -58,6 +60,6 @@ export class User {
     }
 
     const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-    return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
+    return new User(idToken.preferredName, idToken.name, idToken.issuer, idToken.roles, userIdentifier);
   }
 }

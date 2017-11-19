@@ -27,6 +27,7 @@ export declare class User {
     name: string;
     identityProvider: string;
     userIdentifier: string;
-    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string);
+    roles: string[];
+    constructor(displayableId: string, name: string, identityProvider: string, roles: string[], userIdentifier: string);
     static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User;
 }

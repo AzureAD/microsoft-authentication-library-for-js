@@ -33,7 +33,7 @@ var AadAuthority = /** @class */ (function (_super) {
     }
     Object.defineProperty(AadAuthority.prototype, "AadInstanceDiscoveryEndpointUrl", {
         get: function () {
-            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/v2.0/authorize";
+            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/authorize";
         },
         enumerable: true,
         configurable: true

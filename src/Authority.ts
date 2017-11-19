@@ -106,7 +106,7 @@ export abstract class Authority {
    * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
    */
   protected get DefaultOpenIdConfigurationEndpoint(): string {
-    return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
+    return `${this.CanonicalAuthority}.well-known/openid-configuration`;
   }
 
   /*

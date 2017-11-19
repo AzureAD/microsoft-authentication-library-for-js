@@ -62,6 +62,12 @@ var IdToken = /** @class */ (function () {
                 if (decodedIdToken.hasOwnProperty("exp")) {
                     this.expiration = decodedIdToken.exp;
                 }
+                if (decodedIdToken.hasOwnProperty("roles")) {
+                    this.roles = decodedIdToken.roles;
+                }
+                if (decodedIdToken.hasOwnProperty("groups")) {
+                    this.groups = decodedIdToken.groups;
+                }
             }
         }
         catch (e) {

@@ -368,7 +368,7 @@ var UserAgentApplication = /** @class */ (function () {
         if (this._postLogoutredirectUri) {
             logout = "post_logout_redirect_uri=" + encodeURIComponent(this._postLogoutredirectUri);
         }
-        var urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
+        var urlNavigate = this.authority + "/oauth2/logout?" + logout;
         this.promptUser(urlNavigate);
     };
     /*

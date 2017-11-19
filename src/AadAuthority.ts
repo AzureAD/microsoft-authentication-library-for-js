@@ -31,7 +31,7 @@ export class AadAuthority extends Authority {
   private static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
 
   private get AadInstanceDiscoveryEndpointUrl(): string {
-      return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
+      return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/authorize`;
   }
 
   public constructor(authority: string, validateAuthority: boolean) {

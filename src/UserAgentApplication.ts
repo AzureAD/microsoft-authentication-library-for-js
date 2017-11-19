@@ -507,7 +507,7 @@ export class UserAgentApplication {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this._postLogoutredirectUri);
     }
 
-    const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
+    const urlNavigate = this.authority + "/oauth2/logout?" + logout;
     this.promptUser(urlNavigate);
   }
 

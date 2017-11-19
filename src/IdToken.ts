@@ -39,6 +39,8 @@ export class IdToken {
   homeObjectId: string;
   nonce: string;
   expiration: string;
+  roles: string[];
+  groups: string[];
 
   constructor(rawIdToken: string) {
     if (Utils.isEmpty(rawIdToken)) {
@@ -82,6 +84,14 @@ export class IdToken {
 
         if (decodedIdToken.hasOwnProperty("exp")) {
           this.expiration = decodedIdToken.exp;
+        }
+
+        if (decodedIdToken.hasOwnProperty("roles")) {
+          this.roles = decodedIdToken.roles;
+        }
+
+        if (decodedIdToken.hasOwnProperty("groups")) {
+          this.groups = decodedIdToken.groups;
         }
       }
     } catch (e) {

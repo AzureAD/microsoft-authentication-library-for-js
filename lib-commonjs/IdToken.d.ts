@@ -10,5 +10,7 @@ export declare class IdToken {
     homeObjectId: string;
     nonce: string;
     expiration: string;
+    roles: string[];
+    groups: string[];
     constructor(rawIdToken: string);
 }
