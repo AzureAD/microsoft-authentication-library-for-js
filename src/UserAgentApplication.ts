@@ -677,7 +677,7 @@ export class UserAgentApplication {
       if (filteredItems.length === 1) {
         accessTokenCacheItem = filteredItems[0];
 
-        authenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
+        authenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority, this._useV1);
       }
       else if (filteredItems.length > 1) {
         return {
@@ -697,7 +697,7 @@ export class UserAgentApplication {
           };
         }
 
-        authenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority);
+        authenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority, this._useV1);
       }
     }
     else {
@@ -899,7 +899,7 @@ export class UserAgentApplication {
 
     this._acquireTokenInProgress = true;
     let authenticationRequest: AuthenticationRequestParameters;
-    let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+    let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority, this._useV1) : this.authorityInstance;
 
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       if (Utils.compareObjects(userObject, this._user)) {
@@ -974,7 +974,7 @@ export class UserAgentApplication {
 
       this._acquireTokenInProgress = true;
       let authenticationRequest: AuthenticationRequestParameters;
-      let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+      let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority, this._useV1) : this.authorityInstance;
       var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
         return;
@@ -1063,7 +1063,7 @@ export class UserAgentApplication {
         }
 
         let authenticationRequest: AuthenticationRequestParameters;
-        let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+        let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority, this._useV1) : this.authorityInstance;
         if (Utils.compareObjects(userObject, this._user)) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);

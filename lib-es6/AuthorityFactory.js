@@ -52,7 +52,6 @@ var AuthorityFactory = /** @class */ (function () {
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
     AuthorityFactory.CreateInstance = function (authorityUrl, validateAuthority, useV1) {
-        if (useV1 === void 0) { useV1 = false; }
         var type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {

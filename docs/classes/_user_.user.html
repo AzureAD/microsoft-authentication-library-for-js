@@ -93,6 +93,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_.user.html#displayableid" class="tsd-kind-icon">displayable<wbr>Id</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_.user.html#identityprovider" class="tsd-kind-icon">identity<wbr>Provider</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_.user.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_.user.html#roles" class="tsd-kind-icon">roles</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_.user.html#useridentifier" class="tsd-kind-icon">user<wbr>Identifier</a></li>
 							</ul>
 						</section>
@@ -111,13 +112,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>User<span class="tsd-signature-symbol">(</span>displayableId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, identityProvider<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, userIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_user_.user.html" class="tsd-signature-type">User</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>User<span class="tsd-signature-symbol">(</span>displayableId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, identityProvider<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, roles<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, userIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_user_.user.html" class="tsd-signature-type">User</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L33">User.ts:33</a></li>
+									<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L34">User.ts:34</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -130,6 +131,9 @@
 								</li>
 								<li>
 									<h5>identityProvider: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>roles: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 								<li>
 									<h5>userIdentifier: <span class="tsd-signature-type">string</span></h5>
@@ -148,7 +152,7 @@
 					<div class="tsd-signature tsd-kind-icon">displayable<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L30">User.ts:30</a></li>
+							<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L30">User.ts:30</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -158,7 +162,7 @@
 					<div class="tsd-signature tsd-kind-icon">identity<wbr>Provider<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L32">User.ts:32</a></li>
+							<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L32">User.ts:32</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -168,7 +172,17 @@
 					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L31">User.ts:31</a></li>
+							<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L31">User.ts:31</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="roles" class="tsd-anchor"></a>
+					<h3>roles</h3>
+					<div class="tsd-signature tsd-kind-icon">roles<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L34">User.ts:34</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -178,7 +192,7 @@
 					<div class="tsd-signature tsd-kind-icon">user<wbr>Identifier<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L33">User.ts:33</a></li>
+							<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L33">User.ts:33</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -195,7 +209,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L48">User.ts:48</a></li>
+									<li>Defined in <a href="https://github.com/cicorias/microsoft-authentication-library-for-js/blob/dev/src/User.ts#L50">User.ts:50</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -314,6 +328,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_user_.user.html#name" class="tsd-kind-icon">name</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+								<a href="_user_.user.html#roles" class="tsd-kind-icon">roles</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_user_.user.html#useridentifier" class="tsd-kind-icon">user<wbr>Identifier</a>

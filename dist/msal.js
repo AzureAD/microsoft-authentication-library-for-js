@@ -1,3 +1,6 @@
+/*! msal v0.1.5 2017-11-25 */
+
+'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -814,9 +817,11 @@ var AuthorityType;
  * @hidden
  */
 var Authority = /** @class */ (function () {
-    function Authority(authority, validateAuthority) {
+    function Authority(authority, validateAuthority, useV1) {
+        this.useV1 = false;
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
+        this.useV1 = useV1;
         this.validateAsUri();
     }
     Object.defineProperty(Authority.prototype, "Tenant", {
@@ -884,7 +889,18 @@ var Authority = /** @class */ (function () {
          * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
          */
         get: function () {
-            return this.CanonicalAuthority + ".well-known/openid-configuration";
+            if (!!this.useV1) {
+                return this.CanonicalAuthority + ".well-known/openid-configuration";
+            }
+            /// use the v2 endpoints
+            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "UseV1", {
+        get: function () {
+            return this.useV1;
         },
         enumerable: true,
         configurable: true
@@ -1382,12 +1398,15 @@ var XHRClient_1 = __webpack_require__(7);
  */
 var AadAuthority = /** @class */ (function (_super) {
     tslib_1.__extends(AadAuthority, _super);
-    function AadAuthority(authority, validateAuthority) {
-        return _super.call(this, authority, validateAuthority) || this;
+    function AadAuthority(authority, validateAuthority, useV1) {
+        return _super.call(this, authority, validateAuthority, useV1) || this;
     }
     Object.defineProperty(AadAuthority.prototype, "AadInstanceDiscoveryEndpointUrl", {
         get: function () {
-            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/authorize";
+            if (!!this.UseV1) {
+                return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/authorize";
+            }
+            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/v2.0/authorize";
         },
         enumerable: true,
         configurable: true
@@ -1645,7 +1664,7 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.useV1, useV1 = _f === void 0 ? false : _f;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
@@ -1662,6 +1681,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
+        this._useV1 = useV1;
         this._openedWindows = [];
         window.msal = this;
         window.callBackMappedToRenewStates = {};
@@ -1704,7 +1724,7 @@ var UserAgentApplication = /** @class */ (function () {
          * - Default value is: "https://login.microsoftonline.com/common"
          */
         set: function (val) {
-            this.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(val, this.validateAuthority);
+            this.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(val, this.validateAuthority, this._useV1);
         },
         enumerable: true,
         configurable: true
@@ -2080,7 +2100,7 @@ var UserAgentApplication = /** @class */ (function () {
             //if only one cached token found
             if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
-                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
+                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority, this._useV1);
             }
             else if (filteredItems.length > 1) {
                 return {
@@ -2099,7 +2119,7 @@ var UserAgentApplication = /** @class */ (function () {
                         error: "multiple_matching_tokens_detected"
                     };
                 }
-                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority);
+                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority, this._useV1);
             }
         }
         else {
@@ -2270,7 +2290,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._acquireTokenInProgress = true;
         var authenticationRequest;
-        var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+        var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority, this._useV1) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
             if (Utils_1.Utils.compareObjects(userObject, _this._user)) {
                 authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
@@ -2321,7 +2341,7 @@ var UserAgentApplication = /** @class */ (function () {
             }
             _this._acquireTokenInProgress = true;
             var authenticationRequest;
-            var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
+            var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority, _this._useV1) : _this.authorityInstance;
             var popUpWindow = _this.openWindow("about:blank", "_blank", 1, _this, resolve, reject);
             if (!popUpWindow) {
                 return;
@@ -2403,7 +2423,7 @@ var UserAgentApplication = /** @class */ (function () {
                     return;
                 }
                 var authenticationRequest_1;
-                var newAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
+                var newAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority, _this._useV1) : _this.authorityInstance;
                 if (Utils_1.Utils.compareObjects(userObject_1, _this._user)) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest_1 = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
@@ -3306,6 +3326,12 @@ var IdToken = /** @class */ (function () {
                 if (decodedIdToken.hasOwnProperty("exp")) {
                     this.expiration = decodedIdToken.exp;
                 }
+                if (decodedIdToken.hasOwnProperty("roles")) {
+                    this.roles = decodedIdToken.roles;
+                }
+                if (decodedIdToken.hasOwnProperty("groups")) {
+                    this.groups = decodedIdToken.groups;
+                }
             }
         }
         catch (e) {
@@ -3580,11 +3606,12 @@ var User = /** @class */ (function () {
     /*
      * @hidden
      */
-    function User(displayableId, name, identityProvider, userIdentifier) {
+    function User(displayableId, name, identityProvider, roles, userIdentifier) {
         this.displayableId = displayableId;
         this.name = name;
         this.identityProvider = identityProvider;
         this.userIdentifier = userIdentifier;
+        this.roles = roles;
     }
     /*
      * @hidden
@@ -3601,7 +3628,7 @@ var User = /** @class */ (function () {
             utid = clientInfo.utid;
         }
         var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, idToken.roles, userIdentifier);
     };
     return User;
 }());
@@ -3668,14 +3695,14 @@ var AuthorityFactory = /** @class */ (function () {
     * Create an authority object of the correct type based on the url
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
-    AuthorityFactory.CreateInstance = function (authorityUrl, validateAuthority) {
+    AuthorityFactory.CreateInstance = function (authorityUrl, validateAuthority, useV1) {
         var type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
             case Authority_1.AuthorityType.B2C:
                 return new B2cAuthority_1.B2cAuthority(authorityUrl, validateAuthority);
             case Authority_1.AuthorityType.Aad:
-                return new AadAuthority_1.AadAuthority(authorityUrl, validateAuthority);
+                return new AadAuthority_1.AadAuthority(authorityUrl, validateAuthority, useV1);
             default:
                 throw ErrorMessage_1.ErrorMessage.invalidAuthorityType;
         }
@@ -3725,7 +3752,7 @@ var Utils_1 = __webpack_require__(0);
 var B2cAuthority = /** @class */ (function (_super) {
     tslib_1.__extends(B2cAuthority, _super);
     function B2cAuthority(authority, validateAuthority) {
-        var _this = _super.call(this, authority, validateAuthority) || this;
+        var _this = _super.call(this, authority, validateAuthority, false) || this;
         var urlComponents = Utils_1.Utils.GetUrlComponents(authority);
         var pathSegments = urlComponents.PathSegments;
         if (pathSegments.length < 3) {

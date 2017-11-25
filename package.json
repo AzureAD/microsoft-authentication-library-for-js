@@ -60,6 +60,7 @@
     "karma-webpack": "^2.0.5",
     "phantomjs-polyfill": "0.0.2",
     "shx": "^0.2.2",
+    "tslint": "^5.8.0",
     "typedoc": "^0.6.0",
     "typescript": "^2.5.3",
     "typings": "^2.1.1",

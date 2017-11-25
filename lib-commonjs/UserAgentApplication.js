@@ -521,7 +521,7 @@ var UserAgentApplication = /** @class */ (function () {
             //if only one cached token found
             if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
-                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority);
+                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.validateAuthority, this._useV1);
             }
             else if (filteredItems.length > 1) {
                 return {
@@ -540,7 +540,7 @@ var UserAgentApplication = /** @class */ (function () {
                         error: "multiple_matching_tokens_detected"
                     };
                 }
-                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority);
+                authenticationRequest.authorityInstance = AuthorityFactory_1.AuthorityFactory.CreateInstance(authorityList[0], this.validateAuthority, this._useV1);
             }
         }
         else {
@@ -711,7 +711,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._acquireTokenInProgress = true;
         var authenticationRequest;
-        var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+        var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority, this._useV1) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
             if (Utils_1.Utils.compareObjects(userObject, _this._user)) {
                 authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
@@ -762,7 +762,7 @@ var UserAgentApplication = /** @class */ (function () {
             }
             _this._acquireTokenInProgress = true;
             var authenticationRequest;
-            var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
+            var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority, _this._useV1) : _this.authorityInstance;
             var popUpWindow = _this.openWindow("about:blank", "_blank", 1, _this, resolve, reject);
             if (!popUpWindow) {
                 return;
@@ -844,7 +844,7 @@ var UserAgentApplication = /** @class */ (function () {
                     return;
                 }
                 var authenticationRequest_1;
-                var newAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
+                var newAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority, _this._useV1) : _this.authorityInstance;
                 if (Utils_1.Utils.compareObjects(userObject_1, _this._user)) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest_1 = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
