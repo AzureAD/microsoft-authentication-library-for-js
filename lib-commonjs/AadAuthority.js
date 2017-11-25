@@ -30,12 +30,15 @@ var XHRClient_1 = require("./XHRClient");
  */
 var AadAuthority = /** @class */ (function (_super) {
     tslib_1.__extends(AadAuthority, _super);
-    function AadAuthority(authority, validateAuthority) {
-        return _super.call(this, authority, validateAuthority) || this;
+    function AadAuthority(authority, validateAuthority, useV1) {
+        return _super.call(this, authority, validateAuthority, useV1) || this;
     }
     Object.defineProperty(AadAuthority.prototype, "AadInstanceDiscoveryEndpointUrl", {
         get: function () {
-            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/authorize";
+            if (!!this.UseV1) {
+                return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/authorize";
+            }
+            return AadAuthority.AadInstanceDiscoveryEndpoint + "?api-version=1.0&authorization_endpoint=" + this.CanonicalAuthority + "oauth2/v2.0/authorize";
         },
         enumerable: true,
         configurable: true

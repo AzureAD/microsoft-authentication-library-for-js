@@ -13,6 +13,7 @@ export declare class UserAgentApplication {
     private _cacheLocation;
     readonly cacheLocation: string;
     private _logger;
+    private _useV1;
     private _loginInProgress;
     private _acquireTokenInProgress;
     private _renewStates;
@@ -35,6 +36,7 @@ export declare class UserAgentApplication {
         redirectUri?: string;
         postLogoutRedirectUri?: string;
         logger?: Logger;
+        useV1?: boolean;
     });
     private processCallBack(hash);
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;

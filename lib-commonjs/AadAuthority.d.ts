@@ -27,7 +27,7 @@ import { Authority, AuthorityType } from "./Authority";
 export declare class AadAuthority extends Authority {
     private static readonly AadInstanceDiscoveryEndpoint;
     private readonly AadInstanceDiscoveryEndpointUrl;
-    constructor(authority: string, validateAuthority: boolean);
+    constructor(authority: string, validateAuthority: boolean, useV1: boolean);
     readonly AuthorityType: AuthorityType;
     private static readonly TrustedHostList;
     /**

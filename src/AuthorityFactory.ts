@@ -52,14 +52,14 @@ export class AuthorityFactory {
     * Create an authority object of the correct type based on the url
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, useV1: boolean = false): Authority {
         let type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.B2C:
                 return new B2cAuthority(authorityUrl, validateAuthority);
             case AuthorityType.Aad:
-                return new AadAuthority(authorityUrl, validateAuthority);
+                return new AadAuthority(authorityUrl, validateAuthority, useV1);
             default:
                 throw ErrorMessage.invalidAuthorityType;
         }

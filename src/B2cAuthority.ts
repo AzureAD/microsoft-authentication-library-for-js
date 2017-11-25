@@ -31,7 +31,7 @@ import { Utils } from "./Utils";
  */
 export class B2cAuthority extends AadAuthority {
   public constructor(authority: string, validateAuthority: boolean) {
-    super(authority, validateAuthority);
+    super(authority, validateAuthority, false); /// v1 is never available on B22.
     let urlComponents = Utils.GetUrlComponents(authority);
 
     let pathSegments = urlComponents.PathSegments;

@@ -36,9 +36,11 @@ export var AuthorityType;
  * @hidden
  */
 var Authority = /** @class */ (function () {
-    function Authority(authority, validateAuthority) {
+    function Authority(authority, validateAuthority, useV1) {
+        this.useV1 = false;
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
+        this.useV1 = useV1;
         this.validateAsUri();
     }
     Object.defineProperty(Authority.prototype, "Tenant", {
@@ -106,7 +108,18 @@ var Authority = /** @class */ (function () {
          * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
          */
         get: function () {
-            return this.CanonicalAuthority + ".well-known/openid-configuration";
+            if (!!this.useV1) {
+                return this.CanonicalAuthority + ".well-known/openid-configuration";
+            }
+            /// use the v2 endpoints
+            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "UseV1", {
+        get: function () {
+            return this.useV1;
         },
         enumerable: true,
         configurable: true

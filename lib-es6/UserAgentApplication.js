@@ -83,7 +83,7 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger(null) : _e;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger(null) : _e, _f = options.useV1, useV1 = _f === void 0 ? false : _f;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
@@ -100,6 +100,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
+        this._useV1 = useV1;
         this._openedWindows = [];
         window.msal = this;
         window.callBackMappedToRenewStates = {};
@@ -142,7 +143,7 @@ var UserAgentApplication = /** @class */ (function () {
          * - Default value is: "https://login.microsoftonline.com/common"
          */
         set: function (val) {
-            this.authorityInstance = AuthorityFactory.CreateInstance(val, this.validateAuthority);
+            this.authorityInstance = AuthorityFactory.CreateInstance(val, this.validateAuthority, this._useV1);
         },
         enumerable: true,
         configurable: true

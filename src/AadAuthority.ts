@@ -30,12 +30,15 @@ import { XhrClient } from "./XHRClient";
 export class AadAuthority extends Authority {
   private static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
 
-  private get AadInstanceDiscoveryEndpointUrl(): string {
+  private get AadInstanceDiscoveryEndpointUrl(): string { /// TODO: conditional v1 or v2
+    if ( !!this.UseV1 ) {
       return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/authorize`;
+    }
+    return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
   }
 
-  public constructor(authority: string, validateAuthority: boolean) {
-    super(authority, validateAuthority);
+  public constructor(authority: string, validateAuthority: boolean, useV1: boolean) {
+    super(authority, validateAuthority, useV1);
   }
 
   public get AuthorityType(): AuthorityType {

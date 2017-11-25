@@ -41,9 +41,11 @@ export enum AuthorityType {
  * @hidden
  */
 export abstract class Authority {
-  constructor(authority: string, validateAuthority: boolean) {
+  private useV1 = false;
+  constructor(authority: string, validateAuthority: boolean, useV1: boolean) {
     this.IsValidationEnabled = validateAuthority;
     this.CanonicalAuthority = authority;
+    this.useV1 = useV1;
 
     this.validateAsUri();
   }
@@ -105,10 +107,17 @@ export abstract class Authority {
   /*
    * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
    */
-  protected get DefaultOpenIdConfigurationEndpoint(): string {
-    return `${this.CanonicalAuthority}.well-known/openid-configuration`;
+  protected get DefaultOpenIdConfigurationEndpoint(): string { /// TODO: conditional on v1 or v2
+    if ( !!this.useV1 ) { /// use v1.
+      return `${this.CanonicalAuthority}.well-known/openid-configuration`;
+    }
+    /// use the v2 endpoints
+    return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
   }
 
+  protected get UseV1(): boolean {
+    return this.useV1;
+  }
   /*
    * Given a string, validate that it is of the form https://domain/path
    */

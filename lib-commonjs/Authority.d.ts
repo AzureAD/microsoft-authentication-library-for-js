@@ -27,7 +27,8 @@ export declare enum AuthorityType {
     B2C = 2,
 }
 export declare abstract class Authority {
-    constructor(authority: string, validateAuthority: boolean);
+    private useV1;
+    constructor(authority: string, validateAuthority: boolean, useV1: boolean);
     readonly abstract AuthorityType: AuthorityType;
     IsValidationEnabled: boolean;
     readonly Tenant: string;
@@ -41,6 +42,7 @@ export declare abstract class Authority {
     private canonicalAuthorityUrlComponents;
     readonly CanonicalAuthorityUrlComponents: IUri;
     protected readonly DefaultOpenIdConfigurationEndpoint: string;
+    protected readonly UseV1: boolean;
     private validateAsUri();
     private DiscoverEndpoints(openIdConfigurationEndpoint);
     ResolveEndpointsAsync(): Promise<Authority>;

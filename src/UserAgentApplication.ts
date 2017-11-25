@@ -108,6 +108,11 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
+  private _useV1: boolean;
+
+  /*
+   * @hidden
+   */
   private _loginInProgress: boolean;
 
   /*
@@ -163,7 +168,7 @@ export class UserAgentApplication {
    * - Default value is: "https://login.microsoftonline.com/common"
    */
   public set authority(val) {
-    this.authorityInstance = AuthorityFactory.CreateInstance(val, this.validateAuthority);
+    this.authorityInstance = AuthorityFactory.CreateInstance(val, this.validateAuthority, this._useV1);
   }
 
   /*
@@ -223,13 +228,15 @@ export class UserAgentApplication {
         redirectUri?: string,
         postLogoutRedirectUri?: string,
         logger?: Logger,
+        useV1?: boolean
       } = {}) {
       const {
           validateAuthority = true,
           cacheLocation = "sessionStorage",
           redirectUri = window.location.href.split("?")[0].split("#")[0],
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
-          logger = new Logger(null)
+          logger = new Logger(null),
+          useV1 = false,
       } = options;
 
     this.clientId = clientId;
@@ -249,6 +256,7 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
+    this._useV1 = useV1;
     this._openedWindows = [];
     window.msal = this;
     window.callBackMappedToRenewStates = {};

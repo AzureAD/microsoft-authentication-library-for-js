@@ -33,7 +33,7 @@ var Utils_1 = require("./Utils");
 var B2cAuthority = /** @class */ (function (_super) {
     tslib_1.__extends(B2cAuthority, _super);
     function B2cAuthority(authority, validateAuthority) {
-        var _this = _super.call(this, authority, validateAuthority) || this;
+        var _this = _super.call(this, authority, validateAuthority, false) || this;
         var urlComponents = Utils_1.Utils.GetUrlComponents(authority);
         var pathSegments = urlComponents.PathSegments;
         if (pathSegments.length < 3) {
