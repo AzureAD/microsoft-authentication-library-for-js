@@ -53,6 +53,7 @@ export class AuthorityFactory {
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
     public static CreateInstance(authorityUrl: string, validateAuthority: boolean, useV1: boolean): Authority {
+        console.warn(`createinstance called with ${useV1}`);
         let type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {

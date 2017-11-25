@@ -239,6 +239,8 @@ export class UserAgentApplication {
           useV1 = false,
       } = options;
 
+    console.warn(`we got ${options.useV1}`);
+    this._useV1 = options.useV1;
     this.clientId = clientId;
     this.validateAuthority = validateAuthority;
     this.authority = authority || "https://login.microsoftonline.com/common";
@@ -256,14 +258,14 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
-    this._useV1 = useV1;
+
     this._openedWindows = [];
     window.msal = this;
     window.callBackMappedToRenewStates = {};
     window.callBacksMappedToRenewStates = {};
     var urlHash = window.location.hash;
     var isCallback = this.isCallback(urlHash);
-    
+
     if (isCallback) {
         var self = this;
         setTimeout(function () { self.handleAuthenticationResponse(urlHash); }, 0);

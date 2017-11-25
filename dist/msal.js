@@ -1,4 +1,4 @@
-/*! msal v0.1.5 2017-11-25 */
+/*! msal v0.1.6 2017-11-25 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1665,6 +1665,8 @@ var UserAgentApplication = /** @class */ (function () {
          */
         this._tokenReceivedCallback = null;
         var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.useV1, useV1 = _f === void 0 ? false : _f;
+        console.warn("we got " + options.useV1);
+        this._useV1 = options.useV1;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
@@ -1681,7 +1683,6 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
-        this._useV1 = useV1;
         this._openedWindows = [];
         window.msal = this;
         window.callBackMappedToRenewStates = {};
@@ -3696,6 +3697,7 @@ var AuthorityFactory = /** @class */ (function () {
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
     AuthorityFactory.CreateInstance = function (authorityUrl, validateAuthority, useV1) {
+        console.warn("createinstance called with " + useV1);
         var type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
