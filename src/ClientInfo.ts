@@ -56,6 +56,7 @@ export class ClientInfo {
     try {
       const decodedClientInfo: string = Utils.base64DecodeStringUrlSafe(rawClientInfo);
       const clientInfo: ClientInfo = <ClientInfo>JSON.parse(decodedClientInfo);
+      console.warn(`clientInfo: ${decodedClientInfo}`);
       if (clientInfo) {
         if (clientInfo.hasOwnProperty("uid")) {
           this.uid = clientInfo.uid;

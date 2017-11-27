@@ -1458,9 +1458,14 @@ export class UserAgentApplication {
             authority = this._cacheStorage.getItem(authorityKey);
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
           }
-
+          console.warn("hack1");
           if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = tokenResponse.parameters[Constants.clientInfo];
+            user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
+          } else if (this._useV1) {
+             /// HACK: for now
+             console.warn("hack");
+            clientInfo = Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           } else {
             this._logger.warning("ClientInfo not received in the response from AAD");

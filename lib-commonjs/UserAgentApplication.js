@@ -1210,8 +1210,15 @@ var UserAgentApplication = /** @class */ (function () {
                         authority = this._cacheStorage.getItem(authorityKey);
                         authority = Utils_1.Utils.replaceFirstPath(authority, idToken.tenantId);
                     }
+                    console.warn("hack1");
                     if (tokenResponse.parameters.hasOwnProperty(Constants_1.Constants.clientInfo)) {
                         clientInfo = tokenResponse.parameters[Constants_1.Constants.clientInfo];
+                        user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
+                    }
+                    else if (this._useV1) {
+                        /// HACK: for now
+                        console.warn("hack");
+                        clientInfo = Utils_1.Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
                         user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
                     }
                     else {
