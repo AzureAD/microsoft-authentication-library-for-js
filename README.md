@@ -91,7 +91,13 @@ Note that msal.js is built for ES5, therefore enabling support of Internet Explo
 
 ## Build and running tests
 
-The following command will build the library and run all the unit tests.
+If you want to build the library and run all the unit tests, you can do the following.
+
+First navigate to the root directory of the library and install the dependencies:
+
+	npm install
+	
+Then use the following command to build the library and run all the unit tests:
 
 	npm run build
 
