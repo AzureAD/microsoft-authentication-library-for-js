@@ -89,6 +89,12 @@ Note that msal.js is built for ES5, therefore enabling support of Internet Explo
     <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.3/js/msal.min.js"></script>
 ```
 
+## Build and running tests
+
+The following command will build the library and run all the unit tests.
+
+	npm run build
+
 ## Community Help and Support
 
 - [FAQ](../../wiki) for access to our frequently asked questions
