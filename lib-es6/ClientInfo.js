@@ -34,7 +34,6 @@ var ClientInfo = /** @class */ (function () {
         try {
             var decodedClientInfo = Utils.base64DecodeStringUrlSafe(rawClientInfo);
             var clientInfo = JSON.parse(decodedClientInfo);
-            console.warn("clientInfo: " + decodedClientInfo);
             if (clientInfo) {
                 if (clientInfo.hasOwnProperty("uid")) {
                     this.uid = clientInfo.uid;

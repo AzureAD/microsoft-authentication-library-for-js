@@ -239,7 +239,6 @@ export class UserAgentApplication {
           useV1 = false,
       } = options;
 
-    console.warn(`we got ${options.useV1}`);
     this._useV1 = options.useV1;
     this.clientId = clientId;
     this.validateAuthority = validateAuthority;
@@ -258,6 +257,7 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
+    this._logger.warning(`TODO: set for V1 endpoints as flag useV1 set: ${options.useV1}`);
 
     this._openedWindows = [];
     window.msal = this;
@@ -1458,17 +1458,17 @@ export class UserAgentApplication {
             authority = this._cacheStorage.getItem(authorityKey);
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
           }
-          console.warn("hack1");
           if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = tokenResponse.parameters[Constants.clientInfo];
+            this._logger.info(`TODO V1: handling ClientInfo from hash when v2 ${JSON.stringify(clientInfo)} `);
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           } else if (this._useV1) {
-             /// HACK: for now
-             console.warn("hack");
+            /// HACK: for now
             clientInfo = Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
+            this._logger.warning(`TODO V1: handling ClientInfo from hash when v1 ${JSON.stringify(clientInfo)} `);
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           } else {
-            this._logger.warning("ClientInfo not received in the response from AAD");
+            this._logger.warning("ClientInfo not received in the response from AAD for accessToken");
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           }
 
@@ -1494,8 +1494,12 @@ export class UserAgentApplication {
             idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
             if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = tokenResponse.parameters[Constants.clientInfo];
+            } else if (this._useV1) {
+              /// HACK: for now
+              clientInfo = Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
+              this._logger.warning(`TODO: V1: handling ClientInfo as using V1 endpoint: ${JSON.stringify(clientInfo)} `);
             } else {
-              this._logger.warning("ClientInfo not received in the response from AAD");
+              this._logger.warning("ClientInfo not received in the response from AAD for idToken when v2");
             }
 
             let authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
