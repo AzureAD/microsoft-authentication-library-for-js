@@ -22,7 +22,7 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let authority = AuthorityFactory.CreateInstance(url, validate);
+            let authority = AuthorityFactory.CreateInstance(url, validate, false);
 
             // Assert
             expect(authority.CanonicalAuthority).toEqual("https://login.microsoftonline.in/mytenant.com/");
@@ -38,7 +38,7 @@ describe("Authority", () => {
             });
 
             // Act
-            let authority = AuthorityFactory.CreateInstance(url, validate);
+            let authority = AuthorityFactory.CreateInstance(url, validate, false);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -57,7 +57,7 @@ describe("Authority", () => {
             });
 
             // Act
-            let authority = AuthorityFactory.CreateInstance(url, validate);
+            let authority = AuthorityFactory.CreateInstance(url, validate, false);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -82,7 +82,7 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let authority = AuthorityFactory.CreateInstance(url, validate);
+            let authority = AuthorityFactory.CreateInstance(url, validate, false);
 
             // Assert
             expect(authority.CanonicalAuthority).toEqual(`${url}/`);
@@ -95,7 +95,7 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let call = () => AuthorityFactory.CreateInstance(url, validate);
+            let call = () => AuthorityFactory.CreateInstance(url, validate, false);
 
             // Assert
             expect(call).toThrow(ErrorMessage.b2cAuthorityUriInvalidPath);
@@ -107,7 +107,7 @@ describe("Authority", () => {
             let validate = true;
 
             // Act
-            let authority = AuthorityFactory.CreateInstance(url, validate);
+            let authority = AuthorityFactory.CreateInstance(url, validate, false);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -125,7 +125,7 @@ describe("Authority", () => {
             let validate = false;
 
             // Act
-            let call = () => AuthorityFactory.CreateInstance(url, validate);
+            let call = () => AuthorityFactory.CreateInstance(url, validate, false);
 
             // Assert
             expect(call).toThrow(ErrorMessage.invalidAuthorityType);
@@ -140,7 +140,7 @@ describe("Authority", () => {
             jasmine.Ajax.stubRequest(/.*/i).andReturn(response);
 
             // Act
-            let authority = AuthorityFactory.CreateInstance(url, validate);
+            let authority = AuthorityFactory.CreateInstance(url, validate, false);
             let promise = authority.ResolveEndpointsAsync();
 
             // Assert
@@ -170,7 +170,7 @@ describe("Authority", () => {
             let validate = true;
 
             // Act
-            let call = () => AuthorityFactory.CreateInstance(url, validate);
+            let call = () => AuthorityFactory.CreateInstance(url, validate, false);
 
             // Assert
             expect(call).toThrow(ErrorMessage.authorityUriInsecure);

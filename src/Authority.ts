@@ -107,7 +107,7 @@ export abstract class Authority {
   /*
    * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
    */
-  protected get DefaultOpenIdConfigurationEndpoint(): string { /// TODO: conditional on v1 or v2
+  protected get DefaultOpenIdConfigurationEndpoint(): string { /// conditional on v1 or v2
     if ( !!this.useV1 ) { /// use v1.
       return `${this.CanonicalAuthority}.well-known/openid-configuration`;
     }

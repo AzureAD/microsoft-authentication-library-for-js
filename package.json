@@ -1,17 +1,17 @@
 {
-  "name": "msal",
+  "name": "@cicorias/msal",
   "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
+    "name": "Shawn Cicoria",
+    "email": "github@cicoria.com",
+    "url": "https://github.com/cicorias"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "https://github.com/cicorias/microsoft-authentication-library-for-js.git"
   },
   "version": "0.1.6",
-  "description": "Microsoft Authentication Library for js",
+  "description": "Microsoft Authentication Library for js with V1 support",
   "keywords": [
     "implicit",
     "js",
@@ -22,10 +22,10 @@
   "main": "./lib-commonjs/index.js",
   "typings": "./lib-commonjs/index.d.ts",
   "engines": {
-    "node": ">=0.8.0"
+    "node": ">=4.8.0"
   },
   "dependencies": {
-    "tslib": "^1.7.1"
+    "tslib": "^1"
   },
   "devDependencies": {
     "@types/handlebars": "4.0.33",

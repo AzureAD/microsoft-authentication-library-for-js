@@ -257,7 +257,7 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
-    this._logger.warning(`TODO: set for V1 endpoints as flag useV1 set: ${options.useV1}`);
+    this._logger.warning(`set for V1 endpoints as flag useV1 set: ${options.useV1}`);
 
     this._openedWindows = [];
     window.msal = this;
@@ -1460,12 +1460,12 @@ export class UserAgentApplication {
           }
           if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = tokenResponse.parameters[Constants.clientInfo];
-            this._logger.info(`TODO V1: handling ClientInfo from hash when v2 ${JSON.stringify(clientInfo)} `);
+            this._logger.info(`V1: handling ClientInfo from hash when v2 ${JSON.stringify(clientInfo)} `);
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           } else if (this._useV1) {
             /// HACK: for now
             clientInfo = Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
-            this._logger.warning(`TODO V1: handling ClientInfo from hash when v1 ${JSON.stringify(clientInfo)} `);
+            this._logger.warning(`V1: handling ClientInfo from hash when v1 ${JSON.stringify(clientInfo)} `);
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           } else {
             this._logger.warning("ClientInfo not received in the response from AAD for accessToken");
@@ -1497,7 +1497,7 @@ export class UserAgentApplication {
             } else if (this._useV1) {
               /// HACK: for now
               clientInfo = Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
-              this._logger.warning(`TODO: V1: handling ClientInfo as using V1 endpoint: ${JSON.stringify(clientInfo)} `);
+              this._logger.warning(`V1: handling ClientInfo as using V1 endpoint: ${JSON.stringify(clientInfo)} `);
             } else {
               this._logger.warning("ClientInfo not received in the response from AAD for idToken when v2");
             }

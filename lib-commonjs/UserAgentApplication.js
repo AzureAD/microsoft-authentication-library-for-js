@@ -103,7 +103,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
-        this._logger.warning("TODO: set for V1 endpoints as flag useV1 set: " + options.useV1);
+        this._logger.warning("set for V1 endpoints as flag useV1 set: " + options.useV1);
         this._openedWindows = [];
         window.msal = this;
         window.callBackMappedToRenewStates = {};
@@ -1212,13 +1212,13 @@ var UserAgentApplication = /** @class */ (function () {
                     }
                     if (tokenResponse.parameters.hasOwnProperty(Constants_1.Constants.clientInfo)) {
                         clientInfo = tokenResponse.parameters[Constants_1.Constants.clientInfo];
-                        this._logger.info("TODO V1: handling ClientInfo from hash when v2 " + JSON.stringify(clientInfo) + " ");
+                        this._logger.info("V1: handling ClientInfo from hash when v2 " + JSON.stringify(clientInfo) + " ");
                         user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
                     }
                     else if (this._useV1) {
                         /// HACK: for now
                         clientInfo = Utils_1.Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
-                        this._logger.warning("TODO V1: handling ClientInfo from hash when v1 " + JSON.stringify(clientInfo) + " ");
+                        this._logger.warning("V1: handling ClientInfo from hash when v1 " + JSON.stringify(clientInfo) + " ");
                         user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
                     }
                     else {
@@ -1249,7 +1249,7 @@ var UserAgentApplication = /** @class */ (function () {
                         else if (this._useV1) {
                             /// HACK: for now
                             clientInfo = Utils_1.Utils.base64EncodeStringUrlSafe(JSON.stringify({ "uid": idToken.objectId, "utid": idToken.tenantId }));
-                            this._logger.warning("TODO: V1: handling ClientInfo as using V1 endpoint: " + JSON.stringify(clientInfo) + " ");
+                            this._logger.warning("V1: handling ClientInfo as using V1 endpoint: " + JSON.stringify(clientInfo) + " ");
                         }
                         else {
                             this._logger.warning("ClientInfo not received in the response from AAD for idToken when v2");
