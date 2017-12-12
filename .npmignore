@@ -256,3 +256,7 @@ devApps/
 node_modules/
 tests/
 typings/
+
+
+# Why is .git included ?
+.git
