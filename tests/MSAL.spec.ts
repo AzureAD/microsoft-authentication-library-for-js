@@ -120,7 +120,6 @@ describe('Msal', function (): any {
         msal._renewStates = [];
         msal._activeRenewals = {};
         msal._cacheStorage = storageFake;
-        Constants.loadFrameTimeout = 6000;
 
         jasmine.Ajax.install();
 
