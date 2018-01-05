@@ -201,6 +201,8 @@ export class UserAgentApplication {
    */
   private _requestType: string;
 
+  loadFrameTimeout: number;
+
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -223,15 +225,18 @@ export class UserAgentApplication {
         redirectUri?: string,
         postLogoutRedirectUri?: string,
         logger?: Logger,
+        loadFrameTimeout?: number,
       } = {}) {
       const {
           validateAuthority = true,
           cacheLocation = "sessionStorage",
           redirectUri = window.location.href.split("?")[0].split("#")[0],
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
-          logger = new Logger(null)
+          logger = new Logger(null),
+          loadFrameTimeout = 6000
       } = options;
 
+    this.loadFrameTimeout = loadFrameTimeout;
     this.clientId = clientId;
     this.validateAuthority = validateAuthority;
     this.authority = authority || "https://login.microsoftonline.com/common";
@@ -894,7 +899,7 @@ export class UserAgentApplication {
     let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-      if (Utils.compareObjects(userObject, this._user)) {
+      if (Utils.compareObjects(userObject, this.getUser())) {
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
       } else {
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
@@ -973,7 +978,7 @@ export class UserAgentApplication {
       }
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-        if (Utils.compareObjects(userObject, this._user)) {
+          if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
           }
@@ -1056,7 +1061,7 @@ export class UserAgentApplication {
 
         let authenticationRequest: AuthenticationRequestParameters;
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-        if (Utils.compareObjects(userObject, this._user)) {
+        if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
           }
@@ -1114,23 +1119,23 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string): void {
+  private loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): void {
     //set iframe session to pending
     this._logger.verbose("Set loading state to pending for: " + scope);
     this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusInProgress);
     this.loadFrame(urlNavigate, frameName);
     setTimeout(() => {
       if (this._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
-        // fail the iframe session if it"s in pending state
-        this._logger.verbose("Loading frame has timed out after: " + (Constants.loadFrameTimeout / 1000) + " seconds for scope " + scope);
+          // fail the iframe session if it"s in pending state
+        this._logger.verbose("Loading frame has timed out after: " + (this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
         const expectedState = this._activeRenewals[scope];
         if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-            window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Constants.accessToken);
+            window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
         }
               
         this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCancelled);
       }
-    }, Constants.loadFrameTimeout);
+    }, this.loadFrameTimeout);
   }
 
   /*
@@ -1218,7 +1223,7 @@ export class UserAgentApplication {
     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
-    this.loadFrameTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
+    this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
   }
 
   /*
@@ -1252,7 +1257,7 @@ export class UserAgentApplication {
     this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
-    this.loadFrameTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+    this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
   }
 
   /*

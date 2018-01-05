@@ -171,16 +171,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Constants, "loadFrameTimeout", {
-        get: function () {
-            return this._loadFrameTimeout;
-        },
-        set: function (timeout) {
-            this._loadFrameTimeout = timeout;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(Constants, "tokenRenewStatusCancelled", {
         get: function () { return "Canceled"; },
         enumerable: true,
@@ -232,7 +222,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Constants._loadFrameTimeout = 6000;
     Constants._popUpWidth = 483;
     Constants._popUpHeight = 600;
     return Constants;

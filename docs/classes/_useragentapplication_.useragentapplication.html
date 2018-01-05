@@ -106,6 +106,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#_user" class="tsd-kind-icon">_user</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#authorityinstance" class="tsd-kind-icon">authority<wbr>Instance</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#clientid" class="tsd-kind-icon">client<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#loadframetimeout" class="tsd-kind-icon">load<wbr>Frame<wbr>Timeout</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#validateauthority" class="tsd-kind-icon">validate<wbr>Authority</a></li>
 							</ul>
 						</section>
@@ -138,7 +139,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#iscallback" class="tsd-kind-icon">is<wbr>Callback</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#isiniframe" class="tsd-kind-icon">is<wbr>InIframe</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#loadframe" class="tsd-kind-icon">load<wbr>Frame</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#loadframetimeout" class="tsd-kind-icon">load<wbr>Frame<wbr>Timeout</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#loadiframetimeout" class="tsd-kind-icon">load<wbr>Iframe<wbr>Timeout</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#loginpopup" class="tsd-kind-icon">login<wbr>Popup</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#loginredirect" class="tsd-kind-icon">login<wbr>Redirect</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_useragentapplication_.useragentapplication.html#logout" class="tsd-kind-icon">logout</a></li>
@@ -176,7 +177,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L202">UserAgentApplication.ts:202</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L204">UserAgentApplication.ts:204</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -195,6 +196,9 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter">
 											<h5><span class="tsd-flag ts-flagOptional">Optional</span> cache<wbr>Location<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> load<wbr>Frame<wbr>Timeout<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
 										</li>
 										<li class="tsd-parameter">
 											<h5><span class="tsd-flag ts-flagOptional">Optional</span> logger<span class="tsd-signature-symbol">?: </span><a href="_logger_.logger.html" class="tsd-signature-type">Logger</a></h5>
@@ -379,6 +383,16 @@
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="loadframetimeout" class="tsd-anchor"></a>
+					<h3>load<wbr>Frame<wbr>Timeout</h3>
+					<div class="tsd-signature tsd-kind-icon">load<wbr>Frame<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L204">UserAgentApplication.ts:204</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a name="validateauthority" class="tsd-anchor"></a>
 					<h3>validate<wbr>Authority</h3>
 					<div class="tsd-signature tsd-kind-icon">validate<wbr>Authority<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -456,7 +470,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L940">UserAgentApplication.ts:940</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L945">UserAgentApplication.ts:945</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -470,7 +484,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L941">UserAgentApplication.ts:941</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L946">UserAgentApplication.ts:946</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -487,7 +501,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L942">UserAgentApplication.ts:942</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L947">UserAgentApplication.ts:947</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -507,7 +521,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L943">UserAgentApplication.ts:943</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L948">UserAgentApplication.ts:948</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -542,7 +556,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L862">UserAgentApplication.ts:862</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L867">UserAgentApplication.ts:867</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -556,7 +570,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L863">UserAgentApplication.ts:863</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L868">UserAgentApplication.ts:868</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -573,7 +587,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L864">UserAgentApplication.ts:864</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L869">UserAgentApplication.ts:869</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -593,7 +607,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L865">UserAgentApplication.ts:865</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L870">UserAgentApplication.ts:870</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -625,7 +639,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1040">UserAgentApplication.ts:1040</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1045">UserAgentApplication.ts:1045</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -657,7 +671,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1160">UserAgentApplication.ts:1160</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1165">UserAgentApplication.ts:1165</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -680,7 +694,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L810">UserAgentApplication.ts:810</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L815">UserAgentApplication.ts:815</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -706,7 +720,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L519">UserAgentApplication.ts:519</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L524">UserAgentApplication.ts:524</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -723,7 +737,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L594">UserAgentApplication.ts:594</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L599">UserAgentApplication.ts:599</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -746,7 +760,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L746">UserAgentApplication.ts:746</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L751">UserAgentApplication.ts:751</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="_user_.user.html" class="tsd-signature-type">User</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -763,7 +777,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L648">UserAgentApplication.ts:648</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L653">UserAgentApplication.ts:653</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -789,7 +803,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1544">UserAgentApplication.ts:1544</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1549">UserAgentApplication.ts:1549</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -812,7 +826,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1561">UserAgentApplication.ts:1561</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1566">UserAgentApplication.ts:1566</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -835,7 +849,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1620">UserAgentApplication.ts:1620</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1625">UserAgentApplication.ts:1625</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -858,7 +872,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L788">UserAgentApplication.ts:788</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L793">UserAgentApplication.ts:793</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -884,7 +898,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L765">UserAgentApplication.ts:765</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L770">UserAgentApplication.ts:770</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -907,7 +921,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1261">UserAgentApplication.ts:1261</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1266">UserAgentApplication.ts:1266</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="_user_.user.html" class="tsd-signature-type">User</a></h4>
@@ -924,7 +938,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1286">UserAgentApplication.ts:1286</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1291">UserAgentApplication.ts:1291</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -947,7 +961,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1527">UserAgentApplication.ts:1527</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1532">UserAgentApplication.ts:1532</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -970,7 +984,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1635">UserAgentApplication.ts:1635</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1640">UserAgentApplication.ts:1640</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -987,7 +1001,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1141">UserAgentApplication.ts:1141</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1146">UserAgentApplication.ts:1146</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1004,16 +1018,16 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external">
-					<a name="loadframetimeout" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagPrivate">Private</span> load<wbr>Frame<wbr>Timeout</h3>
+					<a name="loadiframetimeout" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> load<wbr>Iframe<wbr>Timeout</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">load<wbr>Frame<wbr>Timeout<span class="tsd-signature-symbol">(</span>urlNavigate<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, frameName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, scope<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">load<wbr>Iframe<wbr>Timeout<span class="tsd-signature-symbol">(</span>urlNavigate<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, frameName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, scope<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1117">UserAgentApplication.ts:1117</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1122">UserAgentApplication.ts:1122</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1042,7 +1056,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L365">UserAgentApplication.ts:365</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L370">UserAgentApplication.ts:370</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1068,7 +1082,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L310">UserAgentApplication.ts:310</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L315">UserAgentApplication.ts:315</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1094,7 +1108,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L502">UserAgentApplication.ts:502</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L507">UserAgentApplication.ts:507</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1111,7 +1125,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L536">UserAgentApplication.ts:536</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L541">UserAgentApplication.ts:541</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1143,7 +1157,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L456">UserAgentApplication.ts:456</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L461">UserAgentApplication.ts:461</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1181,7 +1195,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L275">UserAgentApplication.ts:275</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L280">UserAgentApplication.ts:280</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1204,7 +1218,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L441">UserAgentApplication.ts:441</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L446">UserAgentApplication.ts:446</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1227,7 +1241,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L614">UserAgentApplication.ts:614</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L619">UserAgentApplication.ts:619</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1259,7 +1273,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1229">UserAgentApplication.ts:1229</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1234">UserAgentApplication.ts:1234</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1297,7 +1311,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1194">UserAgentApplication.ts:1194</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1199">UserAgentApplication.ts:1199</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1335,7 +1349,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1366">UserAgentApplication.ts:1366</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1371">UserAgentApplication.ts:1371</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1370,7 +1384,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1399">UserAgentApplication.ts:1399</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L1404">UserAgentApplication.ts:1404</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1393,7 +1407,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L845">UserAgentApplication.ts:845</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L850">UserAgentApplication.ts:850</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1419,7 +1433,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L573">UserAgentApplication.ts:573</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/src/UserAgentApplication.ts#L578">UserAgentApplication.ts:578</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1611,6 +1625,9 @@
 								<a href="_useragentapplication_.useragentapplication.html#clientid" class="tsd-kind-icon">client<wbr>Id</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+								<a href="_useragentapplication_.useragentapplication.html#loadframetimeout" class="tsd-kind-icon">load<wbr>Frame<wbr>Timeout</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_useragentapplication_.useragentapplication.html#validateauthority" class="tsd-kind-icon">validate<wbr>Authority</a>
 							</li>
 							<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
@@ -1677,7 +1694,7 @@
 								<a href="_useragentapplication_.useragentapplication.html#loadframe" class="tsd-kind-icon">load<wbr>Frame</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-external">
-								<a href="_useragentapplication_.useragentapplication.html#loadframetimeout" class="tsd-kind-icon">load<wbr>Frame<wbr>Timeout</a>
+								<a href="_useragentapplication_.useragentapplication.html#loadiframetimeout" class="tsd-kind-icon">load<wbr>Iframe<wbr>Timeout</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
 								<a href="_useragentapplication_.useragentapplication.html#loginpopup" class="tsd-kind-icon">login<wbr>Popup</a>

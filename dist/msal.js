@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2017-11-13 */
+/*! msal v0.1.3 2018-01-04 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1184,16 +1184,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Constants, "loadFrameTimeout", {
-        get: function () {
-            return this._loadFrameTimeout;
-        },
-        set: function (timeout) {
-            this._loadFrameTimeout = timeout;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(Constants, "tokenRenewStatusCancelled", {
         get: function () { return "Canceled"; },
         enumerable: true,
@@ -1245,7 +1235,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Constants._loadFrameTimeout = 6000;
     Constants._popUpWidth = 483;
     Constants._popUpHeight = 600;
     return Constants;
@@ -1641,7 +1630,8 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f;
+        this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
@@ -2268,7 +2258,7 @@ var UserAgentApplication = /** @class */ (function () {
         var authenticationRequest;
         var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
-            if (Utils_1.Utils.compareObjects(userObject, _this._user)) {
+            if (Utils_1.Utils.compareObjects(userObject, _this.getUser())) {
                 authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
             }
             else {
@@ -2323,7 +2313,7 @@ var UserAgentApplication = /** @class */ (function () {
                 return;
             }
             acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
-                if (Utils_1.Utils.compareObjects(userObject, _this._user)) {
+                if (Utils_1.Utils.compareObjects(userObject, _this.getUser())) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                     }
@@ -2400,7 +2390,7 @@ var UserAgentApplication = /** @class */ (function () {
                 }
                 var authenticationRequest_1;
                 var newAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
-                if (Utils_1.Utils.compareObjects(userObject_1, _this._user)) {
+                if (Utils_1.Utils.compareObjects(userObject_1, _this.getUser())) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest_1 = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                     }
@@ -2457,7 +2447,7 @@ var UserAgentApplication = /** @class */ (function () {
      * @ignore
      * @hidden
      */
-    UserAgentApplication.prototype.loadFrameTimeout = function (urlNavigate, frameName, scope) {
+    UserAgentApplication.prototype.loadIframeTimeout = function (urlNavigate, frameName, scope) {
         var _this = this;
         //set iframe session to pending
         this._logger.verbose("Set loading state to pending for: " + scope);
@@ -2466,14 +2456,14 @@ var UserAgentApplication = /** @class */ (function () {
         setTimeout(function () {
             if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + scope) === Constants_1.Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it"s in pending state
-                _this._logger.verbose("Loading frame has timed out after: " + (Constants_1.Constants.loadFrameTimeout / 1000) + " seconds for scope " + scope);
+                _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
                 var expectedState = _this._activeRenewals[scope];
                 if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-                    window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Constants_1.Constants.accessToken);
+                    window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
                 }
                 _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusCancelled);
             }
-        }, Constants_1.Constants.loadFrameTimeout);
+        }, this.loadFrameTimeout);
     };
     /*
      * Loads iframe with authorization endpoint URL
@@ -2553,7 +2543,7 @@ var UserAgentApplication = /** @class */ (function () {
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadFrameTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
+        this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
     };
     /*
      * Renews idtoken for app"s own backend when clientId is passed as a single scope in the scopes array.
@@ -2583,7 +2573,7 @@ var UserAgentApplication = /** @class */ (function () {
         this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadFrameTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+        this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
     };
     /*
       * Returns the signed in user (received from a user object created at the time of login) or null.

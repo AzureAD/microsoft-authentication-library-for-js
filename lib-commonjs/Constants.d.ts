@@ -28,8 +28,6 @@ export declare class Constants {
     static readonly renewStatus: string;
     static readonly msal: string;
     static readonly resourceDelimeter: string;
-    private static _loadFrameTimeout;
-    static loadFrameTimeout: number;
     static readonly tokenRenewStatusCancelled: string;
     static readonly tokenRenewStatusCompleted: string;
     static readonly tokenRenewStatusInProgress: string;

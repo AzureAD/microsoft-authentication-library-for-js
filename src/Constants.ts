@@ -54,13 +54,6 @@ export class Constants {
   static get renewStatus(): string { return "msal.token.renew.status"; }
   static get msal(): string { return "msal"; }
   static get resourceDelimeter(): string { return "|"; }
-  private static _loadFrameTimeout: number = 6000;
-  static get loadFrameTimeout(): number {
-    return this._loadFrameTimeout;
-  }
-  static set loadFrameTimeout(timeout: number) {
-    this._loadFrameTimeout = timeout;
-  }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
   static get tokenRenewStatusInProgress(): string { return "In Progress"; }
