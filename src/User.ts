@@ -27,18 +27,14 @@ import { Utils } from "./Utils";
 
 export class User {
 
-  displayableId: string;
-  name: string;
-  identityProvider: string;
+  idToken: IdToken;
   userIdentifier: string;
 
   /*
    * @hidden
    */
-  constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string) {
-    this.displayableId = displayableId;
-    this.name = name;
-    this.identityProvider = identityProvider;
+  constructor(idToken: IdToken, userIdentifier: string) {
+    this.idToken = idToken;
     this.userIdentifier = userIdentifier;
   }
 
@@ -58,6 +54,29 @@ export class User {
     }
 
     const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-    return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
+    return new User(idToken, userIdentifier);
+  }
+
+  get displayableId(): string {
+    return this.idToken.preferredName;
+  }
+
+  get name(): string {
+    return this.idToken.name;
+  }
+
+  get identityProvider(): string {
+    return this.idToken.issuer;
+  }
+
+  getClaim(claim: string): string {
+    try {
+      const decodedIdToken = Utils.extractIdToken(this.idToken.rawIdToken);
+      if (decodedIdToken.hasOwnProperty(claim)) {
+        return decodedIdToken[claim];
+      }
+    } catch (e) {
+      throw new Error("Failed to parse the returned id token");
+    }
   }
 }
