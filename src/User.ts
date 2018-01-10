@@ -27,37 +27,59 @@ import { Utils } from "./Utils";
 
 export class User {
 
-  displayableId: string;
-  name: string;
-  identityProvider: string;
-  userIdentifier: string;
-
-  /*
-   * @hidden
-   */
-  constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string) {
-    this.displayableId = displayableId;
-    this.name = name;
-    this.identityProvider = identityProvider;
-    this.userIdentifier = userIdentifier;
-  }
-
-  /*
-   * @hidden
-   */
-  static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User {
-    let uid: string;
-    let utid: string;
-    if (!clientInfo) {
-      uid = "";
-      utid = "";
-    }
-    else {
-      uid = clientInfo.uid;
-      utid = clientInfo.utid;
+    private _displayableId: string;
+    get displayableId(): string {
+        return this._displayableId;
     }
 
-    const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-    return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
-  }
+    private _name: string;
+    get name(): string {
+        return this._name;
+    }
+
+    private _identityProvider: string;
+    get identityProvider(): string {
+        return this._identityProvider;
+    }
+
+
+    private _userIdentifier: string;
+    get userIdentifier(): string {
+        return this._userIdentifier;
+    }
+
+    private _idToken: IdToken;
+    get idToken(): IdToken {
+        return this._idToken;
+    }
+
+    /*
+     * @hidden
+     */
+    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: IdToken) {
+        this._displayableId = displayableId;
+        this._name = name;
+        this._identityProvider = identityProvider;
+        this._userIdentifier = userIdentifier;
+        this._idToken = idToken;
+    }
+
+    /*
+     * @hidden
+     */
+    static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User {
+        let uid: string;
+        let utid: string;
+        if (!clientInfo) {
+            uid = "";
+            utid = "";
+        }
+        else {
+            uid = clientInfo.uid;
+            utid = clientInfo.utid;
+        }
+
+        const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken);
+    }
 }
