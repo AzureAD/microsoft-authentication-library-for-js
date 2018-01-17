@@ -27,41 +27,21 @@ import { Utils } from "./Utils";
 
 export class User {
 
-    private _displayableId: string;
-    get displayableId(): string {
-        return this._displayableId;
-    }
-
-    private _name: string;
-    get name(): string {
-        return this._name;
-    }
-
-    private _identityProvider: string;
-    get identityProvider(): string {
-        return this._identityProvider;
-    }
-
-
-    private _userIdentifier: string;
-    get userIdentifier(): string {
-        return this._userIdentifier;
-    }
-
-    private _idToken: IdToken;
-    get idToken(): IdToken {
-        return this._idToken;
-    }
+    displayableId: string;
+    name: string;
+    identityProvider: string;
+    userIdentifier: string;
+    idToken: Object
 
     /*
      * @hidden
      */
-    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: IdToken) {
-        this._displayableId = displayableId;
-        this._name = name;
-        this._identityProvider = identityProvider;
-        this._userIdentifier = userIdentifier;
-        this._idToken = idToken;
+    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken:Object) {
+        this.displayableId = displayableId;
+        this.name = name;
+        this.identityProvider = identityProvider;
+        this.userIdentifier = userIdentifier;
+        this.idToken = idToken;
     }
 
     /*
@@ -80,6 +60,6 @@ export class User {
         }
 
         const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken);
     }
 }

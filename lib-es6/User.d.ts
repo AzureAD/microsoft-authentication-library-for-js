@@ -23,16 +23,11 @@
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 export declare class User {
-    private _displayableId;
-    readonly displayableId: string;
-    private _name;
-    readonly name: string;
-    private _identityProvider;
-    readonly identityProvider: string;
-    private _userIdentifier;
-    readonly userIdentifier: string;
-    private _idToken;
-    readonly idToken: IdToken;
-    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: IdToken);
+    displayableId: string;
+    name: string;
+    identityProvider: string;
+    userIdentifier: string;
+    idToken: Object;
+    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: Object);
     static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User;
 }

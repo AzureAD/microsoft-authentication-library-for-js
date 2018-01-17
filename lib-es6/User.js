@@ -26,47 +26,12 @@ var User = /** @class */ (function () {
      * @hidden
      */
     function User(displayableId, name, identityProvider, userIdentifier, idToken) {
-        this._displayableId = displayableId;
-        this._name = name;
-        this._identityProvider = identityProvider;
-        this._userIdentifier = userIdentifier;
-        this._idToken = idToken;
+        this.displayableId = displayableId;
+        this.name = name;
+        this.identityProvider = identityProvider;
+        this.userIdentifier = userIdentifier;
+        this.idToken = idToken;
     }
-    Object.defineProperty(User.prototype, "displayableId", {
-        get: function () {
-            return this._displayableId;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "name", {
-        get: function () {
-            return this._name;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "identityProvider", {
-        get: function () {
-            return this._identityProvider;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "userIdentifier", {
-        get: function () {
-            return this._userIdentifier;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "idToken", {
-        get: function () {
-            return this._idToken;
-        },
-        enumerable: true,
-        configurable: true
-    });
     /*
      * @hidden
      */
@@ -82,7 +47,7 @@ var User = /** @class */ (function () {
             utid = clientInfo.utid;
         }
         var userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken);
     };
     return User;
 }());

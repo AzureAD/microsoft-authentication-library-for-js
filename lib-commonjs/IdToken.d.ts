@@ -1,5 +1,4 @@
 export declare class IdToken {
-    rawIdToken: string;
     issuer: string;
     objectId: string;
     subject: string;
@@ -10,5 +9,7 @@ export declare class IdToken {
     homeObjectId: string;
     nonce: string;
     expiration: string;
+    rawIdToken: string;
+    decodedIdToken: Object;
     constructor(rawIdToken: string);
 }
