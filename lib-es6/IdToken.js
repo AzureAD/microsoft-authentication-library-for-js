@@ -31,34 +31,37 @@ var IdToken = /** @class */ (function () {
         }
         try {
             this.rawIdToken = rawIdToken;
-            var decodedIdToken = Utils.extractIdToken(rawIdToken);
-            if (decodedIdToken) {
-                if (decodedIdToken.hasOwnProperty("iss")) {
-                    this.issuer = decodedIdToken.iss;
+            this.decodedIdToken = Utils.extractIdToken(rawIdToken);
+            if (this.decodedIdToken) {
+                if (this.decodedIdToken.hasOwnProperty("iss")) {
+                    this.issuer = this.decodedIdToken["iss"];
                 }
-                if (decodedIdToken.hasOwnProperty("oid")) {
-                    this.objectId = decodedIdToken.oid;
+                if (this.decodedIdToken.hasOwnProperty("oid")) {
+                    this.objectId = this.decodedIdToken['oid'];
                 }
-                if (decodedIdToken.hasOwnProperty("sub")) {
-                    this.subject = decodedIdToken.sub;
+                if (this.decodedIdToken.hasOwnProperty("sub")) {
+                    this.subject = this.decodedIdToken["sub"];
                 }
-                if (decodedIdToken.hasOwnProperty("tid")) {
-                    this.tenantId = decodedIdToken.tid;
+                if (this.decodedIdToken.hasOwnProperty("tid")) {
+                    this.tenantId = this.decodedIdToken["tid"];
                 }
-                if (decodedIdToken.hasOwnProperty("ver")) {
-                    this.version = decodedIdToken.ver;
+                if (this.decodedIdToken.hasOwnProperty("ver")) {
+                    this.version = this.decodedIdToken["ver"];
                 }
-                if (decodedIdToken.hasOwnProperty("preferred_username")) {
-                    this.preferredName = decodedIdToken.preferred_username;
+                if (this.decodedIdToken.hasOwnProperty("preferred_username")) {
+                    this.preferredName = this.decodedIdToken["preferred_username"];
                 }
-                if (decodedIdToken.hasOwnProperty("name")) {
-                    this.name = decodedIdToken.name;
+                if (this.decodedIdToken.hasOwnProperty("name")) {
+                    this.name = this.decodedIdToken["name"];
                 }
-                if (decodedIdToken.hasOwnProperty("nonce")) {
-                    this.nonce = decodedIdToken.nonce;
+                if (this.decodedIdToken.hasOwnProperty("nonce")) {
+                    this.nonce = this.decodedIdToken["nonce"];
                 }
-                if (decodedIdToken.hasOwnProperty("exp")) {
-                    this.expiration = decodedIdToken.exp;
+                if (this.decodedIdToken.hasOwnProperty("exp")) {
+                    this.expiration = this.decodedIdToken["exp"];
+                }
+                if (this.decodedIdToken.hasOwnProperty("home_oid")) {
+                    this.homeObjectId = this.decodedIdToken["home_oid"];
                 }
             }
         }

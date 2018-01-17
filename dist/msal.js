@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2018-01-09 */
+/*! msal v0.1.3 2018-01-16 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -3263,34 +3263,37 @@ var IdToken = /** @class */ (function () {
         }
         try {
             this.rawIdToken = rawIdToken;
-            var decodedIdToken = Utils_1.Utils.extractIdToken(rawIdToken);
-            if (decodedIdToken) {
-                if (decodedIdToken.hasOwnProperty("iss")) {
-                    this.issuer = decodedIdToken.iss;
+            this.decodedIdToken = Utils_1.Utils.extractIdToken(rawIdToken);
+            if (this.decodedIdToken) {
+                if (this.decodedIdToken.hasOwnProperty("iss")) {
+                    this.issuer = this.decodedIdToken["iss"];
                 }
-                if (decodedIdToken.hasOwnProperty("oid")) {
-                    this.objectId = decodedIdToken.oid;
+                if (this.decodedIdToken.hasOwnProperty("oid")) {
+                    this.objectId = this.decodedIdToken['oid'];
                 }
-                if (decodedIdToken.hasOwnProperty("sub")) {
-                    this.subject = decodedIdToken.sub;
+                if (this.decodedIdToken.hasOwnProperty("sub")) {
+                    this.subject = this.decodedIdToken["sub"];
                 }
-                if (decodedIdToken.hasOwnProperty("tid")) {
-                    this.tenantId = decodedIdToken.tid;
+                if (this.decodedIdToken.hasOwnProperty("tid")) {
+                    this.tenantId = this.decodedIdToken["tid"];
                 }
-                if (decodedIdToken.hasOwnProperty("ver")) {
-                    this.version = decodedIdToken.ver;
+                if (this.decodedIdToken.hasOwnProperty("ver")) {
+                    this.version = this.decodedIdToken["ver"];
                 }
-                if (decodedIdToken.hasOwnProperty("preferred_username")) {
-                    this.preferredName = decodedIdToken.preferred_username;
+                if (this.decodedIdToken.hasOwnProperty("preferred_username")) {
+                    this.preferredName = this.decodedIdToken["preferred_username"];
                 }
-                if (decodedIdToken.hasOwnProperty("name")) {
-                    this.name = decodedIdToken.name;
+                if (this.decodedIdToken.hasOwnProperty("name")) {
+                    this.name = this.decodedIdToken["name"];
                 }
-                if (decodedIdToken.hasOwnProperty("nonce")) {
-                    this.nonce = decodedIdToken.nonce;
+                if (this.decodedIdToken.hasOwnProperty("nonce")) {
+                    this.nonce = this.decodedIdToken["nonce"];
                 }
-                if (decodedIdToken.hasOwnProperty("exp")) {
-                    this.expiration = decodedIdToken.exp;
+                if (this.decodedIdToken.hasOwnProperty("exp")) {
+                    this.expiration = this.decodedIdToken["exp"];
+                }
+                if (this.decodedIdToken.hasOwnProperty("home_oid")) {
+                    this.homeObjectId = this.decodedIdToken["home_oid"];
                 }
             }
         }
@@ -3567,47 +3570,12 @@ var User = /** @class */ (function () {
      * @hidden
      */
     function User(displayableId, name, identityProvider, userIdentifier, idToken) {
-        this._displayableId = displayableId;
-        this._name = name;
-        this._identityProvider = identityProvider;
-        this._userIdentifier = userIdentifier;
-        this._idToken = idToken;
+        this.displayableId = displayableId;
+        this.name = name;
+        this.identityProvider = identityProvider;
+        this.userIdentifier = userIdentifier;
+        this.idToken = idToken;
     }
-    Object.defineProperty(User.prototype, "displayableId", {
-        get: function () {
-            return this._displayableId;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "name", {
-        get: function () {
-            return this._name;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "identityProvider", {
-        get: function () {
-            return this._identityProvider;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "userIdentifier", {
-        get: function () {
-            return this._userIdentifier;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(User.prototype, "idToken", {
-        get: function () {
-            return this._idToken;
-        },
-        enumerable: true,
-        configurable: true
-    });
     /*
      * @hidden
      */
@@ -3623,7 +3591,7 @@ var User = /** @class */ (function () {
             utid = clientInfo.utid;
         }
         var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken);
     };
     return User;
 }());
