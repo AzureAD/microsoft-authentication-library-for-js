@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2018-01-16 */
+/*! msal v0.1.3 2018-01-22 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -774,7 +774,7 @@ exports.Logger = Logger;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
 var ErrorMessage_1 = __webpack_require__(4);
-var XHRClient_1 = __webpack_require__(7);
+var XHRClient_1 = __webpack_require__(8);
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -1359,9 +1359,72 @@ exports.ErrorDescription = ErrorDescription;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+var User = /** @class */ (function () {
+    /*
+     * @hidden
+     */
+    function User(displayableId, name, identityProvider, userIdentifier, idToken) {
+        this.displayableId = displayableId;
+        this.name = name;
+        this.identityProvider = identityProvider;
+        this.userIdentifier = userIdentifier;
+        this.idToken = idToken;
+    }
+    /*
+     * @hidden
+     */
+    User.createUser = function (idToken, clientInfo, authority) {
+        var uid;
+        var utid;
+        if (!clientInfo) {
+            uid = "";
+            utid = "";
+        }
+        else {
+            uid = clientInfo.uid;
+            utid = clientInfo.utid;
+        }
+        var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken);
+    };
+    return User;
+}());
+exports.User = User;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
 var Authority_1 = __webpack_require__(3);
-var XHRClient_1 = __webpack_require__(7);
+var XHRClient_1 = __webpack_require__(8);
 /**
  * @hidden
  */
@@ -1428,7 +1491,7 @@ exports.AadAuthority = AadAuthority;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1517,29 +1580,31 @@ exports.XhrClient = XhrClient;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(9);
+module.exports = __webpack_require__(10);
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var UserAgentApplication_1 = __webpack_require__(10);
+var UserAgentApplication_1 = __webpack_require__(11);
 exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
 var Logger_1 = __webpack_require__(2);
 exports.Logger = Logger_1.Logger;
 var Logger_2 = __webpack_require__(2);
 exports.LogLevel = Logger_2.LogLevel;
+var User_1 = __webpack_require__(6);
+exports.User = User_1.User;
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1568,16 +1633,16 @@ exports.LogLevel = Logger_2.LogLevel;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
-var AccessTokenKey_1 = __webpack_require__(11);
-var AccessTokenValue_1 = __webpack_require__(12);
-var AuthenticationRequestParameters_1 = __webpack_require__(13);
-var ClientInfo_1 = __webpack_require__(14);
+var AccessTokenKey_1 = __webpack_require__(12);
+var AccessTokenValue_1 = __webpack_require__(13);
+var AuthenticationRequestParameters_1 = __webpack_require__(14);
+var ClientInfo_1 = __webpack_require__(15);
 var Constants_1 = __webpack_require__(5);
-var IdToken_1 = __webpack_require__(15);
+var IdToken_1 = __webpack_require__(16);
 var Logger_1 = __webpack_require__(2);
-var Storage_1 = __webpack_require__(16);
-var RequestInfo_1 = __webpack_require__(18);
-var User_1 = __webpack_require__(19);
+var Storage_1 = __webpack_require__(17);
+var RequestInfo_1 = __webpack_require__(19);
+var User_1 = __webpack_require__(6);
 var Utils_1 = __webpack_require__(0);
 var AuthorityFactory_1 = __webpack_require__(20);
 /*
@@ -2940,7 +3005,7 @@ exports.UserAgentApplication = UserAgentApplication;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2985,7 +3050,7 @@ exports.AccessTokenKey = AccessTokenKey;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3029,7 +3094,7 @@ exports.AccessTokenValue = AccessTokenValue;
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3143,7 +3208,7 @@ exports.AuthenticationRequestParameters = AuthenticationRequestParameters;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3224,7 +3289,7 @@ exports.ClientInfo = ClientInfo;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3307,7 +3372,7 @@ exports.IdToken = IdToken;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3336,7 +3401,7 @@ exports.IdToken = IdToken;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var Constants_1 = __webpack_require__(5);
-var AccessTokenCacheItem_1 = __webpack_require__(17);
+var AccessTokenCacheItem_1 = __webpack_require__(18);
 /*
  * @hidden
  */
@@ -3449,7 +3514,7 @@ exports.Storage = Storage;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3491,7 +3556,7 @@ exports.AccessTokenCacheItem = AccessTokenCacheItem;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3536,69 +3601,6 @@ exports.TokenResponse = TokenResponse;
 
 
 /***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-var User = /** @class */ (function () {
-    /*
-     * @hidden
-     */
-    function User(displayableId, name, identityProvider, userIdentifier, idToken) {
-        this.displayableId = displayableId;
-        this.name = name;
-        this.identityProvider = identityProvider;
-        this.userIdentifier = userIdentifier;
-        this.idToken = idToken;
-    }
-    /*
-     * @hidden
-     */
-    User.createUser = function (idToken, clientInfo, authority) {
-        var uid;
-        var utid;
-        if (!clientInfo) {
-            uid = "";
-            utid = "";
-        }
-        else {
-            uid = clientInfo.uid;
-            utid = clientInfo.utid;
-        }
-        var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken);
-    };
-    return User;
-}());
-exports.User = User;
-
-
-/***/ }),
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3631,7 +3633,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @hidden
  */
 var Utils_1 = __webpack_require__(0);
-var AadAuthority_1 = __webpack_require__(6);
+var AadAuthority_1 = __webpack_require__(7);
 var B2cAuthority_1 = __webpack_require__(21);
 var Authority_1 = __webpack_require__(3);
 var ErrorMessage_1 = __webpack_require__(4);
@@ -3705,7 +3707,7 @@ exports.AuthorityFactory = AuthorityFactory;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
-var AadAuthority_1 = __webpack_require__(6);
+var AadAuthority_1 = __webpack_require__(7);
 var Authority_1 = __webpack_require__(3);
 var ErrorMessage_1 = __webpack_require__(4);
 var Utils_1 = __webpack_require__(0);
