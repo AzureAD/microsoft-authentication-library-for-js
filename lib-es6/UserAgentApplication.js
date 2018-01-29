@@ -210,25 +210,25 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this.authorityInstance.ResolveEndpointsAsync()
             .then(function () {
-            var authenticationRequest = new AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
-            if (extraQueryParameters) {
-                authenticationRequest.extraQueryParameters = extraQueryParameters;
-            }
-            _this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
-            _this._cacheStorage.setItem(Constants.loginError, "");
-            _this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-            _this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-            _this._cacheStorage.setItem(Constants.msalError, "");
-            _this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-            var authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-            if (Utils.isEmpty(_this._cacheStorage.getItem(authorityKey))) {
-                _this._cacheStorage.setItem(authorityKey, _this.authority);
-            }
-            var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-            _this._loginInProgress = true;
-            _this._requestType = Constants.login;
-            _this.promptUser(urlNavigate);
-        });
+                var authenticationRequest = new AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
+                _this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+                _this._cacheStorage.setItem(Constants.loginError, "");
+                _this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+                _this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+                _this._cacheStorage.setItem(Constants.msalError, "");
+                _this._cacheStorage.setItem(Constants.msalErrorDescription, "");
+                var authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(_this._cacheStorage.getItem(authorityKey))) {
+                    _this._cacheStorage.setItem(authorityKey, _this.authority);
+                }
+                var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+                _this._loginInProgress = true;
+                _this._requestType = Constants.login;
+                _this.promptUser(urlNavigate);
+            });
     };
     /*
      * Initiate the login process by opening a popup window.
@@ -871,26 +871,28 @@ var UserAgentApplication = /** @class */ (function () {
                 // cache miss
                 return _this.authorityInstance.ResolveEndpointsAsync()
                     .then(function () {
-                    // refresh attept with iframe
-                    //Already renewing for this scope, callback when we get the token.
-                    if (_this._activeRenewals[scope_1]) {
-                        _this._logger.verbose("Renew token for scope: " + scope_1 + " is in progress. Registering callback");
-                        //Active renewals contains the state for each renewal.
-                        _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
-                    }
-                    else {
-                        if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
-                            // App uses idToken to send to api endpoints
-                            // Default scope is tracked as clientId to store this token
-                            _this._logger.verbose("renewing idToken");
-                            _this.renewIdToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                        // refresh attept with iframe
+                        //Already renewing for this scope, callback when we get the token.
+                        if (_this._activeRenewals[scope_1]) {
+                            _this._logger.verbose("Renew token for scope: " + scope_1 + " is in progress. Registering callback");
+                            //Active renewals contains the state for each renewal.
+                            _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
                         }
                         else {
-                            _this._logger.verbose("renewing accesstoken");
-                            _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                            if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
+                                // App uses idToken to send to api endpoints
+                                // Default scope is tracked as clientId to store this token
+                                _this._logger.verbose("renewing idToken");
+                                _this.renewIdToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                            }
+                            else {
+                                _this._logger.verbose("renewing accesstoken");
+                                _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
+                            }
                         }
-                    }
-                });
+                    }).catch((err) => {
+                        reject(err)
+                    });
             }
         });
     };
