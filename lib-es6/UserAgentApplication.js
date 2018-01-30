@@ -108,8 +108,7 @@ var UserAgentApplication = /** @class */ (function () {
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
         if (isCallback) {
-            var self = this;
-            setTimeout(function () { self.handleAuthenticationResponse(urlHash); }, 0);
+            this.handleAuthenticationResponse.call(this, urlHash);
         }
         else {
             var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
@@ -169,12 +168,9 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage.removeItem(Constants.urlHash);
         try {
-            var self = this;
-            setTimeout(function () {
-                if (self._tokenReceivedCallback) {
-                    self._tokenReceivedCallback(errorDesc, token, error, tokenType);
-                }
-            }, 0);
+            if (this._tokenReceivedCallback) {
+                this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
+            }
         }
         catch (err) {
             this._logger.error("Error occurred in token received callback function: " + err);
@@ -653,7 +649,7 @@ var UserAgentApplication = /** @class */ (function () {
         var decodedClientInfo = userObject.userIdentifier.split(".");
         var uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
         var utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
-        if (userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
+        if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
             urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
         }
         if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
