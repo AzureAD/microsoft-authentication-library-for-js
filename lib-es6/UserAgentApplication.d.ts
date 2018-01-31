@@ -73,7 +73,7 @@ export declare class UserAgentApplication {
     private handleAuthenticationResponse(hash);
     private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
     private saveTokenFromHash(tokenResponse);
-    private isCallback(hash);
+    isCallback(hash: string): boolean;
     private getHash(hash);
     private getRequestInfo(hash);
     private getScopeFromState(state);
