@@ -1174,6 +1174,7 @@ export class UserAgentApplication {
         ifr.style.visibility = "hidden";
         ifr.style.position = "absolute";
         ifr.style.width = ifr.style.height = "0";
+        ifr.style.border = "0";
         adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
       } else if (document.body && document.body.insertAdjacentHTML) {
           document.body.insertAdjacentHTML('beforeend', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
