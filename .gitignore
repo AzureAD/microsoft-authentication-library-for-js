@@ -257,3 +257,6 @@ typings/
 lib-commonjs/
 lib-es6/
 dist/
+
+# vs code debugger
+launch.json

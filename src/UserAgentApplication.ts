@@ -1630,11 +1630,24 @@ export class UserAgentApplication {
   }
 
   /*
-    * Returns whether current window is in ifram for token renewal
+    * Returns whether current window is in iframe for token renewal
     * @ignore
     * @hidden
     */
   private isInIframe() {
       return window.parent !== window;
+  }
+
+  /*
+   * Get a Claim from the ID Token
+   * @param {string} claimName The name of the claim.
+   * @returns {string} - The claim value or null if the claim is not found.
+   */
+  public getClaim(claimName: string): string {
+    let rawIdToken = this._cacheStorage.getItem(Constants.idToken);
+
+    let res = IdToken.getClaim(claimName, rawIdToken, this._logger);
+
+    return res;
   }
 }

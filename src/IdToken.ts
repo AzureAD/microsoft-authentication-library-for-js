@@ -22,6 +22,7 @@
   */
 
 import { Utils } from "./Utils";
+import { Logger } from "./Logger";
 
 /*
  * @hidden
@@ -94,4 +95,35 @@ export class IdToken {
     }
   }
 
+  static getClaim(claimName: string, rawIdToken: string, logger: Logger): string {
+    if (Utils.isEmpty(rawIdToken)) {
+      throw new Error("null or empty raw idtoken");
+    }
+
+    if(!logger){
+      throw new Error('null or undefined Logger');
+    }
+    
+    const decodedIdToken = Utils.extractIdToken(rawIdToken);
+
+    if (!decodedIdToken){
+      logger.warning('unable to decode id token.  raw id token: ' + rawIdToken);
+      return null;
+    }
+
+    return IdToken.getClaimInternal(claimName, decodedIdToken, logger);
+  }
+
+  private static getClaimInternal(claimName: string, decodedIdToken: any, logger: Logger) {
+    let res: string = null;
+
+    if (decodedIdToken.hasOwnProperty(claimName)) {
+      res = decodedIdToken[claimName];
+    }
+    else{
+      logger.warning('unable to find claim: ' + claimName);
+    }
+
+    return res;
+  }
 }
