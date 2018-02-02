@@ -952,6 +952,7 @@ var UserAgentApplication = /** @class */ (function () {
                 ifr.style.visibility = "hidden";
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
+                ifr.style.border = "0";
                 adalFrame = document.getElementsByTagName("body")[0].appendChild(ifr);
             }
             else if (document.body && document.body.insertAdjacentHTML) {
@@ -1055,7 +1056,15 @@ var UserAgentApplication = /** @class */ (function () {
         }
         var self = null;
         var isPopup = false;
-        if (window.opener && window.opener.msal) {
+        var isWindowOpenerMsal = false;
+        try {
+            isWindowOpenerMsal = window.opener && window.opener.msal && window.opener.msal !== window.msal;
+        }
+        catch (err) {
+            // err = SecurityError: Blocked a frame with origin "[url]" from accessing a cross-origin frame.
+            isWindowOpenerMsal = false;
+        }
+        if (isWindowOpenerMsal) {
             self = window.opener.msal;
             isPopup = true;
         }

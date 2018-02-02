@@ -1292,7 +1292,16 @@ export class UserAgentApplication {
 
     var self = null;
     var isPopup: boolean = false;
-    if (window.opener && window.opener.msal) {
+    var isWindowOpenerMsal = false;
+
+    try {
+        isWindowOpenerMsal = window.opener && window.opener.msal && window.opener.msal !== window.msal;
+    } catch (err) {
+        // err = SecurityError: Blocked a frame with origin "[url]" from accessing a cross-origin frame.
+        isWindowOpenerMsal = false;
+    }
+
+    if (isWindowOpenerMsal) {
         self = window.opener.msal;
         isPopup = true;
     }
