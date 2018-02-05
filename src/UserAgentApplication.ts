@@ -339,7 +339,7 @@ export class UserAgentApplication {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+        this._cacheStorage.setItem(Constants.loginRequest, this._redirectUri);
         this._cacheStorage.setItem(Constants.loginError, "");
         this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
         this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -400,7 +400,7 @@ export class UserAgentApplication {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+        this._cacheStorage.setItem(Constants.loginRequest, this._redirectUri);
         this._cacheStorage.setItem(Constants.loginError, "");
         this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
         this._cacheStorage.setItem(Constants.msalError, "");
