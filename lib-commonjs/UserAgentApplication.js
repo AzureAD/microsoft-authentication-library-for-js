@@ -85,7 +85,7 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -98,6 +98,7 @@ var UserAgentApplication = /** @class */ (function () {
         this._renewStates = [];
         this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
+        this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         if (!this._cacheLocations[cacheLocation]) {
             throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
         }
@@ -1075,6 +1076,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         var requestInfo = self.getRequestInfo(hash);
         var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
+        self._logger.info("Returned from redirect url");
         if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
             tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
@@ -1082,14 +1084,21 @@ var UserAgentApplication = /** @class */ (function () {
             tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
-            tokenReceivedCallback = null;
-            self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
-            saveToken = false;
+            if (self._navigateToLoginRequestUrl) {
+                tokenReceivedCallback = null;
+                self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
+                saveToken = false;
+                if (window.parent === window && !isPopup) {
+                    window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
+                }
+                return;
+            }
+            else {
+                tokenReceivedCallback = self._tokenReceivedCallback;
+                window.location.hash = '';
+            }
         }
-        self._logger.info("Returned from redirect url");
-        if (saveToken) {
-            self.saveTokenFromHash(requestInfo);
-        }
+        self.saveTokenFromHash(requestInfo);
         if ((requestInfo.requestType === Constants_1.Constants.renewToken) && window.parent) {
             if (window.parent !== window) {
                 self._logger.verbose("Window is in iframe, acquiring token silently");
@@ -1108,14 +1117,11 @@ var UserAgentApplication = /** @class */ (function () {
         var error = requestInfo.parameters[Constants_1.Constants.error];
         try {
             if (tokenReceivedCallback) {
-                tokenReceivedCallback(errorDesc, token, error, tokenType);
+                tokenReceivedCallback.call(self, errorDesc, token, error, tokenType);
             }
         }
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
-        }
-        if (window.parent === window && !isPopup) {
-            window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
         }
         for (var i = 0; i < self._openedWindows.length; i++) {
             self._openedWindows[i].close();

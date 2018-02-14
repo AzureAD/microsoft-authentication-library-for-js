@@ -203,6 +203,8 @@ export class UserAgentApplication {
 
   loadFrameTimeout: number;
 
+  private _navigateToLoginRequestUrl: boolean;
+
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -226,6 +228,7 @@ export class UserAgentApplication {
         postLogoutRedirectUri?: string,
         logger?: Logger,
         loadFrameTimeout?: number,
+        navigateToLoginRequestUrl?: boolean,
       } = {}) {
       const {
           validateAuthority = true,
@@ -233,7 +236,8 @@ export class UserAgentApplication {
           redirectUri = window.location.href.split("?")[0].split("#")[0],
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
           logger = new Logger(null),
-          loadFrameTimeout = 6000
+          loadFrameTimeout = 6000,
+          navigateToLoginRequestUrl = true
       } = options;
 
     this.loadFrameTimeout = loadFrameTimeout;
@@ -248,6 +252,7 @@ export class UserAgentApplication {
     this._renewStates = [];
     this._activeRenewals = {};
     this._cacheLocation = cacheLocation;
+    this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     if (!this._cacheLocations[cacheLocation]) {
       throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
     }
@@ -271,11 +276,12 @@ export class UserAgentApplication {
         }
     }
   }
-    /*
-     * Used to call the constructor callback with the token/error
-     * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-     * @hidden
-     */
+
+  /*
+   * Used to call the constructor callback with the token/error
+   * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+   * @hidden
+   */
   private processCallBack(hash: string): void {
       this._logger.info('Processing the callback from redirect response');
       const requestInfo = this.getRequestInfo(hash);
@@ -296,13 +302,15 @@ export class UserAgentApplication {
 
       try {
           if (this._tokenReceivedCallback) {
-              this._tokenReceivedCallback.call(this,errorDesc, token, error, tokenType);
+              this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
           }
 
       } catch (err) {
           this._logger.error("Error occurred in token received callback function: " + err);
       }
   }
+
+  
   /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
@@ -1311,7 +1319,9 @@ export class UserAgentApplication {
 
     const requestInfo = self.getRequestInfo(hash);
     let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken:boolean = true;
-
+    
+    self._logger.info("Returned from redirect url");
+    
     if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
         tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
@@ -1319,15 +1329,23 @@ export class UserAgentApplication {
         tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     else {
-        tokenReceivedCallback = null;
-        self._cacheStorage.setItem(Constants.urlHash, hash);
-        saveToken = false;
+        if (self._navigateToLoginRequestUrl) {
+            tokenReceivedCallback = null;
+            self._cacheStorage.setItem(Constants.urlHash, hash);
+            saveToken = false;
+            if (window.parent === window && !isPopup) {
+                window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
+            }
+            return;
+        }
+        else {
+            tokenReceivedCallback = self._tokenReceivedCallback;
+            window.location.hash = '';
+        }
+
     }
 
-    self._logger.info("Returned from redirect url");
-    if (saveToken) {
-        self.saveTokenFromHash(requestInfo);
-    }
+    self.saveTokenFromHash(requestInfo);
 
     if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
         if (window.parent!==window) {
@@ -1345,22 +1363,20 @@ export class UserAgentApplication {
 
     var errorDesc = requestInfo.parameters[Constants.errorDescription];
     var error = requestInfo.parameters[Constants.error];
+  
     try {
         if (tokenReceivedCallback) {
-        tokenReceivedCallback(errorDesc, token, error, tokenType);
+            tokenReceivedCallback.call(self, errorDesc, token, error, tokenType);
         }
 
     } catch (err) {
         self._logger.error("Error occurred in token received callback function: " + err);
     }
-
-    if (window.parent === window && !isPopup) {
-        window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
-    }
-
+    
     for (var i = 0; i < self._openedWindows.length; i++) {
         self._openedWindows[i].close();
-      }
+    }
+
   }
 
   /*
