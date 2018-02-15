@@ -35,9 +35,9 @@ This example shows how to acquire a token to read user information from Microsof
             console.log(message);
         }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { logger: logger, cacheLocation: 'localStorage'}); //logger and cacheLocation are optional parameters.
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, tokenReceivedCallback, { logger: logger, cacheLocation: 'localStorage'}); //logger and cacheLocation are optional parameters.
 		//userAgentApplication has other optional parameters like redirectUri which can be assigned as shown above.Please refer to the docs to see the full list and their default values.
-        function authCallback(errorDesc, token, error, tokenType) {
+        function tokenReceivedCallback(errorDesc, token, error, tokenType) {
             if (token) {
             }
             else {
