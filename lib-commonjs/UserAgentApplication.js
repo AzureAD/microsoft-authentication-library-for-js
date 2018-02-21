@@ -295,6 +295,8 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                reject(err);
             });
         });
     };
@@ -807,6 +809,8 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                reject(err);
             });
         });
     };
@@ -889,6 +893,8 @@ var UserAgentApplication = /** @class */ (function () {
                             _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                     }
+                }).catch(function (err) {
+                    reject(err);
                 });
             }
         });

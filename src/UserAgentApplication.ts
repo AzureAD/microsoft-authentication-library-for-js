@@ -438,6 +438,8 @@ export class UserAgentApplication {
         if (popUpWindow) {
           popUpWindow.close();
         }
+      }).catch((err) => {
+         reject(err)
       });
     });
   }
@@ -1028,7 +1030,9 @@ export class UserAgentApplication {
         if (popUpWindow) {
             popUpWindow.close();
         }
-      });
+        }).catch((err) => {
+           reject(err)
+        });
     });
   }
 
@@ -1112,6 +1116,8 @@ export class UserAgentApplication {
                 this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
               }
             }
+          }).catch((err) => {
+             reject(err)
           });
       }
     });
