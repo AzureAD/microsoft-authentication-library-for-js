@@ -1,3 +1,26 @@
+# 0.1.4
+
+### Breaking Changes
+
+* The constructor function in Msal is no longer asynchronous. To use the instance of userAgentApplication in the callback function passed in the constructor, use "this" in the calback function scope. Please see below:
+```
+ var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback);
+        function authCallback(errorDesc, token, error, tokenType) {
+                   console.log(userAgentApplication) //this will print undefined, use this instead
+                   var self  = this// self is instance of userAgentApplication
+           }
+```		   
+
+### New Features
+
+* By default, msal tries to take you back to the loginStartPage after successful authentication. To disable this setting, you can pass navigateToLoginRequestUrl:false
+in the options object in the constructor. In that case, msal will just set the url hash to null and call the provided callback, thereby avoiding an additional reload. Please see snippet below:
+```
+ var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { navigateToLoginRequestUrl:false });
+```
+ 
+* The idToken object is now added as a property on user object in msal which can be used to query claims and the User class itself is exported under the global namespace.
+
 # 0.1.3
 
 ### Bug fixes
