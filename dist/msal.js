@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2018-02-13 */
+/*! msal v0.1.3 2018-02-22 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1893,6 +1893,7 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._requestType = Constants_1.Constants.login;
                 _this._loginInProgress = true;
                 if (popUpWindow) {
+                    _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
                 }
             }, function () {
@@ -1915,7 +1916,7 @@ var UserAgentApplication = /** @class */ (function () {
       */
     UserAgentApplication.prototype.promptUser = function (urlNavigate) {
         if (urlNavigate && !Utils_1.Utils.isEmpty(urlNavigate)) {
-            this._logger.info("Navigate to:" + urlNavigate);
+            this._logger.infoPii("Navigate to:" + urlNavigate);
             window.location.replace(urlNavigate);
         }
         else {
@@ -2471,7 +2472,7 @@ var UserAgentApplication = /** @class */ (function () {
                         return;
                     }
                     else if (cacheResult.errorDesc || cacheResult.error) {
-                        _this._logger.info(cacheResult.errorDesc + ":" + cacheResult.error);
+                        _this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
                         reject(cacheResult.errorDesc + ": " + cacheResult.error);
                         return;
                     }
@@ -2542,6 +2543,7 @@ var UserAgentApplication = /** @class */ (function () {
             var frameHandle = _this.addAdalFrame(frameCheck);
             if (frameHandle.src === "" || frameHandle.src === "about:blank") {
                 frameHandle.src = urlNavigate;
+                _this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
             }
         }, 500);
     };
@@ -2793,7 +2795,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         // Record error
         if (tokenResponse.parameters.hasOwnProperty(Constants_1.Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants_1.Constants.error)) {
-            this._logger.info("Error :" + tokenResponse.parameters[Constants_1.Constants.error] + "; Error description:" + tokenResponse.parameters[Constants_1.Constants.errorDescription]);
+            this._logger.infoPii("Error :" + tokenResponse.parameters[Constants_1.Constants.error] + "; Error description:" + tokenResponse.parameters[Constants_1.Constants.errorDescription]);
             this._cacheStorage.setItem(Constants_1.Constants.msalError, tokenResponse.parameters["error"]);
             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, tokenResponse.parameters[Constants_1.Constants.errorDescription]);
             if (tokenResponse.requestType === Constants_1.Constants.login) {
@@ -2872,7 +2874,8 @@ var UserAgentApplication = /** @class */ (function () {
                         if (idToken && idToken.nonce) {
                             if (idToken.nonce !== this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken)) {
                                 this._user = null;
-                                this._cacheStorage.setItem(Constants_1.Constants.loginError, "Nonce Mismatch.Expected: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual: " + idToken.nonce);
+                                this._cacheStorage.setItem(Constants_1.Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
+                                this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
                             }
                             else {
                                 this._cacheStorage.setItem(Constants_1.Constants.idTokenKey, tokenResponse.parameters[Constants_1.Constants.idToken]);
@@ -2882,6 +2885,7 @@ var UserAgentApplication = /** @class */ (function () {
                             }
                         }
                         else {
+                            this._logger.error("Invalid id_token received in the response");
                             this._cacheStorage.setItem(Constants_1.Constants.msalError, "invalid idToken");
                             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants_1.Constants.idToken]);
                         }
@@ -2889,6 +2893,7 @@ var UserAgentApplication = /** @class */ (function () {
                 }
             }
             else {
+                this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants_1.Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
                 this._cacheStorage.setItem(Constants_1.Constants.msalError, "Invalid_state");
                 this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
             }
