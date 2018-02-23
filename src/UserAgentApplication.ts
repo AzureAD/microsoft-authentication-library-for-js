@@ -424,7 +424,8 @@ export class UserAgentApplication {
         this._requestType = Constants.login;
         this._loginInProgress = true;
         if (popUpWindow) {
-          popUpWindow.location.href = urlNavigate;
+            this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
+            popUpWindow.location.href = urlNavigate;
         }
 
       }, () => {
@@ -448,8 +449,8 @@ export class UserAgentApplication {
     * @hidden
     */
   private promptUser(urlNavigate: string) {
-    if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
-      this._logger.info("Navigate to:" + urlNavigate);
+      if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
+      this._logger.infoPii("Navigate to:" + urlNavigate);
       window.location.replace(urlNavigate);
     } else {
       this._logger.info("Navigate url is empty");
@@ -1084,7 +1085,7 @@ export class UserAgentApplication {
             return;
           }
           else if (cacheResult.errorDesc || cacheResult.error) {
-            this._logger.info(cacheResult.errorDesc + ":" + cacheResult.error);
+            this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
             reject(cacheResult.errorDesc + ": " + cacheResult.error);
             return;
           }
@@ -1155,7 +1156,8 @@ export class UserAgentApplication {
     setTimeout(() => {
       var frameHandle = this.addAdalFrame(frameCheck);
       if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-        frameHandle.src = urlNavigate;
+          frameHandle.src = urlNavigate;
+          this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
       }
     },
       500);
@@ -1437,7 +1439,7 @@ export class UserAgentApplication {
 
     // Record error
     if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
-      this._logger.info("Error :" + tokenResponse.parameters[Constants.error] + "; Error description:" + tokenResponse.parameters[Constants.errorDescription]);
+      this._logger.infoPii("Error :" + tokenResponse.parameters[Constants.error] + "; Error description:" + tokenResponse.parameters[Constants.errorDescription]);
       this._cacheStorage.setItem(Constants.msalError, tokenResponse.parameters["error"]);
       this._cacheStorage.setItem(Constants.msalErrorDescription, tokenResponse.parameters[Constants.errorDescription]);
       if (tokenResponse.requestType === Constants.login) {
@@ -1521,7 +1523,8 @@ export class UserAgentApplication {
             if (idToken && idToken.nonce) {
               if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
                 this._user = null;
-                this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch.Expected: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual: " + idToken.nonce);
+                this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
+                this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
               } else {
                 this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
                 this._cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
@@ -1530,12 +1533,14 @@ export class UserAgentApplication {
                 this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
               }
             } else {
+              this._logger.error("Invalid id_token received in the response");
               this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
           }
         }
       } else {
+        this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }
