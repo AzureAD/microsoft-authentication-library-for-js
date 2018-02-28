@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2018-02-22 */
+/*! msal v0.1.5 2018-02-27 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -314,7 +314,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.3";
+        return "0.1.5";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
