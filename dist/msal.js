@@ -1,4 +1,4 @@
-/*! msal v0.1.3 2017-10-26 */
+/*! msal v0.1.5 2018-02-27 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -314,7 +314,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.3";
+        return "0.1.5";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
@@ -774,7 +774,7 @@ exports.Logger = Logger;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
 var ErrorMessage_1 = __webpack_require__(4);
-var XHRClient_1 = __webpack_require__(7);
+var XHRClient_1 = __webpack_require__(8);
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -1184,16 +1184,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Constants, "loadFrameTimeout", {
-        get: function () {
-            return this._loadFrameTimeout;
-        },
-        set: function (timeout) {
-            this._loadFrameTimeout = timeout;
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(Constants, "tokenRenewStatusCancelled", {
         get: function () { return "Canceled"; },
         enumerable: true,
@@ -1245,7 +1235,6 @@ var Constants = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Constants._loadFrameTimeout = 6000;
     Constants._popUpWidth = 483;
     Constants._popUpHeight = 600;
     return Constants;
@@ -1370,9 +1359,72 @@ exports.ErrorDescription = ErrorDescription;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+var User = /** @class */ (function () {
+    /*
+     * @hidden
+     */
+    function User(displayableId, name, identityProvider, userIdentifier, idToken) {
+        this.displayableId = displayableId;
+        this.name = name;
+        this.identityProvider = identityProvider;
+        this.userIdentifier = userIdentifier;
+        this.idToken = idToken;
+    }
+    /*
+     * @hidden
+     */
+    User.createUser = function (idToken, clientInfo, authority) {
+        var uid;
+        var utid;
+        if (!clientInfo) {
+            uid = "";
+            utid = "";
+        }
+        else {
+            uid = clientInfo.uid;
+            utid = clientInfo.utid;
+        }
+        var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken);
+    };
+    return User;
+}());
+exports.User = User;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
 var Authority_1 = __webpack_require__(3);
-var XHRClient_1 = __webpack_require__(7);
+var XHRClient_1 = __webpack_require__(8);
 /**
  * @hidden
  */
@@ -1430,7 +1482,8 @@ var AadAuthority = /** @class */ (function (_super) {
         "login.chinacloudapi.cn": "login.chinacloudapi.cn",
         "login.cloudgovapi.us": "login.cloudgovapi.us",
         "login.microsoftonline.com": "login.microsoftonline.com",
-        "login.microsoftonline.de": "login.microsoftonline.de"
+        "login.microsoftonline.de": "login.microsoftonline.de",
+        "login.microsoftonline.us": "login.microsoftonline.us"
     };
     return AadAuthority;
 }(Authority_1.Authority));
@@ -1438,7 +1491,7 @@ exports.AadAuthority = AadAuthority;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1527,29 +1580,31 @@ exports.XhrClient = XhrClient;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(9);
+module.exports = __webpack_require__(10);
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var UserAgentApplication_1 = __webpack_require__(10);
+var UserAgentApplication_1 = __webpack_require__(11);
 exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
 var Logger_1 = __webpack_require__(2);
 exports.Logger = Logger_1.Logger;
 var Logger_2 = __webpack_require__(2);
 exports.LogLevel = Logger_2.LogLevel;
+var User_1 = __webpack_require__(6);
+exports.User = User_1.User;
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1578,16 +1633,16 @@ exports.LogLevel = Logger_2.LogLevel;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
-var AccessTokenKey_1 = __webpack_require__(11);
-var AccessTokenValue_1 = __webpack_require__(12);
-var AuthenticationRequestParameters_1 = __webpack_require__(13);
-var ClientInfo_1 = __webpack_require__(14);
+var AccessTokenKey_1 = __webpack_require__(12);
+var AccessTokenValue_1 = __webpack_require__(13);
+var AuthenticationRequestParameters_1 = __webpack_require__(14);
+var ClientInfo_1 = __webpack_require__(15);
 var Constants_1 = __webpack_require__(5);
-var IdToken_1 = __webpack_require__(15);
+var IdToken_1 = __webpack_require__(16);
 var Logger_1 = __webpack_require__(2);
-var Storage_1 = __webpack_require__(16);
-var RequestInfo_1 = __webpack_require__(18);
-var User_1 = __webpack_require__(19);
+var Storage_1 = __webpack_require__(17);
+var RequestInfo_1 = __webpack_require__(19);
+var User_1 = __webpack_require__(6);
 var Utils_1 = __webpack_require__(0);
 var AuthorityFactory_1 = __webpack_require__(20);
 /*
@@ -1640,7 +1695,8 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
+        this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
         this.authority = authority || "https://login.microsoftonline.com/common";
@@ -1652,6 +1708,7 @@ var UserAgentApplication = /** @class */ (function () {
         this._renewStates = [];
         this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
+        this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         if (!this._cacheLocations[cacheLocation]) {
             throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
         }
@@ -1664,13 +1721,12 @@ var UserAgentApplication = /** @class */ (function () {
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
         if (isCallback) {
-            var self = this;
-            setTimeout(function () { self.handleAuthenticationResponse(urlHash); }, 0);
+            this.handleAuthenticationResponse.call(this, urlHash);
         }
         else {
             var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
             if (pendingCallback) {
-                this._processCallBack(pendingCallback);
+                this.processCallBack(pendingCallback);
             }
         }
     }
@@ -1704,7 +1760,12 @@ var UserAgentApplication = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    UserAgentApplication.prototype._processCallBack = function (hash) {
+    /*
+     * Used to call the constructor callback with the token/error
+     * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+     * @hidden
+     */
+    UserAgentApplication.prototype.processCallBack = function (hash) {
         this._logger.info('Processing the callback from redirect response');
         var requestInfo = this.getRequestInfo(hash);
         this.saveTokenFromHash(requestInfo);
@@ -1720,12 +1781,9 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage.removeItem(Constants_1.Constants.urlHash);
         try {
-            var self = this;
-            setTimeout(function () {
-                if (self._tokenReceivedCallback) {
-                    self._tokenReceivedCallback(errorDesc, token, error, tokenType);
-                }
-            }, 0);
+            if (this._tokenReceivedCallback) {
+                this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
+            }
         }
         catch (err) {
             this._logger.error("Error occurred in token received callback function: " + err);
@@ -1835,6 +1893,7 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._requestType = Constants_1.Constants.login;
                 _this._loginInProgress = true;
                 if (popUpWindow) {
+                    _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
                 }
             }, function () {
@@ -1857,7 +1916,7 @@ var UserAgentApplication = /** @class */ (function () {
       */
     UserAgentApplication.prototype.promptUser = function (urlNavigate) {
         if (urlNavigate && !Utils_1.Utils.isEmpty(urlNavigate)) {
-            this._logger.info("Navigate to:" + urlNavigate);
+            this._logger.infoPii("Navigate to:" + urlNavigate);
             window.location.replace(urlNavigate);
         }
         else {
@@ -2204,7 +2263,7 @@ var UserAgentApplication = /** @class */ (function () {
         var decodedClientInfo = userObject.userIdentifier.split(".");
         var uid = Utils_1.Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
         var utid = Utils_1.Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
-        if (userObject.displayableId && !Utils_1.Utils.isEmpty(userObject.displayableId)) {
+        if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils_1.Utils.isEmpty(userObject.displayableId)) {
             urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
         }
         if (!Utils_1.Utils.isEmpty(uid) && !Utils_1.Utils.isEmpty(utid)) {
@@ -2262,7 +2321,7 @@ var UserAgentApplication = /** @class */ (function () {
         var authenticationRequest;
         var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
-            if (Utils_1.Utils.compareObjects(userObject, _this._user)) {
+            if (Utils_1.Utils.compareObjects(userObject, _this.getUser())) {
                 authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
             }
             else {
@@ -2317,7 +2376,7 @@ var UserAgentApplication = /** @class */ (function () {
                 return;
             }
             acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
-                if (Utils_1.Utils.compareObjects(userObject, _this._user)) {
+                if (Utils_1.Utils.compareObjects(userObject, _this.getUser())) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                     }
@@ -2394,7 +2453,7 @@ var UserAgentApplication = /** @class */ (function () {
                 }
                 var authenticationRequest_1;
                 var newAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, _this.validateAuthority) : _this.authorityInstance;
-                if (Utils_1.Utils.compareObjects(userObject_1, _this._user)) {
+                if (Utils_1.Utils.compareObjects(userObject_1, _this.getUser())) {
                     if (scopes.indexOf(_this.clientId) > -1) {
                         authenticationRequest_1 = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                     }
@@ -2413,7 +2472,7 @@ var UserAgentApplication = /** @class */ (function () {
                         return;
                     }
                     else if (cacheResult.errorDesc || cacheResult.error) {
-                        _this._logger.info(cacheResult.errorDesc + ":" + cacheResult.error);
+                        _this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
                         reject(cacheResult.errorDesc + ": " + cacheResult.error);
                         return;
                     }
@@ -2451,7 +2510,7 @@ var UserAgentApplication = /** @class */ (function () {
      * @ignore
      * @hidden
      */
-    UserAgentApplication.prototype.loadFrameTimeout = function (urlNavigate, frameName, scope) {
+    UserAgentApplication.prototype.loadIframeTimeout = function (urlNavigate, frameName, scope) {
         var _this = this;
         //set iframe session to pending
         this._logger.verbose("Set loading state to pending for: " + scope);
@@ -2460,14 +2519,14 @@ var UserAgentApplication = /** @class */ (function () {
         setTimeout(function () {
             if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + scope) === Constants_1.Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it"s in pending state
-                _this._logger.verbose("Loading frame has timed out after: " + (Constants_1.Constants.loadFrameTimeout / 1000) + " seconds for scope " + scope);
+                _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
                 var expectedState = _this._activeRenewals[scope];
                 if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-                    window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Constants_1.Constants.accessToken);
+                    window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
                 }
                 _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusCancelled);
             }
-        }, Constants_1.Constants.loadFrameTimeout);
+        }, this.loadFrameTimeout);
     };
     /*
      * Loads iframe with authorization endpoint URL
@@ -2484,6 +2543,7 @@ var UserAgentApplication = /** @class */ (function () {
             var frameHandle = _this.addAdalFrame(frameCheck);
             if (frameHandle.src === "" || frameHandle.src === "about:blank") {
                 frameHandle.src = urlNavigate;
+                _this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
             }
         }, 500);
     };
@@ -2507,6 +2567,7 @@ var UserAgentApplication = /** @class */ (function () {
                 ifr.style.visibility = "hidden";
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
+                ifr.style.border = "0";
                 adalFrame = document.getElementsByTagName("body")[0].appendChild(ifr);
             }
             else if (document.body && document.body.insertAdjacentHTML) {
@@ -2547,7 +2608,7 @@ var UserAgentApplication = /** @class */ (function () {
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadFrameTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
+        this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
     };
     /*
      * Renews idtoken for app"s own backend when clientId is passed as a single scope in the scopes array.
@@ -2577,7 +2638,7 @@ var UserAgentApplication = /** @class */ (function () {
         this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadFrameTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+        this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
     };
     /*
       * Returns the signed in user (received from a user object created at the time of login) or null.
@@ -2602,8 +2663,6 @@ var UserAgentApplication = /** @class */ (function () {
      * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
      * calls the registered callbacks in case of redirect or resolves the promises with the result.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-     * @param {Function} resolve - The resolve function of the promise object.
-     * @param {Function} reject - The reject function of the promise object.
      * @hidden
      */
     UserAgentApplication.prototype.handleAuthenticationResponse = function (hash) {
@@ -2612,7 +2671,15 @@ var UserAgentApplication = /** @class */ (function () {
         }
         var self = null;
         var isPopup = false;
-        if (window.opener && window.opener.msal) {
+        var isWindowOpenerMsal = false;
+        try {
+            isWindowOpenerMsal = window.opener && window.opener.msal && window.opener.msal !== window.msal;
+        }
+        catch (err) {
+            // err = SecurityError: Blocked a frame with origin "[url]" from accessing a cross-origin frame.
+            isWindowOpenerMsal = false;
+        }
+        if (isWindowOpenerMsal) {
             self = window.opener.msal;
             isPopup = true;
         }
@@ -2621,6 +2688,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         var requestInfo = self.getRequestInfo(hash);
         var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
+        self._logger.info("Returned from redirect url");
         if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
             tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
@@ -2628,14 +2696,21 @@ var UserAgentApplication = /** @class */ (function () {
             tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
-            tokenReceivedCallback = null;
-            self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
-            saveToken = false;
+            if (self._navigateToLoginRequestUrl) {
+                tokenReceivedCallback = null;
+                self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
+                saveToken = false;
+                if (window.parent === window && !isPopup) {
+                    window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
+                }
+                return;
+            }
+            else {
+                tokenReceivedCallback = self._tokenReceivedCallback;
+                window.location.hash = '';
+            }
         }
-        self._logger.info("Returned from redirect url");
-        if (saveToken) {
-            self.saveTokenFromHash(requestInfo);
-        }
+        self.saveTokenFromHash(requestInfo);
         if ((requestInfo.requestType === Constants_1.Constants.renewToken) && window.parent) {
             if (window.parent !== window) {
                 self._logger.verbose("Window is in iframe, acquiring token silently");
@@ -2654,14 +2729,11 @@ var UserAgentApplication = /** @class */ (function () {
         var error = requestInfo.parameters[Constants_1.Constants.error];
         try {
             if (tokenReceivedCallback) {
-                tokenReceivedCallback(errorDesc, token, error, tokenType);
+                tokenReceivedCallback.call(self, errorDesc, token, error, tokenType);
             }
         }
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
-        }
-        if (window.parent === window && !isPopup) {
-            window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
         }
         for (var i = 0; i < self._openedWindows.length; i++) {
             self._openedWindows[i].close();
@@ -2723,7 +2795,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         // Record error
         if (tokenResponse.parameters.hasOwnProperty(Constants_1.Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants_1.Constants.error)) {
-            this._logger.info("Error :" + tokenResponse.parameters[Constants_1.Constants.error] + "; Error description:" + tokenResponse.parameters[Constants_1.Constants.errorDescription]);
+            this._logger.infoPii("Error :" + tokenResponse.parameters[Constants_1.Constants.error] + "; Error description:" + tokenResponse.parameters[Constants_1.Constants.errorDescription]);
             this._cacheStorage.setItem(Constants_1.Constants.msalError, tokenResponse.parameters["error"]);
             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, tokenResponse.parameters[Constants_1.Constants.errorDescription]);
             if (tokenResponse.requestType === Constants_1.Constants.login) {
@@ -2802,7 +2874,8 @@ var UserAgentApplication = /** @class */ (function () {
                         if (idToken && idToken.nonce) {
                             if (idToken.nonce !== this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken)) {
                                 this._user = null;
-                                this._cacheStorage.setItem(Constants_1.Constants.loginError, "Nonce Mismatch.Expected: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual: " + idToken.nonce);
+                                this._cacheStorage.setItem(Constants_1.Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
+                                this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
                             }
                             else {
                                 this._cacheStorage.setItem(Constants_1.Constants.idTokenKey, tokenResponse.parameters[Constants_1.Constants.idToken]);
@@ -2812,6 +2885,7 @@ var UserAgentApplication = /** @class */ (function () {
                             }
                         }
                         else {
+                            this._logger.error("Invalid id_token received in the response");
                             this._cacheStorage.setItem(Constants_1.Constants.msalError, "invalid idToken");
                             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants_1.Constants.idToken]);
                         }
@@ -2819,6 +2893,7 @@ var UserAgentApplication = /** @class */ (function () {
                 }
             }
             else {
+                this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants_1.Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
                 this._cacheStorage.setItem(Constants_1.Constants.msalError, "Invalid_state");
                 this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
             }
@@ -2946,7 +3021,7 @@ exports.UserAgentApplication = UserAgentApplication;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2991,7 +3066,7 @@ exports.AccessTokenKey = AccessTokenKey;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3035,7 +3110,7 @@ exports.AccessTokenValue = AccessTokenValue;
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3149,7 +3224,7 @@ exports.AuthenticationRequestParameters = AuthenticationRequestParameters;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3230,7 +3305,7 @@ exports.ClientInfo = ClientInfo;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3269,34 +3344,37 @@ var IdToken = /** @class */ (function () {
         }
         try {
             this.rawIdToken = rawIdToken;
-            var decodedIdToken = Utils_1.Utils.extractIdToken(rawIdToken);
-            if (decodedIdToken) {
-                if (decodedIdToken.hasOwnProperty("iss")) {
-                    this.issuer = decodedIdToken.iss;
+            this.decodedIdToken = Utils_1.Utils.extractIdToken(rawIdToken);
+            if (this.decodedIdToken) {
+                if (this.decodedIdToken.hasOwnProperty("iss")) {
+                    this.issuer = this.decodedIdToken["iss"];
                 }
-                if (decodedIdToken.hasOwnProperty("oid")) {
-                    this.objectId = decodedIdToken.oid;
+                if (this.decodedIdToken.hasOwnProperty("oid")) {
+                    this.objectId = this.decodedIdToken['oid'];
                 }
-                if (decodedIdToken.hasOwnProperty("sub")) {
-                    this.subject = decodedIdToken.sub;
+                if (this.decodedIdToken.hasOwnProperty("sub")) {
+                    this.subject = this.decodedIdToken["sub"];
                 }
-                if (decodedIdToken.hasOwnProperty("tid")) {
-                    this.tenantId = decodedIdToken.tid;
+                if (this.decodedIdToken.hasOwnProperty("tid")) {
+                    this.tenantId = this.decodedIdToken["tid"];
                 }
-                if (decodedIdToken.hasOwnProperty("ver")) {
-                    this.version = decodedIdToken.ver;
+                if (this.decodedIdToken.hasOwnProperty("ver")) {
+                    this.version = this.decodedIdToken["ver"];
                 }
-                if (decodedIdToken.hasOwnProperty("preferred_username")) {
-                    this.preferredName = decodedIdToken.preferred_username;
+                if (this.decodedIdToken.hasOwnProperty("preferred_username")) {
+                    this.preferredName = this.decodedIdToken["preferred_username"];
                 }
-                if (decodedIdToken.hasOwnProperty("name")) {
-                    this.name = decodedIdToken.name;
+                if (this.decodedIdToken.hasOwnProperty("name")) {
+                    this.name = this.decodedIdToken["name"];
                 }
-                if (decodedIdToken.hasOwnProperty("nonce")) {
-                    this.nonce = decodedIdToken.nonce;
+                if (this.decodedIdToken.hasOwnProperty("nonce")) {
+                    this.nonce = this.decodedIdToken["nonce"];
                 }
-                if (decodedIdToken.hasOwnProperty("exp")) {
-                    this.expiration = decodedIdToken.exp;
+                if (this.decodedIdToken.hasOwnProperty("exp")) {
+                    this.expiration = this.decodedIdToken["exp"];
+                }
+                if (this.decodedIdToken.hasOwnProperty("home_oid")) {
+                    this.homeObjectId = this.decodedIdToken["home_oid"];
                 }
             }
         }
@@ -3310,7 +3388,7 @@ exports.IdToken = IdToken;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3339,7 +3417,7 @@ exports.IdToken = IdToken;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var Constants_1 = __webpack_require__(5);
-var AccessTokenCacheItem_1 = __webpack_require__(17);
+var AccessTokenCacheItem_1 = __webpack_require__(18);
 /*
  * @hidden
  */
@@ -3452,7 +3530,7 @@ exports.Storage = Storage;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3494,7 +3572,7 @@ exports.AccessTokenCacheItem = AccessTokenCacheItem;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3539,68 +3617,6 @@ exports.TokenResponse = TokenResponse;
 
 
 /***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-var User = /** @class */ (function () {
-    /*
-     * @hidden
-     */
-    function User(displayableId, name, identityProvider, userIdentifier) {
-        this.displayableId = displayableId;
-        this.name = name;
-        this.identityProvider = identityProvider;
-        this.userIdentifier = userIdentifier;
-    }
-    /*
-     * @hidden
-     */
-    User.createUser = function (idToken, clientInfo, authority) {
-        var uid;
-        var utid;
-        if (!clientInfo) {
-            uid = "";
-            utid = "";
-        }
-        else {
-            uid = clientInfo.uid;
-            utid = clientInfo.utid;
-        }
-        var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
-    };
-    return User;
-}());
-exports.User = User;
-
-
-/***/ }),
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3633,7 +3649,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @hidden
  */
 var Utils_1 = __webpack_require__(0);
-var AadAuthority_1 = __webpack_require__(6);
+var AadAuthority_1 = __webpack_require__(7);
 var B2cAuthority_1 = __webpack_require__(21);
 var Authority_1 = __webpack_require__(3);
 var ErrorMessage_1 = __webpack_require__(4);
@@ -3707,7 +3723,7 @@ exports.AuthorityFactory = AuthorityFactory;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
-var AadAuthority_1 = __webpack_require__(6);
+var AadAuthority_1 = __webpack_require__(7);
 var Authority_1 = __webpack_require__(3);
 var ErrorMessage_1 = __webpack_require__(4);
 var Utils_1 = __webpack_require__(0);

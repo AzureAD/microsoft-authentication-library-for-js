@@ -201,6 +201,10 @@ export class UserAgentApplication {
    */
   private _requestType: string;
 
+  loadFrameTimeout: number;
+
+  private _navigateToLoginRequestUrl: boolean;
+
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -214,7 +218,7 @@ export class UserAgentApplication {
    */
   constructor(
     clientId: string,
-    authority: string,
+    authority: string | null,
     tokenReceivedCallback: tokenReceivedCallback,
     options:
       {
@@ -223,15 +227,20 @@ export class UserAgentApplication {
         redirectUri?: string,
         postLogoutRedirectUri?: string,
         logger?: Logger,
+        loadFrameTimeout?: number,
+        navigateToLoginRequestUrl?: boolean,
       } = {}) {
       const {
           validateAuthority = true,
           cacheLocation = "sessionStorage",
           redirectUri = window.location.href.split("?")[0].split("#")[0],
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
-          logger = new Logger(null)
+          logger = new Logger(null),
+          loadFrameTimeout = 6000,
+          navigateToLoginRequestUrl = true
       } = options;
 
+    this.loadFrameTimeout = loadFrameTimeout;
     this.clientId = clientId;
     this.validateAuthority = validateAuthority;
     this.authority = authority || "https://login.microsoftonline.com/common";
@@ -243,6 +252,7 @@ export class UserAgentApplication {
     this._renewStates = [];
     this._activeRenewals = {};
     this._cacheLocation = cacheLocation;
+    this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     if (!this._cacheLocations[cacheLocation]) {
       throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
     }
@@ -257,18 +267,22 @@ export class UserAgentApplication {
     var isCallback = this.isCallback(urlHash);
     
     if (isCallback) {
-        var self = this;
-        setTimeout(function () { self.handleAuthenticationResponse(urlHash); }, 0);
+        this.handleAuthenticationResponse.call(this, urlHash);
     }
     else {
         var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
         if (pendingCallback) {
-            this._processCallBack(pendingCallback);
+            this.processCallBack(pendingCallback);
         }
     }
   }
 
-  _processCallBack(hash: string): void {
+  /*
+   * Used to call the constructor callback with the token/error
+   * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+   * @hidden
+   */
+  private processCallBack(hash: string): void {
       this._logger.info('Processing the callback from redirect response');
       const requestInfo = this.getRequestInfo(hash);
       this.saveTokenFromHash(requestInfo);
@@ -287,17 +301,16 @@ export class UserAgentApplication {
       this._cacheStorage.removeItem(Constants.urlHash);
 
       try {
-          var self = this;
-          setTimeout(function () {
-              if (self._tokenReceivedCallback) {
-                  self._tokenReceivedCallback(errorDesc, token, error, tokenType);
-              }
-          }, 0);
+          if (this._tokenReceivedCallback) {
+              this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
+          }
 
       } catch (err) {
           this._logger.error("Error occurred in token received callback function: " + err);
       }
   }
+
+  
   /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
@@ -411,7 +424,8 @@ export class UserAgentApplication {
         this._requestType = Constants.login;
         this._loginInProgress = true;
         if (popUpWindow) {
-          popUpWindow.location.href = urlNavigate;
+            this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
+            popUpWindow.location.href = urlNavigate;
         }
 
       }, () => {
@@ -435,8 +449,8 @@ export class UserAgentApplication {
     * @hidden
     */
   private promptUser(urlNavigate: string) {
-    if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
-      this._logger.info("Navigate to:" + urlNavigate);
+      if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
+      this._logger.infoPii("Navigate to:" + urlNavigate);
       window.location.replace(urlNavigate);
     } else {
       this._logger.info("Navigate url is empty");
@@ -808,7 +822,7 @@ export class UserAgentApplication {
     const decodedClientInfo = userObject.userIdentifier.split(".");
     const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
     const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
-    if (userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
+    if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
       urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
     }
 
@@ -890,7 +904,7 @@ export class UserAgentApplication {
     let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-      if (Utils.compareObjects(userObject, this._user)) {
+      if (Utils.compareObjects(userObject, this.getUser())) {
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
       } else {
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
@@ -969,7 +983,7 @@ export class UserAgentApplication {
       }
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-        if (Utils.compareObjects(userObject, this._user)) {
+          if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
           }
@@ -1052,7 +1066,7 @@ export class UserAgentApplication {
 
         let authenticationRequest: AuthenticationRequestParameters;
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-        if (Utils.compareObjects(userObject, this._user)) {
+        if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
           }
@@ -1071,7 +1085,7 @@ export class UserAgentApplication {
             return;
           }
           else if (cacheResult.errorDesc || cacheResult.error) {
-            this._logger.info(cacheResult.errorDesc + ":" + cacheResult.error);
+            this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
             reject(cacheResult.errorDesc + ": " + cacheResult.error);
             return;
           }
@@ -1110,23 +1124,23 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private loadFrameTimeout(urlNavigate: string, frameName: string, scope: string): void {
+  private loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): void {
     //set iframe session to pending
     this._logger.verbose("Set loading state to pending for: " + scope);
     this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusInProgress);
     this.loadFrame(urlNavigate, frameName);
     setTimeout(() => {
       if (this._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
-        // fail the iframe session if it"s in pending state
-        this._logger.verbose("Loading frame has timed out after: " + (Constants.loadFrameTimeout / 1000) + " seconds for scope " + scope);
+          // fail the iframe session if it"s in pending state
+        this._logger.verbose("Loading frame has timed out after: " + (this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
         const expectedState = this._activeRenewals[scope];
         if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-            window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, null, Constants.accessToken);
+            window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
         }
               
         this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCancelled);
       }
-    }, Constants.loadFrameTimeout);
+    }, this.loadFrameTimeout);
   }
 
   /*
@@ -1142,7 +1156,8 @@ export class UserAgentApplication {
     setTimeout(() => {
       var frameHandle = this.addAdalFrame(frameCheck);
       if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-        frameHandle.src = urlNavigate;
+          frameHandle.src = urlNavigate;
+          this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
       }
     },
       500);
@@ -1169,6 +1184,7 @@ export class UserAgentApplication {
         ifr.style.visibility = "hidden";
         ifr.style.position = "absolute";
         ifr.style.width = ifr.style.height = "0";
+        ifr.style.border = "0";
         adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
       } else if (document.body && document.body.insertAdjacentHTML) {
           document.body.insertAdjacentHTML('beforeend', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
@@ -1214,7 +1230,7 @@ export class UserAgentApplication {
     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
-    this.loadFrameTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
+    this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
   }
 
   /*
@@ -1248,7 +1264,7 @@ export class UserAgentApplication {
     this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
-    this.loadFrameTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+    this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
   }
 
   /*
@@ -1277,18 +1293,25 @@ export class UserAgentApplication {
    * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
    * calls the registered callbacks in case of redirect or resolves the promises with the result.
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-   * @param {Function} resolve - The resolve function of the promise object.
-   * @param {Function} reject - The reject function of the promise object.
    * @hidden
    */
-  handleAuthenticationResponse(hash: string): void {
+  private handleAuthenticationResponse(hash: string): void {
     if (hash == null) {
       hash = window.location.hash;
     }
 
     var self = null;
     var isPopup: boolean = false;
-    if (window.opener && window.opener.msal) {
+    var isWindowOpenerMsal = false;
+
+    try {
+        isWindowOpenerMsal = window.opener && window.opener.msal && window.opener.msal !== window.msal;
+    } catch (err) {
+        // err = SecurityError: Blocked a frame with origin "[url]" from accessing a cross-origin frame.
+        isWindowOpenerMsal = false;
+    }
+
+    if (isWindowOpenerMsal) {
         self = window.opener.msal;
         isPopup = true;
     }
@@ -1298,7 +1321,9 @@ export class UserAgentApplication {
 
     const requestInfo = self.getRequestInfo(hash);
     let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken:boolean = true;
-
+    
+    self._logger.info("Returned from redirect url");
+    
     if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
         tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
@@ -1306,15 +1331,23 @@ export class UserAgentApplication {
         tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     else {
-        tokenReceivedCallback = null;
-        self._cacheStorage.setItem(Constants.urlHash, hash);
-        saveToken = false;
+        if (self._navigateToLoginRequestUrl) {
+            tokenReceivedCallback = null;
+            self._cacheStorage.setItem(Constants.urlHash, hash);
+            saveToken = false;
+            if (window.parent === window && !isPopup) {
+                window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
+            }
+            return;
+        }
+        else {
+            tokenReceivedCallback = self._tokenReceivedCallback;
+            window.location.hash = '';
+        }
+
     }
 
-    self._logger.info("Returned from redirect url");
-    if (saveToken) {
-        self.saveTokenFromHash(requestInfo);
-    }
+    self.saveTokenFromHash(requestInfo);
 
     if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
         if (window.parent!==window) {
@@ -1332,22 +1365,20 @@ export class UserAgentApplication {
 
     var errorDesc = requestInfo.parameters[Constants.errorDescription];
     var error = requestInfo.parameters[Constants.error];
+  
     try {
         if (tokenReceivedCallback) {
-        tokenReceivedCallback(errorDesc, token, error, tokenType);
+            tokenReceivedCallback.call(self, errorDesc, token, error, tokenType);
         }
 
     } catch (err) {
         self._logger.error("Error occurred in token received callback function: " + err);
     }
-
-    if (window.parent === window && !isPopup) {
-        window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
-    }
-
+    
     for (var i = 0; i < self._openedWindows.length; i++) {
         self._openedWindows[i].close();
-      }
+    }
+
   }
 
   /*
@@ -1408,7 +1439,7 @@ export class UserAgentApplication {
 
     // Record error
     if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
-      this._logger.info("Error :" + tokenResponse.parameters[Constants.error] + "; Error description:" + tokenResponse.parameters[Constants.errorDescription]);
+      this._logger.infoPii("Error :" + tokenResponse.parameters[Constants.error] + "; Error description:" + tokenResponse.parameters[Constants.errorDescription]);
       this._cacheStorage.setItem(Constants.msalError, tokenResponse.parameters["error"]);
       this._cacheStorage.setItem(Constants.msalErrorDescription, tokenResponse.parameters[Constants.errorDescription]);
       if (tokenResponse.requestType === Constants.login) {
@@ -1492,7 +1523,8 @@ export class UserAgentApplication {
             if (idToken && idToken.nonce) {
               if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
                 this._user = null;
-                this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch.Expected: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual: " + idToken.nonce);
+                this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
+                this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
               } else {
                 this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
                 this._cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
@@ -1501,12 +1533,14 @@ export class UserAgentApplication {
                 this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
               }
             } else {
+              this._logger.error("Invalid id_token received in the response");
               this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
           }
         }
       } else {
+        this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }

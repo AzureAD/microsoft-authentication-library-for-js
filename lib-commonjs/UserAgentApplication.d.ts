@@ -29,14 +29,18 @@ export declare class UserAgentApplication {
     private _postLogoutredirectUri;
     private _openedWindows;
     private _requestType;
-    constructor(clientId: string, authority: string, tokenReceivedCallback: tokenReceivedCallback, options?: {
+    loadFrameTimeout: number;
+    private _navigateToLoginRequestUrl;
+    constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
         redirectUri?: string;
         postLogoutRedirectUri?: string;
         logger?: Logger;
+        loadFrameTimeout?: number;
+        navigateToLoginRequestUrl?: boolean;
     });
-    _processCallBack(hash: string): void;
+    private processCallBack(hash);
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
     private promptUser(urlNavigate);
@@ -62,13 +66,13 @@ export declare class UserAgentApplication {
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
     acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
-    private loadFrameTimeout(urlNavigate, frameName, scope);
+    private loadIframeTimeout(urlNavigate, frameName, scope);
     private loadFrame(urlNavigate, frameName);
     private addAdalFrame(iframeId);
     private renewToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
     private renewIdToken(scopes, resolve, reject, user, authenticationRequest, extraQueryParameters?);
     getUser(): User;
-    handleAuthenticationResponse(hash: string): void;
+    private handleAuthenticationResponse(hash);
     private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
     private saveTokenFromHash(tokenResponse);
     isCallback(hash: string): boolean;

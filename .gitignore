@@ -253,7 +253,6 @@ paket-files/
 
 # MSAL specific ignore files
 node_modules/
-docs/**/*
 typings/
 lib-commonjs/
 lib-es6/

@@ -80,7 +80,8 @@ var AadAuthority = /** @class */ (function (_super) {
         "login.chinacloudapi.cn": "login.chinacloudapi.cn",
         "login.cloudgovapi.us": "login.cloudgovapi.us",
         "login.microsoftonline.com": "login.microsoftonline.com",
-        "login.microsoftonline.de": "login.microsoftonline.de"
+        "login.microsoftonline.de": "login.microsoftonline.de",
+        "login.microsoftonline.us": "login.microsoftonline.us"
     };
     return AadAuthority;
 }(Authority));
