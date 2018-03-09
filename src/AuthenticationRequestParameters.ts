@@ -46,7 +46,7 @@ export class AuthenticationRequestParameters {
     return this.authorityInstance.CanonicalAuthority;
   }
 
-  constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string) {
+  constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string,state: string ) {
     this.authorityInstance = authority;
     this.clientId = clientId;
     this.scopes = scope;
@@ -54,7 +54,7 @@ export class AuthenticationRequestParameters {
     this.redirectUri = redirectUri;
     // randomly generated values
     this.correlationId = Utils.createNewGuid();
-    this.state = Utils.createNewGuid();
+    this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
     this.nonce = Utils.createNewGuid();
     // telemetry information
     this.xClientSku = "MSAL.JS";

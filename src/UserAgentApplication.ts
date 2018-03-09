@@ -68,7 +68,7 @@ interface CacheResult {
  * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
-export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
 const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
   const tokenAcquisitionMethod = descriptor.value;
   descriptor.value = function (...args: any[]) {
@@ -185,6 +185,10 @@ export class UserAgentApplication {
    */
   private _redirectUri: string;
 
+    /*
+     * Use to send the state parameter with authentication request
+     */
+    private _state: string;
   /*
    * Used to redirect the user to this location after logout.
    * Defaults to `window.location.href`.
@@ -229,6 +233,7 @@ export class UserAgentApplication {
         logger?: Logger,
         loadFrameTimeout?: number,
         navigateToLoginRequestUrl?: boolean,
+          state?: string,
       } = {}) {
       const {
           validateAuthority = true,
@@ -237,7 +242,8 @@ export class UserAgentApplication {
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
           logger = new Logger(null),
           loadFrameTimeout = 6000,
-          navigateToLoginRequestUrl = true
+          navigateToLoginRequestUrl = true,
+          state = ""
       } = options;
 
     this.loadFrameTimeout = loadFrameTimeout;
@@ -253,6 +259,7 @@ export class UserAgentApplication {
     this._activeRenewals = {};
     this._cacheLocation = cacheLocation;
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
+    this._state = state;
     if (!this._cacheLocations[cacheLocation]) {
       throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
     }
@@ -302,7 +309,7 @@ export class UserAgentApplication {
 
       try {
           if (this._tokenReceivedCallback) {
-              this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
+              this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
           }
 
       } catch (err) {
@@ -310,7 +317,7 @@ export class UserAgentApplication {
       }
   }
 
-  
+
   /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
@@ -324,7 +331,7 @@ export class UserAgentApplication {
      */
     if (this._loginInProgress) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken);
+        this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
         return;
       }
     }
@@ -333,7 +340,7 @@ export class UserAgentApplication {
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         if (this._tokenReceivedCallback) {
-          this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken);
+          this._tokenReceivedCallback(isValidScope, null, null, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
           return;
         }
       }
@@ -342,7 +349,7 @@ export class UserAgentApplication {
 
     this.authorityInstance.ResolveEndpointsAsync()
       .then(() => {
-        const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+        const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
         if (extraQueryParameters) {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
@@ -403,7 +410,7 @@ export class UserAgentApplication {
       }
 
       this.authorityInstance.ResolveEndpointsAsync().then(() => {
-        const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+        const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
         if (extraQueryParameters) {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
@@ -877,7 +884,7 @@ export class UserAgentApplication {
     const isValidScope = this.validateInputScope(scopes);
     if (isValidScope && !Utils.isEmpty(isValidScope)) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken);
+        this._tokenReceivedCallback(isValidScope, null, null, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
         return;
       }
     }
@@ -894,7 +901,7 @@ export class UserAgentApplication {
     const scope = scopes.join(" ").toLowerCase();
     if (!userObject) {
       if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken);
+        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
         return;
       }
     }
@@ -905,9 +912,9 @@ export class UserAgentApplication {
 
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       if (Utils.compareObjects(userObject, this.getUser())) {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
       } else {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
       }
 
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -985,13 +992,13 @@ export class UserAgentApplication {
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
           if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
           }
           else {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
           }
         } else {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
         }
 
         this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -1068,13 +1075,13 @@ export class UserAgentApplication {
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
           }
           else {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
           }
         } else {
-          authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+          authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
         }
 
         const cacheResult = this.getCachedToken(authenticationRequest, userObject);
@@ -1658,6 +1665,23 @@ export class UserAgentApplication {
     }
     return "";
   }
+
+    /*
+    * Extracts state value from the userState sent with the authentication request.
+    * @returns {string} scope.
+    * @ignore
+    * @hidden
+    */
+    getUserState (state: string) {
+        if (state) {
+            const splitIndex = state.indexOf("|");
+            if (splitIndex > -1 && splitIndex + 1 < state.length) {
+                return state.substring(splitIndex + 1);
+            }
+        }
+        return "";
+    };
+
 
   /*
     * Returns whether current window is in ifram for token renewal
