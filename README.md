@@ -101,6 +101,30 @@ Then use the following command to build the library and run all the unit tests:
 
 	npm run build
 
+## Logging
+
+You can enable logging in MSAL.js by passing a logger object when creating a UserAgentApplication instance as follows: 
+```javascript
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose });
+
+var clientApplication = new Msal.UserAgentApplication(clientID, authority, authCallback, { logger: logger });
+
+```
+Implement the `loggerCallback` method depending on how you want to redirect logs. 
+The supported log levels are: Error, Warning, Info, Verbose
+
+#### Personal Identifiable Information (PII) & Organizational Identifiable Information (OII)
+
+By default, MSAL.js logging does not capture or log any PII or OII. The library allows app developers to turn this on by configuring the `piiLoggingEnabled` flag on the log context. By turning on PII or OII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
+
+```javascript
+//PII or OII logging disabled. Default Logger does not capture any PII or OII
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, piiLoggingEnabled: false });
+    
+//PII or OII logging enabled
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, piiLoggingEnabled: true });
+
+```
 ## Community Help and Support
 
 - [FAQ](../../wiki) for access to our frequently asked questions
