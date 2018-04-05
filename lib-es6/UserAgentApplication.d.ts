@@ -39,6 +39,7 @@ export declare class UserAgentApplication {
         logger?: Logger;
         loadFrameTimeout?: number;
         navigateToLoginRequestUrl?: boolean;
+        state?: string;
     });
     private processCallBack(hash);
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;

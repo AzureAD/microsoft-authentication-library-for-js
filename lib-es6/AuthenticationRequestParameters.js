@@ -25,7 +25,7 @@ import { Utils } from "./Utils";
  * @hidden
  */
 var AuthenticationRequestParameters = /** @class */ (function () {
-    function AuthenticationRequestParameters(authority, clientId, scope, responseType, redirectUri) {
+    function AuthenticationRequestParameters(authority, clientId, scope, responseType, redirectUri, state) {
         this.authorityInstance = authority;
         this.clientId = clientId;
         this.scopes = scope;
@@ -34,6 +34,7 @@ var AuthenticationRequestParameters = /** @class */ (function () {
         // randomly generated values
         this.correlationId = Utils.createNewGuid();
         this.state = Utils.createNewGuid();
+        this.state = state && state != "" ? state : Utils.createNewGuid();
         this.nonce = Utils.createNewGuid();
         // telemetry information
         this.xClientSku = "MSAL.JS";

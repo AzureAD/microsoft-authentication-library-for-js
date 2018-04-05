@@ -27,7 +27,7 @@ var Utils_1 = require("./Utils");
  * @hidden
  */
 var AuthenticationRequestParameters = /** @class */ (function () {
-    function AuthenticationRequestParameters(authority, clientId, scope, responseType, redirectUri) {
+    function AuthenticationRequestParameters(authority, clientId, scope, responseType, redirectUri, state) {
         this.authorityInstance = authority;
         this.clientId = clientId;
         this.scopes = scope;
@@ -35,7 +35,7 @@ var AuthenticationRequestParameters = /** @class */ (function () {
         this.redirectUri = redirectUri;
         // randomly generated values
         this.correlationId = Utils_1.Utils.createNewGuid();
-        this.state = Utils_1.Utils.createNewGuid();
+        this.state = state && state != "" ? state : Utils_1.Utils.createNewGuid();
         this.nonce = Utils_1.Utils.createNewGuid();
         // telemetry information
         this.xClientSku = "MSAL.JS";
