@@ -5,6 +5,8 @@ declare global  {
         msal: Object;
         callBackMappedToRenewStates: Object;
         callBacksMappedToRenewStates: Object;
+        CustomEvent: CustomEvent;
+        Event: Event;
     }
 }
 export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
@@ -31,6 +33,9 @@ export declare class UserAgentApplication {
     private _requestType;
     loadFrameTimeout: number;
     private _navigateToLoginRequestUrl;
+    private _isAngular;
+    private _endpoints;
+    private _anonymousEndpoints;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
@@ -39,14 +44,19 @@ export declare class UserAgentApplication {
         logger?: Logger;
         loadFrameTimeout?: number;
         navigateToLoginRequestUrl?: boolean;
+        isAngular?: boolean;
+        anonymousEndpoints?: Array<string>;
+        endPoints?: Map<string, Array<string>>;
     });
     private processCallBack(hash);
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
     private promptUser(urlNavigate);
     private openWindow(urlNavigate, title, interval, instance, resolve?, reject?);
+    private broadcast(eventName, data);
     logout(): void;
     private clearCache();
+    clearCacheForScope(accessToken: string): void;
     private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
     private validateInputScope(scopes);
     private filterScopes(scopes);
@@ -80,4 +90,7 @@ export declare class UserAgentApplication {
     private getRequestInfo(hash);
     private getScopeFromState(state);
     private isInIframe();
+    loginInProgress(): boolean;
+    private getHostFromUri(uri);
+    getScopesForEndpoint(endpoint: string): Array<string>;
 }

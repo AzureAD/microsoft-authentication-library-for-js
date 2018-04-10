@@ -8,4 +8,6 @@ var Logger_2 = require("./Logger");
 exports.LogLevel = Logger_2.LogLevel;
 var User_1 = require("./User");
 exports.User = User_1.User;
+var Constants_1 = require("./Constants");
+exports.Constants = Constants_1.Constants;
 //# sourceMappingURL=index.js.map

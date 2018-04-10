@@ -1,4 +1,4 @@
-/*! msal v0.1.5 2018-02-27 */
+/*! msal v0.1.5 2018-04-26 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -643,373 +643,6 @@ function __asyncValues(o) {
 
 "use strict";
 
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-var LogLevel;
-(function (LogLevel) {
-    LogLevel[LogLevel["Error"] = 0] = "Error";
-    LogLevel[LogLevel["Warning"] = 1] = "Warning";
-    LogLevel[LogLevel["Info"] = 2] = "Info";
-    LogLevel[LogLevel["Verbose"] = 3] = "Verbose";
-})(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
-var Logger = /** @class */ (function () {
-    function Logger(localCallback, options) {
-        if (options === void 0) { options = {}; }
-        /*
-         * @hidden
-         */
-        this._level = LogLevel.Info;
-        var _a = options.correlationId, correlationId = _a === void 0 ? "" : _a, _b = options.level, level = _b === void 0 ? LogLevel.Info : _b, _c = options.piiLoggingEnabled, piiLoggingEnabled = _c === void 0 ? false : _c;
-        this._localCallback = localCallback;
-        this._correlationId = correlationId;
-        this._level = level;
-        this._piiLoggingEnabled = piiLoggingEnabled;
-    }
-    /*
-     * @hidden
-     */
-    Logger.prototype.logMessage = function (logLevel, logMessage, containsPii) {
-        if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
-            return;
-        }
-        var timestamp = new Date().toUTCString();
-        var log;
-        if (!Utils_1.Utils.isEmpty(this._correlationId)) {
-            log = timestamp + ":" + this._correlationId + "-" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
-        }
-        else {
-            log = timestamp + ":" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
-        }
-        this.executeCallback(logLevel, log, containsPii);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.executeCallback = function (level, message, containsPii) {
-        if (this._localCallback) {
-            this._localCallback(level, message, containsPii);
-        }
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.error = function (message) {
-        this.logMessage(LogLevel.Error, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.errorPii = function (message) {
-        this.logMessage(LogLevel.Error, message, true);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.warning = function (message) {
-        this.logMessage(LogLevel.Warning, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.warningPii = function (message) {
-        this.logMessage(LogLevel.Warning, message, true);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.info = function (message) {
-        this.logMessage(LogLevel.Info, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.infoPii = function (message) {
-        this.logMessage(LogLevel.Info, message, true);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.verbose = function (message) {
-        this.logMessage(LogLevel.Verbose, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.verbosePii = function (message) {
-        this.logMessage(LogLevel.Verbose, message, true);
-    };
-    return Logger;
-}());
-exports.Logger = Logger;
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-var ErrorMessage_1 = __webpack_require__(4);
-var XHRClient_1 = __webpack_require__(8);
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-/*
- * @hidden
- */
-var AuthorityType;
-(function (AuthorityType) {
-    AuthorityType[AuthorityType["Aad"] = 0] = "Aad";
-    AuthorityType[AuthorityType["Adfs"] = 1] = "Adfs";
-    AuthorityType[AuthorityType["B2C"] = 2] = "B2C";
-})(AuthorityType = exports.AuthorityType || (exports.AuthorityType = {}));
-/*
- * @hidden
- */
-var Authority = /** @class */ (function () {
-    function Authority(authority, validateAuthority) {
-        this.IsValidationEnabled = validateAuthority;
-        this.CanonicalAuthority = authority;
-        this.validateAsUri();
-    }
-    Object.defineProperty(Authority.prototype, "Tenant", {
-        get: function () {
-            return this.CanonicalAuthorityUrlComponents.PathSegments[0];
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "AuthorizationEndpoint", {
-        get: function () {
-            this.validateResolved();
-            return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "EndSessionEndpoint", {
-        get: function () {
-            this.validateResolved();
-            return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.Tenant);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "SelfSignedJwtAudience", {
-        get: function () {
-            this.validateResolved();
-            return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.Tenant);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Authority.prototype.validateResolved = function () {
-        if (!this.tenantDiscoveryResponse) {
-            throw "Please call ResolveEndpointsAsync first";
-        }
-    };
-    Object.defineProperty(Authority.prototype, "CanonicalAuthority", {
-        /*
-         * A URL that is the authority set by the developer
-         */
-        get: function () {
-            return this.canonicalAuthority;
-        },
-        set: function (url) {
-            this.canonicalAuthority = Utils_1.Utils.CanonicalizeUri(url);
-            this.canonicalAuthorityUrlComponents = null;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "CanonicalAuthorityUrlComponents", {
-        get: function () {
-            if (!this.canonicalAuthorityUrlComponents) {
-                this.canonicalAuthorityUrlComponents = Utils_1.Utils.GetUrlComponents(this.CanonicalAuthority);
-            }
-            return this.canonicalAuthorityUrlComponents;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "DefaultOpenIdConfigurationEndpoint", {
-        /*
-         * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-         */
-        get: function () {
-            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /*
-     * Given a string, validate that it is of the form https://domain/path
-     */
-    Authority.prototype.validateAsUri = function () {
-        var components;
-        try {
-            components = this.CanonicalAuthorityUrlComponents;
-        }
-        catch (e) {
-            throw ErrorMessage_1.ErrorMessage.invalidAuthorityType;
-        }
-        if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
-            throw ErrorMessage_1.ErrorMessage.authorityUriInsecure;
-        }
-        if (!components.PathSegments || components.PathSegments.length < 1) {
-            throw ErrorMessage_1.ErrorMessage.authorityUriInvalidPath;
-        }
-    };
-    /*
-     * Calls the OIDC endpoint and returns the response
-     */
-    Authority.prototype.DiscoverEndpoints = function (openIdConfigurationEndpoint) {
-        var client = new XHRClient_1.XhrClient();
-        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
-            .then(function (response) {
-            return {
-                AuthorizationEndpoint: response.authorization_endpoint,
-                EndSessionEndpoint: response.end_session_endpoint,
-                Issuer: response.issuer
-            };
-        });
-    };
-    /*
-     * Returns a promise.
-     * Checks to see if the authority is in the cache
-     * Discover endpoints via openid-configuration
-     * If successful, caches the endpoint for later use in OIDC
-     */
-    Authority.prototype.ResolveEndpointsAsync = function () {
-        var _this = this;
-        var openIdConfigurationEndpoint = "";
-        return this.GetOpenIdConfigurationEndpointAsync().then(function (openIdConfigurationEndpointResponse) {
-            openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;
-            return _this.DiscoverEndpoints(openIdConfigurationEndpoint);
-        }).then(function (tenantDiscoveryResponse) {
-            _this.tenantDiscoveryResponse = tenantDiscoveryResponse;
-            return _this;
-        });
-    };
-    return Authority;
-}());
-exports.Authority = Authority;
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/*
-  * Copyright (c) Microsoft Corporation
-  *  All Rights Reserved
-  *  MIT License
-  *
-  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
-  * software and associated documentation files (the "Software"), to deal in the Software
-  * without restriction, including without limitation the rights to use, copy, modify,
-  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-  * permit persons to whom the Software is furnished to do so, subject to the following
-  * conditions:
-  *
-  * The above copyright notice and this permission notice shall be
-  * included in all copies or substantial portions of the Software.
-  *
-  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-  * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
-  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-  */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var ErrorMessage = /** @class */ (function () {
-    function ErrorMessage() {
-    }
-    Object.defineProperty(ErrorMessage, "authorityUriInvalidPath", {
-        get: function () { return "AuthorityUriInvalidPath"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "authorityUriInsecure", {
-        get: function () { return "AuthorityUriInsecure"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "invalidAuthorityType", {
-        get: function () { return "InvalidAuthorityType"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "unsupportedAuthorityValidation", {
-        get: function () { return "UnsupportedAuthorityValidation"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "b2cAuthorityUriInvalidPath", {
-        get: function () { return "B2cAuthorityUriInvalidPath"; },
-        enumerable: true,
-        configurable: true
-    });
-    return ErrorMessage;
-}());
-exports.ErrorMessage = ErrorMessage;
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 /*
   * Copyright (c) Microsoft Corporation
   *  All Rights Reserved
@@ -1221,7 +854,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "renewToken", {
-        get: function () { return "renewToken"; },
+        get: function () { return "RENEW_TOKEN"; },
         enumerable: true,
         configurable: true
     });
@@ -1232,6 +865,11 @@ var Constants = /** @class */ (function () {
     });
     Object.defineProperty(Constants, "urlHash", {
         get: function () { return "msal.urlHash"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Constants, "angularLoginRequest", {
+        get: function () { return "msal.angular.login.request"; },
         enumerable: true,
         configurable: true
     });
@@ -1331,6 +969,373 @@ exports.ErrorDescription = ErrorDescription;
 
 
 /***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+var LogLevel;
+(function (LogLevel) {
+    LogLevel[LogLevel["Error"] = 0] = "Error";
+    LogLevel[LogLevel["Warning"] = 1] = "Warning";
+    LogLevel[LogLevel["Info"] = 2] = "Info";
+    LogLevel[LogLevel["Verbose"] = 3] = "Verbose";
+})(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
+var Logger = /** @class */ (function () {
+    function Logger(localCallback, options) {
+        if (options === void 0) { options = {}; }
+        /*
+         * @hidden
+         */
+        this._level = LogLevel.Info;
+        var _a = options.correlationId, correlationId = _a === void 0 ? "" : _a, _b = options.level, level = _b === void 0 ? LogLevel.Info : _b, _c = options.piiLoggingEnabled, piiLoggingEnabled = _c === void 0 ? false : _c;
+        this._localCallback = localCallback;
+        this._correlationId = correlationId;
+        this._level = level;
+        this._piiLoggingEnabled = piiLoggingEnabled;
+    }
+    /*
+     * @hidden
+     */
+    Logger.prototype.logMessage = function (logLevel, logMessage, containsPii) {
+        if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
+            return;
+        }
+        var timestamp = new Date().toUTCString();
+        var log;
+        if (!Utils_1.Utils.isEmpty(this._correlationId)) {
+            log = timestamp + ":" + this._correlationId + "-" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        else {
+            log = timestamp + ":" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        this.executeCallback(logLevel, log, containsPii);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.executeCallback = function (level, message, containsPii) {
+        if (this._localCallback) {
+            this._localCallback(level, message, containsPii);
+        }
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.error = function (message) {
+        this.logMessage(LogLevel.Error, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.errorPii = function (message) {
+        this.logMessage(LogLevel.Error, message, true);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.warning = function (message) {
+        this.logMessage(LogLevel.Warning, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.warningPii = function (message) {
+        this.logMessage(LogLevel.Warning, message, true);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.info = function (message) {
+        this.logMessage(LogLevel.Info, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.infoPii = function (message) {
+        this.logMessage(LogLevel.Info, message, true);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.verbose = function (message) {
+        this.logMessage(LogLevel.Verbose, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.verbosePii = function (message) {
+        this.logMessage(LogLevel.Verbose, message, true);
+    };
+    return Logger;
+}());
+exports.Logger = Logger;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+var ErrorMessage_1 = __webpack_require__(5);
+var XHRClient_1 = __webpack_require__(8);
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * @hidden
+ */
+var AuthorityType;
+(function (AuthorityType) {
+    AuthorityType[AuthorityType["Aad"] = 0] = "Aad";
+    AuthorityType[AuthorityType["Adfs"] = 1] = "Adfs";
+    AuthorityType[AuthorityType["B2C"] = 2] = "B2C";
+})(AuthorityType = exports.AuthorityType || (exports.AuthorityType = {}));
+/*
+ * @hidden
+ */
+var Authority = /** @class */ (function () {
+    function Authority(authority, validateAuthority) {
+        this.IsValidationEnabled = validateAuthority;
+        this.CanonicalAuthority = authority;
+        this.validateAsUri();
+    }
+    Object.defineProperty(Authority.prototype, "Tenant", {
+        get: function () {
+            return this.CanonicalAuthorityUrlComponents.PathSegments[0];
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "AuthorizationEndpoint", {
+        get: function () {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "EndSessionEndpoint", {
+        get: function () {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.Tenant);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "SelfSignedJwtAudience", {
+        get: function () {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.Tenant);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Authority.prototype.validateResolved = function () {
+        if (!this.tenantDiscoveryResponse) {
+            throw "Please call ResolveEndpointsAsync first";
+        }
+    };
+    Object.defineProperty(Authority.prototype, "CanonicalAuthority", {
+        /*
+         * A URL that is the authority set by the developer
+         */
+        get: function () {
+            return this.canonicalAuthority;
+        },
+        set: function (url) {
+            this.canonicalAuthority = Utils_1.Utils.CanonicalizeUri(url);
+            this.canonicalAuthorityUrlComponents = null;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "CanonicalAuthorityUrlComponents", {
+        get: function () {
+            if (!this.canonicalAuthorityUrlComponents) {
+                this.canonicalAuthorityUrlComponents = Utils_1.Utils.GetUrlComponents(this.CanonicalAuthority);
+            }
+            return this.canonicalAuthorityUrlComponents;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "DefaultOpenIdConfigurationEndpoint", {
+        /*
+         * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+         */
+        get: function () {
+            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /*
+     * Given a string, validate that it is of the form https://domain/path
+     */
+    Authority.prototype.validateAsUri = function () {
+        var components;
+        try {
+            components = this.CanonicalAuthorityUrlComponents;
+        }
+        catch (e) {
+            throw ErrorMessage_1.ErrorMessage.invalidAuthorityType;
+        }
+        if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
+            throw ErrorMessage_1.ErrorMessage.authorityUriInsecure;
+        }
+        if (!components.PathSegments || components.PathSegments.length < 1) {
+            throw ErrorMessage_1.ErrorMessage.authorityUriInvalidPath;
+        }
+    };
+    /*
+     * Calls the OIDC endpoint and returns the response
+     */
+    Authority.prototype.DiscoverEndpoints = function (openIdConfigurationEndpoint) {
+        var client = new XHRClient_1.XhrClient();
+        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
+            .then(function (response) {
+            return {
+                AuthorizationEndpoint: response.authorization_endpoint,
+                EndSessionEndpoint: response.end_session_endpoint,
+                Issuer: response.issuer
+            };
+        });
+    };
+    /*
+     * Returns a promise.
+     * Checks to see if the authority is in the cache
+     * Discover endpoints via openid-configuration
+     * If successful, caches the endpoint for later use in OIDC
+     */
+    Authority.prototype.ResolveEndpointsAsync = function () {
+        var _this = this;
+        var openIdConfigurationEndpoint = "";
+        return this.GetOpenIdConfigurationEndpointAsync().then(function (openIdConfigurationEndpointResponse) {
+            openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;
+            return _this.DiscoverEndpoints(openIdConfigurationEndpoint);
+        }).then(function (tenantDiscoveryResponse) {
+            _this.tenantDiscoveryResponse = tenantDiscoveryResponse;
+            return _this;
+        });
+    };
+    return Authority;
+}());
+exports.Authority = Authority;
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/*
+  * Copyright (c) Microsoft Corporation
+  *  All Rights Reserved
+  *  MIT License
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+  * software and associated documentation files (the "Software"), to deal in the Software
+  * without restriction, including without limitation the rights to use, copy, modify,
+  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+  * permit persons to whom the Software is furnished to do so, subject to the following
+  * conditions:
+  *
+  * The above copyright notice and this permission notice shall be
+  * included in all copies or substantial portions of the Software.
+  *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+  * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * @hidden
+ */
+var ErrorMessage = /** @class */ (function () {
+    function ErrorMessage() {
+    }
+    Object.defineProperty(ErrorMessage, "authorityUriInvalidPath", {
+        get: function () { return "AuthorityUriInvalidPath"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "authorityUriInsecure", {
+        get: function () { return "AuthorityUriInsecure"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "invalidAuthorityType", {
+        get: function () { return "InvalidAuthorityType"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "unsupportedAuthorityValidation", {
+        get: function () { return "UnsupportedAuthorityValidation"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "b2cAuthorityUriInvalidPath", {
+        get: function () { return "B2cAuthorityUriInvalidPath"; },
+        enumerable: true,
+        configurable: true
+    });
+    return ErrorMessage;
+}());
+exports.ErrorMessage = ErrorMessage;
+
+
+/***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1423,7 +1428,7 @@ exports.User = User;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
-var Authority_1 = __webpack_require__(3);
+var Authority_1 = __webpack_require__(4);
 var XHRClient_1 = __webpack_require__(8);
 /**
  * @hidden
@@ -1595,12 +1600,14 @@ module.exports = __webpack_require__(10);
 Object.defineProperty(exports, "__esModule", { value: true });
 var UserAgentApplication_1 = __webpack_require__(11);
 exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
-var Logger_1 = __webpack_require__(2);
+var Logger_1 = __webpack_require__(3);
 exports.Logger = Logger_1.Logger;
-var Logger_2 = __webpack_require__(2);
+var Logger_2 = __webpack_require__(3);
 exports.LogLevel = Logger_2.LogLevel;
 var User_1 = __webpack_require__(6);
 exports.User = User_1.User;
+var Constants_1 = __webpack_require__(2);
+exports.Constants = Constants_1.Constants;
 
 
 /***/ }),
@@ -1637,9 +1644,9 @@ var AccessTokenKey_1 = __webpack_require__(12);
 var AccessTokenValue_1 = __webpack_require__(13);
 var AuthenticationRequestParameters_1 = __webpack_require__(14);
 var ClientInfo_1 = __webpack_require__(15);
-var Constants_1 = __webpack_require__(5);
+var Constants_1 = __webpack_require__(2);
 var IdToken_1 = __webpack_require__(16);
-var Logger_1 = __webpack_require__(2);
+var Logger_1 = __webpack_require__(3);
 var Storage_1 = __webpack_require__(17);
 var RequestInfo_1 = __webpack_require__(19);
 var User_1 = __webpack_require__(6);
@@ -1695,7 +1702,8 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
+        this._isAngular = false;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -1709,6 +1717,9 @@ var UserAgentApplication = /** @class */ (function () {
         this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
+        this._isAngular = isAngular;
+        this._anonymousEndpoints = anonymousEndpoints;
+        this._endpoints = endPoints;
         if (!this._cacheLocations[cacheLocation]) {
             throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
         }
@@ -1720,13 +1731,15 @@ var UserAgentApplication = /** @class */ (function () {
         window.callBacksMappedToRenewStates = {};
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
-        if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
-        }
-        else {
-            var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
-            if (pendingCallback) {
-                this.processCallBack(pendingCallback);
+        if (!this._isAngular) {
+            if (isCallback) {
+                this.handleAuthenticationResponse.call(this, urlHash);
+            }
+            else {
+                var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+                if (pendingCallback) {
+                    this.processCallBack(pendingCallback);
+                }
             }
         }
     }
@@ -1803,7 +1816,7 @@ var UserAgentApplication = /** @class */ (function () {
          */
         if (this._loginInProgress) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback("Login is in progress", null, null, Constants_1.Constants.idToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.loginProgressError, null, Constants_1.ErrorCodes.loginProgressError, Constants_1.Constants.idToken);
                 return;
             }
         }
@@ -1811,19 +1824,27 @@ var UserAgentApplication = /** @class */ (function () {
             var isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.idToken);
+                    this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.idToken);
                     return;
                 }
             }
             scopes = this.filterScopes(scopes);
         }
+        this._loginInProgress = true;
         this.authorityInstance.ResolveEndpointsAsync()
             .then(function () {
             var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
-            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, window.location.href);
+            var loginStartPage = _this._cacheStorage.getItem(Constants_1.Constants.angularLoginRequest);
+            if (!loginStartPage || loginStartPage === "") {
+                loginStartPage = window.location.href;
+            }
+            else {
+                _this._cacheStorage.setItem(Constants_1.Constants.angularLoginRequest, "");
+            }
+            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, loginStartPage);
             _this._cacheStorage.setItem(Constants_1.Constants.loginError, "");
             _this._cacheStorage.setItem(Constants_1.Constants.stateLogin, authenticationRequest.state);
             _this._cacheStorage.setItem(Constants_1.Constants.nonceIdToken, authenticationRequest.nonce);
@@ -1834,7 +1855,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(authorityKey, _this.authority);
             }
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-            _this._loginInProgress = true;
             _this._requestType = Constants_1.Constants.login;
             _this.promptUser(urlNavigate);
         });
@@ -1854,13 +1874,13 @@ var UserAgentApplication = /** @class */ (function () {
          */
         return new Promise(function (resolve, reject) {
             if (_this._loginInProgress) {
-                reject(Constants_1.ErrorCodes.loginProgressError + ":" + Constants_1.ErrorDescription.loginProgressError);
+                reject(Constants_1.ErrorCodes.loginProgressError + "|" + Constants_1.ErrorDescription.loginProgressError);
                 return;
             }
             if (scopes) {
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                    reject(Constants_1.ErrorCodes.inputScopesError + ":" + Constants_1.ErrorDescription.inputScopesError);
+                    reject(Constants_1.ErrorCodes.inputScopesError + "|" + Constants_1.ErrorDescription.inputScopesError);
                     return;
                 }
                 scopes = _this.filterScopes(scopes);
@@ -1873,6 +1893,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (!popUpWindow) {
                 return;
             }
+            _this._loginInProgress = true;
             _this.authorityInstance.ResolveEndpointsAsync().then(function () {
                 var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                 if (extraQueryParameters) {
@@ -1891,7 +1912,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._renewStates.push(authenticationRequest.state);
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
                 _this._requestType = Constants_1.Constants.login;
-                _this._loginInProgress = true;
                 if (popUpWindow) {
                     _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
@@ -1939,19 +1959,23 @@ var UserAgentApplication = /** @class */ (function () {
             this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.popUpWindowError);
             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.popUpWindowError);
             if (reject) {
-                reject(Constants_1.ErrorCodes.popUpWindowError + ":" + Constants_1.ErrorDescription.popUpWindowError);
+                reject(Constants_1.ErrorCodes.popUpWindowError + "|" + Constants_1.ErrorDescription.popUpWindowError);
             }
             return null;
         }
         this._openedWindows.push(popupWindow);
         var pollTimer = window.setInterval(function () {
             if (popupWindow && popupWindow.closed && instance._loginInProgress) {
-                instance._loginInProgress = false;
-                instance._acquireTokenInProgress = false;
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.userCancelledError + ":" + Constants_1.ErrorDescription.userCancelledError);
+                    reject(Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
                 }
                 window.clearInterval(pollTimer);
+                if (_this._isAngular) {
+                    _this.broadcast('msal:popUpClosed', Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
+                    return;
+                }
+                instance._loginInProgress = false;
+                instance._acquireTokenInProgress = false;
             }
             try {
                 var popUpWindowLocation = popupWindow.location;
@@ -1960,6 +1984,12 @@ var UserAgentApplication = /** @class */ (function () {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
                     _this._logger.info("Closing popup window");
+                    if (_this._isAngular) {
+                        _this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
+                        for (var i = 0; i < _this._openedWindows.length; i++) {
+                            _this._openedWindows[i].close();
+                        }
+                    }
                 }
             }
             catch (e) {
@@ -1967,6 +1997,10 @@ var UserAgentApplication = /** @class */ (function () {
             }
         }, interval);
         return popupWindow;
+    };
+    UserAgentApplication.prototype.broadcast = function (eventName, data) {
+        var evt = new CustomEvent(eventName, { detail: data });
+        window.dispatchEvent(evt);
     };
     /*
      * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
@@ -1996,6 +2030,15 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.acquireTokenUser, Constants_1.Constants.renewStatus);
         this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter, Constants_1.Constants.renewStatus);
         this._cacheStorage.resetCacheItems();
+    };
+    UserAgentApplication.prototype.clearCacheForScope = function (accessToken) {
+        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.authority);
+        for (var i = 0; i < accessTokenItems.length; i++) {
+            var token = accessTokenItems[i];
+            if (token.value.accessToken == accessToken) {
+                this._cacheStorage.removeItem(JSON.stringify(token.key));
+            }
+        }
     };
     /*
      * Configures popup window for login.
@@ -2087,7 +2130,7 @@ var UserAgentApplication = /** @class */ (function () {
                     for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
                         try {
                             if (errorDesc || error) {
-                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);
+                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
                             }
                             else if (token) {
                                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -2111,7 +2154,7 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.getCachedToken = function (authenticationRequest, user) {
         var accessTokenCacheItem = null;
         var scopes = authenticationRequest.scopes;
-        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user.userIdentifier); //filter by clientId and user
+        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null); //filter by clientId and user
         if (tokenCacheItems.length === 0) {
             return null;
         }
@@ -2299,7 +2342,7 @@ var UserAgentApplication = /** @class */ (function () {
         var isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.accessToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.accessToken);
                 return;
             }
         }
@@ -2353,19 +2396,19 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             if (scopes) {
                 scopes = _this.filterScopes(scopes);
             }
             var userObject = user ? user : _this.getUser();
             if (_this._acquireTokenInProgress) {
-                reject(Constants_1.ErrorCodes.acquireTokenProgressError + ":" + Constants_1.ErrorDescription.acquireTokenProgressError);
+                reject(Constants_1.ErrorCodes.acquireTokenProgressError + "|" + Constants_1.ErrorDescription.acquireTokenProgressError);
                 return;
             }
             var scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
-                reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                 return;
             }
             _this._acquireTokenInProgress = true;
@@ -2413,7 +2456,7 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.endpointResolutionError);
                 _this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.endpointResolutionError);
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.endpointResolutionError + ":" + Constants_1.ErrorDescription.endpointResolutionError);
+                    reject(Constants_1.ErrorCodes.endpointResolutionError + "|" + Constants_1.ErrorDescription.endpointResolutionError);
                 }
                 if (popUpWindow) {
                     popUpWindow.close();
@@ -2439,7 +2482,7 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             else {
                 if (scopes) {
@@ -2448,7 +2491,7 @@ var UserAgentApplication = /** @class */ (function () {
                 var scope_1 = scopes.join(" ").toLowerCase();
                 var userObject_1 = user ? user : _this.getUser();
                 if (!userObject_1) {
-                    reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                    reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                     return;
                 }
                 var authenticationRequest_1;
@@ -2473,7 +2516,7 @@ var UserAgentApplication = /** @class */ (function () {
                     }
                     else if (cacheResult.errorDesc || cacheResult.error) {
                         _this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-                        reject(cacheResult.errorDesc + ": " + cacheResult.error);
+                        reject(cacheResult.errorDesc + "|" + cacheResult.error);
                         return;
                     }
                 }
@@ -3012,6 +3055,49 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.isInIframe = function () {
         return window.parent !== window;
     };
+    UserAgentApplication.prototype.loginInProgress = function () {
+        return this._loginInProgress;
+    };
+    UserAgentApplication.prototype.getHostFromUri = function (uri) {
+        // remove http:// or https:// from uri
+        var extractedUri = String(uri).replace(/^(https?:)\/\//, '');
+        extractedUri = extractedUri.split('/')[0];
+        return extractedUri;
+    };
+    UserAgentApplication.prototype.getScopesForEndpoint = function (endpoint) {
+        // if user specified list of anonymous endpoints, no need to send token to these endpoints, return null.
+        if (this._anonymousEndpoints.length > 0) {
+            for (var i = 0; i < this._anonymousEndpoints.length; i++) {
+                if (endpoint.indexOf(this._anonymousEndpoints[i]) > -1) {
+                    return null;
+                }
+            }
+        }
+        if (this._endpoints.size > 0) {
+            for (var _i = 0, _a = Array.from(this._endpoints.keys()); _i < _a.length; _i++) {
+                var key = _a[_i];
+                // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
+                if (endpoint.indexOf(key) > -1) {
+                    return this._endpoints.get(key);
+                }
+            }
+        }
+        // default resource will be clientid if nothing specified
+        // App will use idtoken for calls to itself
+        // check if it's staring from http or https, needs to match with app host
+        if (endpoint.indexOf('http://') > -1 || endpoint.indexOf('https://') > -1) {
+            if (this.getHostFromUri(endpoint) === this.getHostFromUri(this._redirectUri)) {
+                return new Array(this.clientId);
+            }
+        }
+        else {
+            // in angular level, the url for $http interceptor call could be relative url,
+            // if it's relative call, we'll treat it as app backend call.            
+            return new Array(this.clientId);
+        }
+        // if not the app's own backend or not a domain listed in the endpoints structure
+        return null;
+    };
     tslib_1.__decorate([
         resolveTokenOnlyIfOutOfIframe
     ], UserAgentApplication.prototype, "acquireTokenSilent", null);
@@ -3416,7 +3502,7 @@ exports.IdToken = IdToken;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var Constants_1 = __webpack_require__(5);
+var Constants_1 = __webpack_require__(2);
 var AccessTokenCacheItem_1 = __webpack_require__(18);
 /*
  * @hidden
@@ -3651,8 +3737,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
 var AadAuthority_1 = __webpack_require__(7);
 var B2cAuthority_1 = __webpack_require__(21);
-var Authority_1 = __webpack_require__(3);
-var ErrorMessage_1 = __webpack_require__(4);
+var Authority_1 = __webpack_require__(4);
+var ErrorMessage_1 = __webpack_require__(5);
 var AuthorityFactory = /** @class */ (function () {
     function AuthorityFactory() {
     }
@@ -3724,8 +3810,8 @@ exports.AuthorityFactory = AuthorityFactory;
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(1);
 var AadAuthority_1 = __webpack_require__(7);
-var Authority_1 = __webpack_require__(3);
-var ErrorMessage_1 = __webpack_require__(4);
+var Authority_1 = __webpack_require__(4);
+var ErrorMessage_1 = __webpack_require__(5);
 var Utils_1 = __webpack_require__(0);
 /*
  * @hidden

@@ -39,6 +39,7 @@ export declare class Constants {
     static readonly renewToken: string;
     static readonly unknown: string;
     static readonly urlHash: string;
+    static readonly angularLoginRequest: string;
 }
 export declare class ErrorCodes {
     static readonly loginProgressError: string;
