@@ -68,9 +68,10 @@ export class Constants {
     this._popUpHeight = height;
   }
   static get login(): string { return "LOGIN"; }
-  static get renewToken(): string { return "renewToken"; }
+  static get renewToken(): string { return "RENEW_TOKEN"; }
   static get unknown(): string { return "UNKNOWN"; }
   static get urlHash(): string { return "msal.urlHash"; }
+  static get angularLoginRequest(): string { return "msal.angular.login.request";}
 }
 
 /*

@@ -85,7 +85,8 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
+        this._isAngular = false;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -99,6 +100,9 @@ var UserAgentApplication = /** @class */ (function () {
         this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
+        this._isAngular = isAngular;
+        this._anonymousEndpoints = anonymousEndpoints;
+        this._endpoints = endPoints;
         if (!this._cacheLocations[cacheLocation]) {
             throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
         }
@@ -110,13 +114,15 @@ var UserAgentApplication = /** @class */ (function () {
         window.callBacksMappedToRenewStates = {};
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
-        if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
-        }
-        else {
-            var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
-            if (pendingCallback) {
-                this.processCallBack(pendingCallback);
+        if (!this._isAngular) {
+            if (isCallback) {
+                this.handleAuthenticationResponse.call(this, urlHash);
+            }
+            else {
+                var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+                if (pendingCallback) {
+                    this.processCallBack(pendingCallback);
+                }
             }
         }
     }
@@ -193,7 +199,7 @@ var UserAgentApplication = /** @class */ (function () {
          */
         if (this._loginInProgress) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback("Login is in progress", null, null, Constants_1.Constants.idToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.loginProgressError, null, Constants_1.ErrorCodes.loginProgressError, Constants_1.Constants.idToken);
                 return;
             }
         }
@@ -201,19 +207,27 @@ var UserAgentApplication = /** @class */ (function () {
             var isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.idToken);
+                    this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.idToken);
                     return;
                 }
             }
             scopes = this.filterScopes(scopes);
         }
+        this._loginInProgress = true;
         this.authorityInstance.ResolveEndpointsAsync()
             .then(function () {
             var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
-            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, window.location.href);
+            var loginStartPage = _this._cacheStorage.getItem(Constants_1.Constants.angularLoginRequest);
+            if (!loginStartPage || loginStartPage === "") {
+                loginStartPage = window.location.href;
+            }
+            else {
+                _this._cacheStorage.setItem(Constants_1.Constants.angularLoginRequest, "");
+            }
+            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, loginStartPage);
             _this._cacheStorage.setItem(Constants_1.Constants.loginError, "");
             _this._cacheStorage.setItem(Constants_1.Constants.stateLogin, authenticationRequest.state);
             _this._cacheStorage.setItem(Constants_1.Constants.nonceIdToken, authenticationRequest.nonce);
@@ -224,7 +238,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(authorityKey, _this.authority);
             }
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-            _this._loginInProgress = true;
             _this._requestType = Constants_1.Constants.login;
             _this.promptUser(urlNavigate);
         });
@@ -244,13 +257,13 @@ var UserAgentApplication = /** @class */ (function () {
          */
         return new Promise(function (resolve, reject) {
             if (_this._loginInProgress) {
-                reject(Constants_1.ErrorCodes.loginProgressError + ":" + Constants_1.ErrorDescription.loginProgressError);
+                reject(Constants_1.ErrorCodes.loginProgressError + "|" + Constants_1.ErrorDescription.loginProgressError);
                 return;
             }
             if (scopes) {
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                    reject(Constants_1.ErrorCodes.inputScopesError + ":" + Constants_1.ErrorDescription.inputScopesError);
+                    reject(Constants_1.ErrorCodes.inputScopesError + "|" + Constants_1.ErrorDescription.inputScopesError);
                     return;
                 }
                 scopes = _this.filterScopes(scopes);
@@ -263,6 +276,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (!popUpWindow) {
                 return;
             }
+            _this._loginInProgress = true;
             _this.authorityInstance.ResolveEndpointsAsync().then(function () {
                 var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                 if (extraQueryParameters) {
@@ -281,7 +295,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._renewStates.push(authenticationRequest.state);
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
                 _this._requestType = Constants_1.Constants.login;
-                _this._loginInProgress = true;
                 if (popUpWindow) {
                     _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
@@ -329,19 +342,23 @@ var UserAgentApplication = /** @class */ (function () {
             this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.popUpWindowError);
             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.popUpWindowError);
             if (reject) {
-                reject(Constants_1.ErrorCodes.popUpWindowError + ":" + Constants_1.ErrorDescription.popUpWindowError);
+                reject(Constants_1.ErrorCodes.popUpWindowError + "|" + Constants_1.ErrorDescription.popUpWindowError);
             }
             return null;
         }
         this._openedWindows.push(popupWindow);
         var pollTimer = window.setInterval(function () {
             if (popupWindow && popupWindow.closed && instance._loginInProgress) {
-                instance._loginInProgress = false;
-                instance._acquireTokenInProgress = false;
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.userCancelledError + ":" + Constants_1.ErrorDescription.userCancelledError);
+                    reject(Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
                 }
                 window.clearInterval(pollTimer);
+                if (_this._isAngular) {
+                    _this.broadcast('msal:popUpClosed', Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
+                    return;
+                }
+                instance._loginInProgress = false;
+                instance._acquireTokenInProgress = false;
             }
             try {
                 var popUpWindowLocation = popupWindow.location;
@@ -350,6 +367,12 @@ var UserAgentApplication = /** @class */ (function () {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
                     _this._logger.info("Closing popup window");
+                    if (_this._isAngular) {
+                        _this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
+                        for (var i = 0; i < _this._openedWindows.length; i++) {
+                            _this._openedWindows[i].close();
+                        }
+                    }
                 }
             }
             catch (e) {
@@ -357,6 +380,10 @@ var UserAgentApplication = /** @class */ (function () {
             }
         }, interval);
         return popupWindow;
+    };
+    UserAgentApplication.prototype.broadcast = function (eventName, data) {
+        var evt = new CustomEvent(eventName, { detail: data });
+        window.dispatchEvent(evt);
     };
     /*
      * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
@@ -386,6 +413,15 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.acquireTokenUser, Constants_1.Constants.renewStatus);
         this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter, Constants_1.Constants.renewStatus);
         this._cacheStorage.resetCacheItems();
+    };
+    UserAgentApplication.prototype.clearCacheForScope = function (accessToken) {
+        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.authority);
+        for (var i = 0; i < accessTokenItems.length; i++) {
+            var token = accessTokenItems[i];
+            if (token.value.accessToken == accessToken) {
+                this._cacheStorage.removeItem(JSON.stringify(token.key));
+            }
+        }
     };
     /*
      * Configures popup window for login.
@@ -477,7 +513,7 @@ var UserAgentApplication = /** @class */ (function () {
                     for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
                         try {
                             if (errorDesc || error) {
-                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);
+                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
                             }
                             else if (token) {
                                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -501,7 +537,7 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.getCachedToken = function (authenticationRequest, user) {
         var accessTokenCacheItem = null;
         var scopes = authenticationRequest.scopes;
-        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user.userIdentifier); //filter by clientId and user
+        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null); //filter by clientId and user
         if (tokenCacheItems.length === 0) {
             return null;
         }
@@ -689,7 +725,7 @@ var UserAgentApplication = /** @class */ (function () {
         var isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.accessToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.accessToken);
                 return;
             }
         }
@@ -743,19 +779,19 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             if (scopes) {
                 scopes = _this.filterScopes(scopes);
             }
             var userObject = user ? user : _this.getUser();
             if (_this._acquireTokenInProgress) {
-                reject(Constants_1.ErrorCodes.acquireTokenProgressError + ":" + Constants_1.ErrorDescription.acquireTokenProgressError);
+                reject(Constants_1.ErrorCodes.acquireTokenProgressError + "|" + Constants_1.ErrorDescription.acquireTokenProgressError);
                 return;
             }
             var scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
-                reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                 return;
             }
             _this._acquireTokenInProgress = true;
@@ -803,7 +839,7 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.endpointResolutionError);
                 _this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.endpointResolutionError);
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.endpointResolutionError + ":" + Constants_1.ErrorDescription.endpointResolutionError);
+                    reject(Constants_1.ErrorCodes.endpointResolutionError + "|" + Constants_1.ErrorDescription.endpointResolutionError);
                 }
                 if (popUpWindow) {
                     popUpWindow.close();
@@ -829,7 +865,7 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             else {
                 if (scopes) {
@@ -838,7 +874,7 @@ var UserAgentApplication = /** @class */ (function () {
                 var scope_1 = scopes.join(" ").toLowerCase();
                 var userObject_1 = user ? user : _this.getUser();
                 if (!userObject_1) {
-                    reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                    reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                     return;
                 }
                 var authenticationRequest_1;
@@ -863,7 +899,7 @@ var UserAgentApplication = /** @class */ (function () {
                     }
                     else if (cacheResult.errorDesc || cacheResult.error) {
                         _this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-                        reject(cacheResult.errorDesc + ": " + cacheResult.error);
+                        reject(cacheResult.errorDesc + "|" + cacheResult.error);
                         return;
                     }
                 }
@@ -1401,6 +1437,49 @@ var UserAgentApplication = /** @class */ (function () {
       */
     UserAgentApplication.prototype.isInIframe = function () {
         return window.parent !== window;
+    };
+    UserAgentApplication.prototype.loginInProgress = function () {
+        return this._loginInProgress;
+    };
+    UserAgentApplication.prototype.getHostFromUri = function (uri) {
+        // remove http:// or https:// from uri
+        var extractedUri = String(uri).replace(/^(https?:)\/\//, '');
+        extractedUri = extractedUri.split('/')[0];
+        return extractedUri;
+    };
+    UserAgentApplication.prototype.getScopesForEndpoint = function (endpoint) {
+        // if user specified list of anonymous endpoints, no need to send token to these endpoints, return null.
+        if (this._anonymousEndpoints.length > 0) {
+            for (var i = 0; i < this._anonymousEndpoints.length; i++) {
+                if (endpoint.indexOf(this._anonymousEndpoints[i]) > -1) {
+                    return null;
+                }
+            }
+        }
+        if (this._endpoints.size > 0) {
+            for (var _i = 0, _a = Array.from(this._endpoints.keys()); _i < _a.length; _i++) {
+                var key = _a[_i];
+                // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
+                if (endpoint.indexOf(key) > -1) {
+                    return this._endpoints.get(key);
+                }
+            }
+        }
+        // default resource will be clientid if nothing specified
+        // App will use idtoken for calls to itself
+        // check if it's staring from http or https, needs to match with app host
+        if (endpoint.indexOf('http://') > -1 || endpoint.indexOf('https://') > -1) {
+            if (this.getHostFromUri(endpoint) === this.getHostFromUri(this._redirectUri)) {
+                return new Array(this.clientId);
+            }
+        }
+        else {
+            // in angular level, the url for $http interceptor call could be relative url,
+            // if it's relative call, we'll treat it as app backend call.            
+            return new Array(this.clientId);
+        }
+        // if not the app's own backend or not a domain listed in the endpoints structure
+        return null;
     };
     tslib_1.__decorate([
         resolveTokenOnlyIfOutOfIframe
