@@ -1725,6 +1725,9 @@ export class UserAgentApplication {
   }
 
   loginInProgress(): boolean {
+      var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+      if (pendingCallback)
+          return true;
       return this._loginInProgress;
   }
 
