@@ -1,4 +1,4 @@
-/*! msal v0.1.5 2018-04-26 */
+/*! msal v0.1.5 2018-05-03 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -3056,6 +3056,9 @@ var UserAgentApplication = /** @class */ (function () {
         return window.parent !== window;
     };
     UserAgentApplication.prototype.loginInProgress = function () {
+        var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+        if (pendingCallback)
+            return true;
         return this._loginInProgress;
     };
     UserAgentApplication.prototype.getHostFromUri = function (uri) {

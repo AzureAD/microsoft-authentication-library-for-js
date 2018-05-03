@@ -1437,6 +1437,9 @@ var UserAgentApplication = /** @class */ (function () {
         return window.parent !== window;
     };
     UserAgentApplication.prototype.loginInProgress = function () {
+        var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+        if (pendingCallback)
+            return true;
         return this._loginInProgress;
     };
     UserAgentApplication.prototype.getHostFromUri = function (uri) {
