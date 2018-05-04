@@ -1,0 +1,77 @@
+<html>
+<head>
+    <title>authentication with Msal.js app</title>
+    <style>
+        .hidden {
+            visibility: hidden
+        }
+
+        .visible {
+            visibility: visible
+        }
+    </style>
+</head>
+<body>
+    <!-- bluebird only needed if this page needs to run on Internet Explorer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
+    <script src="dist/msal.js" class="pre"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
+
+    <h1>Getting token for B2C</h1>
+    <div>
+        <div id="label">Sign-in with Microsoft</div>
+        <button id="auth" onclick="login();">Login</button>
+    </div>
+
+    <pre class="response"></pre>
+
+    <script class="pre">
+        var applicationConfig = {
+            clientID: 'cd1fdffa-0c1e-4490-a070-812701100306',
+            graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
+            graphScopes: ["user.read", "mail.send"],
+            b2cScopes: ["https://B2CSriniDev1.onmicrosoft.com/cd1fdffa-0c1e-4490-a070-812701100306/running"],
+            authority: "https://login.microsoftonline.com/tfp/B2CSriniDev1.onmicrosoft.com/B2C_1_testsignin"
+        };
+    </script>
+
+    <script>
+        // Msal helpers
+        // ------------
+        // Initialize Msal libraries by setting the Client Id, authority and a callback
+        var clientApplication= new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, function(errorDesc,token,error,tokenType){
+		// Called after loginRedirect or acquireTokenPopup
+        });
+
+        function login() {
+            clientApplication.loginPopup(applicationConfig.b2cScopes).then(function (idToken) {
+                clientApplication.acquireTokenSilent(applicationConfig.b2cScopes).then(function (accessToken) {
+                    updateUI();
+                }, function (error) {
+                    clientApplication.acquireTokenPopup(applicationConfig.b2cScopes).then(function (accessToken) {
+                        updateUI();
+                    }, function (error) {
+                        console.log(error);
+                    });
+                })
+            }, function (error) {
+                console.log(error);
+            });
+        }
+
+        function updateUI() {
+            var authButton = document.getElementById('auth');
+            authButton.innerHTML = 'logout';
+            authButton.setAttribute('onclick', 'logout();');
+            var label = document.getElementById('label');
+            label.innerText = "Hello " + clientApplication.getUser().name;
+        }
+
+        function logout() {
+            // Removes all sessions, need to call AAD endpoint to do full logout
+            clientApplication.logout();
+        }
+
+    </script>
+</body>
+</html>
