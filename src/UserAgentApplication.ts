@@ -574,19 +574,16 @@ export class UserAgentApplication {
    * @hidden
    */
   private clearCache(): void {
-    this._renewStates = [];
-    const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
+      this._renewStates = [];
+      const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
     for (let i = 0; i < accessTokenItems.length; i++) {
       this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
     }
-
-    this._cacheStorage.removeAcquireTokenEntries(Constants.acquireTokenUser, Constants.renewStatus);
-    this._cacheStorage.removeAcquireTokenEntries(Constants.authority + Constants.resourceDelimeter, Constants.renewStatus);
     this._cacheStorage.resetCacheItems();
   }
 
-  clearCacheForScope(accessToken: string) {
-      const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
+    clearCacheForScope(accessToken: string) {
+        const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
       for (var i = 0; i < accessTokenItems.length; i++){
           var token = accessTokenItems[i];
           if (token.value.accessToken == accessToken) {
@@ -810,8 +807,8 @@ export class UserAgentApplication {
    * @param {Array<User>} Users - users saved in the cache.
    */
   getAllUsers(): Array<User> {
-    const users: Array<User> = [];
-    const accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.authority);
+      const users: Array<User> = [];
+      const accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
     for (let i = 0; i < accessTokenCacheItems.length; i++) {
       const idToken = new IdToken(accessTokenCacheItems[i].value.idToken);
       const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.clientInfo);
@@ -1182,19 +1179,19 @@ export class UserAgentApplication {
    */
   private loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): void {
     //set iframe session to pending
-    this._logger.verbose("Set loading state to pending for: " + scope);
-    this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusInProgress);
+      const expectedState = this._activeRenewals[scope];
+      this._logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
+      this._cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusInProgress);
     this.loadFrame(urlNavigate, frameName);
     setTimeout(() => {
-      if (this._cacheStorage.getItem(Constants.renewStatus + scope) === Constants.tokenRenewStatusInProgress) {
+      if (this._cacheStorage.getItem(Constants.renewStatus + expectedState) === Constants.tokenRenewStatusInProgress) {
           // fail the iframe session if it"s in pending state
-        this._logger.verbose("Loading frame has timed out after: " + (this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
-        const expectedState = this._activeRenewals[scope];
+          this._logger.verbose("Loading frame has timed out after: " + (this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
         if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
             window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
         }
-              
-        this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCancelled);
+
+          this._cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
       }
     }, this.loadFrameTimeout);
   }
@@ -1485,9 +1482,11 @@ export class UserAgentApplication {
     this._logger.info("State status:" + tokenResponse.stateMatch + "; Request type:" + tokenResponse.requestType);
     this._cacheStorage.setItem(Constants.msalError, "");
     this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-    var scope: string = "";
+      var scope: string = "";
+      var authorityKey: string = "";
+      var acquireTokenUserKey: string = "";
     if (tokenResponse.parameters.hasOwnProperty("scope")) {
-      scope = tokenResponse.parameters["scope"];
+      scope = tokenResponse.parameters["scope"].toLowerCase();
     }
     else {
       scope = this.clientId;
@@ -1527,7 +1526,7 @@ export class UserAgentApplication {
             idToken = new IdToken(this._cacheStorage.getItem(Constants.idTokenKey));
           }
 
-          let authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
           let authority: string;
           if (!Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
             authority = this._cacheStorage.getItem(authorityKey);
@@ -1542,7 +1541,7 @@ export class UserAgentApplication {
             user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
           }
 
-          let acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
           let acquireTokenUser: User;
           if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
             acquireTokenUser = JSON.parse(this._cacheStorage.getItem(acquireTokenUserKey));
@@ -1568,7 +1567,7 @@ export class UserAgentApplication {
               this._logger.warning("ClientInfo not received in the response from AAD");
             }
 
-            let authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
             let authority: string;
             if (!Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
               authority = this._cacheStorage.getItem(authorityKey);
@@ -1600,10 +1599,9 @@ export class UserAgentApplication {
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }
-    }
-    this._cacheStorage.setItem(Constants.renewStatus + scope, Constants.tokenRenewStatusCompleted);
-    this._cacheStorage.removeAcquireTokenEntries(Constants.acquireTokenUser, Constants.renewStatus);
-    this._cacheStorage.removeAcquireTokenEntries(Constants.authority + Constants.resourceDelimeter, Constants.renewStatus);
+      }
+      this._cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
+      this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
   }
 
   /*
