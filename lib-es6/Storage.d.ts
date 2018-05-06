@@ -10,6 +10,6 @@ export declare class Storage {
     removeItem(key: string): void;
     clear(): void;
     getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem>;
-    removeAcquireTokenEntries(acquireTokenUser: string, acquireTokenStatus: string): void;
+    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void;
     resetCacheItems(): void;
 }
