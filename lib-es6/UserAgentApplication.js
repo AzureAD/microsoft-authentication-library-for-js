@@ -1229,6 +1229,8 @@ var UserAgentApplication = /** @class */ (function () {
             if (tokenResponse.requestType === Constants.renewToken) {
                 this._acquireTokenInProgress = false;
             }
+            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + this.getUser().userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
         }
         else {
             // It must verify the state from redirect
