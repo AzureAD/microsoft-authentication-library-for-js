@@ -97,21 +97,21 @@ export class MsalService extends  UserAgentApplication{
             var msal : any = window.parent.msal;
 
             // callback can come from popupWindow, iframe or mainWindow
-            if (this._openedWindows.length > 0 && this._openedWindows[this._openedWindows.length - 1].opener
-                && this._openedWindows[this._openedWindows.length - 1].opener.msal) {
-                var mainWindow = this._openedWindows[this._openedWindows.length - 1].opener;
+            if (msal._openedWindows.length > 0 && msal._openedWindows[msal._openedWindows.length - 1].opener
+                && msal._openedWindows[msal._openedWindows.length - 1].opener.msal) {
+                var mainWindow = msal._openedWindows[msal._openedWindows.length - 1].opener;
                 msal = mainWindow.msal;
                 isPopup = true;
                 requestInfo = msal.getRequestInfo(hash);
-                if (mainWindow.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-                    callback = mainWindow.callBackMappedToRenewStates[requestInfo.stateResponse];
+                if (msal._callBackMappedToRenewStates[requestInfo.stateResponse]) {
+                    callback = msal._callBackMappedToRenewStates[requestInfo.stateResponse];
                 }
             }
              //redirect flow
             else if (window.parent && window.parent.msal) {
                 requestInfo = msal.getRequestInfo(hash);
-                if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-                    callback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+                if (window.parent !== window && msal._callBackMappedToRenewStates[requestInfo.stateResponse]) {
+                    callback = msal._callBackMappedToRenewStates[requestInfo.stateResponse];
                 }
                 else {
                     callback = msal._tokenReceivedCallback;
@@ -132,7 +132,7 @@ export class MsalService extends  UserAgentApplication{
                     this._renewActive = false;
                     // Call within the same context without full page redirect keeps the callback
                     // id_token or access_token can be renewed
-                    if (window.parent === window && !window.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+                    if (window.parent === window && !msal._callBackMappedToRenewStates[requestInfo.stateResponse]) {
                         if (token) {
                             this.broadcastService.broadcast("msal:acquireTokenSuccess", token);
                         }
