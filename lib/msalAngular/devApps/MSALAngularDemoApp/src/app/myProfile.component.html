@@ -1,0 +1,26 @@
+
+
+<!--{{ userInfo | json}} -->
+
+
+<button  (click)="callGraph()">Get Details</button>
+
+
+<div class='table-responsive'>
+  <table class='table'>
+    <thead>
+    <tr>
+      <th>displayName</th>
+      <th>jobTitle</th>
+      <th>mail</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>{{userInfo?.displayName}}</td>
+      <td> {{userInfo?.jobTitle}}  </td>
+      <td>{{userInfo?.mail}}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
