@@ -3,8 +3,6 @@ import { User } from "./User";
 declare global  {
     interface Window {
         msal: Object;
-        callBackMappedToRenewStates: Object;
-        callBacksMappedToRenewStates: Object;
         CustomEvent: CustomEvent;
         Event: Event;
     }
@@ -36,6 +34,8 @@ export declare class UserAgentApplication {
     private _isAngular;
     private _endpoints;
     private _anonymousEndpoints;
+    private _callBackMappedToRenewStates;
+    private _callBacksMappedToRenewStates;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;

@@ -109,9 +109,10 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
         this._openedWindows = [];
-        window.msal = this;
-        window.callBackMappedToRenewStates = {};
-        window.callBacksMappedToRenewStates = {};
+        this._callBackMappedToRenewStates = {};
+        this._callBacksMappedToRenewStates = {};
+        if (!window.parent.msal)
+            window.msal = this;
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
         if (!this._isAngular) {
@@ -500,29 +501,29 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.registerCallback = function (expectedState, scope, resolve, reject) {
         var _this = this;
         this._activeRenewals[scope] = expectedState;
-        if (!window.callBacksMappedToRenewStates[expectedState]) {
-            window.callBacksMappedToRenewStates[expectedState] = [];
+        if (!this._callBacksMappedToRenewStates[expectedState]) {
+            this._callBacksMappedToRenewStates[expectedState] = [];
         }
-        window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
-        if (!window.callBackMappedToRenewStates[expectedState]) {
-            window.callBackMappedToRenewStates[expectedState] =
+        this._callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
+        if (!this._callBackMappedToRenewStates[expectedState]) {
+            this._callBackMappedToRenewStates[expectedState] =
                 function (errorDesc, token, error, tokenType) {
                     _this._activeRenewals[scope] = null;
-                    for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
+                    for (var i = 0; i < _this._callBacksMappedToRenewStates[expectedState].length; ++i) {
                         try {
                             if (errorDesc || error) {
-                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
+                                _this._callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
                             }
                             else if (token) {
-                                window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                                _this._callBacksMappedToRenewStates[expectedState][i].resolve(token);
                             }
                         }
                         catch (e) {
                             _this._logger.warning(e);
                         }
                     }
-                    window.callBacksMappedToRenewStates[expectedState] = null;
-                    window.callBackMappedToRenewStates[expectedState] = null;
+                    _this._callBacksMappedToRenewStates[expectedState] = null;
+                    _this._callBackMappedToRenewStates[expectedState] = null;
                 };
         }
     };
@@ -945,8 +946,8 @@ var UserAgentApplication = /** @class */ (function () {
             if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + expectedState) === Constants_1.Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it"s in pending state
                 _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
-                if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-                    window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
+                if (expectedState && _this._callBackMappedToRenewStates[expectedState]) {
+                    _this._callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
                 }
                 _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusCancelled);
             }
@@ -1113,11 +1114,11 @@ var UserAgentApplication = /** @class */ (function () {
         var requestInfo = self.getRequestInfo(hash);
         var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
         self._logger.info("Returned from redirect url");
-        if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-            tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+        if (window.parent !== window && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
+            tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
         }
-        else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-            tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+        else if (window.opener && window.opener.msal && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
+            tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
             if (self._navigateToLoginRequestUrl) {
