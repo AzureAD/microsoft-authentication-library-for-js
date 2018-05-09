@@ -28,7 +28,7 @@ Via NPM:
 
     npm install ms-msal-angular --save
     
-##Usage in Angular-cli application
+## Usage in Angular-cli application
 
 1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section to know more about the config options.
 ````
@@ -58,8 +58,8 @@ Via NPM:
     ,{ provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true }
     ],
   ````
-    
-##Config options
+  
+## Config options
 
 clientID(Mandatory): Specifies the Azure AD client id/application Id of the calling web service;
 
