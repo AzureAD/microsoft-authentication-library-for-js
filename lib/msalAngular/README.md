@@ -1,12 +1,12 @@
 
-Microsoft Authentication Library Preview for JavaScript (MSAL.js)
+Microsoft Authentication Library Preview for Angular
 =========================================================
 
 | [Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2 )| [Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](./devApps/VanillaJSTestApp )
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library preview for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io). 
+The MSAL library preview for Angular enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io). 
 
 The identity management services that the library interacts with are [Microsoft Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/), [Microsoft Azure B2C](https://azure.microsoft.com/services/active-directory-b2c/) and [Microsoft Accounts](https://account.microsoft.com).
 
@@ -20,75 +20,97 @@ This library is suitable for use in a production environment. We provide the sam
 ## Example
 This example shows how to acquire a token to read user information from Microsoft Graph.
 1. Register an application in Azure AD v2.0 (using the [application registration portal](https://apps.dev.microsoft.com/)) to get your client_id. you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
-2. Instantiate a UserAgentApplication and login the user:
-```JavaScript
-    <script class="pre">
-        var applicationConfig = {
-            clientID: 'your_client_id',
-            graphScopes: ["user.read", "mail.send"]
-        };
-		
-        var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId:'12345' }); // level and correlationId are optional parameters.
-		//Logger has other optional parameters like piiLoggingEnabled which can be assigned as shown aabove. Please refer to the docs to see the full list and their default values.
-		
-        function loggerCallback(logLevel, message, piiLoggingEnabled) {
-            console.log(message);
-        }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { logger: logger, cacheLocation: 'localStorage'}); //logger and cacheLocation are optional parameters.
-		//userAgentApplication has other optional parameters like redirectUri which can be assigned as shown above.Please refer to the docs to see the full list and their default values.
-        function authCallback(errorDesc, token, error, tokenType) {
-            if (token) {
-            }
-            else {
-                log(error + ":" + errorDesc);
-            }
-        }
-    </script>
-```
-3. Then, once the user is logged-in, get an access token
-
-```JavaScript
-   <script>
-    userAgentApplication.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
-                //Login Success
-                userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
-                    //AcquireToken Success
-                }, function (error) {
-                    //AcquireToken Failure, send an interactive request.
-                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
-                        updateUI();
-                    }, function (error) {
-                        console.log(error);
-                    });
-                })
-            }, function (error) {
-                console.log(error);
-            });
-    </script>
-```
-
-4. use the token in an [HTTP bearer request](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2/blob/master/TodoSPA/App/Scripts/Ctrls/todoListCtrl.js#L30), to call the Microsoft Graph or a Web API
 
 ## Installation
 
 Via NPM:
 
-    npm install msal
+    npm install ms-msal-angular --save
+    
+##Usage in Angular-cli application
 
-Via CDN:
-```JavaScript
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.3/js/msal.min.js"></script>
-```
+1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section to know more about the config options.
+````
+@NgModule({
+  imports: [ MsalModule.forRoot({
+                  clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+                  authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
+                  validateAuthority : true,
+                  cacheLocation : "localStorage",
+                  postLogoutRedirectUri: "http://localhost:4200/",
+                  navigateToLoginRequestUrl : true,
+                  popUp: true,
+                  tokenReceivedCallback : null,
+                  scopes: ["user.read", "mail.send"],
+                  //anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
+                  endpoints : endpointmap,
+                })]
+           })
+           
+  export class AppModule { }
+````
+## Adding interceptor 
+ Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request. Using MsalInterceptor is optional.
+ So if you want to write your own interceptor, ignore this.
+ ````
+ providers: [ProductService
+    ,{ provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true }
+    ],
+  ````
+    
+##Config options
 
-Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill. You might want to read more in the [FAQ](../../wiki)
-```JavaScript
-    <!-- IE support: add promises polyfill before msal.js  -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.3/js/msal.min.js"></script>
-```
+clientID(Mandatory): Specifies the Azure AD client id/application Id of the calling web service;
 
+authority(Optional): Instance host url+tenant. Default value is https://login.microsoftonline.com/common 
+
+validateAuthority(Optional) :Validate the issuer of tokens. Default is true.
+
+cacheLocation(Optional): Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+
+postLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri.
+
+logger(Optional): Logging purpose.
+
+loadFrameTimeout(Optional): The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
+
+navigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default is false.
+
+popup(??): Show login popup or redirect. Default:?
+
+Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources. Passing scope here will
+only consent it and no access token will be acquire till client actually calls the API.
+
+AnonymousEndpoints(Optional): Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
+
+Endpoints(Optional) : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
+
+RedirectUrl(Optional): Location to redirect, can be a relative of absolute url. Default: window.location.href.
+
+
+## Protecting routes
+Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
+````
+ { path: 'product', component: ProductComponent,canActivate : [MsalGuard],
+    children: [
+      { path: 'detail/:id', component: ProductDetailComponent  }
+    ]
+   },
+  { path: 'myProfile' ,component: MyProfileComponent, canActivate : [MsalGuard]},
+  ````
+  
+  ##Public API
+We expose APIs for login, logout acquireAccessToken and more. Here is the list.
+````
+1.login_redirect() 
+2.login_popup()
+3.log_out()
+4.acquire_token_silent()
+5.acquire_token_popup()
+6.get_user()
+
+````
 ## Build and running tests
 
 If you want to build the library and run all the unit tests, you can do the following.
@@ -99,7 +121,7 @@ First navigate to the root directory of the library and install the dependencies
 	
 Then use the following command to build the library and run all the unit tests:
 
-	npm run build
+	npm run ngcompile
 
 ## Community Help and Support
 
