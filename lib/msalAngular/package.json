@@ -6,7 +6,7 @@
     "url": "https://www.microsoft.com"
   },
   "license": "MIT",
-  "version": "0.2.5",
+  "version": "0.1.0",
   "keywords": [
     "implicit",
     "angular",
@@ -93,6 +93,6 @@
     "test": "typings install && karma start && jasmine-node tests/MSALSpec.js",
     "ngcompile": "npm run clean && ngc -p tsconfig-aot.json && webpack"
   },
-  "description": "Microsoft Authentication Library Preview for Angular\r =========================================================",
+  "description": "Microsoft Authentication Library for Angular (Preview)\r =========================================================",
   "author": ""
 }
