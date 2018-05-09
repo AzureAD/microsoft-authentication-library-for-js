@@ -39,8 +39,6 @@ import { AuthorityFactory } from "./AuthorityFactory";
 declare global {
     interface Window {
         msal: Object;
-        callBackMappedToRenewStates: Object;
-        callBacksMappedToRenewStates: Object;
         CustomEvent: CustomEvent;
         Event: Event;
     }
@@ -111,7 +109,7 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  protected _loginInProgress: boolean;
+  private _loginInProgress: boolean;
 
   /*
    * @hidden
@@ -141,7 +139,7 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  protected _tokenReceivedCallback: tokenReceivedCallback = null;
+  private _tokenReceivedCallback: tokenReceivedCallback = null;
 
   /*
    * @hidden
@@ -151,7 +149,7 @@ export class UserAgentApplication {
   /*
    * Client ID assigned to your app by Azure Active Directory.
    */
-  protected clientId: string;
+  clientId: string;
 
   /*
    * @hidden
@@ -213,6 +211,10 @@ export class UserAgentApplication {
   private _endpoints: Map<string, Array<string>>;
 
   private _anonymousEndpoints: Array<string>;
+
+  protected _callBackMappedToRenewStates: Object;
+
+    protected _callBacksMappedToRenewStates: Object;
   
 
   /*
@@ -279,10 +281,11 @@ export class UserAgentApplication {
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
     this._openedWindows = [];
-    if(!window.msal)
-    window.msal = this;
-    window.callBackMappedToRenewStates = {};
-    window.callBacksMappedToRenewStates = {};
+    this._callBackMappedToRenewStates = {};
+    this._callBacksMappedToRenewStates = {};
+    if (!window.parent.msal)
+        window.msal = this;
+
     var urlHash = window.location.hash;
     var isCallback = this.isCallback(urlHash);
 
@@ -677,32 +680,31 @@ export class UserAgentApplication {
    */
   private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
     this._activeRenewals[scope] = expectedState;
-    if (!window.callBacksMappedToRenewStates[expectedState]) {
-      window.callBacksMappedToRenewStates[expectedState] = [];
+    if (!this._callBacksMappedToRenewStates[expectedState]) {
+        this._callBacksMappedToRenewStates[expectedState] = [];
     }
-    window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
-    if (!window.callBackMappedToRenewStates[expectedState]) {
-      window.callBackMappedToRenewStates[expectedState] =
+    this._callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
+    if (!this._callBackMappedToRenewStates[expectedState]) {
+        this._callBackMappedToRenewStates[expectedState] =
         (errorDesc: string, token: string, error: string, tokenType: string) => {
           this._activeRenewals[scope] = null;
-          for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
+          for (let i = 0; i < this._callBacksMappedToRenewStates[expectedState].length; ++i) {
             try {
               if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
+                  this._callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
               }
               else if (token) {
-                window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                  this._callBacksMappedToRenewStates[expectedState][i].resolve(token);
               }
             } catch (e) {
               this._logger.warning(e);
             }
           }
-          window.callBacksMappedToRenewStates[expectedState] = null;
-          window.callBackMappedToRenewStates[expectedState] = null;
+          this._callBacksMappedToRenewStates[expectedState] = null;
+          this._callBackMappedToRenewStates[expectedState] = null;
         };
     }
   }
-
 
   /*
    * Used to get token for the specified set of scopes from the cache
@@ -1189,8 +1191,8 @@ export class UserAgentApplication {
       if (this._cacheStorage.getItem(Constants.renewStatus + expectedState) === Constants.tokenRenewStatusInProgress) {
           // fail the iframe session if it"s in pending state
           this._logger.verbose("Loading frame has timed out after: " + (this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
-        if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-            window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
+          if (expectedState && this._callBackMappedToRenewStates[expectedState]) {
+              this._callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
         }
 
           this._cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
@@ -1379,11 +1381,11 @@ export class UserAgentApplication {
     
     self._logger.info("Returned from redirect url");
     
-    if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+    if (window.parent !== window && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
     }
-    else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-        tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+    else if (window.opener && window.opener.msal && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     else {
         if (self._navigateToLoginRequestUrl) {
@@ -1777,7 +1779,6 @@ export class UserAgentApplication {
       // if not the app's own backend or not a domain listed in the endpoints structure
       return null;
   }
-
 
     public setloginInProgress(loginInProgress : boolean) {
         this._loginInProgress = loginInProgress;
