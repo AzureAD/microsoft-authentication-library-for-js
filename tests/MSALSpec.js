@@ -102,7 +102,10 @@ describe('Msal', function () {
                 hash: '#hash',
                 href: 'href',
                 replace: function (val) {
-                }
+                },
+            },
+            parent: {
+
             },
             localStorage: {},
             sessionStorage: {},
