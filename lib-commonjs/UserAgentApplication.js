@@ -96,8 +96,6 @@ var UserAgentApplication = /** @class */ (function () {
         this._postLogoutredirectUri = postLogoutRedirectUri;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
-        this._renewStates = [];
-        this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         this._isAngular = isAngular;
@@ -108,11 +106,12 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
-        this._openedWindows = [];
-        this._callBackMappedToRenewStates = {};
-        this._callBacksMappedToRenewStates = {};
-        if (!window.parent.msal)
-            window.msal = this;
+        window.openedWindows = [];
+        window.activeRenewals = {};
+        window.renewStates = [];
+        window.callBackMappedToRenewStates = {};
+        window.callBacksMappedToRenewStates = {};
+        window.msal = this;
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
         if (!this._isAngular) {
@@ -239,7 +238,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(authorityKey, _this.authority);
             }
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-            _this._requestType = Constants_1.Constants.login;
             _this.promptUser(urlNavigate);
         });
     };
@@ -293,9 +291,9 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._cacheStorage.setItem(authorityKey, _this.authority);
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-                _this._renewStates.push(authenticationRequest.state);
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants_1.Constants.login;
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                _this._requestType = Constants_1.Constants.login;
                 if (popUpWindow) {
                     _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
@@ -347,7 +345,7 @@ var UserAgentApplication = /** @class */ (function () {
             }
             return null;
         }
-        this._openedWindows.push(popupWindow);
+        window.openedWindows.push(popupWindow);
         var pollTimer = window.setInterval(function () {
             if (popupWindow && popupWindow.closed && instance._loginInProgress) {
                 if (reject) {
@@ -370,8 +368,10 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._logger.info("Closing popup window");
                     if (_this._isAngular) {
                         _this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
-                        for (var i = 0; i < _this._openedWindows.length; i++) {
-                            _this._openedWindows[i].close();
+                        if (window.opener && window.opener.openedWindows) {
+                            for (var i = 0; i < window.opener.openedWindows.length; i++) {
+                                window.opener.openedWindows[i].close();
+                            }
                         }
                     }
                 }
@@ -406,7 +406,7 @@ var UserAgentApplication = /** @class */ (function () {
      * @hidden
      */
     UserAgentApplication.prototype.clearCache = function () {
-        this._renewStates = [];
+        window.renewStates = [];
         var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
         for (var i = 0; i < accessTokenItems.length; i++) {
             this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
@@ -500,30 +500,30 @@ var UserAgentApplication = /** @class */ (function () {
      */
     UserAgentApplication.prototype.registerCallback = function (expectedState, scope, resolve, reject) {
         var _this = this;
-        this._activeRenewals[scope] = expectedState;
-        if (!this._callBacksMappedToRenewStates[expectedState]) {
-            this._callBacksMappedToRenewStates[expectedState] = [];
+        window.activeRenewals[scope] = expectedState;
+        if (!window.callBacksMappedToRenewStates[expectedState]) {
+            window.callBacksMappedToRenewStates[expectedState] = [];
         }
-        this._callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
-        if (!this._callBackMappedToRenewStates[expectedState]) {
-            this._callBackMappedToRenewStates[expectedState] =
+        window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
+        if (!window.callBackMappedToRenewStates[expectedState]) {
+            window.callBackMappedToRenewStates[expectedState] =
                 function (errorDesc, token, error, tokenType) {
-                    _this._activeRenewals[scope] = null;
-                    for (var i = 0; i < _this._callBacksMappedToRenewStates[expectedState].length; ++i) {
+                    window.activeRenewals[scope] = null;
+                    for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
                         try {
                             if (errorDesc || error) {
-                                _this._callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
+                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
                             }
                             else if (token) {
-                                _this._callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                                window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
                             }
                         }
                         catch (e) {
                             _this._logger.warning(e);
                         }
                     }
-                    _this._callBacksMappedToRenewStates[expectedState] = null;
-                    _this._callBackMappedToRenewStates[expectedState] = null;
+                    window.callBacksMappedToRenewStates[expectedState] = null;
+                    window.callBackMappedToRenewStates[expectedState] = null;
                 };
         }
     };
@@ -768,7 +768,6 @@ var UserAgentApplication = /** @class */ (function () {
             urlNavigate = _this.addHintParameters(urlNavigate, userObject);
             if (urlNavigate) {
                 _this._cacheStorage.setItem(Constants_1.Constants.stateAcquireToken, authenticationRequest.state);
-                _this._requestType = Constants_1.Constants.renewToken;
                 window.location.replace(urlNavigate);
             }
         });
@@ -827,9 +826,9 @@ var UserAgentApplication = /** @class */ (function () {
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 urlNavigate = _this.addHintParameters(urlNavigate, userObject);
-                _this._renewStates.push(authenticationRequest.state);
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants_1.Constants.renewToken;
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                _this._requestType = Constants_1.Constants.renewToken;
                 if (popUpWindow) {
                     popUpWindow.location.href = urlNavigate;
                 }
@@ -902,16 +901,15 @@ var UserAgentApplication = /** @class */ (function () {
                         return;
                     }
                 }
-                _this._requestType = Constants_1.Constants.renewToken;
                 // cache miss
                 return _this.authorityInstance.ResolveEndpointsAsync()
                     .then(function () {
                     // refresh attept with iframe
                     //Already renewing for this scope, callback when we get the token.
-                    if (_this._activeRenewals[scope_1]) {
+                    if (window.activeRenewals[scope_1]) {
                         _this._logger.verbose("Renew token for scope: " + scope_1 + " is in progress. Registering callback");
                         //Active renewals contains the state for each renewal.
-                        _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
+                        _this.registerCallback(window.activeRenewals[scope_1], scope_1, resolve, reject);
                     }
                     else {
                         if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
@@ -938,7 +936,7 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.loadIframeTimeout = function (urlNavigate, frameName, scope) {
         var _this = this;
         //set iframe session to pending
-        var expectedState = this._activeRenewals[scope];
+        var expectedState = window.activeRenewals[scope];
         this._logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
         this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusInProgress);
         this.loadFrame(urlNavigate, frameName);
@@ -946,8 +944,8 @@ var UserAgentApplication = /** @class */ (function () {
             if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + expectedState) === Constants_1.Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it"s in pending state
                 _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
-                if (expectedState && _this._callBackMappedToRenewStates[expectedState]) {
-                    _this._callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
+                if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
+                    window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
                 }
                 _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusCancelled);
             }
@@ -1029,7 +1027,8 @@ var UserAgentApplication = /** @class */ (function () {
         this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
         var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
         urlNavigate = this.addHintParameters(urlNavigate, user);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants_1.Constants.renewToken;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
@@ -1059,7 +1058,8 @@ var UserAgentApplication = /** @class */ (function () {
         this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
         var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
         urlNavigate = this.addHintParameters(urlNavigate, user);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants_1.Constants.renewToken;
         this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
@@ -1111,14 +1111,14 @@ var UserAgentApplication = /** @class */ (function () {
         else if (window.parent && window.parent.msal) {
             self = window.parent.msal;
         }
-        var requestInfo = self.getRequestInfo(hash);
+        var requestInfo = self.getRequestInfo(hash); //if(window.parent!==window), by using self, window.parent becomes equal to window in getRequestInfo method specifically
         var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
         self._logger.info("Returned from redirect url");
-        if (window.parent !== window && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
-            tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
+        if (window.parent !== window && window.parent.msal) {
+            tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
-        else if (window.opener && window.opener.msal && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
-            tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
+        else if (window.opener && window.opener.msal) {
+            tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
             if (self._navigateToLoginRequestUrl) {
@@ -1160,8 +1160,10 @@ var UserAgentApplication = /** @class */ (function () {
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
         }
-        for (var i = 0; i < self._openedWindows.length; i++) {
-            self._openedWindows[i].close();
+        if (window.opener && window.opener.openedWindows) {
+            for (var i = 0; i < window.opener.openedWindows.length; i++) {
+                window.opener.openedWindows[i].close();
+            }
         }
     };
     /*
@@ -1228,12 +1230,14 @@ var UserAgentApplication = /** @class */ (function () {
             if (tokenResponse.requestType === Constants_1.Constants.login) {
                 this._loginInProgress = false;
                 this._cacheStorage.setItem(Constants_1.Constants.loginError, tokenResponse.parameters[Constants_1.Constants.errorDescription] + ":" + tokenResponse.parameters[Constants_1.Constants.error]);
+                authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
             }
             if (tokenResponse.requestType === Constants_1.Constants.renewToken) {
                 this._acquireTokenInProgress = false;
+                authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
+                acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + userKey + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
             }
-            authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
-            acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + this.getUser().userIdentifier + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
         }
         else {
             // It must verify the state from redirect
@@ -1399,13 +1403,8 @@ var UserAgentApplication = /** @class */ (function () {
                 }
                 // external api requests may have many renewtoken requests for different resource
                 if (!tokenResponse.stateMatch) {
-                    if (window.parent && window.parent !== window) {
-                        tokenResponse.requestType = Constants_1.Constants.renewToken;
-                    }
-                    else {
-                        tokenResponse.requestType = this._requestType;
-                    }
-                    var statesInParentContext = this._renewStates;
+                    tokenResponse.requestType = window.requestType;
+                    var statesInParentContext = window.renewStates;
                     for (var i = 0; i < statesInParentContext.length; i++) {
                         if (statesInParentContext[i] === tokenResponse.stateResponse) {
                             tokenResponse.stateMatch = true;

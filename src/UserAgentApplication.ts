@@ -41,6 +41,12 @@ declare global {
         msal: Object;
         CustomEvent: CustomEvent;
         Event: Event;
+        activeRenewals: {};
+        renewStates: Array<string>;
+        callBackMappedToRenewStates : {};
+        callBacksMappedToRenewStates: {};
+        openedWindows: Array<Window>;
+        requestType: string;
     }
 }
 
@@ -119,16 +125,6 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  private _renewStates: Array<string>;
-
-  /*
-   * @hidden
-   */
-  private _activeRenewals: Object;
-
-  /*
-   * @hidden
-   */
   private _clockSkew = 300;
 
   /*
@@ -192,16 +188,6 @@ export class UserAgentApplication {
    */
   private _postLogoutredirectUri: string;
 
-  /*
-   * Used to keep track of opened popup windows.
-   */
-  private _openedWindows: Array<Window>;
-
-  /*
-   * Used to track the authentication request.
-   */
-  private _requestType: string;
-
   loadFrameTimeout: number;
 
   private _navigateToLoginRequestUrl: boolean;
@@ -211,11 +197,6 @@ export class UserAgentApplication {
   private _endpoints: Map<string, Array<string>>;
 
   private _anonymousEndpoints: Array<string>;
-
-  private _callBackMappedToRenewStates: Object;
-
-  private _callBacksMappedToRenewStates: Object;
-  
 
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
@@ -267,8 +248,6 @@ export class UserAgentApplication {
     this._postLogoutredirectUri = postLogoutRedirectUri;
     this._loginInProgress = false;
     this._acquireTokenInProgress = false;
-    this._renewStates = [];
-    this._activeRenewals = {};
     this._cacheLocation = cacheLocation;
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     this._isAngular = isAngular;
@@ -280,12 +259,12 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
-    this._openedWindows = [];
-    this._callBackMappedToRenewStates = {};
-    this._callBacksMappedToRenewStates = {};
-    if (!window.parent.msal)
-        window.msal = this;
-
+    window.openedWindows = [];
+    window.activeRenewals = {};
+    window.renewStates = [];
+    window.callBackMappedToRenewStates = { };
+    window.callBacksMappedToRenewStates = { };
+    window.msal = this;
     var urlHash = window.location.hash;
     var isCallback = this.isCallback(urlHash);
 
@@ -300,7 +279,6 @@ export class UserAgentApplication {
             }
         }
     }
-   
   }
 
   /*
@@ -395,7 +373,6 @@ export class UserAgentApplication {
         }
 
         const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-        this._requestType = Constants.login;
         this.promptUser(urlNavigate);
       });
   }
@@ -456,9 +433,9 @@ export class UserAgentApplication {
         }
 
         const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants.login;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-        this._requestType = Constants.login;
         if (popUpWindow) {
             this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
             popUpWindow.location.href = urlNavigate;
@@ -513,7 +490,7 @@ export class UserAgentApplication {
       return null;
     }
 
-    this._openedWindows.push(popupWindow);
+    window.openedWindows.push(popupWindow);
     var pollTimer = window.setInterval(() => {
       if (popupWindow && popupWindow.closed && instance._loginInProgress) {
         if (reject) {
@@ -537,8 +514,10 @@ export class UserAgentApplication {
           this._logger.info("Closing popup window");
           if (this._isAngular) {
               this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
-              for (var i = 0; i < this._openedWindows.length; i++) {
-                  this._openedWindows[i].close();
+              if (window.opener && window.opener.openedWindows) {
+                  for (var i = 0; i < window.opener.openedWindows.length; i++) {
+                      window.opener.openedWindows[i].close();
+                  }
               }
           }
         }
@@ -578,7 +557,7 @@ export class UserAgentApplication {
    * @hidden
    */
   private clearCache(): void {
-      this._renewStates = [];
+      window.renewStates = [];
       const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
     for (let i = 0; i < accessTokenItems.length; i++) {
       this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
@@ -679,29 +658,29 @@ export class UserAgentApplication {
    * @hidden
    */
   private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
-    this._activeRenewals[scope] = expectedState;
-    if (!this._callBacksMappedToRenewStates[expectedState]) {
-        this._callBacksMappedToRenewStates[expectedState] = [];
+    window.activeRenewals[scope] = expectedState;
+    if (!window.callBacksMappedToRenewStates[expectedState]) {
+        window.callBacksMappedToRenewStates[expectedState] = [];
     }
-    this._callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
-    if (!this._callBackMappedToRenewStates[expectedState]) {
-        this._callBackMappedToRenewStates[expectedState] =
+    window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
+    if (!window.callBackMappedToRenewStates[expectedState]) {
+        window.callBackMappedToRenewStates[expectedState] =
         (errorDesc: string, token: string, error: string, tokenType: string) => {
-          this._activeRenewals[scope] = null;
-          for (let i = 0; i < this._callBacksMappedToRenewStates[expectedState].length; ++i) {
+          window.activeRenewals[scope] = null;
+          for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
             try {
               if (errorDesc || error) {
-                  this._callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
+                  window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
               }
               else if (token) {
-                  this._callBacksMappedToRenewStates[expectedState][i].resolve(token);
+                  window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
               }
             } catch (e) {
               this._logger.warning(e);
             }
           }
-          this._callBacksMappedToRenewStates[expectedState] = null;
-          this._callBackMappedToRenewStates[expectedState] = null;
+          window.callBacksMappedToRenewStates[expectedState] = null;
+          window.callBackMappedToRenewStates[expectedState] = null;
         };
     }
   }
@@ -986,7 +965,6 @@ export class UserAgentApplication {
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
       if (urlNavigate) {
         this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
-        this._requestType = Constants.renewToken;
         window.location.replace(urlNavigate);
       }
     });
@@ -1069,9 +1047,9 @@ export class UserAgentApplication {
 
         let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants.renewToken;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-        this._requestType = Constants.renewToken;
         if (popUpWindow) {
           popUpWindow.location.href = urlNavigate;
         }
@@ -1148,16 +1126,15 @@ export class UserAgentApplication {
           }
         }
 
-        this._requestType = Constants.renewToken;
         // cache miss
         return this.authorityInstance.ResolveEndpointsAsync()
           .then(() => {
             // refresh attept with iframe
             //Already renewing for this scope, callback when we get the token.
-              if (this._activeRenewals[scope]) {
+              if (window.activeRenewals[scope]) {
               this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
               //Active renewals contains the state for each renewal.
-              this.registerCallback(this._activeRenewals[scope], scope, resolve, reject);
+              this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
             }
             else {
               if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
@@ -1183,7 +1160,7 @@ export class UserAgentApplication {
    */
   private loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): void {
     //set iframe session to pending
-      const expectedState = this._activeRenewals[scope];
+      const expectedState = window.activeRenewals[scope];
       this._logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
       this._cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusInProgress);
     this.loadFrame(urlNavigate, frameName);
@@ -1191,8 +1168,8 @@ export class UserAgentApplication {
       if (this._cacheStorage.getItem(Constants.renewStatus + expectedState) === Constants.tokenRenewStatusInProgress) {
           // fail the iframe session if it"s in pending state
           this._logger.verbose("Loading frame has timed out after: " + (this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
-          if (expectedState && this._callBackMappedToRenewStates[expectedState]) {
-              this._callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
+          if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
+              window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
         }
 
           this._cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
@@ -1283,7 +1260,8 @@ export class UserAgentApplication {
     this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
     let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
     urlNavigate = this.addHintParameters(urlNavigate, user);
-    this._renewStates.push(authenticationRequest.state);
+    window.renewStates.push(authenticationRequest.state);
+    window.requestType = Constants.renewToken;
     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
@@ -1317,7 +1295,8 @@ export class UserAgentApplication {
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
     let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
     urlNavigate = this.addHintParameters(urlNavigate, user);
-    this._renewStates.push(authenticationRequest.state);
+    window.renewStates.push(authenticationRequest.state);
+    window.requestType = Constants.renewToken;
     this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
@@ -1376,16 +1355,16 @@ export class UserAgentApplication {
       self = window.parent.msal;
     }
 
-    const requestInfo = self.getRequestInfo(hash);
+    const requestInfo = self.getRequestInfo(hash);//if(window.parent!==window), by using self, window.parent becomes equal to window in getRequestInfo method specifically
     let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken:boolean = true;
     
     self._logger.info("Returned from redirect url");
     
-    if (window.parent !== window && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
-        tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
+    if (window.parent !== window && window.parent.msal) {
+        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
-    else if (window.opener && window.opener.msal && self._callBackMappedToRenewStates[requestInfo.stateResponse]) {
-        tokenReceivedCallback = self._callBackMappedToRenewStates[requestInfo.stateResponse];
+    else if (window.opener && window.opener.msal) {
+        tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     else {
         if (self._navigateToLoginRequestUrl) {
@@ -1431,9 +1410,11 @@ export class UserAgentApplication {
     } catch (err) {
         self._logger.error("Error occurred in token received callback function: " + err);
     }
-    
-    for (var i = 0; i < self._openedWindows.length; i++) {
-        self._openedWindows[i].close();
+
+    if (window.opener && window.opener.openedWindows) {
+        for (var i = 0; i < window.opener.openedWindows.length; i++) {
+            window.opener.openedWindows[i].close();
+        }
     }
 
   }
@@ -1504,13 +1485,15 @@ export class UserAgentApplication {
       if (tokenResponse.requestType === Constants.login) {
         this._loginInProgress = false;
         this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
+        authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
       }
 
       if (tokenResponse.requestType === Constants.renewToken) {
-        this._acquireTokenInProgress = false;
+          this._acquireTokenInProgress = false;
+          authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
+          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
       }
-      authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
-      acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + this.getUser().userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
 
     } else {
       // It must verify the state from redirect
@@ -1685,13 +1668,8 @@ export class UserAgentApplication {
 
         // external api requests may have many renewtoken requests for different resource
         if (!tokenResponse.stateMatch) {
-          if (window.parent && window.parent !== window) {
-            tokenResponse.requestType = Constants.renewToken;
-          }
-          else {
-            tokenResponse.requestType = this._requestType;
-          }
-          const statesInParentContext = this._renewStates;
+          tokenResponse.requestType = window.requestType;
+          const statesInParentContext = window.renewStates;
           for (let i = 0; i < statesInParentContext.length; i++) {
             if (statesInParentContext[i] === tokenResponse.stateResponse) {
               tokenResponse.stateMatch = true;
