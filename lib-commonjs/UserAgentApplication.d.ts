@@ -5,6 +5,12 @@ declare global  {
         msal: Object;
         CustomEvent: CustomEvent;
         Event: Event;
+        activeRenewals: {};
+        renewStates: Array<string>;
+        callBackMappedToRenewStates: {};
+        callBacksMappedToRenewStates: {};
+        openedWindows: Array<Window>;
+        requestType: string;
     }
 }
 export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
@@ -15,8 +21,6 @@ export declare class UserAgentApplication {
     private _logger;
     private _loginInProgress;
     private _acquireTokenInProgress;
-    private _renewStates;
-    private _activeRenewals;
     private _clockSkew;
     private _cacheStorage;
     private _tokenReceivedCallback;
@@ -27,15 +31,11 @@ export declare class UserAgentApplication {
     validateAuthority: boolean;
     private _redirectUri;
     private _postLogoutredirectUri;
-    private _openedWindows;
-    private _requestType;
     loadFrameTimeout: number;
     private _navigateToLoginRequestUrl;
     private _isAngular;
     private _endpoints;
     private _anonymousEndpoints;
-    private _callBackMappedToRenewStates;
-    private _callBacksMappedToRenewStates;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
