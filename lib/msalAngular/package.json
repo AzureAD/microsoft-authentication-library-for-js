@@ -93,6 +93,5 @@
     "test": "typings install && karma start && jasmine-node tests/MSALSpec.js",
     "ngcompile": "npm run clean && ngc -p tsconfig-aot.json && webpack"
   },
-  "description": "Microsoft Authentication Library for Angular (Preview)\r =========================================================",
-  "author": ""
+  "description": "Microsoft Authentication Library for Angular (Preview)\r ========================================================="
 }

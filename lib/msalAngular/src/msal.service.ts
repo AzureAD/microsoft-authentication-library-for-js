@@ -96,27 +96,6 @@ export class MsalService extends  UserAgentApplication{
             var callback = null;
             var msal:any;
             // callback can come from popupWindow, iframe or mainWindow
-            /*
-            if (window.opener && window.opener.msal) {
-                msal = window.opener.msal;
-                isPopup = true;
-                requestInfo = msal.getRequestInfo(hash);
-                if (window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-                    callback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
-                }
-            }
-             //redirect flow
-            else if (window.parent && window.parent.msal) {
-                msal = window.parent.msal;
-                requestInfo = msal.getRequestInfo(hash);
-                if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
-                    callback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
-                }
-                else {
-                    callback = msal._tokenReceivedCallback;
-                }
-            }
-            */
             if (window.openedWindows.length > 0 && window.openedWindows[window.openedWindows.length - 1].opener
                 && window.openedWindows[window.openedWindows.length - 1].opener.msal)
             {

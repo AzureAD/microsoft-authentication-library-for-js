@@ -8,3 +8,4 @@ export {Authority} from "./Authority";
 export {Utils} from "./Utils";
 export {CacheResult} from "./UserAgentApplication";
 export {AuthenticationRequestParameters} from "./AuthenticationRequestParameters"
+
