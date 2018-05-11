@@ -23,8 +23,7 @@
     "core-js": "^2.4.1",
     "rxjs": "^5.1.0",
     "ts-helpers": "^1.1.1",
-    "zone.js": "^0.8.4",
-    "@neagrawa/msal-angular": "0.2.5"
+    "zone.js": "^0.8.4"
   },
   "devDependencies": {
     "@angular/cli": "^1.0.1",
