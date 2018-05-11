@@ -112,7 +112,7 @@ We expose APIs for login, logout. acquiring access token and more. Here is a det
 3.log_out()
 4.acquire_token_silent()
 5.acquire_token_popup()
-6.acquire_token_redirect()login
+6.acquire_token_redirect()
 7.get_user()
 
 ````

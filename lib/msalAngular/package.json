@@ -1,11 +1,15 @@
 {
-  "name": "msal",
+  "name": "ms-msal-angular",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
   "version": "0.1.0",
   "keywords": [
     "implicit",
@@ -14,14 +18,13 @@
     "msal",
     "oauth"
   ],
-  "main": "./lib-commonjs/index.js",
-  "typings": "./lib-commonjs/index.d.ts",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "tslib": "^1.7.1",
-    "msal": "0.1.5"
+    "tslib": "^1.7.1"
   },
   "devDependencies": {
     "@angular/common": "^4.3.0",
@@ -85,12 +88,12 @@
     "test": "tests"
   },
   "scripts": {
-    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
+    "clean": "shx rm -rf dist docs",
     "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run build:modules && webpack",
     "test": "typings install && karma start && jasmine-node tests/MSALSpec.js",
-    "ngcompile": "npm run clean && ngc -p tsconfig-aot.json && webpack"
+    "ngcompile": "npm run clean && npm run doc &&  ngc -p tsconfig-aot.json && webpack"
   },
   "description": "Microsoft Authentication Library for Angular (Preview)\r ========================================================="
 }

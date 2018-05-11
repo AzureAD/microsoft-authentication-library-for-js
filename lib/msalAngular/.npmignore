@@ -256,3 +256,5 @@ devApps/
 node_modules/
 tests/
 typings/
+src/
+docs/
