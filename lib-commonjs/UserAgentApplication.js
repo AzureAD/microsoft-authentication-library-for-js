@@ -368,10 +368,8 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._logger.info("Closing popup window");
                     if (_this._isAngular) {
                         _this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
-                        if (window.opener && window.opener.openedWindows) {
-                            for (var i = 0; i < window.opener.openedWindows.length; i++) {
-                                window.opener.openedWindows[i].close();
-                            }
+                        for (var i = 0; i < window.openedWindows.length; i++) {
+                            window.openedWindows[i].close();
                         }
                     }
                 }
@@ -1160,10 +1158,8 @@ var UserAgentApplication = /** @class */ (function () {
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
         }
-        if (window.opener && window.opener.openedWindows) {
-            for (var i = 0; i < window.opener.openedWindows.length; i++) {
-                window.opener.openedWindows[i].close();
-            }
+        for (var i = 0; i < window.openedWindows.length; i++) {
+            window.openedWindows[i].close();
         }
     };
     /*
