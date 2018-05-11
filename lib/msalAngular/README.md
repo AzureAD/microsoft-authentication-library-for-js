@@ -30,7 +30,7 @@ Via NPM:
     
 ## Usage in Angular-cli application
 
-1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section to know more about the config options.
+1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
 ````
 @NgModule({
   imports: [ MsalModule.forRoot({
@@ -43,54 +43,58 @@ Via NPM:
                   popUp: true,
                   tokenReceivedCallback : null,
                   scopes: ["user.read", "mail.send"],
-                  //anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
+                  anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
                   endpoints : endpointmap,
                 })]
            })
            
   export class AppModule { }
 ````
+## Config options
+
+ClientID(Mandatory): The clientID of your application, you should get this from the application registration portal.
+
+Authority(Optional):  A URL indicating a directory that MSAL can use to obtain tokens.
+   * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;, where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+   * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
+   * - Default value is: "https://login.microsoftonline.com/common"
+   
+ValidateAuthority(Optional) :Validate the issuer of tokens. Default is true.
+
+CacheLocation(Optional): Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+
+PostLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
+
+Logger(Optional): For Logging purpose.
+
+LoadFrameTimeout(Optional): The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
+
+NavigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default is false.
+
+Popup(Optional): Show login popup or redirect. Default:Redirect
+
+Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+only consent it and no access token will be acquired till the time client actually calls the API.
+
+AnonymousEndpoints(Optional): Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
+
+Endpoints(Optional) : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
+This is required only for CORS calls.
+
+RedirectUrl(Optional): Location to redirect, can be a relative or absolute url. Default: window.location.href.
+
 ## Adding interceptor 
- Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request. Using MsalInterceptor is optional.
- So if you want to write your own interceptor, ignore this.
+ Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the anonymous Endpoints. Using MsalInterceptor is optional.
+ If user wants to write their own interceptor, please ignore this.
  ````
  providers: [ProductService
     ,{ provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true }
     ],
   ````
   
-## Config options
-
-clientID(Mandatory): Specifies the Azure AD client id/application Id of the calling web service;
-
-authority(Optional): Instance host url+tenant. Default value is https://login.microsoftonline.com/common 
-
-validateAuthority(Optional) :Validate the issuer of tokens. Default is true.
-
-cacheLocation(Optional): Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
-
-postLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri.
-
-logger(Optional): Logging purpose.
-
-loadFrameTimeout(Optional): The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
-
-navigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default is false.
-
-popup(??): Show login popup or redirect. Default:?
-
-Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources. Passing scope here will
-only consent it and no access token will be acquire till client actually calls the API.
-
-AnonymousEndpoints(Optional): Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
-
-Endpoints(Optional) : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
-
-RedirectUrl(Optional): Location to redirect, can be a relative of absolute url. Default: window.location.href.
-
 
 ## Protecting routes
-Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
+Routes can be protected by just adding canActivate : [MsalGuard] to your routes. It can be added at the parent or child routes.
 ````
  { path: 'product', component: ProductComponent,canActivate : [MsalGuard],
     children: [
@@ -100,22 +104,23 @@ Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
   { path: 'myProfile' ,component: MyProfileComponent, canActivate : [MsalGuard]},
   ````
   
-  ##Public API
-We expose APIs for login, logout acquireAccessToken and more. Here is the list.
+  ## Public API
+We expose APIs for login, logout. acquiring access token and more. Here is a detailed list.
 ````
 1.login_redirect() 
 2.login_popup()
 3.log_out()
 4.acquire_token_silent()
 5.acquire_token_popup()
-6.get_user()
+6.acquire_token_redirect()login
+7.get_user()
 
 ````
 ## Build and running tests
 
 If you want to build the library and run all the unit tests, you can do the following.
 
-First navigate to the root directory of the library and install the dependencies:
+First navigate to the root directory of the library(msalAngular) and install the dependencies:
 
 	npm install
 	
