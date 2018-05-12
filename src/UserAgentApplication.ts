@@ -1145,6 +1145,9 @@ export class UserAgentApplication {
                 this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
               }
             }
+          }).catch((err) => {
+            this._logger.warning("could not resolve endpoints");
+            reject(err);
           });
       }
     });
