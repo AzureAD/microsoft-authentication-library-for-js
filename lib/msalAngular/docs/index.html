@@ -96,80 +96,88 @@
 				<pre><code>npm <span class="hljs-keyword">install</span> ms-msal-angular <span class="hljs-comment">--save</span>
 </code></pre><h2 id="usage-in-angular-cli-application">Usage in Angular-cli application</h2>
 				<ol>
-					<li><p>Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.</p>
-						<pre><code><span class="hljs-variable">@NgModule</span>({
-<span class="hljs-attribute">imports</span>: [ MsalModule.forRoot({
-               <span class="hljs-attribute">clientID</span>: <span class="hljs-string">'6226576d-37e9-49eb-b201-ec1eeb0029b6'</span>,
-               <span class="hljs-attribute">authority</span>: <span class="hljs-string">"https://login.microsoftonline.com/microsoft.onmicrosoft.com/"</span>,
-               <span class="hljs-attribute">validateAuthority </span>: true,
-               <span class="hljs-attribute">cacheLocation </span>: <span class="hljs-string">"localStorage"</span>,
-               <span class="hljs-attribute">postLogoutRedirectUri</span>: <span class="hljs-string">"http://localhost:4200/"</span>,
-               <span class="hljs-attribute">navigateToLoginRequestUrl </span>: true,
-               <span class="hljs-attribute">popUp</span>: true,
-               <span class="hljs-attribute">tokenReceivedCallback </span>: null,
-               <span class="hljs-attribute">scopes</span>: [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>],
-               <span class="hljs-attribute">anonymousEndpoints</span>: [<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>],
-               <span class="hljs-attribute">endpoints </span>: endpointmap,
-             })]
-        })
-
-export class AppModule { }
-</code></pre><h2 id="config-options">Config options</h2>
-					</li>
+					<li>Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
+						````
+						export const  endpointmap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();
+					endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]);</li>
 				</ol>
-				<p>ClientID(Mandatory): The clientID of your application, you should get this from the application registration portal.</p>
-				<p>Authority(Optional):  A URL indicating a directory that MSAL can use to obtain tokens.</p>
-				<ul>
-					<li><ul>
-							<li>In Azure AD, it is of the form <a href="https://&lt;instance&gt;/&lt;tenant&amp;gt">https://&lt;instance&gt;/&lt;tenant&amp;gt</a>;, where &lt;instance&gt; is the directory host (e.g. <a href="https://login.microsoftonline.com">https://login.microsoftonline.com</a>) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)</li>
-						</ul>
-					</li>
-					<li><ul>
-							<li>In Azure B2C, it is of the form <a href="https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/">https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/</a></li>
-						</ul>
-					</li>
-					<li><ul>
-							<li>Default value is: &quot;<a href="https://login.microsoftonline.com/common">https://login.microsoftonline.com/common</a>&quot;</li>
-						</ul>
-					</li>
-				</ul>
-				<p>ValidateAuthority(Optional) :Validate the issuer of tokens. Default is true.</p>
-				<p>CacheLocation(Optional): Sets browser storage to either &#39;localStorage&#39; or sessionStorage&#39;. Defaults is &#39;sessionStorage&#39;.</p>
-				<p>PostLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults is &#39;redirectUri&#39;.</p>
-				<p>Logger(Optional): For Logging purpose.</p>
-				<p>LoadFrameTimeout(Optional): The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.</p>
-				<p>NavigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default is false.</p>
-				<p>Popup(Optional): Show login popup or redirect. Default:Redirect</p>
-				<p>Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
-				only consent it and no access token will be acquired till the time client actually calls the API.</p>
-				<p>AnonymousEndpoints(Optional): Array of  URI&#39;s. Msal will not attach a token to outgoing requests that have these uri. Defaults to &#39;null&#39;. </p>
-				<p>Endpoints(Optional) : Mapping of endpoints to scopes {&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
-				This is required only for CORS calls.</p>
-				<p>RedirectUrl(Optional): Location to redirect, can be a relative or absolute url. Default: window.location.href.</p>
-				<h2 id="adding-interceptor">Adding interceptor</h2>
-				<p> Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the anonymous Endpoints. Using MsalInterceptor is optional.
-				If user wants to write their own interceptor, please ignore this.</p>
-				<pre><code><span class="hljs-attr"> providers:</span> <span class="hljs-string">[ProductService</span>
-    <span class="hljs-string">,{</span> <span class="hljs-attr">provide:</span> <span class="hljs-string">HTTP_INTERCEPTORS,</span> <span class="hljs-attr">useClass:</span> <span class="hljs-string">MsalInterceptor,</span> <span class="hljs-attr">multi:</span> <span class="hljs-literal">true</span> <span class="hljs-string">}</span>
-    <span class="hljs-string">],</span>
-</code></pre><h2 id="protecting-routes">Protecting routes</h2>
-				<p>Routes can be protected by just adding canActivate : [MsalGuard] to your routes. It can be added at the parent or child routes.</p>
-				<pre><code> { <span class="hljs-attribute">path</span>: <span class="hljs-string">'product'</span>, <span class="hljs-attribute">component</span>: ProductComponent,<span class="hljs-attribute">canActivate </span>: [MsalGuard],
-    <span class="hljs-attribute">children</span>: [
-      { <span class="hljs-attribute">path</span>: <span class="hljs-string">'detail/:id'</span>, <span class="hljs-attribute">component</span>: ProductDetailComponent  }
-    ]
-   },
-  { <span class="hljs-attribute">path</span>: <span class="hljs-string">'myProfile'</span> ,<span class="hljs-attribute">component</span>: MyProfileComponent, <span class="hljs-attribute">canActivate </span>: [MsalGuard]},
-</code></pre><h2 id="public-api">Public API</h2>
-				<p>We expose APIs for login, logout. acquiring access token and more. Here is a detailed list.</p>
-				<pre><code>1<span class="hljs-selector-class">.login_redirect</span>()
-2<span class="hljs-selector-class">.login_popup</span>()
-3<span class="hljs-selector-class">.log_out</span>()
-4<span class="hljs-selector-class">.acquire_token_silent</span>()
-5<span class="hljs-selector-class">.acquire_token_popup</span>()
-6<span class="hljs-selector-class">.acquire_token_redirect</span>()
-7<span class="hljs-selector-class">.get_user</span>()
-</code></pre><h2 id="build-and-running-tests">Build and running tests</h2>
+				<p>@NgModule({
+					imports: [ MsalModule.forRoot({
+					clientID: &#39;6226576d-37e9-49eb-b201-ec1eeb0029b6&#39;,
+					authority: &quot;<a href="https://login.microsoftonline.com/microsoft.onmicrosoft.com/">https://login.microsoftonline.com/microsoft.onmicrosoft.com/</a>&quot;,
+					validateAuthority : true,
+					cacheLocation : &quot;localStorage&quot;,
+					postLogoutRedirectUri: &quot;<a href="http://localhost:4200/">http://localhost:4200/</a>&quot;,
+					navigateToLoginRequestUrl : true,
+					popUp: true,
+					tokenReceivedCallback : null,
+					scopes: [&quot;user.read&quot;, &quot;mail.send&quot;],
+					anonymousEndpoints: [&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;],
+					endpoints : endpointmap,
+					})]
+				})</p>
+				<p>  export class AppModule { }</p>
+				<pre><code>## Config options
+
+ClientID(Mandatory): The clientID <span class="hljs-keyword">of</span> your application, you should get this from the application registration portal.
+
+Authority(Optional):  A URL indicating a directory that MSAL can <span class="hljs-keyword">use</span> to obtain tokens.
+   * - <span class="hljs-keyword">In</span> Azure AD, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&gt;/&amp;lt;tenant&amp;gt;, where &amp;lt;instance&amp;gt; <span class="hljs-keyword">is</span> the directory host (e.g. https://login.microsoftonline.com) <span class="hljs-keyword">and</span> &amp;lt;tenant&amp;gt; <span class="hljs-keyword">is</span> a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, <span class="hljs-keyword">or</span> the GUID representing the TenantID property <span class="hljs-keyword">of</span> the directory)
+   * - <span class="hljs-keyword">In</span> Azure B2C, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&amp;gt;/tfp/&amp;lt;tenantId&amp;gt;/&amp;lt;policyName&amp;gt;/
+   * - Default value <span class="hljs-keyword">is</span>: <span class="hljs-string">"https://login.microsoftonline.com/common"</span>
+
+ValidateAuthority(Optional) :Validate the issuer <span class="hljs-keyword">of</span> tokens. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>.
+
+CacheLocation(Optional): Sets browser storage to either <span class="hljs-symbol">'localStorage</span>' <span class="hljs-keyword">or</span> sessionStorage'. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'sessionStorage</span>'.
+
+PostLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'redirectUri</span>'.
+
+Logger(Optional): <span class="hljs-keyword">For</span> Logging purpose.
+
+LoadFrameTimeout(Optional): The number <span class="hljs-keyword">of</span> milliseconds <span class="hljs-keyword">of</span> inactivity before a token renewal response from AAD should be considered timed <span class="hljs-keyword">out</span>. Default <span class="hljs-keyword">is</span> <span class="hljs-number">6</span> seconds.
+
+NavigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">false</span>.
+
+Popup(Optional): Show login popup <span class="hljs-keyword">or</span> redirect. Default:Redirect
+
+Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keyword">access</span> token will be acquired till the time client actually calls the API.
+
+AnonymousEndpoints(Optional): <span class="hljs-keyword">Array</span> <span class="hljs-keyword">of</span>  URI<span class="hljs-symbol">'s.</span> Msal will <span class="hljs-keyword">not</span> attach a token to outgoing requests that have these uri. Defaults to <span class="hljs-symbol">'null</span>'. 
+
+Endpoints(Optional) : <span class="hljs-type">Mapping</span> <span class="hljs-keyword">of</span> endpoints to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
+This <span class="hljs-keyword">is</span> required only <span class="hljs-keyword">for</span> CORS calls.
+
+RedirectUrl(Optional): Location to redirect, can be a relative <span class="hljs-keyword">or</span> absolute url. Default: window.location.href.
+
+## Adding interceptor 
+ Add the msalInterceptor <span class="hljs-keyword">in</span> your app.module.ts. MsalInterceptor will add the <span class="hljs-keyword">access</span> token to <span class="hljs-keyword">all</span> your http request except the anonymous Endpoints. Using MsalInterceptor <span class="hljs-keyword">is</span> optional.
+ <span class="hljs-keyword">If</span> user wants to write their own interceptor, please ignore this.
+</code></pre><p> providers: [ProductService
+					,{ provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true }
+				],</p>
+				<pre><code>
+
+<span class="mipsasm"><span class="hljs-comment">## Protecting routes</span>
+Routes can <span class="hljs-keyword">be </span>protected <span class="hljs-keyword">by </span><span class="hljs-keyword">just </span><span class="hljs-keyword">adding </span>canActivate : [MsalGuard] to your routes. It can <span class="hljs-keyword">be </span><span class="hljs-keyword">added </span><span class="hljs-built_in">at</span> the parent <span class="hljs-keyword">or </span>child routes.</span>
+</code></pre><p> { path: &#39;product&#39;, component: ProductComponent,canActivate : [MsalGuard],
+					children: [
+					{ path: &#39;detail/:id&#39;, component: ProductDetailComponent  }
+					]
+					},
+				{ path: &#39;myProfile&#39; ,component: MyProfileComponent, canActivate : [MsalGuard]},</p>
+				<pre><code>
+  <span class="hljs-comment">## Public API</span>
+We expose APIs <span class="hljs-keyword">for</span> login, logout. acquiring access <span class="hljs-keyword">token</span> <span class="hljs-keyword">and</span> more. Here is <span class="hljs-keyword">a</span> <span class="hljs-keyword">detailed</span> list.
+</code></pre><p>1.login_redirect() 
+					2.login_popup()
+					3.log_out()
+					4.acquire_token_silent()
+					5.acquire_token_popup()
+					6.acquire_token_redirect()
+				7.get_user()</p>
+				<p>````</p>
+				<h2 id="build-and-running-tests">Build and running tests</h2>
 				<p>If you want to build the library and run all the unit tests, you can do the following.</p>
 				<p>First navigate to the root directory of the library(msalAngular) and install the dependencies:</p>
 				<pre><code>npm <span class="hljs-keyword">install</span>

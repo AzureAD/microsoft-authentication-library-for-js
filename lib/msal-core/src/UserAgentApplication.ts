@@ -683,13 +683,38 @@ export class UserAgentApplication {
     }
   }
 
+
+protected getCachedToken_(scopes : Array<string> , user: User): CacheResult
+{
+    const userObject = user ? user : this.getUser();
+    if (!userObject) {
+     //   reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+        return;
+    }
+    let authenticationRequest: AuthenticationRequestParameters;
+    let newAuthority = this.authorityInstance?this.authorityInstance: AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+
+    if (Utils.compareObjects(userObject, this.getUser())) {
+        if (scopes.indexOf(this.clientId) > -1) {
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+        }
+    } else {
+        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+    }
+
+        return this.getCachedToken(authenticationRequest, user);
+}
+
   /*
    * Used to get token for the specified set of scopes from the cache
    * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
    * @param {User} user - User for which the scopes were requested
    * @hidden
    */
-  protected getCachedToken(authenticationRequest: AuthenticationRequestParameters, user: User): CacheResult {
+  private getCachedToken(authenticationRequest: AuthenticationRequestParameters, user: User): CacheResult {
     let accessTokenCacheItem: AccessTokenCacheItem = null;
     const scopes = authenticationRequest.scopes;
     const tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier:null); //filter by clientId and user

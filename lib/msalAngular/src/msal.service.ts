@@ -5,7 +5,6 @@ import "rxjs/add/operator/do";
 import "rxjs/add/operator/delay";
 import {
      UserAgentApplication,
-    AuthenticationRequestParameters,
     CacheResult,
     User, Constants
 } from "../../msal-core/lib-commonjs";
@@ -81,7 +80,7 @@ export class MsalService extends  UserAgentApplication{
     updateDataFromCache(scopes: string[]) {
         // only cache lookup here to not interrupt with events
         var cacheResult: CacheResult;
-        cacheResult = this.getCached_token(scopes);
+        cacheResult = this.getCachedToken_(scopes, this.getUser());
         this._oauthData.isAuthenticated = cacheResult != null && cacheResult.token !== null && cacheResult.token.length > 0;
         this.user = this.getUser() || {userName: ""};
         this._oauthData.userName = this.user.name;
@@ -246,12 +245,7 @@ export class MsalService extends  UserAgentApplication{
     }
 
     getCached_token(scopes: any): CacheResult {
-        //TODO - we shouldn't be using AuthenticationRequestParameters instance here. Msal core needs to be changed
-        var authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.config.clientID, scopes, ResponseTypes.id_token, this.config.redirectUri);
-        var user: User = this.getUser();
-        if (user) {
-            return this.getCachedToken(authenticationRequest, this.getUser());
-        }
+            return this.getCachedToken_(scopes, this.getUser());
     }
 
     acquire_token_silent (scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) :Promise<any> {

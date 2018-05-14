@@ -47,7 +47,7 @@ endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send
      scopes: ["user.read", "mail.send"],
      //anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
         endpoints : endpointmap,
-       // logger :myLogger,
+      //  logger :myLogger,
      //   extraQueryParameters : "prompt=none"
     }
     ),

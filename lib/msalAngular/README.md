@@ -32,6 +32,10 @@ Via NPM:
 
 1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
 ````
+export const  endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
+endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
+
+
 @NgModule({
   imports: [ MsalModule.forRoot({
                   clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
