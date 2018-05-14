@@ -40,6 +40,7 @@ endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send
   imports: [ MsalModule.forRoot({
                   clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
                   authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
+                  redirectUri: "http://localhost:4200/",
                   validateAuthority : true,
                   cacheLocation : "localStorage",
                   postLogoutRedirectUri: "http://localhost:4200/",
@@ -56,39 +57,38 @@ endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send
 ````
 ## Config options
 
-ClientID(Mandatory): The clientID of your application, you should get this from the application registration portal.
+<b>ClientID(Mandatory)</b>: The clientID of your application, you should get this from the application registration portal.
 
-Redirect_uri(Optional): The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
+<b>RedirectUri(Optional)</b> : The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
 Defaults to `window.location.href`.
  
-Authority(Optional):  A URL indicating a directory that MSAL can use to obtain tokens.
+<b>Authority(Optional)</b>:  A URL indicating a directory that MSAL can use to obtain tokens.
    * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;, where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
    * - Default value is: "https://login.microsoftonline.com/common"
    
-ValidateAuthority(Optional) :Validate the issuer of tokens. Default is true.
+<b>ValidateAuthority(Optional)</b> :Validate the issuer of tokens. Default is true.
 
-CacheLocation(Optional): Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+<b>CacheLocation(Optional)</b>: Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
 
-PostLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
+<b>PostLogoutRedirectUri(Optional)</b>: Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
 
-Logger(Optional): For Logging purpose.
+<b>Logger(Optional)</b>: For Logging purpose.
 
-LoadFrameTimeout(Optional): The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
+<b>LoadFrameTimeout(Optional)</b>: The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
 
-NavigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default is false.
+<b>NavigateToLoginRequestUrl(Optional)</b>:Ability to turn off default navigation to start page after login. Default is false.
 
-Popup(Optional): Show login popup or redirect. Default:Redirect
+<b>Popup(Optional)</b>: Show login popup or redirect. Default:Redirect
 
-Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
-only consent it and no access token will be acquired till the time client actually calls the API.
+</b>Scopes(Optional)</b>: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+only consent it and no access token will be acquired till the time client actually calls the API. This is optional if you are using MSAL for only login(Authentication).
 
-AnonymousEndpoints(Optional): Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
+<b>AnonymousEndpoints(Optional)</b>: Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
 
-Endpoints(Optional) : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
+<b>Endpoints(Optional)</b>: Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
 This is required only for CORS calls.
 
-RedirectUrl(Optional): Location to redirect, can be a relative or absolute url. Default: window.location.href.
 
 ## Adding interceptor 
  Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the anonymous Endpoints. Using MsalInterceptor is optional.
@@ -111,7 +111,7 @@ Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
   { path: 'myProfile' ,component: MyProfileComponent, canActivate : [MsalGuard]},
   ````
   
-  ## Public API
+## Public API
 We expose APIs for login, logout. acquiring access token and more. Here is a detailed list.
 ````
 1.login_redirect() 
@@ -135,40 +135,3 @@ Then use the following command to build the library and run all the unit tests:
 
 	npm run ngcompile
 
-## Community Help and Support
-
-- [FAQ](../../wiki) for access to our frequently asked questions
-
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag MSAL.
-We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. 
-
-- [GitHub Issues](../../issues) for reporting an bug or feature requests 
-
-- [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
-
-## Contribute
-
-We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. 
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Security Library
-
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use [semantic versioning](http://semver.org) so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.
-
-## Security Reporting
-
-If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/en-us/security/dd252948) and subscribing to Security Advisory Alerts.
-
-
-Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
-
-
-
-## License
-
-Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
-
-## We Value and Adhere to the Microsoft Open Source Code of Conduct
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
