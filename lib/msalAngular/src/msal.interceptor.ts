@@ -22,7 +22,7 @@ export class MsalInterceptor implements HttpInterceptor {
         if (scopes === null) {
             return next.handle(req);
         }
-        var tokenStored = this.auth.getCached_token(scopes);
+        var tokenStored = this.auth.getCached_Token_Internal(scopes);
         if (tokenStored && tokenStored.token) {
 
           req = req.clone({

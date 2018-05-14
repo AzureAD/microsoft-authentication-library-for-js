@@ -19,7 +19,7 @@ This library is suitable for use in a production environment. We provide the sam
 
 ## Example
 This example shows how to acquire a token to read user information from Microsoft Graph.
-1. Register an application in Azure AD v2.0 (using the [application registration portal](https://apps.dev.microsoft.com/)) to get your client_id. you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
+1. Register an application in Azure AD v2.0 (using the [application registration portal](https://ms.portal.azure.com)) to get your client_id. you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
 
 
 ## Installation

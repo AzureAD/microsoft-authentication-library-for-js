@@ -89,7 +89,7 @@
 				<h2 id="example">Example</h2>
 				<p>This example shows how to acquire a token to read user information from Microsoft Graph.</p>
 				<ol>
-					<li>Register an application in Azure AD v2.0 (using the <a href="https://apps.dev.microsoft.com/">application registration portal</a>) to get your client_id. you will also need to add the Web platform, check the &quot;Implicit Flow&quot; checkbox, and add the redirectURI to your application.</li>
+					<li>Register an application in Azure AD v2.0 (using the <a href="https://ms.portal.azure.com">application registration portal</a>) to get your client_id. you will also need to add the Web platform, check the &quot;Implicit Flow&quot; checkbox, and add the redirectURI to your application.</li>
 				</ol>
 				<h2 id="installation">Installation</h2>
 				<p>Via NPM:</p>
@@ -105,6 +105,7 @@
 					imports: [ MsalModule.forRoot({
 					clientID: &#39;6226576d-37e9-49eb-b201-ec1eeb0029b6&#39;,
 					authority: &quot;<a href="https://login.microsoftonline.com/microsoft.onmicrosoft.com/">https://login.microsoftonline.com/microsoft.onmicrosoft.com/</a>&quot;,
+					redirectUri: &quot;<a href="http://localhost:4200/">http://localhost:4200/</a>&quot;,
 					validateAuthority : true,
 					cacheLocation : &quot;localStorage&quot;,
 					postLogoutRedirectUri: &quot;<a href="http://localhost:4200/">http://localhost:4200/</a>&quot;,
@@ -119,38 +120,38 @@
 				<p>  export class AppModule { }</p>
 				<pre><code>## Config options
 
-ClientID(Mandatory): The clientID <span class="hljs-keyword">of</span> your application, you should get this from the application registration portal.
+&lt;b&gt;ClientID(Mandatory)&lt;/b&gt;: The clientID <span class="hljs-keyword">of</span> your application, you should get this from the application registration portal.
 
-Redirect_uri(Optional): The redirect URI <span class="hljs-keyword">of</span> your app, where authentication responses can be sent <span class="hljs-keyword">and</span> received by your app. It must exactly match one <span class="hljs-keyword">of</span> the redirect URIs you registered <span class="hljs-keyword">in</span> the portal, except that it must be URL encoded.
+&lt;b&gt;RedirectUri(Optional)&lt;/b&gt; : <span class="hljs-type">The</span> redirect URI <span class="hljs-keyword">of</span> your app, where authentication responses can be sent <span class="hljs-keyword">and</span> received by your app. It must exactly match one <span class="hljs-keyword">of</span> the redirect URIs you registered <span class="hljs-keyword">in</span> the portal, except that it must be URL encoded.
+Defaults to `window.location.href`.
 
-Authority(Optional):  A URL indicating a directory that MSAL can <span class="hljs-keyword">use</span> to obtain tokens.
+&lt;b&gt;Authority(Optional)&lt;/b&gt;:  A URL indicating a directory that MSAL can <span class="hljs-keyword">use</span> to obtain tokens.
    * - <span class="hljs-keyword">In</span> Azure AD, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&gt;/&amp;lt;tenant&amp;gt;, where &amp;lt;instance&amp;gt; <span class="hljs-keyword">is</span> the directory host (e.g. https://login.microsoftonline.com) <span class="hljs-keyword">and</span> &amp;lt;tenant&amp;gt; <span class="hljs-keyword">is</span> a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, <span class="hljs-keyword">or</span> the GUID representing the TenantID property <span class="hljs-keyword">of</span> the directory)
    * - <span class="hljs-keyword">In</span> Azure B2C, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&amp;gt;/tfp/&amp;lt;tenantId&amp;gt;/&amp;lt;policyName&amp;gt;/
    * - Default value <span class="hljs-keyword">is</span>: <span class="hljs-string">"https://login.microsoftonline.com/common"</span>
 
-ValidateAuthority(Optional) :Validate the issuer <span class="hljs-keyword">of</span> tokens. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>.
+&lt;b&gt;ValidateAuthority(Optional)&lt;/b&gt; :Validate the issuer <span class="hljs-keyword">of</span> tokens. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>.
 
-CacheLocation(Optional): Sets browser storage to either <span class="hljs-symbol">'localStorage</span>' <span class="hljs-keyword">or</span> sessionStorage'. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'sessionStorage</span>'.
+&lt;b&gt;CacheLocation(Optional)&lt;/b&gt;: Sets browser storage to either <span class="hljs-symbol">'localStorage</span>' <span class="hljs-keyword">or</span> sessionStorage'. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'sessionStorage</span>'.
 
-PostLogoutRedirectUri(Optional): Redirects the user to postLogoutRedirectUri after logout. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'redirectUri</span>'.
+&lt;b&gt;PostLogoutRedirectUri(Optional)&lt;/b&gt;: Redirects the user to postLogoutRedirectUri after logout. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'redirectUri</span>'.
 
-Logger(Optional): <span class="hljs-keyword">For</span> Logging purpose.
+&lt;b&gt;Logger(Optional)&lt;/b&gt;: <span class="hljs-keyword">For</span> Logging purpose.
 
-LoadFrameTimeout(Optional): The number <span class="hljs-keyword">of</span> milliseconds <span class="hljs-keyword">of</span> inactivity before a token renewal response from AAD should be considered timed <span class="hljs-keyword">out</span>. Default <span class="hljs-keyword">is</span> <span class="hljs-number">6</span> seconds.
+&lt;b&gt;LoadFrameTimeout(Optional)&lt;/b&gt;: The number <span class="hljs-keyword">of</span> milliseconds <span class="hljs-keyword">of</span> inactivity before a token renewal response from AAD should be considered timed <span class="hljs-keyword">out</span>. Default <span class="hljs-keyword">is</span> <span class="hljs-number">6</span> seconds.
 
-NavigateToLoginRequestUrl(Optional):Ability to turn off default navigation to start page after login. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">false</span>.
+&lt;b&gt;NavigateToLoginRequestUrl(Optional)&lt;/b&gt;:Ability to turn off default navigation to start page after login. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">false</span>.
 
-Popup(Optional): Show login popup <span class="hljs-keyword">or</span> redirect. Default:Redirect
+&lt;b&gt;Popup(Optional)&lt;/b&gt;: Show login popup <span class="hljs-keyword">or</span> redirect. Default:Redirect
 
-Scopes: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
-only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keyword">access</span> token will be acquired till the time client actually calls the API.
+&lt;/b&gt;Scopes(Optional)&lt;/b&gt;: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keyword">access</span> token will be acquired till the time client actually calls the API. This <span class="hljs-keyword">is</span> optional <span class="hljs-keyword">if</span> you are using MSAL <span class="hljs-keyword">for</span> only login(Authentication).
 
-AnonymousEndpoints(Optional): <span class="hljs-keyword">Array</span> <span class="hljs-keyword">of</span>  URI<span class="hljs-symbol">'s.</span> Msal will <span class="hljs-keyword">not</span> attach a token to outgoing requests that have these uri. Defaults to <span class="hljs-symbol">'null</span>'. 
+&lt;b&gt;AnonymousEndpoints(Optional)&lt;/b&gt;: <span class="hljs-keyword">Array</span> <span class="hljs-keyword">of</span>  URI<span class="hljs-symbol">'s.</span> Msal will <span class="hljs-keyword">not</span> attach a token to outgoing requests that have these uri. Defaults to <span class="hljs-symbol">'null</span>'. 
 
-Endpoints(Optional) : <span class="hljs-type">Mapping</span> <span class="hljs-keyword">of</span> endpoints to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
+&lt;b&gt;Endpoints(Optional)&lt;/b&gt;: Mapping <span class="hljs-keyword">of</span> endpoints to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
 This <span class="hljs-keyword">is</span> required only <span class="hljs-keyword">for</span> CORS calls.
 
-RedirectUrl(Optional): Location to redirect, can be a relative <span class="hljs-keyword">or</span> absolute url. Default: window.location.href.
 
 ## Adding interceptor 
  Add the msalInterceptor <span class="hljs-keyword">in</span> your app.module.ts. MsalInterceptor will add the <span class="hljs-keyword">access</span> token to <span class="hljs-keyword">all</span> your http request except the anonymous Endpoints. Using MsalInterceptor <span class="hljs-keyword">is</span> optional.
@@ -169,7 +170,7 @@ Routes can <span class="hljs-keyword">be </span>protected <span class="hljs-keyw
 					},
 				{ path: &#39;myProfile&#39; ,component: MyProfileComponent, canActivate : [MsalGuard]},</p>
 				<pre><code>
-  <span class="hljs-comment">## Public API</span>
+<span class="hljs-comment">## Public API</span>
 We expose APIs <span class="hljs-keyword">for</span> login, logout. acquiring access <span class="hljs-keyword">token</span> <span class="hljs-keyword">and</span> more. Here is <span class="hljs-keyword">a</span> <span class="hljs-keyword">detailed</span> list.
 </code></pre><p>1.login_redirect() 
 					2.login_popup()
@@ -185,30 +186,7 @@ We expose APIs <span class="hljs-keyword">for</span> login, logout. acquiring ac
 				<pre><code>npm <span class="hljs-keyword">install</span>
 </code></pre><p>Then use the following command to build the library and run all the unit tests:</p>
 				<pre><code>npm <span class="hljs-keyword">run</span><span class="bash"> ngcompile</span>
-</code></pre><h2 id="community-help-and-support">Community Help and Support</h2>
-				<ul>
-					<li><p><a href="../../wiki">FAQ</a> for access to our frequently asked questions</p>
-					</li>
-					<li><p><a href="http://stackoverflow.com/questions/tagged/msal">Stack Overflow</a> using tag MSAL.
-						We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. </p>
-					</li>
-					<li><p><a href="../../issues">GitHub Issues</a> for reporting an bug or feature requests </p>
-					</li>
-					<li><p><a href="https://feedback.azure.com/forums/169401-azure-active-directory">User Voice page</a> to provide recommendations and/or feedback</p>
-					</li>
-				</ul>
-				<h2 id="contribute">Contribute</h2>
-				<p>We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. </p>
-				<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
-				<h2 id="security-library">Security Library</h2>
-				<p>This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use <a href="http://semver.org">semantic versioning</a> so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.<em>y</em>.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.</p>
-				<h2 id="security-reporting">Security Reporting</h2>
-				<p>If you find a security issue with our libraries or services please report it to <a href="mailto:secure@microsoft.com">secure@microsoft.com</a> with as much detail as possible. Your submission may be eligible for a bounty through the <a href="http://aka.ms/bugbounty">Microsoft Bounty</a> program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting <a href="https://technet.microsoft.com/en-us/security/dd252948">this page</a> and subscribing to Security Advisory Alerts.</p>
-				<p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the &quot;License&quot;);</p>
-				<h2 id="license">License</h2>
-				<p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the &quot;License&quot;);</p>
-				<h2 id="we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">We Value and Adhere to the Microsoft Open Source Code of Conduct</h2>
-				<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">

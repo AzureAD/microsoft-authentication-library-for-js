@@ -203,7 +203,7 @@ export class MsalService extends UserAgentApplication {
     };
 
 
-    isAnonymousEndpoint(url: string) {
+    private isAnonymousEndpoint(url: string) {
         if (this.config && this.config.anonymousEndpoints) {
             for (var i = 0; i < this.config.anonymousEndpoints.length; i++) {
                 if (url.indexOf(this.config.anonymousEndpoints[i]) > -1) {
@@ -244,7 +244,7 @@ export class MsalService extends UserAgentApplication {
         this.logout();
     }
 
-    getCached_token(scopes: any): CacheResult {
+    getCached_Token_Internal(scopes: any): CacheResult {
         return this.getCachedTokenInternal(scopes, this.getUser());
     }
 
@@ -282,12 +282,12 @@ export class MsalService extends UserAgentApplication {
     }
 
 
-    acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
+    /*acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
         var acquireTokenStartPage = this._cacheStorage.getItem(Constants.loginRequest);
         if (window.location.href !== acquireTokenStartPage)
             this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
         this.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
-    }
+    }*/
 
 
     public login_in_progress() {
