@@ -58,6 +58,9 @@ endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send
 
 ClientID(Mandatory): The clientID of your application, you should get this from the application registration portal.
 
+Redirect_uri(Optional): The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
+Defaults to `window.location.href`.
+ 
 Authority(Optional):  A URL indicating a directory that MSAL can use to obtain tokens.
    * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;, where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/

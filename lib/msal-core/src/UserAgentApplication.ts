@@ -684,11 +684,10 @@ export class UserAgentApplication {
   }
 
 
-protected getCachedToken_(scopes : Array<string> , user: User): CacheResult
+protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResult
 {
     const userObject = user ? user : this.getUser();
     if (!userObject) {
-     //   reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
         return;
     }
     let authenticationRequest: AuthenticationRequestParameters;

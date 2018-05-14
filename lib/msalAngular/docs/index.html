@@ -121,6 +121,8 @@
 
 ClientID(Mandatory): The clientID <span class="hljs-keyword">of</span> your application, you should get this from the application registration portal.
 
+Redirect_uri(Optional): The redirect URI <span class="hljs-keyword">of</span> your app, where authentication responses can be sent <span class="hljs-keyword">and</span> received by your app. It must exactly match one <span class="hljs-keyword">of</span> the redirect URIs you registered <span class="hljs-keyword">in</span> the portal, except that it must be URL encoded.
+
 Authority(Optional):  A URL indicating a directory that MSAL can <span class="hljs-keyword">use</span> to obtain tokens.
    * - <span class="hljs-keyword">In</span> Azure AD, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&gt;/&amp;lt;tenant&amp;gt;, where &amp;lt;instance&amp;gt; <span class="hljs-keyword">is</span> the directory host (e.g. https://login.microsoftonline.com) <span class="hljs-keyword">and</span> &amp;lt;tenant&amp;gt; <span class="hljs-keyword">is</span> a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, <span class="hljs-keyword">or</span> the GUID representing the TenantID property <span class="hljs-keyword">of</span> the directory)
    * - <span class="hljs-keyword">In</span> Azure B2C, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&amp;gt;/tfp/&amp;lt;tenantId&amp;gt;/&amp;lt;policyName&amp;gt;/

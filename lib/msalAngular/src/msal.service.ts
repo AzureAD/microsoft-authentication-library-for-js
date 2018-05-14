@@ -4,7 +4,7 @@ import "rxjs/add/observable/of";
 import "rxjs/add/operator/do";
 import "rxjs/add/operator/delay";
 import {
-     UserAgentApplication,
+    UserAgentApplication,
     CacheResult,
     User, Constants
 } from "../../msal-core/lib-commonjs";
@@ -13,6 +13,7 @@ import {
 } from "@angular/router";
 import {Location} from "@angular/common";
 import {BroadcastService} from "./broadcast.service";
+
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
 
 let ResponseTypes = {
@@ -22,11 +23,11 @@ let ResponseTypes = {
 };
 
 @Injectable()
-export class MsalService extends  UserAgentApplication{
+export class MsalService extends UserAgentApplication {
     public user: any;
     _oauthData = {isAuthenticated: false, userName: "", loginError: "", idToken: {}};
     loginScopes: string[];
-    _renewActive : boolean;
+    _renewActive: boolean;
 
     constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private location: Location, private router: Router, private activatedRoute: ActivatedRoute, private broadcastService: BroadcastService) {
         super(config.clientID, config.authority, null,
@@ -40,7 +41,8 @@ export class MsalService extends  UserAgentApplication{
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
                 anonymousEndpoints: config.anonymousEndpoints,
-                endPoints: config.endpoints,});
+                endPoints: config.endpoints,
+            });
 
         this.loginScopes = [this.clientId];
         this.updateDataFromCache(this.loginScopes);
@@ -49,14 +51,14 @@ export class MsalService extends  UserAgentApplication{
 
         window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
             this._logger.verbose("popUpHashChanged ");
-           this.processHash(e.detail);
+            this.processHash(e.detail);
         });
 
-        window.addEventListener('msal:popUpClosed', (e : CustomEvent) => {
-              var errorParts = e.detail.split('|');
+        window.addEventListener('msal:popUpClosed', (e: CustomEvent) => {
+            var errorParts = e.detail.split('|');
             if (this.loginInProgress()) {
                 broadcastService.broadcast('msal:loginFailure', {errorParts});
-                this.setloginInProgress( false);
+                this.setloginInProgress(false);
             }
             else if (this.getAcquireTokenInProgress()) {
                 broadcastService.broadcast('msal:acquireTokenFailure', {errorParts});
@@ -80,7 +82,7 @@ export class MsalService extends  UserAgentApplication{
     updateDataFromCache(scopes: string[]) {
         // only cache lookup here to not interrupt with events
         var cacheResult: CacheResult;
-        cacheResult = this.getCachedToken_(scopes, this.getUser());
+        cacheResult = this.getCachedTokenInternal(scopes, this.getUser());
         this._oauthData.isAuthenticated = cacheResult != null && cacheResult.token !== null && cacheResult.token.length > 0;
         this.user = this.getUser() || {userName: ""};
         this._oauthData.userName = this.user.name;
@@ -88,16 +90,15 @@ export class MsalService extends  UserAgentApplication{
         this._oauthData.loginError = cacheResult == null ? "" : cacheResult.error;
     }
 
-    processHash  (hash: string) {
+    processHash(hash: string) {
         if (this.isCallback(hash)) {
             var isPopup = false;
             var requestInfo = null;
             var callback = null;
-            var msal:any;
+            var msal: any;
             // callback can come from popupWindow, iframe or mainWindow
             if (window.openedWindows.length > 0 && window.openedWindows[window.openedWindows.length - 1].opener
-                && window.openedWindows[window.openedWindows.length - 1].opener.msal)
-            {
+                && window.openedWindows[window.openedWindows.length - 1].opener.msal) {
                 var mainWindow = window.openedWindows[window.openedWindows.length - 1].opener;
                 msal = mainWindow.msal;
                 isPopup = true;
@@ -138,7 +139,7 @@ export class MsalService extends  UserAgentApplication{
                             this.broadcastService.broadcast("msal:acquireTokenSuccess", token);
                         }
                         else if (error && errorDescription) {
-                            this.broadcastService.broadcast("msal:acquireTokenFailure",{ errorDescription, error});
+                            this.broadcastService.broadcast("msal:acquireTokenFailure", {errorDescription, error});
                         }
                     }
 
@@ -150,11 +151,11 @@ export class MsalService extends  UserAgentApplication{
                             // id_token is added as token for the app
                             this.updateDataFromCache(this.loginScopes);
                             //todo temp commented
-                        //  this.userInfo = this._oauthData;
+                            //  this.userInfo = this._oauthData;
                         }, 1);
                         this.broadcastService.broadcast("msal:loginSuccess", token);
                     } else {
-                        this.broadcastService.broadcast("msal:loginFailure",{ errorDescription, error});
+                        this.broadcastService.broadcast("msal:loginFailure", {errorDescription, error});
                     }
                 }
 
@@ -196,7 +197,7 @@ export class MsalService extends  UserAgentApplication{
             }
             else {
                 // state did not match, broadcast an error
-                this.broadcastService.broadcast("msal:stateMismatch",{ errorDescription, error});
+                this.broadcastService.broadcast("msal:stateMismatch", {errorDescription, error});
             }
         }
     };
@@ -213,8 +214,7 @@ export class MsalService extends  UserAgentApplication{
         return false;
     }
 
-    getCacheStorage(): any
-    {
+    getCacheStorage(): any {
         return this._cacheStorage;
 
     }
@@ -225,7 +225,7 @@ export class MsalService extends  UserAgentApplication{
         this.loginRedirect(scopes, extraQueryParameters)
     }
 
-    login_popup(scopes: string[], extraQueryParameters: string):  Promise<any>  {
+    login_popup(scopes: string[], extraQueryParameters: string): Promise<any> {
         this._logger.verbose("login popup flow");
         return new Promise((resolve, reject) => {
             this.loginPopup(scopes, extraQueryParameters).then((idToken) => {
@@ -245,12 +245,11 @@ export class MsalService extends  UserAgentApplication{
     }
 
     getCached_token(scopes: any): CacheResult {
-            return this.getCachedToken_(scopes, this.getUser());
+        return this.getCachedTokenInternal(scopes, this.getUser());
     }
 
-    acquire_token_silent (scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) :Promise<any> {
-        return new Promise((resolve, reject) =>
-        {
+    acquire_token_silent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
+        return new Promise((resolve, reject) => {
             this.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
@@ -266,8 +265,8 @@ export class MsalService extends  UserAgentApplication{
 
     }
 
-    acquire_token_popup (scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string)  :Promise<any>  {
-        return new Promise( (resolve, reject) => {
+    acquire_token_popup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
+        return new Promise((resolve, reject) => {
             this.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
@@ -283,7 +282,7 @@ export class MsalService extends  UserAgentApplication{
     }
 
 
-    acquire_token_redirect (scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
+    acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
         var acquireTokenStartPage = this._cacheStorage.getItem(Constants.loginRequest);
         if (window.location.href !== acquireTokenStartPage)
             this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
@@ -291,13 +290,11 @@ export class MsalService extends  UserAgentApplication{
     }
 
 
-    public login_in_progress()
-    {
+    public login_in_progress() {
         return this.loginInProgress();
     }
 
-    public get_user()
-    {
+    public get_user() {
         return this.getUser();
     }
 
@@ -314,21 +311,23 @@ export class MsalService extends  UserAgentApplication{
         return this.getRequestInfo(hash);
     }
 
-    clear_cache () {
+    clear_cache() {
         this.clearCache();
     }
-    clear_cache_for_scope (accessToken: string) {
+
+    clear_cache_for_scope(accessToken: string) {
         this.clearCacheForScope(accessToken);
     }
 
     info(message: string) {
         this._logger.info(message);
     }
-    verbose (message: string) {
+
+    verbose(message: string) {
         this._logger.verbose(message);
     }
 
-    removeItem (key: string) {
+    removeItem(key: string) {
         this._cacheStorage.removeItem(key);
     }
 }
