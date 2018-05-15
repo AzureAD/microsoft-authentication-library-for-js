@@ -123,6 +123,34 @@ We expose APIs for login, logout. acquiring access token and more. Here is a det
 7.get_user()
 
 ````
+
+## Callbacks
+MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
+
+1)login_popup() using api or using routes.
+
+````
+this.broadcastService.subscribe("msal:loginFailure", (payload) => {
+// do something here
+});
+    
+this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
+// do something here 
+});
+````
+   
+2)acquire_token_silent() and acquire_token_popup()
+````
+this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
+     // do something here 
+});
+
+this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+      // do something here 
+});
+````  
+
+  
 ## Build and running tests
 
 If you want to build the library and run all the unit tests, you can do the following.

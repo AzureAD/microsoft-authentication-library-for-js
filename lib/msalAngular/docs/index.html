@@ -179,7 +179,26 @@ We expose APIs <span class="hljs-keyword">for</span> login, logout. acquiring ac
 					5.acquire_token_popup()
 					6.acquire_token_redirect()
 				7.get_user()</p>
-				<p>````</p>
+				<pre><code>
+<span class="hljs-comment">## Callbacks</span>
+MSAL wrapper provides below callbacks <span class="hljs-keyword">for</span> various operations. For all callbacks, you need <span class="hljs-built_in">to</span> inject BroadcastService <span class="hljs-keyword">as</span> <span class="hljs-keyword">a</span> dependency <span class="hljs-keyword">in</span> your component/service.
+
+<span class="hljs-number">1</span>)login_popup() <span class="hljs-keyword">using</span> api <span class="hljs-keyword">or</span> <span class="hljs-keyword">using</span> routes.
+</code></pre><p>this.broadcastService.subscribe(&quot;msal:loginFailure&quot;, (payload) =&gt; {
+					// do something here
+				});</p>
+				<p>this.broadcastService.subscribe(&quot;msal:loginSuccess&quot;, (payload) =&gt; {
+					// do something here
+				});</p>
+				<pre><code>
+<span class="hljs-selector-tag">2</span>)<span class="hljs-selector-tag">acquire_token_silent</span>() <span class="hljs-selector-tag">and</span> <span class="hljs-selector-tag">acquire_token_popup</span>()
+</code></pre><p>this.broadcastService.subscribe(&quot;msal:acquireTokenSuccess&quot;, (payload) =&gt; {
+					// do something here
+				});</p>
+				<p>this.broadcastService.subscribe(&quot;msal:acquireTokenFailure&quot;, (payload) =&gt; {
+					// do something here
+					});
+				````  </p>
 				<h2 id="build-and-running-tests">Build and running tests</h2>
 				<p>If you want to build the library and run all the unit tests, you can do the following.</p>
 				<p>First navigate to the root directory of the library(msalAngular) and install the dependencies:</p>

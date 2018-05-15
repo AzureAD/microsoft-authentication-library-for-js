@@ -16,12 +16,6 @@ import {BroadcastService} from "./broadcast.service";
 
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
 
-let ResponseTypes = {
-    id_token: "id_token",
-    token: "token",
-    id_token_token: "id_token token"
-};
-
 @Injectable()
 export class MsalService extends UserAgentApplication {
     public user: any;
@@ -182,17 +176,6 @@ export class MsalService extends UserAgentApplication {
                             window.location.href = loginStartPage;
                         }
                     }
-                    else {
-                        //todo hashbang doesn't work currently
-                        /*
-                        // resetting the hash to null
-                        if ($location.$$html5) {
-                            $location.hash('');
-                        }
-                        else {
-                            $location.path('');
-                        }*/
-                    }
                 }
             }
             else {
@@ -282,12 +265,12 @@ export class MsalService extends UserAgentApplication {
     }
 
 
-    /*acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
+    acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
         var acquireTokenStartPage = this._cacheStorage.getItem(Constants.loginRequest);
         if (window.location.href !== acquireTokenStartPage)
             this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
         this.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
-    }*/
+    }
 
 
     public login_in_progress() {
@@ -302,7 +285,7 @@ export class MsalService extends UserAgentApplication {
         return this.getScopesForEndpoint(endpoint);
     }
 
-
+     //dummy method for future use
     private authCallback(errorDesc: any, _token: any, error: any, _tokenType: any) {
 
     }

@@ -9,7 +9,6 @@ import {ProductService} from "./product.service";
 })
 export class AppComponent {
   title = 'Msal Angular Demo';
-  public apiCallFailed: boolean;
   loggedIn : boolean;
   public userInfo: any = null;
 
