@@ -141,15 +141,13 @@ Defaults to `window.location.href`.
 
 &lt;b&gt;PostLogoutRedirectUri(Optional)&lt;/b&gt;: Redirects the user to postLogoutRedirectUri after logout. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'redirectUri</span>'.
 
-&lt;b&gt;Logger(Optional)&lt;/b&gt;: <span class="hljs-keyword">For</span> Logging purpose.
-
 &lt;b&gt;LoadFrameTimeout(Optional)&lt;/b&gt;: The number <span class="hljs-keyword">of</span> milliseconds <span class="hljs-keyword">of</span> inactivity before a token renewal response from AAD should be considered timed <span class="hljs-keyword">out</span>. Default <span class="hljs-keyword">is</span> <span class="hljs-number">6</span> seconds.
 
 &lt;b&gt;NavigateToLoginRequestUrl(Optional)&lt;/b&gt;:Ability to turn off default navigation to start page after login. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">false</span>.
 
 &lt;b&gt;Popup(Optional)&lt;/b&gt;: Show login popup <span class="hljs-keyword">or</span> redirect. Default:Redirect
 
-&lt;/b&gt;Scopes(Optional)&lt;/b&gt;: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+&lt;b&gt;Scopes(Optional)&lt;/b&gt;: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
 only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keyword">access</span> token will be acquired till the time client actually calls the API. This <span class="hljs-keyword">is</span> optional <span class="hljs-keyword">if</span> you are using MSAL <span class="hljs-keyword">for</span> only login(Authentication).
 
 &lt;b&gt;AnonymousEndpoints(Optional)&lt;/b&gt;: <span class="hljs-keyword">Array</span> <span class="hljs-keyword">of</span>  URI<span class="hljs-symbol">'s.</span> Msal will <span class="hljs-keyword">not</span> attach a token to outgoing requests that have these uri. Defaults to <span class="hljs-symbol">'null</span>'. 
@@ -157,12 +155,12 @@ only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keywo
 &lt;b&gt;Endpoints(Optional)&lt;/b&gt;: Mapping <span class="hljs-keyword">of</span> endpoints to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
 This <span class="hljs-keyword">is</span> required only <span class="hljs-keyword">for</span> CORS calls.
 
-&lt;b&gt;Level&lt;/b&gt;: Configurable log level. Default value <span class="hljs-keyword">is</span> Info.
+&lt;b&gt;Level(Optional)&lt;/b&gt;: Configurable log level. Default value <span class="hljs-keyword">is</span> Info.
 
-&lt;b&gt;logger&lt;/b&gt;: Callback instance that can be provided by the developer to consume <span class="hljs-keyword">and</span> publish logs <span class="hljs-keyword">in</span> a custom manner. Callback method must follow this signature. 
+&lt;b&gt;logger(Optional)&lt;/b&gt;: Callback instance that can be provided by the developer to consume <span class="hljs-keyword">and</span> publish logs <span class="hljs-keyword">in</span> a custom manner. Callback method must follow this signature. 
 loggerCallback(logLevel, message, piiEnabled) { }
 
-&lt;b&gt;PiiLoggingEnabled&lt;/b&gt;: Flag to enable/disable logging <span class="hljs-keyword">of</span> PII data. PII logs are never written to default outputs like Console, Logcat <span class="hljs-keyword">or</span> NSLog. Default <span class="hljs-keyword">is</span> set to <span class="hljs-literal">false</span>.
+&lt;b&gt;PiiLoggingEnabled(Optional)&lt;/b&gt;: Flag to enable/disable logging <span class="hljs-keyword">of</span> PII data. PII logs are never written to default outputs like Console, Logcat <span class="hljs-keyword">or</span> NSLog. Default <span class="hljs-keyword">is</span> set to <span class="hljs-literal">false</span>.
 
 
 ## Adding interceptor 
@@ -183,7 +181,7 @@ Routes can <span class="hljs-keyword">be </span>protected <span class="hljs-keyw
 				{ path: &#39;myProfile&#39; ,component: MyProfileComponent, canActivate : [MsalGuard]},</p>
 				<pre><code>
 <span class="hljs-comment">## Public API</span>
-We expose APIs <span class="hljs-keyword">for</span> login, logout. acquiring access <span class="hljs-keyword">token</span> <span class="hljs-keyword">and</span> more. Here is <span class="hljs-keyword">a</span> <span class="hljs-keyword">detailed</span> list.
+We expose APIs <span class="hljs-keyword">for</span> login, logout, acquiring access <span class="hljs-keyword">token</span> <span class="hljs-keyword">and</span> more. Here is <span class="hljs-keyword">a</span> <span class="hljs-keyword">detailed</span> list.
 </code></pre><p>1.login_redirect() 
 					2.login_popup()
 					3.log_out()

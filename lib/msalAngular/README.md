@@ -80,15 +80,13 @@ Defaults to `window.location.href`.
 
 <b>PostLogoutRedirectUri(Optional)</b>: Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
 
-<b>Logger(Optional)</b>: For Logging purpose.
-
 <b>LoadFrameTimeout(Optional)</b>: The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
 
 <b>NavigateToLoginRequestUrl(Optional)</b>:Ability to turn off default navigation to start page after login. Default is false.
 
 <b>Popup(Optional)</b>: Show login popup or redirect. Default:Redirect
 
-</b>Scopes(Optional)</b>: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+<b>Scopes(Optional)</b>: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
 only consent it and no access token will be acquired till the time client actually calls the API. This is optional if you are using MSAL for only login(Authentication).
 
 <b>AnonymousEndpoints(Optional)</b>: Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
@@ -96,12 +94,12 @@ only consent it and no access token will be acquired till the time client actual
 <b>Endpoints(Optional)</b>: Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
 This is required only for CORS calls.
 
-<b>Level</b>: Configurable log level. Default value is Info.
+<b>Level(Optional)</b>: Configurable log level. Default value is Info.
 
-<b>logger</b>: Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature. 
+<b>logger(Optional)</b>: Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature. 
 loggerCallback(logLevel, message, piiEnabled) { }
 
-<b>PiiLoggingEnabled</b>: Flag to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
+<b>PiiLoggingEnabled(Optional)</b>: Flag to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
 
 
 ## Adding interceptor 
@@ -126,7 +124,7 @@ Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
   ````
   
 ## Public API
-We expose APIs for login, logout. acquiring access token and more. Here is a detailed list.
+We expose APIs for login, logout, acquiring access token and more. Here is a detailed list.
 ````
 1.login_redirect() 
 2.login_popup() 
