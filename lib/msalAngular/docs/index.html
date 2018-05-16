@@ -98,9 +98,9 @@
 				<ol>
 					<li>Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
 						````
-						export const  endpointmap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();
-					endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]);</li>
+					export const  endpointmap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();</li>
 				</ol>
+				<p>endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]);</p>
 				<p>export function loggerCallback(logLevel, message, piiEnabled) {</p>
 				<p>}</p>
 				<p>@NgModule({
@@ -213,11 +213,11 @@ MSAL wrapper provides below callbacks <span class="hljs-keyword">for</span> vari
 					});
 				````  </p>
 				<h2 id="logging">Logging</h2>
-				<p>These 4 properties in config are used for logging. Please see the config section for more details.
-					1)logger
-					2)correlationId
-					3)level
-				4)piiLoggingEnabled</p>
+				<p>These 4 properties in config are used for logging. Please see the config section for more details.</p>
+				<p>1)logger</p>
+				<p>2)correlationId</p>
+				<p>3)level</p>
+				<p>4)piiLoggingEnabled</p>
 				<h2 id="build-and-running-tests">Build and running tests</h2>
 				<p>If you want to build the library and run all the unit tests, you can do the following.</p>
 				<p>First navigate to the root directory of the library(msalAngular) and install the dependencies:</p>

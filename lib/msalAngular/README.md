@@ -33,6 +33,7 @@ Via NPM:
 1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
 ````
 export const  endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
+
 endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
 
 export function loggerCallback(logLevel, message, piiEnabled) {
@@ -166,9 +167,13 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
 
 ## Logging
 These 4 properties in config are used for logging. Please see the config section for more details.
-1)logger 
+
+1)logger
+ 
 2)correlationId
+
 3)level
+
 4)piiLoggingEnabled
 
   
