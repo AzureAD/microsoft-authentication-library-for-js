@@ -35,6 +35,9 @@ Via NPM:
 export const  endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
 endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
 
+export function loggerCallback(logLevel, message, piiEnabled) {
+  
+}
 
 @NgModule({
   imports: [ MsalModule.forRoot({
@@ -50,6 +53,10 @@ endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send
                   scopes: ["user.read", "mail.send"],
                   anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
                   endpoints : endpointmap,
+                  logger :loggerCallback,
+                  correlationId: '1234',
+                  level: LogLevel.Verbose,
+                  piiLoggingEnabled: true,
                 })]
            })
            
@@ -89,6 +96,13 @@ only consent it and no access token will be acquired till the time client actual
 <b>Endpoints(Optional)</b>: Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
 This is required only for CORS calls.
 
+<b>Level</b>: Configurable log level. Default value is Info.
+
+<b>logger</b>: Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature. 
+loggerCallback(logLevel, message, piiEnabled) { }
+
+<b>PiiLoggingEnabled</b>: Flag to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
+
 
 ## Adding interceptor 
  Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the anonymous Endpoints. Using MsalInterceptor is optional.
@@ -115,9 +129,9 @@ Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
 We expose APIs for login, logout. acquiring access token and more. Here is a detailed list.
 ````
 1.login_redirect() 
-2.login_popup()
+2.login_popup() 
 3.log_out()
-4.acquire_token_silent()
+4.acquire_token_silent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
 5.acquire_token_popup()
 6.acquire_token_redirect()
 7.get_user()
@@ -149,6 +163,13 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       // do something here 
 });
 ````  
+
+## Logging
+These 4 properties in config are used for logging. Please see the config section for more details.
+1)logger 
+2)correlationId
+3)level
+4)piiLoggingEnabled
 
   
 ## Build and running tests

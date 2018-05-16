@@ -101,6 +101,8 @@
 						export const  endpointmap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();
 					endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]);</li>
 				</ol>
+				<p>export function loggerCallback(logLevel, message, piiEnabled) {</p>
+				<p>}</p>
 				<p>@NgModule({
 					imports: [ MsalModule.forRoot({
 					clientID: &#39;6226576d-37e9-49eb-b201-ec1eeb0029b6&#39;,
@@ -115,6 +117,10 @@
 					scopes: [&quot;user.read&quot;, &quot;mail.send&quot;],
 					anonymousEndpoints: [&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;],
 					endpoints : endpointmap,
+					logger :loggerCallback,
+					correlationId: &#39;1234&#39;,
+					level: LogLevel.Verbose,
+					piiLoggingEnabled: true,
 					})]
 				})</p>
 				<p>  export class AppModule { }</p>
@@ -152,6 +158,13 @@ only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keywo
 &lt;b&gt;Endpoints(Optional)&lt;/b&gt;: Mapping <span class="hljs-keyword">of</span> endpoints to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
 This <span class="hljs-keyword">is</span> required only <span class="hljs-keyword">for</span> CORS calls.
 
+&lt;b&gt;Level&lt;/b&gt;: Configurable log level. Default value <span class="hljs-keyword">is</span> Info.
+
+&lt;b&gt;logger&lt;/b&gt;: Callback instance that can be provided by the developer to consume <span class="hljs-keyword">and</span> publish logs <span class="hljs-keyword">in</span> a custom manner. Callback method must follow this signature. 
+loggerCallback(logLevel, message, piiEnabled) { }
+
+&lt;b&gt;PiiLoggingEnabled&lt;/b&gt;: Flag to enable/disable logging <span class="hljs-keyword">of</span> PII data. PII logs are never written to default outputs like Console, Logcat <span class="hljs-keyword">or</span> NSLog. Default <span class="hljs-keyword">is</span> set to <span class="hljs-literal">false</span>.
+
 
 ## Adding interceptor 
  Add the msalInterceptor <span class="hljs-keyword">in</span> your app.module.ts. MsalInterceptor will add the <span class="hljs-keyword">access</span> token to <span class="hljs-keyword">all</span> your http request except the anonymous Endpoints. Using MsalInterceptor <span class="hljs-keyword">is</span> optional.
@@ -175,7 +188,7 @@ We expose APIs <span class="hljs-keyword">for</span> login, logout. acquiring ac
 </code></pre><p>1.login_redirect() 
 					2.login_popup()
 					3.log_out()
-					4.acquire_token_silent()
+					4.acquire_token_silent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
 					5.acquire_token_popup()
 					6.acquire_token_redirect()
 				7.get_user()</p>
@@ -199,6 +212,12 @@ MSAL wrapper provides below callbacks <span class="hljs-keyword">for</span> vari
 					// do something here
 					});
 				````  </p>
+				<h2 id="logging">Logging</h2>
+				<p>These 4 properties in config are used for logging. Please see the config section for more details.
+					1)logger
+					2)correlationId
+					3)level
+				4)piiLoggingEnabled</p>
 				<h2 id="build-and-running-tests">Build and running tests</h2>
 				<p>If you want to build the library and run all the unit tests, you can do the following.</p>
 				<p>First navigate to the root directory of the library(msalAngular) and install the dependencies:</p>

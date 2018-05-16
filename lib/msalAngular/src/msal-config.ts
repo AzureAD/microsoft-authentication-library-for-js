@@ -1,4 +1,5 @@
-import {Logger} from "../../msal-core/lib-commonjs/Logger";
+import {LogLevel} from "../../msal-core/lib-commonjs";
+import {ILoggerCallback} from "../../msal-core/lib-commonjs/Logger";
 
 export class MsalConfig {
     clientID: string;
@@ -8,7 +9,7 @@ export class MsalConfig {
     cacheLocation? = "sessionStorage";
     redirectUri?: string;
     postLogoutRedirectUri?: string;
-    logger?: Logger;
+    logger?: ILoggerCallback;
     loadFrameTimeout? = 6000;
     navigateToLoginRequestUrl?= true ;
     popUp?: boolean;
@@ -17,6 +18,9 @@ export class MsalConfig {
     anonymousEndpoints? :  string[];
     endpoints?: Map<string, Array<string>>;
     extraQueryParameters?: string;
+    correlationId?: string;
+    level?: LogLevel;
+    piiLoggingEnabled?: boolean;
 
 }
 

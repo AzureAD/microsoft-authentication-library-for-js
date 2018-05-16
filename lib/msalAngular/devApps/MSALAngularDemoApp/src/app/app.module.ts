@@ -14,13 +14,12 @@ import {appRoutes} from './app.routes';
 import {MyProfileComponent} from "./myProfile.component";
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {MsalModule, MsalInterceptor} from "../../../../dist";
-import {Logger, LogLevel} from "../../../../../msal-core/lib-commonjs";
+import {LogLevel} from "../../../../../msal-core/lib-commonjs";
 
 export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
 }
 
-export const myLogger = new Logger(loggerCallback, {correlationId: '12345', level: LogLevel.Verbose});
 export const endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
 endpointmap.set("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
 
@@ -39,15 +38,19 @@ endpointmap.set("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"
         authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
         validateAuthority: true,
         redirectUri: "http://localhost:4200/",
-        //cacheLocation : "localStorage",
+        cacheLocation : "localStorage",
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
         popUp: false,
         tokenReceivedCallback: null,
-       // scopes: ["user.read", "mail.send"],
-        //anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
+        scopes: ["user.read", "mail.send"],
+         anonymousEndpoints: ["https:google.com"],
         endpoints: endpointmap,
-        // logger :myLogger,
+        logger: loggerCallback,
+        correlationId: '1234',
+        level: LogLevel.Verbose,
+        piiLoggingEnabled: true,
+
       }
     ),
   ],

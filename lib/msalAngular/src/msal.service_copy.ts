@@ -64,7 +64,7 @@ export class MsalService extends UserAgentApplication {
             for (var i = 0; i < router.config.length; i++) {
                 if (!router.config[i].canActivate) {
                     if (this.config && this.config.anonymousEndpoints) {
-                        if (!this.isAnonymousEndpoint(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
+                        if (!this.isAnonymousEndpoint(router.config[i].path)) {
                             this.config.anonymousEndpoints.push(router.config[i].path);
                         }
                     }
@@ -174,6 +174,8 @@ export class MsalService extends UserAgentApplication {
                             // prevent the current location change and redirect the user back to the login start page
                             this._logger.verbose("Redirecting to start page: " + loginStartPage);
                             window.location.href = loginStartPage;
+                            //adding it for redirect callback
+                            this._cacheStorage.setItem(Constants.urlHash, hash);
                         }
                     }
                 }
@@ -183,7 +185,36 @@ export class MsalService extends UserAgentApplication {
                 this.broadcastService.broadcast("msal:stateMismatch", {errorDescription, error});
             }
         }
+        else {
+
+            var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+            if (pendingCallback) {
+                this.processCallBackNew(pendingCallback);
+            }
+
+        }
     };
+
+    private processCallBackNew(hash: string): void {
+        this._logger.info('Processing the callback from redirect response');
+        const requestInfo = this.getRequestInfo(hash);
+        this.saveTokenFromHash(requestInfo);
+        const token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
+        const errorDesc = requestInfo.parameters[Constants.errorDescription];
+        const error = requestInfo.parameters[Constants.error];
+        var tokenType: string;
+
+        if (requestInfo.parameters[Constants.accessToken]) {
+            tokenType = Constants.accessToken;
+        }
+        else {
+            tokenType = Constants.idToken;
+        }
+
+        this._cacheStorage.removeItem(Constants.urlHash);
+
+        this.broadcastService.broadcast("msal:RedirectLoginSuccess" ,{errorDesc, token, error, tokenType})
+    }
 
 
     private isAnonymousEndpoint(url: string) {
@@ -220,10 +251,6 @@ export class MsalService extends UserAgentApplication {
                 reject("error " + "|" + error);
             });
         });
-    }
-
-    private isEmpty(str: string): boolean {
-        return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
     log_out(): void {
