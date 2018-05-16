@@ -50,9 +50,8 @@ export function loggerCallback(logLevel, message, piiEnabled) {
                   postLogoutRedirectUri: "http://localhost:4200/",
                   navigateToLoginRequestUrl : true,
                   popUp: true,
-                  tokenReceivedCallback : null,
                   scopes: ["user.read", "mail.send"],
-                  anonymousEndpoints: ["https://graph.microsoft.com/v1.0/me"],
+                  anonymousEndpoints: ["https://angularjs.org/"],
                   endpoints : endpointmap,
                   logger :loggerCallback,
                   correlationId: '1234',
@@ -142,7 +141,7 @@ We expose APIs for login, logout. acquiring access token and more. Here is a det
 ## Callbacks
 MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
 
-1)login_popup() using api or using routes.
+1)login_popup()/login_redirect using api or using routes.
 
 ````
 this.broadcastService.subscribe("msal:loginFailure", (payload) => {
@@ -154,7 +153,7 @@ this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
 });
 ````
    
-2)acquire_token_silent() and acquire_token_popup()
+2)acquire_token_silent()/acquire_token_popup()/acquire_token_redirect()
 ````
 this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
      // do something here 

@@ -19,14 +19,6 @@ export class ProductComponent
    ngOnInit() {
      this.products=this.productService.getProducts();
 
-     this.broadcastService.subscribe("msal:loginFailure", (payload) => {
-       console.log("login failure");
-     });
-
-     this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
-       console.log("login success");
-     });
-
      this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
      });
 

@@ -10,11 +10,7 @@ export class MyProfileComponent {
   public userInfo: any = null;
 
   constructor(private authService: MsalService, private productService: ProductService, private broadcastService: BroadcastService) {
-    //multiple nested calls for acquireToken
-    /* this.acquireTokenScopes( this.authService,["user.read"]).then(() =>{
-        this.acquireTokenScopes(this.authService, ["mail.send"]);
-      })
-   */
+
   }
 
 
@@ -42,13 +38,6 @@ export class MyProfileComponent {
 
   //make sense only for loginPopup
   ngOnInit() {
-    this.broadcastService.subscribe("msal:loginFailure", (payload) => {
-    });
-
-    //make sense only for loginPopup
-    this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
-    });
-
     //will work for acquireTokenSilent and acquireTokenPopup
     this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
       console.log("acquire token success " + JSON.stringify(payload))
@@ -61,6 +50,12 @@ export class MyProfileComponent {
 
   }
 
+  private callAcquireTokenNested()
+  {
+    this.acquireTokenScopes( this.authService,["user.read"]).then(() =>{
+      this.acquireTokenScopes(this.authService, ["mail.send"]);
+    })
+  }
 
   private callGraph() {
     this.productService.getUserInfo()

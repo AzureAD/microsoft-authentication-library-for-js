@@ -170,6 +170,7 @@ export class MsalService extends UserAgentApplication {
                 if (window.parent === window && !isPopup) {
                     if (this._navigateToLoginRequestUrl) {
                         var loginStartPage = this._cacheStorage.getItem(Constants.loginRequest);
+                        this._cacheStorage.setItem(Constants.urlHash, hash);
                         if (typeof loginStartPage !== "undefined" && loginStartPage && loginStartPage.length !== 0) {
                             // prevent the current location change and redirect the user back to the login start page
                             this._logger.verbose("Redirecting to start page: " + loginStartPage);
@@ -183,7 +184,44 @@ export class MsalService extends UserAgentApplication {
                 this.broadcastService.broadcast("msal:stateMismatch", {errorDescription, error});
             }
         }
+        else {
+            var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+            if (pendingCallback) {
+               this.processRedirectCallBack(pendingCallback);
+            }
+        }
     };
+
+
+    private processRedirectCallBack(hash: string): void {
+        this._logger.info('Processing the callback from redirect response');
+        const requestInfo = this.getRequestInfo(hash);
+        this.saveTokenFromHash(requestInfo);
+        const token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
+        const errorDesc = requestInfo.parameters[Constants.errorDescription];
+        const error = requestInfo.parameters[Constants.error];
+        var tokenType: string;
+        this._cacheStorage.removeItem(Constants.urlHash);
+        if (requestInfo.parameters[Constants.accessToken]) {
+            tokenType = Constants.accessToken;
+            if (token) {
+                this.broadcastService.broadcast("msal:acquireTokenSuccess", {token, tokenType});
+            }
+            else if (error && errorDesc) {
+                //TODO this should also send back the scopes
+                this.broadcastService.broadcast("msal:acquireTokenFailure", {errorDesc, error});
+            }
+        }
+        else {
+            tokenType = Constants.idToken;
+            if (token) {
+                this.broadcastService.broadcast("msal:loginSuccess", {token, tokenType});
+            }
+            else if (error && errorDesc) {
+                this.broadcastService.broadcast("msal:loginFailure", {errorDesc, error});
+            }
+        }
+    }
 
 
     private isAnonymousEndpoint(url: string) {
