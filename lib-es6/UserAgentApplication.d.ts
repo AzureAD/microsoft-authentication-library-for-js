@@ -1,4 +1,7 @@
+import { Authority } from "./Authority";
 import { Logger } from "./Logger";
+import { Storage } from "./Storage";
+import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 declare global  {
     interface Window {
@@ -13,26 +16,31 @@ declare global  {
         requestType: string;
     }
 }
+export interface CacheResult {
+    errorDesc: string;
+    token: string;
+    error: string;
+}
 export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
 export declare class UserAgentApplication {
     private _cacheLocations;
     private _cacheLocation;
     readonly cacheLocation: string;
-    private _logger;
+    protected _logger: Logger;
     private _loginInProgress;
     private _acquireTokenInProgress;
     private _clockSkew;
-    private _cacheStorage;
+    protected _cacheStorage: Storage;
     private _tokenReceivedCallback;
     private _user;
     clientId: string;
-    private authorityInstance;
+    protected authorityInstance: Authority;
     authority: string;
     validateAuthority: boolean;
     private _redirectUri;
     private _postLogoutredirectUri;
     loadFrameTimeout: number;
-    private _navigateToLoginRequestUrl;
+    protected _navigateToLoginRequestUrl: boolean;
     private _isAngular;
     private _endpoints;
     private _anonymousEndpoints;
@@ -55,12 +63,13 @@ export declare class UserAgentApplication {
     private openWindow(urlNavigate, title, interval, instance, resolve?, reject?);
     private broadcast(eventName, data);
     logout(): void;
-    private clearCache();
+    protected clearCache(): void;
     clearCacheForScope(accessToken: string): void;
     private openPopup(urlNavigate, title, popUpWidth, popUpHeight);
     private validateInputScope(scopes);
     private filterScopes(scopes);
     private registerCallback(expectedState, scope, resolve, reject);
+    protected getCachedTokenInternal(scopes: Array<string>, user: User): CacheResult;
     private getCachedToken(authenticationRequest, user);
     getAllUsers(): Array<User>;
     private getUniqueUsers(users);
@@ -84,13 +93,17 @@ export declare class UserAgentApplication {
     getUser(): User;
     private handleAuthenticationResponse(hash);
     private saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
-    private saveTokenFromHash(tokenResponse);
+    protected saveTokenFromHash(tokenResponse: TokenResponse): void;
     isCallback(hash: string): boolean;
     private getHash(hash);
-    private getRequestInfo(hash);
+    protected getRequestInfo(hash: string): TokenResponse;
     private getScopeFromState(state);
     private isInIframe();
     loginInProgress(): boolean;
     private getHostFromUri(uri);
     getScopesForEndpoint(endpoint: string): Array<string>;
+    protected setloginInProgress(loginInProgress: boolean): void;
+    protected getAcquireTokenInProgress(): boolean;
+    protected setAcquireTokenInProgress(acquireTokenInProgress: boolean): void;
+    protected getLogger(): Logger;
 }

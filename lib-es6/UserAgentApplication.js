@@ -523,6 +523,26 @@ var UserAgentApplication = /** @class */ (function () {
                 };
         }
     };
+    UserAgentApplication.prototype.getCachedTokenInternal = function (scopes, user) {
+        var userObject = user ? user : this.getUser();
+        if (!userObject) {
+            return;
+        }
+        var authenticationRequest;
+        var newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+        if (Utils.compareObjects(userObject, this.getUser())) {
+            if (scopes.indexOf(this.clientId) > -1) {
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+            }
+            else {
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            }
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+        }
+        return this.getCachedToken(authenticationRequest, user);
+    };
     /*
      * Used to get token for the specified set of scopes from the cache
      * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
@@ -533,7 +553,7 @@ var UserAgentApplication = /** @class */ (function () {
         var accessTokenCacheItem = null;
         var scopes = authenticationRequest.scopes;
         var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null); //filter by clientId and user
-        if (tokenCacheItems.length === 0) {
+        if (tokenCacheItems.length === 0) { // No match found after initial filtering
             return null;
         }
         var filteredItems = [];
@@ -585,6 +605,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (filteredItems.length === 0) {
                 return null;
             }
+            //only one cachedToken Found
             else if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
             }
@@ -1385,12 +1406,12 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenResponse.stateResponse = stateResponse;
                 // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                 // incoming callback needs to be looked up to find the request type
-                if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) {
+                if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) { // loginRedirect
                     tokenResponse.requestType = Constants.login;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
                 }
-                else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken)) {
+                else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken)) { //acquireTokenRedirect
                     tokenResponse.requestType = Constants.renewToken;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
@@ -1478,6 +1499,19 @@ var UserAgentApplication = /** @class */ (function () {
         }
         // if not the app's own backend or not a domain listed in the endpoints structure
         return null;
+    };
+    //These APIS are exposed for msalAngular wrapper only
+    UserAgentApplication.prototype.setloginInProgress = function (loginInProgress) {
+        this._loginInProgress = loginInProgress;
+    };
+    UserAgentApplication.prototype.getAcquireTokenInProgress = function () {
+        return this._acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.setAcquireTokenInProgress = function (acquireTokenInProgress) {
+        this._acquireTokenInProgress = acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.getLogger = function () {
+        return this._logger;
     };
     tslib_1.__decorate([
         resolveTokenOnlyIfOutOfIframe

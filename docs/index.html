@@ -136,7 +136,7 @@
             });
     <span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
 </code></pre>
-				<ol>
+				<ol start="4">
 					<li>use the token in an <a href="https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2/blob/master/TodoSPA/App/Scripts/Ctrls/todoListCtrl.js#L30">HTTP bearer request</a>, to call the Microsoft Graph or a Web API</li>
 				</ol>
 				<h2 id="installation">Installation</h2>
@@ -162,6 +162,7 @@
 				<pre><code class="lang-javascript"><span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose });
 
 <span class="hljs-keyword">var</span> clientApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(clientID, authority, authCallback, { <span class="hljs-attr">logger</span>: logger });
+
 </code></pre>
 				<p>Implement the <code>loggerCallback</code> method depending on how you want to redirect logs.
 				The supported log levels are: Error, Warning, Info, Verbose</p>
@@ -172,6 +173,7 @@
 
 <span class="hljs-comment">//PII or OII logging enabled</span>
 <span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose, <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">true</span> });
+
 </code></pre>
 				<h2 id="community-help-and-support">Community Help and Support</h2>
 				<ul>
