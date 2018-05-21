@@ -1177,8 +1177,10 @@ var UserAgentApplication = /** @class */ (function () {
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
         }
-        for (var i = 0; i < window.openedWindows.length; i++) {
-            window.openedWindows[i].close();
+        if (isWindowOpenerMsal) {
+            for (var i = 0; i < window.opener.openedWindows.length; i++) {
+                window.opener.openedWindows[i].close();
+            }
         }
     };
     /*
