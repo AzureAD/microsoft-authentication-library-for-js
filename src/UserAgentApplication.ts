@@ -62,7 +62,7 @@ let ResponseTypes = {
 /*
  * @hidden
  */
-interface CacheResult {
+export interface CacheResult {
   errorDesc: string;
   token: string;
   error: string;
@@ -110,7 +110,7 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  private _logger: Logger;
+  protected _logger: Logger;
 
   /*
    * @hidden
@@ -130,7 +130,7 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  private _cacheStorage: Storage;
+  protected _cacheStorage: Storage;
 
   /*
    * @hidden
@@ -150,7 +150,7 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  private authorityInstance: Authority;
+  protected authorityInstance: Authority;
 
   /*
    * Used to set the authority.
@@ -190,7 +190,7 @@ export class UserAgentApplication {
 
   loadFrameTimeout: number;
 
-  private _navigateToLoginRequestUrl: boolean;
+  protected _navigateToLoginRequestUrl: boolean;
 
   private _isAngular: boolean = false;
 
@@ -554,7 +554,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private clearCache(): void {
+  protected clearCache(): void {
       window.renewStates = [];
       const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
     for (let i = 0; i < accessTokenItems.length; i++) {
@@ -682,6 +682,30 @@ export class UserAgentApplication {
         };
     }
   }
+
+
+protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResult
+{
+    const userObject = user ? user : this.getUser();
+    if (!userObject) {
+        return;
+    }
+    let authenticationRequest: AuthenticationRequestParameters;
+    let newAuthority = this.authorityInstance?this.authorityInstance: AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+
+    if (Utils.compareObjects(userObject, this.getUser())) {
+        if (scopes.indexOf(this.clientId) > -1) {
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+        }
+    } else {
+        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+    }
+
+        return this.getCachedToken(authenticationRequest, user);
+}
 
   /*
    * Used to get token for the specified set of scopes from the cache
@@ -1459,7 +1483,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private saveTokenFromHash(tokenResponse: TokenResponse): void {
+  protected saveTokenFromHash(tokenResponse: TokenResponse): void {
     this._logger.info("State status:" + tokenResponse.stateMatch + "; Request type:" + tokenResponse.requestType);
     this._cacheStorage.setItem(Constants.msalError, "");
     this._cacheStorage.setItem(Constants.msalErrorDescription, "");
@@ -1630,7 +1654,7 @@ export class UserAgentApplication {
     * @ignore
     * @hidden
     */
-  private getRequestInfo(hash: string): TokenResponse {
+  protected getRequestInfo(hash: string): TokenResponse {
     hash = this.getHash(hash);
     const parameters = Utils.deserialize(hash);
     const tokenResponse = new TokenResponse();
@@ -1753,4 +1777,24 @@ export class UserAgentApplication {
       // if not the app's own backend or not a domain listed in the endpoints structure
       return null;
   }
+
+  //These APIS are exposed for msalAngular wrapper only
+    protected setloginInProgress(loginInProgress : boolean) {
+        this._loginInProgress = loginInProgress;
+    }
+
+    protected getAcquireTokenInProgress(): boolean
+    {
+        return this._acquireTokenInProgress;
+    }
+
+    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
+        this._acquireTokenInProgress = acquireTokenInProgress;
+    }
+
+    protected getLogger()
+    {
+        return this._logger;
+    }
+
 }
