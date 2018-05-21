@@ -5,7 +5,6 @@ import {HttpModule} from '@angular/http';
 import {RouterModule} from '@angular/router';
 import {AppComponent} from './app.component';
 import {HomeComponent} from './home.component'
-import {ContactComponent} from './contact.component'
 import {ProductComponent} from './product.component'
 import {ErrorComponent} from './error.component'
 import {ProductDetailComponent} from './product-detail.component'
@@ -25,7 +24,7 @@ endpointmap.set("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"
 
 @NgModule({
   declarations: [
-    AppComponent, HomeComponent, ContactComponent, ProductComponent, ErrorComponent, ProductDetailComponent, MyProfileComponent
+    AppComponent, HomeComponent, ProductComponent, ErrorComponent, ProductDetailComponent, MyProfileComponent
   ],
   imports: [
     BrowserModule,

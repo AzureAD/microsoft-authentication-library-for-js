@@ -18,9 +18,6 @@
       "@angular/*": [
         "../node_modules/@angular/*"
       ],
-      "msalAngular2/*": [
-       // "C:\\microsoft-authentication-library\\packages\\msalAngular2"
-      ],
       "rxjs/*": ["../node_modules/rxjs/*"]
     }
 

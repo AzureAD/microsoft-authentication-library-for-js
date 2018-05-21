@@ -8,9 +8,6 @@
     "outDir": "lib-commonjs",
     "baseUrl": "src",
     "paths": {
-      //"msal*": [
-    //    "C:\\microsoft-authentication-library\\packages\\msal-core"
-      //]
     }
   },
   "files": [
