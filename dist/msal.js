@@ -1,4 +1,4 @@
-/*! msal v0.1.5 2018-05-10 */
+/*! msal v0.1.5 2018-05-21 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -10,7 +10,7 @@
 		exports["Msal"] = factory();
 	else
 		root["Msal"] = factory();
-})(this, function() {
+})(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = 10);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -242,6 +242,7 @@ var Utils = /** @class */ (function () {
                 decoded += String.fromCharCode(c1, c2);
                 break;
             }
+            // if last one is "="
             else if (i + 1 === length - 1) {
                 bits = h1 << 18 | h2 << 12;
                 c1 = bits >> 16 & 255;
@@ -455,6 +456,180 @@ exports.Utils = Utils;
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+var ErrorMessage_1 = __webpack_require__(5);
+var XHRClient_1 = __webpack_require__(9);
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * @hidden
+ */
+var AuthorityType;
+(function (AuthorityType) {
+    AuthorityType[AuthorityType["Aad"] = 0] = "Aad";
+    AuthorityType[AuthorityType["Adfs"] = 1] = "Adfs";
+    AuthorityType[AuthorityType["B2C"] = 2] = "B2C";
+})(AuthorityType = exports.AuthorityType || (exports.AuthorityType = {}));
+/*
+ * @hidden
+ */
+var Authority = /** @class */ (function () {
+    function Authority(authority, validateAuthority) {
+        this.IsValidationEnabled = validateAuthority;
+        this.CanonicalAuthority = authority;
+        this.validateAsUri();
+    }
+    Object.defineProperty(Authority.prototype, "Tenant", {
+        get: function () {
+            return this.CanonicalAuthorityUrlComponents.PathSegments[0];
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "AuthorizationEndpoint", {
+        get: function () {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "EndSessionEndpoint", {
+        get: function () {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.Tenant);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "SelfSignedJwtAudience", {
+        get: function () {
+            this.validateResolved();
+            return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.Tenant);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Authority.prototype.validateResolved = function () {
+        if (!this.tenantDiscoveryResponse) {
+            throw "Please call ResolveEndpointsAsync first";
+        }
+    };
+    Object.defineProperty(Authority.prototype, "CanonicalAuthority", {
+        /*
+         * A URL that is the authority set by the developer
+         */
+        get: function () {
+            return this.canonicalAuthority;
+        },
+        set: function (url) {
+            this.canonicalAuthority = Utils_1.Utils.CanonicalizeUri(url);
+            this.canonicalAuthorityUrlComponents = null;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "CanonicalAuthorityUrlComponents", {
+        get: function () {
+            if (!this.canonicalAuthorityUrlComponents) {
+                this.canonicalAuthorityUrlComponents = Utils_1.Utils.GetUrlComponents(this.CanonicalAuthority);
+            }
+            return this.canonicalAuthorityUrlComponents;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Authority.prototype, "DefaultOpenIdConfigurationEndpoint", {
+        /*
+         * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+         */
+        get: function () {
+            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /*
+     * Given a string, validate that it is of the form https://domain/path
+     */
+    Authority.prototype.validateAsUri = function () {
+        var components;
+        try {
+            components = this.CanonicalAuthorityUrlComponents;
+        }
+        catch (e) {
+            throw ErrorMessage_1.ErrorMessage.invalidAuthorityType;
+        }
+        if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
+            throw ErrorMessage_1.ErrorMessage.authorityUriInsecure;
+        }
+        if (!components.PathSegments || components.PathSegments.length < 1) {
+            throw ErrorMessage_1.ErrorMessage.authorityUriInvalidPath;
+        }
+    };
+    /*
+     * Calls the OIDC endpoint and returns the response
+     */
+    Authority.prototype.DiscoverEndpoints = function (openIdConfigurationEndpoint) {
+        var client = new XHRClient_1.XhrClient();
+        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
+            .then(function (response) {
+            return {
+                AuthorizationEndpoint: response.authorization_endpoint,
+                EndSessionEndpoint: response.end_session_endpoint,
+                Issuer: response.issuer
+            };
+        });
+    };
+    /*
+     * Returns a promise.
+     * Checks to see if the authority is in the cache
+     * Discover endpoints via openid-configuration
+     * If successful, caches the endpoint for later use in OIDC
+     */
+    Authority.prototype.ResolveEndpointsAsync = function () {
+        var _this = this;
+        var openIdConfigurationEndpoint = "";
+        return this.GetOpenIdConfigurationEndpointAsync().then(function (openIdConfigurationEndpointResponse) {
+            openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;
+            return _this.DiscoverEndpoints(openIdConfigurationEndpoint);
+        }).then(function (tenantDiscoveryResponse) {
+            _this.tenantDiscoveryResponse = tenantDiscoveryResponse;
+            return _this;
+        });
+    };
+    return Authority;
+}());
+exports.Authority = Authority;
+
+
+/***/ }),
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -475,6 +650,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["__asyncGenerator"] = __asyncGenerator;
 /* harmony export (immutable) */ __webpack_exports__["__asyncDelegator"] = __asyncDelegator;
 /* harmony export (immutable) */ __webpack_exports__["__asyncValues"] = __asyncValues;
+/* harmony export (immutable) */ __webpack_exports__["__makeTemplateObject"] = __makeTemplateObject;
+/* harmony export (immutable) */ __webpack_exports__["__importStar"] = __importStar;
+/* harmony export (immutable) */ __webpack_exports__["__importDefault"] = __importDefault;
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -537,7 +715,7 @@ function __metadata(metadataKey, metadataValue) {
 function __awaiter(thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
@@ -619,7 +797,7 @@ function __asyncGenerator(thisArg, _arguments, generator) {
     return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
     function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
     function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);  }
+    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
     function fulfill(value) { resume("next", value); }
     function reject(value) { resume("throw", value); }
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
@@ -628,17 +806,37 @@ function __asyncGenerator(thisArg, _arguments, generator) {
 function __asyncDelegator(o) {
     var i, p;
     return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-    function verb(n, f) { if (o[n]) i[n] = function (v) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; }; }
+    function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; } : f; }
 }
 
 function __asyncValues(o) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator];
-    return m ? m.call(o) : typeof __values === "function" ? __values(o) : o[Symbol.iterator]();
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 }
 
+function __makeTemplateObject(cooked, raw) {
+    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+    return cooked;
+};
+
+function __importStar(mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result.default = mod;
+    return result;
+}
+
+function __importDefault(mod) {
+    return (mod && mod.__esModule) ? mod : { default: mod };
+}
+
+
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -974,7 +1172,7 @@ exports.ErrorDescription = ErrorDescription;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1102,180 +1300,6 @@ exports.Logger = Logger;
 
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-var ErrorMessage_1 = __webpack_require__(5);
-var XHRClient_1 = __webpack_require__(8);
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-/*
- * @hidden
- */
-var AuthorityType;
-(function (AuthorityType) {
-    AuthorityType[AuthorityType["Aad"] = 0] = "Aad";
-    AuthorityType[AuthorityType["Adfs"] = 1] = "Adfs";
-    AuthorityType[AuthorityType["B2C"] = 2] = "B2C";
-})(AuthorityType = exports.AuthorityType || (exports.AuthorityType = {}));
-/*
- * @hidden
- */
-var Authority = /** @class */ (function () {
-    function Authority(authority, validateAuthority) {
-        this.IsValidationEnabled = validateAuthority;
-        this.CanonicalAuthority = authority;
-        this.validateAsUri();
-    }
-    Object.defineProperty(Authority.prototype, "Tenant", {
-        get: function () {
-            return this.CanonicalAuthorityUrlComponents.PathSegments[0];
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "AuthorizationEndpoint", {
-        get: function () {
-            this.validateResolved();
-            return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "EndSessionEndpoint", {
-        get: function () {
-            this.validateResolved();
-            return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.Tenant);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "SelfSignedJwtAudience", {
-        get: function () {
-            this.validateResolved();
-            return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.Tenant);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Authority.prototype.validateResolved = function () {
-        if (!this.tenantDiscoveryResponse) {
-            throw "Please call ResolveEndpointsAsync first";
-        }
-    };
-    Object.defineProperty(Authority.prototype, "CanonicalAuthority", {
-        /*
-         * A URL that is the authority set by the developer
-         */
-        get: function () {
-            return this.canonicalAuthority;
-        },
-        set: function (url) {
-            this.canonicalAuthority = Utils_1.Utils.CanonicalizeUri(url);
-            this.canonicalAuthorityUrlComponents = null;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "CanonicalAuthorityUrlComponents", {
-        get: function () {
-            if (!this.canonicalAuthorityUrlComponents) {
-                this.canonicalAuthorityUrlComponents = Utils_1.Utils.GetUrlComponents(this.CanonicalAuthority);
-            }
-            return this.canonicalAuthorityUrlComponents;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Authority.prototype, "DefaultOpenIdConfigurationEndpoint", {
-        /*
-         * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-         */
-        get: function () {
-            return this.CanonicalAuthority + "v2.0/.well-known/openid-configuration";
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /*
-     * Given a string, validate that it is of the form https://domain/path
-     */
-    Authority.prototype.validateAsUri = function () {
-        var components;
-        try {
-            components = this.CanonicalAuthorityUrlComponents;
-        }
-        catch (e) {
-            throw ErrorMessage_1.ErrorMessage.invalidAuthorityType;
-        }
-        if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
-            throw ErrorMessage_1.ErrorMessage.authorityUriInsecure;
-        }
-        if (!components.PathSegments || components.PathSegments.length < 1) {
-            throw ErrorMessage_1.ErrorMessage.authorityUriInvalidPath;
-        }
-    };
-    /*
-     * Calls the OIDC endpoint and returns the response
-     */
-    Authority.prototype.DiscoverEndpoints = function (openIdConfigurationEndpoint) {
-        var client = new XHRClient_1.XhrClient();
-        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
-            .then(function (response) {
-            return {
-                AuthorizationEndpoint: response.authorization_endpoint,
-                EndSessionEndpoint: response.end_session_endpoint,
-                Issuer: response.issuer
-            };
-        });
-    };
-    /*
-     * Returns a promise.
-     * Checks to see if the authority is in the cache
-     * Discover endpoints via openid-configuration
-     * If successful, caches the endpoint for later use in OIDC
-     */
-    Authority.prototype.ResolveEndpointsAsync = function () {
-        var _this = this;
-        var openIdConfigurationEndpoint = "";
-        return this.GetOpenIdConfigurationEndpointAsync().then(function (openIdConfigurationEndpointResponse) {
-            openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;
-            return _this.DiscoverEndpoints(openIdConfigurationEndpoint);
-        }).then(function (tenantDiscoveryResponse) {
-            _this.tenantDiscoveryResponse = tenantDiscoveryResponse;
-            return _this;
-        });
-    };
-    return Authority;
-}());
-exports.Authority = Authority;
-
-
-/***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1369,6 +1393,51 @@ exports.ErrorMessage = ErrorMessage;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * @hidden
+ */
+var TokenResponse = /** @class */ (function () {
+    function TokenResponse() {
+        this.valid = false;
+        this.parameters = {};
+        this.stateMatch = false;
+        this.stateResponse = "";
+        this.requestType = "unknown";
+    }
+    return TokenResponse;
+}());
+exports.TokenResponse = TokenResponse;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
 var User = /** @class */ (function () {
     /*
@@ -1404,7 +1473,7 @@ exports.User = User;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1432,9 +1501,9 @@ exports.User = User;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(1);
-var Authority_1 = __webpack_require__(4);
-var XHRClient_1 = __webpack_require__(8);
+var tslib_1 = __webpack_require__(2);
+var Authority_1 = __webpack_require__(1);
+var XHRClient_1 = __webpack_require__(9);
 /**
  * @hidden
  */
@@ -1501,7 +1570,7 @@ exports.AadAuthority = AadAuthority;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1590,33 +1659,37 @@ exports.XhrClient = XhrClient;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(10);
+module.exports = __webpack_require__(11);
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var UserAgentApplication_1 = __webpack_require__(11);
+var UserAgentApplication_1 = __webpack_require__(12);
 exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
-var Logger_1 = __webpack_require__(3);
+var Logger_1 = __webpack_require__(4);
 exports.Logger = Logger_1.Logger;
-var Logger_2 = __webpack_require__(3);
+var Logger_2 = __webpack_require__(4);
 exports.LogLevel = Logger_2.LogLevel;
-var User_1 = __webpack_require__(6);
+var User_1 = __webpack_require__(7);
 exports.User = User_1.User;
-var Constants_1 = __webpack_require__(2);
+var Constants_1 = __webpack_require__(3);
 exports.Constants = Constants_1.Constants;
+var RequestInfo_1 = __webpack_require__(6);
+exports.TokenResponse = RequestInfo_1.TokenResponse;
+var Authority_1 = __webpack_require__(1);
+exports.Authority = Authority_1.Authority;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1644,17 +1717,17 @@ exports.Constants = Constants_1.Constants;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(1);
-var AccessTokenKey_1 = __webpack_require__(12);
-var AccessTokenValue_1 = __webpack_require__(13);
-var AuthenticationRequestParameters_1 = __webpack_require__(14);
-var ClientInfo_1 = __webpack_require__(15);
-var Constants_1 = __webpack_require__(2);
-var IdToken_1 = __webpack_require__(16);
-var Logger_1 = __webpack_require__(3);
-var Storage_1 = __webpack_require__(17);
-var RequestInfo_1 = __webpack_require__(19);
-var User_1 = __webpack_require__(6);
+var tslib_1 = __webpack_require__(2);
+var AccessTokenKey_1 = __webpack_require__(13);
+var AccessTokenValue_1 = __webpack_require__(14);
+var AuthenticationRequestParameters_1 = __webpack_require__(15);
+var ClientInfo_1 = __webpack_require__(16);
+var Constants_1 = __webpack_require__(3);
+var IdToken_1 = __webpack_require__(17);
+var Logger_1 = __webpack_require__(4);
+var Storage_1 = __webpack_require__(18);
+var RequestInfo_1 = __webpack_require__(6);
+var User_1 = __webpack_require__(7);
 var Utils_1 = __webpack_require__(0);
 var AuthorityFactory_1 = __webpack_require__(20);
 /*
@@ -2147,6 +2220,26 @@ var UserAgentApplication = /** @class */ (function () {
                 };
         }
     };
+    UserAgentApplication.prototype.getCachedTokenInternal = function (scopes, user) {
+        var userObject = user ? user : this.getUser();
+        if (!userObject) {
+            return;
+        }
+        var authenticationRequest;
+        var newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory_1.AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+        if (Utils_1.Utils.compareObjects(userObject, this.getUser())) {
+            if (scopes.indexOf(this.clientId) > -1) {
+                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+            }
+            else {
+                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            }
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+        }
+        return this.getCachedToken(authenticationRequest, user);
+    };
     /*
      * Used to get token for the specified set of scopes from the cache
      * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
@@ -2157,7 +2250,7 @@ var UserAgentApplication = /** @class */ (function () {
         var accessTokenCacheItem = null;
         var scopes = authenticationRequest.scopes;
         var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null); //filter by clientId and user
-        if (tokenCacheItems.length === 0) {
+        if (tokenCacheItems.length === 0) { // No match found after initial filtering
             return null;
         }
         var filteredItems = [];
@@ -2209,6 +2302,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (filteredItems.length === 0) {
                 return null;
             }
+            //only one cachedToken Found
             else if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
             }
@@ -3009,12 +3103,12 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenResponse.stateResponse = stateResponse;
                 // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                 // incoming callback needs to be looked up to find the request type
-                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) {
+                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) { // loginRedirect
                     tokenResponse.requestType = Constants_1.Constants.login;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
                 }
-                else if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateAcquireToken)) {
+                else if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateAcquireToken)) { //acquireTokenRedirect
                     tokenResponse.requestType = Constants_1.Constants.renewToken;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
@@ -3103,6 +3197,19 @@ var UserAgentApplication = /** @class */ (function () {
         // if not the app's own backend or not a domain listed in the endpoints structure
         return null;
     };
+    //These APIS are exposed for msalAngular wrapper only
+    UserAgentApplication.prototype.setloginInProgress = function (loginInProgress) {
+        this._loginInProgress = loginInProgress;
+    };
+    UserAgentApplication.prototype.getAcquireTokenInProgress = function () {
+        return this._acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.setAcquireTokenInProgress = function (acquireTokenInProgress) {
+        this._acquireTokenInProgress = acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.getLogger = function () {
+        return this._logger;
+    };
     tslib_1.__decorate([
         resolveTokenOnlyIfOutOfIframe
     ], UserAgentApplication.prototype, "acquireTokenSilent", null);
@@ -3112,7 +3219,7 @@ exports.UserAgentApplication = UserAgentApplication;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3157,7 +3264,7 @@ exports.AccessTokenKey = AccessTokenKey;
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3201,7 +3308,7 @@ exports.AccessTokenValue = AccessTokenValue;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3315,7 +3422,7 @@ exports.AuthenticationRequestParameters = AuthenticationRequestParameters;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3396,7 +3503,7 @@ exports.ClientInfo = ClientInfo;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3479,7 +3586,7 @@ exports.IdToken = IdToken;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3507,8 +3614,8 @@ exports.IdToken = IdToken;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var Constants_1 = __webpack_require__(2);
-var AccessTokenCacheItem_1 = __webpack_require__(18);
+var Constants_1 = __webpack_require__(3);
+var AccessTokenCacheItem_1 = __webpack_require__(19);
 /*
  * @hidden
  */
@@ -3623,7 +3730,7 @@ exports.Storage = Storage;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3665,51 +3772,6 @@ exports.AccessTokenCacheItem = AccessTokenCacheItem;
 
 
 /***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var TokenResponse = /** @class */ (function () {
-    function TokenResponse() {
-        this.valid = false;
-        this.parameters = {};
-        this.stateMatch = false;
-        this.stateResponse = "";
-        this.requestType = "unknown";
-    }
-    return TokenResponse;
-}());
-exports.TokenResponse = TokenResponse;
-
-
-/***/ }),
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3742,9 +3804,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @hidden
  */
 var Utils_1 = __webpack_require__(0);
-var AadAuthority_1 = __webpack_require__(7);
+var AadAuthority_1 = __webpack_require__(8);
 var B2cAuthority_1 = __webpack_require__(21);
-var Authority_1 = __webpack_require__(4);
+var Authority_1 = __webpack_require__(1);
 var ErrorMessage_1 = __webpack_require__(5);
 var AuthorityFactory = /** @class */ (function () {
     function AuthorityFactory() {
@@ -3815,9 +3877,9 @@ exports.AuthorityFactory = AuthorityFactory;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(1);
-var AadAuthority_1 = __webpack_require__(7);
-var Authority_1 = __webpack_require__(4);
+var tslib_1 = __webpack_require__(2);
+var AadAuthority_1 = __webpack_require__(8);
+var Authority_1 = __webpack_require__(1);
 var ErrorMessage_1 = __webpack_require__(5);
 var Utils_1 = __webpack_require__(0);
 /*
