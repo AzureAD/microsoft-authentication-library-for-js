@@ -1169,6 +1169,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
               }
             }
+          }).catch((err) => {
+            this._logger.warning("could not resolve endpoints");
+            reject(err);
           });
       }
     });
