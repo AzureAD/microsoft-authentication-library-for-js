@@ -1,5 +1,5 @@
 
-Microsoft Authentication Library Preview for Angular
+Microsoft Authentication Library for Angular Preview
 =========================================================
 
 | [Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2 )| [Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](./devApps/VanillaJSTestApp )
@@ -13,7 +13,7 @@ The identity management services that the library interacts with are [Microsoft 
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
 
-## Important Note about the MSAL Preview
+## Important Note about the MSAL-Angular Preview
 This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
 
@@ -99,7 +99,8 @@ This is required only for CORS calls.
 <b>logger(Optional)</b>: Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature. 
 loggerCallback(logLevel, message, piiEnabled) { }
 
-<b>PiiLoggingEnabled(Optional)</b>: Flag to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
+<b>PiiLoggingEnabled(Optional)</b>: PII stands for Personal Identifiable Information. By default, MSAL does not capture or log any PII. By turning on PII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
+ This Flag is to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
 
 
 ## Adding interceptor 

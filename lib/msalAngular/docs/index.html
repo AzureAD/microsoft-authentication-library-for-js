@@ -64,7 +64,7 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<h1 id="microsoft-authentication-library-preview-for-angular">Microsoft Authentication Library Preview for Angular</h1>
+				<h1 id="microsoft-authentication-library-for-angular-preview">Microsoft Authentication Library for Angular Preview</h1>
 				<table>
 					<thead>
 						<tr>
@@ -84,7 +84,7 @@
 				<p>The MSAL library preview for Angular enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>. </p>
 				<p>The identity management services that the library interacts with are <a href="https://azure.microsoft.com/en-us/services/active-directory/">Microsoft Azure Active Directory</a>, <a href="https://azure.microsoft.com/services/active-directory-b2c/">Microsoft Azure B2C</a> and <a href="https://account.microsoft.com">Microsoft Accounts</a>.</p>
 				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a><a href="https://www.npmjs.com/package/msal"><img src="https://img.shields.io/npm/v/msal.svg?style=flat" alt="npm version"></a><a href="https://nodei.co/npm/msal/"><img src="https://img.shields.io/npm/dm/msal.svg" alt="npm version"></a></p>
-				<h2 id="important-note-about-the-msal-preview">Important Note about the MSAL Preview</h2>
+				<h2 id="important-note-about-the-msal-angular-preview">Important Note about the MSAL-Angular Preview</h2>
 				<p>This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.</p>
 				<h2 id="example">Example</h2>
 				<p>This example shows how to acquire a token to read user information from Microsoft Graph.</p>
@@ -160,7 +160,8 @@ This <span class="hljs-keyword">is</span> required only <span class="hljs-keywor
 &lt;b&gt;logger(Optional)&lt;/b&gt;: Callback instance that can be provided by the developer to consume <span class="hljs-keyword">and</span> publish logs <span class="hljs-keyword">in</span> a custom manner. Callback method must follow this signature. 
 loggerCallback(logLevel, message, piiEnabled) { }
 
-&lt;b&gt;PiiLoggingEnabled(Optional)&lt;/b&gt;: Flag to enable/disable logging <span class="hljs-keyword">of</span> PII data. PII logs are never written to default outputs like Console, Logcat <span class="hljs-keyword">or</span> NSLog. Default <span class="hljs-keyword">is</span> set to <span class="hljs-literal">false</span>.
+&lt;b&gt;PiiLoggingEnabled(Optional)&lt;/b&gt;: PII stands <span class="hljs-keyword">for</span> Personal Identifiable Information. By default, MSAL does <span class="hljs-keyword">not</span> capture <span class="hljs-keyword">or</span> log any PII. By turning on PII, the app takes responsibility <span class="hljs-keyword">for</span> safely handling highly-sensitive data <span class="hljs-keyword">and</span> complying <span class="hljs-keyword">with</span> any regulatory requirements.
+ This Flag <span class="hljs-keyword">is</span> to enable/disable logging <span class="hljs-keyword">of</span> PII data. PII logs are never written to default outputs like Console, Logcat <span class="hljs-keyword">or</span> NSLog. Default <span class="hljs-keyword">is</span> set to <span class="hljs-literal">false</span>.
 
 
 ## Adding interceptor 

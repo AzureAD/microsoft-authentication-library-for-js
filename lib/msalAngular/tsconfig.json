@@ -6,14 +6,10 @@
     "target": "es5",
     "lib": [ "es2015", "dom", "es2015.promise" , "es2017"],
     "outDir": "lib-commonjs",
-    //"baseUrl": "./",
     "baseUrl": "src",
-
     "paths": {
-
-
       //"msal*": [
-    //    "C:\\Users\\neagrawa\\repo\\microsoft-authentication-library\\packages\\msal-core"
+    //    "C:\\microsoft-authentication-library\\packages\\msal-core"
       //]
     }
   },

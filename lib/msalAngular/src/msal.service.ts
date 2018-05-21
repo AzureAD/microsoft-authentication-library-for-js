@@ -23,7 +23,7 @@ export class MsalService extends UserAgentApplication {
     loginScopes: string[];
     _renewActive: boolean;
 
-    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private location: Location, private router: Router, private activatedRoute: ActivatedRoute, private broadcastService: BroadcastService) {
+    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private router: Router, private broadcastService: BroadcastService) {
         super(config.clientID, config.authority, null,
             {
                 validateAuthority: config.validateAuthority,
@@ -240,13 +240,13 @@ export class MsalService extends UserAgentApplication {
 
     }
 
-    login_redirect(scopes: string[], extraQueryParameters: string) {
+    login_redirect(scopes: string[], extraQueryParameters?: string) {
 
         this._logger.verbose("login redirect flow");
         this.loginRedirect(scopes, extraQueryParameters)
     }
 
-    login_popup(scopes: string[], extraQueryParameters: string): Promise<any> {
+    login_popup(scopes: string[], extraQueryParameters?: string): Promise<any> {
         this._logger.verbose("login popup flow");
         return new Promise((resolve, reject) => {
             this.loginPopup(scopes, extraQueryParameters).then((idToken) => {
