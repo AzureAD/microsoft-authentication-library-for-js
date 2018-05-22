@@ -14,7 +14,7 @@ export class MyProfileComponent {
   }
 
 
-  private acquireTokenScopes = function (self, scopes) {
+  private getAcquireToken = function (self, scopes) {
     //acquire access token for scopes
     return new Promise(function (resolve, reject) {
       self.acquire_token_silent(scopes).then(function (token) {
@@ -50,10 +50,16 @@ export class MyProfileComponent {
 
   }
 
-  private callAcquireTokenNested()
+  private TestAcquireToken()
   {
-    this.acquireTokenScopes( this.authService,["user.read"]).then(() =>{
-      this.acquireTokenScopes(this.authService, ["mail.send"]);
+    this.getAcquireToken( this.authService,["user.read", "mail.send"]).then(() =>{
+      this.productService.getUserInfo()
+        .subscribe(data => {
+          this.userInfo = data;
+        }, error => {
+          console.error(" access token silent failed " + JSON.stringify(error));
+        });
+
     })
   }
 

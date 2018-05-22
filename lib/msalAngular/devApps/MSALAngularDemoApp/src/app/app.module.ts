@@ -14,6 +14,8 @@ import {MyProfileComponent} from "./myProfile.component";
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {MsalModule, MsalInterceptor} from "../../../../dist";
 import {LogLevel} from "../../../../../msal-core/lib-commonjs";
+import { TodoListComponent } from './todo-list/todo-list.component';
+import {TodoListService} from "./todo-list/todo-list.service";
 
 export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
@@ -21,10 +23,11 @@ export function loggerCallback(logLevel, message, piiEnabled) {
 
 export const endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
 endpointmap.set("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
+endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
 
 @NgModule({
   declarations: [
-    AppComponent, HomeComponent, ProductComponent, ErrorComponent, ProductDetailComponent, MyProfileComponent
+    AppComponent, HomeComponent, ProductComponent, ErrorComponent, ProductDetailComponent, MyProfileComponent, TodoListComponent
   ],
   imports: [
     BrowserModule,
@@ -41,18 +44,18 @@ endpointmap.set("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
         popUp: false,
-        scopes: ["user.read", "mail.send"],
+        scopes: ["user.read", "mail.send", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
         anonymousEndpoints: ["https:google.com"],
         endpoints: endpointmap,
         logger: loggerCallback,
         correlationId: '1234',
-        level: LogLevel.Verbose,
+        level: LogLevel.Info,
         piiLoggingEnabled: true,
 
       }
     ),
   ],
-  providers: [ProductService
+  providers: [ProductService, TodoListService
     , {provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true}
   ],
   bootstrap: [AppComponent]

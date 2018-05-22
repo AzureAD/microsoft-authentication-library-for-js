@@ -240,13 +240,13 @@ export class MsalService extends UserAgentApplication {
 
     }
 
-    login_redirect(scopes: string[], extraQueryParameters?: string) {
+    login_redirect(scopes?: string[], extraQueryParameters?: string) {
 
         this._logger.verbose("login redirect flow");
         this.loginRedirect(scopes, extraQueryParameters)
     }
 
-    login_popup(scopes: string[], extraQueryParameters?: string): Promise<any> {
+    login_popup(scopes?: string[], extraQueryParameters?: string): Promise<any> {
         this._logger.verbose("login popup flow");
         return new Promise((resolve, reject) => {
             this.loginPopup(scopes, extraQueryParameters).then((idToken) => {

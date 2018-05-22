@@ -34,7 +34,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
         }
         else {
-            return Observable.fromPromise(this.auth.acquireTokenSilent(scopes).then(token => {
+            return Observable.fromPromise(this.auth.acquire_token_silent(scopes).then(token => {
                 const JWT = `Bearer ${token}`;
                 return req.clone({
                     setHeaders: {

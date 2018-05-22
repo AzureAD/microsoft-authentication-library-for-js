@@ -21,6 +21,11 @@ export class AppComponent {
     } */
   }
 
+  login()
+  {
+   this.authService.login_popup();
+  }
+
   logout()
   {
    this.authService.logout();
