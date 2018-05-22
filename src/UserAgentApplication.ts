@@ -452,7 +452,10 @@ export class UserAgentApplication {
         if (popUpWindow) {
           popUpWindow.close();
         }
-      });
+        }).catch((err) => {
+              this._logger.warning("could not resolve endpoints");
+              reject(err);
+        });
     });
   }
 
@@ -1086,7 +1089,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         if (popUpWindow) {
             popUpWindow.close();
         }
-      });
+        }).catch((err) => {
+              this._logger.warning("could not resolve endpoints");
+              reject(err);
+        });
     });
   }
 
@@ -1147,7 +1153,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             return;
           }
         }
-
+        else {
+            this._logger.verbose("Token is not in cache for scope:" + scope);
+        }
         // cache miss
         return this.authorityInstance.ResolveEndpointsAsync()
           .then(() => {

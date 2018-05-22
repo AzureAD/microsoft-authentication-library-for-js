@@ -2003,6 +2003,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -2556,6 +2559,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -2614,6 +2620,9 @@ var UserAgentApplication = /** @class */ (function () {
                         reject(cacheResult.errorDesc + "|" + cacheResult.error);
                         return;
                     }
+                }
+                else {
+                    _this._logger.verbose("Token is not in cache for scope:" + scope_1);
                 }
                 // cache miss
                 return _this.authorityInstance.ResolveEndpointsAsync()
