@@ -24,9 +24,8 @@ export class MsalInterceptor implements HttpInterceptor {
         }
         var tokenStored = this.auth.getCached_Token_Internal(scopes);
         if (tokenStored && tokenStored.token) {
-
           req = req.clone({
-                setHeaders: {
+              setHeaders: {
                     Authorization: `Bearer ${tokenStored.token}`,
                 }
             });

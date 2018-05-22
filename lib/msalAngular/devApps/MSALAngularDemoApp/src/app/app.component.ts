@@ -14,11 +14,13 @@ export class AppComponent {
 
   constructor(private broadcastService: BroadcastService , private authService : MsalService,   private productService: ProductService)
   {
-    //Can be use, if don't want to rely on msal:loginSuccess
-   /*if(this.authService.getUser())
+   if(this.authService.getUser())
     {
       this.loggedIn = true;
-    } */
+    }
+   else {
+     this.loggedIn = false;
+   }
   }
 
   login()
