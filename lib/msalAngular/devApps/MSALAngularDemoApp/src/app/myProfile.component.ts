@@ -46,6 +46,16 @@ export class MyProfileComponent {
     //will work for acquireTokenSilent and acquireTokenPopup
     this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload))
+      if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1) {
+        this.authService.acquireTokenPopup(["user.read", "mail.send"]).then( (token) => {
+          this.productService.getUserInfo().subscribe( (results) => {
+            this.userInfo = results;
+          },  (err) => {
+            console.error(" access token  failed " + JSON.stringify(err));
+          });
+        },  (error) => {
+        });
+      }
     });
 
   }

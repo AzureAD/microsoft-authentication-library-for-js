@@ -23,7 +23,7 @@ export class AppComponent {
 
   login()
   {
-   this.authService.login_popup();
+   this.authService.login_popup(["user.read", "mail.send", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
   }
 
   logout()
