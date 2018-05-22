@@ -1,4 +1,4 @@
-/*! msal v0.1.5 2018-05-21 */
+/*! msal v0.1.6 2018-05-21 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -315,7 +315,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.5";
+        return "0.1.6";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
@@ -2637,6 +2637,9 @@ var UserAgentApplication = /** @class */ (function () {
                             _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                     }
+                }).catch(function (err) {
+                    _this._logger.warning("could not resolve endpoints");
+                    reject(err);
                 });
             }
         });

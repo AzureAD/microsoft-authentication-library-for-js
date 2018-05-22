@@ -76,17 +76,10 @@ Via NPM:
 
     npm install msal
 
-Via CDN:
-```JavaScript
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.5/js/msal.min.js"></script>
-```
-
 Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill. You might want to read more in the [FAQ](../../wiki)
 ```JavaScript
     <!-- IE support: add promises polyfill before msal.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.5/js/msal.min.js"></script>
 ```
 
 ## Build and running tests
