@@ -1,4 +1,4 @@
-/*! msal v0.1.5 2018-02-27 */
+/*! msal v0.1.6 2018-05-21 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -10,7 +10,7 @@
 		exports["Msal"] = factory();
 	else
 		root["Msal"] = factory();
-})(this, function() {
+})(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = 10);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -169,10 +169,10 @@ var Utils = /** @class */ (function () {
         // html5 should support atob function for decoding
         base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
         if (window.atob) {
-            return decodeURIComponent(window.atob(base64IdToken)); // jshint ignore:line
+            return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
         }
         else {
-            return decodeURIComponent(this.decode(base64IdToken));
+            return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
         }
     };
     Utils.encode = function (input) {
@@ -242,6 +242,7 @@ var Utils = /** @class */ (function () {
                 decoded += String.fromCharCode(c1, c2);
                 break;
             }
+            // if last one is "="
             else if (i + 1 === length - 1) {
                 bits = h1 << 18 | h2 << 12;
                 c1 = bits >> 16 & 255;
@@ -314,7 +315,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.5";
+        return "0.1.6";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
@@ -455,326 +456,14 @@ exports.Utils = Utils;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (immutable) */ __webpack_exports__["__extends"] = __extends;
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__assign", function() { return __assign; });
-/* harmony export (immutable) */ __webpack_exports__["__rest"] = __rest;
-/* harmony export (immutable) */ __webpack_exports__["__decorate"] = __decorate;
-/* harmony export (immutable) */ __webpack_exports__["__param"] = __param;
-/* harmony export (immutable) */ __webpack_exports__["__metadata"] = __metadata;
-/* harmony export (immutable) */ __webpack_exports__["__awaiter"] = __awaiter;
-/* harmony export (immutable) */ __webpack_exports__["__generator"] = __generator;
-/* harmony export (immutable) */ __webpack_exports__["__exportStar"] = __exportStar;
-/* harmony export (immutable) */ __webpack_exports__["__values"] = __values;
-/* harmony export (immutable) */ __webpack_exports__["__read"] = __read;
-/* harmony export (immutable) */ __webpack_exports__["__spread"] = __spread;
-/* harmony export (immutable) */ __webpack_exports__["__await"] = __await;
-/* harmony export (immutable) */ __webpack_exports__["__asyncGenerator"] = __asyncGenerator;
-/* harmony export (immutable) */ __webpack_exports__["__asyncDelegator"] = __asyncDelegator;
-/* harmony export (immutable) */ __webpack_exports__["__asyncValues"] = __asyncValues;
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-var extendStatics = Object.setPrototypeOf ||
-    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-
-function __extends(d, b) {
-    extendStatics(d, b);
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-var __assign = Object.assign || function __assign(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-    return t;
-}
-
-function __rest(s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
-            t[p[i]] = s[p[i]];
-    return t;
-}
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __param(paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __metadata(metadataKey, metadataValue) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
-
-function __generator(thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-}
-
-function __exportStar(m, exports) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-function __values(o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
-    if (m) return m.call(o);
-    return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-}
-
-function __read(o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-}
-
-function __spread() {
-    for (var ar = [], i = 0; i < arguments.length; i++)
-        ar = ar.concat(__read(arguments[i]));
-    return ar;
-}
-
-function __await(v) {
-    return this instanceof __await ? (this.v = v, this) : new __await(v);
-}
-
-function __asyncGenerator(thisArg, _arguments, generator) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var g = generator.apply(thisArg, _arguments || []), i, q = [];
-    return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
-    function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
-    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);  }
-    function fulfill(value) { resume("next", value); }
-    function reject(value) { resume("throw", value); }
-    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-}
-
-function __asyncDelegator(o) {
-    var i, p;
-    return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-    function verb(n, f) { if (o[n]) i[n] = function (v) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; }; }
-}
-
-function __asyncValues(o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator];
-    return m ? m.call(o) : typeof __values === "function" ? __values(o) : o[Symbol.iterator]();
-}
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-var LogLevel;
-(function (LogLevel) {
-    LogLevel[LogLevel["Error"] = 0] = "Error";
-    LogLevel[LogLevel["Warning"] = 1] = "Warning";
-    LogLevel[LogLevel["Info"] = 2] = "Info";
-    LogLevel[LogLevel["Verbose"] = 3] = "Verbose";
-})(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
-var Logger = /** @class */ (function () {
-    function Logger(localCallback, options) {
-        if (options === void 0) { options = {}; }
-        /*
-         * @hidden
-         */
-        this._level = LogLevel.Info;
-        var _a = options.correlationId, correlationId = _a === void 0 ? "" : _a, _b = options.level, level = _b === void 0 ? LogLevel.Info : _b, _c = options.piiLoggingEnabled, piiLoggingEnabled = _c === void 0 ? false : _c;
-        this._localCallback = localCallback;
-        this._correlationId = correlationId;
-        this._level = level;
-        this._piiLoggingEnabled = piiLoggingEnabled;
-    }
-    /*
-     * @hidden
-     */
-    Logger.prototype.logMessage = function (logLevel, logMessage, containsPii) {
-        if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
-            return;
-        }
-        var timestamp = new Date().toUTCString();
-        var log;
-        if (!Utils_1.Utils.isEmpty(this._correlationId)) {
-            log = timestamp + ":" + this._correlationId + "-" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
-        }
-        else {
-            log = timestamp + ":" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
-        }
-        this.executeCallback(logLevel, log, containsPii);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.executeCallback = function (level, message, containsPii) {
-        if (this._localCallback) {
-            this._localCallback(level, message, containsPii);
-        }
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.error = function (message) {
-        this.logMessage(LogLevel.Error, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.errorPii = function (message) {
-        this.logMessage(LogLevel.Error, message, true);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.warning = function (message) {
-        this.logMessage(LogLevel.Warning, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.warningPii = function (message) {
-        this.logMessage(LogLevel.Warning, message, true);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.info = function (message) {
-        this.logMessage(LogLevel.Info, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.infoPii = function (message) {
-        this.logMessage(LogLevel.Info, message, true);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.verbose = function (message) {
-        this.logMessage(LogLevel.Verbose, message, false);
-    };
-    /*
-     * @hidden
-     */
-    Logger.prototype.verbosePii = function (message) {
-        this.logMessage(LogLevel.Verbose, message, true);
-    };
-    return Logger;
-}());
-exports.Logger = Logger;
-
-
-/***/ }),
-/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
-var ErrorMessage_1 = __webpack_require__(4);
-var XHRClient_1 = __webpack_require__(8);
+var ErrorMessage_1 = __webpack_require__(5);
+var XHRClient_1 = __webpack_require__(9);
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -940,72 +629,214 @@ exports.Authority = Authority;
 
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (immutable) */ __webpack_exports__["__extends"] = __extends;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__assign", function() { return __assign; });
+/* harmony export (immutable) */ __webpack_exports__["__rest"] = __rest;
+/* harmony export (immutable) */ __webpack_exports__["__decorate"] = __decorate;
+/* harmony export (immutable) */ __webpack_exports__["__param"] = __param;
+/* harmony export (immutable) */ __webpack_exports__["__metadata"] = __metadata;
+/* harmony export (immutable) */ __webpack_exports__["__awaiter"] = __awaiter;
+/* harmony export (immutable) */ __webpack_exports__["__generator"] = __generator;
+/* harmony export (immutable) */ __webpack_exports__["__exportStar"] = __exportStar;
+/* harmony export (immutable) */ __webpack_exports__["__values"] = __values;
+/* harmony export (immutable) */ __webpack_exports__["__read"] = __read;
+/* harmony export (immutable) */ __webpack_exports__["__spread"] = __spread;
+/* harmony export (immutable) */ __webpack_exports__["__await"] = __await;
+/* harmony export (immutable) */ __webpack_exports__["__asyncGenerator"] = __asyncGenerator;
+/* harmony export (immutable) */ __webpack_exports__["__asyncDelegator"] = __asyncDelegator;
+/* harmony export (immutable) */ __webpack_exports__["__asyncValues"] = __asyncValues;
+/* harmony export (immutable) */ __webpack_exports__["__makeTemplateObject"] = __makeTemplateObject;
+/* harmony export (immutable) */ __webpack_exports__["__importStar"] = __importStar;
+/* harmony export (immutable) */ __webpack_exports__["__importDefault"] = __importDefault;
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
 
-/*
-  * Copyright (c) Microsoft Corporation
-  *  All Rights Reserved
-  *  MIT License
-  *
-  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
-  * software and associated documentation files (the "Software"), to deal in the Software
-  * without restriction, including without limitation the rights to use, copy, modify,
-  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-  * permit persons to whom the Software is furnished to do so, subject to the following
-  * conditions:
-  *
-  * The above copyright notice and this permission notice shall be
-  * included in all copies or substantial portions of the Software.
-  *
-  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-  * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
-  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-  */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var ErrorMessage = /** @class */ (function () {
-    function ErrorMessage() {
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = Object.setPrototypeOf ||
+    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+
+function __extends(d, b) {
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
     }
-    Object.defineProperty(ErrorMessage, "authorityUriInvalidPath", {
-        get: function () { return "AuthorityUriInvalidPath"; },
-        enumerable: true,
-        configurable: true
+    return t;
+}
+
+function __rest(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
+}
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __param(paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+function __metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-    Object.defineProperty(ErrorMessage, "authorityUriInsecure", {
-        get: function () { return "AuthorityUriInsecure"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "invalidAuthorityType", {
-        get: function () { return "InvalidAuthorityType"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "unsupportedAuthorityValidation", {
-        get: function () { return "UnsupportedAuthorityValidation"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "b2cAuthorityUriInvalidPath", {
-        get: function () { return "B2cAuthorityUriInvalidPath"; },
-        enumerable: true,
-        configurable: true
-    });
-    return ErrorMessage;
-}());
-exports.ErrorMessage = ErrorMessage;
+}
+
+function __generator(thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+}
+
+function __exportStar(m, exports) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+
+function __values(o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+}
+
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
+
+function __spread() {
+    for (var ar = [], i = 0; i < arguments.length; i++)
+        ar = ar.concat(__read(arguments[i]));
+    return ar;
+}
+
+function __await(v) {
+    return this instanceof __await ? (this.v = v, this) : new __await(v);
+}
+
+function __asyncGenerator(thisArg, _arguments, generator) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var g = generator.apply(thisArg, _arguments || []), i, q = [];
+    return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
+    function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+    function fulfill(value) { resume("next", value); }
+    function reject(value) { resume("throw", value); }
+    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+}
+
+function __asyncDelegator(o) {
+    var i, p;
+    return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+    function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; } : f; }
+}
+
+function __asyncValues(o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+}
+
+function __makeTemplateObject(cooked, raw) {
+    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+    return cooked;
+};
+
+function __importStar(mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result.default = mod;
+    return result;
+}
+
+function __importDefault(mod) {
+    return (mod && mod.__esModule) ? mod : { default: mod };
+}
 
 
 /***/ }),
-/* 5 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1055,7 +886,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "acquireTokenUser", {
-        get: function () { return "msal_acquireTokenUser"; },
+        get: function () { return "msal.acquireTokenUser"; },
         enumerable: true,
         configurable: true
     });
@@ -1070,7 +901,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "authority", {
-        get: function () { return "authority"; },
+        get: function () { return "msal.authority"; },
         enumerable: true,
         configurable: true
     });
@@ -1221,7 +1052,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "renewToken", {
-        get: function () { return "renewToken"; },
+        get: function () { return "RENEW_TOKEN"; },
         enumerable: true,
         configurable: true
     });
@@ -1232,6 +1063,16 @@ var Constants = /** @class */ (function () {
     });
     Object.defineProperty(Constants, "urlHash", {
         get: function () { return "msal.urlHash"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Constants, "angularLoginRequest", {
+        get: function () { return "msal.angular.login.request"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Constants, "userIdentifier", {
+        get: function () { return "userIdentifier"; },
         enumerable: true,
         configurable: true
     });
@@ -1331,7 +1172,245 @@ exports.ErrorDescription = ErrorDescription;
 
 
 /***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+var LogLevel;
+(function (LogLevel) {
+    LogLevel[LogLevel["Error"] = 0] = "Error";
+    LogLevel[LogLevel["Warning"] = 1] = "Warning";
+    LogLevel[LogLevel["Info"] = 2] = "Info";
+    LogLevel[LogLevel["Verbose"] = 3] = "Verbose";
+})(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
+var Logger = /** @class */ (function () {
+    function Logger(localCallback, options) {
+        if (options === void 0) { options = {}; }
+        /*
+         * @hidden
+         */
+        this._level = LogLevel.Info;
+        var _a = options.correlationId, correlationId = _a === void 0 ? "" : _a, _b = options.level, level = _b === void 0 ? LogLevel.Info : _b, _c = options.piiLoggingEnabled, piiLoggingEnabled = _c === void 0 ? false : _c;
+        this._localCallback = localCallback;
+        this._correlationId = correlationId;
+        this._level = level;
+        this._piiLoggingEnabled = piiLoggingEnabled;
+    }
+    /*
+     * @hidden
+     */
+    Logger.prototype.logMessage = function (logLevel, logMessage, containsPii) {
+        if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
+            return;
+        }
+        var timestamp = new Date().toUTCString();
+        var log;
+        if (!Utils_1.Utils.isEmpty(this._correlationId)) {
+            log = timestamp + ":" + this._correlationId + "-" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        else {
+            log = timestamp + ":" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        this.executeCallback(logLevel, log, containsPii);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.executeCallback = function (level, message, containsPii) {
+        if (this._localCallback) {
+            this._localCallback(level, message, containsPii);
+        }
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.error = function (message) {
+        this.logMessage(LogLevel.Error, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.errorPii = function (message) {
+        this.logMessage(LogLevel.Error, message, true);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.warning = function (message) {
+        this.logMessage(LogLevel.Warning, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.warningPii = function (message) {
+        this.logMessage(LogLevel.Warning, message, true);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.info = function (message) {
+        this.logMessage(LogLevel.Info, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.infoPii = function (message) {
+        this.logMessage(LogLevel.Info, message, true);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.verbose = function (message) {
+        this.logMessage(LogLevel.Verbose, message, false);
+    };
+    /*
+     * @hidden
+     */
+    Logger.prototype.verbosePii = function (message) {
+        this.logMessage(LogLevel.Verbose, message, true);
+    };
+    return Logger;
+}());
+exports.Logger = Logger;
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/*
+  * Copyright (c) Microsoft Corporation
+  *  All Rights Reserved
+  *  MIT License
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+  * software and associated documentation files (the "Software"), to deal in the Software
+  * without restriction, including without limitation the rights to use, copy, modify,
+  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+  * permit persons to whom the Software is furnished to do so, subject to the following
+  * conditions:
+  *
+  * The above copyright notice and this permission notice shall be
+  * included in all copies or substantial portions of the Software.
+  *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+  * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * @hidden
+ */
+var ErrorMessage = /** @class */ (function () {
+    function ErrorMessage() {
+    }
+    Object.defineProperty(ErrorMessage, "authorityUriInvalidPath", {
+        get: function () { return "AuthorityUriInvalidPath"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "authorityUriInsecure", {
+        get: function () { return "AuthorityUriInsecure"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "invalidAuthorityType", {
+        get: function () { return "InvalidAuthorityType"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "unsupportedAuthorityValidation", {
+        get: function () { return "UnsupportedAuthorityValidation"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "b2cAuthorityUriInvalidPath", {
+        get: function () { return "B2cAuthorityUriInvalidPath"; },
+        enumerable: true,
+        configurable: true
+    });
+    return ErrorMessage;
+}());
+exports.ErrorMessage = ErrorMessage;
+
+
+/***/ }),
 /* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * @hidden
+ */
+var TokenResponse = /** @class */ (function () {
+    function TokenResponse() {
+        this.valid = false;
+        this.parameters = {};
+        this.stateMatch = false;
+        this.stateResponse = "";
+        this.requestType = "unknown";
+    }
+    return TokenResponse;
+}());
+exports.TokenResponse = TokenResponse;
+
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1394,7 +1473,7 @@ exports.User = User;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1422,9 +1501,9 @@ exports.User = User;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(1);
-var Authority_1 = __webpack_require__(3);
-var XHRClient_1 = __webpack_require__(8);
+var tslib_1 = __webpack_require__(2);
+var Authority_1 = __webpack_require__(1);
+var XHRClient_1 = __webpack_require__(9);
 /**
  * @hidden
  */
@@ -1491,7 +1570,7 @@ exports.AadAuthority = AadAuthority;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1580,31 +1659,37 @@ exports.XhrClient = XhrClient;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(10);
+module.exports = __webpack_require__(11);
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var UserAgentApplication_1 = __webpack_require__(11);
+var UserAgentApplication_1 = __webpack_require__(12);
 exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
-var Logger_1 = __webpack_require__(2);
+var Logger_1 = __webpack_require__(4);
 exports.Logger = Logger_1.Logger;
-var Logger_2 = __webpack_require__(2);
+var Logger_2 = __webpack_require__(4);
 exports.LogLevel = Logger_2.LogLevel;
-var User_1 = __webpack_require__(6);
+var User_1 = __webpack_require__(7);
 exports.User = User_1.User;
+var Constants_1 = __webpack_require__(3);
+exports.Constants = Constants_1.Constants;
+var RequestInfo_1 = __webpack_require__(6);
+exports.TokenResponse = RequestInfo_1.TokenResponse;
+var Authority_1 = __webpack_require__(1);
+exports.Authority = Authority_1.Authority;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1632,17 +1717,17 @@ exports.User = User_1.User;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(1);
-var AccessTokenKey_1 = __webpack_require__(12);
-var AccessTokenValue_1 = __webpack_require__(13);
-var AuthenticationRequestParameters_1 = __webpack_require__(14);
-var ClientInfo_1 = __webpack_require__(15);
-var Constants_1 = __webpack_require__(5);
-var IdToken_1 = __webpack_require__(16);
-var Logger_1 = __webpack_require__(2);
-var Storage_1 = __webpack_require__(17);
-var RequestInfo_1 = __webpack_require__(19);
-var User_1 = __webpack_require__(6);
+var tslib_1 = __webpack_require__(2);
+var AccessTokenKey_1 = __webpack_require__(13);
+var AccessTokenValue_1 = __webpack_require__(14);
+var AuthenticationRequestParameters_1 = __webpack_require__(15);
+var ClientInfo_1 = __webpack_require__(16);
+var Constants_1 = __webpack_require__(3);
+var IdToken_1 = __webpack_require__(17);
+var Logger_1 = __webpack_require__(4);
+var Storage_1 = __webpack_require__(18);
+var RequestInfo_1 = __webpack_require__(6);
+var User_1 = __webpack_require__(7);
 var Utils_1 = __webpack_require__(0);
 var AuthorityFactory_1 = __webpack_require__(20);
 /*
@@ -1695,7 +1780,8 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
+        this._isAngular = false;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -1705,28 +1791,33 @@ var UserAgentApplication = /** @class */ (function () {
         this._postLogoutredirectUri = postLogoutRedirectUri;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
-        this._renewStates = [];
-        this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
+        this._isAngular = isAngular;
+        this._anonymousEndpoints = anonymousEndpoints;
+        this._endpoints = endPoints;
         if (!this._cacheLocations[cacheLocation]) {
             throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
-        this._openedWindows = [];
-        window.msal = this;
+        window.openedWindows = [];
+        window.activeRenewals = {};
+        window.renewStates = [];
         window.callBackMappedToRenewStates = {};
         window.callBacksMappedToRenewStates = {};
+        window.msal = this;
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
-        if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
-        }
-        else {
-            var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
-            if (pendingCallback) {
-                this.processCallBack(pendingCallback);
+        if (!this._isAngular) {
+            if (isCallback) {
+                this.handleAuthenticationResponse.call(this, urlHash);
+            }
+            else {
+                var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+                if (pendingCallback) {
+                    this.processCallBack(pendingCallback);
+                }
             }
         }
     }
@@ -1803,7 +1894,7 @@ var UserAgentApplication = /** @class */ (function () {
          */
         if (this._loginInProgress) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback("Login is in progress", null, null, Constants_1.Constants.idToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.loginProgressError, null, Constants_1.ErrorCodes.loginProgressError, Constants_1.Constants.idToken);
                 return;
             }
         }
@@ -1811,19 +1902,27 @@ var UserAgentApplication = /** @class */ (function () {
             var isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.idToken);
+                    this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.idToken);
                     return;
                 }
             }
             scopes = this.filterScopes(scopes);
         }
+        this._loginInProgress = true;
         this.authorityInstance.ResolveEndpointsAsync()
             .then(function () {
             var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
-            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, window.location.href);
+            var loginStartPage = _this._cacheStorage.getItem(Constants_1.Constants.angularLoginRequest);
+            if (!loginStartPage || loginStartPage === "") {
+                loginStartPage = window.location.href;
+            }
+            else {
+                _this._cacheStorage.setItem(Constants_1.Constants.angularLoginRequest, "");
+            }
+            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, loginStartPage);
             _this._cacheStorage.setItem(Constants_1.Constants.loginError, "");
             _this._cacheStorage.setItem(Constants_1.Constants.stateLogin, authenticationRequest.state);
             _this._cacheStorage.setItem(Constants_1.Constants.nonceIdToken, authenticationRequest.nonce);
@@ -1834,8 +1933,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(authorityKey, _this.authority);
             }
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-            _this._loginInProgress = true;
-            _this._requestType = Constants_1.Constants.login;
             _this.promptUser(urlNavigate);
         });
     };
@@ -1854,13 +1951,13 @@ var UserAgentApplication = /** @class */ (function () {
          */
         return new Promise(function (resolve, reject) {
             if (_this._loginInProgress) {
-                reject(Constants_1.ErrorCodes.loginProgressError + ":" + Constants_1.ErrorDescription.loginProgressError);
+                reject(Constants_1.ErrorCodes.loginProgressError + "|" + Constants_1.ErrorDescription.loginProgressError);
                 return;
             }
             if (scopes) {
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                    reject(Constants_1.ErrorCodes.inputScopesError + ":" + Constants_1.ErrorDescription.inputScopesError);
+                    reject(Constants_1.ErrorCodes.inputScopesError + "|" + Constants_1.ErrorDescription.inputScopesError);
                     return;
                 }
                 scopes = _this.filterScopes(scopes);
@@ -1873,6 +1970,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (!popUpWindow) {
                 return;
             }
+            _this._loginInProgress = true;
             _this.authorityInstance.ResolveEndpointsAsync().then(function () {
                 var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                 if (extraQueryParameters) {
@@ -1888,10 +1986,9 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._cacheStorage.setItem(authorityKey, _this.authority);
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-                _this._renewStates.push(authenticationRequest.state);
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants_1.Constants.login;
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                _this._requestType = Constants_1.Constants.login;
-                _this._loginInProgress = true;
                 if (popUpWindow) {
                     _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
@@ -1906,6 +2003,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -1939,19 +2039,23 @@ var UserAgentApplication = /** @class */ (function () {
             this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.popUpWindowError);
             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.popUpWindowError);
             if (reject) {
-                reject(Constants_1.ErrorCodes.popUpWindowError + ":" + Constants_1.ErrorDescription.popUpWindowError);
+                reject(Constants_1.ErrorCodes.popUpWindowError + "|" + Constants_1.ErrorDescription.popUpWindowError);
             }
             return null;
         }
-        this._openedWindows.push(popupWindow);
+        window.openedWindows.push(popupWindow);
         var pollTimer = window.setInterval(function () {
             if (popupWindow && popupWindow.closed && instance._loginInProgress) {
-                instance._loginInProgress = false;
-                instance._acquireTokenInProgress = false;
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.userCancelledError + ":" + Constants_1.ErrorDescription.userCancelledError);
+                    reject(Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
                 }
                 window.clearInterval(pollTimer);
+                if (_this._isAngular) {
+                    _this.broadcast('msal:popUpClosed', Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
+                    return;
+                }
+                instance._loginInProgress = false;
+                instance._acquireTokenInProgress = false;
             }
             try {
                 var popUpWindowLocation = popupWindow.location;
@@ -1960,6 +2064,12 @@ var UserAgentApplication = /** @class */ (function () {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
                     _this._logger.info("Closing popup window");
+                    if (_this._isAngular) {
+                        _this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
+                        for (var i = 0; i < window.openedWindows.length; i++) {
+                            window.openedWindows[i].close();
+                        }
+                    }
                 }
             }
             catch (e) {
@@ -1967,6 +2077,10 @@ var UserAgentApplication = /** @class */ (function () {
             }
         }, interval);
         return popupWindow;
+    };
+    UserAgentApplication.prototype.broadcast = function (eventName, data) {
+        var evt = new CustomEvent(eventName, { detail: data });
+        window.dispatchEvent(evt);
     };
     /*
      * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
@@ -1988,14 +2102,21 @@ var UserAgentApplication = /** @class */ (function () {
      * @hidden
      */
     UserAgentApplication.prototype.clearCache = function () {
-        this._renewStates = [];
-        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.authority);
+        window.renewStates = [];
+        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
         for (var i = 0; i < accessTokenItems.length; i++) {
             this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
         }
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.acquireTokenUser, Constants_1.Constants.renewStatus);
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter, Constants_1.Constants.renewStatus);
         this._cacheStorage.resetCacheItems();
+    };
+    UserAgentApplication.prototype.clearCacheForScope = function (accessToken) {
+        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
+        for (var i = 0; i < accessTokenItems.length; i++) {
+            var token = accessTokenItems[i];
+            if (token.value.accessToken == accessToken) {
+                this._cacheStorage.removeItem(JSON.stringify(token.key));
+            }
+        }
     };
     /*
      * Configures popup window for login.
@@ -2075,7 +2196,7 @@ var UserAgentApplication = /** @class */ (function () {
      */
     UserAgentApplication.prototype.registerCallback = function (expectedState, scope, resolve, reject) {
         var _this = this;
-        this._activeRenewals[scope] = expectedState;
+        window.activeRenewals[scope] = expectedState;
         if (!window.callBacksMappedToRenewStates[expectedState]) {
             window.callBacksMappedToRenewStates[expectedState] = [];
         }
@@ -2083,11 +2204,11 @@ var UserAgentApplication = /** @class */ (function () {
         if (!window.callBackMappedToRenewStates[expectedState]) {
             window.callBackMappedToRenewStates[expectedState] =
                 function (errorDesc, token, error, tokenType) {
-                    _this._activeRenewals[scope] = null;
+                    window.activeRenewals[scope] = null;
                     for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
                         try {
                             if (errorDesc || error) {
-                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);
+                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
                             }
                             else if (token) {
                                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -2102,6 +2223,26 @@ var UserAgentApplication = /** @class */ (function () {
                 };
         }
     };
+    UserAgentApplication.prototype.getCachedTokenInternal = function (scopes, user) {
+        var userObject = user ? user : this.getUser();
+        if (!userObject) {
+            return;
+        }
+        var authenticationRequest;
+        var newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory_1.AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+        if (Utils_1.Utils.compareObjects(userObject, this.getUser())) {
+            if (scopes.indexOf(this.clientId) > -1) {
+                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+            }
+            else {
+                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            }
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+        }
+        return this.getCachedToken(authenticationRequest, user);
+    };
     /*
      * Used to get token for the specified set of scopes from the cache
      * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
@@ -2111,8 +2252,8 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.getCachedToken = function (authenticationRequest, user) {
         var accessTokenCacheItem = null;
         var scopes = authenticationRequest.scopes;
-        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user.userIdentifier); //filter by clientId and user
-        if (tokenCacheItems.length === 0) {
+        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null); //filter by clientId and user
+        if (tokenCacheItems.length === 0) { // No match found after initial filtering
             return null;
         }
         var filteredItems = [];
@@ -2164,6 +2305,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (filteredItems.length === 0) {
                 return null;
             }
+            //only one cachedToken Found
             else if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
             }
@@ -2202,7 +2344,7 @@ var UserAgentApplication = /** @class */ (function () {
      */
     UserAgentApplication.prototype.getAllUsers = function () {
         var users = [];
-        var accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.authority);
+        var accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
         for (var i = 0; i < accessTokenCacheItems.length; i++) {
             var idToken = new IdToken_1.IdToken(accessTokenCacheItems[i].value.idToken);
             var clientInfo = new ClientInfo_1.ClientInfo(accessTokenCacheItems[i].value.clientInfo);
@@ -2299,7 +2441,7 @@ var UserAgentApplication = /** @class */ (function () {
         var isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.accessToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.accessToken);
                 return;
             }
         }
@@ -2343,7 +2485,6 @@ var UserAgentApplication = /** @class */ (function () {
             urlNavigate = _this.addHintParameters(urlNavigate, userObject);
             if (urlNavigate) {
                 _this._cacheStorage.setItem(Constants_1.Constants.stateAcquireToken, authenticationRequest.state);
-                _this._requestType = Constants_1.Constants.renewToken;
                 window.location.replace(urlNavigate);
             }
         });
@@ -2353,19 +2494,19 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             if (scopes) {
                 scopes = _this.filterScopes(scopes);
             }
             var userObject = user ? user : _this.getUser();
             if (_this._acquireTokenInProgress) {
-                reject(Constants_1.ErrorCodes.acquireTokenProgressError + ":" + Constants_1.ErrorDescription.acquireTokenProgressError);
+                reject(Constants_1.ErrorCodes.acquireTokenProgressError + "|" + Constants_1.ErrorDescription.acquireTokenProgressError);
                 return;
             }
             var scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
-                reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                 return;
             }
             _this._acquireTokenInProgress = true;
@@ -2402,9 +2543,9 @@ var UserAgentApplication = /** @class */ (function () {
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 urlNavigate = _this.addHintParameters(urlNavigate, userObject);
-                _this._renewStates.push(authenticationRequest.state);
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants_1.Constants.renewToken;
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                _this._requestType = Constants_1.Constants.renewToken;
                 if (popUpWindow) {
                     popUpWindow.location.href = urlNavigate;
                 }
@@ -2413,11 +2554,14 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.endpointResolutionError);
                 _this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.endpointResolutionError);
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.endpointResolutionError + ":" + Constants_1.ErrorDescription.endpointResolutionError);
+                    reject(Constants_1.ErrorCodes.endpointResolutionError + "|" + Constants_1.ErrorDescription.endpointResolutionError);
                 }
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -2439,7 +2583,7 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             else {
                 if (scopes) {
@@ -2448,7 +2592,7 @@ var UserAgentApplication = /** @class */ (function () {
                 var scope_1 = scopes.join(" ").toLowerCase();
                 var userObject_1 = user ? user : _this.getUser();
                 if (!userObject_1) {
-                    reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                    reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                     return;
                 }
                 var authenticationRequest_1;
@@ -2473,20 +2617,22 @@ var UserAgentApplication = /** @class */ (function () {
                     }
                     else if (cacheResult.errorDesc || cacheResult.error) {
                         _this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-                        reject(cacheResult.errorDesc + ": " + cacheResult.error);
+                        reject(cacheResult.errorDesc + "|" + cacheResult.error);
                         return;
                     }
                 }
-                _this._requestType = Constants_1.Constants.renewToken;
+                else {
+                    _this._logger.verbose("Token is not in cache for scope:" + scope_1);
+                }
                 // cache miss
                 return _this.authorityInstance.ResolveEndpointsAsync()
                     .then(function () {
                     // refresh attept with iframe
                     //Already renewing for this scope, callback when we get the token.
-                    if (_this._activeRenewals[scope_1]) {
+                    if (window.activeRenewals[scope_1]) {
                         _this._logger.verbose("Renew token for scope: " + scope_1 + " is in progress. Registering callback");
                         //Active renewals contains the state for each renewal.
-                        _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
+                        _this.registerCallback(window.activeRenewals[scope_1], scope_1, resolve, reject);
                     }
                     else {
                         if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
@@ -2500,6 +2646,9 @@ var UserAgentApplication = /** @class */ (function () {
                             _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                     }
+                }).catch(function (err) {
+                    _this._logger.warning("could not resolve endpoints");
+                    reject(err);
                 });
             }
         });
@@ -2513,18 +2662,18 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.loadIframeTimeout = function (urlNavigate, frameName, scope) {
         var _this = this;
         //set iframe session to pending
-        this._logger.verbose("Set loading state to pending for: " + scope);
-        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusInProgress);
+        var expectedState = window.activeRenewals[scope];
+        this._logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
+        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusInProgress);
         this.loadFrame(urlNavigate, frameName);
         setTimeout(function () {
-            if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + scope) === Constants_1.Constants.tokenRenewStatusInProgress) {
+            if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + expectedState) === Constants_1.Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it"s in pending state
-                _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
-                var expectedState = _this._activeRenewals[scope];
+                _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
                     window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
                 }
-                _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusCancelled);
+                _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusCancelled);
             }
         }, this.loadFrameTimeout);
     };
@@ -2604,7 +2753,8 @@ var UserAgentApplication = /** @class */ (function () {
         this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
         var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
         urlNavigate = this.addHintParameters(urlNavigate, user);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants_1.Constants.renewToken;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
@@ -2634,7 +2784,8 @@ var UserAgentApplication = /** @class */ (function () {
         this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
         var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
         urlNavigate = this.addHintParameters(urlNavigate, user);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants_1.Constants.renewToken;
         this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
@@ -2686,13 +2837,13 @@ var UserAgentApplication = /** @class */ (function () {
         else if (window.parent && window.parent.msal) {
             self = window.parent.msal;
         }
-        var requestInfo = self.getRequestInfo(hash);
+        var requestInfo = self.getRequestInfo(hash); //if(window.parent!==window), by using self, window.parent becomes equal to window in getRequestInfo method specifically
         var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
         self._logger.info("Returned from redirect url");
-        if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        if (window.parent !== window && window.parent.msal) {
             tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
-        else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        else if (window.opener && window.opener.msal) {
             tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
@@ -2735,8 +2886,10 @@ var UserAgentApplication = /** @class */ (function () {
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
         }
-        for (var i = 0; i < self._openedWindows.length; i++) {
-            self._openedWindows[i].close();
+        if (isWindowOpenerMsal) {
+            for (var i = 0; i < window.opener.openedWindows.length; i++) {
+                window.opener.openedWindows[i].close();
+            }
         }
     };
     /*
@@ -2787,8 +2940,10 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage.setItem(Constants_1.Constants.msalError, "");
         this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "");
         var scope = "";
+        var authorityKey = "";
+        var acquireTokenUserKey = "";
         if (tokenResponse.parameters.hasOwnProperty("scope")) {
-            scope = tokenResponse.parameters["scope"];
+            scope = tokenResponse.parameters["scope"].toLowerCase();
         }
         else {
             scope = this.clientId;
@@ -2801,9 +2956,13 @@ var UserAgentApplication = /** @class */ (function () {
             if (tokenResponse.requestType === Constants_1.Constants.login) {
                 this._loginInProgress = false;
                 this._cacheStorage.setItem(Constants_1.Constants.loginError, tokenResponse.parameters[Constants_1.Constants.errorDescription] + ":" + tokenResponse.parameters[Constants_1.Constants.error]);
+                authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
             }
             if (tokenResponse.requestType === Constants_1.Constants.renewToken) {
                 this._acquireTokenInProgress = false;
+                authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
+                acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + userKey + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
             }
         }
         else {
@@ -2826,7 +2985,7 @@ var UserAgentApplication = /** @class */ (function () {
                     else {
                         idToken = new IdToken_1.IdToken(this._cacheStorage.getItem(Constants_1.Constants.idTokenKey));
                     }
-                    var authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                    authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
                     var authority = void 0;
                     if (!Utils_1.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                         authority = this._cacheStorage.getItem(authorityKey);
@@ -2840,7 +2999,7 @@ var UserAgentApplication = /** @class */ (function () {
                         this._logger.warning("ClientInfo not received in the response from AAD");
                         user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
                     }
-                    var acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + user.userIdentifier + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                    acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + user.userIdentifier + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
                     var acquireTokenUser = void 0;
                     if (!Utils_1.Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
                         acquireTokenUser = JSON.parse(this._cacheStorage.getItem(acquireTokenUserKey));
@@ -2864,7 +3023,7 @@ var UserAgentApplication = /** @class */ (function () {
                         else {
                             this._logger.warning("ClientInfo not received in the response from AAD");
                         }
-                        var authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                        authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
                         var authority = void 0;
                         if (!Utils_1.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                             authority = this._cacheStorage.getItem(authorityKey);
@@ -2898,9 +3057,8 @@ var UserAgentApplication = /** @class */ (function () {
                 this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
             }
         }
-        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusCompleted);
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.acquireTokenUser, Constants_1.Constants.renewStatus);
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter, Constants_1.Constants.renewStatus);
+        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + tokenResponse.stateResponse, Constants_1.Constants.tokenRenewStatusCompleted);
+        this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
     };
     /*
      * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
@@ -2959,25 +3117,20 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenResponse.stateResponse = stateResponse;
                 // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                 // incoming callback needs to be looked up to find the request type
-                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) {
+                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) { // loginRedirect
                     tokenResponse.requestType = Constants_1.Constants.login;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
                 }
-                else if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateAcquireToken)) {
+                else if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateAcquireToken)) { //acquireTokenRedirect
                     tokenResponse.requestType = Constants_1.Constants.renewToken;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
                 }
                 // external api requests may have many renewtoken requests for different resource
                 if (!tokenResponse.stateMatch) {
-                    if (window.parent && window.parent !== window) {
-                        tokenResponse.requestType = Constants_1.Constants.renewToken;
-                    }
-                    else {
-                        tokenResponse.requestType = this._requestType;
-                    }
-                    var statesInParentContext = this._renewStates;
+                    tokenResponse.requestType = window.requestType;
+                    var statesInParentContext = window.renewStates;
                     for (var i = 0; i < statesInParentContext.length; i++) {
                         if (statesInParentContext[i] === tokenResponse.stateResponse) {
                             tokenResponse.stateMatch = true;
@@ -3012,6 +3165,65 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.isInIframe = function () {
         return window.parent !== window;
     };
+    UserAgentApplication.prototype.loginInProgress = function () {
+        var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+        if (pendingCallback)
+            return true;
+        return this._loginInProgress;
+    };
+    UserAgentApplication.prototype.getHostFromUri = function (uri) {
+        // remove http:// or https:// from uri
+        var extractedUri = String(uri).replace(/^(https?:)\/\//, '');
+        extractedUri = extractedUri.split('/')[0];
+        return extractedUri;
+    };
+    UserAgentApplication.prototype.getScopesForEndpoint = function (endpoint) {
+        // if user specified list of anonymous endpoints, no need to send token to these endpoints, return null.
+        if (this._anonymousEndpoints.length > 0) {
+            for (var i = 0; i < this._anonymousEndpoints.length; i++) {
+                if (endpoint.indexOf(this._anonymousEndpoints[i]) > -1) {
+                    return null;
+                }
+            }
+        }
+        if (this._endpoints.size > 0) {
+            for (var _i = 0, _a = Array.from(this._endpoints.keys()); _i < _a.length; _i++) {
+                var key = _a[_i];
+                // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
+                if (endpoint.indexOf(key) > -1) {
+                    return this._endpoints.get(key);
+                }
+            }
+        }
+        // default resource will be clientid if nothing specified
+        // App will use idtoken for calls to itself
+        // check if it's staring from http or https, needs to match with app host
+        if (endpoint.indexOf('http://') > -1 || endpoint.indexOf('https://') > -1) {
+            if (this.getHostFromUri(endpoint) === this.getHostFromUri(this._redirectUri)) {
+                return new Array(this.clientId);
+            }
+        }
+        else {
+            // in angular level, the url for $http interceptor call could be relative url,
+            // if it's relative call, we'll treat it as app backend call.            
+            return new Array(this.clientId);
+        }
+        // if not the app's own backend or not a domain listed in the endpoints structure
+        return null;
+    };
+    //These APIS are exposed for msalAngular wrapper only
+    UserAgentApplication.prototype.setloginInProgress = function (loginInProgress) {
+        this._loginInProgress = loginInProgress;
+    };
+    UserAgentApplication.prototype.getAcquireTokenInProgress = function () {
+        return this._acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.setAcquireTokenInProgress = function (acquireTokenInProgress) {
+        this._acquireTokenInProgress = acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.getLogger = function () {
+        return this._logger;
+    };
     tslib_1.__decorate([
         resolveTokenOnlyIfOutOfIframe
     ], UserAgentApplication.prototype, "acquireTokenSilent", null);
@@ -3021,7 +3233,7 @@ exports.UserAgentApplication = UserAgentApplication;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3066,7 +3278,7 @@ exports.AccessTokenKey = AccessTokenKey;
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3110,7 +3322,7 @@ exports.AccessTokenValue = AccessTokenValue;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3224,7 +3436,7 @@ exports.AuthenticationRequestParameters = AuthenticationRequestParameters;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3305,7 +3517,7 @@ exports.ClientInfo = ClientInfo;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3388,7 +3600,7 @@ exports.IdToken = IdToken;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3416,8 +3628,8 @@ exports.IdToken = IdToken;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var Constants_1 = __webpack_require__(5);
-var AccessTokenCacheItem_1 = __webpack_require__(18);
+var Constants_1 = __webpack_require__(3);
+var AccessTokenCacheItem_1 = __webpack_require__(19);
 /*
  * @hidden
  */
@@ -3494,13 +3706,13 @@ var Storage = /** @class */ (function () {
         }
         return results;
     };
-    Storage.prototype.removeAcquireTokenEntries = function (acquireTokenUser, acquireTokenStatus) {
+    Storage.prototype.removeAcquireTokenEntries = function (authorityKey, acquireTokenUserKey) {
         var storage = window[this._cacheLocation];
         if (storage) {
             var key = void 0;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((key.indexOf(acquireTokenUser) > -1) || (key.indexOf(acquireTokenStatus) > -1)) {
+                    if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
                         this.removeItem(key);
                     }
                 }
@@ -3516,8 +3728,10 @@ var Storage = /** @class */ (function () {
             var key = void 0;
             for (key in storage) {
                 if (storage.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.msal) !== -1) {
-                    storage[key] = "";
+                    this.setItem(key, "");
                 }
+                if (storage.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.renewStatus) !== -1)
+                    this.removeItem(key);
             }
         }
         else {
@@ -3530,7 +3744,7 @@ exports.Storage = Storage;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3572,51 +3786,6 @@ exports.AccessTokenCacheItem = AccessTokenCacheItem;
 
 
 /***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var TokenResponse = /** @class */ (function () {
-    function TokenResponse() {
-        this.valid = false;
-        this.parameters = {};
-        this.stateMatch = false;
-        this.stateResponse = "";
-        this.requestType = "unknown";
-    }
-    return TokenResponse;
-}());
-exports.TokenResponse = TokenResponse;
-
-
-/***/ }),
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3649,10 +3818,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @hidden
  */
 var Utils_1 = __webpack_require__(0);
-var AadAuthority_1 = __webpack_require__(7);
+var AadAuthority_1 = __webpack_require__(8);
 var B2cAuthority_1 = __webpack_require__(21);
-var Authority_1 = __webpack_require__(3);
-var ErrorMessage_1 = __webpack_require__(4);
+var Authority_1 = __webpack_require__(1);
+var ErrorMessage_1 = __webpack_require__(5);
 var AuthorityFactory = /** @class */ (function () {
     function AuthorityFactory() {
     }
@@ -3722,10 +3891,10 @@ exports.AuthorityFactory = AuthorityFactory;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(1);
-var AadAuthority_1 = __webpack_require__(7);
-var Authority_1 = __webpack_require__(3);
-var ErrorMessage_1 = __webpack_require__(4);
+var tslib_1 = __webpack_require__(2);
+var AadAuthority_1 = __webpack_require__(8);
+var Authority_1 = __webpack_require__(1);
+var ErrorMessage_1 = __webpack_require__(5);
 var Utils_1 = __webpack_require__(0);
 /*
  * @hidden

@@ -92,10 +92,10 @@ export class Utils {
     // html5 should support atob function for decoding
     base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
     if (window.atob) {
-      return decodeURIComponent(window.atob(base64IdToken)); // jshint ignore:line
+        return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
     }
     else {
-      return decodeURIComponent(this.decode(base64IdToken));
+        return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
     }
   }
 
@@ -257,7 +257,7 @@ export class Utils {
   }
 
   static getLibraryVersion(): string {
-    return "0.1.5";
+    return "0.1.6";
   }
 
   /*

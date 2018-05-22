@@ -110,13 +110,13 @@ export class Storage {// Singleton
     return results;
   }
 
-  removeAcquireTokenEntries(acquireTokenUser: string, acquireTokenStatus: string): void {
+  removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
     const storage = window[this._cacheLocation];
     if (storage) {
       let key: string;
       for (key in storage) {
         if (storage.hasOwnProperty(key)) {
-          if ((key.indexOf(acquireTokenUser) > -1) || (key.indexOf(acquireTokenStatus) > -1)) {
+            if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey!= "" && key.indexOf(acquireTokenUserKey) > -1)) {
             this.removeItem(key);
           }
         }
@@ -131,9 +131,11 @@ export class Storage {// Singleton
     if (storage) {
       let key: string;
       for (key in storage) {
-        if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
-          storage[key] = "";
-        }
+          if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
+              this.setItem(key,"");
+          }
+          if (storage.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
+              this.removeItem(key);
       }
     } else {
       throw new Error("localStorage and sessionStorage are not supported");

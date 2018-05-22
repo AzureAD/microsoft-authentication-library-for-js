@@ -84,10 +84,10 @@ var Utils = /** @class */ (function () {
         // html5 should support atob function for decoding
         base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
         if (window.atob) {
-            return decodeURIComponent(window.atob(base64IdToken)); // jshint ignore:line
+            return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
         }
         else {
-            return decodeURIComponent(this.decode(base64IdToken));
+            return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
         }
     };
     Utils.encode = function (input) {
@@ -157,6 +157,7 @@ var Utils = /** @class */ (function () {
                 decoded += String.fromCharCode(c1, c2);
                 break;
             }
+            // if last one is "="
             else if (i + 1 === length - 1) {
                 bits = h1 << 18 | h2 << 12;
                 c1 = bits >> 16 & 255;
@@ -229,7 +230,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.5";
+        return "0.1.6";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d

@@ -136,20 +136,15 @@
             });
     <span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
 </code></pre>
-				<ol>
+				<ol start="4">
 					<li>use the token in an <a href="https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2/blob/master/TodoSPA/App/Scripts/Ctrls/todoListCtrl.js#L30">HTTP bearer request</a>, to call the Microsoft Graph or a Web API</li>
 				</ol>
 				<h2 id="installation">Installation</h2>
 				<p>Via NPM:</p>
 				<pre><code>npm <span class="hljs-keyword">install</span> msal
-</code></pre><p>Via CDN:</p>
-				<pre><code class="lang-JavaScript">    &lt;!-- Latest compiled and minified JavaScript --&gt;
-    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/0.1.5/js/msal.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
-</code></pre>
-				<p>Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you&#39;ll need to add a reference to promises polyfill. You might want to read more in the <a href="../../wiki">FAQ</a></p>
+</code></pre><p>Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you&#39;ll need to add a reference to promises polyfill. You might want to read more in the <a href="../../wiki">FAQ</a></p>
 				<pre><code class="lang-JavaScript">    &lt;!-- IE support: add promises polyfill before msal.js  --&gt;
     <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"pre"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span> 
-    &lt;script src=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/0.1.5/js/msal.min.js"</span>&gt;<span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
 </code></pre>
 				<h2 id="build-and-running-tests">Build and running tests</h2>
 				<p>If you want to build the library and run all the unit tests, you can do the following.</p>
@@ -157,7 +152,25 @@
 				<pre><code>npm <span class="hljs-keyword">install</span>
 </code></pre><p>Then use the following command to build the library and run all the unit tests:</p>
 				<pre><code>npm <span class="hljs-keyword">run</span><span class="bash"> build</span>
-</code></pre><h2 id="community-help-and-support">Community Help and Support</h2>
+</code></pre><h2 id="logging">Logging</h2>
+				<p>You can enable logging in MSAL.js by passing a logger object when creating a UserAgentApplication instance as follows: </p>
+				<pre><code class="lang-javascript"><span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose });
+
+<span class="hljs-keyword">var</span> clientApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(clientID, authority, authCallback, { <span class="hljs-attr">logger</span>: logger });
+
+</code></pre>
+				<p>Implement the <code>loggerCallback</code> method depending on how you want to redirect logs.
+				The supported log levels are: Error, Warning, Info, Verbose</p>
+				<h4 id="personal-identifiable-information-pii-organizational-identifiable-information-oii-">Personal Identifiable Information (PII) &amp; Organizational Identifiable Information (OII)</h4>
+				<p>By default, MSAL.js logging does not capture or log any PII or OII. The library allows app developers to turn this on by configuring the <code>piiLoggingEnabled</code> flag on the log context. By turning on PII or OII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.</p>
+				<pre><code class="lang-javascript"><span class="hljs-comment">//PII or OII logging disabled. Default Logger does not capture any PII or OII</span>
+<span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose, <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">false</span> });
+
+<span class="hljs-comment">//PII or OII logging enabled</span>
+<span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose, <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">true</span> });
+
+</code></pre>
+				<h2 id="community-help-and-support">Community Help and Support</h2>
 				<ul>
 					<li><p><a href="../../wiki">FAQ</a> for access to our frequently asked questions</p>
 					</li>

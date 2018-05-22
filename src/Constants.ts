@@ -28,10 +28,10 @@ export class Constants {
   static get errorDescription(): string { return "error_description"; }
   static get error(): string { return "error"; }
   static get scope(): string { return "scope"; }
-  static get acquireTokenUser(): string { return "msal_acquireTokenUser"; }
+  static get acquireTokenUser(): string { return "msal.acquireTokenUser"; }
   static get clientInfo(): string { return "client_info"; }
   static get clientId(): string { return "clientId"; }
-  static get authority(): string { return "authority"; }
+  static get authority(): string { return "msal.authority"; }
   static get idToken(): string { return "id_token"; }
   static get accessToken(): string { return "access_token"; }
   static get expiresIn(): string { return "expires_in"; }
@@ -68,9 +68,11 @@ export class Constants {
     this._popUpHeight = height;
   }
   static get login(): string { return "LOGIN"; }
-  static get renewToken(): string { return "renewToken"; }
+  static get renewToken(): string { return "RENEW_TOKEN"; }
   static get unknown(): string { return "UNKNOWN"; }
   static get urlHash(): string { return "msal.urlHash"; }
+    static get angularLoginRequest(): string { return "msal.angular.login.request"; }
+    static get userIdentifier(): string { return "userIdentifier"; }
 }
 
 /*

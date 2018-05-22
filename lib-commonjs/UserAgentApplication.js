@@ -85,7 +85,8 @@ var UserAgentApplication = /** @class */ (function () {
          * @hidden
          */
         this._tokenReceivedCallback = null;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g;
+        this._isAngular = false;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -95,28 +96,33 @@ var UserAgentApplication = /** @class */ (function () {
         this._postLogoutredirectUri = postLogoutRedirectUri;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
-        this._renewStates = [];
-        this._activeRenewals = {};
         this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
+        this._isAngular = isAngular;
+        this._anonymousEndpoints = anonymousEndpoints;
+        this._endpoints = endPoints;
         if (!this._cacheLocations[cacheLocation]) {
             throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
-        this._openedWindows = [];
-        window.msal = this;
+        window.openedWindows = [];
+        window.activeRenewals = {};
+        window.renewStates = [];
         window.callBackMappedToRenewStates = {};
         window.callBacksMappedToRenewStates = {};
+        window.msal = this;
         var urlHash = window.location.hash;
         var isCallback = this.isCallback(urlHash);
-        if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
-        }
-        else {
-            var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
-            if (pendingCallback) {
-                this.processCallBack(pendingCallback);
+        if (!this._isAngular) {
+            if (isCallback) {
+                this.handleAuthenticationResponse.call(this, urlHash);
+            }
+            else {
+                var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+                if (pendingCallback) {
+                    this.processCallBack(pendingCallback);
+                }
             }
         }
     }
@@ -193,7 +199,7 @@ var UserAgentApplication = /** @class */ (function () {
          */
         if (this._loginInProgress) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback("Login is in progress", null, null, Constants_1.Constants.idToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.loginProgressError, null, Constants_1.ErrorCodes.loginProgressError, Constants_1.Constants.idToken);
                 return;
             }
         }
@@ -201,19 +207,27 @@ var UserAgentApplication = /** @class */ (function () {
             var isValidScope = this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
                 if (this._tokenReceivedCallback) {
-                    this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.idToken);
+                    this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.idToken);
                     return;
                 }
             }
             scopes = this.filterScopes(scopes);
         }
+        this._loginInProgress = true;
         this.authorityInstance.ResolveEndpointsAsync()
             .then(function () {
             var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
             if (extraQueryParameters) {
                 authenticationRequest.extraQueryParameters = extraQueryParameters;
             }
-            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, window.location.href);
+            var loginStartPage = _this._cacheStorage.getItem(Constants_1.Constants.angularLoginRequest);
+            if (!loginStartPage || loginStartPage === "") {
+                loginStartPage = window.location.href;
+            }
+            else {
+                _this._cacheStorage.setItem(Constants_1.Constants.angularLoginRequest, "");
+            }
+            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, loginStartPage);
             _this._cacheStorage.setItem(Constants_1.Constants.loginError, "");
             _this._cacheStorage.setItem(Constants_1.Constants.stateLogin, authenticationRequest.state);
             _this._cacheStorage.setItem(Constants_1.Constants.nonceIdToken, authenticationRequest.nonce);
@@ -224,8 +238,6 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(authorityKey, _this.authority);
             }
             var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-            _this._loginInProgress = true;
-            _this._requestType = Constants_1.Constants.login;
             _this.promptUser(urlNavigate);
         });
     };
@@ -244,13 +256,13 @@ var UserAgentApplication = /** @class */ (function () {
          */
         return new Promise(function (resolve, reject) {
             if (_this._loginInProgress) {
-                reject(Constants_1.ErrorCodes.loginProgressError + ":" + Constants_1.ErrorDescription.loginProgressError);
+                reject(Constants_1.ErrorCodes.loginProgressError + "|" + Constants_1.ErrorDescription.loginProgressError);
                 return;
             }
             if (scopes) {
                 var isValidScope = _this.validateInputScope(scopes);
                 if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                    reject(Constants_1.ErrorCodes.inputScopesError + ":" + Constants_1.ErrorDescription.inputScopesError);
+                    reject(Constants_1.ErrorCodes.inputScopesError + "|" + Constants_1.ErrorDescription.inputScopesError);
                     return;
                 }
                 scopes = _this.filterScopes(scopes);
@@ -263,6 +275,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (!popUpWindow) {
                 return;
             }
+            _this._loginInProgress = true;
             _this.authorityInstance.ResolveEndpointsAsync().then(function () {
                 var authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(_this.authorityInstance, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
                 if (extraQueryParameters) {
@@ -278,10 +291,9 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._cacheStorage.setItem(authorityKey, _this.authority);
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-                _this._renewStates.push(authenticationRequest.state);
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants_1.Constants.login;
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                _this._requestType = Constants_1.Constants.login;
-                _this._loginInProgress = true;
                 if (popUpWindow) {
                     _this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
                     popUpWindow.location.href = urlNavigate;
@@ -296,6 +308,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -329,19 +344,23 @@ var UserAgentApplication = /** @class */ (function () {
             this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.popUpWindowError);
             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.popUpWindowError);
             if (reject) {
-                reject(Constants_1.ErrorCodes.popUpWindowError + ":" + Constants_1.ErrorDescription.popUpWindowError);
+                reject(Constants_1.ErrorCodes.popUpWindowError + "|" + Constants_1.ErrorDescription.popUpWindowError);
             }
             return null;
         }
-        this._openedWindows.push(popupWindow);
+        window.openedWindows.push(popupWindow);
         var pollTimer = window.setInterval(function () {
             if (popupWindow && popupWindow.closed && instance._loginInProgress) {
-                instance._loginInProgress = false;
-                instance._acquireTokenInProgress = false;
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.userCancelledError + ":" + Constants_1.ErrorDescription.userCancelledError);
+                    reject(Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
                 }
                 window.clearInterval(pollTimer);
+                if (_this._isAngular) {
+                    _this.broadcast('msal:popUpClosed', Constants_1.ErrorCodes.userCancelledError + "|" + Constants_1.ErrorDescription.userCancelledError);
+                    return;
+                }
+                instance._loginInProgress = false;
+                instance._acquireTokenInProgress = false;
             }
             try {
                 var popUpWindowLocation = popupWindow.location;
@@ -350,6 +369,12 @@ var UserAgentApplication = /** @class */ (function () {
                     instance._loginInProgress = false;
                     instance._acquireTokenInProgress = false;
                     _this._logger.info("Closing popup window");
+                    if (_this._isAngular) {
+                        _this.broadcast('msal:popUpHashChanged', popUpWindowLocation.hash);
+                        for (var i = 0; i < window.openedWindows.length; i++) {
+                            window.openedWindows[i].close();
+                        }
+                    }
                 }
             }
             catch (e) {
@@ -357,6 +382,10 @@ var UserAgentApplication = /** @class */ (function () {
             }
         }, interval);
         return popupWindow;
+    };
+    UserAgentApplication.prototype.broadcast = function (eventName, data) {
+        var evt = new CustomEvent(eventName, { detail: data });
+        window.dispatchEvent(evt);
     };
     /*
      * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
@@ -378,14 +407,21 @@ var UserAgentApplication = /** @class */ (function () {
      * @hidden
      */
     UserAgentApplication.prototype.clearCache = function () {
-        this._renewStates = [];
-        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.authority);
+        window.renewStates = [];
+        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
         for (var i = 0; i < accessTokenItems.length; i++) {
             this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
         }
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.acquireTokenUser, Constants_1.Constants.renewStatus);
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter, Constants_1.Constants.renewStatus);
         this._cacheStorage.resetCacheItems();
+    };
+    UserAgentApplication.prototype.clearCacheForScope = function (accessToken) {
+        var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
+        for (var i = 0; i < accessTokenItems.length; i++) {
+            var token = accessTokenItems[i];
+            if (token.value.accessToken == accessToken) {
+                this._cacheStorage.removeItem(JSON.stringify(token.key));
+            }
+        }
     };
     /*
      * Configures popup window for login.
@@ -465,7 +501,7 @@ var UserAgentApplication = /** @class */ (function () {
      */
     UserAgentApplication.prototype.registerCallback = function (expectedState, scope, resolve, reject) {
         var _this = this;
-        this._activeRenewals[scope] = expectedState;
+        window.activeRenewals[scope] = expectedState;
         if (!window.callBacksMappedToRenewStates[expectedState]) {
             window.callBacksMappedToRenewStates[expectedState] = [];
         }
@@ -473,11 +509,11 @@ var UserAgentApplication = /** @class */ (function () {
         if (!window.callBackMappedToRenewStates[expectedState]) {
             window.callBackMappedToRenewStates[expectedState] =
                 function (errorDesc, token, error, tokenType) {
-                    _this._activeRenewals[scope] = null;
+                    window.activeRenewals[scope] = null;
                     for (var i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
                         try {
                             if (errorDesc || error) {
-                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + ": " + error);
+                                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
                             }
                             else if (token) {
                                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -492,6 +528,26 @@ var UserAgentApplication = /** @class */ (function () {
                 };
         }
     };
+    UserAgentApplication.prototype.getCachedTokenInternal = function (scopes, user) {
+        var userObject = user ? user : this.getUser();
+        if (!userObject) {
+            return;
+        }
+        var authenticationRequest;
+        var newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory_1.AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+        if (Utils_1.Utils.compareObjects(userObject, this.getUser())) {
+            if (scopes.indexOf(this.clientId) > -1) {
+                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+            }
+            else {
+                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            }
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+        }
+        return this.getCachedToken(authenticationRequest, user);
+    };
     /*
      * Used to get token for the specified set of scopes from the cache
      * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
@@ -501,8 +557,8 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.getCachedToken = function (authenticationRequest, user) {
         var accessTokenCacheItem = null;
         var scopes = authenticationRequest.scopes;
-        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user.userIdentifier); //filter by clientId and user
-        if (tokenCacheItems.length === 0) {
+        var tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null); //filter by clientId and user
+        if (tokenCacheItems.length === 0) { // No match found after initial filtering
             return null;
         }
         var filteredItems = [];
@@ -554,6 +610,7 @@ var UserAgentApplication = /** @class */ (function () {
             if (filteredItems.length === 0) {
                 return null;
             }
+            //only one cachedToken Found
             else if (filteredItems.length === 1) {
                 accessTokenCacheItem = filteredItems[0];
             }
@@ -592,7 +649,7 @@ var UserAgentApplication = /** @class */ (function () {
      */
     UserAgentApplication.prototype.getAllUsers = function () {
         var users = [];
-        var accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.authority);
+        var accessTokenCacheItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
         for (var i = 0; i < accessTokenCacheItems.length; i++) {
             var idToken = new IdToken_1.IdToken(accessTokenCacheItems[i].value.idToken);
             var clientInfo = new ClientInfo_1.ClientInfo(accessTokenCacheItems[i].value.clientInfo);
@@ -689,7 +746,7 @@ var UserAgentApplication = /** @class */ (function () {
         var isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
             if (this._tokenReceivedCallback) {
-                this._tokenReceivedCallback(isValidScope, null, null, Constants_1.Constants.accessToken);
+                this._tokenReceivedCallback(Constants_1.ErrorDescription.inputScopesError, null, Constants_1.ErrorCodes.inputScopesError, Constants_1.Constants.accessToken);
                 return;
             }
         }
@@ -733,7 +790,6 @@ var UserAgentApplication = /** @class */ (function () {
             urlNavigate = _this.addHintParameters(urlNavigate, userObject);
             if (urlNavigate) {
                 _this._cacheStorage.setItem(Constants_1.Constants.stateAcquireToken, authenticationRequest.state);
-                _this._requestType = Constants_1.Constants.renewToken;
                 window.location.replace(urlNavigate);
             }
         });
@@ -743,19 +799,19 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             if (scopes) {
                 scopes = _this.filterScopes(scopes);
             }
             var userObject = user ? user : _this.getUser();
             if (_this._acquireTokenInProgress) {
-                reject(Constants_1.ErrorCodes.acquireTokenProgressError + ":" + Constants_1.ErrorDescription.acquireTokenProgressError);
+                reject(Constants_1.ErrorCodes.acquireTokenProgressError + "|" + Constants_1.ErrorDescription.acquireTokenProgressError);
                 return;
             }
             var scope = scopes.join(" ").toLowerCase();
             if (!userObject) {
-                reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                 return;
             }
             _this._acquireTokenInProgress = true;
@@ -792,9 +848,9 @@ var UserAgentApplication = /** @class */ (function () {
                 }
                 var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
                 urlNavigate = _this.addHintParameters(urlNavigate, userObject);
-                _this._renewStates.push(authenticationRequest.state);
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants_1.Constants.renewToken;
                 _this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-                _this._requestType = Constants_1.Constants.renewToken;
                 if (popUpWindow) {
                     popUpWindow.location.href = urlNavigate;
                 }
@@ -803,11 +859,14 @@ var UserAgentApplication = /** @class */ (function () {
                 _this._cacheStorage.setItem(Constants_1.Constants.msalError, Constants_1.ErrorCodes.endpointResolutionError);
                 _this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, Constants_1.ErrorDescription.endpointResolutionError);
                 if (reject) {
-                    reject(Constants_1.ErrorCodes.endpointResolutionError + ":" + Constants_1.ErrorDescription.endpointResolutionError);
+                    reject(Constants_1.ErrorCodes.endpointResolutionError + "|" + Constants_1.ErrorDescription.endpointResolutionError);
                 }
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -829,7 +888,7 @@ var UserAgentApplication = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var isValidScope = _this.validateInputScope(scopes);
             if (isValidScope && !Utils_1.Utils.isEmpty(isValidScope)) {
-                reject(Constants_1.ErrorCodes.inputScopesError + ":" + isValidScope);
+                reject(Constants_1.ErrorCodes.inputScopesError + "|" + isValidScope);
             }
             else {
                 if (scopes) {
@@ -838,7 +897,7 @@ var UserAgentApplication = /** @class */ (function () {
                 var scope_1 = scopes.join(" ").toLowerCase();
                 var userObject_1 = user ? user : _this.getUser();
                 if (!userObject_1) {
-                    reject(Constants_1.ErrorCodes.userLoginError + ":" + Constants_1.ErrorDescription.userLoginError);
+                    reject(Constants_1.ErrorCodes.userLoginError + "|" + Constants_1.ErrorDescription.userLoginError);
                     return;
                 }
                 var authenticationRequest_1;
@@ -863,20 +922,22 @@ var UserAgentApplication = /** @class */ (function () {
                     }
                     else if (cacheResult.errorDesc || cacheResult.error) {
                         _this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-                        reject(cacheResult.errorDesc + ": " + cacheResult.error);
+                        reject(cacheResult.errorDesc + "|" + cacheResult.error);
                         return;
                     }
                 }
-                _this._requestType = Constants_1.Constants.renewToken;
+                else {
+                    _this._logger.verbose("Token is not in cache for scope:" + scope_1);
+                }
                 // cache miss
                 return _this.authorityInstance.ResolveEndpointsAsync()
                     .then(function () {
                     // refresh attept with iframe
                     //Already renewing for this scope, callback when we get the token.
-                    if (_this._activeRenewals[scope_1]) {
+                    if (window.activeRenewals[scope_1]) {
                         _this._logger.verbose("Renew token for scope: " + scope_1 + " is in progress. Registering callback");
                         //Active renewals contains the state for each renewal.
-                        _this.registerCallback(_this._activeRenewals[scope_1], scope_1, resolve, reject);
+                        _this.registerCallback(window.activeRenewals[scope_1], scope_1, resolve, reject);
                     }
                     else {
                         if (scopes && scopes.indexOf(_this.clientId) > -1 && scopes.length === 1) {
@@ -890,6 +951,9 @@ var UserAgentApplication = /** @class */ (function () {
                             _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                     }
+                }).catch(function (err) {
+                    _this._logger.warning("could not resolve endpoints");
+                    reject(err);
                 });
             }
         });
@@ -903,18 +967,18 @@ var UserAgentApplication = /** @class */ (function () {
     UserAgentApplication.prototype.loadIframeTimeout = function (urlNavigate, frameName, scope) {
         var _this = this;
         //set iframe session to pending
-        this._logger.verbose("Set loading state to pending for: " + scope);
-        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusInProgress);
+        var expectedState = window.activeRenewals[scope];
+        this._logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
+        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusInProgress);
         this.loadFrame(urlNavigate, frameName);
         setTimeout(function () {
-            if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + scope) === Constants_1.Constants.tokenRenewStatusInProgress) {
+            if (_this._cacheStorage.getItem(Constants_1.Constants.renewStatus + expectedState) === Constants_1.Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it"s in pending state
-                _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope);
-                var expectedState = _this._activeRenewals[scope];
+                _this._logger.verbose("Loading frame has timed out after: " + (_this.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
                     window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants_1.Constants.accessToken);
                 }
-                _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusCancelled);
+                _this._cacheStorage.setItem(Constants_1.Constants.renewStatus + expectedState, Constants_1.Constants.tokenRenewStatusCancelled);
             }
         }, this.loadFrameTimeout);
     };
@@ -994,7 +1058,8 @@ var UserAgentApplication = /** @class */ (function () {
         this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
         var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
         urlNavigate = this.addHintParameters(urlNavigate, user);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants_1.Constants.renewToken;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
@@ -1024,7 +1089,8 @@ var UserAgentApplication = /** @class */ (function () {
         this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
         var urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
         urlNavigate = this.addHintParameters(urlNavigate, user);
-        this._renewStates.push(authenticationRequest.state);
+        window.renewStates.push(authenticationRequest.state);
+        window.requestType = Constants_1.Constants.renewToken;
         this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
         this._logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
@@ -1076,13 +1142,13 @@ var UserAgentApplication = /** @class */ (function () {
         else if (window.parent && window.parent.msal) {
             self = window.parent.msal;
         }
-        var requestInfo = self.getRequestInfo(hash);
+        var requestInfo = self.getRequestInfo(hash); //if(window.parent!==window), by using self, window.parent becomes equal to window in getRequestInfo method specifically
         var token = null, tokenReceivedCallback = null, tokenType, saveToken = true;
         self._logger.info("Returned from redirect url");
-        if (window.parent !== window && window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        if (window.parent !== window && window.parent.msal) {
             tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
-        else if (window.opener && window.opener.msal && window.opener.callBackMappedToRenewStates[requestInfo.stateResponse]) {
+        else if (window.opener && window.opener.msal) {
             tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
@@ -1125,8 +1191,10 @@ var UserAgentApplication = /** @class */ (function () {
         catch (err) {
             self._logger.error("Error occurred in token received callback function: " + err);
         }
-        for (var i = 0; i < self._openedWindows.length; i++) {
-            self._openedWindows[i].close();
+        if (isWindowOpenerMsal) {
+            for (var i = 0; i < window.opener.openedWindows.length; i++) {
+                window.opener.openedWindows[i].close();
+            }
         }
     };
     /*
@@ -1177,8 +1245,10 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage.setItem(Constants_1.Constants.msalError, "");
         this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "");
         var scope = "";
+        var authorityKey = "";
+        var acquireTokenUserKey = "";
         if (tokenResponse.parameters.hasOwnProperty("scope")) {
-            scope = tokenResponse.parameters["scope"];
+            scope = tokenResponse.parameters["scope"].toLowerCase();
         }
         else {
             scope = this.clientId;
@@ -1191,9 +1261,13 @@ var UserAgentApplication = /** @class */ (function () {
             if (tokenResponse.requestType === Constants_1.Constants.login) {
                 this._loginInProgress = false;
                 this._cacheStorage.setItem(Constants_1.Constants.loginError, tokenResponse.parameters[Constants_1.Constants.errorDescription] + ":" + tokenResponse.parameters[Constants_1.Constants.error]);
+                authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
             }
             if (tokenResponse.requestType === Constants_1.Constants.renewToken) {
                 this._acquireTokenInProgress = false;
+                authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
+                acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + userKey + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
             }
         }
         else {
@@ -1216,7 +1290,7 @@ var UserAgentApplication = /** @class */ (function () {
                     else {
                         idToken = new IdToken_1.IdToken(this._cacheStorage.getItem(Constants_1.Constants.idTokenKey));
                     }
-                    var authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                    authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
                     var authority = void 0;
                     if (!Utils_1.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                         authority = this._cacheStorage.getItem(authorityKey);
@@ -1230,7 +1304,7 @@ var UserAgentApplication = /** @class */ (function () {
                         this._logger.warning("ClientInfo not received in the response from AAD");
                         user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
                     }
-                    var acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + user.userIdentifier + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                    acquireTokenUserKey = Constants_1.Constants.acquireTokenUser + Constants_1.Constants.resourceDelimeter + user.userIdentifier + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
                     var acquireTokenUser = void 0;
                     if (!Utils_1.Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
                         acquireTokenUser = JSON.parse(this._cacheStorage.getItem(acquireTokenUserKey));
@@ -1254,7 +1328,7 @@ var UserAgentApplication = /** @class */ (function () {
                         else {
                             this._logger.warning("ClientInfo not received in the response from AAD");
                         }
-                        var authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
+                        authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + tokenResponse.stateResponse;
                         var authority = void 0;
                         if (!Utils_1.Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
                             authority = this._cacheStorage.getItem(authorityKey);
@@ -1288,9 +1362,8 @@ var UserAgentApplication = /** @class */ (function () {
                 this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
             }
         }
-        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + scope, Constants_1.Constants.tokenRenewStatusCompleted);
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.acquireTokenUser, Constants_1.Constants.renewStatus);
-        this._cacheStorage.removeAcquireTokenEntries(Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter, Constants_1.Constants.renewStatus);
+        this._cacheStorage.setItem(Constants_1.Constants.renewStatus + tokenResponse.stateResponse, Constants_1.Constants.tokenRenewStatusCompleted);
+        this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
     };
     /*
      * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
@@ -1349,25 +1422,20 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenResponse.stateResponse = stateResponse;
                 // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                 // incoming callback needs to be looked up to find the request type
-                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) {
+                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) { // loginRedirect
                     tokenResponse.requestType = Constants_1.Constants.login;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
                 }
-                else if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateAcquireToken)) {
+                else if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateAcquireToken)) { //acquireTokenRedirect
                     tokenResponse.requestType = Constants_1.Constants.renewToken;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;
                 }
                 // external api requests may have many renewtoken requests for different resource
                 if (!tokenResponse.stateMatch) {
-                    if (window.parent && window.parent !== window) {
-                        tokenResponse.requestType = Constants_1.Constants.renewToken;
-                    }
-                    else {
-                        tokenResponse.requestType = this._requestType;
-                    }
-                    var statesInParentContext = this._renewStates;
+                    tokenResponse.requestType = window.requestType;
+                    var statesInParentContext = window.renewStates;
                     for (var i = 0; i < statesInParentContext.length; i++) {
                         if (statesInParentContext[i] === tokenResponse.stateResponse) {
                             tokenResponse.stateMatch = true;
@@ -1401,6 +1469,65 @@ var UserAgentApplication = /** @class */ (function () {
       */
     UserAgentApplication.prototype.isInIframe = function () {
         return window.parent !== window;
+    };
+    UserAgentApplication.prototype.loginInProgress = function () {
+        var pendingCallback = this._cacheStorage.getItem(Constants_1.Constants.urlHash);
+        if (pendingCallback)
+            return true;
+        return this._loginInProgress;
+    };
+    UserAgentApplication.prototype.getHostFromUri = function (uri) {
+        // remove http:// or https:// from uri
+        var extractedUri = String(uri).replace(/^(https?:)\/\//, '');
+        extractedUri = extractedUri.split('/')[0];
+        return extractedUri;
+    };
+    UserAgentApplication.prototype.getScopesForEndpoint = function (endpoint) {
+        // if user specified list of anonymous endpoints, no need to send token to these endpoints, return null.
+        if (this._anonymousEndpoints.length > 0) {
+            for (var i = 0; i < this._anonymousEndpoints.length; i++) {
+                if (endpoint.indexOf(this._anonymousEndpoints[i]) > -1) {
+                    return null;
+                }
+            }
+        }
+        if (this._endpoints.size > 0) {
+            for (var _i = 0, _a = Array.from(this._endpoints.keys()); _i < _a.length; _i++) {
+                var key = _a[_i];
+                // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
+                if (endpoint.indexOf(key) > -1) {
+                    return this._endpoints.get(key);
+                }
+            }
+        }
+        // default resource will be clientid if nothing specified
+        // App will use idtoken for calls to itself
+        // check if it's staring from http or https, needs to match with app host
+        if (endpoint.indexOf('http://') > -1 || endpoint.indexOf('https://') > -1) {
+            if (this.getHostFromUri(endpoint) === this.getHostFromUri(this._redirectUri)) {
+                return new Array(this.clientId);
+            }
+        }
+        else {
+            // in angular level, the url for $http interceptor call could be relative url,
+            // if it's relative call, we'll treat it as app backend call.            
+            return new Array(this.clientId);
+        }
+        // if not the app's own backend or not a domain listed in the endpoints structure
+        return null;
+    };
+    //These APIS are exposed for msalAngular wrapper only
+    UserAgentApplication.prototype.setloginInProgress = function (loginInProgress) {
+        this._loginInProgress = loginInProgress;
+    };
+    UserAgentApplication.prototype.getAcquireTokenInProgress = function () {
+        return this._acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.setAcquireTokenInProgress = function (acquireTokenInProgress) {
+        this._acquireTokenInProgress = acquireTokenInProgress;
+    };
+    UserAgentApplication.prototype.getLogger = function () {
+        return this._logger;
     };
     tslib_1.__decorate([
         resolveTokenOnlyIfOutOfIframe

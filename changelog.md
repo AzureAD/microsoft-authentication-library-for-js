@@ -1,3 +1,10 @@
+# 0.1.6
+### New Features
+
+* Fixed bug with concurrent acquireToken requests. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/274
+* Added catchHandler for authority validation
+* Fixed bug to handle the case for id_token with special characters.
+
 # 0.1.5
 
 ### Breaking Changes

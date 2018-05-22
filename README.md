@@ -76,17 +76,10 @@ Via NPM:
 
     npm install msal
 
-Via CDN:
-```JavaScript
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.5/js/msal.min.js"></script>
-```
-
 Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill. You might want to read more in the [FAQ](../../wiki)
 ```JavaScript
     <!-- IE support: add promises polyfill before msal.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.1.5/js/msal.min.js"></script>
 ```
 
 ## Build and running tests
@@ -101,6 +94,30 @@ Then use the following command to build the library and run all the unit tests:
 
 	npm run build
 
+## Logging
+
+You can enable logging in MSAL.js by passing a logger object when creating a UserAgentApplication instance as follows: 
+```javascript
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose });
+
+var clientApplication = new Msal.UserAgentApplication(clientID, authority, authCallback, { logger: logger });
+
+```
+Implement the `loggerCallback` method depending on how you want to redirect logs. 
+The supported log levels are: Error, Warning, Info, Verbose
+
+#### Personal Identifiable Information (PII) & Organizational Identifiable Information (OII)
+
+By default, MSAL.js logging does not capture or log any PII or OII. The library allows app developers to turn this on by configuring the `piiLoggingEnabled` flag on the log context. By turning on PII or OII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
+
+```javascript
+//PII or OII logging disabled. Default Logger does not capture any PII or OII
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, piiLoggingEnabled: false });
+    
+//PII or OII logging enabled
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, piiLoggingEnabled: true });
+
+```
 ## Community Help and Support
 
 - [FAQ](../../wiki) for access to our frequently asked questions

@@ -42,7 +42,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "acquireTokenUser", {
-        get: function () { return "msal_acquireTokenUser"; },
+        get: function () { return "msal.acquireTokenUser"; },
         enumerable: true,
         configurable: true
     });
@@ -57,7 +57,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "authority", {
-        get: function () { return "authority"; },
+        get: function () { return "msal.authority"; },
         enumerable: true,
         configurable: true
     });
@@ -208,7 +208,7 @@ var Constants = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Constants, "renewToken", {
-        get: function () { return "renewToken"; },
+        get: function () { return "RENEW_TOKEN"; },
         enumerable: true,
         configurable: true
     });
@@ -219,6 +219,16 @@ var Constants = /** @class */ (function () {
     });
     Object.defineProperty(Constants, "urlHash", {
         get: function () { return "msal.urlHash"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Constants, "angularLoginRequest", {
+        get: function () { return "msal.angular.login.request"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Constants, "userIdentifier", {
+        get: function () { return "userIdentifier"; },
         enumerable: true,
         configurable: true
     });
