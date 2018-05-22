@@ -308,6 +308,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -861,6 +864,9 @@ var UserAgentApplication = /** @class */ (function () {
                 if (popUpWindow) {
                     popUpWindow.close();
                 }
+            }).catch(function (err) {
+                _this._logger.warning("could not resolve endpoints");
+                reject(err);
             });
         });
     };
@@ -920,6 +926,9 @@ var UserAgentApplication = /** @class */ (function () {
                         return;
                     }
                 }
+                else {
+                    _this._logger.verbose("Token is not in cache for scope:" + scope_1);
+                }
                 // cache miss
                 return _this.authorityInstance.ResolveEndpointsAsync()
                     .then(function () {
@@ -942,6 +951,9 @@ var UserAgentApplication = /** @class */ (function () {
                             _this.renewToken(scopes, resolve, reject, userObject_1, authenticationRequest_1, extraQueryParameters);
                         }
                     }
+                }).catch(function (err) {
+                    _this._logger.warning("could not resolve endpoints");
+                    reject(err);
                 });
             }
         });
