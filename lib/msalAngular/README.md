@@ -174,7 +174,7 @@ It is extremely important to unsubscribe. Implement ngOnDestroy() in your compon
  }
 
  ngOnDestroy() {
-    this.broadcastService.getNavSubject().next(1);
+    this.broadcastService.getMSALSubject().next(1);
     if(this.subscription) {
       this.subscription.unsubscribe();
     }
