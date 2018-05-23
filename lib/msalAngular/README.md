@@ -135,6 +135,8 @@ We expose APIs for login, logout, acquiring access token and more. Here is a det
 6.acquire_token_redirect()
 7.get_user()
 
+Since MSAL Angular wrapper is inheriting from UserAgentApplication of MSAL-core,all the public apis of msal-core are still accessible from msal-angular. But user should not try to use
+any of the msal-core apis like acquireTokenSilent(), acquireTokenPopup(), acquireTokenRedirect() etc from angular application. User should use only the apis which are exposed directly from the msal-angular wrapper itself.
 ````
 
 ## Callbacks
