@@ -76,7 +76,7 @@ private subscription: Subscription;
 
 //extremely important to unsubscribe
   ngOnDestroy() {
-    this.broadcastService.getNavSubject().next(1);
+    this.broadcastService.getMSALSubject().next(1);
    if(this.subscription) {
       this.subscription.unsubscribe();
     }

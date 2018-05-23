@@ -8,31 +8,31 @@ export type MessageCallback = (payload: any) => void;
 
 @Injectable()
 export class BroadcastService {
-    private _navItemSubject : BehaviorSubject<any> ;
-    private navItem$:  Observable<any>;
+    private _msalSubject : BehaviorSubject<any> ;
+    private msalItem$:  Observable<any>;
 
     constructor()
     {
-     this._navItemSubject = new BehaviorSubject<any>(100);
-     this.navItem$  = this._navItemSubject.asObservable();
+     this._msalSubject = new BehaviorSubject<any>(1);
+     this.msalItem$  = this._msalSubject.asObservable();
     }
 
     broadcast(type: string ,payload: any) {
-        this._navItemSubject.next({type , payload});
+        this._msalSubject.next({type , payload});
     }
 
-    getNavSubject()
+    getMSALSubject()
     {
-        return this._navItemSubject;
+        return this._msalSubject;
     }
 
-    getNavItem()
+    getMSALItem()
     {
-        return this.navItem$;
+        return this.msalItem$;
     }
 
     subscribe(type: string, callback: MessageCallback): Subscription {
-        return this.navItem$
+        return this.msalItem$
          .filter(message => message.type === type)
            .map(message => message.payload)
             .subscribe(callback);

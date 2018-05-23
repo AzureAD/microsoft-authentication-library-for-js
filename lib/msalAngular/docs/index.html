@@ -105,7 +105,7 @@
 				<p>}</p>
 				<p>@NgModule({
 					imports: [ MsalModule.forRoot({
-					clientID: &#39;6226576d-37e9-49eb-b201-ec1eeb0029b6&#39;,
+					clientID: Your client ID,
 					authority: &quot;<a href="https://login.microsoftonline.com/microsoft.onmicrosoft.com/">https://login.microsoftonline.com/microsoft.onmicrosoft.com/</a>&quot;,
 					redirectUri: &quot;<a href="http://localhost:4200/">http://localhost:4200/</a>&quot;,
 					validateAuthority : true,
@@ -190,6 +190,8 @@ We expose APIs <span class="hljs-keyword">for</span> login, logout, acquiring ac
 					5.acquire_token_popup()
 					6.acquire_token_redirect()
 				7.get_user()</p>
+				<p>Since MSAL Angular wrapper is inheriting from UserAgentApplication of MSAL-core,all the public apis of msal-core are still accessible from msal-angular. But user should not try to use
+				any of the msal-core apis like acquireTokenSilent(), acquireTokenPopup(), acquireTokenRedirect() etc from angular application. User should use only the apis which are exposed directly from the msal-angular wrapper itself.</p>
 				<pre><code>
 <span class="hljs-comment">## Callbacks</span>
 MSAL wrapper provides below callbacks <span class="hljs-keyword">for</span> various operations. For all callbacks, you need <span class="hljs-built_in">to</span> inject BroadcastService <span class="hljs-keyword">as</span> <span class="hljs-keyword">a</span> dependency <span class="hljs-keyword">in</span> your component/service.
@@ -208,8 +210,20 @@ MSAL wrapper provides below callbacks <span class="hljs-keyword">for</span> vari
 				});</p>
 				<p>this.broadcastService.subscribe(&quot;msal:acquireTokenFailure&quot;, (payload) =&gt; {
 					// do something here
-					});
-				````  </p>
+				});</p>
+				<pre><code>
+<span class="hljs-comment">## Unsubscribe</span>
+It <span class="hljs-keyword">is</span> extremely important <span class="hljs-keyword">to</span> unsubscribe. Implement ngOnDestroy() <span class="hljs-keyword">in</span> your component <span class="hljs-keyword">and</span> unsubscribe.
+</code></pre><p> private subscription: Subscription;</p>
+				<p> this.subscription=  this.broadcastService.subscribe(&quot;msal:acquireTokenFailure&quot;, (payload) =&gt; {
+				}</p>
+				<p> ngOnDestroy() {
+					this.broadcastService.getNavSubject().next(1);
+					if(this.subscription) {
+					this.subscription.unsubscribe();
+					}
+					}
+				````</p>
 				<h2 id="logging">Logging</h2>
 				<p>These 4 properties in config are used for logging. Please see the config section for more details.</p>
 				<p>1)logger</p>

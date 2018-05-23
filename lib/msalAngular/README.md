@@ -167,8 +167,7 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
 
 ## Unsubscribe
 It is extremely important to unsubscribe. Implement ngOnDestroy() in your component and unsubscribe.
-``
-
+````
  private subscription: Subscription;
  
  this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
@@ -180,7 +179,7 @@ It is extremely important to unsubscribe. Implement ngOnDestroy() in your compon
       this.subscription.unsubscribe();
     }
   }
-``
+````
 
 ## Logging
 These 4 properties in config are used for logging. Please see the config section for more details.
