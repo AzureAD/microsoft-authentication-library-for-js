@@ -1,13 +1,15 @@
-import {Component} from "@angular/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ProductService} from "./product.service";
 import {BroadcastService, MsalService} from "../../../../dist";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   templateUrl: './myProfile.component.html',
 })
 
-export class MyProfileComponent {
+export class MyProfileComponent implements OnInit, OnDestroy{
   public userInfo: any = null;
+  private subscription: Subscription;
 
   constructor(private authService: MsalService, private productService: ProductService, private broadcastService: BroadcastService) {
 
@@ -39,12 +41,12 @@ export class MyProfileComponent {
   //make sense only for loginPopup
   ngOnInit() {
     //will work for acquireTokenSilent and acquireTokenPopup
-    this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
+  this.subscription= this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
       console.log("acquire token success " + JSON.stringify(payload))
     });
 
     //will work for acquireTokenSilent and acquireTokenPopup
-    this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+    this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload))
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1) {
         this.authService.acquireTokenPopup(["user.read", "mail.send"]).then( (token) => {
@@ -81,4 +83,13 @@ export class MyProfileComponent {
         console.error(" access token silent failed " + JSON.stringify(error));
       });
   }
+
+  //extremely important to unsubscribe
+  ngOnDestroy() {
+    this.broadcastService.getNavSubject().next(1);
+    if(this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
 }

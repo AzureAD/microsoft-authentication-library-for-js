@@ -21,6 +21,11 @@ export class BroadcastService {
         this._navItemSubject.next({type , payload});
     }
 
+    getNavSubject()
+    {
+        return this._navItemSubject;
+    }
+
     getNavItem()
     {
         return this.navItem$;
