@@ -218,7 +218,7 @@ It <span class="hljs-keyword">is</span> extremely important <span class="hljs-ke
 				<p> this.subscription=  this.broadcastService.subscribe(&quot;msal:acquireTokenFailure&quot;, (payload) =&gt; {
 				}</p>
 				<p> ngOnDestroy() {
-					this.broadcastService.getNavSubject().next(1);
+					this.broadcastService.getMSALSubject().next(1);
 					if(this.subscription) {
 					this.subscription.unsubscribe();
 					}
