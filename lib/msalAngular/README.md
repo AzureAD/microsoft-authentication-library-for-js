@@ -42,7 +42,7 @@ export function loggerCallback(logLevel, message, piiEnabled) {
 
 @NgModule({
   imports: [ MsalModule.forRoot({
-                  clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+                  clientID: Your client ID,
                   authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
                   redirectUri: "http://localhost:4200/",
                   validateAuthority : true,
@@ -162,6 +162,23 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       // do something here 
 });
 ````  
+
+## Unsubscribe
+It is extremely important to unsubscribe. Implement ngOnDestroy() in your component and unsubscribe.
+``
+
+ private subscription: Subscription;
+ 
+ this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+ }
+
+ ngOnDestroy() {
+    this.broadcastService.getNavSubject().next(1);
+    if(this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+``
 
 ## Logging
 These 4 properties in config are used for logging. Please see the config section for more details.
