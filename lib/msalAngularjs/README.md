@@ -101,34 +101,34 @@ Without the hashPrefix set, the AAD login will loop indefinitely as the callback
 6- Any service invocation code you might have will remain unchanged. MSAL's interceptor will automatically add tokens for every outgoing call. 
 
 ***Optional***
-7-  configOptions - This is an optional object you can pass to alter the following properties in Msal.
+7-  ***configOptions*** - This is an optional object you can pass to alter the following properties in Msal.
 
-	<b>redirectUri</b>: The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
+	***redirectUri***: The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
 	Defaults to `window.location.href`.
  
-	<b>authority</b> : A URL indicating a directory that MSAL can use to obtain tokens.
+	***authority*** : A URL indicating a directory that MSAL can use to obtain tokens.
 		* - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;, where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
 		* - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
 		* - Default value is: "https://login.microsoftonline.com/common"
    
-	<b>validateAuthority</b> : Validate the issuer of tokens. Default is true.
+	***validateAuthority*** : Validate the issuer of tokens. Default is true.
 
-	<b>cacheLocation</b> : Sets browser storage to either 'localStorage' or sessionStorage'. Default is 'sessionStorage'.
+	***cacheLocation*** : Sets browser storage to either 'localStorage' or sessionStorage'. Default is 'sessionStorage'.
 
-	<b>postLogoutRedirectUri</b>: Redirects the user to postLogoutRedirectUri after logout. Default is 'redirectUri'.
+	***postlogoutRedirectUri***: Redirects the user to postLogoutRedirectUri after logout. Default is 'redirectUri'.
 
-	<b>loadFrameTimeout</b> : The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
+	***authority*** : The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
 
-	<b>navigateToLoginRequestUrl</b> : Ability to turn off default navigation to start page after login. Default is false.
+	***navigateToLoginRequestUrl*** : Ability to turn off default navigation to start page after login. Default is false.
 
-	<b>anonymousEndpoints</b> :  is an array of values that will be ignored by the MSAL route/state change handlers. MSAL will not attach a token to outgoing requests that have these keywords or URI. Routes that *do not* specify the ```requireADLogin=true``` property are added to the ```anonymousEndpoints``` array automatically.
+	***anonymousEndpoints*** :  is an array of values that will be ignored by the MSAL route/state change handlers. MSAL will not attach a token to outgoing requests that have these keywords or URI. Routes that *do not* specify the ```requireADLogin=true``` property are added to the ```anonymousEndpoints``` array automatically.
 
-	<b>endPoints</b> : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by  MSAL for automatically attaching tokens in webApi calls. 
+	***endpoints*** : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by  MSAL for automatically attaching tokens in webApi calls. 
 	This is required only for CORS calls. Please refer to CORS API usage below.
 
-	<b>logger</b>: Logging is not enabled by default. To enable logging, you need to pass an instance of logger to configOptions. Please see the logger class definition and the code snippet to enable logging below.
+	***logger***: Logging is not enabled by default. To enable logging, you need to pass an instance of logger to configOptions. Please see the logger class definition and the code snippet to enable logging below.
 
-	```js
+```js
 	constructor(localCallback: ILoggerCallback,
       options:
       {
@@ -161,18 +161,18 @@ Without the hashPrefix set, the AAD login will loop indefinitely as the callback
             }, $httpProvider);
 		);
      }]);
-	```
+```
 ***Optional***
-8-  routeProtectionConfig - This is an optional object you can pass to the wrapper. It has the following properties:
+8-  ***routeProtectionConfig*** - This is an optional object you can pass to the wrapper. It has the following properties:
 
-	<b>consentScopes</b>: It takes an array of scopes. Allows the client to express the desired scopes that should be consented at the time of login. Scopes can be from multiple resources/endpoints. Passing scope here will
+	***consentScopes***: It takes an array of scopes. Allows the client to express the desired scopes that should be consented at the time of login. Scopes can be from multiple resources/endpoints. Passing scope here will
 	only consent it and no access token will be acquired till the time the client actually calls the API. By asking for consent at the time of login, subsequest acquireToken calls to the same resources will succeed in a hidden iframe without the need to show explicit UI.
 
-	<b>popUp</b> : The default login triggered by route protection use the redirect flow. You can change it to popUp by setting this property to true. Default is false.
+	***popUp*** : The default login triggered by route protection use the redirect flow. You can change it to popUp by setting this property to true. Default is false.
 
-	<b>requireLogin</b> : When set, this property will make the entire set of routes/states propected. It eliminates the need to specify requireLogin in every route.
+	***requireLogin*** : When set, this property will make the entire set of routes/states propected. It eliminates the need to specify requireLogin in every route.
 
-	```
+```js
 	msalProvider.init({
                 clientID: applicationConfig.clientID,
                 authority: null,
@@ -186,7 +186,7 @@ Without the hashPrefix set, the AAD login will loop indefinitely as the callback
                 }
             }, $httpProvider);
 
-	```
+```
 
 ***Optional***
 9- If you so choose, in addition (or substitution) to route level protection you can add explicit login/logout UX elements. Furthermore, you can access properties of the currently signed in user directly form JavaScript (```var _oauthData = { isAuthenticated: false, userName: '', loginError: '', idToken: {} }```).
@@ -286,7 +286,6 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
     });
 
 }]);
-
 ```
 ### CORS API usage and IE
 	MSAL will get access token for given CORS API endpoints in the config. Access token is requested using Iframe. Iframe needs to access the cookies for the same domain that you did the initial sign in. IE does not allow to access cookies in IFrame for localhost. Your url needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
