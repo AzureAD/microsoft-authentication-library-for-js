@@ -1,27 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TodoListService} from "./todo-list.service";
 import {BroadcastService, MsalService} from "../../../../../dist";
 import {TodoList} from "./todoList";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   selector: 'app-todo-list',
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.css']
 })
-export class TodoListComponent implements OnInit {
+export class TodoListComponent implements OnInit, OnDestroy  {
 
  private error = "";
   private loadingMessage = "Loading...";
    todoList: TodoList[];
   private newTodoCaption = "";
   private submitted = false;
-
+private subscription: Subscription;
   constructor(private todoListService: TodoListService, private broadcastService : BroadcastService, private msalService: MsalService) { }
 
   ngOnInit() {
     this.populate();
 
-    this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure");
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1 ) {
         this.msalService.acquire_token_popup(['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']).then( (token) => {
@@ -39,7 +40,7 @@ export class TodoListComponent implements OnInit {
     });
 
 
-    this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
+   this.subscription = this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
       console.log("acquire token success");
     });
   }
@@ -72,4 +73,12 @@ export class TodoListComponent implements OnInit {
     else {
     }
   };
+
+//extremely important to unsubscribe
+  ngOnDestroy() {
+    this.broadcastService.getMSALSubject().next(1);
+   if(this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
 }
