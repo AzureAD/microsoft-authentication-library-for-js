@@ -96,7 +96,7 @@ $stateProvider.state("TodoList", {
 });
 ````
 
-#### 6. configOptions This is an optional object you can pass to alter the following properties in Msal.
+#### 6. Config Object for Msal: Optional object to alter the following properties in MsalJS.
 
 <b> redirectUri </b>: The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
 	Defaults to 'window.location.href'.
@@ -156,7 +156,7 @@ app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalP
 }]);
 ````
 ***Optional***
-#### 7. Config Object for Routes: routeProtectionConfig
+#### 7. Config Object for Routes: Optional object to enable global route/state protection, set consentScopes and switch from redirect to popup mode.
 This is an optional object you can pass to the wrapper. It has the following properties:
 
 <b>consentScopes</b>: It takes an array of scopes. Allows the client to express the desired scopes that should be consented at the time of login. Scopes can be from multiple resources/endpoints. Passing scope here will only consent it and no access token will be acquired till the time the client actually calls the API. By asking for consent at the time of login, subsequest acquireToken calls to the same resources will succeed in a hidden iframe without the need to show explicit UI.
