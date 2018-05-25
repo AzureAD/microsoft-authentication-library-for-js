@@ -65,7 +65,7 @@ map.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
     
 app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
    msalProvider.init(
-		{
+	{
         clientID: applicationConfig.clientID,
         tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
     
@@ -80,7 +80,7 @@ app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msal
 #### 4. When HTML5 mode is not configured, ensure the $locationProvider hashPrefix is set to an empty string
 ````
 app.config(['$locationProvider', function($locationProvider) {
-		$locationProvider.html5Mode(false).hashPrefix('');
+	$locationProvider.html5Mode(false).hashPrefix('');
 }]);
 ````
 
@@ -286,16 +286,15 @@ MSAL will get access token for given CORS API endpoints in the config. Access to
 To make CORS API call, you need to specify endpoints in the config for your CORS API. Your service will be similar to this to make the call from JS. In your API project, you need to enable CORS API requests to receive flight requests. You can check the sample for CORS API [sample](https://github.com/AzureADSamples/SinglePageApp-WebAPI-AngularJS-DotNet).
 ```js
 'use strict';
-app.factory('contactService', ['$http', function ($http) {
-var serviceFactory = {};
-var _getItems = function () {
-$http.defaults.useXDomain = true;
-delete $http.defaults.headers.common['X-Requested-With'];
-return $http.get('https://buildtodoservice.azurewebsites.net/api/todolist');
-};
-	
-serviceFactory.getItems = _getItems;
-return serviceFactory;
+app.factory('contactService', ['$http', function ($http){
+	var serviceFactory = {};
+	var _getItems = function () {
+	$http.defaults.useXDomain = true;
+	delete $http.defaults.headers.common['X-Requested-With'];
+	return $http.get('https://buildtodoservice.azurewebsites.net/api/todolist');
+	};
+	serviceFactory.getItems = _getItems;
+	return serviceFactory;
 }]);
 ````
 #### Multi-Tenant
