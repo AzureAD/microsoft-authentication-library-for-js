@@ -38,7 +38,7 @@ var app =  angular.module('todoApp', ['ui.router', 'MsalAngular'])
 ````
 3- Initialize MSAL with the AAD app coordinates at app config time. The minimum required object to initialize MSAL is:
 ```js
-	window.applicationConfig = {
+window.applicationConfig = {
 		clientID: 'f3e5cf63-6c0d-42cb-b5aa-ee58b1ef7523',
 		graphEndpoint: "https://graph.microsoft.com/beta/me/photo/$value",
 		graphScopes: ["user.read", "calendars.read"],
@@ -47,62 +47,57 @@ var app =  angular.module('todoApp', ['ui.router', 'MsalAngular'])
 		consentScopes: ["user.read", "calendars.read"],
 	};
 
-     app.config(['msalAuthenticationServiceProvider', function (msalProvider) {
-            msalProvider.init({
-                clientID: applicationConfig.clientID,
-                tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
-                }
-            });
-     }]);
+app.config(['msalAuthenticationServiceProvider', function (msalProvider) {
+    msalProvider.init({
+        clientID: applicationConfig.clientID,
+        tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
+        }
+    });
+}]);
 ```
 
-A single-tenant configuration, with CORS, looks like this:
+You need to specify endpoint to resource mapping(optional). A single-tenant configuration, with CORS, looks like this:
 ```js
-    You need to specify endpoint to resource mapping(optional)
-
-	var map = new Map();
-	map.set(applicationConfig.apiEndpoint, applicationConfig.apiScope);
-	map.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
+var map = new Map();
+map.set(applicationConfig.apiEndpoint, applicationConfig.apiScope);
+map.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
 	
-	 app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalProvider) {
-            msalProvider.init(
-			{
-                clientID: applicationConfig.clientID,
-                tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
-                 
-                },
-                configOptions: {
-                    endPoints: map
-                },
-            }, $httpProvider);
+app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalProvider) {
+    msalProvider.init(
+		{
+			clientID: applicationConfig.clientID,
+            tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
+            },
+            configOptions: {
+                endPoints: map
+            },
+        }, $httpProvider);
 		);
-     }]);	
+}]);	
 ```
 
 4- ***When HTML5 mode is not configured***, ensure the $locationProvider hashPrefix is set to an empty string
 ```js
-	app.config(['$locationProvider', function($locationProvider) {
-		$locationProvider.html5Mode(false).hashPrefix('');
-	}]);
+app.config(['$locationProvider', function($locationProvider) {
+	$locationProvider.html5Mode(false).hashPrefix('');
+}]);
 ```
 
 Without the hashPrefix set, the AAD login will loop indefinitely as the callback URL from AAD (in the form of, {yourBaseUrl}/#{AADTokenAndState}) will be rewritten to remove the '#' causing the token parsing to fail and login sequence to occur again.
 
 5- Define which routes you want to secure via MSAL - by adding `requireLogin: true` to their definition
 ```js
-	 $stateProvider.state("TodoList", {
-                url: '/TodoList',
-                controller: "todoListCtrl",
-                templateUrl: "/App/Views/TodoList.html",
-                requireLogin: true
+$stateProvider.state("TodoList", {
+    url: '/TodoList',
+    controller: "todoListCtrl",
+    templateUrl: "/App/Views/TodoList.html",
+    requireLogin: true
 
-      })
+});
 ```
-6- Any service invocation code you might have will remain unchanged. MSAL's interceptor will automatically add tokens for every outgoing call. 
-
 ***Optional***
-7-  ***configOptions*** - This is an optional object you can pass to alter the following properties in Msal.
-
+6-  ***configOptions***: This is an optional object you can pass to alter the following properties in Msal.
+	
 	***redirectUri***: The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
 	Defaults to `window.location.href`.
  
@@ -129,41 +124,41 @@ Without the hashPrefix set, the AAD login will loop indefinitely as the callback
 	***logger***: Logging is not enabled by default. To enable logging, you need to pass an instance of logger to configOptions. Please see the logger class definition and the code snippet to enable logging below.
 
 ```js
-	constructor(localCallback: ILoggerCallback,
-      options:
-      {
-          correlationId?: string,
-          level?: LogLevel,
-          piiLoggingEnabled?: boolean,
-      } = {}) {
-      const {
-          correlationId = "",
-          level = LogLevel.Info,
-          piiLoggingEnabled = false
-      } = options;
-	}
+constructor(localCallback: ILoggerCallback,
+	options:
+    {
+        correlationId?: string,
+        level?: LogLevel,
+        piiLoggingEnabled?: boolean,
+    } = {}){
+    const {
+        correlationId = "",
+        level = LogLevel.Info,
+        piiLoggingEnabled = false
+    } = options;
+}
 
-	var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345', piiLoggingEnabled: true });
-	function loggerCallback(logLevel, message, piiEnabled) {
-		console.log(message);// You can log the messages to the console or save it in some file as per your need
-	}
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345', piiLoggingEnabled: true });
+function loggerCallback(logLevel, message, piiEnabled) {
+	console.log(message);// You can log the messages to the console or save it in some file as per your need
+}
 
-	app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalProvider) {
-            msalProvider.init(
-			{
-                clientID: applicationConfig.clientID,
-                tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
+app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalProvider) {
+    msalProvider.init(
+		{
+			clientID: applicationConfig.clientID,
+            tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
                  
-                },
-                configOptions: {
-                    logger: logger,
-                },
-            }, $httpProvider);
-		);
-     }]);
+            },
+            configOptions: {
+                logger: logger,
+            },
+        }, $httpProvider);
+	);
+}]);
 ```
 ***Optional***
-8-  ***routeProtectionConfig*** - This is an optional object you can pass to the wrapper. It has the following properties:
+8-  ***routeProtectionConfig***: This is an optional object you can pass to the wrapper. It has the following properties:
 
 	***consentScopes***: It takes an array of scopes. Allows the client to express the desired scopes that should be consented at the time of login. Scopes can be from multiple resources/endpoints. Passing scope here will
 	only consent it and no access token will be acquired till the time the client actually calls the API. By asking for consent at the time of login, subsequest acquireToken calls to the same resources will succeed in a hidden iframe without the need to show explicit UI.
@@ -173,19 +168,18 @@ Without the hashPrefix set, the AAD login will loop indefinitely as the callback
 	***requireLogin*** : When set, this property will make the entire set of routes/states propected. It eliminates the need to specify requireLogin in every route.
 
 ```js
-	msalProvider.init({
-                clientID: applicationConfig.clientID,
-                authority: null,
-                tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
-                },
-                optionalParams: {
-                },
-                routeProtectionConfig: {
-                    popUp: true,
-                    consentScopes: applicationConfig.consentScopes
-                }
-            }, $httpProvider);
-
+msalProvider.init({
+    clientID: applicationConfig.clientID,
+    authority: null,
+    tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
+    },
+    optionalParams: {
+    },
+    routeProtectionConfig: {
+        popUp: true,
+        consentScopes: applicationConfig.consentScopes
+        }
+}, $httpProvider);	
 ```
 
 ***Optional***
@@ -288,25 +282,23 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
 }]);
 ```
 ### CORS API usage and IE
-	MSAL will get access token for given CORS API endpoints in the config. Access token is requested using Iframe. Iframe needs to access the cookies for the same domain that you did the initial sign in. IE does not allow to access cookies in IFrame for localhost. Your url needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
+MSAL will get access token for given CORS API endpoints in the config. Access token is requested using Iframe. Iframe needs to access the cookies for the same domain that you did the initial sign in. IE does not allow to access cookies in IFrame for localhost. Your url needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
+To make CORS API call, you need to specify endpoints in the config for your CORS API. Your service will be similar to this to make the call from JS. In your API project, you need to enable CORS API requests to receive flight requests. You can check the sample for CORS API [sample](https://github.com/AzureADSamples/SinglePageApp-WebAPI-AngularJS-DotNet).
 
-	To make CORS API call, you need to specify endpoints in the config for your CORS API. Your service will be similar to this to make the call from JS. In your API project, you need to enable CORS API requests to receive flight requests. You can check the sample for CORS API [sample](https://github.com/AzureADSamples/SinglePageApp-WebAPI-AngularJS-DotNet).
+```js
+'use strict';
+app.factory('contactService', ['$http', function ($http) {
+	var serviceFactory = {};
 
-	```js
-	'use strict';
-	app.factory('contactService', ['$http', function ($http) {
-		var serviceFactory = {};
+	var _getItems = function () {
+    $http.defaults.useXDomain = true;
+    delete $http.defaults.headers.common['X-Requested-With'];
+    return $http.get('https://buildtodoservice.azurewebsites.net/api/todolist');
+	};
 
-		var _getItems = function () {
-        $http.defaults.useXDomain = true;
-        delete $http.defaults.headers.common['X-Requested-With'];
-        return $http.get('https://buildtodoservice.azurewebsites.net/api/todolist');
-		};
-
-		serviceFactory.getItems = _getItems;
-
-		return serviceFactory;
-	}]);
+	serviceFactory.getItems = _getItems;
+	return serviceFactory;
+}]);
 	```
 
 ### Multi-Tenant
