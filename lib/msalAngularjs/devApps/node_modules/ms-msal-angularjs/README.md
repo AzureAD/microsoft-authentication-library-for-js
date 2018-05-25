@@ -287,15 +287,15 @@ To make CORS API call, you need to specify endpoints in the config for your CORS
 ```js
 'use strict';
 app.factory('contactService', ['$http', function ($http) {
-	var serviceFactory = {};
-	var _getItems = function () {
-    $http.defaults.useXDomain = true;
-    delete $http.defaults.headers.common['X-Requested-With'];
-    return $http.get('https://buildtodoservice.azurewebsites.net/api/todolist');
-	};
+var serviceFactory = {};
+var _getItems = function () {
+$http.defaults.useXDomain = true;
+delete $http.defaults.headers.common['X-Requested-With'];
+return $http.get('https://buildtodoservice.azurewebsites.net/api/todolist');
+};
 	
-	serviceFactory.getItems = _getItems;
-	return serviceFactory;
+serviceFactory.getItems = _getItems;
+return serviceFactory;
 }]);
 ````
 #### Multi-Tenant
