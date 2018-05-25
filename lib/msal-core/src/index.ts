@@ -5,6 +5,5 @@ export { User } from "./User";
 export { Constants } from "./Constants";
 export { TokenResponse} from "./RequestInfo";
 export {Authority} from "./Authority";
-export {Utils} from "./Utils";
 export {CacheResult} from "./UserAgentApplication";
 

@@ -102,8 +102,8 @@ export declare class UserAgentApplication {
     loginInProgress(): boolean;
     private getHostFromUri(uri);
     getScopesForEndpoint(endpoint: string): Array<string>;
-    setloginInProgress(loginInProgress: boolean): void;
-    getAcquireTokenInProgress(): boolean;
-    setAcquireTokenInProgress(acquireTokenInProgress: boolean): void;
-    getLogger(): Logger;
+    protected setloginInProgress(loginInProgress: boolean): void;
+    protected getAcquireTokenInProgress(): boolean;
+    protected setAcquireTokenInProgress(acquireTokenInProgress: boolean): void;
+    protected getLogger(): Logger;
 }

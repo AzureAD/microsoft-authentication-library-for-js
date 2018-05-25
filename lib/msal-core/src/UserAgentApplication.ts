@@ -452,7 +452,10 @@ export class UserAgentApplication {
         if (popUpWindow) {
           popUpWindow.close();
         }
-      });
+        }).catch((err) => {
+              this._logger.warning("could not resolve endpoints");
+              reject(err);
+        });
     });
   }
 
@@ -1086,7 +1089,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         if (popUpWindow) {
             popUpWindow.close();
         }
-      });
+        }).catch((err) => {
+              this._logger.warning("could not resolve endpoints");
+              reject(err);
+        });
     });
   }
 
@@ -1147,7 +1153,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             return;
           }
         }
-
+        else {
+            this._logger.verbose("Token is not in cache for scope:" + scope);
+        }
         // cache miss
         return this.authorityInstance.ResolveEndpointsAsync()
           .then(() => {
@@ -1169,6 +1177,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
               }
             }
+          }).catch((err) => {
+            this._logger.warning("could not resolve endpoints");
+            reject(err);
           });
       }
     });
@@ -1432,11 +1443,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     } catch (err) {
         self._logger.error("Error occurred in token received callback function: " + err);
     }
-
-    for (var i = 0; i < window.openedWindows.length; i++) {
-        window.openedWindows[i].close();
+    if (isWindowOpenerMsal) {
+        for (var i = 0; i < window.opener.openedWindows.length; i++) {
+            window.opener.openedWindows[i].close();
+        }
     }
-
   }
 
   /*
@@ -1778,20 +1789,21 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return null;
   }
 
-    public setloginInProgress(loginInProgress : boolean) {
+  //These APIS are exposed for msalAngular wrapper only
+    protected setloginInProgress(loginInProgress : boolean) {
         this._loginInProgress = loginInProgress;
     }
 
-    public getAcquireTokenInProgress(): boolean
+    protected getAcquireTokenInProgress(): boolean
     {
         return this._acquireTokenInProgress;
     }
 
-    public setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
+    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
         this._acquireTokenInProgress = acquireTokenInProgress;
     }
 
-    public getLogger()
+    protected getLogger()
     {
         return this._logger;
     }
