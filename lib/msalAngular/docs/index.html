@@ -100,7 +100,8 @@
 						````
 					export const  endpointmap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();</li>
 				</ol>
-				<p>endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]);</p>
+				<p>endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;]);
+				endpointmap.set(&quot;<a href="https://buildtodoservice.azurewebsites.net/api/todolist">https://buildtodoservice.azurewebsites.net/api/todolist</a>&quot;, [&quot;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&quot;]);</p>
 				<p>export function loggerCallback(logLevel, message, piiEnabled) {</p>
 				<p>}</p>
 				<p>@NgModule({
@@ -113,7 +114,7 @@
 					postLogoutRedirectUri: &quot;<a href="http://localhost:4200/">http://localhost:4200/</a>&quot;,
 					navigateToLoginRequestUrl : true,
 					popUp: true,
-					scopes: [&quot;user.read&quot;, &quot;mail.send&quot;],
+					scopes: [&quot;user.read&quot;, &quot;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&quot;],
 					anonymousEndpoints: [&quot;<a href="https://angularjs.org/">https://angularjs.org/</a>&quot;],
 					endpoints : endpointmap,
 					logger :loggerCallback,
@@ -179,7 +180,7 @@ Routes can <span class="hljs-keyword">be </span>protected <span class="hljs-keyw
 					{ path: &#39;detail/:id&#39;, component: ProductDetailComponent  }
 					]
 					},
-				{ path: &#39;myProfile&#39; ,component: MyProfileComponent, canActivate : [MsalGuard]},</p>
+				{ path: &#39;myProfile&#39; ,component: MsGraphComponent, canActivate : [MsalGuard]},</p>
 				<pre><code>
 <span class="hljs-comment">## Public API</span>
 We expose APIs <span class="hljs-keyword">for</span> login, logout, acquiring access <span class="hljs-keyword">token</span> <span class="hljs-keyword">and</span> more. Here is <span class="hljs-keyword">a</span> <span class="hljs-keyword">detailed</span> list.

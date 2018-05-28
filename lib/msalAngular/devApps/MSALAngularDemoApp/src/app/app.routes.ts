@@ -4,7 +4,7 @@ import { ProductComponent} from './product.component'
 import { ErrorComponent} from './error.component'
 import { ProductDetailComponent} from './product-detail.component';
 import {MsalGuard} from "../../../../dist";
-import {MyProfileComponent} from "./myProfile.component";
+import {MsGraphComponent} from "./msGraph.component";
 import {TodoListComponent} from "./todo-list/todo-list.component";
 
 export const appRoutes: Routes = [
@@ -15,7 +15,7 @@ export const appRoutes: Routes = [
       { path: 'detail/:id', component: ProductDetailComponent  }
     ]
    },
-  { path: 'myProfile' ,component: MyProfileComponent, canActivate : [MsalGuard]},
+  { path: 'myProfile' ,component: MsGraphComponent, canActivate : [MsalGuard]},
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', component: ErrorComponent }
 ];

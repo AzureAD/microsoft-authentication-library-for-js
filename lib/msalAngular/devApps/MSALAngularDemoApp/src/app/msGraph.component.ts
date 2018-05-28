@@ -1,17 +1,19 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {ProductService} from "./product.service";
 import {BroadcastService, MsalService} from "../../../../dist";
 import {Subscription} from "rxjs/Subscription";
+import {MsGraphService} from "./msGraph.service";
 
 @Component({
-  templateUrl: './myProfile.component.html',
+  templateUrl: './msGraph.component.html',
 })
 
-export class MyProfileComponent implements OnInit, OnDestroy{
+export class MsGraphComponent implements OnInit, OnDestroy{
   public userInfo: any = null;
+  public calendarInfo: any ;
   private subscription: Subscription;
+  private loadingMessage = "Loading...";
 
-  constructor(private authService: MsalService, private productService: ProductService, private broadcastService: BroadcastService) {
+  constructor(private authService: MsalService, private msGraphService: MsGraphService, private broadcastService: BroadcastService) {
 
   }
 
@@ -37,51 +39,46 @@ export class MyProfileComponent implements OnInit, OnDestroy{
     });
   }
 
-
-  //make sense only for loginPopup
   ngOnInit() {
+    this.getCalendar();
     //will work for acquireTokenSilent and acquireTokenPopup
-  this.subscription= this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
-      console.log("acquire token success " + JSON.stringify(payload))
-    });
+   this.subscription= this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
+      console.log("acquire token success " + JSON.stringify(payload));
+   });
 
     //will work for acquireTokenSilent and acquireTokenPopup
     this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload))
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1) {
-        this.authService.acquireTokenPopup(["user.read", "mail.send"]).then( (token) => {
-          this.productService.getUserInfo().subscribe( (results) => {
-            this.userInfo = results;
-          },  (err) => {
-            console.error(" access token  failed " + JSON.stringify(err));
-          });
+        this.authService.acquireTokenPopup(["calendars.read"]).then( (token) => {
+          this.getCalendar();
         },  (error) => {
+          this.loadingMessage = "";
         });
       }
     });
 
   }
 
-  private TestAcquireToken()
-  {
-    this.getAcquireToken( this.authService,["user.read", "mail.send"]).then(() =>{
-      this.productService.getUserInfo()
-        .subscribe(data => {
-          this.userInfo = data;
-        }, error => {
-          console.error(" access token silent failed " + JSON.stringify(error));
-        });
-
-    })
-  }
-
-  private callGraph() {
-    this.productService.getUserInfo()
+  getCalendar() {
+    this.msGraphService.httpGetRequest()
       .subscribe(data => {
-        this.userInfo = data;
+        this.calendarInfo= data.value;
+        this.loadingMessage = "";
+
       }, error => {
         console.error(" access token silent failed " + JSON.stringify(error));
+        this.loadingMessage = "";
+
       });
+  }
+
+  convertUTCToLocalTime(utcTime : string): any
+  {
+    var offset = new Date().getTimezoneOffset();
+    var utcDate = new Date(utcTime );
+    utcDate.setMinutes(utcDate.getMinutes() - offset);
+    return  utcDate.toDateString() + " " + utcDate.toLocaleTimeString();
   }
 
   //extremely important to unsubscribe

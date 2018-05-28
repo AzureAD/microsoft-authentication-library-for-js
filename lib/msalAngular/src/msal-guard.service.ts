@@ -21,7 +21,7 @@ export class MsalGuard implements CanActivate  {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
-      this.authService.getLogger().verbose("location change event from old url to new url");
+      this.authService.get_logger().verbose("location change event from old url to new url");
 
         this.authService.updateDataFromCache([this.config.clientID]);
         if (!this.authService._oauthData.isAuthenticated && !this.authService._oauthData.userName) {

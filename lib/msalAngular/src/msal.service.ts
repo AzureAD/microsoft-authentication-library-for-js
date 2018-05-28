@@ -355,5 +355,10 @@ export class MsalService extends UserAgentApplication {
     removeItem(key: string) {
         this._cacheStorage.removeItem(key);
     }
+
+    get_logger()
+    {
+        return this.getLogger();
+    }
 }
 

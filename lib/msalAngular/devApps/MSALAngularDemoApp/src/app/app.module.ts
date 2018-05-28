@@ -10,24 +10,28 @@ import {ErrorComponent} from './error.component'
 import {ProductDetailComponent} from './product-detail.component'
 import {ProductService} from './product.service';
 import {appRoutes} from './app.routes';
-import {MyProfileComponent} from "./myProfile.component";
+import {MsGraphComponent} from "./msGraph.component";
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {MsalModule, MsalInterceptor} from "../../../../dist";
 import {LogLevel} from "../../../../../msal-core/lib-commonjs";
 import { TodoListComponent } from './todo-list/todo-list.component';
 import {TodoListService} from "./todo-list/todo-list.service";
+import {MsGraphService} from "./msGraph.service";
 
 export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
 }
 
 export const endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
-endpointmap.set("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
+export const startDate = new Date();
+export const endDate = new Date();
+endDate.setDate(startDate.getDate()+7);
+endpointmap.set("https://graph.microsoft.com/beta/me/calendarview?startdatetime=" +startDate.toLocaleDateString("en-US") + "&enddatetime="+ endDate.toLocaleDateString("en-US")+ "&$select=subject,start,end&$orderBy=start/dateTime", [ "calendars.read"]);
 endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
 
 @NgModule({
   declarations: [
-    AppComponent, HomeComponent, ProductComponent, ErrorComponent, ProductDetailComponent, MyProfileComponent, TodoListComponent
+    AppComponent, HomeComponent, ProductComponent, ErrorComponent, ProductDetailComponent, MsGraphComponent, TodoListComponent
   ],
   imports: [
     BrowserModule,
@@ -44,7 +48,7 @@ endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
         popUp: false,
-        scopes: ["user.read", "mail.send", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
+        scopes: [ "calendars.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
         anonymousEndpoints: ["https:google.com"],
         endpoints: endpointmap,
         logger: loggerCallback,
@@ -55,7 +59,7 @@ endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api
       }
     ),
   ],
-  providers: [ProductService, TodoListService
+  providers: [ProductService, TodoListService, MsGraphService,
     , {provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true}
   ],
   bootstrap: [AppComponent]

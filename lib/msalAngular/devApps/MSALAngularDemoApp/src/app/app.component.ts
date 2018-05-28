@@ -1,16 +1,18 @@
-import { Component } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {BroadcastService, MsalService} from "../../../../dist";
 import {ProductService} from "./product.service";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'Msal Angular Demo';
   loggedIn : boolean;
   public userInfo: any = null;
+  private subscription: Subscription;
 
   constructor(private broadcastService: BroadcastService , private authService : MsalService,   private productService: ProductService)
   {
@@ -25,7 +27,7 @@ export class AppComponent {
 
   login()
   {
-   this.authService.login_popup(["user.read", "mail.send", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
+   this.authService.login_popup(["calendars.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
   }
 
   logout()
@@ -47,6 +49,13 @@ export class AppComponent {
       this.loggedIn = true;
     });
 
+  }
+
+ ngOnDestroy() {
+    this.broadcastService.getMSALSubject().next(1);
+    if(this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
 }

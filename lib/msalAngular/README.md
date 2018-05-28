@@ -34,7 +34,8 @@ Via NPM:
 ````
 export const  endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]);
+endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read"]);
+endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
 
 export function loggerCallback(logLevel, message, piiEnabled) {
   
@@ -50,7 +51,7 @@ export function loggerCallback(logLevel, message, piiEnabled) {
                   postLogoutRedirectUri: "http://localhost:4200/",
                   navigateToLoginRequestUrl : true,
                   popUp: true,
-                  scopes: ["user.read", "mail.send"],
+                  scopes: ["user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
                   anonymousEndpoints: ["https://angularjs.org/"],
                   endpoints : endpointmap,
                   logger :loggerCallback,
@@ -121,7 +122,7 @@ Routes can be protected by just adding canActivate : [MsalGuard] to your routes.
       { path: 'detail/:id', component: ProductDetailComponent  }
     ]
    },
-  { path: 'myProfile' ,component: MyProfileComponent, canActivate : [MsalGuard]},
+  { path: 'myProfile' ,component: MsGraphComponent, canActivate : [MsalGuard]},
   ````
   
 ## Public API
