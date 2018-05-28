@@ -11,8 +11,8 @@
         <li><a [routerLink]="['todoList']">Web API Call</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a   [class.disabled]="loggedIn" (click)="login()"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-        <li><a  [class.disabled]="!loggedIn" (click)="logout()"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+        <li><a  *ngIf="!loggedIn"   (click)="login()"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+        <li><a  *ngIf="loggedIn" (click)="logout()"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
       </ul>
     </div>
   </nav>
