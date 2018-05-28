@@ -15,7 +15,7 @@ export const appRoutes: Routes = [
       { path: 'detail/:id', component: ProductDetailComponent  }
     ]
    },
-  { path: 'myProfile' ,component: MsGraphComponent, canActivate : [MsalGuard]},
+  { path: 'myCalendar' ,component: MsGraphComponent, canActivate : [MsalGuard]},
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', component: ErrorComponent }
 ];
