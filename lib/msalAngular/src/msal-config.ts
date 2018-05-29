@@ -1,5 +1,5 @@
-import {LogLevel} from "../../msal-core/lib-commonjs";
-import {ILoggerCallback} from "../../msal-core/lib-commonjs/Logger";
+import {LogLevel} from "msal";
+import {ILoggerCallback} from "msal/lib-commonjs/Logger";
 
 export class MsalConfig {
     clientID: string;

@@ -7,11 +7,10 @@ import {
     UserAgentApplication,
     CacheResult,
     User, Constants, Logger
-} from "../../msal-core/lib-commonjs";
+} from "msal";
 import {
-    ActivatedRoute, Router
+     Router
 } from "@angular/router";
-import {Location} from "@angular/common";
 import {BroadcastService} from "./broadcast.service";
 
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");

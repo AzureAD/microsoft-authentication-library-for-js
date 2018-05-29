@@ -11,7 +11,7 @@ import 'rxjs/add/operator/pairwise';
 import {Location, PlatformLocation} from "@angular/common";
 import {MsalConfig} from "./msal-config";
 import {BroadcastService} from "./broadcast.service";
-import {Constants} from "../../msal-core/lib-commonjs/Constants";
+import {Constants} from "msal";
 
 @Injectable()
 export class MsalGuard implements CanActivate  {

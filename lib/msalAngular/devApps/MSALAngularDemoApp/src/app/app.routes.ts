@@ -3,7 +3,7 @@ import { HomeComponent} from './home.component'
 import { ProductComponent} from './product.component'
 import { ErrorComponent} from './error.component'
 import { ProductDetailComponent} from './product-detail.component';
-import {MsalGuard} from "../../../../dist";
+import {MsalGuard} from "ms-msal-angular";
 import {MsGraphComponent} from "./msGraph.component";
 import {TodoListComponent} from "./todo-list/todo-list.component";
 
