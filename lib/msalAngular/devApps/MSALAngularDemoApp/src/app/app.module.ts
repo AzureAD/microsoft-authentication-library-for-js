@@ -22,12 +22,12 @@ export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
 }
 
-export const endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
+export const protectedResourceMap: Map<string, Array<string>> = new Map<string, Array<string>>();
 export const startDate = new Date();
 export const endDate = new Date();
 endDate.setDate(startDate.getDate()+7);
-endpointmap.set("https://graph.microsoft.com/beta/me/calendarview?startdatetime=" +startDate.toLocaleDateString("en-US") + "&enddatetime="+ endDate.toLocaleDateString("en-US")+ "&$select=subject,start,end&$orderBy=start/dateTime", [ "calendars.read"]);
-endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
+protectedResourceMap.set("https://graph.microsoft.com/beta/me/calendarview?startdatetime=" +startDate.toLocaleDateString("en-US") + "&enddatetime="+ endDate.toLocaleDateString("en-US")+ "&$select=subject,start,end&$orderBy=start/dateTime", [ "calendars.read"]);
+protectedResourceMap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
 
 @NgModule({
   declarations: [
@@ -48,9 +48,9 @@ endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
         popUp: false,
-        scopes: [ "calendars.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
-        anonymousEndpoints: ["https:google.com"],
-        endpoints: endpointmap,
+        consentScopes: [ "calendars.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
+        unprotectedResources: ["https:google.com"],
+        protectedResourceMap: protectedResourceMap,
         logger: loggerCallback,
         correlationId: '1234',
         level: LogLevel.Info,

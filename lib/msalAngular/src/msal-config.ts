@@ -11,12 +11,12 @@ export class MsalConfig {
     postLogoutRedirectUri?: string;
     logger?: ILoggerCallback;
     loadFrameTimeout? = 6000;
-    navigateToLoginRequestUrl?= true ;
+    navigateToLoginRequestUrl?= false ;
     popUp?: boolean;
-    scopes?: string[];
+    consentScopes?: string[];
     isAngular?:true;
-    anonymousEndpoints? :  string[];
-    endpoints?: Map<string, Array<string>>;
+    unprotectedResources? :  string[];
+    protectedResourceMap?: Map<string, Array<string>>;
     extraQueryParameters?: string;
     correlationId?: string;
     level?: LogLevel;

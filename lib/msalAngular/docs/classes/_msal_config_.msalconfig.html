@@ -84,12 +84,11 @@
 						<section class="tsd-index-section tsd-is-external">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#anonymousendpoints" class="tsd-kind-icon">anonymous<wbr>Endpoints</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#authority" class="tsd-kind-icon">authority</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#cachelocation" class="tsd-kind-icon">cache<wbr>Location</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#clientid" class="tsd-kind-icon">clientID</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#consentscopes" class="tsd-kind-icon">consent<wbr>Scopes</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#correlationid" class="tsd-kind-icon">correlation<wbr>Id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#endpoints" class="tsd-kind-icon">endpoints</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#extraqueryparameters" class="tsd-kind-icon">extra<wbr>Query<wbr>Parameters</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#isangular" class="tsd-kind-icon">is<wbr>Angular</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#level" class="tsd-kind-icon">level</a></li>
@@ -99,9 +98,10 @@
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#piiloggingenabled" class="tsd-kind-icon">pii<wbr>Logging<wbr>Enabled</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#popup" class="tsd-kind-icon">pop<wbr>Up</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#postlogoutredirecturi" class="tsd-kind-icon">post<wbr>Logout<wbr>Redirect<wbr>Uri</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#protectedresourcemap" class="tsd-kind-icon">protected<wbr>Resource<wbr>Map</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#redirecturi" class="tsd-kind-icon">redirect<wbr>Uri</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#scopes" class="tsd-kind-icon">scopes</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#tokenreceivedcallback" class="tsd-kind-icon">token<wbr>Received<wbr>Callback</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#unprotectedresources" class="tsd-kind-icon">unprotected<wbr>Resources</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_msal_config_.msalconfig.html#validateauthority" class="tsd-kind-icon">validate<wbr>Authority</a></li>
 							</ul>
 						</section>
@@ -110,16 +110,6 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group tsd-is-external">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="anonymousendpoints" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> anonymous<wbr>Endpoints</h3>
-					<div class="tsd-signature tsd-kind-icon">anonymous<wbr>Endpoints<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L18">msal-config.ts:18</a></li>
-						</ul>
-					</aside>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a name="authority" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> authority</h3>
@@ -151,22 +141,22 @@
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="consentscopes" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> consent<wbr>Scopes</h3>
+					<div class="tsd-signature tsd-kind-icon">consent<wbr>Scopes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L16">msal-config.ts:16</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a name="correlationid" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> correlation<wbr>Id</h3>
 					<div class="tsd-signature tsd-kind-icon">correlation<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
 							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L21">msal-config.ts:21</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="endpoints" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> endpoints</h3>
-					<div class="tsd-signature tsd-kind-icon">endpoints<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L19">msal-config.ts:19</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -223,7 +213,7 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a name="navigatetologinrequesturl" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> navigate<wbr>ToLogin<wbr>Request<wbr>Url</h3>
-					<div class="tsd-signature tsd-kind-icon">navigate<wbr>ToLogin<wbr>Request<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
+					<div class="tsd-signature tsd-kind-icon">navigate<wbr>ToLogin<wbr>Request<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 					<aside class="tsd-sources">
 						<ul>
 							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L14">msal-config.ts:14</a></li>
@@ -261,6 +251,16 @@
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="protectedresourcemap" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> protected<wbr>Resource<wbr>Map</h3>
+					<div class="tsd-signature tsd-kind-icon">protected<wbr>Resource<wbr>Map<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L19">msal-config.ts:19</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a name="redirecturi" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> redirect<wbr>Uri</h3>
 					<div class="tsd-signature tsd-kind-icon">redirect<wbr>Uri<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -271,22 +271,22 @@
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="scopes" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> scopes</h3>
-					<div class="tsd-signature tsd-kind-icon">scopes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L16">msal-config.ts:16</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a name="tokenreceivedcallback" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> token<wbr>Received<wbr>Callback</h3>
 					<div class="tsd-signature tsd-kind-icon">token<wbr>Received<wbr>Callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
 							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L7">msal-config.ts:7</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="unprotectedresources" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> unprotected<wbr>Resources</h3>
+					<div class="tsd-signature tsd-kind-icon">unprotected<wbr>Resources<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msalAngular/src/msal-config.ts#L18">msal-config.ts:18</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -345,9 +345,6 @@
 						<a href="_msal_config_.msalconfig.html" class="tsd-kind-icon">Msal<wbr>Config</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_config_.msalconfig.html#anonymousendpoints" class="tsd-kind-icon">anonymous<wbr>Endpoints</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_msal_config_.msalconfig.html#authority" class="tsd-kind-icon">authority</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
@@ -357,10 +354,10 @@
 								<a href="_msal_config_.msalconfig.html#clientid" class="tsd-kind-icon">clientID</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_config_.msalconfig.html#correlationid" class="tsd-kind-icon">correlation<wbr>Id</a>
+								<a href="_msal_config_.msalconfig.html#consentscopes" class="tsd-kind-icon">consent<wbr>Scopes</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_config_.msalconfig.html#endpoints" class="tsd-kind-icon">endpoints</a>
+								<a href="_msal_config_.msalconfig.html#correlationid" class="tsd-kind-icon">correlation<wbr>Id</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_msal_config_.msalconfig.html#extraqueryparameters" class="tsd-kind-icon">extra<wbr>Query<wbr>Parameters</a>
@@ -390,13 +387,16 @@
 								<a href="_msal_config_.msalconfig.html#postlogoutredirecturi" class="tsd-kind-icon">post<wbr>Logout<wbr>Redirect<wbr>Uri</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+								<a href="_msal_config_.msalconfig.html#protectedresourcemap" class="tsd-kind-icon">protected<wbr>Resource<wbr>Map</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_msal_config_.msalconfig.html#redirecturi" class="tsd-kind-icon">redirect<wbr>Uri</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_config_.msalconfig.html#scopes" class="tsd-kind-icon">scopes</a>
+								<a href="_msal_config_.msalconfig.html#tokenreceivedcallback" class="tsd-kind-icon">token<wbr>Received<wbr>Callback</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_config_.msalconfig.html#tokenreceivedcallback" class="tsd-kind-icon">token<wbr>Received<wbr>Callback</a>
+								<a href="_msal_config_.msalconfig.html#unprotectedresources" class="tsd-kind-icon">unprotected<wbr>Resources</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 								<a href="_msal_config_.msalconfig.html#validateauthority" class="tsd-kind-icon">validate<wbr>Authority</a>

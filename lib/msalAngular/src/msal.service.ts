@@ -33,8 +33,8 @@ export class MsalService extends UserAgentApplication {
                 loadFrameTimeout: config.loadFrameTimeout,
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
-                anonymousEndpoints: config.anonymousEndpoints,
-                endPoints: config.endpoints,
+                anonymousEndpoints: config.unprotectedResources,
+                endPoints: config.protectedResourceMap,
             });
 
         this.loginScopes = [this.clientId];
@@ -62,9 +62,9 @@ export class MsalService extends UserAgentApplication {
         this.router.events.subscribe(event => {
             for (var i = 0; i < router.config.length; i++) {
                 if (!router.config[i].canActivate) {
-                    if (this.config && this.config.anonymousEndpoints) {
+                    if (this.config && this.config.unprotectedResources) {
                         if (!this.isAnonymousEndpoint(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
-                            this.config.anonymousEndpoints.push(router.config[i].path);
+                            this.config.unprotectedResources.push(router.config[i].path);
                         }
                     }
                 }
@@ -224,9 +224,9 @@ export class MsalService extends UserAgentApplication {
 
 
     private isAnonymousEndpoint(url: string) {
-        if (this.config && this.config.anonymousEndpoints) {
-            for (var i = 0; i < this.config.anonymousEndpoints.length; i++) {
-                if (url.indexOf(this.config.anonymousEndpoints[i]) > -1) {
+        if (this.config && this.config.unprotectedResources) {
+            for (var i = 0; i < this.config.unprotectedResources.length; i++) {
+                if (url.indexOf(this.config.unprotectedResources[i]) > -1) {
                     return true;
                 }
             }
@@ -239,16 +239,16 @@ export class MsalService extends UserAgentApplication {
 
     }
 
-    login_redirect(scopes?: string[], extraQueryParameters?: string) {
+    login_redirect(consentScopes?: string[], extraQueryParameters?: string) {
 
         this._logger.verbose("login redirect flow");
-        this.loginRedirect(scopes, extraQueryParameters)
+        this.loginRedirect(consentScopes, extraQueryParameters)
     }
 
-    login_popup(scopes?: string[], extraQueryParameters?: string): Promise<any> {
+    login_popup(consentScopes?: string[], extraQueryParameters?: string): Promise<any> {
         this._logger.verbose("login popup flow");
         return new Promise((resolve, reject) => {
-            this.loginPopup(scopes, extraQueryParameters).then((idToken) => {
+            this.loginPopup(consentScopes, extraQueryParameters).then((idToken) => {
                 this.broadcastService.broadcast("msal:loginSuccess", {idToken});
                 resolve(idToken);
             }, (error: any) => {

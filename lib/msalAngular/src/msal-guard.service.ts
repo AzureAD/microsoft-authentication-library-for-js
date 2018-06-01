@@ -35,7 +35,7 @@ export class MsalGuard implements CanActivate  {
                     }
                     if(this.config.popUp) {
                         return new Promise((resolve, reject) => {
-                            this.authService.login_popup(this.config.scopes , this.config.extraQueryParameters).then(function (token) {
+                            this.authService.login_popup(this.config.consentScopes , this.config.extraQueryParameters).then(function (token) {
                                 resolve(true);
                             }, function (error) {
                                 reject(false);
@@ -43,7 +43,7 @@ export class MsalGuard implements CanActivate  {
                         });
                     }
                     else {
-                        this.authService.login_redirect(this.config.scopes, this.config.extraQueryParameters);
+                        this.authService.login_redirect(this.config.consentScopes, this.config.extraQueryParameters);
                     }
                 }
             }
