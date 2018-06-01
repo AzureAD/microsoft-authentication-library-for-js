@@ -32,10 +32,10 @@ Via NPM:
 
 1. Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
 ````
-export const  endpointmap: Map<string, Array<string>> = new Map<string, Array<string>>();
+export const  protectedResourceMap: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-endpointmap.set ("https://graph.microsoft.com/v1.0/me", ["user.read"]);
-endpointmap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
+protectedResourceMap.set ("https://graph.microsoft.com/v1.0/me", ["user.read"]);
+protectedResourceMap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
 
 export function loggerCallback(logLevel, message, piiEnabled) {
   
@@ -51,9 +51,9 @@ export function loggerCallback(logLevel, message, piiEnabled) {
                   postLogoutRedirectUri: "http://localhost:4200/",
                   navigateToLoginRequestUrl : true,
                   popUp: true,
-                  scopes: ["user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
-                  anonymousEndpoints: ["https://angularjs.org/"],
-                  endpoints : endpointmap,
+                  consentScopes: ["user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
+                  unprotectedResources: ["https://angularjs.org/"],
+                  protectedResourceMap : protectedResourceMap,
                   logger :loggerCallback,
                   correlationId: '1234',
                   level: LogLevel.Verbose,
@@ -65,47 +65,47 @@ export function loggerCallback(logLevel, message, piiEnabled) {
 ````
 ## Config options
 
-<b>ClientID(Mandatory)</b>: The clientID of your application, you should get this from the application registration portal.
+<b>clientID(Mandatory)</b>: The clientID of your application, you should get this from the application registration portal.
 
-<b>RedirectUri(Optional)</b> : The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
+<b>redirectUri(Optional)</b> : The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
 Defaults to `window.location.href`.
  
-<b>Authority(Optional)</b>:  A URL indicating a directory that MSAL can use to obtain tokens.
+<b>authority(Optional)</b>:  A URL indicating a directory that MSAL can use to obtain tokens.
    * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;, where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
    * - Default value is: "https://login.microsoftonline.com/common"
    
-<b>ValidateAuthority(Optional)</b> :Validate the issuer of tokens. Default is true.
+<b>validateAuthority(Optional)</b> :Validate the issuer of tokens. Default is true.
 
-<b>CacheLocation(Optional)</b>: Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+<b>cacheLocation(Optional)</b>: Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
 
-<b>PostLogoutRedirectUri(Optional)</b>: Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
+<b>postLogoutRedirectUri(Optional)</b>: Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
 
-<b>LoadFrameTimeout(Optional)</b>: The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
+<b>loadFrameTimeout(Optional)</b>: The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
 
-<b>NavigateToLoginRequestUrl(Optional)</b>:Ability to turn off default navigation to start page after login. Default is false.
+<b>navigateToLoginRequestUrl(Optional)</b>:Ability to turn off default navigation to start page after login. Default is false.
 
-<b>Popup(Optional)</b>: Show login popup or redirect. Default:Redirect
+<b>popup(Optional)</b>: Show login popup or redirect. Default:Redirect
 
-<b>Scopes(Optional)</b>: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+<b>consentScopes(Optional)</b>: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
 only consent it and no access token will be acquired till the time client actually calls the API. This is optional if you are using MSAL for only login(Authentication).
 
-<b>AnonymousEndpoints(Optional)</b>: Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
+<b>unprotectedResources(Optional)</b>: Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'. 
 
-<b>Endpoints(Optional)</b>: Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
+<b>protectedResourceMap(Optional)</b>: Mapping of resources to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls. 
 This is required only for CORS calls.
 
-<b>Level(Optional)</b>: Configurable log level. Default value is Info.
+<b>level(Optional)</b>: Configurable log level. Default value is Info.
 
 <b>logger(Optional)</b>: Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature. 
 loggerCallback(logLevel, message, piiEnabled) { }
 
-<b>PiiLoggingEnabled(Optional)</b>: PII stands for Personal Identifiable Information. By default, MSAL does not capture or log any PII. By turning on PII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
+<b>piiLoggingEnabled(Optional)</b>: PII stands for Personal Identifiable Information. By default, MSAL does not capture or log any PII. By turning on PII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
  This Flag is to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
 
 
 ## Adding interceptor 
- Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the anonymous Endpoints. Using MsalInterceptor is optional.
+ Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the unprotectedResources. Using MsalInterceptor is optional.
  If user wants to write their own interceptor, please ignore this.
  ````
  providers: [ProductService
