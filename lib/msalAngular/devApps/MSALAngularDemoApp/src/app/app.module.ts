@@ -60,7 +60,7 @@ protectedResourceMap.set("https://buildtodoservice.azurewebsites.net/api/todolis
     ),
   ],
   providers: [ProductService, TodoListService, MsGraphService,
-    , {provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true}
+     {provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true}
   ],
   bootstrap: [AppComponent]
 })
