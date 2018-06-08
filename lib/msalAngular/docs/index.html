@@ -98,10 +98,10 @@
 				<ol>
 					<li>Import MsalModule into app.module.ts. Not all config parameters are mandatory. Please see the config section below to know more about the config options.
 						````
-					export const  endpointmap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();</li>
+					export const  protectedResourceMap: Map&lt;string, Array<string>&gt; = new Map&lt;string, Array<string>&gt;();</li>
 				</ol>
-				<p>endpointmap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;]);
-				endpointmap.set(&quot;<a href="https://buildtodoservice.azurewebsites.net/api/todolist">https://buildtodoservice.azurewebsites.net/api/todolist</a>&quot;, [&quot;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&quot;]);</p>
+				<p>protectedResourceMap.set (&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;]);
+				protectedResourceMap.set(&quot;<a href="https://buildtodoservice.azurewebsites.net/api/todolist">https://buildtodoservice.azurewebsites.net/api/todolist</a>&quot;, [&quot;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&quot;]);</p>
 				<p>export function loggerCallback(logLevel, message, piiEnabled) {</p>
 				<p>}</p>
 				<p>@NgModule({
@@ -114,9 +114,9 @@
 					postLogoutRedirectUri: &quot;<a href="http://localhost:4200/">http://localhost:4200/</a>&quot;,
 					navigateToLoginRequestUrl : true,
 					popUp: true,
-					scopes: [&quot;user.read&quot;, &quot;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&quot;],
-					anonymousEndpoints: [&quot;<a href="https://angularjs.org/">https://angularjs.org/</a>&quot;],
-					endpoints : endpointmap,
+					consentScopes: [&quot;user.read&quot;, &quot;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&quot;],
+					unprotectedResources: [&quot;<a href="https://angularjs.org/">https://angularjs.org/</a>&quot;],
+					protectedResourceMap : protectedResourceMap,
 					logger :loggerCallback,
 					correlationId: &#39;1234&#39;,
 					level: LogLevel.Verbose,
@@ -126,47 +126,47 @@
 				<p>  export class AppModule { }</p>
 				<pre><code>## Config options
 
-&lt;b&gt;ClientID(Mandatory)&lt;/b&gt;: The clientID <span class="hljs-keyword">of</span> your application, you should get this from the application registration portal.
+&lt;b&gt;clientID(Mandatory)&lt;/b&gt;: The clientID <span class="hljs-keyword">of</span> your application, you should get this from the application registration portal.
 
-&lt;b&gt;RedirectUri(Optional)&lt;/b&gt; : <span class="hljs-type">The</span> redirect URI <span class="hljs-keyword">of</span> your app, where authentication responses can be sent <span class="hljs-keyword">and</span> received by your app. It must exactly match one <span class="hljs-keyword">of</span> the redirect URIs you registered <span class="hljs-keyword">in</span> the portal, except that it must be URL encoded.
+&lt;b&gt;redirectUri(Optional)&lt;/b&gt; : <span class="hljs-type">The</span> redirect URI <span class="hljs-keyword">of</span> your app, where authentication responses can be sent <span class="hljs-keyword">and</span> received by your app. It must exactly match one <span class="hljs-keyword">of</span> the redirect URIs you registered <span class="hljs-keyword">in</span> the portal, except that it must be URL encoded.
 Defaults to `window.location.href`.
 
-&lt;b&gt;Authority(Optional)&lt;/b&gt;:  A URL indicating a directory that MSAL can <span class="hljs-keyword">use</span> to obtain tokens.
+&lt;b&gt;authority(Optional)&lt;/b&gt;:  A URL indicating a directory that MSAL can <span class="hljs-keyword">use</span> to obtain tokens.
    * - <span class="hljs-keyword">In</span> Azure AD, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&gt;/&amp;lt;tenant&amp;gt;, where &amp;lt;instance&amp;gt; <span class="hljs-keyword">is</span> the directory host (e.g. https://login.microsoftonline.com) <span class="hljs-keyword">and</span> &amp;lt;tenant&amp;gt; <span class="hljs-keyword">is</span> a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, <span class="hljs-keyword">or</span> the GUID representing the TenantID property <span class="hljs-keyword">of</span> the directory)
    * - <span class="hljs-keyword">In</span> Azure B2C, it <span class="hljs-keyword">is</span> <span class="hljs-keyword">of</span> the form https://&amp;lt;instance&amp;gt;/tfp/&amp;lt;tenantId&amp;gt;/&amp;lt;policyName&amp;gt;/
    * - Default value <span class="hljs-keyword">is</span>: <span class="hljs-string">"https://login.microsoftonline.com/common"</span>
 
-&lt;b&gt;ValidateAuthority(Optional)&lt;/b&gt; :Validate the issuer <span class="hljs-keyword">of</span> tokens. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>.
+&lt;b&gt;validateAuthority(Optional)&lt;/b&gt; :Validate the issuer <span class="hljs-keyword">of</span> tokens. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>.
 
-&lt;b&gt;CacheLocation(Optional)&lt;/b&gt;: Sets browser storage to either <span class="hljs-symbol">'localStorage</span>' <span class="hljs-keyword">or</span> sessionStorage'. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'sessionStorage</span>'.
+&lt;b&gt;cacheLocation(Optional)&lt;/b&gt;: Sets browser storage to either <span class="hljs-symbol">'localStorage</span>' <span class="hljs-keyword">or</span> sessionStorage'. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'sessionStorage</span>'.
 
-&lt;b&gt;PostLogoutRedirectUri(Optional)&lt;/b&gt;: Redirects the user to postLogoutRedirectUri after logout. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'redirectUri</span>'.
+&lt;b&gt;postLogoutRedirectUri(Optional)&lt;/b&gt;: Redirects the user to postLogoutRedirectUri after logout. Defaults <span class="hljs-keyword">is</span> <span class="hljs-symbol">'redirectUri</span>'.
 
-&lt;b&gt;LoadFrameTimeout(Optional)&lt;/b&gt;: The number <span class="hljs-keyword">of</span> milliseconds <span class="hljs-keyword">of</span> inactivity before a token renewal response from AAD should be considered timed <span class="hljs-keyword">out</span>. Default <span class="hljs-keyword">is</span> <span class="hljs-number">6</span> seconds.
+&lt;b&gt;loadFrameTimeout(Optional)&lt;/b&gt;: The number <span class="hljs-keyword">of</span> milliseconds <span class="hljs-keyword">of</span> inactivity before a token renewal response from AAD should be considered timed <span class="hljs-keyword">out</span>. Default <span class="hljs-keyword">is</span> <span class="hljs-number">6</span> seconds.
 
-&lt;b&gt;NavigateToLoginRequestUrl(Optional)&lt;/b&gt;:Ability to turn off default navigation to start page after login. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">false</span>.
+&lt;b&gt;navigateToLoginRequestUrl(Optional)&lt;/b&gt;:Ability to turn off default navigation to start page after login. Default <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span>. This <span class="hljs-keyword">is</span> used only <span class="hljs-keyword">for</span> redirect flows.
 
-&lt;b&gt;Popup(Optional)&lt;/b&gt;: Show login popup <span class="hljs-keyword">or</span> redirect. Default:Redirect
+&lt;b&gt;popup(Optional)&lt;/b&gt;: Show login popup <span class="hljs-keyword">or</span> redirect. Default:Redirect
 
-&lt;b&gt;Scopes(Optional)&lt;/b&gt;: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
+&lt;b&gt;consentScopes(Optional)&lt;/b&gt;: Allows the client to express the desired scopes that should be consented. Scopes can be from multiple resources/endpoints. Passing scope here will
 only consent it <span class="hljs-keyword">and</span> no <span class="hljs-keyword">access</span> token will be acquired till the time client actually calls the API. This <span class="hljs-keyword">is</span> optional <span class="hljs-keyword">if</span> you are using MSAL <span class="hljs-keyword">for</span> only login(Authentication).
 
-&lt;b&gt;AnonymousEndpoints(Optional)&lt;/b&gt;: <span class="hljs-keyword">Array</span> <span class="hljs-keyword">of</span>  URI<span class="hljs-symbol">'s.</span> Msal will <span class="hljs-keyword">not</span> attach a token to outgoing requests that have these uri. Defaults to <span class="hljs-symbol">'null</span>'. 
+&lt;b&gt;unprotectedResources(Optional)&lt;/b&gt;: <span class="hljs-keyword">Array</span> <span class="hljs-keyword">of</span>  URI<span class="hljs-symbol">'s.</span> Msal will <span class="hljs-keyword">not</span> attach a token to outgoing requests that have these uri. Defaults to <span class="hljs-symbol">'null</span>'. 
 
-&lt;b&gt;Endpoints(Optional)&lt;/b&gt;: Mapping <span class="hljs-keyword">of</span> endpoints to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
+&lt;b&gt;protectedResourceMap(Optional)&lt;/b&gt;: Mapping <span class="hljs-keyword">of</span> resources to scopes {<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]}. Used internally by the MSAL <span class="hljs-keyword">for</span> automatically attaching tokens <span class="hljs-keyword">in</span> webApi calls. 
 This <span class="hljs-keyword">is</span> required only <span class="hljs-keyword">for</span> CORS calls.
 
-&lt;b&gt;Level(Optional)&lt;/b&gt;: Configurable log level. Default value <span class="hljs-keyword">is</span> Info.
+&lt;b&gt;level(Optional)&lt;/b&gt;: Configurable log level. Default value <span class="hljs-keyword">is</span> Info.
 
 &lt;b&gt;logger(Optional)&lt;/b&gt;: Callback instance that can be provided by the developer to consume <span class="hljs-keyword">and</span> publish logs <span class="hljs-keyword">in</span> a custom manner. Callback method must follow this signature. 
 loggerCallback(logLevel, message, piiEnabled) { }
 
-&lt;b&gt;PiiLoggingEnabled(Optional)&lt;/b&gt;: PII stands <span class="hljs-keyword">for</span> Personal Identifiable Information. By default, MSAL does <span class="hljs-keyword">not</span> capture <span class="hljs-keyword">or</span> log any PII. By turning on PII, the app takes responsibility <span class="hljs-keyword">for</span> safely handling highly-sensitive data <span class="hljs-keyword">and</span> complying <span class="hljs-keyword">with</span> any regulatory requirements.
+&lt;b&gt;piiLoggingEnabled(Optional)&lt;/b&gt;: PII stands <span class="hljs-keyword">for</span> Personal Identifiable Information. By default, MSAL does <span class="hljs-keyword">not</span> capture <span class="hljs-keyword">or</span> log any PII. By turning on PII, the app takes responsibility <span class="hljs-keyword">for</span> safely handling highly-sensitive data <span class="hljs-keyword">and</span> complying <span class="hljs-keyword">with</span> any regulatory requirements.
  This Flag <span class="hljs-keyword">is</span> to enable/disable logging <span class="hljs-keyword">of</span> PII data. PII logs are never written to default outputs like Console, Logcat <span class="hljs-keyword">or</span> NSLog. Default <span class="hljs-keyword">is</span> set to <span class="hljs-literal">false</span>.
 
 
 ## Adding interceptor 
- Add the msalInterceptor <span class="hljs-keyword">in</span> your app.module.ts. MsalInterceptor will add the <span class="hljs-keyword">access</span> token to <span class="hljs-keyword">all</span> your http request except the anonymous Endpoints. Using MsalInterceptor <span class="hljs-keyword">is</span> optional.
+ Add the msalInterceptor <span class="hljs-keyword">in</span> your app.module.ts. MsalInterceptor will add the <span class="hljs-keyword">access</span> token to <span class="hljs-keyword">all</span> your http request except the unprotectedResources. Using MsalInterceptor <span class="hljs-keyword">is</span> optional.
  <span class="hljs-keyword">If</span> user wants to write their own interceptor, please ignore this.
 </code></pre><p> providers: [ProductService
 					,{ provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true }
