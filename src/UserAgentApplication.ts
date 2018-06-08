@@ -1157,7 +1157,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             this._logger.verbose("Token is not in cache for scope:" + scope);
         }
         // cache miss
-        return this.authorityInstance.ResolveEndpointsAsync()
+        return newAuthority.ResolveEndpointsAsync()
           .then(() => {
             // refresh attept with iframe
             //Already renewing for this scope, callback when we get the token.
