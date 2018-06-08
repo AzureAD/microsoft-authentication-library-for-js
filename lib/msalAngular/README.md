@@ -83,7 +83,7 @@ Defaults to `window.location.href`.
 
 <b>loadFrameTimeout(Optional)</b>: The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
 
-<b>navigateToLoginRequestUrl(Optional)</b>:Ability to turn off default navigation to start page after login. Default is false.
+<b>navigateToLoginRequestUrl(Optional)</b>:Ability to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
 
 <b>popup(Optional)</b>: Show login popup or redirect. Default:Redirect
 
