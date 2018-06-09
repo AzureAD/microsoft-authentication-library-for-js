@@ -23,5 +23,3 @@ install:
 
 #The default build script for projects using nodejs is:
 #npm test
-script:
-npm run travis_build
