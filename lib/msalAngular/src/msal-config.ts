@@ -11,7 +11,7 @@ export class MsalConfig {
     postLogoutRedirectUri?: string;
     logger?: ILoggerCallback;
     loadFrameTimeout? = 6000;
-    navigateToLoginRequestUrl?= false ;
+    navigateToLoginRequestUrl?= true ;
     popUp?: boolean;
     consentScopes?: string[];
     isAngular?:true;

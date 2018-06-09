@@ -176,6 +176,10 @@ export class MsalService extends UserAgentApplication {
                             window.location.href = loginStartPage;
                         }
                     }
+                    //redirect to redirect uri
+                    else {
+                            window.location.href= window.location.origin;
+                    }
                 }
             }
             else {
