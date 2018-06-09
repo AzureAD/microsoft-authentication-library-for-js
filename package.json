@@ -1,6 +1,9 @@
 {
 	"devDependencies": {
 		"lerna": "^2.9.0"
+	},
+	"scripts": {
+		"travis_build": "cd lib/msal-core && npm install && npm run build && cd ../msalAngular && npm install && npm run build"
 	}
 }
 

@@ -50,7 +50,7 @@ export class MsGraphComponent implements OnInit, OnDestroy{
     this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload))
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1) {
-        this.authService.acquireTokenPopup(["calendars.read"]).then( (token) => {
+        this.authService.acquire_token_popup(["calendars.read"]).then( (token) => {
           this.getCalendar();
         },  (error) => {
           this.loadingMessage = "";
