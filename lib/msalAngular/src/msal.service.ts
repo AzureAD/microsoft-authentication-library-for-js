@@ -258,7 +258,7 @@ export class MsalService extends UserAgentApplication {
             }, (error: any) => {
                 this._logger.error("Error during login:\n" + error);
                 this.broadcastService.broadcast("msal:loginFailure", {error});
-                reject("error " + "|" + error);
+                reject( error);
             });
         });
     }
@@ -283,9 +283,8 @@ export class MsalService extends UserAgentApplication {
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
                 resolve(token);
             }, (error: any) => {
-                var errorParts = error.split('|');
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', errorParts);
+                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
                 this._logger.error('Error when acquiring token for scopes: ' + scopes + " " + error);
                 reject(error);
             })
@@ -300,9 +299,8 @@ export class MsalService extends UserAgentApplication {
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
                 resolve(token);
             }, (error: any) => {
-                var errorParts = error.split('|');
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', errorParts);
+                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
                 this._logger.error('Error when acquiring token for scopes : ' + scopes + error);
                 reject(error);
             })
