@@ -1,6 +1,6 @@
 addons:
   firefox: "latest",
-  chrome: "stable",
+  chrome: "stable"
 
 language: node_js
 
