@@ -1396,7 +1396,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     if (window.parent !== window && window.parent.msal) {
         tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
-    else if (window.opener && window.opener.msal) {
+    else if (isWindowOpenerMsal) {
         tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     else {
