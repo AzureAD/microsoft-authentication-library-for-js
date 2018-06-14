@@ -44,6 +44,6 @@
     "watchify": "^3.11.0"
   },
   "scripts": {
-    "test": "karma start karma.conf.js"
+    "test": "karma start --browsers ChromeHeadless karma.conf.js"
   }
 }
