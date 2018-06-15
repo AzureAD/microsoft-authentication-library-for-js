@@ -1,4 +1,4 @@
-/*! msal v0.1.6 2018-05-21 */
+/*! msal v0.1.7 2018-06-15 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -315,7 +315,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.6";
+        return "0.1.7";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
@@ -728,8 +728,8 @@ function __generator(thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -2625,7 +2625,7 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._logger.verbose("Token is not in cache for scope:" + scope_1);
                 }
                 // cache miss
-                return _this.authorityInstance.ResolveEndpointsAsync()
+                return newAuthority.ResolveEndpointsAsync()
                     .then(function () {
                     // refresh attept with iframe
                     //Already renewing for this scope, callback when we get the token.
@@ -2843,7 +2843,7 @@ var UserAgentApplication = /** @class */ (function () {
         if (window.parent !== window && window.parent.msal) {
             tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
-        else if (window.opener && window.opener.msal) {
+        else if (isWindowOpenerMsal) {
             tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
