@@ -928,7 +928,7 @@ var UserAgentApplication = /** @class */ (function () {
                     _this._logger.verbose("Token is not in cache for scope:" + scope_1);
                 }
                 // cache miss
-                return _this.authorityInstance.ResolveEndpointsAsync()
+                return newAuthority.ResolveEndpointsAsync()
                     .then(function () {
                     // refresh attept with iframe
                     //Already renewing for this scope, callback when we get the token.
@@ -1146,7 +1146,7 @@ var UserAgentApplication = /** @class */ (function () {
         if (window.parent !== window && window.parent.msal) {
             tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
-        else if (window.opener && window.opener.msal) {
+        else if (isWindowOpenerMsal) {
             tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
         }
         else {
