@@ -25,8 +25,8 @@
                     <li ng-class="{ active: isActive('/Calendar') }"><a ui-sref="Calendar">Calendar</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a class="btn btn-link" ng-show="userInfo.isAuthenticated" ng-click="logout()">Logout</a></li>
-                    <li><a class="btn btn-link" ng-hide="userInfo.isAuthenticated" ng-click="login()">Login</a></li>
+                    <li><a class="btn btn-link" id="logoutButton" ng-show="userInfo.isAuthenticated" ng-click="logout()">Logout</a></li>
+                    <li><a class="btn btn-link" id="loginButton" ng-hide="userInfo.isAuthenticated" ng-click="login()">Login</a></li>
                 </ul>
             </div>
         </div>

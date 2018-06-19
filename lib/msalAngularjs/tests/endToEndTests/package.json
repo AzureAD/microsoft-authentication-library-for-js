@@ -1,0 +1,15 @@
+{
+  "name": "endtoendtests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "e2eTestsSpec.js",
+  "scripts": {
+    "test": "node testRunner.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "azure-keyvault": "0.11.0",
+    "promise": "^8.0.1"
+  }
+}
