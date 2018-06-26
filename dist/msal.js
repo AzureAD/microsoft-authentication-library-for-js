@@ -1,4 +1,4 @@
-/*! msal v0.1.7 2018-06-15 */
+/*! msal v0.1.7 2018-06-26 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1768,20 +1768,13 @@ var UserAgentApplication = /** @class */ (function () {
         /*
          * @hidden
          */
-        this._cacheLocations = {
-            localStorage: "localStorage",
-            sessionStorage: "sessionStorage"
-        };
-        /*
-         * @hidden
-         */
         this._clockSkew = 300;
         /*
          * @hidden
          */
         this._tokenReceivedCallback = null;
         this._isAngular = false;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.cacheCustomProvider, cacheCustomProvider = _c === void 0 ? undefined : _c, _d = options.redirectUri, redirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.postLogoutRedirectUri, postLogoutRedirectUri = _e === void 0 ? window.location.href.split("?")[0].split("#")[0] : _e, _f = options.logger, logger = _f === void 0 ? new Logger_1.Logger(null) : _f, _g = options.loadFrameTimeout, loadFrameTimeout = _g === void 0 ? 6000 : _g, _h = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _h === void 0 ? true : _h, _j = options.isAngular, isAngular = _j === void 0 ? false : _j, _k = options.anonymousEndpoints, anonymousEndpoints = _k === void 0 ? new Array() : _k, _l = options.endPoints, endPoints = _l === void 0 ? new Map() : _l;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -1791,15 +1784,14 @@ var UserAgentApplication = /** @class */ (function () {
         this._postLogoutredirectUri = postLogoutRedirectUri;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
-        this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         this._isAngular = isAngular;
         this._anonymousEndpoints = anonymousEndpoints;
         this._endpoints = endPoints;
-        if (!this._cacheLocations[cacheLocation]) {
-            throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
-        }
-        this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
+        // If a custom cache provider is given, use that.
+        // Otherwise, fall back to the built-in storage provider based on cache Location (which may or may not be provided).
+        this._cacheLocation = cacheLocation;
+        this._cacheStorage = cacheCustomProvider || new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
         window.openedWindows = [];
         window.activeRenewals = {};
@@ -3630,114 +3622,84 @@ exports.IdToken = IdToken;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Constants_1 = __webpack_require__(3);
 var AccessTokenCacheItem_1 = __webpack_require__(19);
+exports.CacheLocations = {
+    localStorage: "localStorage",
+    sessionStorage: "sessionStorage"
+};
 /*
  * @hidden
  */
 var Storage = /** @class */ (function () {
     function Storage(cacheLocation) {
-        if (Storage._instance) {
-            return Storage._instance;
+        if (Storage._instances[cacheLocation]) {
+            return Storage._instances[cacheLocation];
         }
-        this._cacheLocation = cacheLocation;
-        this._localStorageSupported = typeof window[this._cacheLocation] !== "undefined" && window[this._cacheLocation] != null;
-        this._sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-        Storage._instance = this;
-        if (!this._localStorageSupported && !this._sessionStorageSupported) {
-            throw new Error("localStorage and sessionStorage not supported");
+        if (!(cacheLocation in exports.CacheLocations)) {
+            throw new Error("cacheLocation " + cacheLocation + " not valid. Possible values are: " +
+                exports.CacheLocations.localStorage + " and " + exports.CacheLocations.sessionStorage);
         }
-        return Storage._instance;
+        var storageSupported = typeof window[cacheLocation] !== "undefined" && !!window[cacheLocation];
+        if (!storageSupported) {
+            throw new Error("cacheLocation " + cacheLocation + " not supported by current environment");
+        }
+        this._cacheLocation = window[cacheLocation];
+        Storage._instances[cacheLocation] = this;
+        return this;
     }
     // add value to storage
     Storage.prototype.setItem = function (key, value) {
-        if (window[this._cacheLocation]) {
-            window[this._cacheLocation].setItem(key, value);
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        this._cacheLocation.setItem(key, value);
     };
     // get one item by key from storage
     Storage.prototype.getItem = function (key) {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].getItem(key);
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        return this._cacheLocation.getItem(key);
     };
     // remove value from storage
     Storage.prototype.removeItem = function (key) {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].removeItem(key);
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        return this._cacheLocation.removeItem(key);
     };
     // clear storage (remove all items from it)
     Storage.prototype.clear = function () {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].clear();
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        return this._cacheLocation.clear();
     };
     Storage.prototype.getAllAccessTokens = function (clientId, userIdentifier) {
         var results = [];
         var accessTokenCacheItem;
-        var storage = window[this._cacheLocation];
-        if (storage) {
-            var key = void 0;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if (key.match(clientId) && key.match(userIdentifier)) {
-                        var value = this.getItem(key);
-                        if (value) {
-                            accessTokenCacheItem = new AccessTokenCacheItem_1.AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-                            results.push(accessTokenCacheItem);
-                        }
+        var key;
+        for (key in this._cacheLocation) {
+            if (this._cacheLocation.hasOwnProperty(key)) {
+                if (key.match(clientId) && key.match(userIdentifier)) {
+                    var value = this.getItem(key);
+                    if (value) {
+                        accessTokenCacheItem = new AccessTokenCacheItem_1.AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                        results.push(accessTokenCacheItem);
                     }
                 }
             }
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
         }
         return results;
     };
     Storage.prototype.removeAcquireTokenEntries = function (authorityKey, acquireTokenUserKey) {
-        var storage = window[this._cacheLocation];
-        if (storage) {
-            var key = void 0;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
-                        this.removeItem(key);
-                    }
+        var key;
+        for (key in this._cacheLocation) {
+            if (this._cacheLocation.hasOwnProperty(key)) {
+                if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    this.removeItem(key);
                 }
             }
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
         }
     };
     Storage.prototype.resetCacheItems = function () {
-        var storage = window[this._cacheLocation];
-        if (storage) {
-            var key = void 0;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.msal) !== -1) {
-                    this.setItem(key, "");
-                }
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.renewStatus) !== -1)
-                    this.removeItem(key);
+        var key;
+        for (key in this._cacheLocation) {
+            if (this._cacheLocation.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.msal) !== -1) {
+                this.setItem(key, "");
             }
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
+            if (this._cacheLocation.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.renewStatus) !== -1)
+                this.removeItem(key);
         }
     };
+    Storage._instances = {};
     return Storage;
 }());
 exports.Storage = Storage;

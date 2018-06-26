@@ -22,7 +22,7 @@
  */
 import { Authority } from "./Authority";
 import { Logger } from "./Logger";
-import { Storage } from "./Storage";
+import { CacheLocation as StorageCacheLocation, StorageProvider } from "./Storage";
 import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 declare global {
@@ -44,15 +44,27 @@ export interface CacheResult {
     error: string;
 }
 export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+export interface UserAgentApplicationOptions {
+    validateAuthority?: boolean;
+    cacheLocation?: StorageCacheLocation;
+    cacheCustomProvider?: StorageProvider;
+    redirectUri?: string;
+    postLogoutRedirectUri?: string;
+    logger?: Logger;
+    loadFrameTimeout?: number;
+    navigateToLoginRequestUrl?: boolean;
+    isAngular?: boolean;
+    anonymousEndpoints?: Array<string>;
+    endPoints?: Map<string, Array<string>>;
+}
 export declare class UserAgentApplication {
-    private _cacheLocations;
     private _cacheLocation;
-    readonly cacheLocation: string;
+    readonly cacheLocation: StorageCacheLocation | undefined;
+    protected _cacheStorage: StorageProvider;
     protected _logger: Logger;
     private _loginInProgress;
     private _acquireTokenInProgress;
     private _clockSkew;
-    protected _cacheStorage: Storage;
     private _tokenReceivedCallback;
     private _user;
     clientId: string;
@@ -69,18 +81,7 @@ export declare class UserAgentApplication {
     private _isAngular;
     private _endpoints;
     private _anonymousEndpoints;
-    constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
-        validateAuthority?: boolean;
-        cacheLocation?: string;
-        redirectUri?: string;
-        postLogoutRedirectUri?: string;
-        logger?: Logger;
-        loadFrameTimeout?: number;
-        navigateToLoginRequestUrl?: boolean;
-        isAngular?: boolean;
-        anonymousEndpoints?: Array<string>;
-        endPoints?: Map<string, Array<string>>;
-    });
+    constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: UserAgentApplicationOptions);
     private processCallBack;
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;

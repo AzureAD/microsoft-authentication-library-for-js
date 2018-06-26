@@ -73,20 +73,13 @@ var UserAgentApplication = /** @class */ (function () {
         /*
          * @hidden
          */
-        this._cacheLocations = {
-            localStorage: "localStorage",
-            sessionStorage: "sessionStorage"
-        };
-        /*
-         * @hidden
-         */
         this._clockSkew = 300;
         /*
          * @hidden
          */
         this._tokenReceivedCallback = null;
         this._isAngular = false;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.cacheCustomProvider, cacheCustomProvider = _c === void 0 ? undefined : _c, _d = options.redirectUri, redirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.postLogoutRedirectUri, postLogoutRedirectUri = _e === void 0 ? window.location.href.split("?")[0].split("#")[0] : _e, _f = options.logger, logger = _f === void 0 ? new Logger_1.Logger(null) : _f, _g = options.loadFrameTimeout, loadFrameTimeout = _g === void 0 ? 6000 : _g, _h = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _h === void 0 ? true : _h, _j = options.isAngular, isAngular = _j === void 0 ? false : _j, _k = options.anonymousEndpoints, anonymousEndpoints = _k === void 0 ? new Array() : _k, _l = options.endPoints, endPoints = _l === void 0 ? new Map() : _l;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -96,15 +89,14 @@ var UserAgentApplication = /** @class */ (function () {
         this._postLogoutredirectUri = postLogoutRedirectUri;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
-        this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         this._isAngular = isAngular;
         this._anonymousEndpoints = anonymousEndpoints;
         this._endpoints = endPoints;
-        if (!this._cacheLocations[cacheLocation]) {
-            throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
-        }
-        this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
+        // If a custom cache provider is given, use that.
+        // Otherwise, fall back to the built-in storage provider based on cache Location (which may or may not be provided).
+        this._cacheLocation = cacheLocation;
+        this._cacheStorage = cacheCustomProvider || new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
         window.openedWindows = [];
         window.activeRenewals = {};
