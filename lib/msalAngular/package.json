@@ -90,7 +90,9 @@
     "typescript": "^2.7.2",
     "typings": "^2.1.1",
     "webpack": "3.6.0",
-    "zone.js": "^0.8.10"
+    "zone.js": "^0.8.10",
+    "q": "1.0.0",
+    "protractor": "^5.3.2"
   },
   "peerDependencies": {
     "@angular/common": "^4.3.0",
@@ -107,8 +109,7 @@
     "build": "npm run clean && npm run build:modules && webpack",
     "test": "typings install && karma start karma.conf.js",
     "ngcompile": "npm run clean && npm run doc && npm run test && ngc -p tsconfig-aot.json && webpack",
-    "endToEnd": "protractor tests/endToEndTests/protractor.conf.chrome.js"
-
+    "endToEnd": "node testRunner.js"
   },
   "description": "Microsoft Authentication Library for Angular (Preview)\r ========================================================="
 }
