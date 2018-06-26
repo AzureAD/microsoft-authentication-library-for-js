@@ -3,7 +3,7 @@
 		"lerna": "^2.9.0"
 	},
   "scripts": {
-    "test": "cd lib/msal-core && npm install && npm run build && cd ../msalAngular && npm install && npm run ngcompile && cd ../msalAngularjs && npm install && npm rebuild && npm run test"
+    "test": "cd lib/msal-core && npm install && npm run build && cd ../msalAngular && npm install && npm run ngcompile && cd ../msalAngularjs && npm install && npm rebuild && npm run test",
      "endToEnd": "cd lib/msalAngular && npm install && npm run endToEnd"
   }
 }
