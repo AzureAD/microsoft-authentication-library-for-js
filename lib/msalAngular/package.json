@@ -40,13 +40,10 @@
     "@types/handlebars": "4.0.33",
     "@types/jasmine": "^2.8.6",
     "@types/jasmine-ajax": "^3.1.35",
-    "adal-node": "^0.1.28",
-    "vsts-task-lib": "^2.4.0",
     "angular-router-loader": "^0.8.5",
     "angular2-template-loader": "^0.6.2",
     "atob": "~1.1.2",
     "awesome-typescript-loader": "^3.5.0",
-    "azure-keyvault": "^0.11.0",
     "babel-polyfill": "^6.26.0",
     "bluebird": "^3.5.1",
     "core-js": "^2.4.1",
@@ -90,9 +87,7 @@
     "typescript": "^2.7.2",
     "typings": "^2.1.1",
     "webpack": "3.6.0",
-    "zone.js": "^0.8.10",
-    "q": "1.0.0",
-    "protractor": "^5.3.2"
+    "zone.js": "^0.8.10"
   },
   "peerDependencies": {
     "@angular/common": "^4.3.0",
@@ -108,8 +103,8 @@
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run build:modules && webpack",
     "test": "typings install && karma start karma.conf.js",
-    "ngcompile": "npm run clean && npm run doc && npm run test && ngc -p tsconfig-aot.json && webpack",
-    "endToEnd": "node tests/endToEndTests/testRunner.js"
+    "ngcompile": "npm run clean && npm run doc && ngc -p tsconfig-aot.json && webpack",
+    "endToEnd": "cd tests/endToEndTests && node testRunner.js"
   },
   "description": "Microsoft Authentication Library for Angular (Preview)\r ========================================================="
 }
