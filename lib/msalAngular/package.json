@@ -104,7 +104,7 @@
     "build": "npm run clean && npm run build:modules && webpack",
     "test": "typings install && karma start karma.conf.js",
     "ngcompile": "npm run clean && npm run doc && ngc -p tsconfig-aot.json && webpack",
-    "endToEnd": "cd tests/endToEndTests && node testRunner.js"
+    "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js"
   },
   "description": "Microsoft Authentication Library for Angular (Preview)\r ========================================================="
 }
