@@ -1,4 +1,4 @@
-/*! msal v0.1.7 2018-06-26 */
+/*! msal v0.1.7 2018-06-28 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 10);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -463,7 +463,7 @@ exports.Utils = Utils;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
 var ErrorMessage_1 = __webpack_require__(2);
-var XHRClient_1 = __webpack_require__(5);
+var XHRClient_1 = __webpack_require__(8);
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -1266,6 +1266,137 @@ function __importDefault(mod) {
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
+ * @hidden
+ */
+var AccessTokenCacheItem = /** @class */ (function () {
+    function AccessTokenCacheItem(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    return AccessTokenCacheItem;
+}());
+exports.AccessTokenCacheItem = AccessTokenCacheItem;
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/*
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = __webpack_require__(0);
+/*
+ * @hidden
+ */
+var AccessTokenKey = /** @class */ (function () {
+    function AccessTokenKey(authority, clientId, scopes, uid, utid) {
+        this.authority = authority;
+        this.clientId = clientId;
+        this.scopes = scopes;
+        this.userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
+    }
+    return AccessTokenKey;
+}());
+exports.AccessTokenKey = AccessTokenKey;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * @hidden
+ */
+var AccessTokenValue = /** @class */ (function () {
+    function AccessTokenValue(accessToken, idToken, expiresIn, clientInfo) {
+        this.accessToken = accessToken;
+        this.idToken = idToken;
+        this.expiresIn = expiresIn;
+        this.clientInfo = clientInfo;
+    }
+    return AccessTokenValue;
+}());
+exports.AccessTokenValue = AccessTokenValue;
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
  * XHR client for JSON endpoints
  * https://www.npmjs.com/package/async-promise
  * @hidden
@@ -1326,7 +1457,7 @@ exports.XhrClient = XhrClient;
 
 
 /***/ }),
-/* 6 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1454,7 +1585,7 @@ exports.Logger = Logger;
 
 
 /***/ }),
-/* 7 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1499,7 +1630,7 @@ exports.TokenResponse = TokenResponse;
 
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1562,7 +1693,7 @@ exports.User = User;
 
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1592,7 +1723,7 @@ exports.User = User;
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(4);
 var Authority_1 = __webpack_require__(1);
-var XHRClient_1 = __webpack_require__(5);
+var XHRClient_1 = __webpack_require__(8);
 /**
  * @hidden
  */
@@ -1659,36 +1790,42 @@ exports.AadAuthority = AadAuthority;
 
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(11);
+module.exports = __webpack_require__(14);
 
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var AccessTokenCacheItem_1 = __webpack_require__(5);
+exports.AccessTokenCacheItem = AccessTokenCacheItem_1.AccessTokenCacheItem;
+var AccessTokenKey_1 = __webpack_require__(6);
+exports.AccessTokenKey = AccessTokenKey_1.AccessTokenKey;
+var AccessTokenValue_1 = __webpack_require__(7);
+exports.AccessTokenValue = AccessTokenValue_1.AccessTokenValue;
 var Authority_1 = __webpack_require__(1);
 exports.Authority = Authority_1.Authority;
 var Constants_1 = __webpack_require__(3);
 exports.Constants = Constants_1.Constants;
-var Logger_1 = __webpack_require__(6);
+var Logger_1 = __webpack_require__(9);
 exports.Logger = Logger_1.Logger;
 exports.LogLevel = Logger_1.LogLevel;
-var RequestInfo_1 = __webpack_require__(7);
+var RequestInfo_1 = __webpack_require__(10);
 exports.TokenResponse = RequestInfo_1.TokenResponse;
-var User_1 = __webpack_require__(8);
+var User_1 = __webpack_require__(11);
 exports.User = User_1.User;
-var UserAgentApplication_1 = __webpack_require__(12);
+var UserAgentApplication_1 = __webpack_require__(15);
 exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
 
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1717,16 +1854,16 @@ exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(4);
-var AccessTokenKey_1 = __webpack_require__(13);
-var AccessTokenValue_1 = __webpack_require__(14);
-var AuthenticationRequestParameters_1 = __webpack_require__(15);
-var ClientInfo_1 = __webpack_require__(16);
+var AccessTokenKey_1 = __webpack_require__(6);
+var AccessTokenValue_1 = __webpack_require__(7);
+var AuthenticationRequestParameters_1 = __webpack_require__(16);
+var ClientInfo_1 = __webpack_require__(17);
 var Constants_1 = __webpack_require__(3);
-var IdToken_1 = __webpack_require__(17);
-var Logger_1 = __webpack_require__(6);
-var Storage_1 = __webpack_require__(18);
-var RequestInfo_1 = __webpack_require__(7);
-var User_1 = __webpack_require__(8);
+var IdToken_1 = __webpack_require__(18);
+var Logger_1 = __webpack_require__(9);
+var Storage_1 = __webpack_require__(19);
+var RequestInfo_1 = __webpack_require__(10);
+var User_1 = __webpack_require__(11);
 var Utils_1 = __webpack_require__(0);
 var AuthorityFactory_1 = __webpack_require__(20);
 /*
@@ -3224,96 +3361,7 @@ exports.UserAgentApplication = UserAgentApplication;
 
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/*
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the "Software"), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-var Utils_1 = __webpack_require__(0);
-/*
- * @hidden
- */
-var AccessTokenKey = /** @class */ (function () {
-    function AccessTokenKey(authority, clientId, scopes, uid, utid) {
-        this.authority = authority;
-        this.clientId = clientId;
-        this.scopes = scopes;
-        this.userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
-    }
-    return AccessTokenKey;
-}());
-exports.AccessTokenKey = AccessTokenKey;
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var AccessTokenValue = /** @class */ (function () {
-    function AccessTokenValue(accessToken, idToken, expiresIn, clientInfo) {
-        this.accessToken = accessToken;
-        this.idToken = idToken;
-        this.expiresIn = expiresIn;
-        this.clientInfo = clientInfo;
-    }
-    return AccessTokenValue;
-}());
-exports.AccessTokenValue = AccessTokenValue;
-
-
-/***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3427,7 +3475,7 @@ exports.AuthenticationRequestParameters = AuthenticationRequestParameters;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3508,7 +3556,7 @@ exports.ClientInfo = ClientInfo;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3591,7 +3639,7 @@ exports.IdToken = IdToken;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3620,7 +3668,7 @@ exports.IdToken = IdToken;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var Constants_1 = __webpack_require__(3);
-var AccessTokenCacheItem_1 = __webpack_require__(19);
+var AccessTokenCacheItem_1 = __webpack_require__(5);
 exports.CacheLocations = {
     localStorage: "localStorage",
     sessionStorage: "sessionStorage"
@@ -3705,48 +3753,6 @@ exports.Storage = Storage;
 
 
 /***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var AccessTokenCacheItem = /** @class */ (function () {
-    function AccessTokenCacheItem(key, value) {
-        this.key = key;
-        this.value = value;
-    }
-    return AccessTokenCacheItem;
-}());
-exports.AccessTokenCacheItem = AccessTokenCacheItem;
-
-
-/***/ }),
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3779,7 +3785,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @hidden
  */
 var Utils_1 = __webpack_require__(0);
-var AadAuthority_1 = __webpack_require__(9);
+var AadAuthority_1 = __webpack_require__(12);
 var B2cAuthority_1 = __webpack_require__(21);
 var Authority_1 = __webpack_require__(1);
 var ErrorMessage_1 = __webpack_require__(2);
@@ -3853,7 +3859,7 @@ exports.AuthorityFactory = AuthorityFactory;
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(4);
-var AadAuthority_1 = __webpack_require__(9);
+var AadAuthority_1 = __webpack_require__(12);
 var Authority_1 = __webpack_require__(1);
 var ErrorMessage_1 = __webpack_require__(2);
 var Utils_1 = __webpack_require__(0);
