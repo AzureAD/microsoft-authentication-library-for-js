@@ -1,9 +1,7 @@
-export { UserAgentApplication } from "./UserAgentApplication";
-export { Logger } from "./Logger";
-export { LogLevel } from "./Logger";
-export { User } from "./User";
+export { Authority } from "./Authority";
 export { Constants } from "./Constants";
-export { TokenResponse} from "./RequestInfo";
-export {Authority} from "./Authority";
-export {CacheResult} from "./UserAgentApplication";
-
+export { Logger, LogLevel } from "./Logger";
+export { TokenResponse } from "./RequestInfo";
+export { CacheProvider } from './Storage';
+export { User } from "./User";
+export { CacheResult, UserAgentApplication, UserAgentApplicationOptions } from "./UserAgentApplication";

@@ -24,121 +24,113 @@
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 
+export interface CacheProvider {
+  [key: string]: any;
+
+  clear(): void;
+  getItem(key: string): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
+}
+
+export const CacheLocations = {
+  localStorage: "localStorage",
+  sessionStorage: "sessionStorage"
+};
+
+export type CacheLocation = "localStorage"|"sessionStorage";
+
 /*
  * @hidden
  */
-export class Storage {// Singleton
+export class Storage {
+  static usingCustomCache(customCache: CacheProvider): Storage {
+    return new Storage(customCache);
+  }
 
-  private static _instance: Storage;
-  private _localStorageSupported: boolean;
-  private _sessionStorageSupported: boolean;
-  private _cacheLocation: string;
-
-  constructor(cacheLocation: string) {
-    if (Storage._instance) {
-      return Storage._instance;
+  private static _instances: { [key: string]: Storage } = {};
+  static usingBrowserCache(cacheLocation: CacheLocation): Storage {
+    if (Storage._instances[cacheLocation]) {
+      return Storage._instances[cacheLocation];
     }
 
-    this._cacheLocation = cacheLocation;
-    this._localStorageSupported = typeof window[this._cacheLocation] !== "undefined" && window[this._cacheLocation] != null;
-    this._sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-    Storage._instance = this;
-    if (!this._localStorageSupported && !this._sessionStorageSupported) {
-      throw new Error("localStorage and sessionStorage not supported");
+    if (!(cacheLocation in CacheLocations)) {
+      throw new Error("cacheLocation " + cacheLocation + " not valid. Possible values are: " +
+        CacheLocations.localStorage + " and " + CacheLocations.sessionStorage);
     }
 
-    return Storage._instance;
+    const storageSupported = typeof window[cacheLocation] !== "undefined" && !!window[cacheLocation];
+    if (!storageSupported) {
+      throw new Error("cacheLocation " + cacheLocation + " not supported by current environment");
+    }
+
+    let storage = new Storage(window[cacheLocation]);
+    Storage._instances[cacheLocation] = storage;
+    return storage;
+  }
+
+  private constructor(private _cacheLocation: CacheProvider) {
+    // No Logic
   }
 
   // add value to storage
   setItem(key: string, value: string): void {
-    if (window[this._cacheLocation]) {
-      window[this._cacheLocation].setItem(key, value);
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
-    }
+    this._cacheLocation.setItem(key, value);
   }
 
   // get one item by key from storage
   getItem(key: string): string {
-    if (window[this._cacheLocation]) {
-      return window[this._cacheLocation].getItem(key);
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
-    }
+    return this._cacheLocation.getItem(key);
   }
 
   // remove value from storage
   removeItem(key: string): void {
-    if (window[this._cacheLocation]) {
-      return window[this._cacheLocation].removeItem(key);
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
-    }
+    return this._cacheLocation.removeItem(key);
   }
 
   // clear storage (remove all items from it)
   clear(): void {
-    if (window[this._cacheLocation]) {
-      return window[this._cacheLocation].clear();
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
-    }
+    return this._cacheLocation.clear();
   }
 
   getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
     const results: Array<AccessTokenCacheItem> = [];
     let accessTokenCacheItem: AccessTokenCacheItem;
-    const storage = window[this._cacheLocation];
-    if (storage) {
-      let key: string;
-      for (key in storage) {
-        if (storage.hasOwnProperty(key)) {
-          if (key.match(clientId) && key.match(userIdentifier)) {
-            let value = this.getItem(key);
-            if (value) {
-              accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-              results.push(accessTokenCacheItem);
-            }
+    let key: string;
+    for (key in this._cacheLocation) {
+      if (this._cacheLocation.hasOwnProperty(key)) {
+        if (key.match(clientId) && key.match(userIdentifier)) {
+          let value = this.getItem(key);
+          if (value) {
+            accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+            results.push(accessTokenCacheItem);
           }
         }
       }
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
     }
 
     return results;
   }
 
   removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
-    const storage = window[this._cacheLocation];
-    if (storage) {
-      let key: string;
-      for (key in storage) {
-        if (storage.hasOwnProperty(key)) {
-            if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey!= "" && key.indexOf(acquireTokenUserKey) > -1)) {
-            this.removeItem(key);
-          }
+    let key: string;
+    for (key in this._cacheLocation) {
+      if (this._cacheLocation.hasOwnProperty(key)) {
+          if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey!= "" && key.indexOf(acquireTokenUserKey) > -1)) {
+          this.removeItem(key);
         }
       }
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
     }
   }
 
   resetCacheItems(): void {
-    const storage = window[this._cacheLocation];
-    if (storage) {
-      let key: string;
-      for (key in storage) {
-          if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
-              this.setItem(key,"");
-          }
-          if (storage.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
-              this.removeItem(key);
-      }
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+    let key: string;
+    for (key in this._cacheLocation) {
+        if (this._cacheLocation.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
+            this.setItem(key,"");
+        }
+        if (this._cacheLocation.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
+            this.removeItem(key);
     }
   }
 }

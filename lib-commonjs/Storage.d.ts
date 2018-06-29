@@ -21,12 +21,24 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+export interface CacheProvider {
+    [key: string]: any;
+    clear(): void;
+    getItem(key: string): string | null;
+    removeItem(key: string): void;
+    setItem(key: string, value: string): void;
+}
+export declare const CacheLocations: {
+    localStorage: string;
+    sessionStorage: string;
+};
+export declare type CacheLocation = "localStorage" | "sessionStorage";
 export declare class Storage {
-    private static _instance;
-    private _localStorageSupported;
-    private _sessionStorageSupported;
     private _cacheLocation;
-    constructor(cacheLocation: string);
+    static usingCustomCache(customCache: CacheProvider): Storage;
+    private static _instances;
+    static usingBrowserCache(cacheLocation: CacheLocation): Storage;
+    private constructor();
     setItem(key: string, value: string): void;
     getItem(key: string): string;
     removeItem(key: string): void;

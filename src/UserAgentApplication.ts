@@ -30,7 +30,7 @@ import { ClientInfo } from "./ClientInfo";
 import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
-import { Storage } from "./Storage";
+import { CacheLocation as StorageCacheLocation, CacheProvider, Storage } from "./Storage";
 import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
@@ -85,27 +85,38 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
   };
   return descriptor;
 };
+
+export interface UserAgentApplicationOptions {
+  validateAuthority?: boolean;
+  cacheLocation?: StorageCacheLocation;
+  cacheCustomProvider?: CacheProvider;
+  redirectUri?: string;
+  postLogoutRedirectUri?: string;
+  logger?: Logger;
+  loadFrameTimeout?: number;
+  navigateToLoginRequestUrl?: boolean;
+  isAngular?: boolean;
+  anonymousEndpoints?: Array<string>;
+  endPoints?: Map<string,Array<string>>;
+}
+
 export class UserAgentApplication {
-
   /*
    * @hidden
    */
-  private _cacheLocations = {
-    localStorage: "localStorage",
-    sessionStorage: "sessionStorage"
-  };
-
-  /*
-   * @hidden
-   */
-  private _cacheLocation: string;
+  private _cacheLocation: StorageCacheLocation|undefined;
 
   /*
    * Used to get the cache location
    */
-  get cacheLocation(): string {
+  get cacheLocation(): StorageCacheLocation|undefined {
     return this._cacheLocation;
   }
+
+  /*
+   * @hidden
+   */
+  protected _cacheStorage: Storage;
 
   /*
    * @hidden
@@ -126,11 +137,6 @@ export class UserAgentApplication {
    * @hidden
    */
   private _clockSkew = 300;
-
-  /*
-   * @hidden
-   */
-  protected _cacheStorage: Storage;
 
   /*
    * @hidden
@@ -210,34 +216,23 @@ export class UserAgentApplication {
    * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
    */
   constructor(
-    clientId: string,
-    authority: string | null,
-    tokenReceivedCallback: tokenReceivedCallback,
-    options:
-      {
-        validateAuthority?: boolean,
-        cacheLocation?: string,
-        redirectUri?: string,
-        postLogoutRedirectUri?: string,
-        logger?: Logger,
-        loadFrameTimeout?: number,
-        navigateToLoginRequestUrl?: boolean,
-        isAngular?: boolean,
-        anonymousEndpoints?: Array<string>
-        endPoints?:Map<string,Array<string>>
-      } = {}) {
-      const {
-          validateAuthority = true,
-          cacheLocation = "sessionStorage",
-          redirectUri = window.location.href.split("?")[0].split("#")[0],
-          postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
-          logger = new Logger(null),
-          loadFrameTimeout = 6000,
-          navigateToLoginRequestUrl = true,
-          isAngular = false,
-          anonymousEndpoints = new Array<string>(),
-          endPoints = new Map<string, Array<string>>(),
-      } = options;
+      clientId: string,
+      authority: string | null,
+      tokenReceivedCallback: tokenReceivedCallback,
+      options: UserAgentApplicationOptions = {}) {
+    const {
+        validateAuthority = true,
+        cacheLocation = "sessionStorage",
+        cacheCustomProvider = undefined,
+        redirectUri = window.location.href.split("?")[0].split("#")[0],
+        postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
+        logger = new Logger(null),
+        loadFrameTimeout = 6000,
+        navigateToLoginRequestUrl = true,
+        isAngular = false,
+        anonymousEndpoints = new Array<string>(),
+        endPoints = new Map<string, Array<string>>(),
+    } = options;
 
     this.loadFrameTimeout = loadFrameTimeout;
     this.clientId = clientId;
@@ -248,16 +243,17 @@ export class UserAgentApplication {
     this._postLogoutredirectUri = postLogoutRedirectUri;
     this._loginInProgress = false;
     this._acquireTokenInProgress = false;
-    this._cacheLocation = cacheLocation;
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     this._isAngular = isAngular;
     this._anonymousEndpoints = anonymousEndpoints;
     this._endpoints = endPoints;
-    if (!this._cacheLocations[cacheLocation]) {
-      throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
-    }
 
-    this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
+    // If a custom cache provider is given, use that.
+    // Otherwise, fall back to the built-in storage provider based on cache Location (which may or may not be provided).
+    this._cacheLocation = cacheLocation;
+    this._cacheStorage = cacheCustomProvider ? Storage.usingCustomCache(cacheCustomProvider) : 
+      Storage.usingBrowserCache(this._cacheLocation);
+    
     this._logger = logger;
     window.openedWindows = [];
     window.activeRenewals = {};

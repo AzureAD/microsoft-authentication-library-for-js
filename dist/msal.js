@@ -1,4 +1,4 @@
-/*! msal v0.1.7 2018-06-15 */
+/*! msal v0.1.7 2018-06-29 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -462,8 +462,8 @@ exports.Utils = Utils;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Utils_1 = __webpack_require__(0);
-var ErrorMessage_1 = __webpack_require__(5);
-var XHRClient_1 = __webpack_require__(9);
+var ErrorMessage_1 = __webpack_require__(2);
+var XHRClient_1 = __webpack_require__(5);
 /**
  * Copyright (c) Microsoft Corporation
  *  All Rights Reserved
@@ -630,209 +630,67 @@ exports.Authority = Authority;
 
 /***/ }),
 /* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (immutable) */ __webpack_exports__["__extends"] = __extends;
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__assign", function() { return __assign; });
-/* harmony export (immutable) */ __webpack_exports__["__rest"] = __rest;
-/* harmony export (immutable) */ __webpack_exports__["__decorate"] = __decorate;
-/* harmony export (immutable) */ __webpack_exports__["__param"] = __param;
-/* harmony export (immutable) */ __webpack_exports__["__metadata"] = __metadata;
-/* harmony export (immutable) */ __webpack_exports__["__awaiter"] = __awaiter;
-/* harmony export (immutable) */ __webpack_exports__["__generator"] = __generator;
-/* harmony export (immutable) */ __webpack_exports__["__exportStar"] = __exportStar;
-/* harmony export (immutable) */ __webpack_exports__["__values"] = __values;
-/* harmony export (immutable) */ __webpack_exports__["__read"] = __read;
-/* harmony export (immutable) */ __webpack_exports__["__spread"] = __spread;
-/* harmony export (immutable) */ __webpack_exports__["__await"] = __await;
-/* harmony export (immutable) */ __webpack_exports__["__asyncGenerator"] = __asyncGenerator;
-/* harmony export (immutable) */ __webpack_exports__["__asyncDelegator"] = __asyncDelegator;
-/* harmony export (immutable) */ __webpack_exports__["__asyncValues"] = __asyncValues;
-/* harmony export (immutable) */ __webpack_exports__["__makeTemplateObject"] = __makeTemplateObject;
-/* harmony export (immutable) */ __webpack_exports__["__importStar"] = __importStar;
-/* harmony export (immutable) */ __webpack_exports__["__importDefault"] = __importDefault;
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
 
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-var extendStatics = Object.setPrototypeOf ||
-    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-
-function __extends(d, b) {
-    extendStatics(d, b);
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-var __assign = Object.assign || function __assign(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+/*
+  * Copyright (c) Microsoft Corporation
+  *  All Rights Reserved
+  *  MIT License
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+  * software and associated documentation files (the "Software"), to deal in the Software
+  * without restriction, including without limitation the rights to use, copy, modify,
+  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+  * permit persons to whom the Software is furnished to do so, subject to the following
+  * conditions:
+  *
+  * The above copyright notice and this permission notice shall be
+  * included in all copies or substantial portions of the Software.
+  *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+  * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * @hidden
+ */
+var ErrorMessage = /** @class */ (function () {
+    function ErrorMessage() {
     }
-    return t;
-}
-
-function __rest(s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
-            t[p[i]] = s[p[i]];
-    return t;
-}
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __param(paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __metadata(metadataKey, metadataValue) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    Object.defineProperty(ErrorMessage, "authorityUriInvalidPath", {
+        get: function () { return "AuthorityUriInvalidPath"; },
+        enumerable: true,
+        configurable: true
     });
-}
-
-function __generator(thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-}
-
-function __exportStar(m, exports) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-function __values(o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
-    if (m) return m.call(o);
-    return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-}
-
-function __read(o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-}
-
-function __spread() {
-    for (var ar = [], i = 0; i < arguments.length; i++)
-        ar = ar.concat(__read(arguments[i]));
-    return ar;
-}
-
-function __await(v) {
-    return this instanceof __await ? (this.v = v, this) : new __await(v);
-}
-
-function __asyncGenerator(thisArg, _arguments, generator) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var g = generator.apply(thisArg, _arguments || []), i, q = [];
-    return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
-    function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
-    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
-    function fulfill(value) { resume("next", value); }
-    function reject(value) { resume("throw", value); }
-    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-}
-
-function __asyncDelegator(o) {
-    var i, p;
-    return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-    function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; } : f; }
-}
-
-function __asyncValues(o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-}
-
-function __makeTemplateObject(cooked, raw) {
-    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-    return cooked;
-};
-
-function __importStar(mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result.default = mod;
-    return result;
-}
-
-function __importDefault(mod) {
-    return (mod && mod.__esModule) ? mod : { default: mod };
-}
+    Object.defineProperty(ErrorMessage, "authorityUriInsecure", {
+        get: function () { return "AuthorityUriInsecure"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "invalidAuthorityType", {
+        get: function () { return "InvalidAuthorityType"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "unsupportedAuthorityValidation", {
+        get: function () { return "UnsupportedAuthorityValidation"; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ErrorMessage, "b2cAuthorityUriInvalidPath", {
+        get: function () { return "B2cAuthorityUriInvalidPath"; },
+        enumerable: true,
+        configurable: true
+    });
+    return ErrorMessage;
+}());
+exports.ErrorMessage = ErrorMessage;
 
 
 /***/ }),
@@ -1173,6 +1031,302 @@ exports.ErrorDescription = ErrorDescription;
 
 /***/ }),
 /* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (immutable) */ __webpack_exports__["__extends"] = __extends;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__assign", function() { return __assign; });
+/* harmony export (immutable) */ __webpack_exports__["__rest"] = __rest;
+/* harmony export (immutable) */ __webpack_exports__["__decorate"] = __decorate;
+/* harmony export (immutable) */ __webpack_exports__["__param"] = __param;
+/* harmony export (immutable) */ __webpack_exports__["__metadata"] = __metadata;
+/* harmony export (immutable) */ __webpack_exports__["__awaiter"] = __awaiter;
+/* harmony export (immutable) */ __webpack_exports__["__generator"] = __generator;
+/* harmony export (immutable) */ __webpack_exports__["__exportStar"] = __exportStar;
+/* harmony export (immutable) */ __webpack_exports__["__values"] = __values;
+/* harmony export (immutable) */ __webpack_exports__["__read"] = __read;
+/* harmony export (immutable) */ __webpack_exports__["__spread"] = __spread;
+/* harmony export (immutable) */ __webpack_exports__["__await"] = __await;
+/* harmony export (immutable) */ __webpack_exports__["__asyncGenerator"] = __asyncGenerator;
+/* harmony export (immutable) */ __webpack_exports__["__asyncDelegator"] = __asyncDelegator;
+/* harmony export (immutable) */ __webpack_exports__["__asyncValues"] = __asyncValues;
+/* harmony export (immutable) */ __webpack_exports__["__makeTemplateObject"] = __makeTemplateObject;
+/* harmony export (immutable) */ __webpack_exports__["__importStar"] = __importStar;
+/* harmony export (immutable) */ __webpack_exports__["__importDefault"] = __importDefault;
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = Object.setPrototypeOf ||
+    ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+    function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+
+function __extends(d, b) {
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+}
+
+function __rest(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
+}
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __param(paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+function __metadata(metadataKey, metadataValue) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
+function __generator(thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+}
+
+function __exportStar(m, exports) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+
+function __values(o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+}
+
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
+
+function __spread() {
+    for (var ar = [], i = 0; i < arguments.length; i++)
+        ar = ar.concat(__read(arguments[i]));
+    return ar;
+}
+
+function __await(v) {
+    return this instanceof __await ? (this.v = v, this) : new __await(v);
+}
+
+function __asyncGenerator(thisArg, _arguments, generator) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var g = generator.apply(thisArg, _arguments || []), i, q = [];
+    return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
+    function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+    function fulfill(value) { resume("next", value); }
+    function reject(value) { resume("throw", value); }
+    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+}
+
+function __asyncDelegator(o) {
+    var i, p;
+    return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+    function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; } : f; }
+}
+
+function __asyncValues(o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+}
+
+function __makeTemplateObject(cooked, raw) {
+    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+    return cooked;
+};
+
+function __importStar(mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result.default = mod;
+    return result;
+}
+
+function __importDefault(mod) {
+    return (mod && mod.__esModule) ? mod : { default: mod };
+}
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Copyright (c) Microsoft Corporation
+ *  All Rights Reserved
+ *  MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the 'Software'), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+/*
+ * XHR client for JSON endpoints
+ * https://www.npmjs.com/package/async-promise
+ * @hidden
+ */
+var XhrClient = /** @class */ (function () {
+    function XhrClient() {
+    }
+    XhrClient.prototype.sendRequestAsync = function (url, method, enableCaching) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(method, url, /*async: */ true);
+            if (enableCaching) {
+                // TODO: (shivb) ensure that this can be cached
+                // xhr.setRequestHeader("Cache-Control", "Public");
+            }
+            xhr.onload = function (ev) {
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    reject(_this.handleError(xhr.responseText));
+                }
+                try {
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                }
+                catch (e) {
+                    reject(_this.handleError(xhr.responseText));
+                }
+                resolve(jsonResponse);
+            };
+            xhr.onerror = function (ev) {
+                reject(xhr.status);
+            };
+            if (method === "GET") {
+                xhr.send();
+            }
+            else {
+                throw "not implemented";
+            }
+        });
+    };
+    XhrClient.prototype.handleError = function (responseText) {
+        var jsonResponse;
+        try {
+            jsonResponse = JSON.parse(responseText);
+            if (jsonResponse.error) {
+                return jsonResponse.error;
+            }
+            else {
+                throw responseText;
+            }
+        }
+        catch (e) {
+            return responseText;
+        }
+    };
+    return XhrClient;
+}());
+exports.XhrClient = XhrClient;
+
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1300,72 +1454,7 @@ exports.Logger = Logger;
 
 
 /***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/*
-  * Copyright (c) Microsoft Corporation
-  *  All Rights Reserved
-  *  MIT License
-  *
-  * Permission is hereby granted, free of charge, to any person obtaining a copy of this
-  * software and associated documentation files (the "Software"), to deal in the Software
-  * without restriction, including without limitation the rights to use, copy, modify,
-  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-  * permit persons to whom the Software is furnished to do so, subject to the following
-  * conditions:
-  *
-  * The above copyright notice and this permission notice shall be
-  * included in all copies or substantial portions of the Software.
-  *
-  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-  * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
-  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-  */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * @hidden
- */
-var ErrorMessage = /** @class */ (function () {
-    function ErrorMessage() {
-    }
-    Object.defineProperty(ErrorMessage, "authorityUriInvalidPath", {
-        get: function () { return "AuthorityUriInvalidPath"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "authorityUriInsecure", {
-        get: function () { return "AuthorityUriInsecure"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "invalidAuthorityType", {
-        get: function () { return "InvalidAuthorityType"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "unsupportedAuthorityValidation", {
-        get: function () { return "UnsupportedAuthorityValidation"; },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ErrorMessage, "b2cAuthorityUriInvalidPath", {
-        get: function () { return "B2cAuthorityUriInvalidPath"; },
-        enumerable: true,
-        configurable: true
-    });
-    return ErrorMessage;
-}());
-exports.ErrorMessage = ErrorMessage;
-
-
-/***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1410,7 +1499,7 @@ exports.TokenResponse = TokenResponse;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1473,7 +1562,7 @@ exports.User = User;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1501,9 +1590,9 @@ exports.User = User;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(2);
+var tslib_1 = __webpack_require__(4);
 var Authority_1 = __webpack_require__(1);
-var XHRClient_1 = __webpack_require__(9);
+var XHRClient_1 = __webpack_require__(5);
 /**
  * @hidden
  */
@@ -1570,95 +1659,6 @@ exports.AadAuthority = AadAuthority;
 
 
 /***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-/*
- * XHR client for JSON endpoints
- * https://www.npmjs.com/package/async-promise
- * @hidden
- */
-var XhrClient = /** @class */ (function () {
-    function XhrClient() {
-    }
-    XhrClient.prototype.sendRequestAsync = function (url, method, enableCaching) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(method, url, /*async: */ true);
-            if (enableCaching) {
-                // TODO: (shivb) ensure that this can be cached
-                // xhr.setRequestHeader("Cache-Control", "Public");
-            }
-            xhr.onload = function (ev) {
-                if (xhr.status < 200 || xhr.status >= 300) {
-                    reject(_this.handleError(xhr.responseText));
-                }
-                try {
-                    var jsonResponse = JSON.parse(xhr.responseText);
-                }
-                catch (e) {
-                    reject(_this.handleError(xhr.responseText));
-                }
-                resolve(jsonResponse);
-            };
-            xhr.onerror = function (ev) {
-                reject(xhr.status);
-            };
-            if (method === "GET") {
-                xhr.send();
-            }
-            else {
-                throw "not implemented";
-            }
-        });
-    };
-    XhrClient.prototype.handleError = function (responseText) {
-        var jsonResponse;
-        try {
-            jsonResponse = JSON.parse(responseText);
-            if (jsonResponse.error) {
-                return jsonResponse.error;
-            }
-            else {
-                throw responseText;
-            }
-        }
-        catch (e) {
-            return responseText;
-        }
-    };
-    return XhrClient;
-}());
-exports.XhrClient = XhrClient;
-
-
-/***/ }),
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1672,20 +1672,19 @@ module.exports = __webpack_require__(11);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var UserAgentApplication_1 = __webpack_require__(12);
-exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
-var Logger_1 = __webpack_require__(4);
-exports.Logger = Logger_1.Logger;
-var Logger_2 = __webpack_require__(4);
-exports.LogLevel = Logger_2.LogLevel;
-var User_1 = __webpack_require__(7);
-exports.User = User_1.User;
-var Constants_1 = __webpack_require__(3);
-exports.Constants = Constants_1.Constants;
-var RequestInfo_1 = __webpack_require__(6);
-exports.TokenResponse = RequestInfo_1.TokenResponse;
 var Authority_1 = __webpack_require__(1);
 exports.Authority = Authority_1.Authority;
+var Constants_1 = __webpack_require__(3);
+exports.Constants = Constants_1.Constants;
+var Logger_1 = __webpack_require__(6);
+exports.Logger = Logger_1.Logger;
+exports.LogLevel = Logger_1.LogLevel;
+var RequestInfo_1 = __webpack_require__(7);
+exports.TokenResponse = RequestInfo_1.TokenResponse;
+var User_1 = __webpack_require__(8);
+exports.User = User_1.User;
+var UserAgentApplication_1 = __webpack_require__(12);
+exports.UserAgentApplication = UserAgentApplication_1.UserAgentApplication;
 
 
 /***/ }),
@@ -1717,17 +1716,17 @@ exports.Authority = Authority_1.Authority;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(2);
+var tslib_1 = __webpack_require__(4);
 var AccessTokenKey_1 = __webpack_require__(13);
 var AccessTokenValue_1 = __webpack_require__(14);
 var AuthenticationRequestParameters_1 = __webpack_require__(15);
 var ClientInfo_1 = __webpack_require__(16);
 var Constants_1 = __webpack_require__(3);
 var IdToken_1 = __webpack_require__(17);
-var Logger_1 = __webpack_require__(4);
+var Logger_1 = __webpack_require__(6);
 var Storage_1 = __webpack_require__(18);
-var RequestInfo_1 = __webpack_require__(6);
-var User_1 = __webpack_require__(7);
+var RequestInfo_1 = __webpack_require__(7);
+var User_1 = __webpack_require__(8);
 var Utils_1 = __webpack_require__(0);
 var AuthorityFactory_1 = __webpack_require__(20);
 /*
@@ -1768,20 +1767,13 @@ var UserAgentApplication = /** @class */ (function () {
         /*
          * @hidden
          */
-        this._cacheLocations = {
-            localStorage: "localStorage",
-            sessionStorage: "sessionStorage"
-        };
-        /*
-         * @hidden
-         */
         this._clockSkew = 300;
         /*
          * @hidden
          */
         this._tokenReceivedCallback = null;
         this._isAngular = false;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.cacheCustomProvider, cacheCustomProvider = _c === void 0 ? undefined : _c, _d = options.redirectUri, redirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.postLogoutRedirectUri, postLogoutRedirectUri = _e === void 0 ? window.location.href.split("?")[0].split("#")[0] : _e, _f = options.logger, logger = _f === void 0 ? new Logger_1.Logger(null) : _f, _g = options.loadFrameTimeout, loadFrameTimeout = _g === void 0 ? 6000 : _g, _h = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _h === void 0 ? true : _h, _j = options.isAngular, isAngular = _j === void 0 ? false : _j, _k = options.anonymousEndpoints, anonymousEndpoints = _k === void 0 ? new Array() : _k, _l = options.endPoints, endPoints = _l === void 0 ? new Map() : _l;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -1791,15 +1783,15 @@ var UserAgentApplication = /** @class */ (function () {
         this._postLogoutredirectUri = postLogoutRedirectUri;
         this._loginInProgress = false;
         this._acquireTokenInProgress = false;
-        this._cacheLocation = cacheLocation;
         this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
         this._isAngular = isAngular;
         this._anonymousEndpoints = anonymousEndpoints;
         this._endpoints = endPoints;
-        if (!this._cacheLocations[cacheLocation]) {
-            throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
-        }
-        this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
+        // If a custom cache provider is given, use that.
+        // Otherwise, fall back to the built-in storage provider based on cache Location (which may or may not be provided).
+        this._cacheLocation = cacheLocation;
+        this._cacheStorage = cacheCustomProvider ? Storage_1.Storage.usingCustomCache(cacheCustomProvider) :
+            Storage_1.Storage.usingBrowserCache(this._cacheLocation);
         this._logger = logger;
         window.openedWindows = [];
         window.activeRenewals = {};
@@ -3630,114 +3622,91 @@ exports.IdToken = IdToken;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Constants_1 = __webpack_require__(3);
 var AccessTokenCacheItem_1 = __webpack_require__(19);
+exports.CacheLocations = {
+    localStorage: "localStorage",
+    sessionStorage: "sessionStorage"
+};
 /*
  * @hidden
  */
 var Storage = /** @class */ (function () {
-    function Storage(cacheLocation) {
-        if (Storage._instance) {
-            return Storage._instance;
-        }
-        this._cacheLocation = cacheLocation;
-        this._localStorageSupported = typeof window[this._cacheLocation] !== "undefined" && window[this._cacheLocation] != null;
-        this._sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-        Storage._instance = this;
-        if (!this._localStorageSupported && !this._sessionStorageSupported) {
-            throw new Error("localStorage and sessionStorage not supported");
-        }
-        return Storage._instance;
+    function Storage(_cacheLocation) {
+        this._cacheLocation = _cacheLocation;
+        // No Logic
     }
+    Storage.usingCustomCache = function (customCache) {
+        return new Storage(customCache);
+    };
+    Storage.usingBrowserCache = function (cacheLocation) {
+        if (Storage._instances[cacheLocation]) {
+            return Storage._instances[cacheLocation];
+        }
+        if (!(cacheLocation in exports.CacheLocations)) {
+            throw new Error("cacheLocation " + cacheLocation + " not valid. Possible values are: " +
+                exports.CacheLocations.localStorage + " and " + exports.CacheLocations.sessionStorage);
+        }
+        var storageSupported = typeof window[cacheLocation] !== "undefined" && !!window[cacheLocation];
+        if (!storageSupported) {
+            throw new Error("cacheLocation " + cacheLocation + " not supported by current environment");
+        }
+        var storage = new Storage(window[cacheLocation]);
+        Storage._instances[cacheLocation] = storage;
+        return storage;
+    };
     // add value to storage
     Storage.prototype.setItem = function (key, value) {
-        if (window[this._cacheLocation]) {
-            window[this._cacheLocation].setItem(key, value);
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        this._cacheLocation.setItem(key, value);
     };
     // get one item by key from storage
     Storage.prototype.getItem = function (key) {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].getItem(key);
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        return this._cacheLocation.getItem(key);
     };
     // remove value from storage
     Storage.prototype.removeItem = function (key) {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].removeItem(key);
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        return this._cacheLocation.removeItem(key);
     };
     // clear storage (remove all items from it)
     Storage.prototype.clear = function () {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].clear();
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
-        }
+        return this._cacheLocation.clear();
     };
     Storage.prototype.getAllAccessTokens = function (clientId, userIdentifier) {
         var results = [];
         var accessTokenCacheItem;
-        var storage = window[this._cacheLocation];
-        if (storage) {
-            var key = void 0;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if (key.match(clientId) && key.match(userIdentifier)) {
-                        var value = this.getItem(key);
-                        if (value) {
-                            accessTokenCacheItem = new AccessTokenCacheItem_1.AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-                            results.push(accessTokenCacheItem);
-                        }
+        var key;
+        for (key in this._cacheLocation) {
+            if (this._cacheLocation.hasOwnProperty(key)) {
+                if (key.match(clientId) && key.match(userIdentifier)) {
+                    var value = this.getItem(key);
+                    if (value) {
+                        accessTokenCacheItem = new AccessTokenCacheItem_1.AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                        results.push(accessTokenCacheItem);
                     }
                 }
             }
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
         }
         return results;
     };
     Storage.prototype.removeAcquireTokenEntries = function (authorityKey, acquireTokenUserKey) {
-        var storage = window[this._cacheLocation];
-        if (storage) {
-            var key = void 0;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
-                        this.removeItem(key);
-                    }
+        var key;
+        for (key in this._cacheLocation) {
+            if (this._cacheLocation.hasOwnProperty(key)) {
+                if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    this.removeItem(key);
                 }
             }
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
         }
     };
     Storage.prototype.resetCacheItems = function () {
-        var storage = window[this._cacheLocation];
-        if (storage) {
-            var key = void 0;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.msal) !== -1) {
-                    this.setItem(key, "");
-                }
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.renewStatus) !== -1)
-                    this.removeItem(key);
+        var key;
+        for (key in this._cacheLocation) {
+            if (this._cacheLocation.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.msal) !== -1) {
+                this.setItem(key, "");
             }
-        }
-        else {
-            throw new Error("localStorage and sessionStorage are not supported");
+            if (this._cacheLocation.hasOwnProperty(key) && key.indexOf(Constants_1.Constants.renewStatus) !== -1)
+                this.removeItem(key);
         }
     };
+    Storage._instances = {};
     return Storage;
 }());
 exports.Storage = Storage;
@@ -3818,10 +3787,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @hidden
  */
 var Utils_1 = __webpack_require__(0);
-var AadAuthority_1 = __webpack_require__(8);
+var AadAuthority_1 = __webpack_require__(9);
 var B2cAuthority_1 = __webpack_require__(21);
 var Authority_1 = __webpack_require__(1);
-var ErrorMessage_1 = __webpack_require__(5);
+var ErrorMessage_1 = __webpack_require__(2);
 var AuthorityFactory = /** @class */ (function () {
     function AuthorityFactory() {
     }
@@ -3891,10 +3860,10 @@ exports.AuthorityFactory = AuthorityFactory;
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var tslib_1 = __webpack_require__(2);
-var AadAuthority_1 = __webpack_require__(8);
+var tslib_1 = __webpack_require__(4);
+var AadAuthority_1 = __webpack_require__(9);
 var Authority_1 = __webpack_require__(1);
-var ErrorMessage_1 = __webpack_require__(5);
+var ErrorMessage_1 = __webpack_require__(2);
 var Utils_1 = __webpack_require__(0);
 /*
  * @hidden
