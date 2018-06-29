@@ -96,7 +96,8 @@ var UserAgentApplication = /** @class */ (function () {
         // If a custom cache provider is given, use that.
         // Otherwise, fall back to the built-in storage provider based on cache Location (which may or may not be provided).
         this._cacheLocation = cacheLocation;
-        this._cacheStorage = cacheCustomProvider || new Storage_1.Storage(this._cacheLocation); //cache keys msal
+        this._cacheStorage = cacheCustomProvider ? Storage_1.Storage.usingCustomCache(cacheCustomProvider) :
+            Storage_1.Storage.usingBrowserCache(this._cacheLocation);
         this._logger = logger;
         window.openedWindows = [];
         window.activeRenewals = {};

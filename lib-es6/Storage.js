@@ -30,7 +30,14 @@ export var CacheLocations = {
  * @hidden
  */
 var Storage = /** @class */ (function () {
-    function Storage(cacheLocation) {
+    function Storage(_cacheLocation) {
+        this._cacheLocation = _cacheLocation;
+        // No Logic
+    }
+    Storage.usingCustomCache = function (customCache) {
+        return new Storage(customCache);
+    };
+    Storage.usingBrowserCache = function (cacheLocation) {
         if (Storage._instances[cacheLocation]) {
             return Storage._instances[cacheLocation];
         }
@@ -42,10 +49,10 @@ var Storage = /** @class */ (function () {
         if (!storageSupported) {
             throw new Error("cacheLocation " + cacheLocation + " not supported by current environment");
         }
-        this._cacheLocation = window[cacheLocation];
-        Storage._instances[cacheLocation] = this;
-        return this;
-    }
+        var storage = new Storage(window[cacheLocation]);
+        Storage._instances[cacheLocation] = storage;
+        return storage;
+    };
     // add value to storage
     Storage.prototype.setItem = function (key, value) {
         this._cacheLocation.setItem(key, value);

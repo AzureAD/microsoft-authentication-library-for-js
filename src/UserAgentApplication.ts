@@ -30,7 +30,7 @@ import { ClientInfo } from "./ClientInfo";
 import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
-import { CacheLocation as StorageCacheLocation, Storage, StorageProvider } from "./Storage";
+import { CacheLocation as StorageCacheLocation, CacheProvider, Storage } from "./Storage";
 import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
@@ -89,7 +89,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
 export interface UserAgentApplicationOptions {
   validateAuthority?: boolean;
   cacheLocation?: StorageCacheLocation;
-  cacheCustomProvider?: StorageProvider;
+  cacheCustomProvider?: CacheProvider;
   redirectUri?: string;
   postLogoutRedirectUri?: string;
   logger?: Logger;
@@ -116,7 +116,7 @@ export class UserAgentApplication {
   /*
    * @hidden
    */
-  protected _cacheStorage: StorageProvider;
+  protected _cacheStorage: Storage;
 
   /*
    * @hidden
@@ -251,7 +251,8 @@ export class UserAgentApplication {
     // If a custom cache provider is given, use that.
     // Otherwise, fall back to the built-in storage provider based on cache Location (which may or may not be provided).
     this._cacheLocation = cacheLocation;
-    this._cacheStorage = cacheCustomProvider || new Storage(this._cacheLocation); //cache keys msal
+    this._cacheStorage = cacheCustomProvider ? Storage.usingCustomCache(cacheCustomProvider) : 
+      Storage.usingBrowserCache(this._cacheLocation);
     
     this._logger = logger;
     window.openedWindows = [];

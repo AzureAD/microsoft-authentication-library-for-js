@@ -24,22 +24,13 @@
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 
-export interface StorageProvider {
-  // add value to storage
-  setItem(key: string, value: string): void;
+export interface CacheProvider {
+  [key: string]: any;
 
-  // get one item by key from storage
-  getItem(key: string): string;
-
-  // remove value from storage
-  removeItem(key: string): void;
-
-  // clear storage (remove all items from it)
   clear(): void;
-
-  getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem>;
-  removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void;
-  resetCacheItems(): void;
+  getItem(key: string): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
 }
 
 export const CacheLocations = {
@@ -52,11 +43,13 @@ export type CacheLocation = "localStorage"|"sessionStorage";
 /*
  * @hidden
  */
-export class Storage implements StorageProvider {// Singleton
-  private static _instances: { [key: string]: Storage } = {};
-  private _cacheLocation: typeof Window.prototype.localStorage;
+export class Storage {
+  static usingCustomCache(customCache: CacheProvider): Storage {
+    return new Storage(customCache);
+  }
 
-  constructor(cacheLocation: CacheLocation) {
+  private static _instances: { [key: string]: Storage } = {};
+  static usingBrowserCache(cacheLocation: CacheLocation): Storage {
     if (Storage._instances[cacheLocation]) {
       return Storage._instances[cacheLocation];
     }
@@ -71,10 +64,13 @@ export class Storage implements StorageProvider {// Singleton
       throw new Error("cacheLocation " + cacheLocation + " not supported by current environment");
     }
 
-    this._cacheLocation = window[cacheLocation];
+    let storage = new Storage(window[cacheLocation]);
+    Storage._instances[cacheLocation] = storage;
+    return storage;
+  }
 
-    Storage._instances[cacheLocation] = this;
-    return this;
+  private constructor(private _cacheLocation: CacheProvider) {
+    // No Logic
   }
 
   // add value to storage

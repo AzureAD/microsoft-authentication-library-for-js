@@ -1,11 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var AccessTokenCacheItem_1 = require("./AccessTokenCacheItem");
-exports.AccessTokenCacheItem = AccessTokenCacheItem_1.AccessTokenCacheItem;
-var AccessTokenKey_1 = require("./AccessTokenKey");
-exports.AccessTokenKey = AccessTokenKey_1.AccessTokenKey;
-var AccessTokenValue_1 = require("./AccessTokenValue");
-exports.AccessTokenValue = AccessTokenValue_1.AccessTokenValue;
 var Authority_1 = require("./Authority");
 exports.Authority = Authority_1.Authority;
 var Constants_1 = require("./Constants");

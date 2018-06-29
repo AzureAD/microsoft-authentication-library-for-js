@@ -22,7 +22,7 @@
  */
 import { Authority } from "./Authority";
 import { Logger } from "./Logger";
-import { CacheLocation as StorageCacheLocation, StorageProvider } from "./Storage";
+import { CacheLocation as StorageCacheLocation, CacheProvider, Storage } from "./Storage";
 import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 declare global {
@@ -47,7 +47,7 @@ export declare type tokenReceivedCallback = (errorDesc: string, token: string, e
 export interface UserAgentApplicationOptions {
     validateAuthority?: boolean;
     cacheLocation?: StorageCacheLocation;
-    cacheCustomProvider?: StorageProvider;
+    cacheCustomProvider?: CacheProvider;
     redirectUri?: string;
     postLogoutRedirectUri?: string;
     logger?: Logger;
@@ -60,7 +60,7 @@ export interface UserAgentApplicationOptions {
 export declare class UserAgentApplication {
     private _cacheLocation;
     readonly cacheLocation: StorageCacheLocation | undefined;
-    protected _cacheStorage: StorageProvider;
+    protected _cacheStorage: Storage;
     protected _logger: Logger;
     private _loginInProgress;
     private _acquireTokenInProgress;
