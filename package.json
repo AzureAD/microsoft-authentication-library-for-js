@@ -4,7 +4,7 @@
 	},
   "scripts": {
     "test": "cd lib/msal-core && npm install && npm run build && cd ../msalAngular && npm install && npm run ngcompile && npm run test && cd ../msalAngularjs && npm install && npm rebuild && npm run test",
-     "endToEnd": "cd lib/msalAngular/tests/endToEndTests && npm install &&  npm run endToEnd"
+     "endToEnd": "cd lib/msalAngular/tests/endToEndTests && npm install &&  npm run endToEnd && cd ../msalAngularjs/tests/endToEndTests && npm install &&  npm run test"
   }
 }
 
