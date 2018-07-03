@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -42,6 +42,7 @@
     "grunt-jasmine-node": "~0.2.1",
     "grunt-tslint": "^5.0.1",
     "grunt-typedoc": "^0.2.4",
+    "istanbul-instrumenter-loader": "^3.0.1",
     "jasmine": "^2.8.0",
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.5.2",
@@ -55,16 +56,20 @@
     "karma-jasmine": "^1.1.0",
     "karma-jasmine-ajax": "^0.1.13",
     "karma-phantomjs-launcher": "*",
+    "karma-remap-istanbul": "^0.5.0",
+    "karma-sourcemap-loader": "^0.3.7",
     "karma-typescript": "^3.0.7",
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.5",
     "phantomjs-polyfill": "0.0.2",
     "shx": "^0.2.2",
+    "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
     "tslint": "^5.8.0",
     "typedoc": "^0.6.0",
     "typescript": "^2.5.3",
     "typings": "^2.1.1",
-    "webpack": "^3.6.0"
+    "webpack": "^3.6.0",
+    "karma-remap-coverage": "^0.1.5"
   },
   "directories": {
     "test": "tests"

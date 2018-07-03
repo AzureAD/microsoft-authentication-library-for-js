@@ -20,10 +20,8 @@ describe("Authority", () => {
             // Arrange
             let url = "https://login.microsoftonline.in/MYTENANT.com";
             let validate = false;
-
             // Act
             let authority = AuthorityFactory.CreateInstance(url, validate);
-
             // Assert
             expect(authority.CanonicalAuthority).toEqual("https://login.microsoftonline.in/mytenant.com/");
             expect(authority.AuthorityType).toEqual(AuthorityType.Aad);
