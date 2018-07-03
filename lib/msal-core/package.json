@@ -51,13 +51,16 @@
     "karma": "^1.6.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-cli": "^1.0.1",
+    "karma-coverage-istanbul-reporter": "^2.0.1",
     "karma-firefox-launcher": "~0.1",
     "karma-html-reporter": "^0.2.7",
     "karma-jasmine": "^1.1.0",
     "karma-jasmine-ajax": "^0.1.13",
     "karma-phantomjs-launcher": "*",
+    "karma-remap-coverage": "^0.1.5",
     "karma-remap-istanbul": "^0.5.0",
     "karma-sourcemap-loader": "^0.3.7",
+    "karma-spec-reporter": "0.0.32",
     "karma-typescript": "^3.0.7",
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.5",
@@ -68,8 +71,7 @@
     "typedoc": "^0.6.0",
     "typescript": "^2.5.3",
     "typings": "^2.1.1",
-    "webpack": "^3.6.0",
-    "karma-remap-coverage": "^0.1.5"
+    "webpack": "^3.6.0"
   },
   "directories": {
     "test": "tests"
