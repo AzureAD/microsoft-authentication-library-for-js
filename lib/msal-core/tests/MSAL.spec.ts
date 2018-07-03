@@ -1,5 +1,5 @@
 import {UserAgentApplication} from '../src/index';
-import {Constants} from '../src/Constants';
+import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 
 describe('Msal', function (): any {
     let window: any;
@@ -320,4 +320,101 @@ describe('Msal', function (): any {
         expect(storageFake.getItem(JSON.stringify(accessTokenKey))).toBe(undefined);
         storageFake.clear();
     });
+
+    it('tests saveTokenForHash in case of error', function () {
+        var requestInfo = {
+            valid: false,
+            parameters: { 'error_description': 'error description', 'error': 'invalid' },
+            stateMatch: false,
+            stateResponse: '',
+            requestType: 'unknown'
+        };
+       
+        var _cacheStorage = msal._cacheStorage.removeAcquireTokenEntries;
+        msal._cacheStorage.removeAcquireTokenEntries = function () {
+            return;
+        }
+        msal.saveTokenFromHash(requestInfo);
+        msal._cacheStorage.removeAcquireTokenEntries = _cacheStorage;
+        expect(storageFake.getItem(Constants.msalError)).toBe('invalid');
+        expect(storageFake.getItem(Constants.msalErrorDescription)).toBe('error description');
+    });
+
+    it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
+        msal._loginInProgress = true;
+        var errDesc = '', token = '', err = '', tokenType = '';
+        var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+        };
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect();
+        expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        expect(err).toBe(ErrorCodes.loginProgressError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+        msal._loginInProgress = false;
+    });
+
+    it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
+        var errDesc = '', token = '', err = '', tokenType = '';
+        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+        };
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect([]);
+        expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        expect(err).toBe(ErrorCodes.inputScopesError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+    });
+
+    it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
+        var errDesc = '', token = '', err = '', tokenType = '';
+        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+        };
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect([msal.clientId,'123']);
+        expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        expect(err).toBe(ErrorCodes.inputScopesError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+    });
+
+    it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
+        var scopes = ['openid', 'profile'];
+        scopes = msal.filterScopes(scopes);
+        expect(scopes.length).toEqual(0);
+    });
+
+    it('tests if hint parameters get added when user object is passed to the function', function () {
+        var user = {
+            userIdentifier: '1234.5678',
+            displayableId:'some_id'
+        }
+        var urlNavigate = '';
+        urlNavigate = msal.addHintParameters(urlNavigate, user);
+        expect(urlNavigate).toContain("login_hint");
+        expect(urlNavigate).toContain("login_req");
+        expect(urlNavigate).toContain("domain_req");
+        expect(urlNavigate).toContain("domain_hint");
+    });
+
+    it('tests urlContainsQueryStringParameter functionality', function () {
+        var url1 = 'https://login.onmicrosoft.com?prompt=none&client_id=12345';
+        expect(msal.urlContainsQueryStringParameter('prompt', url1)).toBe(true);
+        expect(msal.urlContainsQueryStringParameter('client_id', url1)).toBe(true);
+        expect(msal.urlContainsQueryStringParameter('login_hint', url1)).toBe(false);
+    });
+    
+
 });
