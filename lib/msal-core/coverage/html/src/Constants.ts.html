@@ -20,9 +20,9 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">71.9% </span>
+        <span class="strong">77.69% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>87/121</span>
+        <span class='fraction'>94/121</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -30,9 +30,9 @@
         <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">40.32% </span>
+        <span class="strong">51.61% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>25/62</span>
+        <span class='fraction'>32/62</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">96.88% </span>
@@ -174,15 +174,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">18×</span>
-<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">33×</span>
+<span class="cline-any cline-yes">27×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">21×</span>
-<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">26×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
@@ -192,7 +192,7 @@
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
@@ -219,7 +219,7 @@
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">22×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
@@ -289,7 +289,7 @@
   static get accessToken(): string { return "access_token"; }
 <span class="fstat-no" title="function not covered" >  static get expiresIn(): string { <span class="cstat-no" title="statement not covered" >return "expires_in"; </span>}</span>
 <span class="fstat-no" title="function not covered" >  static get sessionState(): string { <span class="cstat-no" title="statement not covered" >return "session_state"; </span>}</span>
-<span class="fstat-no" title="function not covered" >  static get msalClientInfo(): string { <span class="cstat-no" title="statement not covered" >return "msal.client.info"; </span>}</span>
+  static get msalClientInfo(): string { return "msal.client.info"; }
   static get msalError(): string { return "msal.error"; }
   static get msalErrorDescription(): string { return "msal.error.description"; }
 <span class="fstat-no" title="function not covered" >  static get msalSessionState(): string { <span class="cstat-no" title="statement not covered" >return "msal.session.state"; </span>}</span>
@@ -297,11 +297,11 @@
 <span class="fstat-no" title="function not covered" >  static get accessTokenKey(): string { <span class="cstat-no" title="statement not covered" >return "msal.access.token.key"; </span>}</span>
 <span class="fstat-no" title="function not covered" >  static get expirationKey(): string { <span class="cstat-no" title="statement not covered" >return "msal.expiration.key"; </span>}</span>
   static get stateLogin(): string { return "msal.state.login"; }
-<span class="fstat-no" title="function not covered" >  static get stateAcquireToken(): string { <span class="cstat-no" title="statement not covered" >return "msal.state.acquireToken"; </span>}</span>
+  static get stateAcquireToken(): string { return "msal.state.acquireToken"; }
 <span class="fstat-no" title="function not covered" >  static get stateRenew(): string { <span class="cstat-no" title="statement not covered" >return "msal.state.renew"; </span>}</span>
   static get nonceIdToken(): string { return "msal.nonce.idtoken"; }
 <span class="fstat-no" title="function not covered" >  static get userName(): string { <span class="cstat-no" title="statement not covered" >return "msal.username"; </span>}</span>
-<span class="fstat-no" title="function not covered" >  static get idTokenKey(): string { <span class="cstat-no" title="statement not covered" >return "msal.idtoken"; </span>}</span>
+  static get idTokenKey(): string { return "msal.idtoken"; }
   static get loginRequest(): string { return "msal.login.request"; }
   static get loginError(): string { return "msal.login.error"; }
   static get renewStatus(): string { return "msal.token.renew.status"; }
@@ -311,12 +311,12 @@
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
 <span class="fstat-no" title="function not covered" >  static get tokenRenewStatusInProgress(): string { <span class="cstat-no" title="statement not covered" >return "In Progress"; </span>}</span>
   private static _popUpWidth: number = 483;
-<span class="fstat-no" title="function not covered" >  static get popUpWidth(): number { <span class="cstat-no" title="statement not covered" >return this._popUpWidth; </span>}</span>
+  static get popUpWidth(): number { return this._popUpWidth; }
   static set popUpWidth(width: number<span class="fstat-no" title="function not covered" >) {</span>
 <span class="cstat-no" title="statement not covered" >    this._popUpWidth = width;</span>
   }
   private static _popUpHeight: number = 600;
-<span class="fstat-no" title="function not covered" >  static get popUpHeight(): number { <span class="cstat-no" title="statement not covered" >return this._popUpHeight; </span>}</span>
+  static get popUpHeight(): number { return this._popUpHeight; }
   static set popUpHeight(height: number<span class="fstat-no" title="function not covered" >) {</span>
 <span class="cstat-no" title="statement not covered" >    this._popUpHeight = height;</span>
   }
@@ -337,7 +337,7 @@
   static get inputScopesError(): string { return "input_scopes_error"; }
 <span class="fstat-no" title="function not covered" >  static get endpointResolutionError(): string { <span class="cstat-no" title="statement not covered" >return "endpoints_resolution_error"; </span>}</span>
 <span class="fstat-no" title="function not covered" >  static get popUpWindowError(): string { <span class="cstat-no" title="statement not covered" >return "popup_window_error"; </span>}</span>
-<span class="fstat-no" title="function not covered" >  static get userLoginError(): string { <span class="cstat-no" title="statement not covered" >return "user_login_error"; </span>}</span>
+  static get userLoginError(): string { return "user_login_error"; }
 <span class="fstat-no" title="function not covered" >  static get userCancelledError(): string { <span class="cstat-no" title="statement not covered" >return "user_cancelled"; </span>}</span>
 }
 &nbsp;
@@ -350,7 +350,7 @@
   static get inputScopesError(): string { return "Invalid value of input scopes provided"; }
 <span class="fstat-no" title="function not covered" >  static get endpointResolutionError(): string { <span class="cstat-no" title="statement not covered" >return "Endpoints cannot be resolved"; </span>}</span>
 <span class="fstat-no" title="function not covered" >  static get popUpWindowError(): string { <span class="cstat-no" title="statement not covered" >return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; </span>}</span>
-<span class="fstat-no" title="function not covered" >  static get userLoginError(): string { <span class="cstat-no" title="statement not covered" >return "User login is required"; </span>}</span>
+  static get userLoginError(): string { return "User login is required"; }
 <span class="fstat-no" title="function not covered" >  static get userCancelledError(): string { <span class="cstat-no" title="statement not covered" >return "User closed the popup window window and cancelled the flow"; </span>}</span>
 &nbsp;
 }
@@ -361,7 +361,7 @@
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jul 03 2018 03:20:29 GMT-0700 (Pacific Daylight Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jul 03 2018 04:16:17 GMT-0700 (Pacific Daylight Time)
 </div>
 </div>
 <script src="../prettify.js"></script>
