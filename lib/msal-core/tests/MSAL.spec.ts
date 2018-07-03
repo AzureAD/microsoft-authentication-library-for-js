@@ -1,5 +1,5 @@
 import {UserAgentApplication} from '../src/index';
-import {Constants} from '../src/Constants';
+import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 
 describe('Msal', function (): any {
     let window: any;
@@ -320,4 +320,192 @@ describe('Msal', function (): any {
         expect(storageFake.getItem(JSON.stringify(accessTokenKey))).toBe(undefined);
         storageFake.clear();
     });
+
+    it('tests saveTokenForHash in case of error', function () {
+        var requestInfo = {
+            valid: false,
+            parameters: { 'error_description': 'error description', 'error': 'invalid' },
+            stateMatch: false,
+            stateResponse: '',
+            requestType: 'unknown'
+        };
+       
+        var _cacheStorage = msal._cacheStorage.removeAcquireTokenEntries;
+        msal._cacheStorage.removeAcquireTokenEntries = function () {
+            return;
+        }
+        msal.saveTokenFromHash(requestInfo);
+        msal._cacheStorage.removeAcquireTokenEntries = _cacheStorage;
+        expect(storageFake.getItem(Constants.msalError)).toBe('invalid');
+        expect(storageFake.getItem(Constants.msalErrorDescription)).toBe('error description');
+    });
+
+    it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
+        msal._loginInProgress = true;
+        var errDesc = '', token = '', err = '', tokenType = '';
+        var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+        };
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect();
+        expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        expect(err).toBe(ErrorCodes.loginProgressError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+        msal._loginInProgress = false;
+    });
+
+    it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
+        var errDesc = '', token = '', err = '', tokenType = '';
+        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+        };
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect([]);
+        expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        expect(err).toBe(ErrorCodes.inputScopesError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+    });
+
+    it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
+        var errDesc = '', token = '', err = '', tokenType = '';
+        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+        };
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect([msal.clientId,'123']);
+        expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        expect(err).toBe(ErrorCodes.inputScopesError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+    });
+
+    it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
+        var scopes = ['openid', 'profile'];
+        scopes = msal.filterScopes(scopes);
+        expect(scopes.length).toEqual(0);
+    });
+
+    it('tests if hint parameters get added when user object is passed to the function', function () {
+        var user = {
+            userIdentifier: '1234.5678',
+            displayableId:'some_id'
+        }
+        var urlNavigate = '';
+        urlNavigate = msal.addHintParameters(urlNavigate, user);
+        expect(urlNavigate).toContain("login_hint");
+        expect(urlNavigate).toContain("login_req");
+        expect(urlNavigate).toContain("domain_req");
+        expect(urlNavigate).toContain("domain_hint");
+    });
+
+    it('tests urlContainsQueryStringParameter functionality', function () {
+        var url1 = 'https://login.onmicrosoft.com?prompt=none&client_id=12345';
+        expect(msal.urlContainsQueryStringParameter('prompt', url1)).toBe(true);
+        expect(msal.urlContainsQueryStringParameter('client_id', url1)).toBe(true);
+        expect(msal.urlContainsQueryStringParameter('login_hint', url1)).toBe(false);
+    });
+
+    it('clears cache before logout', function () {
+        spyOn(msal, 'clearCache');
+        spyOn(msal, 'promptUser');
+        msal.logout();
+        expect(msal.clearCache).toHaveBeenCalled();
+        expect(msal.promptUser).toHaveBeenCalled();
+    });
+
+    it('checks if postLogoutRedirectUri is added to logout url if provided in the config ', function () {
+        var _clearCache = msal.clearCache;
+        msal.clearCache = function () {
+            return;
+        }
+        msal._postLogoutredirectUri = 'https://contoso.com/logout';
+        spyOn(msal, 'promptUser');
+        msal.logout();
+        expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogout');
+        msal.clearCache = _clearCache;
+    });
+
+    it('is callback if has error or access_token or id_token', function () {
+        expect(msal.isCallback('not a callback')).toBe(false);
+        expect(msal.isCallback('#error_description=someting_wrong')).toBe(true);
+        expect(msal.isCallback('#/error_description=someting_wrong')).toBe(true);
+        expect(msal.isCallback('#access_token=token123')).toBe(true);
+        expect(msal.isCallback('#id_token=idtoken234')).toBe(true);
+    });
+
+    it('gets request info from hash', function () {
+        var requestInfo = msal.getRequestInfo('invalid');
+        expect(requestInfo.valid).toBe(false);
+        requestInfo = msal.getRequestInfo('#error_description=someting_wrong');
+        expect(requestInfo.valid).toBe(true);
+        expect(requestInfo.stateResponse).toBe('');
+
+        requestInfo = msal.getRequestInfo('#error_description=someting_wrong&state=1232');
+        expect(requestInfo.valid).toBe(true);
+        expect(requestInfo.stateResponse).toBe('1232');
+        expect(requestInfo.stateMatch).toBe(false);       
+    });
+
+});
+
+describe('loginPopup functionality', function () {
+    var loginPopupPromise:Promise<string>;
+    var msal;
+    beforeEach(function () {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        });
+        spyOn(msal, 'loginPopup').and.callThrough();
+        loginPopupPromise = msal.loginPopup([msal.clientId]);
+    });
+
+
+    it('returns a promise', function () {
+        expect(loginPopupPromise).toEqual(jasmine.any(Promise));
+    });
+
+});
+
+describe('acquireTokenPopup functionality', function () {
+    var acquireTokenPopupPromise: Promise<string>;
+    var msal;
+    beforeEach(function () {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        });
+        spyOn(msal, 'acquireTokenPopup').and.callThrough();
+        acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
+    });
+
+
+    it('returns a promise', function () {
+        expect(acquireTokenPopupPromise).toEqual(jasmine.any(Promise));
+    });
+
+});
+
+describe('acquireTokenSilent functionality', function () {
+    var acquireTokenSilentPromise: Promise<string>;
+    var msal;
+    beforeEach(function () {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        });
+        spyOn(msal, 'acquireTokenSilent').and.callThrough();
+        acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+    });
+
+
+    it('returns a promise', function () {
+        expect(acquireTokenSilentPromise).toEqual(jasmine.any(Promise));
+    });
+
 });
