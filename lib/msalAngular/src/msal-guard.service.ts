@@ -16,7 +16,6 @@ import {Constants} from "msal";
 @Injectable()
 export class MsalGuard implements CanActivate  {
 
-    private activatedRoute1: ActivatedRoute;
   constructor( @Inject(MSAL_CONFIG) private config:MsalConfig , private authService : MsalService, private router: Router , private activatedRoute: ActivatedRoute, private location : Location , private platformLocation: PlatformLocation, private broadcastService : BroadcastService) {
   }
 
@@ -56,8 +55,8 @@ export class MsalGuard implements CanActivate  {
                     this.broadcastService.broadcast("msal:loginSuccess", token);
                 }
             },  (error: any) => {
-                var errorParts = error.split("|");
-                this.broadcastService.broadcast("msal:loginFailure", {errorParts});
+              //  var errorParts = error.split("|");
+                this.broadcastService.broadcast("msal:loginFailure", {error});
             });
         }
         else {

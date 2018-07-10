@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
+    HttpRequest,
+    HttpHandler,
+    HttpEvent,
+    HttpInterceptor, HttpErrorResponse
 } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromPromise';
@@ -29,8 +29,16 @@ export class MsalInterceptor implements HttpInterceptor {
                     Authorization: `Bearer ${tokenStored.token}`,
                 }
             });
-            return next.handle(req);
-
+            return next.handle(req).do(event => {}, err => {
+                if (err instanceof HttpErrorResponse && err.status == 401) {
+                    var scopes = this.auth.get_scopes_for_endpoint(req.url);
+                    var tokenStored = this.auth.getCached_Token_Internal(scopes);
+                    if (tokenStored && tokenStored.token) {
+                        this.auth.clear_cache_for_scope(tokenStored.token);
+                    }
+                    this.broadcastService.broadcast('msal:notAuthorized', {err, scopes});
+                }
+            });
         }
         else {
             return Observable.fromPromise(this.auth.acquire_token_silent(scopes).then(token => {
@@ -40,7 +48,16 @@ export class MsalInterceptor implements HttpInterceptor {
                         Authorization: JWT,
                     },
                 });
-            })).mergeMap(req => next.handle(req)); //calling next.handle means we are passing control to next interceptor in chain
+            })).mergeMap(req => next.handle(req).do(event => {}, err => {
+                if (err instanceof HttpErrorResponse && err.status == 401) {
+                    var scopes = this.auth.get_scopes_for_endpoint(req.url);
+                    var tokenStored = this.auth.getCached_Token_Internal(scopes);
+                    if (tokenStored && tokenStored.token) {
+                        this.auth.clear_cache_for_scope(tokenStored.token);
+                    }
+                    this.broadcastService.broadcast('msal:notAuthorized', {err, scopes});
+                }
+            })); //calling next.handle means we are passing control to next interceptor in chain
         }
     }
 }
