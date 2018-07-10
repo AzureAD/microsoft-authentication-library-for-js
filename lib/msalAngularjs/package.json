@@ -54,6 +54,7 @@
     "webpack-cli": "^3.0.8"
   },
   "scripts": {
-    "test": "webpack && gulp test"
+    "test": "webpack && gulp test",
+    "build": "webpack"
   }
 }
