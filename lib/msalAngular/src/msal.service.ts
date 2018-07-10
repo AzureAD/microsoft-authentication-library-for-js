@@ -77,10 +77,14 @@ export class MsalService extends UserAgentApplication {
         var cacheResult: CacheResult;
         cacheResult = this.getCachedTokenInternal(scopes, this.getUser());
         this._oauthData.isAuthenticated = cacheResult != null && cacheResult.token !== null && cacheResult.token.length > 0;
-        this.user = this.getUser() || {userName: ""};
-        this._oauthData.userName = this.user.name;
-        this._oauthData.idToken = this.user.idToken;
-        this._oauthData.loginError = cacheResult == null ? "" : cacheResult.error;
+        var user = this.getUser();
+        if(user) {
+            this._oauthData.userName = user.name;
+            this._oauthData.idToken = user.idToken;
+        }
+        if (cacheResult && cacheResult.error) {
+            this._oauthData.loginError = cacheResult == null ? "" : cacheResult.error;
+        }
     }
 
     processHash(hash: string) {
@@ -100,7 +104,7 @@ export class MsalService extends UserAgentApplication {
                     callback = mainWindow.callBackMappedToRenewStates[requestInfo.stateResponse];
                 }
             }
-
+            //redirect flow
             else if (window.parent && window.parent.msal) {
                 msal = window.parent.msal;
                 requestInfo = msal.getRequestInfo(hash);
@@ -176,9 +180,9 @@ export class MsalService extends UserAgentApplication {
                             window.location.href = loginStartPage;
                         }
                     }
-                    //redirect to redirect uri
+                    //redirect to redirect uri. No page reload here since we are only removing the url after the hash
                     else {
-                            window.location.href= window.location.origin;
+                        window.location.hash = '';
                     }
                 }
             }
@@ -199,7 +203,6 @@ export class MsalService extends UserAgentApplication {
     private processRedirectCallBack(hash: string): void {
         this._logger.info('Processing the callback from redirect response');
         const requestInfo = this.getRequestInfo(hash);
-        this.saveTokenFromHash(requestInfo);
         const token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
         const errorDesc = requestInfo.parameters[Constants.errorDescription];
         const error = requestInfo.parameters[Constants.error];
