@@ -54,7 +54,7 @@
     "webpack-cli": "^3.0.8"
   },
   "scripts": {
-    "test": "webpack && gulp test",
+    "test": "webpack && karma start --browsers ChromeHeadlessNoSandbox karma.conf.js",
     "build": "webpack"
   }
 }
