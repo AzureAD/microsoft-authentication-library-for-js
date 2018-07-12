@@ -1609,14 +1609,22 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
               }
             } else {
+              authorityKey = tokenResponse.stateResponse;
+              acquireTokenUserKey = tokenResponse.stateResponse;
               this._logger.error("Invalid id_token received in the response");
+              tokenResponse.parameters['error'] = 'invalid idToken';
+              tokenResponse.parameters['error_description'] = 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants.idToken];
               this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
           }
         }
       } else {
+        authorityKey = tokenResponse.stateResponse;
+        acquireTokenUserKey = tokenResponse.stateResponse;
         this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
+        tokenResponse.parameters['error'] = 'Invalid_state';
+        tokenResponse.parameters['error_description'] = 'Invalid_state. state: ' + tokenResponse.stateResponse;
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }

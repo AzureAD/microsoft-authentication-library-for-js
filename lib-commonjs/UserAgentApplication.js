@@ -1349,7 +1349,11 @@ var UserAgentApplication = /** @class */ (function () {
                             }
                         }
                         else {
+                            authorityKey = tokenResponse.stateResponse;
+                            acquireTokenUserKey = tokenResponse.stateResponse;
                             this._logger.error("Invalid id_token received in the response");
+                            tokenResponse.parameters['error'] = 'invalid idToken';
+                            tokenResponse.parameters['error_description'] = 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants_1.Constants.idToken];
                             this._cacheStorage.setItem(Constants_1.Constants.msalError, "invalid idToken");
                             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants_1.Constants.idToken]);
                         }
@@ -1357,7 +1361,11 @@ var UserAgentApplication = /** @class */ (function () {
                 }
             }
             else {
+                authorityKey = tokenResponse.stateResponse;
+                acquireTokenUserKey = tokenResponse.stateResponse;
                 this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants_1.Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
+                tokenResponse.parameters['error'] = 'Invalid_state';
+                tokenResponse.parameters['error_description'] = 'Invalid_state. state: ' + tokenResponse.stateResponse;
                 this._cacheStorage.setItem(Constants_1.Constants.msalError, "Invalid_state");
                 this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
             }
