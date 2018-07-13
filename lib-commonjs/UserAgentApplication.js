@@ -86,7 +86,7 @@ var UserAgentApplication = /** @class */ (function () {
          */
         this._tokenReceivedCallback = null;
         this._isAngular = false;
-        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k;
+        var _a = options.validateAuthority, validateAuthority = _a === void 0 ? true : _a, _b = options.cacheLocation, cacheLocation = _b === void 0 ? "sessionStorage" : _b, _c = options.redirectUri, redirectUri = _c === void 0 ? window.location.href.split("?")[0].split("#")[0] : _c, _d = options.postLogoutRedirectUri, postLogoutRedirectUri = _d === void 0 ? window.location.href.split("?")[0].split("#")[0] : _d, _e = options.logger, logger = _e === void 0 ? new Logger_1.Logger(null) : _e, _f = options.loadFrameTimeout, loadFrameTimeout = _f === void 0 ? 6000 : _f, _g = options.navigateToLoginRequestUrl, navigateToLoginRequestUrl = _g === void 0 ? true : _g, _h = options.isAngular, isAngular = _h === void 0 ? false : _h, _j = options.anonymousEndpoints, anonymousEndpoints = _j === void 0 ? new Array() : _j, _k = options.endPoints, endPoints = _k === void 0 ? new Map() : _k, _l = options.enableCookieStorage, enableCookieStorage = _l === void 0 ? false : _l;
         this.loadFrameTimeout = loadFrameTimeout;
         this.clientId = clientId;
         this.validateAuthority = validateAuthority;
@@ -106,6 +106,7 @@ var UserAgentApplication = /** @class */ (function () {
         }
         this._cacheStorage = new Storage_1.Storage(this._cacheLocation); //cache keys msal
         this._logger = logger;
+        this.enableCookieStorage = enableCookieStorage;
         window.openedWindows = [];
         window.activeRenewals = {};
         window.renewStates = [];
@@ -178,6 +179,7 @@ var UserAgentApplication = /** @class */ (function () {
         this._cacheStorage.removeItem(Constants_1.Constants.urlHash);
         try {
             if (this._tokenReceivedCallback) {
+                this._cacheStorage.clearCookie();
                 this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
             }
         }
@@ -227,10 +229,10 @@ var UserAgentApplication = /** @class */ (function () {
             else {
                 _this._cacheStorage.setItem(Constants_1.Constants.angularLoginRequest, "");
             }
-            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, loginStartPage);
+            _this._cacheStorage.setItem(Constants_1.Constants.loginRequest, loginStartPage, _this.enableCookieStorage);
             _this._cacheStorage.setItem(Constants_1.Constants.loginError, "");
-            _this._cacheStorage.setItem(Constants_1.Constants.stateLogin, authenticationRequest.state);
-            _this._cacheStorage.setItem(Constants_1.Constants.nonceIdToken, authenticationRequest.nonce);
+            _this._cacheStorage.setItem(Constants_1.Constants.stateLogin, authenticationRequest.state, _this.enableCookieStorage);
+            _this._cacheStorage.setItem(Constants_1.Constants.nonceIdToken, authenticationRequest.nonce, _this.enableCookieStorage);
             _this._cacheStorage.setItem(Constants_1.Constants.msalError, "");
             _this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "");
             var authorityKey = Constants_1.Constants.authority + Constants_1.Constants.resourceDelimeter + authenticationRequest.state;
@@ -413,6 +415,7 @@ var UserAgentApplication = /** @class */ (function () {
             this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
         }
         this._cacheStorage.resetCacheItems();
+        this._cacheStorage.clearCookie();
     };
     UserAgentApplication.prototype.clearCacheForScope = function (accessToken) {
         var accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants_1.Constants.clientId, Constants_1.Constants.userIdentifier);
@@ -1157,7 +1160,7 @@ var UserAgentApplication = /** @class */ (function () {
                 self._cacheStorage.setItem(Constants_1.Constants.urlHash, hash);
                 saveToken = false;
                 if (window.parent === window && !isPopup) {
-                    window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest);
+                    window.location.href = self._cacheStorage.getItem(Constants_1.Constants.loginRequest, this.enableCookieStorage);
                 }
                 return;
             }
@@ -1336,7 +1339,7 @@ var UserAgentApplication = /** @class */ (function () {
                         }
                         this._user = User_1.User.createUser(idToken, new ClientInfo_1.ClientInfo(clientInfo), authority);
                         if (idToken && idToken.nonce) {
-                            if (idToken.nonce !== this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken)) {
+                            if (idToken.nonce !== this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken, this.enableCookieStorage)) {
                                 this._user = null;
                                 this._cacheStorage.setItem(Constants_1.Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
                                 this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants_1.Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
@@ -1430,7 +1433,7 @@ var UserAgentApplication = /** @class */ (function () {
                 tokenResponse.stateResponse = stateResponse;
                 // async calls can fire iframe and login request at the same time if developer does not use the API as expected
                 // incoming callback needs to be looked up to find the request type
-                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin)) { // loginRedirect
+                if (stateResponse === this._cacheStorage.getItem(Constants_1.Constants.stateLogin, this.enableCookieStorage)) { // loginRedirect
                     tokenResponse.requestType = Constants_1.Constants.login;
                     tokenResponse.stateMatch = true;
                     return tokenResponse;

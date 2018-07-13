@@ -69,6 +69,7 @@ export declare class UserAgentApplication {
     private _isAngular;
     private _endpoints;
     private _anonymousEndpoints;
+    enableCookieStorage: boolean;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
@@ -80,6 +81,7 @@ export declare class UserAgentApplication {
         isAngular?: boolean;
         anonymousEndpoints?: Array<string>;
         endPoints?: Map<string, Array<string>>;
+        enableCookieStorage?: boolean;
     });
     private processCallBack;
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;

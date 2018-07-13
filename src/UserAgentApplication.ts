@@ -198,6 +198,8 @@ export class UserAgentApplication {
 
   private _anonymousEndpoints: Array<string>;
 
+  enableCookieStorage: boolean;
+
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -223,8 +225,9 @@ export class UserAgentApplication {
         loadFrameTimeout?: number,
         navigateToLoginRequestUrl?: boolean,
         isAngular?: boolean,
-        anonymousEndpoints?: Array<string>
-        endPoints?:Map<string,Array<string>>
+        anonymousEndpoints?: Array<string>,
+        endPoints?: Map<string, Array<string>>,
+        enableCookieStorage?:boolean
       } = {}) {
       const {
           validateAuthority = true,
@@ -237,6 +240,7 @@ export class UserAgentApplication {
           isAngular = false,
           anonymousEndpoints = new Array<string>(),
           endPoints = new Map<string, Array<string>>(),
+          enableCookieStorage = false
       } = options;
 
     this.loadFrameTimeout = loadFrameTimeout;
@@ -259,6 +263,7 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
+    this.enableCookieStorage = enableCookieStorage;
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
@@ -306,6 +311,7 @@ export class UserAgentApplication {
 
       try {
           if (this._tokenReceivedCallback) {
+              this._cacheStorage.clearCookie();
               this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType);
           }
 
@@ -361,10 +367,10 @@ export class UserAgentApplication {
             this._cacheStorage.setItem(Constants.angularLoginRequest, "")
         }
 
-        this._cacheStorage.setItem(Constants.loginRequest, loginStartPage);
+        this._cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.enableCookieStorage);
         this._cacheStorage.setItem(Constants.loginError, "");
-        this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+        this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state, this.enableCookieStorage);
+        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.enableCookieStorage);
         this._cacheStorage.setItem(Constants.msalError, "");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "");
         const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
@@ -564,6 +570,7 @@ export class UserAgentApplication {
       this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
     }
     this._cacheStorage.resetCacheItems();
+    this._cacheStorage.clearCookie();
   }
 
     clearCacheForScope(accessToken: string) {
@@ -1405,7 +1412,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             self._cacheStorage.setItem(Constants.urlHash, hash);
             saveToken = false;
             if (window.parent === window && !isPopup) {
-                window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
+                window.location.href = self._cacheStorage.getItem(Constants.loginRequest, this.enableCookieStorage);
             }
             return;
         }
@@ -1597,7 +1604,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
             this._user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
             if (idToken && idToken.nonce) {
-              if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
+                if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken, this.enableCookieStorage)) {
                 this._user = null;
                 this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
                 this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
@@ -1695,7 +1702,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         tokenResponse.stateResponse = stateResponse;
         // async calls can fire iframe and login request at the same time if developer does not use the API as expected
         // incoming callback needs to be looked up to find the request type
-        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) { // loginRedirect
+        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.enableCookieStorage)) { // loginRedirect
           tokenResponse.requestType = Constants.login;
           tokenResponse.stateMatch = true;
           return tokenResponse;
