@@ -707,7 +707,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
     }
 
-        return this.getCachedToken(authenticationRequest, user);
+    return this.getCachedToken(authenticationRequest, user);
 }
 
   /*
@@ -917,6 +917,32 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     // regex to detect pattern of a ? or & followed by the name parameter and an equals character
     const regex = new RegExp("[\\?&]" + name + "=");
     return regex.test(url);
+  }
+
+  /**
+   * 
+   */
+  @resolveTokenOnlyIfOutOfIframe
+  private acquireIdTokenSilentUnifiedCache(userObject: User): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+
+      // check if the id token already exists and return it.
+      const idToken = this._cacheStorage.getItem(Constants.idToken);
+      if (!Utils.isEmpty(idToken)) {
+        resolve(idToken);
+      }
+
+      const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, null, ResponseTypes.id_token, this._redirectUri);
+
+      return this.authorityInstance.ResolveEndpointsAsync()
+        .then(() => {
+          this._logger.verbose("renewing idToken");
+          this.renewIdToken([this.clientId], resolve, reject, userObject, authenticationRequest, null);
+        }).catch((err) => {
+          this._logger.warning("could not resolve endpoints");
+          reject(err);
+        });
+    });
   }
 
   /*
@@ -1356,6 +1382,26 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
 
     return null;
+  }
+
+  getUser2(): Promise<User> {
+    return new Promise<User>((resolve, reject) => {
+
+      if (this._user) {
+        resolve(this._user);
+      }
+  
+      const rawIdToken = this._cacheStorage.getItem(Constants.idTokenKey);
+      const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
+      if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
+        const idToken = new IdToken(rawIdToken);
+        const clientInfo = new ClientInfo(rawClientInfo);
+        this._user = User.createUser(idToken, clientInfo, this.authority);
+        resolve(this._user);
+      }
+
+      resolve(null);
+    });
   }
 
   /*
