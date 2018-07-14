@@ -767,7 +767,12 @@ var UserAgentApplication = /** @class */ (function () {
         var acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
             if (Utils.compareObjects(userObject, _this.getUser())) {
-                authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                if (scopes.indexOf(_this.clientId) > -1) {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
+                }
+                else {
+                    authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                }
             }
             else {
                 authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this._redirectUri);
