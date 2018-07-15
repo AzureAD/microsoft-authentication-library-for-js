@@ -28,31 +28,32 @@ export class Constants {
   static get errorDescription(): string { return "error_description"; }
   static get error(): string { return "error"; }
   static get scope(): string { return "scope"; }
-  static get acquireTokenUser(): string { return "msid.acquireTokenUser"; }
+  static get acquireTokenUser(): string { return "msal.acquireTokenUser"; }
   static get clientInfo(): string { return "client_info"; }
   static get clientId(): string { return "clientId"; }
-  static get authority(): string { return "msid.authority"; }
+  static get authority(): string { return "msal.authority"; }
   static get idToken(): string { return "id_token"; }
   static get accessToken(): string { return "access_token"; }
   static get expiresIn(): string { return "expires_in"; }
   static get sessionState(): string { return "session_state"; }
-  static get msalClientInfo(): string { return "msid.client.info"; }
-  static get msalError(): string { return "msid.error"; }
-  static get msalErrorDescription(): string { return "msid.error.description"; }
-  static get msalSessionState(): string { return "msid.session.state"; }
-  static get tokenKeys(): string { return "msid.token.keys"; }
-  static get accessTokenKey(): string { return "msid.access.token.key"; }
-  static get expirationKey(): string { return "msid.expiration.key"; }
-  static get stateLogin(): string { return "msid.state.login"; }
-  static get stateAcquireToken(): string { return "msid.state.acquireToken"; }
-  static get stateRenew(): string { return "msid.state.renew"; }
-  static get nonceIdToken(): string { return "msid.nonce.idtoken"; }
-  static get userName(): string { return "msid.username"; }
-  static get idTokenKey(): string { return "msid.idtoken"; }
-  static get loginRequest(): string { return "msid.login.request"; }
-  static get loginError(): string { return "msid.login.error"; }
-  static get renewStatus(): string { return "msid.token.renew.status"; }
-  static get msal(): string { return "msid"; }
+  static get msalClientInfo(): string { return "msal.client.info"; }
+  static get msalError(): string { return "msal.error"; }
+  static get msalErrorDescription(): string { return "msal.error.description"; }
+  static get msalSessionState(): string { return "msal.session.state"; }
+  static get tokenKeys(): string { return "msal.token.keys"; }
+  static get accessTokenKey(): string { return "msal.access.token.key"; }
+  static get expirationKey(): string { return "msal.expiration.key"; }
+  static get stateLogin(): string { return "msal.state.login"; }
+  static get stateAcquireToken(): string { return "msal.state.acquireToken"; }
+  static get stateRenew(): string { return "msal.state.renew"; }
+  static get nonceIdToken(): string { return "msal.nonce.idtoken"; }
+  static get userName(): string { return "msal.username"; }
+  static get idTokenKey(): string { return "msal.idtoken"; }
+  static get adalIdToken(): string { return "adal.idtoken"; }
+  static get loginRequest(): string { return "msal.login.request"; }
+  static get loginError(): string { return "msal.login.error"; }
+  static get renewStatus(): string { return "msal.token.renew.status"; }
+  static get msal(): string { return "msal"; }
   static get resourceDelimeter(): string { return "|"; }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
@@ -70,8 +71,8 @@ export class Constants {
   static get login(): string { return "LOGIN"; }
   static get renewToken(): string { return "RENEW_TOKEN"; }
   static get unknown(): string { return "UNKNOWN"; }
-  static get urlHash(): string { return "msid.urlHash"; }
-    static get angularLoginRequest(): string { return "msid.angular.login.request"; }
+  static get urlHash(): string { return "msal.urlHash"; }
+    static get angularLoginRequest(): string { return "msal.angular.login.request"; }
     static get userIdentifier(): string { return "userIdentifier"; }
 }
 

@@ -923,7 +923,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * 
    */
   @resolveTokenOnlyIfOutOfIframe
-  private acquireIdTokenSilentUnifiedCache(userObject: User): Promise<string> {
+  private acquireIdTokenSilentUnifiedCache(displayableId: string, uid: string, utid: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
 
       // check if the id token already exists and return it.
@@ -937,7 +937,51 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return this.authorityInstance.ResolveEndpointsAsync()
         .then(() => {
           this._logger.verbose("renewing idToken");
-          this.renewIdToken([this.clientId], resolve, reject, userObject, authenticationRequest, null);
+
+          // renewIdToken
+          this._logger.info("renewidToken is called");
+          const frameHandle = this.addAdalFrame("msalIdTokenFrame");
+
+          const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+          if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+            this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
+          }
+
+          this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+          this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
+          let urlNavigate = authenticationRequest.createNavigateUrl([this.clientId]) + "&prompt=none";
+         
+            // addHintParameters
+              if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && displayableId && !Utils.isEmpty(displayableId)) {
+                urlNavigate += "&login_hint=" + encodeURIComponent(displayableId);
+              }
+
+              if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+                if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
+                  urlNavigate += "&domain_req=" + encodeURIComponent(utid);
+                }
+
+                if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
+                  urlNavigate += "&login_req=" + encodeURIComponent(uid);
+                }
+
+                if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
+                  if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+                    urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
+                  } else {
+                    urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
+                  }
+                }
+              }
+          // end
+
+          window.renewStates.push(authenticationRequest.state);
+          window.requestType = Constants.renewToken;
+          this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
+          this._logger.infoPii("Navigate to:" + urlNavigate);
+          frameHandle.src = "about:blank";
+          this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+          // end
         }).catch((err) => {
           this._logger.warning("could not resolve endpoints");
           reject(err);
@@ -1362,6 +1406,22 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
   }
 
+private delay(ms: number) {
+    return new Promise<void>(function(resolve) {
+        setTimeout(resolve, ms);
+    });
+}
+
+private async asyncAwait() {
+    console.log("Knock, knock!");
+
+    await this.delay(1000);
+    console.log("Who's there?");
+
+    await this.delay(1000);
+    console.log("async/await!");
+}
+
   /*
     * Returns the signed in user (received from a user object created at the time of login) or null.
     */
@@ -1381,27 +1441,33 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return this._user;
     }
 
+    // check for existing adal idtoken to be used for obtaining an msal idtoken
+    const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+    if (!Utils.isEmpty(adalIdToken)) {
+      const idTokenObject = Utils.decodeJwt(adalIdToken);
+      const displayableId = idTokenObject.upn;
+      const uid = idTokenObject.oid;
+      const utid = idTokenObject.tid;
+      if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+        this._acquireTokenInProgress = true;
+        this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid)
+          .then((rawIdToken) => {
+            const idToken = new IdToken(rawIdToken);
+            const clientInfo = new ClientInfo(rawClientInfo);
+            this._user = User.createUser(idToken, clientInfo, this.authority);
+            this._acquireTokenInProgress = false;
+          })
+          .catch((error) => {
+            this._acquireTokenInProgress = false;
+          });
+
+          
+
+          return this._user;
+      }
+    }
+
     return null;
-  }
-
-  getUser2(): Promise<User> {
-    return new Promise<User>((resolve, reject) => {
-
-      if (this._user) {
-        resolve(this._user);
-      }
-  
-      const rawIdToken = this._cacheStorage.getItem(Constants.idTokenKey);
-      const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
-      if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
-        const idToken = new IdToken(rawIdToken);
-        const clientInfo = new ClientInfo(rawClientInfo);
-        this._user = User.createUser(idToken, clientInfo, this.authority);
-        resolve(this._user);
-      }
-
-      resolve(null);
-    });
   }
 
   /*
