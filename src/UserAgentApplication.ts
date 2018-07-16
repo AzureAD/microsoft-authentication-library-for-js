@@ -923,7 +923,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * 
    */
   @resolveTokenOnlyIfOutOfIframe
-  private acquireIdTokenSilentUnifiedCache(displayableId: string, uid: string, utid: string): Promise<string> {
+  private acquireIdTokenSilent(displayableId: string, uid: string, utid: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
 
       // check if the id token already exists and return it.
@@ -951,29 +951,28 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
           let urlNavigate = authenticationRequest.createNavigateUrl([this.clientId]) + "&prompt=none";
          
-            // addHintParameters
-              if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && displayableId && !Utils.isEmpty(displayableId)) {
-                urlNavigate += "&login_hint=" + encodeURIComponent(displayableId);
+            // add the hint parameters for acquiring the token
+            if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && displayableId && !Utils.isEmpty(displayableId)) {
+              urlNavigate += "&login_hint=" + encodeURIComponent(displayableId);
+            }
+
+            if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+              if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
+                urlNavigate += "&domain_req=" + encodeURIComponent(utid);
               }
 
-              if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-                if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
-                  urlNavigate += "&domain_req=" + encodeURIComponent(utid);
-                }
+              if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
+                urlNavigate += "&login_req=" + encodeURIComponent(uid);
+              }
 
-                if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
-                  urlNavigate += "&login_req=" + encodeURIComponent(uid);
-                }
-
-                if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
-                  if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-                    urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
-                  } else {
-                    urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
-                  }
+              if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
+                if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+                  urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
+                } else {
+                  urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
                 }
               }
-          // end
+          }
 
           window.renewStates.push(authenticationRequest.state);
           window.requestType = Constants.renewToken;
@@ -1017,52 +1016,58 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       scopes = this.filterScopes(scopes);
     }
 
-    const userObject = user ? user : this.getUser();
     if (this._acquireTokenInProgress) {
       return;
     }
 
-    const scope = scopes.join(" ").toLowerCase();
-    if (!userObject) {
-      if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken);
-        return;
-      }
-    }
+    this.getUserAsync()
+      .then((cachedUser) => {
+        const userObject = user ? user : cachedUser;
 
-    this._acquireTokenInProgress = true;
-    let authenticationRequest: AuthenticationRequestParameters;
-    let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+        if (!userObject) {
+          if (this._tokenReceivedCallback) {
+            this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken);
+            return;
+          }
+        }
+    
+        this._acquireTokenInProgress = true;
+        let authenticationRequest: AuthenticationRequestParameters;
+        let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+    
+        acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+          if (Utils.compareObjects(userObject, cachedUser)) {
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+          } else {
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+          }
+    
+          this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+          const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+          if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+            this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
+          }
+    
+          const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+          if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+            this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
+          }
+    
+          if (extraQueryParameters) {
+            authenticationRequest.extraQueryParameters = extraQueryParameters;
+          }
+    
+          let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+          urlNavigate = this.addHintParameters(urlNavigate, userObject);
+          if (urlNavigate) {
+            this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
+            window.location.replace(urlNavigate);
+          }
+        });
+      })
+      .catch((err) => {
 
-    acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-      if (Utils.compareObjects(userObject, this.getUser())) {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
-      } else {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
-      }
-
-      this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-      const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-      if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-      }
-
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-      if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
-      }
-
-      if (extraQueryParameters) {
-        authenticationRequest.extraQueryParameters = extraQueryParameters;
-      }
-
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-      urlNavigate = this.addHintParameters(urlNavigate, userObject);
-      if (urlNavigate) {
-        this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
-        window.location.replace(urlNavigate);
-      }
-    });
+      });
   }
 
   /*
@@ -1190,65 +1195,72 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           scopes = this.filterScopes(scopes);
         }
 
-        const scope = scopes.join(" ").toLowerCase();
-        const userObject = user ? user : this.getUser();
-        if (!userObject) {
-          reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
-          return;
-        }
-
-        let authenticationRequest: AuthenticationRequestParameters;
-        let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
-          }
-          else {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
-          }
-        } else {
-          authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
-        }
-
-        const cacheResult = this.getCachedToken(authenticationRequest, userObject);
-        if (cacheResult) {
-          if (cacheResult.token) {
-            this._logger.info("Token is already in cache for scope:" + scope);
-            resolve(cacheResult.token);
-            return;
-          }
-          else if (cacheResult.errorDesc || cacheResult.error) {
-            this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + "|" + cacheResult.error);
-            return;
-          }
-        }
-        else {
-            this._logger.verbose("Token is not in cache for scope:" + scope);
-        }
-        // cache miss
-        return this.authorityInstance.ResolveEndpointsAsync()
-          .then(() => {
-            // refresh attept with iframe
-            //Already renewing for this scope, callback when we get the token.
-              if (window.activeRenewals[scope]) {
-              this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
-              //Active renewals contains the state for each renewal.
-              this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+        return this.getUserAsync()
+          .then((cachedUser) => {
+            const scope = scopes.join(" ").toLowerCase();
+            const userObject = user ? user : cachedUser;
+            if (!userObject) {
+              reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+              return;
             }
-            else {
-              if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                // App uses idToken to send to api endpoints
-                // Default scope is tracked as clientId to store this token
-                this._logger.verbose("renewing idToken");
-                this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-              } else {
-                this._logger.verbose("renewing accesstoken");
-                this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+    
+            let authenticationRequest: AuthenticationRequestParameters;
+            let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+            if (Utils.compareObjects(userObject, cachedUser)) {
+              if (scopes.indexOf(this.clientId) > -1) {
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+              }
+              else {
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+              }
+            } else {
+              authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+            }
+    
+            const cacheResult = this.getCachedToken(authenticationRequest, userObject);
+            if (cacheResult) {
+              if (cacheResult.token) {
+                this._logger.info("Token is already in cache for scope:" + scope);
+                resolve(cacheResult.token);
+                return;
+              }
+              else if (cacheResult.errorDesc || cacheResult.error) {
+                this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
+                reject(cacheResult.errorDesc + "|" + cacheResult.error);
+                return;
               }
             }
-          }).catch((err) => {
-            this._logger.warning("could not resolve endpoints");
+            else {
+                this._logger.verbose("Token is not in cache for scope:" + scope);
+            }
+            // cache miss
+            return this.authorityInstance.ResolveEndpointsAsync()
+              .then(() => {
+                // refresh attept with iframe
+                //Already renewing for this scope, callback when we get the token.
+                  if (window.activeRenewals[scope]) {
+                  this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+                  //Active renewals contains the state for each renewal.
+                  this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+                }
+                else {
+                  if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+                    // App uses idToken to send to api endpoints
+                    // Default scope is tracked as clientId to store this token
+                    this._logger.verbose("renewing idToken");
+                    this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                  } else {
+                    this._logger.verbose("renewing accesstoken");
+                    this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+                  }
+                }
+              }).catch((err) => {
+                this._logger.warning("could not resolve endpoints");
+                reject(err);
+              });
+          })
+          .catch((err) => {
+            this._logger.warning("could not object user object");
             reject(err);
           });
       }
@@ -1406,37 +1418,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
   }
 
-private delay(ms: number) {
-    return new Promise<void>(function(resolve) {
-        setTimeout(resolve, ms);
-    });
-}
-
-async asyncAwait() {
-    this._acquireTokenInProgress = true;
-    console.log("Knock, knock!");
-
-    await this.delay(1000);
-    console.log("Who's there?");
-
-    await this.delay(1000);
-    console.log("async/await!");
-    this._acquireTokenInProgress = false;
-}
-
-async pause() {
-  await this.delay(5000);
-}
-
-  private async acquireIdTokenSilentUnifiedCacheAwait(displayableId: string, uid: string, utid: string) {
-      const rawIdToken = await this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid);
-      const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
-      const idToken = new IdToken(rawIdToken);
-      const clientInfo = new ClientInfo(rawClientInfo);
-      const user = User.createUser(idToken, clientInfo, this.authority);
-      console.log("User created");
-  }
-
+  /**
+   * 
+   */
   getUserAsync(): Promise<User> {
     return new Promise<User>((resolve, reject) => {
 
@@ -1459,7 +1443,7 @@ async pause() {
         const uid = idTokenObject.oid;
         const utid = idTokenObject.tid;
         if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-          return this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid)
+          return this.acquireIdTokenSilent(displayableId, uid, utid)
             .then((rawIdToken) => {  
               const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
               const idToken = new IdToken(rawIdToken);
@@ -1497,29 +1481,6 @@ async pause() {
       this._user = User.createUser(idToken, clientInfo, this.authority);
       return this._user;
     }
-
-    // check for existing adal idtoken to be used for obtaining an msal idtoken
-    /*
-    const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
-    if (!Utils.isEmpty(adalIdToken)) {
-      const idTokenObject = Utils.extractIdToken(adalIdToken);
-      const displayableId = idTokenObject.upn;
-      const uid = idTokenObject.oid;
-      const utid = idTokenObject.tid;
-      if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-        this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid)
-          .then((rawIdToken) => {
-            const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
-            const idToken = new IdToken(rawIdToken);
-            const clientInfo = new ClientInfo(rawClientInfo);
-            this._user = User.createUser(idToken, clientInfo, this.authority);
-          })
-          .catch((error) => {
-
-          });
-      }
-    }
-    */
 
     return null;
   }

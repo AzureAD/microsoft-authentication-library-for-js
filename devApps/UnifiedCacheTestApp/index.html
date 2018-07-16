@@ -3,18 +3,31 @@
     <head>
         <title>Unified Cache Tests</title>
         <meta charset="utf-8" />
-        <style type="text/css">body { font-family: Tahoma; padding: 3em; }</style>
+        <style type="text/css">body { font-family: Tahoma; padding: 3em; } .note { font-size: 0.8em;}</style>
     </head>
     <body>
         <h4>Unified Cache Demos</h4>
-        <a href="ADAL_OLD.html">ADAL OLD</a>
+        <a href="ADAL_OLD.html">ADAL</a>
+        <div class="note">Latest published version of the ADAL SDK.</div>
         </br>
-        <a href="ADAL.html">ADAL NEW</a>
+        <a href="ADAL_ASYNC.html">ADAL+</a>
+        <div class="note">Calls get user async which checks for the need to do an acauiretoken that uses a callback with a return value of the user object.</div>
+        </br>
+        <a href="ADAL_ATS.html">ADAL+ (ATS only)</a>
+        <div class="note">Just call acquire token for graph to get an access token without calling get user.</div>
+        </br>
         <hr/>
-        <a href="MSAL_OLD.html">MSAL OLD</a>
-        <br/>
-        <a href="MSAL.html">MSAL NEW</a>
         </br>
-        <a href="MSAL_ASYNC.html">MSAL NEW (getUser async)</a>
+        <a href="MSAL_OLD.html">MSAL</a>
+        <div class="note">Latest published version of the MSAL SDK.</div>
+        <br/>
+        <a href="MSAL_ASYNC.html">MSAL+</a>
+        <div class="note">Development branch where calling the async version getUserAsync() that returns a promise that returns the user object if it exists.</div>
+        </br>
+        <a href="MSAL_ATS.html">MSAL+ (ATS only)</a>
+        <div class="note">Just call acquire token for graph to get an access token without calling get user.</div>
+        </br>
+        <a href="MSAL_ATR.html">MSAL+ (ATR only)</a>
+        <div class="note">Just call acquire token for graph to get an access token without calling get user.</div>
     </body>
 </html>

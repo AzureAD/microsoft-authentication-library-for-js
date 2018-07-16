@@ -10,7 +10,7 @@
 
     <body>
         <a href=".\">&lt; Back</a>
-        <h4>MSAL+</h4>
+        <h4>MSAL+ (ATR Only)</h4>
         <p>
             <a id="login_button" href="#" onclick="login(); return false;">Log in</a>
             <a id="logout_button" href="#" onclick="logout(); return false;">Log out</a>
@@ -86,41 +86,42 @@
                 }
             }
 
-            var user = clientApplication.getUser();
-            if (user) {
+            document.getElementById('username').textContent = 'Loading...'; 
+
+            document.getElementById('api_response').textContent = 'Calling Graph API...'; 
+            clientApplication.acquireTokenSilent(applicationConfig.graphScopes)
+            .then(function (access_token) {
+                
+                var user = clientApplication.getUser();
                 document.getElementById('logout_button').style.display = "block";
                 document.getElementById('username').textContent = 'Signed in as: ' + user.displayableId;
-                document.getElementById('api_response').textContent = 'Calling Graph API...'; 
-                clientApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (access_token) {
-                    
-                    var xhr = new XMLHttpRequest();
 
-                    xhr.open('GET', 'https://graph.microsoft.com/v1.0/me', true);
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+                var xhr = new XMLHttpRequest();
 
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === 4 && xhr.status === 200) {
-                            document.getElementById('api_response').textContent = JSON.stringify(JSON.parse(xhr.responseText), null, '  ');
-                        } else {
-                            document.getElementById('api_response').textContent = 'ERROR:\n\n' + xhr.responseText;
-                        }
-                    };
+                xhr.open('GET', 'https://graph.microsoft.com/v1.0/me', true);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
 
-                    xhr.send();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        document.getElementById('api_response').textContent = JSON.stringify(JSON.parse(xhr.responseText), null, '  ');
+                    } else {
+                        document.getElementById('api_response').textContent = 'ERROR:\n\n' + xhr.responseText;
+                    }
+                };
+
+                xhr.send();
+            }, function (error) {
+                console.log(error);
+                clientApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (access_token) {
+
                 }, function (error) {
                     console.log(error);
-                    clientApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (access_token) {
-
-                    }, function (error) {
-                        console.log(error);
-                        document.getElementById('api_response').textContent = error;
-                    });
+                    document.getElementById('api_response').textContent = error;
                 });
-            } else {
-                document.getElementById('username').textContent = 'Not signed in.';
-                document.getElementById('login_button').style.display = "block";
-            }
+            });
 
+            // document.getElementById('username').textContent = 'Not signed in.';
+            // document.getElementById('login_button').style.display = "block";
         </script>
     </body>
 </html>

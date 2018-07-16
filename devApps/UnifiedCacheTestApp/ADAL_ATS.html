@@ -10,7 +10,7 @@
 
     <body>
         <a href=".\">&lt; Back</a>
-        <h4>ADAL+</h4>
+        <h4>ADAL+ (ATS Only)</h4>
         <p>
             <a id="login_button" href="#" onclick="authContext.login(); return false;">Log in</a>
             <a id="logout_button" href="#" onclick="authContext.logOut(); return false;">Log out</a>
@@ -53,16 +53,15 @@
                     document.getElementById('api_response').textContent = 'ERROR:\n\n' + err;
                 }
             } else {
-                // If logged in, get access token and make an API request
-                var user = authContext.getCachedUser();
-                console.log(JSON.stringify(user));
-                if (user) {
-                    document.getElementById('logout_button').style.display = "block";
-                    document.getElementById('username').textContent = 'Signed in as: ' + user.userName;
-                    document.getElementById('api_response').textContent = 'Calling Graph API...';
-                    // get access token for graph
-                    authContext.acquireToken('https://graph.microsoft.com', function(a, access_token, c) {
+                // get access token for graph
+                authContext.acquireToken('https://graph.microsoft.com', function(errorMsg, access_token, error) {
+                    if (access_token) {
                         var xhr = new XMLHttpRequest();
+
+                        var user = authContext.getCachedUser();
+                        document.getElementById('logout_button').style.display = "block";
+                        document.getElementById('username').textContent = 'Signed in as: ' + user.userName;
+                        document.getElementById('api_response').textContent = 'Calling Graph API...';
 
                         xhr.open('GET', 'https://graph.microsoft.com/v1.0/me', true);
                         xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
@@ -76,12 +75,14 @@
                         };
 
                         xhr.send();
-                    });
-                } else {
-                    document.getElementById('login_button').style.display = "block";
-                    document.getElementById('username').textContent = 'Not signed in.';
-                    document.getElementById('api_response').textContent = '';
-                }
+                    } else {
+                        document.getElementById('api_response').textContent = errorMsg;
+                    }
+                });
+            
+                // document.getElementById('login_button').style.display = "block";
+                // document.getElementById('username').textContent = 'Not signed in.';
+                // document.getElementById('api_response').textContent = '';
             }
         </script>
     </body>
