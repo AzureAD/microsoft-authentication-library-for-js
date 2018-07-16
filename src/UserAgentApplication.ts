@@ -1412,7 +1412,8 @@ private delay(ms: number) {
     });
 }
 
-private async asyncAwait() {
+async asyncAwait() {
+    this._acquireTokenInProgress = true;
     console.log("Knock, knock!");
 
     await this.delay(1000);
@@ -1420,7 +1421,63 @@ private async asyncAwait() {
 
     await this.delay(1000);
     console.log("async/await!");
+    this._acquireTokenInProgress = false;
 }
+
+async pause() {
+  await this.delay(5000);
+}
+
+  private async acquireIdTokenSilentUnifiedCacheAwait(displayableId: string, uid: string, utid: string) {
+      const rawIdToken = await this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid);
+      const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
+      const idToken = new IdToken(rawIdToken);
+      const clientInfo = new ClientInfo(rawClientInfo);
+      const user = User.createUser(idToken, clientInfo, this.authority);
+      console.log("User created");
+  }
+
+  getUserAsync(): Promise<User> {
+    return new Promise<User>((resolve, reject) => {
+
+      if (this._user) {
+        resolve(this._user);
+        return;
+      }
+
+      this._user = this.getUser();
+      if (this._user) {
+        resolve(this._user);
+        return;
+      }
+
+      // check for existing adal idtoken to be used for obtaining an msal idtoken
+      const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+      if (!Utils.isEmpty(adalIdToken)) {
+        const idTokenObject = Utils.extractIdToken(adalIdToken);
+        const displayableId = idTokenObject.upn;
+        const uid = idTokenObject.oid;
+        const utid = idTokenObject.tid;
+        if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+          return this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid)
+            .then((rawIdToken) => {  
+              const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
+              const idToken = new IdToken(rawIdToken);
+              const clientInfo = new ClientInfo(rawClientInfo);
+              this._user = User.createUser(idToken, clientInfo, this.authority);
+              resolve(this._user);
+            })
+            .catch((error) => {
+              reject(error);
+            });
+        } else {
+          resolve(null);
+        }
+      } else {
+        resolve(null);
+      }
+    });
+  }
 
   /*
     * Returns the signed in user (received from a user object created at the time of login) or null.
@@ -1442,30 +1499,27 @@ private async asyncAwait() {
     }
 
     // check for existing adal idtoken to be used for obtaining an msal idtoken
+    /*
     const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
     if (!Utils.isEmpty(adalIdToken)) {
-      const idTokenObject = Utils.decodeJwt(adalIdToken);
+      const idTokenObject = Utils.extractIdToken(adalIdToken);
       const displayableId = idTokenObject.upn;
       const uid = idTokenObject.oid;
       const utid = idTokenObject.tid;
       if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-        this._acquireTokenInProgress = true;
         this.acquireIdTokenSilentUnifiedCache(displayableId, uid, utid)
           .then((rawIdToken) => {
+            const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
             const idToken = new IdToken(rawIdToken);
             const clientInfo = new ClientInfo(rawClientInfo);
             this._user = User.createUser(idToken, clientInfo, this.authority);
-            this._acquireTokenInProgress = false;
           })
           .catch((error) => {
-            this._acquireTokenInProgress = false;
+
           });
-
-          
-
-          return this._user;
       }
     }
+    */
 
     return null;
   }

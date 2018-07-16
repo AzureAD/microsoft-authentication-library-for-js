@@ -16,6 +16,7 @@ app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
 app.use("/dist", express.static(path.join(__dirname, "../../dist")));
+app.use("/lib", express.static(path.join(__dirname, "../../../adal/lib")));
 app.use("/bower_components", express.static(path.join(__dirname, 'bower_components')));
 
 // Set up our one route to the index.html file.
@@ -23,9 +24,29 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
 });
 
+app.get('/ADAL.html', function (req, res) {
+    console.log(req);
+    res.sendFile(path.join(__dirname + '/ADAL.html'));
+});
+
+app.get('/ADAL_OLD.html', function (req, res) {
+    console.log(req);
+    res.sendFile(path.join(__dirname + '/ADAL_OLD.html'));
+});
+
+app.get('/MSAL_OLD.html', function (req, res) {
+    console.log(req);
+    res.sendFile(path.join(__dirname + '/MSAL_OLD.html'));
+});
+
 app.get('/MSAL.html', function (req, res) {
     console.log(req);
     res.sendFile(path.join(__dirname + '/MSAL.html'));
+});
+
+app.get('/MSAL_ASYNC.html', function (req, res) {
+    console.log(req);
+    res.sendFile(path.join(__dirname + '/MSAL_ASYNC.html'));
 });
 
 // Start the server.
