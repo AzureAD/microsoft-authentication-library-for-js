@@ -920,7 +920,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   }
 
   /**
-   * 
+   * Acquire an idtoken by setting the values for domain_hint and login_hint
+   * @param displayableId The user's id which is usually the email obtained from upn or preffered_username
+   * @param uid The user's identifier guid which can be found in the idtoken as the oid
+   * @param utid The user's tenant which can be found in the idtoken as the otid
    */
   @resolveTokenOnlyIfOutOfIframe
   private acquireIdTokenSilent(displayableId: string, uid: string, utid: string): Promise<string> {
@@ -936,10 +939,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
       return this.authorityInstance.ResolveEndpointsAsync()
         .then(() => {
-          this._logger.verbose("renewing idToken");
+          this._logger.verbose("Renewing idToken");
 
-          // renewIdToken
-          this._logger.info("renewidToken is called");
           const frameHandle = this.addAdalFrame("msalIdTokenFrame");
 
           const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
@@ -951,27 +952,27 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
           let urlNavigate = authenticationRequest.createNavigateUrl([this.clientId]) + "&prompt=none";
          
-            // add the hint parameters for acquiring the token
-            if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && displayableId && !Utils.isEmpty(displayableId)) {
-              urlNavigate += "&login_hint=" + encodeURIComponent(displayableId);
+          // add the hint parameters for acquiring the token
+          if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && displayableId && !Utils.isEmpty(displayableId)) {
+            urlNavigate += "&login_hint=" + encodeURIComponent(displayableId);
+          }
+
+          if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+            if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
+              urlNavigate += "&domain_req=" + encodeURIComponent(utid);
             }
 
-            if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-              if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
-                urlNavigate += "&domain_req=" + encodeURIComponent(utid);
-              }
+            if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
+              urlNavigate += "&login_req=" + encodeURIComponent(uid);
+            }
 
-              if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
-                urlNavigate += "&login_req=" + encodeURIComponent(uid);
+            if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
+              if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+                urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
+              } else {
+                urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
               }
-
-              if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
-                if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-                  urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
-                } else {
-                  urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
-                }
-              }
+            }
           }
 
           window.renewStates.push(authenticationRequest.state);
@@ -980,7 +981,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           this._logger.infoPii("Navigate to:" + urlNavigate);
           frameHandle.src = "about:blank";
           this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
-          // end
         }).catch((err) => {
           this._logger.warning("could not resolve endpoints");
           reject(err);
@@ -1066,7 +1066,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         });
       })
       .catch((err) => {
-
+        this._logger.error("Unable to resolve endpoints:" + err);
       });
   }
 
@@ -1419,7 +1419,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   }
 
   /**
-   * 
+   * Returns the signed in user.
+   * User jobect comes from the object created at login or
+   * Checks for existing idtoken from ADAL library and if it exists calls STS to aquire the
+   * logged in idtoken and creates the user object from the newly obtained token.
    */
   getUserAsync(): Promise<User> {
     return new Promise<User>((resolve, reject) => {
@@ -1438,13 +1441,16 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       // check for existing adal idtoken to be used for obtaining an msal idtoken
       const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
       if (!Utils.isEmpty(adalIdToken)) {
+        this._logger.verbose("Found ADAL idtoken which can be used to acquire an MSAL compatible idtoken");
         const idTokenObject = Utils.extractIdToken(adalIdToken);
         const displayableId = idTokenObject.upn;
         const uid = idTokenObject.oid;
         const utid = idTokenObject.tid;
         if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+          this._logger.verbose("Calling to acquire idtoken silently");
           return this.acquireIdTokenSilent(displayableId, uid, utid)
             .then((rawIdToken) => {  
+              this._logger.verbose("Creating user object from newly obtained idtoken and client info")
               const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
               const idToken = new IdToken(rawIdToken);
               const clientInfo = new ClientInfo(rawClientInfo);
@@ -1452,6 +1458,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
               resolve(this._user);
             })
             .catch((error) => {
+              this._logger.error("Failed to object idtoken from from silent call")
               reject(error);
             });
         } else {

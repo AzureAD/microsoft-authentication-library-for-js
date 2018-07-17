@@ -54,6 +54,7 @@
                 }
             } else {
                 // If logged in, get access token and make an API request
+                document.getElementById('username').textContent = 'Loading...'; 
                 authContext.getCachedUserAsync(function(user){
                     console.log(JSON.stringify(user));
                     if (user) {
