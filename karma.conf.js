@@ -17,6 +17,9 @@ module.exports = function (config) {
       module: webpackConfig.module,
       resolve: webpackConfig.resolve
     },
+    mime: {
+        'text/x-typescript': ['ts', 'tsx']
+    },
     reporters: ['progress'],
     port: 8080,
     colors: true,
