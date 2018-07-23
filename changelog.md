@@ -1,3 +1,10 @@
+#0.1.8
+### New Features
+
+* Fixed bug to use acquireTokenRedirect to call your own APIS. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/333
+* Fixed bug to delete temporary cache entries in cases of errors. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/327
+
+
 # 0.1.7
 ### New Features
 

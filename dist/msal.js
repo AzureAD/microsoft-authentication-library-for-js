@@ -1,4 +1,4 @@
-/*! msal v0.1.7 2018-06-15 */
+/*! msal v0.1.8 2018-07-23 */
 
 'use strict';
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -315,7 +315,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.7";
+        return "0.1.8";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
@@ -2464,7 +2464,12 @@ var UserAgentApplication = /** @class */ (function () {
         var acquireTokenAuthority = authority ? AuthorityFactory_1.AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         acquireTokenAuthority.ResolveEndpointsAsync().then(function () {
             if (Utils_1.Utils.compareObjects(userObject, _this.getUser())) {
-                authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                if (scopes.indexOf(_this.clientId) > -1) {
+                    authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token, _this._redirectUri);
+                }
+                else {
+                    authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.token, _this._redirectUri);
+                }
             }
             else {
                 authenticationRequest = new AuthenticationRequestParameters_1.AuthenticationRequestParameters(acquireTokenAuthority, _this.clientId, scopes, ResponseTypes.id_token_token, _this._redirectUri);
@@ -3044,7 +3049,11 @@ var UserAgentApplication = /** @class */ (function () {
                             }
                         }
                         else {
+                            authorityKey = tokenResponse.stateResponse;
+                            acquireTokenUserKey = tokenResponse.stateResponse;
                             this._logger.error("Invalid id_token received in the response");
+                            tokenResponse.parameters['error'] = 'invalid idToken';
+                            tokenResponse.parameters['error_description'] = 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants_1.Constants.idToken];
                             this._cacheStorage.setItem(Constants_1.Constants.msalError, "invalid idToken");
                             this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants_1.Constants.idToken]);
                         }
@@ -3052,7 +3061,11 @@ var UserAgentApplication = /** @class */ (function () {
                 }
             }
             else {
+                authorityKey = tokenResponse.stateResponse;
+                acquireTokenUserKey = tokenResponse.stateResponse;
                 this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants_1.Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
+                tokenResponse.parameters['error'] = 'Invalid_state';
+                tokenResponse.parameters['error_description'] = 'Invalid_state. state: ' + tokenResponse.stateResponse;
                 this._cacheStorage.setItem(Constants_1.Constants.msalError, "Invalid_state");
                 this._cacheStorage.setItem(Constants_1.Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
             }
