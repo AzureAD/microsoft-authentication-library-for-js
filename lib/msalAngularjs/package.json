@@ -14,7 +14,7 @@
   "description": "Angular JS Wrapper for MSAL JS",
   "keywords": [
     "implicit",
-    "js",
+    "angularJs",
     "AAD",
     "msal",
     "oauth"
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "angular": "^1.7.0",
-    "msal": "^0.1.6"
+    "msal": "^0.1.8"
   },
   "devDependencies": {
     "angular": "^1.7.0",

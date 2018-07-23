@@ -9,8 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "msal": "^0.1.6",
-	"angular": "^1.7.0"
+    "angular": "^1.7.0"
   },
   "devDependencies": {
     "webpack": "^2.4.1",
