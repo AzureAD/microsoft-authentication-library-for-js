@@ -230,7 +230,7 @@ var Utils = /** @class */ (function () {
         return hex;
     };
     Utils.getLibraryVersion = function () {
-        return "0.1.7";
+        return "0.1.8";
     };
     /*
       * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
