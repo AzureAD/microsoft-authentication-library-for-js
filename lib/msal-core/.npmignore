@@ -252,7 +252,9 @@ paket-files/
 *.sln.iml
 
 # MSAL specific ignore files
-devApps/
+samples/
 node_modules/
 tests/
 typings/
+.git
+coverage/
