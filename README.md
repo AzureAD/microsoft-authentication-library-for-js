@@ -22,10 +22,10 @@ Microsoft Authentication Library provides 3 different libraries.
 [MSAL](lib/msal-core/README.md)
 
 ## Microsoft Authentication Library for Angular
-[MSAL-Angular](lib/msalAngular/README.md)
+[MSAL-Angular](lib/msal-angular/README.md)
 
 ## Microsoft Authentication Library for Angularjs
-[MSAL-Angularjs](lib/msalAngularjs/README.md)
+[MSAL-Angularjs](lib/msal-angularjs/README.md)
 
 ## Community Help and Support
 
