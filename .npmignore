@@ -256,3 +256,4 @@ devApps/
 node_modules/
 tests/
 typings/
+.git
