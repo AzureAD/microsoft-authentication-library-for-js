@@ -43,7 +43,7 @@ export class MsGraphComponent implements OnInit, OnDestroy{
     this.getCalendar();
     //will work for acquireTokenSilent and acquireTokenPopup
    this.subscription= this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
-      console.log("acquire token success " + JSON.stringify(payload));
+      console.log("acquire token success " );
    });
 
     //will work for acquireTokenSilent and acquireTokenPopup

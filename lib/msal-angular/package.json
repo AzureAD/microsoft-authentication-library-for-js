@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "msal": "0.1.7",
-    "tslib": "^1.7.1"
+    "tslib": "1.7.1"
   },
   "devDependencies": {
     "@angular/common": "^4.3.0",

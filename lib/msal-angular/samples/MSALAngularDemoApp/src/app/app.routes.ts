@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
-import { HomeComponent} from './home.component'
-import { ProductComponent} from './product.component'
+import { HomeComponent} from './home/home.component'
+import { ProductComponent} from './product/product.component'
 import { ErrorComponent} from './error.component'
-import { ProductDetailComponent} from './product-detail.component';
+import { ProductDetailComponent} from './product/product-detail.component';
 import {MsalGuard} from "ms-msal-angular";
-import {MsGraphComponent} from "./msGraph.component";
+import {MsGraphComponent} from "./calendar/msGraph.component";
 import {TodoListComponent} from "./todo-list/todo-list.component";
+import {UserDataComponent} from "./user-data/user-data.component";
 
 export const appRoutes: Routes = [
   { path: 'home', component: HomeComponent  },
@@ -16,6 +17,7 @@ export const appRoutes: Routes = [
     ]
    },
   { path: 'myCalendar' ,component: MsGraphComponent, canActivate : [MsalGuard]},
+  { path: 'userProfile' ,component: UserDataComponent, canActivate : [MsalGuard]},
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', component: ErrorComponent }
 ];
