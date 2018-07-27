@@ -21,8 +21,9 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li ng-class="{ active: isActive('/Home') }"><a ui-sref="Home">Home</a></li>
-                    <li ng-class="{ active: isActive('/TodoList') }"><a ui-sref="TodoList">To Do List</a></li>
-                    <li ng-class="{ active: isActive('/Calendar') }"><a ui-sref="Calendar">Calendar</a></li>
+                    <li ng-class="{ active: isActive('/TodoList') }"><a ui-sref="TodoList">Web API</a></li>
+                    <li ng-class="{ active: isActive('/UserProfile') }"><a ui-sref="UserProfile">User Profile</a></li>
+
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a class="btn btn-link" id="logoutButton" ng-show="userInfo.isAuthenticated" ng-click="logout()">Logout</a></li>
@@ -53,7 +54,7 @@
     <script src="//unpkg.com/@uirouter/angularjs@1.0.7/release/angular-ui-router.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="App/Scripts/homeCtrl.js"></script>
-    <script src="App/Scripts/calendarCtrl.js"></script>
+    <script src="App/Scripts/userProfileCtrl.js"></script>
     <script src="App/Scripts/todoListCtrl.js"></script>
     <script src="App/Scripts/todoListSvc.js"></script>
 </body>
