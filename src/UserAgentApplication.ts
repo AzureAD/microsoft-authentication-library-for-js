@@ -1367,9 +1367,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
    * calls the registered callbacks in case of redirect or resolves the promises with the result.
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
-   * @hidden
    */
-  private handleAuthenticationResponse(hash: string): void {
+  handleAuthenticationResponse(hash: string): void {
     if (hash == null) {
       hash = window.location.hash;
     }
