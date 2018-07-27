@@ -1,4 +1,4 @@
-# 0.1.8
+# 0.1.9
 ### New Features
 
 * Fixed bug to use acquireTokenRedirect to call your own APIS. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/333
