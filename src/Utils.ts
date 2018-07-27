@@ -257,7 +257,7 @@ export class Utils {
   }
 
   static getLibraryVersion(): string {
-    return "0.1.8";
+    return "0.1.9";
   }
 
   /*
