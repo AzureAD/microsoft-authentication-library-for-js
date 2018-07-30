@@ -92,7 +92,7 @@
     "clean": "shx rm -rf dist docs",
     "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
-    "build": "npm run clean && npm run build:modules && webpack",
+    "build": "npm run clean && npm run doc && npm run build:modules && webpack",
     "test": "typings install && karma start karma.conf.js",
     "ngcompile": "npm run clean && npm run doc && ngc -p tsconfig-aot.json && webpack",
     "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js"
