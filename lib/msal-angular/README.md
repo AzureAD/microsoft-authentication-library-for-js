@@ -103,6 +103,7 @@ loggerCallback(logLevel, message, piiEnabled) { }
 <b>piiLoggingEnabled(Optional)</b>: PII stands for Personal Identifiable Information. By default, MSAL does not capture or log any PII. By turning on PII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
  This Flag is to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.
 
+<b>correlationId(Optional)</b> Unique identifier used to map the request with the response. Defaults to RFC4122 version 4 guid (128 bits).
 
 ## Adding interceptor 
  Add the msalInterceptor in your app.module.ts. MsalInterceptor will add the access token to all your http request except the unprotectedResources. Using MsalInterceptor is optional.
