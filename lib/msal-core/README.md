@@ -74,7 +74,7 @@ This example shows how to acquire a token to read user information from Microsof
 
 Via NPM:
 
-    npm install msal
+    npm install @azure/msal
 
 Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill. You might want to read more in the [FAQ](../../wiki)
 ```JavaScript

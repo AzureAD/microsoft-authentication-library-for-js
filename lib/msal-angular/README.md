@@ -26,7 +26,7 @@ This example shows how to acquire a token to read user information from Microsof
 
 Via NPM:
 
-    npm install ms-msal-angular --save
+    npm install @azure/msal-angular --save
     
 ## Usage in Angular-cli application
 

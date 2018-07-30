@@ -23,12 +23,12 @@ This is not a GA released version. The current version is **0.1.0**.
 
 Available via NPM:
 
-    npm install ms-msal-angularjs --save
+    npm install @azure/msal-angularjs --save
 
 ### Getting Started - Quick usage guide
 Below you can find a quick reference for the most common operations you need to perform to use MSAL ANGULARJS.
 
-#### 1. npm install msal-angular
+#### 1. npm install @azure/msal-angular
 
 #### 2. Include a reference to the MSAL module in your app module.
 ````
