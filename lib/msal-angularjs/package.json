@@ -1,5 +1,5 @@
 {
-  "name": "ms-msal-angularjs",
+  "name": "@azure/msal-angularjs",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
