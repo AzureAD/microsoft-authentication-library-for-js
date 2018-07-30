@@ -966,7 +966,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       if (Utils.compareObjects(userObject, this.getUser())) {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+          if (scopes.indexOf(this.clientId) > -1) {
+              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+          }
+          else {
+              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+          }
       } else {
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
       }
@@ -1157,7 +1162,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             this._logger.verbose("Token is not in cache for scope:" + scope);
         }
         // cache miss
-        return this.authorityInstance.ResolveEndpointsAsync()
+        return newAuthority.ResolveEndpointsAsync()
           .then(() => {
             // refresh attept with iframe
             //Already renewing for this scope, callback when we get the token.
@@ -1396,7 +1401,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     if (window.parent !== window && window.parent.msal) {
         tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
-    else if (window.opener && window.opener.msal) {
+    else if (isWindowOpenerMsal) {
         tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     else {
@@ -1609,14 +1614,22 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
               }
             } else {
+              authorityKey = tokenResponse.stateResponse;
+              acquireTokenUserKey = tokenResponse.stateResponse;
               this._logger.error("Invalid id_token received in the response");
+              tokenResponse.parameters['error'] = 'invalid idToken';
+              tokenResponse.parameters['error_description'] = 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants.idToken];
               this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
           }
         }
       } else {
+        authorityKey = tokenResponse.stateResponse;
+        acquireTokenUserKey = tokenResponse.stateResponse;
         this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
+        tokenResponse.parameters['error'] = 'Invalid_state';
+        tokenResponse.parameters['error_description'] = 'Invalid_state. state: ' + tokenResponse.stateResponse;
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }

@@ -1,3 +1,20 @@
+#0.2.0
+### New Features
+Moved npmjs package to @azure/msal
+
+# 0.1.9
+### New Features
+
+* Fixed bug to use acquireTokenRedirect to call your own APIS. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/333
+* Fixed bug to delete temporary cache entries in cases of errors. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/327
+
+
+# 0.1.7
+### New Features
+
+* Fixed bug with resolveAuthority in acquireTokenSilent. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/322
+* Fixed bug with window.opener for cases when app is opened due to a click event. https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/318
+
 # 0.1.6
 ### New Features
 
