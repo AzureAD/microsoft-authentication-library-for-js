@@ -1,5 +1,8 @@
 Microsoft Authentication Library Preview for AngularJS (MSAL AngularJS)
 ====================================
+
+The MSAL library preview for AngularJS is a wrapper of the core MSAL.js library which enables AngularJS(1.x) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
+
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
 ## Important Note about the MSAL AngularJS Preview
@@ -12,9 +15,9 @@ The msal-angularjs package is available on NPM:
 
 ## Usage
 
-#### Prerequisites
+#### Prerequisite
 
-Before using MSAL, register your application in [Azure AD v2.0 portal](https://apps.dev.microsoft.com/) to get your client_id. As part of the registration, you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
+Before using MSAL, register your application in [Azure AD v2.0 portal](https://apps.dev.microsoft.com/) to get your clientID. As part of the registration, you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
 
 #### 1. Include a reference to the MSAL module in your app module.
 ```js
@@ -64,9 +67,8 @@ $routeProvider.
 ```
 
 When user visits this route, the library prompts the user to authenticate.
-Routes that *do not* specify the `requireLogin` property are added to the `unprotectedResources` array automatically.
 
-#### 4. Set-up login/logout in Controllers and register for events:
+#### 4. Set-up login/logout in Controllers and register for events
 If you choose, in addition (or substitution) to route level protection you can add explicit login/logout functions which can be called from the UI as follows:
 
 ```js
@@ -120,7 +122,146 @@ You can use the `userInfor.isAuthenticated` property to alter login/logout UX el
 
 #### 6. Get tokens for API calls
 
-MSAL AngularJS allows you to set an Http interceptor($httpProvider) and specify API endpoints for which the library will obtain tokens and attach to the API calls.
+MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). The library will obtain tokens and attach them to all Http requests in API calls except the API endpoints listed as `anonymousEndpoints`.
+
+```js
+app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
+   msalProvider.init(
+    	{
+            clientID: applicationConfig.clientID,
+            tokenReceivedCallback: function (errorDesc, token, error, tokenType) { }
+        },
+        $httpProvider
+    );
+}]);
+```
+Using the interceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
+
+## Samples
+
+You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/na/msalAngular/lib/msal-angularjs/samples/MsalAngularjsDemoApp).
+
+## Build and run tests
+If you want to build the library and run all the unit tests, you can do the following.
+
+First navigate to the root directory of the library(msal-angularjs) and install the dependencies:
+
+	`npm install`
+
+Then use the following command to build the library and run all the unit tests:
+
+	`npm run test`
+
+## MSAL AngularJS public API
+
+#### Optional Config Object for MSAL properties
+You can pass the following config options as an optional object to MSAL during initialization:
+
+* **redirectUri** : The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
+	Defaults to 'window.location.href'.
+
+* **authority** : A URL indicating a directory that MSAL can use to obtain tokens.
+    	* In Azure AD, it is of the form https://<instance>/<tenant>, where <instance> is the directory host (e.g. https://login.microsoftonline.com) and <tenant> is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
+    	* In Azure AD B2C, it is of the form https://<instance>/tfp/<tenantId>/<policyName>/
+    	* Default value is: "https://login.microsoftonline.com/common"
+
+* **validateAuthority** : Validate the issuer of tokens. Default is true.
+
+* **cacheLocation** : Sets browser storage to either 'localStorage' or sessionStorage'. Default is 'sessionStorage'.
+
+* **postlogoutRedirectUri** : Redirects the user to postLogoutRedirectUri after logout. Default is 'redirectUri'.
+
+* **loadFrameTimeout** : The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
+
+* **navigateToLoginRequestUrl** : Ability to turn off default navigation to start page after login. Default is false.
+
+* **anonymousEndpoints** :  is an array of values that will be ignored by the MSAL route/state change handlers. MSAL will not attach a token to outgoing requests that have these keywords or URI. Routes that *do not* specify the ```requireADLogin=true``` property are added to the ```anonymousEndpoints``` array automatically.
+
+* **endpoints** : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by  MSAL for automatically attaching tokens in webApi calls.
+	This is required only for CORS calls. Please refer to CORS API usage below.
+
+* **logger** : Logging is not enabled by default. To enable logging, you need to pass an instance of logger to configOptions.
+
+* **level** : Configurable log level. Default value is Info.
+
+* **correlationId** : Unique identifier used to map the request with the response. Defaults to RFC4122 version 4 guid (128 bits).
+
+#### Optional config Object for Route protection
+This is an optional object you can pass to the wrapper. It has the following properties:
+
+* **consentScopes** : It takes an array of scopes. Allows the client to express the desired scopes that should be consented at the time of login. Scopes can be from multiple resources/endpoints. Passing scope here will only consent it and no access token will be acquired till the time the client actually calls the API. By asking for consent at the time of login, subsequest acquireToken calls to the same resources will succeed in a hidden iframe without the need to show explicit UI.
+
+* **popUp** : The default login triggered by route protection use the redirect flow. You can change it to popUp by setting this property to true. Default is false.
+
+* **requireLogin** : When set, this property will make the entire set of routes/states protected. It eliminates the need to specify requireLogin in every route.
+
+```js
+msalProvider.init({
+        clientID: applicationConfig.clientID,
+        authority: null,
+        tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
+        },
+        optionalParams: {
+        },
+        routeProtectionConfig: {
+        popUp: true,
+        consentScopes: applicationConfig.consentScopes
+        }
+}, $httpProvider);
+```
+
+#### Login and AcquireToken APIs
+
+The wrapper exposes APIs for login, logout, acquiring access token and more.
+1. loginRedirect()
+2. loginPopup()
+4. logout()
+5. acquireTokenSilent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
+6. acquireTokenPopup()
+7. acquireTokenRedirect()
+8. getUser()
+
+
+## Advanced Topics
+
+#### Logging
+The logger definition has the following properties. Please see the config section for more details on their use:
+1. correlationId
+2. level
+3. piiLoggingEnabled
+
+You can enable logging in your app as shown below:
+
+```js
+var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345', piiLoggingEnabled: true });
+function loggerCallback(logLevel, message, piiEnabled) {
+		console.log(message);// You can log the messages to the console or save it in some file as per your need
+}
+
+app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalProvider) {
+   msalProvider.init({
+        clientID: applicationConfig.clientID,
+        tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
+        },
+        optionalParams: {
+            logger: logger,
+        },
+    });
+}]);
+```
+
+#### Multi-Tenant
+
+By default, you have multi-tenant support since MSAL sets the tenant in the authority to 'common' if it is not specified in the config. This allows any Microsoft account to authenticate to your application. If you are not interested in multi-tenant behavior, you will need to set the `authority` config property as shown above.
+
+If you allow multi-tenant authentication, and you do not wish to allow all Microsoft account users to use your application, you must provide your own method of filtering the token issuers to only those tenants who are allowed to login.
+
+#### Security
+Tokens are accessible from Javascript since MSAL is using HTML5 storage. Default storage option is sessionStorage, which keeps the tokens per session. You should ask user to login again for important operations on your app.
+You should protect your site for XSS. Please check the article here: [https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet](https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet)
+
+#### CORS API usage
+MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.
 
 ```js
 var endpointsMap = new Map();
@@ -141,121 +282,8 @@ app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msal
 }]);
 ```
 
-Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
+ Your service will be similar to this to make the call from JS.
 
-## Samples
-
-You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/na/msalAngular/lib/msal-angularjs/samples/MsalAngularjsDemoApp).
-
-## MSAL AngularJS public APIs
-
-#### Optional Config Object for MSAL properties
-You can pass the following config options as an optional object to MSAL during initialization:
-
-* **redirectUri**: The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
-	Defaults to 'window.location.href'.
-
-* **authority**: A URL indicating a directory that MSAL can use to obtain tokens.
-    	* In Azure AD, it is of the form https://<instance>/<tenant>, where <instance> is the directory host (e.g. https://login.microsoftonline.com) and <tenant> is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
-    	* In Azure AD B2C, it is of the form https://<instance>/tfp/<tenantId>/<policyName>/
-    	* Default value is: "https://login.microsoftonline.com/common"
-
-* **validateAuthority** : Validate the issuer of tokens. Default is true.
-
-* **cacheLocation** : Sets browser storage to either 'localStorage' or sessionStorage'. Default is 'sessionStorage'.
-
-* **postlogoutRedirectUri**: Redirects the user to postLogoutRedirectUri after logout. Default is 'redirectUri'.
-
-* **loadFrameTimeout**: The number of milliseconds of inactivity before a token renewal response from AAD should be considered timed out. Default is 6 seconds.
-
-* **navigateToLoginRequestUrl**: Ability to turn off default navigation to start page after login. Default is false.
-
-* **anonymousEndpoints**:  is an array of values that will be ignored by the MSAL route/state change handlers. MSAL will not attach a token to outgoing requests that have these keywords or URI. Routes that *do not* specify the ```requireADLogin=true``` property are added to the ```anonymousEndpoints``` array automatically.
-
-* **endpoints**: Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by  MSAL for automatically attaching tokens in webApi calls.
-	This is required only for CORS calls. Please refer to CORS API usage below.
-
-* **logger**: Logging is not enabled by default. To enable logging, you need to pass an instance of logger to configOptions.
-
-#### Optional config Object for Route protection
-This is an optional object you can pass to the wrapper. It has the following properties:
-
-* **consentScopes**: It takes an array of scopes. Allows the client to express the desired scopes that should be consented at the time of login. Scopes can be from multiple resources/endpoints. Passing scope here will only consent it and no access token will be acquired till the time the client actually calls the API. By asking for consent at the time of login, subsequest acquireToken calls to the same resources will succeed in a hidden iframe without the need to show explicit UI.
-
-* **popUp**: The default login triggered by route protection use the redirect flow. You can change it to popUp by setting this property to true. Default is false.
-
-* **requireLogin**: When set, this property will make the entire set of routes/states protected. It eliminates the need to specify requireLogin in every route.
-
-```js
-msalProvider.init({
-        clientID: applicationConfig.clientID,
-        authority: null,
-        tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
-        },
-        optionalParams: {
-        },
-        routeProtectionConfig: {
-        popUp: true,
-        consentScopes: applicationConfig.consentScopes
-        }
-}, $httpProvider);
-```
-
-#### Login and AcquireToken APIs
-
-The core library public APIs are also surfaced through the wrapper. Please refer [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Public-APIs).
-
-## Advanced Topics
-
-#### Logging
-Please see the logger class definition and the code snippet to enable logging below.
-
-```js
-constructor(localCallback: ILoggerCallback,
-    options:
-    {
-        correlationId?: string,
-        level?: LogLevel,
-        piiLoggingEnabled?: boolean,
-    } = {}) {
-    const {
-        correlationId = "",
-        level = LogLevel.Info,
-        piiLoggingEnabled = false
-    } = options;
-}
-
-var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345', piiLoggingEnabled: true });
-function loggerCallback(logLevel, message, piiEnabled) {
-		console.log(message);// You can log the messages to the console or save it in some file as per your need
-}
-
-app.config(['msalAuthenticationServiceProvider','$httpProvider', function (msalProvider) {
-   msalProvider.init({
-        clientID: applicationConfig.clientID,
-        authority: null,
-        tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
-        },
-        optionalParams: {
-            logger: logger,
-        },
-    }, $httpProvider);
-}]);
-```
-
-#### Multi-Tenant
-
-By default, you have multi-tenant support since MSAL sets the tenant in the authority to 'common' if it is not specified in the config. This allows any Microsoft account to authenticate to your application. If you are not interested in multi-tenant behavior, you will need to set the `authority` config property as shown above.
-
-If you allow multi-tenant authentication, and you do not wish to allow all Microsoft account users to use your application, you must provide your own method of filtering the token issuers to only those tenants who are allowed to login.
-
-#### Security
-Tokens are accessible from Javascript since MSAL is using HTML5 storage. Default storage option is sessionStorage, which keeps the tokens per session. You should ask user to login again for important operations on your app.
-You should protect your site for XSS. Please check the article here: [https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet](https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet)
-
-#### CORS API usage
-MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config.
-To make CORS API call, you need to specify endpoints in the config for your CORS API. Your service will be similar to this to make the call from JS. In your API project, you need to enable CORS API requests to receive flight requests. You can check the sample for CORS API [sample](https://github.com/AzureADSamples/SinglePageApp-WebAPI-AngularJS-DotNet).
 ```js
 'use strict';
 app.factory('contactService', ['$http', function ($http){
@@ -269,6 +297,8 @@ app.factory('contactService', ['$http', function ($http){
 	return serviceFactory;
 }]);
 ```
+
+In your API project, you need to enable CORS API requests to receive flight requests.
 
 > Note: The Iframe needs to access the cookies for the same domain that you did the initial sign in on. IE does not allow to access cookies in Iframe for localhost. Your URL needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
 
