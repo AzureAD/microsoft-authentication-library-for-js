@@ -1,41 +1,58 @@
+<html>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
-<script src="dist/msal.js" class="pre"></script>
-<script class="pre">
-    var userAgentApplication = new Msal.UserAgentApplication('0813e1d1-ad72-46a9-8665-399bba48c201', null, function (errorDes, token, error, tokenType, instance) {
-        // this callback is called after loginRedirect OR acquireTokenRedirect. It's not used with loginPopup,  acquireTokenPopup.
-        if (error) {
-            console.log(error + ": " + errorDes);
-        }
-        else
-            console.log("Token type = " + tokenType);
+<body>
+    <p>View your developer console to see results.</p>
 
-    })
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
+    <script src="../../dist/msal.js" class="pre"></script>
+    <script class="pre">
+        var applicationConfig = {
+            clientID: '947846e9-bea5-403d-a8f4-aa30f54ee587',
+            graphScopes: ["user.read"]
+        };
 
-    userAgentApplication.loginPopup(["user.read"]).then(function (token) {
-        var user = userAgentApplication.getUser();
-        if (user) {
-            console.log("signed in sucessfully");
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, function (errorDes, token, error, tokenType, instance) {
+            // this callback is called after loginRedirect OR acquireTokenRedirect. It's not used with loginPopup,  acquireTokenPopup.
+            if (error) {
+                console.log(error + ": " + errorDes);
+            }
+            else
+                console.log("Token type = " + tokenType);
+        })
 
-            // get an access token
-            userAgentApplication.acquireTokenSilent(["user.read"]).then(function (token) {
-                console.log("Success acquiring access token");
-            }, function (error) {
-                // interaction required
-                if (error.indexOf("interaction_required" != -1)) {
-                    userAgentApplication.acquireTokenPopup(["user.read"]).then(function (token) {
-                        console.log("Success acquiring access token");
+        function sign_in() {
+            userAgentApplication.loginPopup(applicationConfig.graphScopes).then(function (id_token) {
+                var user = userAgentApplication.getUser();
+                if (user) {
+                    console.log("Successfully signed in!");
+                    console.log(id_token);
+                    // get an access token
+                    userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (access_token) {
+                        console.log("Successfully acquired access token!");
+                        console.log(access_token)
                     }, function (error) {
-                        console.log("Failure acquiring token: " + error);
+                        // interaction required
+                        if (error.indexOf("interaction_required" != -1)) {
+                            userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (access_token) {
+                                console.log("Successfully acquired access token!");
+                                console.log(access_token)
+                            }, function (error) {
+                                console.log("Failure acquiring access token: " + error);
+                            });
+                        }
                     });
+                } else {
+                    console.log("Sign in failure.");
                 }
+            }, function (error) {
+                console.log("error: " + error);
             });
-        } else {
-            console.log("signed in failure");
         }
-    }, function (error) {
-        console.log("error: " + error);
-        });
 
+        // Call sign_in function
+        sign_in();
 
-</script>
+    </script>
+</body>
+
+</html>
