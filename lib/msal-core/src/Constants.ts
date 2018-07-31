@@ -98,6 +98,6 @@ export class ErrorDescription {
   static get endpointResolutionError(): string { return "Endpoints cannot be resolved"; }
   static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
   static get userLoginError(): string { return "User login is required"; }
-  static get userCancelledError(): string { return "User closed the popup window window and cancelled the flow"; }
+  static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
 
 }
