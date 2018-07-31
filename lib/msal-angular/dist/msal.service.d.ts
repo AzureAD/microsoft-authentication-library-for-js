@@ -1,0 +1,48 @@
+import { InjectionToken } from "@angular/core";
+import { MsalConfig } from "./msal-config";
+import "rxjs/add/observable/of";
+import "rxjs/add/operator/do";
+import "rxjs/add/operator/delay";
+import { UserAgentApplication, CacheResult, User, Logger } from "msal";
+import { Router } from "@angular/router";
+import { BroadcastService } from "./broadcast.service";
+export declare const MSAL_CONFIG: InjectionToken<string>;
+export declare class MsalService extends UserAgentApplication {
+    private config;
+    private router;
+    private broadcastService;
+    user: any;
+    _oauthData: {
+        isAuthenticated: boolean;
+        userName: string;
+        loginError: string;
+        idToken: {};
+    };
+    loginScopes: string[];
+    _renewActive: boolean;
+    constructor(config: MsalConfig, router: Router, broadcastService: BroadcastService);
+    updateDataFromCache(scopes: string[]): void;
+    processHash(hash: string): void;
+    private processRedirectCallBack(hash);
+    private isAnonymousEndpoint(url);
+    getCacheStorage(): any;
+    login_redirect(consentScopes?: string[], extraQueryParameters?: string): void;
+    login_popup(consentScopes?: string[], extraQueryParameters?: string): Promise<any>;
+    private isEmpty(str);
+    log_out(): void;
+    getCached_Token_Internal(scopes: any): CacheResult;
+    acquire_token_silent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any>;
+    acquire_token_popup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any>;
+    acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void;
+    login_in_progress(): boolean;
+    get_user(): User;
+    get_scopes_for_endpoint(endpoint: string): string[];
+    private authCallback(errorDesc, _token, error, _tokenType);
+    get_request_info(hash: string): any;
+    clear_cache(): void;
+    clear_cache_for_scope(accessToken: string): void;
+    info(message: string): void;
+    verbose(message: string): void;
+    removeItem(key: string): void;
+    get_logger(): Logger;
+}
