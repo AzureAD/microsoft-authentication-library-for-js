@@ -22,7 +22,7 @@ You can learn in detail about MSAL.js [installation](https://github.com/AzureAD/
 
 - [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs) for access to our frequently asked questions
 
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag "msal".
+- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using "msal" and "msal.js" tag.
 We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
 
 - [GitHub Issues](../../issues) for reporting a bug or feature requests
