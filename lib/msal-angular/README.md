@@ -11,7 +11,7 @@ The MSAL library preview for Angular is a wrapper of the core MSAL.js library wh
 This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
 ## Installation
-The msal-angularjs package is available on NPM:
+The msal-angular package is available on NPM:
 
 `npm install @azure/msal-angular --save`
 
