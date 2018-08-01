@@ -48,7 +48,7 @@ You can add authentication to secure specific routes in your application by just
 
 When user visits these routes, the library prompts the user to authenticate.
 
-#### 3. Get tokens for API calls
+#### 3. Get tokens for Web API calls
 MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your app.module.ts as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls except the API endpoints listed as `unprotectedResources`.
 
 ```js
@@ -106,13 +106,23 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
   }
 ```
 
-## Samples
-
-You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/samples).
 
 ## MSAL Angular public API
+#### Login and AcquireToken APIs
 
-#### Config options for MSAL properties
+The wrapper exposes APIs for login, logout, acquiring access token and more.
+1. login_redirect()
+2. login_popup()
+3. log_out()
+4. acquire_token_silent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
+5. acquire_token_popup()
+6. acquire_token_redirect()
+7. get_user()
+
+> Note: Since MSAL Angular wrapper is inheriting from UserAgentApplication of msal-core, all the public APIs of msal-core are still accessible from msal-angular. But it is recommended not to use
+any of the msal-core APIs like acquireTokenSilent(), acquireTokenPopup(), acquireTokenRedirect() etc from Angular application and use only the APIs which are exposed directly from the msal-angular wrapper itself.
+
+#### Config options for MSAL initialization
 
 Besides the required clientID, you can optionally pass the following config options to MSAL module during initialization. For example:
 
@@ -178,19 +188,6 @@ loggerCallback(logLevel, message, piiEnabled) { }
 
 * **correlationId** : Unique identifier used to map the request with the response. Defaults to RFC4122 version 4 guid (128 bits).
 
-#### Login and AcquireToken APIs
-
-The wrapper exposes APIs for login, logout, acquiring access token and more.
-1. login_redirect()
-2. login_popup()
-3. log_out()
-4. acquire_token_silent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
-5. acquire_token_popup()
-6. acquire_token_redirect()
-7. get_user()
-
-> Note: Since MSAL Angular wrapper is inheriting from UserAgentApplication of msal-core, all the public APIs of msal-core are still accessible from msal-angular. But it is recommended not to use
-any of the msal-core APIs like acquireTokenSilent(), acquireTokenPopup(), acquireTokenRedirect() etc from Angular application and use only the APIs which are exposed directly from the msal-angular wrapper itself.
 
 ## Advanced Topics
 
@@ -251,6 +248,10 @@ In your API project, you need to enable CORS API requests to receive flight requ
 
 #### Trusted Site settings in IE
 If you put your site in the trusted site list, cookies are not accessible for Iframe requests. You need to remove protected mode for Internet zone or add the authority URL for the login to the trusted sites as well.
+
+## Samples
+
+You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/samples).
 
 ## Community Help and Support
 
