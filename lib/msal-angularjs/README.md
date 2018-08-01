@@ -137,13 +137,20 @@ app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msal
 ```
 Using the interceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
-## Samples
-
-You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/na/msalAngular/lib/msal-angularjs/samples).
 
 ## MSAL AngularJS public API
+#### Login and AcquireToken APIs
 
-#### Optional Config Object for MSAL properties
+The wrapper exposes APIs for login, logout, acquiring access token and more.
+1. loginRedirect()
+2. loginPopup()
+4. logout()
+5. acquireTokenSilent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
+6. acquireTokenPopup()
+7. acquireTokenRedirect()
+8. getUser()
+
+#### Optional Config Object for MSAL initialization
 You can pass the following config options as an optional object to MSAL during initialization:
 
 * **redirectUri** : The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
@@ -198,17 +205,6 @@ msalProvider.init({
         }
 }, $httpProvider);
 ```
-
-#### Login and AcquireToken APIs
-
-The wrapper exposes APIs for login, logout, acquiring access token and more.
-1. loginRedirect()
-2. loginPopup()
-4. logout()
-5. acquireTokenSilent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
-6. acquireTokenPopup()
-7. acquireTokenRedirect()
-8. getUser()
 
 
 ## Advanced Topics
@@ -293,6 +289,10 @@ In your API project, you need to enable CORS API requests to receive flight requ
 
 #### Trusted Site settings in IE
 If you put your site in the trusted site list, cookies are not accessible for Iframe requests. You need to remove protected mode for Internet zone or add the authority URL for the login to the trusted sites as well.
+
+## Samples
+
+You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/na/msalAngular/lib/msal-angularjs/samples).
 
 ## Community Help and Support
 
