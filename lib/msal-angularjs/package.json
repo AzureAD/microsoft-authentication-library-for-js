@@ -24,7 +24,7 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "msal": "0.1.9"
+    "msal": "0.1.10"
   },
   "devDependencies": {
     "angular": "^1.7.0",
