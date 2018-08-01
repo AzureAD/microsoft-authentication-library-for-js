@@ -7,4 +7,3 @@
     "endToEnd": "cd lib/msal-angular/tests/endToEndTests && npm install &&  npm run endToEnd && cd ../../../msal-angularjs/tests/endToEndTests && npm install &&  npm run test"
   }
 }
-

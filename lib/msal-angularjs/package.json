@@ -5,7 +5,7 @@
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -24,7 +24,6 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "angular": "1.7.0",
     "msal": "0.1.9"
   },
   "devDependencies": {

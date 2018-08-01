@@ -1,9 +1,9 @@
 import {Component, OnInit} from '@angular/core';
-import {MsalService} from "ms-msal-angular";
+import {MsalService, BroadcastService} from "@azure/msal-angular";
 import {HttpClient} from "@angular/common/http";
 import {HttpServiceHelper} from "../common/HttpServiceHelper";
 import {Subscription} from "rxjs/Subscription";
-import {BroadcastService} from "ms-msal-angular";
+
 
 @Component({
   selector: 'app-user-data',
