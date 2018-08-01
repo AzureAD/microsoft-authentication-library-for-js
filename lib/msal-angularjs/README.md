@@ -21,7 +21,7 @@ Before using MSAL, register your application in [Azure AD v2.0 portal](https://a
 
 #### 1. Include a reference to the MSAL module in your app module.
 ```js
-var app =  angular.module('todoApp', ['ui.router', 'MsalAngular'])
+var app =  angular.module('todoApp', ['MsalAngular'])
 ```
 
 #### 2. Initialize MSAL with the AAD app coordinates at app config time.
