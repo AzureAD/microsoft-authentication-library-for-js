@@ -68,7 +68,7 @@ $routeProvider.
 
 When user visits this route, the library prompts the user to authenticate.
 
-#### 4. Set-up login/logout in Controllers and register for events
+#### 4. Set-up login/logout in Controllers
 If you choose, in addition (or substitution) to route level protection you can add explicit login/logout functions which can be called from the UI as follows:
 
 ```js
@@ -88,23 +88,40 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
         msalService.login();
     };
 
-    // optional
+   
+}]);
+```
+
+#### 5. Callbacks
+
+```js
+ 
     $scope.$on("msal:loginSuccess", function () {
         $scope.testMessage = "loginSuccess";
     });
 
-    // optional
+    
     $scope.$on("msal:loginFailure", function () {
         $scope.testMessage = "loginFailure";
     });
 
-    // optional
+    
     $scope.$on("msal:notAuthorized", function (event, rejection, forResource) {
         $scope.testMessage = "It is not Authorized for resource:" + forResource;
     });
-}]);
+    
+    
+    $scope.$on("msal:acquireTokenFailure", function (event, errorDesc, error) {
+    });
+    
+      
+    $scope.$on("msal:acquireTokenSuccess", function (event, tokenOut) {
+    });
+
+      
 ```
-#### 5. Use userInfo object to access properties of the currently signed in user.
+
+#### 6. Use userInfo object to access properties of the currently signed in user.
 
 The userInfo object is defined in the MsalAngular module with the following properties:
 
@@ -120,7 +137,7 @@ You can use the `userInfor.isAuthenticated` property to alter login/logout UX el
 </ul>
 ```
 
-#### 6. Get tokens for Web API calls
+#### 7. Get tokens for Web API calls
 
 MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). This httpInterceptor will obtain token and attach it to all Http requests to web APIs except the API endpoints listed as `anonymousEndpoints`.
 
