@@ -279,6 +279,8 @@ First navigate to the root directory of the library(msal-angular) and install th
 Then use the following command to build the library and run all the unit tests:
 
 	npm run ngcompile
+	
+	npm run test
 
 ## Security Library
 
