@@ -27,7 +27,7 @@ Import MsalModule into app.module.ts. To initialize MSAL module you are required
 ```js
 @NgModule({
   imports: [ MsalModule.forRoot({
-                    clientID: Your client ID
+                    clientID: "Your client ID"
                 })]
          })
 
@@ -129,7 +129,7 @@ Besides the required clientID, you can optionally pass the following config opti
 ```js
 @NgModule({
   imports: [ MsalModule.forRoot({
-                  clientID: Your client ID,
+                  clientID: "Your client ID",
                   authority: "https://login.microsoftonline.com/contoso.onmicrosoft.com/",
                   redirectUri: "http://localhost:4200/",
                   validateAuthority : true,
