@@ -20,13 +20,13 @@ export class MsalGuard implements CanActivate  {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
-      this.authService.get_logger().verbose("location change event from old url to new url");
+      this.authService.getLogger().verbose("location change event from old url to new url");
 
         this.authService.updateDataFromCache([this.config.clientID]);
         if (!this.authService._oauthData.isAuthenticated && !this.authService._oauthData.userName) {
             if (state.url) {
 
-                if (!this.authService._renewActive && !this.authService.login_in_progress()) {
+                if (!this.authService._renewActive && !this.authService.loginInProgress()) {
 
                     var loginStartPage = this.getBaseUrl() + state.url;
                     if (loginStartPage !== null) {
@@ -34,7 +34,7 @@ export class MsalGuard implements CanActivate  {
                     }
                     if(this.config.popUp) {
                         return new Promise((resolve, reject) => {
-                            this.authService.login_popup(this.config.consentScopes , this.config.extraQueryParameters).then(function (token) {
+                            this.authService.loginPopup(this.config.consentScopes , this.config.extraQueryParameters).then(function (token) {
                                 resolve(true);
                             }, function (error) {
                                 reject(false);
@@ -42,7 +42,7 @@ export class MsalGuard implements CanActivate  {
                         });
                     }
                     else {
-                        this.authService.login_redirect(this.config.consentScopes, this.config.extraQueryParameters);
+                        this.authService.loginRedirect(this.config.consentScopes, this.config.extraQueryParameters);
                     }
                 }
             }
@@ -55,7 +55,6 @@ export class MsalGuard implements CanActivate  {
                     this.broadcastService.broadcast("msal:loginSuccess", token);
                 }
             },  (error: any) => {
-              //  var errorParts = error.split("|");
                 this.broadcastService.broadcast("msal:loginFailure", {error});
             });
         }

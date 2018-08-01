@@ -72,10 +72,10 @@ export class MsalService extends UserAgentApplication {
         })
     }
 
-    updateDataFromCache(scopes: string[]) {
+     updateDataFromCache(scopes: string[]) {
         // only cache lookup here to not interrupt with events
         var cacheResult: CacheResult;
-        cacheResult = this.getCachedTokenInternal(scopes, this.getUser());
+        cacheResult = super.getCachedTokenInternal(scopes, this.getUser());
         this._oauthData.isAuthenticated = cacheResult != null && cacheResult.token !== null && cacheResult.token.length > 0;
         var user = this.getUser();
         if(user) {
@@ -87,7 +87,7 @@ export class MsalService extends UserAgentApplication {
         }
     }
 
-    processHash(hash: string) {
+    private processHash(hash: string) {
         if (this.isCallback(hash)) {
             var isPopup = false;
             var requestInfo = null;
@@ -241,21 +241,46 @@ export class MsalService extends UserAgentApplication {
         return false;
     }
 
+    private isEmpty(str: string): boolean {
+        return (typeof str === "undefined" || !str || 0 === str.length);
+    }
+
+    //dummy method for future use
+    private authCallback(errorDesc: any, _token: any, error: any, _tokenType: any) {
+
+    }
+
+    protected clearCache() {
+        super.clearCache();
+    }
+
+
+    /*This is a private api and not supposed to be use by customers */
+    getLogger()
+    {
+        return super.getLogger();
+    }
+
     getCacheStorage(): any {
         return this._cacheStorage;
 
     }
 
-    login_redirect(consentScopes?: string[], extraQueryParameters?: string) {
-
-        this._logger.verbose("login redirect flow");
-        this.loginRedirect(consentScopes, extraQueryParameters)
+    public isCallback(hash: string): boolean
+    {
+        return super.isCallback(hash);
     }
 
-    login_popup(consentScopes?: string[], extraQueryParameters?: string): Promise<any> {
+    public loginRedirect(consentScopes?: string[], extraQueryParameters?: string) {
+
+        this._logger.verbose("login redirect flow");
+        super.loginRedirect(consentScopes, extraQueryParameters)
+    }
+
+    public loginPopup(consentScopes?: string[], extraQueryParameters?: string): Promise<any> {
         this._logger.verbose("login popup flow");
         return new Promise((resolve, reject) => {
-            this.loginPopup(consentScopes, extraQueryParameters).then((idToken) => {
+            super.loginPopup(consentScopes, extraQueryParameters).then((idToken) => {
                 this.broadcastService.broadcast("msal:loginSuccess", {idToken});
                 resolve(idToken);
             }, (error: any) => {
@@ -266,22 +291,18 @@ export class MsalService extends UserAgentApplication {
         });
     }
 
-    private isEmpty(str: string): boolean {
-        return (typeof str === "undefined" || !str || 0 === str.length);
-    }
-
-    log_out(): void {
+    public logout(): void {
         this.user = null;
-        this.logout();
+        super.logout();
     }
 
-    getCached_Token_Internal(scopes: any): CacheResult {
-        return this.getCachedTokenInternal(scopes, this.getUser());
+    getCachedTokenInternal(scopes: any): CacheResult {
+        return super.getCachedTokenInternal(scopes, this.getUser());
     }
 
-    acquire_token_silent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
+    public acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
+            super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
                 resolve(token);
@@ -295,9 +316,9 @@ export class MsalService extends UserAgentApplication {
 
     }
 
-    acquire_token_popup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
+    public acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
+            super.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
                 resolve(token);
@@ -310,42 +331,27 @@ export class MsalService extends UserAgentApplication {
         });
     }
 
-
-    acquire_token_redirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
+    public acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
         var acquireTokenStartPage = this._cacheStorage.getItem(Constants.loginRequest);
         if (window.location.href !== acquireTokenStartPage)
             this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
-        this.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
+        super.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
     }
 
-
-    public login_in_progress() {
-        return this.loginInProgress();
+    public loginInProgress(): boolean {
+        return super.loginInProgress();
     }
 
-    public get_user() {
-        return this.getUser();
+    public getUser(): User {
+        return super.getUser();
     }
 
-    get_scopes_for_endpoint(endpoint: string) {
-        return this.getScopesForEndpoint(endpoint);
+    getScopesForEndpoint(endpoint: string) {
+        return super.getScopesForEndpoint(endpoint);
     }
 
-     //dummy method for future use
-    private authCallback(errorDesc: any, _token: any, error: any, _tokenType: any) {
-
-    }
-
-    get_request_info(hash: string): any {
-        return this.getRequestInfo(hash);
-    }
-
-    clear_cache() {
-        this.clearCache();
-    }
-
-    clear_cache_for_scope(accessToken: string) {
-        this.clearCacheForScope(accessToken);
+    clearCacheForScope(accessToken: string) {
+        super.clearCacheForScope(accessToken);
     }
 
     info(message: string) {
@@ -360,9 +366,6 @@ export class MsalService extends UserAgentApplication {
         this._cacheStorage.removeItem(key);
     }
 
-    get_logger()
-    {
-        return this.getLogger();
-    }
+
 }
 
