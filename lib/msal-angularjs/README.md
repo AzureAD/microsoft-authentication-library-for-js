@@ -120,9 +120,9 @@ You can use the `userInfor.isAuthenticated` property to alter login/logout UX el
 </ul>
 ```
 
-#### 6. Get tokens for API calls
+#### 6. Get tokens for Web API calls
 
-MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). The library will obtain tokens and attach them to all Http requests in API calls except the API endpoints listed as `anonymousEndpoints`.
+MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). This httpInterceptor will obtain token and attach it to all Http requests to web APIs except the API endpoints listed as `anonymousEndpoints`.
 
 ```js
 app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
