@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>msal</title>
+	<title>@azure/msal</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">msal</a>
+					<a href="index.html" class="title">@azure/msal</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -56,7 +56,7 @@
 					<a href="globals.html">Globals</a>
 				</li>
 			</ul>
-			<h1> msal</h1>
+			<h1> @azure/msal</h1>
 		</div>
 	</div>
 </header>
@@ -68,11 +68,11 @@
 				<table>
 					<thead>
 						<tr>
-							<th><a href="https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2">Getting Started</a></th>
+							<th><a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa">Getting Started</a></th>
 							<th><a href="https://aka.ms/aaddevv2">Docs</a></th>
 							<th><a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.useragentapplication.html">Library Reference</a></th>
 							<th><a href="README.md#community-help-and-support">Support</a></th>
-							<th><a href="./devApps/VanillaJSTestApp">Samples</a></th>
+							<th><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples">Samples</a></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -81,115 +81,30 @@
 						</tr>
 					</tbody>
 				</table>
-				<p>The MSAL library preview for JavaScript enables your app to authorize enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>. </p>
-				<p>The identity management services that the library interacts with are <a href="https://azure.microsoft.com/en-us/services/active-directory/">Microsoft Azure Active Directory</a>, <a href="https://azure.microsoft.com/services/active-directory-b2c/">Microsoft Azure B2C</a> and <a href="https://account.microsoft.com">Microsoft Accounts</a>.</p>
+				<p>The MSAL library preview for JavaScript is the core library which enables JavaScript web applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
 				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a><a href="https://www.npmjs.com/package/msal"><img src="https://img.shields.io/npm/v/msal.svg?style=flat" alt="npm version"></a><a href="https://nodei.co/npm/msal/"><img src="https://img.shields.io/npm/dm/msal.svg" alt="npm version"></a></p>
 				<h2 id="important-note-about-the-msal-preview">Important Note about the MSAL Preview</h2>
 				<p>This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.</p>
-				<h2 id="example">Example</h2>
-				<p>This example shows how to acquire a token to read user information from Microsoft Graph.</p>
-				<ol>
-					<li>Register an application in Azure AD v2.0 (using the <a href="https://apps.dev.microsoft.com/">application registration portal</a>) to get your client_id. you will also need to add the Web platform, check the &quot;Implicit Flow&quot; checkbox, and add the redirectURI to your application.</li>
-					<li><p>Instantiate a UserAgentApplication and login the user:</p>
-						<pre><code class="lang-JavaScript"> &lt;script <span class="hljs-class"><span class="hljs-keyword">class</span></span>=<span class="hljs-string">"pre"</span>&gt;
-     <span class="hljs-keyword">var</span> applicationConfig = {
-         <span class="hljs-attr">clientID</span>: <span class="hljs-string">'your_client_id'</span>,
-         <span class="hljs-attr">graphScopes</span>: [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]
-     };
-
-     <span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose, <span class="hljs-attr">correlationId</span>:<span class="hljs-string">'12345'</span> }); <span class="hljs-comment">// level and correlationId are optional parameters.</span>
-     <span class="hljs-comment">//Logger has other optional parameters like piiLoggingEnabled which can be assigned as shown aabove. Please refer to the docs to see the full list and their default values.</span>
-
-     <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loggerCallback</span>(<span class="hljs-params">logLevel, message, piiLoggingEnabled</span>) </span>{
-         <span class="hljs-built_in">console</span>.log(message);
-     }
-
-     <span class="hljs-keyword">var</span> userAgentApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(applicationConfig.clientID, <span class="hljs-literal">null</span>, authCallback, { <span class="hljs-attr">logger</span>: logger, <span class="hljs-attr">cacheLocation</span>: <span class="hljs-string">'localStorage'</span>}); <span class="hljs-comment">//logger and cacheLocation are optional parameters.</span>
-     <span class="hljs-comment">//userAgentApplication has other optional parameters like redirectUri which can be assigned as shown above.Please refer to the docs to see the full list and their default values.</span>
-     <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">authCallback</span>(<span class="hljs-params">errorDesc, token, error, tokenType</span>) </span>{
-         <span class="hljs-keyword">if</span> (token) {
-         }
-         <span class="hljs-keyword">else</span> {
-             log(error + <span class="hljs-string">":"</span> + errorDesc);
-         }
-     }
- &lt;<span class="hljs-regexp">/script&gt;</span>
-</code></pre>
-					</li>
-					<li>Then, once the user is logged-in, get an access token</li>
-				</ol>
-				<pre><code class="lang-JavaScript">   &lt;script&gt;
-    userAgentApplication.loginPopup(applicationConfig.graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">idToken</span>) </span>{
-                <span class="hljs-comment">//Login Success</span>
-                userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">accessToken</span>) </span>{
-                    <span class="hljs-comment">//AcquireToken Success</span>
-                }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-                    <span class="hljs-comment">//AcquireToken Failure, send an interactive request.</span>
-                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">accessToken</span>) </span>{
-                        updateUI();
-                    }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-                        <span class="hljs-built_in">console</span>.log(error);
-                    });
-                })
-            }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-                <span class="hljs-built_in">console</span>.log(error);
-            });
-    <span class="xml"><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span>
-</code></pre>
-				<ol start="4">
-					<li>use the token in an <a href="https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2/blob/master/TodoSPA/App/Scripts/Ctrls/todoListCtrl.js#L30">HTTP bearer request</a>, to call the Microsoft Graph or a Web API</li>
-				</ol>
-				<h2 id="installation">Installation</h2>
-				<p>Via NPM:</p>
-				<pre><code>npm <span class="hljs-keyword">install</span> msal
-</code></pre><p>Note that msal.js is built for ES5, therefore enabling support of Internet Explorer 11. If you want to target Internet Explorer, you&#39;ll need to add a reference to promises polyfill. You might want to read more in the <a href="../../wiki">FAQ</a></p>
-				<pre><code class="lang-JavaScript">    &lt;!-- IE support: add promises polyfill before msal.js  --&gt;
-    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"pre"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span> 
-</code></pre>
-				<h2 id="build-and-running-tests">Build and running tests</h2>
-				<p>If you want to build the library and run all the unit tests, you can do the following.</p>
-				<p>First navigate to the root directory of the library and install the dependencies:</p>
-				<pre><code>npm <span class="hljs-keyword">install</span>
-</code></pre><p>Then use the following command to build the library and run all the unit tests:</p>
-				<pre><code>npm <span class="hljs-keyword">run</span><span class="bash"> build</span>
-</code></pre><h2 id="logging">Logging</h2>
-				<p>You can enable logging in MSAL.js by passing a logger object when creating a UserAgentApplication instance as follows: </p>
-				<pre><code class="lang-javascript"><span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose });
-
-<span class="hljs-keyword">var</span> clientApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(clientID, authority, authCallback, { <span class="hljs-attr">logger</span>: logger });
-
-</code></pre>
-				<p>Implement the <code>loggerCallback</code> method depending on how you want to redirect logs.
-				The supported log levels are: Error, Warning, Info, Verbose</p>
-				<h4 id="personal-identifiable-information-pii-organizational-identifiable-information-oii-">Personal Identifiable Information (PII) &amp; Organizational Identifiable Information (OII)</h4>
-				<p>By default, MSAL.js logging does not capture or log any PII or OII. The library allows app developers to turn this on by configuring the <code>piiLoggingEnabled</code> flag on the log context. By turning on PII or OII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.</p>
-				<pre><code class="lang-javascript"><span class="hljs-comment">//PII or OII logging disabled. Default Logger does not capture any PII or OII</span>
-<span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose, <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">false</span> });
-
-<span class="hljs-comment">//PII or OII logging enabled</span>
-<span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Msal.Logger(loggerCallback, { <span class="hljs-attr">level</span>: Msal.LogLevel.Verbose, <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">true</span> });
-
-</code></pre>
+				<h2 id="usage">Usage</h2>
+				<p>You can learn in detail about MSAL.js <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-Installation">installation</a> and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics">usage</a> documented in the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki">MSAL Wiki</a>.</p>
 				<h2 id="community-help-and-support">Community Help and Support</h2>
 				<ul>
-					<li><p><a href="../../wiki">FAQ</a> for access to our frequently asked questions</p>
+					<li><p><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs">FAQs</a> for access to our frequently asked questions</p>
 					</li>
-					<li><p><a href="http://stackoverflow.com/questions/tagged/msal">Stack Overflow</a> using tag MSAL.
-						We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. </p>
+					<li><p><a href="http://stackoverflow.com/questions/tagged/msal">Stack Overflow</a> using &quot;msal&quot; and &quot;msal.js&quot; tag.
+						We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.</p>
 					</li>
-					<li><p><a href="../../issues">GitHub Issues</a> for reporting an bug or feature requests </p>
+					<li><p><a href="../../issues">GitHub Issues</a> for reporting a bug or feature requests</p>
 					</li>
 					<li><p><a href="https://feedback.azure.com/forums/169401-azure-active-directory">User Voice page</a> to provide recommendations and/or feedback</p>
 					</li>
 				</ul>
 				<h2 id="contribute">Contribute</h2>
-				<p>We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. </p>
-				<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+				<p>We enthusiastically welcome contributions and feedback. Please read the <a href="contributing.md">contributing guide</a> before you begin.</p>
 				<h2 id="security-library">Security Library</h2>
 				<p>This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use <a href="http://semver.org">semantic versioning</a> so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.<em>y</em>.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.</p>
 				<h2 id="security-reporting">Security Reporting</h2>
 				<p>If you find a security issue with our libraries or services please report it to <a href="mailto:secure@microsoft.com">secure@microsoft.com</a> with as much detail as possible. Your submission may be eligible for a bounty through the <a href="http://aka.ms/bugbounty">Microsoft Bounty</a> program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting <a href="https://technet.microsoft.com/en-us/security/dd252948">this page</a> and subscribing to Security Advisory Alerts.</p>
-				<p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the &quot;License&quot;);</p>
 				<h2 id="license">License</h2>
 				<p>Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the &quot;License&quot;);</p>
 				<h2 id="we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct">We Value and Adhere to the Microsoft Open Source Code of Conduct</h2>
