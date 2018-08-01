@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TodoListService} from "./todo-list.service";
-import {BroadcastService, MsalService} from "ms-msal-angular";
+import {BroadcastService, MsalService} from "@azure/msal-angular";
 import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
 

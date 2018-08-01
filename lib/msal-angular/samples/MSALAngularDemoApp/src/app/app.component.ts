@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {BroadcastService, MsalService} from "ms-msal-angular";
+import {BroadcastService, MsalService} from "@azure/msal-angular";
 import {ProductService} from "./product/product.service";
 import {Subscription} from "rxjs/Subscription";
 
