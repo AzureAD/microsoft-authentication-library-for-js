@@ -93,6 +93,7 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
 ```
 
 #### 5. Callbacks
+You can get callbacks for login and acquire Token success/failure.
 
 ```js
  
@@ -167,7 +168,7 @@ The wrapper exposes APIs for login, logout, acquiring access token and more.
 7. acquireTokenRedirect()
 8. getUser()
 
-#### Optional Config Object for MSAL initialization
+## Optional Config Object for MSAL initialization
 You can pass the following config options as an optional object to MSAL during initialization:
 
 * **redirectUri** : The redirect URI of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirect URIs you registered in the portal, except that it must be URL encoded.
