@@ -194,9 +194,9 @@ export class UserAgentApplication {
 
   private _isAngular: boolean = false;
 
-  private _endpoints: Map<string, Array<string>>;
+  private _protectedResourceMap: Map<string, Array<string>>;
 
-  private _anonymousEndpoints: Array<string>;
+  private _unprotectedResources: Array<string>;
 
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
@@ -223,8 +223,8 @@ export class UserAgentApplication {
         loadFrameTimeout?: number,
         navigateToLoginRequestUrl?: boolean,
         isAngular?: boolean,
-        anonymousEndpoints?: Array<string>
-        endPoints?:Map<string,Array<string>>
+        unprotectedResources?: Array<string>
+        protectedResourceMap?:Map<string,Array<string>>
       } = {}) {
       const {
           validateAuthority = true,
@@ -235,8 +235,8 @@ export class UserAgentApplication {
           loadFrameTimeout = 6000,
           navigateToLoginRequestUrl = true,
           isAngular = false,
-          anonymousEndpoints = new Array<string>(),
-          endPoints = new Map<string, Array<string>>(),
+          unprotectedResources = new Array<string>(),
+          protectedResourceMap = new Map<string, Array<string>>(),
       } = options;
 
     this.loadFrameTimeout = loadFrameTimeout;
@@ -251,8 +251,8 @@ export class UserAgentApplication {
     this._cacheLocation = cacheLocation;
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     this._isAngular = isAngular;
-    this._anonymousEndpoints = anonymousEndpoints;
-    this._endpoints = endPoints;
+    this._unprotectedResources = unprotectedResources;
+    this._protectedResourceMap = protectedResourceMap;
     if (!this._cacheLocations[cacheLocation]) {
       throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
     }
@@ -566,8 +566,8 @@ export class UserAgentApplication {
     this._cacheStorage.resetCacheItems();
   }
 
-    clearCacheForScope(accessToken: string) {
-        const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
+   protected clearCacheForScope(accessToken: string) {
+      const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
       for (var i = 0; i < accessTokenItems.length; i++){
           var token = accessTokenItems[i];
           if (token.value.accessToken == accessToken) {
@@ -1765,21 +1765,21 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return extractedUri;
   }
   
-  getScopesForEndpoint(endpoint: string) : Array<string> {
-      // if user specified list of anonymous endpoints, no need to send token to these endpoints, return null.
-      if (this._anonymousEndpoints.length > 0) {
-          for (var i = 0; i < this._anonymousEndpoints.length; i++) {
-              if (endpoint.indexOf(this._anonymousEndpoints[i]) > -1) {
+  protected getScopesForEndpoint(endpoint: string) : Array<string> {
+      // if user specified list of unprotectedResources, no need to send token to these endpoints, return null.
+      if (this._unprotectedResources.length > 0) {
+          for (var i = 0; i < this._unprotectedResources.length; i++) {
+              if (endpoint.indexOf(this._unprotectedResources[i]) > -1) {
                   return null;
               }
           }
       }
 
-      if (this._endpoints.size > 0) {
-          for (let key of Array.from(this._endpoints.keys())) {
+      if (this._protectedResourceMap.size > 0) {
+          for (let key of Array.from(this._protectedResourceMap.keys())) {
               // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
               if (endpoint.indexOf(key) > -1) {
-                  return this._endpoints.get(key);
+                  return this._protectedResourceMap.get(key);
               }
           }
       }
