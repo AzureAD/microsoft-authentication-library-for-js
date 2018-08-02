@@ -33,8 +33,8 @@ export class MsalService extends UserAgentApplication {
                 loadFrameTimeout: config.loadFrameTimeout,
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
-                anonymousEndpoints: config.unprotectedResources,
-                endPoints: config.protectedResourceMap,
+                unprotectedResources: config.unprotectedResources,
+                protectedResourceMap: config.protectedResourceMap,
             });
 
         this.loginScopes = [this.clientId];
@@ -63,7 +63,7 @@ export class MsalService extends UserAgentApplication {
             for (var i = 0; i < router.config.length; i++) {
                 if (!router.config[i].canActivate) {
                     if (this.config && this.config.unprotectedResources) {
-                        if (!this.isAnonymousEndpoint(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
+                        if (!this.isUnprotectedResource(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
                             this.config.unprotectedResources.push(router.config[i].path);
                         }
                     }
@@ -230,7 +230,7 @@ export class MsalService extends UserAgentApplication {
     }
 
 
-    private isAnonymousEndpoint(url: string) {
+    private isUnprotectedResource(url: string) {
         if (this.config && this.config.unprotectedResources) {
             for (var i = 0; i < this.config.unprotectedResources.length; i++) {
                 if (url.indexOf(this.config.unprotectedResources[i]) > -1) {

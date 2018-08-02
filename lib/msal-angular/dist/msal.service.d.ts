@@ -24,7 +24,7 @@ export declare class MsalService extends UserAgentApplication {
     updateDataFromCache(scopes: string[]): void;
     private processHash(hash);
     private processRedirectCallBack(hash);
-    private isAnonymousEndpoint(url);
+    private isUnprotectedResource(url);
     private isEmpty(str);
     private authCallback(errorDesc, _token, error, _tokenType);
     protected clearCache(): void;
