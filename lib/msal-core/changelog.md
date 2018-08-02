@@ -1,4 +1,4 @@
-#0.2.0
+# 0.2.0
 ### New Features
 Moved npmjs package to @azure/msal
 
