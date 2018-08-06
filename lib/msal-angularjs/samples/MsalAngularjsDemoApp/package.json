@@ -1,0 +1,19 @@
+{
+  "name": "msal-angularjsapp",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "build": "webpack"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/msal-angularjs": "0.1.0"
+  },
+  "devDependencies": {
+    "webpack": "^2.4.1",
+    "webpack-dev-server": "^2.4.2",
+    "angular": "^1.7.0"
+  }
+}

@@ -1,0 +1,42 @@
+This page demonstrate the use of calling a simple web API. This web api is hosted on azure and maintains your todo list. Please add some text in the texbox and click "Add". This will invoke the web api.
+<br>
+<br>
+
+<p>{{loadingMessage}}</p>
+<br>
+<br>
+<div>
+  <form #userForm="ngForm" novalidate (ngSubmit)="add(userForm.valid);userForm.reset();">
+    <div class="form-group">
+      <div class="input-group">
+        <input name="newTodoCaptionText" id="newTodoCaption" [(ngModel)]="newTodoCaption" required
+               #newTodoCaptionText="ngModel" class="form-control">
+        <span class="input-group-btn">
+        <button class="btn btn-default" [disabled]="!userForm.valid"> Add</button>
+    </span>
+      </div>
+    </div>
+  </form>
+  <br>
+  <br>
+  <br>
+
+  <div class='table-responsive'>
+    <table class='table table-striped'>
+      <thead>
+      <tr>
+        <th>Title</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let item of todoList">
+        <td>{{item?.title}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <router-outlet></router-outlet>
+</div>
+
+
+
