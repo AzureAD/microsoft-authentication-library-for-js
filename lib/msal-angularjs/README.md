@@ -1,7 +1,8 @@
 Microsoft Authentication Library Preview for AngularJS (MSAL AngularJS)
 ====================================
 
-The MSAL library preview for AngularJS is a wrapper of the core MSAL.js library which enables AngularJS(1.x) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
+The MSAL library preview for AngularJS is a wrapper of the core MSAL.js library which enables AngularJS(1.7+) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
+
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 

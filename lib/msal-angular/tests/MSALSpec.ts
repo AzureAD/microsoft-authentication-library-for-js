@@ -78,7 +78,7 @@ describe('Msal Angular Pubic API tests', function () {
             resolve("login_popup_success");
         });
         spyOn(authService, 'loginPopup').and.returnValue(pSuccessPromise);
-        authService.login_popup(["user.read"]).then((idtoken) => {
+        authService.loginPopup(["user.read"]).then((idtoken) => {
             expect(idtoken).toBe('login_popup_success');
         }).catch((error) => {
             //This should not get executed for success case. If it does, something is wrong. Fix it.
@@ -94,7 +94,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('2: test login_popup failure', () => {
         console.log(" 2: test login_popup failure");
         spyOn(authService, 'loginPopup').and.returnValue(pFailurePromise);
-        authService.login_popup(["wrong.scope"]).then((idtoken) => {
+        authService.loginPopup(["wrong.scope"]).then((idtoken) => {
             //This should not get executed for success case. If it does, something is wrong. Fix it.
             expect(true).toBe(false);
         }).catch((error) => {
@@ -111,7 +111,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('3: test login_redirect success', () => {
         console.log("3: test login_redirect success");
         spyOn(authService, 'loginRedirect').and.returnValue(pSuccessPromise);
-        authService.login_redirect(["user.read"]);
+        authService.loginRedirect(["user.read"]);
         expect(authService.loginRedirect).toHaveBeenCalled();
         //can't test broadcast in unit test. Can be tested only in endToEnd test
     });
@@ -120,7 +120,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('4: test login_redirect failure', () => {
         console.log("4: test login_redirect success");
         spyOn(authService, 'loginRedirect').and.returnValue(pFailurePromise);
-        authService.login_redirect(["wrong.scope"]);
+        authService.loginRedirect(["wrong.scope"]);
         expect(authService.loginRedirect).toHaveBeenCalled();
         //can't test broadcast in unit test. Can be tested only in endToEnd test
     });
@@ -128,7 +128,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('5: test acquire_token_silent success', () => {
         console.log("5: test login_redirect success");
         spyOn(authService, 'acquireTokenSilent').and.returnValue(pSuccessPromise);
-        authService.acquire_token_silent(["user.read"]).then((error) => {
+        authService.acquireTokenSilent(["user.read"]).then((error) => {
             expect(error).toBe('911');
         }).catch((error) => {
             //This should not get executed for success case. If it does, something is wrong. Fix it.
@@ -145,7 +145,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('6: test acquire_token_silent failure', () => {
         console.log("6: test acquire_token_silent failure");
         spyOn(authService, 'acquireTokenSilent').and.returnValue(pFailurePromise);
-        authService.acquire_token_silent(["wrong.scope"]).then((payloaf) => {
+        authService.acquireTokenSilent(["wrong.scope"]).then((payloaf) => {
             //This should not get executed for success case. If it does, something is wrong. Fix it.
             expect(true).toBe(false);
         }).catch((error) => {
@@ -161,14 +161,14 @@ describe('Msal Angular Pubic API tests', function () {
     it('7: test acquire_token_redirect success', () => {
         console.log("7: test acquire_token_redirect success");
         spyOn(authService, 'acquireTokenRedirect').and.returnValue(pSuccessPromise);
-        authService.acquire_token_redirect(["user.read"]);
+        authService.acquireTokenRedirect(["user.read"]);
         expect(authService.acquireTokenRedirect).toHaveBeenCalled();
     });
 
     it('8: test acquire_token_redirect failure', () => {
         console.log("8: test acquire_token_redirect failure");
         spyOn(authService, 'acquireTokenRedirect').and.returnValue(pFailurePromise);
-        authService.acquire_token_redirect(["wrong.scope"]);
+        authService.acquireTokenRedirect(["wrong.scope"]);
         expect(authService.acquireTokenRedirect).toHaveBeenCalled();
     });
 
@@ -176,7 +176,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('9 : test acquire_token_popup success', () => {
         console.log("9 : test acquire_token_popup success");
         spyOn(authService, 'acquireTokenPopup').and.returnValue(pSuccessPromise);
-        authService.acquire_token_popup(["user.read"]).then((payload) => {
+        authService.acquireTokenPopup(["user.read"]).then((payload) => {
             expect(payload).toBe('911');
         }).catch((error) => {
             //This should not get executed for success case. If it does, something is wrong. Fix it.
@@ -192,7 +192,7 @@ describe('Msal Angular Pubic API tests', function () {
     it('10 : test acquire_token_popup failure', () => {
         console.log("10 : test acquire_token_popup failure");
         spyOn(authService, 'acquireTokenPopup').and.returnValue(pFailurePromise);
-        authService.acquire_token_popup(["user.read"]).then((payload) => {
+        authService.acquireTokenPopup(["user.read"]).then((payload) => {
             //This should not get executed for success case. If it does, something is wrong. Fix it.
             expect(true).toBe(false);
         }).catch((error) => {
