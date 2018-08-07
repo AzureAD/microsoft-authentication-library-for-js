@@ -13,9 +13,12 @@ export class AppComponent implements OnInit, OnDestroy {
   loggedIn : boolean;
   public userInfo: any = null;
   private subscription: Subscription;
+  private isIframe: boolean;
 
   constructor(private broadcastService: BroadcastService , private authService : MsalService,   private productService: ProductService)
   {
+    //  This is to avoid reload during acquireTokenSilent() because of hidden iframe
+    this.isIframe = window !== window.parent && !window.opener;
    if(this.authService.getUser())
     {
       this.loggedIn = true;

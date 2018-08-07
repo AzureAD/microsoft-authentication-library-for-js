@@ -47,4 +47,12 @@ export class UserDataComponent implements OnInit {
       });
   }
 
+//extremely important to unsubscribe
+  ngOnDestroy() {
+    this.broadcastService.getMSALSubject().next(1);
+    if(this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
 }
