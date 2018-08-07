@@ -310,7 +310,7 @@ If you put your site in the trusted site list, cookies are not accessible for If
 
 ## Samples
 
-You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/na/msalAngular/lib/msal-angularjs/samples).
+You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angularjs/samples).
 
 ## Community Help and Support
 
