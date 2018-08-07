@@ -140,7 +140,7 @@ You can use the `userInfor.isAuthenticated` property to alter login/logout UX el
 
 #### 7. Get tokens for Web API calls
 
-MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). This httpInterceptor will obtain token and attach it to all Http requests to web APIs except the API endpoints listed as `anonymousEndpoints`.
+MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). This httpInterceptor will obtain token and attach it to all Http requests to web APIs except the API endpoints listed as `unprotectedResources`.
 
 ```js
 app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
@@ -189,10 +189,9 @@ You can pass the following config options as an optional object to MSAL during i
 
 * **navigateToLoginRequestUrl** : Ability to turn off default navigation to start page after login. Default is false.
 
-* **anonymousEndpoints** :  is an array of values that will be ignored by the MSAL route/state change handlers. MSAL will not attach a token to outgoing requests that have these keywords or URI. Routes that *do not* specify the ```requireADLogin=true``` property are added to the ```anonymousEndpoints``` array automatically.
+* **unprotectedResources** :  is an array of values that will be ignored by the MSAL route/state change handlers. MSAL will not attach a token to outgoing requests that have these keywords or URI. Routes that *do not* specify the ```requireLogin=true``` property are added to the ```unprotectedResources``` array automatically.
 
-* **endpoints** : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by  MSAL for automatically attaching tokens in webApi calls.
-	This is required only for CORS calls. Please refer to CORS API usage below.
+* **protectedResourceMap** : Mapping of endpoints to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by  MSAL for automatically attaching tokens in webApi calls. This is required only for CORS calls. Please refer to CORS API usage below.
 
 * **logger** : Logging is not enabled by default. To enable logging, you need to pass an instance of logger to configOptions.
 
@@ -279,7 +278,7 @@ app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msal
 
         },
         configOptions: {
-           endPoints: endpointsMap
+           protectedResourceMap: endpointsMap
         },
     }, $httpProvider);
 }]);
