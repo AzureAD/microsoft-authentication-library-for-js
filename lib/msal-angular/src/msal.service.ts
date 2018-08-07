@@ -33,8 +33,8 @@ export class MsalService extends UserAgentApplication {
                 loadFrameTimeout: config.loadFrameTimeout,
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
-                anonymousEndpoints: config.unprotectedResources,
-                endPoints: config.protectedResourceMap,
+                unprotectedResources: config.unprotectedResources,
+                protectedResourceMap: config.protectedResourceMap,
             });
 
         this.loginScopes = [this.clientId];

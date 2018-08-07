@@ -118,7 +118,7 @@
 <span class="hljs-comment">// do something here</span>
 });
 </code></pre>
-				<ol>
+				<ol start="2">
 					<li>acquire_token_silent()/acquire_token_popup()/acquire_token_redirect()</li>
 				</ol>
 				<pre><code class="lang-js"><span class="hljs-keyword">this</span>.broadcastService.subscribe(<span class="hljs-string">"msal:acquireTokenSuccess"</span>, (payload) =&gt; {
@@ -129,7 +129,7 @@
       <span class="hljs-comment">// do something here</span>
 });
 </code></pre>
-				<ol>
+				<ol start="3">
 					<li>It is extremely important to unsubscribe. Implement ngOnDestroy() in your component and unsubscribe.</li>
 				</ol>
 				<pre><code class="lang-js"> private subscription: Subscription;
@@ -191,15 +191,15 @@
 					<li><p><strong>authority</strong> : A URL indicating a directory that MSAL can use to obtain tokens.</p>
 						<ul>
 							<li><ul>
-									<li>In Azure AD, it is of the form <a href="https://&lt;instance&gt;/&lt;tenant&amp;gt">https://&lt;instance&gt;/&lt;tenant&amp;gt</a>;, where &lt;instance&gt; is the directory host (e.g. <a href="https://login.microsoftonline.com">https://login.microsoftonline.com</a>) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)</li>
+									<li>In Azure AD, it is of the form https://&lt;instance&gt;/&lt;tenant&gt;, where &lt;instance&gt; is the directory host (e.g. <a href="https://login.microsoftonline.com">https://login.microsoftonline.com</a>) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)</li>
 								</ul>
 							</li>
 							<li><ul>
-									<li>In Azure B2C, it is of the form <a href="https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/">https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/</a></li>
+									<li>In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/</li>
 								</ul>
 							</li>
 							<li><ul>
-									<li>Default value is: &quot;<a href="https://login.microsoftonline.com/common">https://login.microsoftonline.com/common</a>&quot;</li>
+									<li>Default value is: &quot;<a href="https://login.microsoftonline.com/common&quot;">https://login.microsoftonline.com/common&quot;</a></li>
 								</ul>
 							</li>
 						</ul>
@@ -221,7 +221,7 @@
 					</li>
 					<li><p><strong>unprotectedResources</strong> : Array of  URI&#39;s. Msal will not attach a token to outgoing requests that have these uri. Defaults to &#39;null&#39;.</p>
 					</li>
-					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes {&quot;<a href="https://graph.microsoft.com/v1.0/me">https://graph.microsoft.com/v1.0/me</a>&quot;, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
+					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
 						This is required only for CORS calls.</p>
 					</li>
 					<li><p><strong>level</strong> : Configurable log level. Default value is Info.</p>
