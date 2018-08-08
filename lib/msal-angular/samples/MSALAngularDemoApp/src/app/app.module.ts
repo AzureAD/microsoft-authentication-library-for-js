@@ -35,7 +35,7 @@ protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
     FormsModule,
     HttpModule,
     HttpClientModule,
-    RouterModule.forRoot(appRoutes),
+    RouterModule.forRoot(appRoutes),  // RouterModule.forRoot(appRoutes,{useHash:true}) for hashbang url
     MsalModule.forRoot({
         clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
         authority: "https://login.microsoftonline.com/common/",

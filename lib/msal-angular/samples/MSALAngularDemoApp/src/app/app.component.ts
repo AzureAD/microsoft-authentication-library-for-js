@@ -13,9 +13,12 @@ export class AppComponent implements OnInit, OnDestroy {
   loggedIn : boolean;
   public userInfo: any = null;
   private subscription: Subscription;
+  private isIframe: boolean;
 
   constructor(private broadcastService: BroadcastService , private authService : MsalService,   private productService: ProductService)
   {
+    //  This is to avoid reload during acquireTokenSilent() because of hidden iframe
+    this.isIframe = window !== window.parent && !window.opener;
    if(this.authService.getUser())
     {
       this.loggedIn = true;
@@ -27,7 +30,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   login()
   {
-   this.authService.login_popup(["calendars.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
+   this.authService.loginPopup(["user.read" ,"api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
   }
 
   logout()
