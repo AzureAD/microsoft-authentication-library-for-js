@@ -1,0 +1,27 @@
+﻿.app-error {
+    color:red;
+}
+.hidden {
+    visibility: hidden;
+}
+
+.visible {
+    visibility: visible;
+}
+
+img {
+    border-radius: 50%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 10%;
+}
+
+tr:nth-child(odd) {
+    //background-color: #f2f2f2;
+}
+
+.bold {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
