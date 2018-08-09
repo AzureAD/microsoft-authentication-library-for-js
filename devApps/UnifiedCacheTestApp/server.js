@@ -15,7 +15,7 @@ var port = 1530; // process.env.PORT || 8080;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-app.use("/dist", express.static(path.join(__dirname, "../../dist")));
+app.use("/dist", express.static(path.join(__dirname, "../../lib/msal-core/dist")));
 app.use("/lib", express.static(path.join(__dirname, "../../../adaljs/lib")));
 app.use("/bower_components", express.static(path.join(__dirname, 'bower_components')));
 
