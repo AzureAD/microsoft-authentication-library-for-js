@@ -1,5 +1,6 @@
 import {UserAgentApplication} from '../src/index';
 import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
+import { User } from '../src/User';
 
 describe('Msal', function (): any {
     let window: any;
@@ -508,4 +509,19 @@ describe('acquireTokenSilent functionality', function () {
         expect(acquireTokenSilentPromise).toEqual(jasmine.any(Promise));
     });
 
+});
+
+describe('getUser functionality', function () {
+    var getUserPromise: Promise<User>;
+    var msal;
+    beforeEach(function () {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        });
+        spyOn(msal, 'getUser').and.callThrough();
+        getUserPromise = msal.getUser();
+    });
+
+    it('returns a promise', function () {
+        expect(getUserPromise).toEqual(jasmine.any(Promise));
+    });
 });
