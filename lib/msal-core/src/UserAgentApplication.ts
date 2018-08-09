@@ -689,14 +689,14 @@ export class UserAgentApplication {
 
 protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResult
 {
-    const userObject = user ? user : this.getUser();
+    const userObject = user ? user : this.getCachedUser();
     if (!userObject) {
         return;
     }
     let authenticationRequest: AuthenticationRequestParameters;
     let newAuthority = this.authorityInstance?this.authorityInstance: AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
 
-    if (Utils.compareObjects(userObject, this.getUser())) {
+    if (Utils.compareObjects(userObject, this.getCachedUser())) {
         if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
         }
@@ -879,7 +879,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * @hidden
    */
   private addHintParameters(urlNavigate: string, user: User): string {
-    const userObject = user ? user : this.getUser();
+    const userObject = user ? user : this.getCachedUser();
     const decodedClientInfo = userObject.userIdentifier.split(".");
     const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
     const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
@@ -1020,7 +1020,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return;
     }
 
-    this.getUserAsync()
+    this.getUser()
       .then((cachedUser) => {
         const userObject = user ? user : cachedUser;
 
@@ -1097,7 +1097,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         scopes = this.filterScopes(scopes);
       }
 
-      const userObject = user ? user : this.getUser();
+      const userObject = user ? user : this.getCachedUser();
       if (this._acquireTokenInProgress) {
         reject(ErrorCodes.acquireTokenProgressError + "|" + ErrorDescription.acquireTokenProgressError);
         return;
@@ -1118,7 +1118,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-          if (Utils.compareObjects(userObject, this.getUser())) {
+          if (Utils.compareObjects(userObject, this.getCachedUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
           }
@@ -1195,7 +1195,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           scopes = this.filterScopes(scopes);
         }
 
-        return this.getUserAsync()
+        return this.getUser()
           .then((cachedUser) => {
             const scope = scopes.join(" ").toLowerCase();
             const userObject = user ? user : cachedUser;
@@ -1424,7 +1424,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * Checks for existing idtoken from ADAL library and if it exists calls STS to aquire the
    * logged in idtoken and creates the user object from the newly obtained token.
    */
-  getUserAsync(): Promise<User> {
+  getUser(): Promise<User> {
     return new Promise<User>((resolve, reject) => {
 
       if (this._user) {
@@ -1432,7 +1432,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return;
       }
 
-      this._user = this.getUser();
+      this._user = this.getCachedUser();
       if (this._user) {
         resolve(this._user);
         return;
@@ -1473,7 +1473,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   /*
     * Returns the signed in user (received from a user object created at the time of login) or null.
     */
-  getUser(): User {
+  private getCachedUser(): User {
     // idToken is first call
     if (this._user) {
       return this._user;
@@ -1656,7 +1656,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       if (tokenResponse.requestType === Constants.renewToken) {
           this._acquireTokenInProgress = false;
           authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
+          var userKey = this.getCachedUser() !== null ? this.getCachedUser().userIdentifier : "";
           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
       }
 

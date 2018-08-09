@@ -88,7 +88,7 @@
             }
 
             document.getElementById('username').textContent = 'Loading...'; 
-            clientApplication.getUserAsync()
+            clientApplication.getUser()
                 .then((user) => {
                     if (user) {
                         document.getElementById('logout_button').style.display = "block";
