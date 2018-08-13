@@ -11,7 +11,9 @@ import {ProductDetailComponent} from './product/product-detail.component'
 import {ProductService} from './product/product.service';
 import {appRoutes} from './app.routes';
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
-import {MsalModule, MsalInterceptor} from "@azure/msal-angular";
+//import {MsalModule, MsalInterceptor} from "@azure/msal-angular";
+import {MsalModule} from "../../../../dist/msal.module";
+import { MsalInterceptor} from "../../../../dist/msal.interceptor";
 import {LogLevel} from "msal";
 import { TodoListComponent } from './todo-list/todo-list.component';
 import {TodoListService} from "./todo-list/todo-list.service";
