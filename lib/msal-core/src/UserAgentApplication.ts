@@ -335,7 +335,6 @@ export class UserAgentApplication {
      */
     if (this._loginInProgress) {
       if (this._tokenReceivedCallback) {
-       // this._tokenReceivedCallback("Login is in progress", null, null, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
             this._tokenReceivedCallback(ErrorDescription.loginProgressError, null, ErrorCodes.loginProgressError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
         return;
       }

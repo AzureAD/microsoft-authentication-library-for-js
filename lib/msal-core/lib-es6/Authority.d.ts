@@ -24,25 +24,25 @@ import { IUri } from "./IUri";
 export declare enum AuthorityType {
     Aad = 0,
     Adfs = 1,
-    B2C = 2
+    B2C = 2,
 }
 export declare abstract class Authority {
     constructor(authority: string, validateAuthority: boolean);
-    abstract readonly AuthorityType: AuthorityType;
+    readonly abstract AuthorityType: AuthorityType;
     IsValidationEnabled: boolean;
     readonly Tenant: string;
     private tenantDiscoveryResponse;
     readonly AuthorizationEndpoint: string;
     readonly EndSessionEndpoint: string;
     readonly SelfSignedJwtAudience: string;
-    private validateResolved;
+    private validateResolved();
     CanonicalAuthority: string;
     private canonicalAuthority;
     private canonicalAuthorityUrlComponents;
     readonly CanonicalAuthorityUrlComponents: IUri;
     protected readonly DefaultOpenIdConfigurationEndpoint: string;
-    private validateAsUri;
-    private DiscoverEndpoints;
+    private validateAsUri();
+    private DiscoverEndpoints(openIdConfigurationEndpoint);
     ResolveEndpointsAsync(): Promise<Authority>;
     abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;
 }
