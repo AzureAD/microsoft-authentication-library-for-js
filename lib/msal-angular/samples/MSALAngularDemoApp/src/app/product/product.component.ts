@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from './product.service';
 import { Product } from './product';
-import {BroadcastService, MsalService} from "@azure/msal-angular";
+import {BroadcastService} from "../../../../../dist/broadcast.service";
+import { MsalService} from "../../../../../dist/msal.service";
 
 @Component({
   templateUrl: './product.component.html',

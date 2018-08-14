@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {BroadcastService, MsalService} from "@azure/msal-angular";
+import {BroadcastService} from "../../../../dist/broadcast.service";
+import { MsalService} from "../../../../dist/msal.service";
 import {ProductService} from "./product/product.service";
 import {Subscription} from "rxjs/Subscription";
 
@@ -13,7 +14,7 @@ export class AppComponent implements OnInit, OnDestroy {
   loggedIn : boolean;
   public userInfo: any = null;
   private subscription: Subscription;
-  private isIframe: boolean;
+  public isIframe: boolean;
 
   constructor(private broadcastService: BroadcastService , private authService : MsalService,   private productService: ProductService)
   {
