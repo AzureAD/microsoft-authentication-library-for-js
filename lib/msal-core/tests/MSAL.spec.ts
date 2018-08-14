@@ -489,10 +489,10 @@ describe('Msal', function (): any {
         let authenticationRequestParameters: AuthenticationRequestParameters;
         let authority: Authority;
         authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://google.com");
+        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         var result;
         result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
-        expect(decodeURIComponent(result[4])).toContain("https://google.com");
+        expect(decodeURIComponent(result[4])).toContain("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
     });
 
     it('tests if you get the state back in tokenReceived callback, if state is a number', function () {
@@ -518,7 +518,7 @@ describe('Msal', function (): any {
     });
 
     it('tests if you get the state back in tokenReceived callback, if state is a url', function () {
-        spyOn(msal, 'getUserState').and.returnValue("https://google.com");
+        spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         msal._loginInProgress = true;
         var errDesc = '', token = '', err = '', tokenType = '', state= '' ;
         var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string, valState: string) {
@@ -535,7 +535,7 @@ describe('Msal', function (): any {
         expect(err).toBe(ErrorCodes.loginProgressError);
         expect(token).toBe(null);
         expect(tokenType).toBe(Constants.idToken);
-        expect(state).toBe('https://google.com');
+        expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
         msal._loginInProgress = false;
     });
 

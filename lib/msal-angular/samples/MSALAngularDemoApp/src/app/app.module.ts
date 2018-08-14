@@ -47,7 +47,7 @@ protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
         navigateToLoginRequestUrl: true,
         popUp: true,
         consentScopes: [ "user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
-        unprotectedResources: ["https:google.com"],
+        unprotectedResources: ["https://www.microsoft.com/en-us/"],
         protectedResourceMap: protectedResourceMap,
         logger: loggerCallback,
         correlationId: '1234',
