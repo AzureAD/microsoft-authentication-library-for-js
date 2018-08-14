@@ -1,5 +1,8 @@
 import {UserAgentApplication} from '../src/index';
 import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
+import {Authority} from "../src/Authority";
+import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
+import {AuthorityFactory} from "../src/AuthorityFactory";
 
 describe('Msal', function (): any {
     let window: any;
@@ -455,6 +458,85 @@ describe('Msal', function (): any {
         expect(requestInfo.valid).toBe(true);
         expect(requestInfo.stateResponse).toBe('1232');
         expect(requestInfo.stateMatch).toBe(false);       
+    });
+
+    it('test getUserState with a user passed state', function () {
+        var result =msal.getUserState("123465464565|91111");
+        expect(result).toEqual("91111")
+    });
+
+    it('test getUserState when there is no user state', function () {
+        var result =msal.getUserState("123465464565");
+        expect(result).toEqual("")
+    });
+
+    it('test getUserState when there is no state', function () {
+        var result =msal.getUserState("");
+        expect(result).toEqual("")
+    });
+
+    it('test if authenticateRequestParameter generates state correctly, if state is a number', function () {
+        let authenticationRequestParameters: AuthenticationRequestParameters;
+        let authority: Authority;
+        authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
+        var result;
+        result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
+        expect(decodeURIComponent(result[4])).toContain("12345");
+    });
+
+    it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
+        let authenticationRequestParameters: AuthenticationRequestParameters;
+        let authority: Authority;
+        authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        var result;
+        result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
+        expect(decodeURIComponent(result[4])).toContain("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+    });
+
+    it('tests if you get the state back in tokenReceived callback, if state is a number', function () {
+        spyOn(msal, 'getUserState').and.returnValue("1234");
+        msal._loginInProgress = true;
+        var errDesc = '', token = '', err = '', tokenType = '', state= '' ;
+        var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string, valState: string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+            state= valState;
+        };
+
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect();
+        expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        expect(err).toBe(ErrorCodes.loginProgressError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+        expect(state).toBe('1234');
+        msal._loginInProgress = false;
+    });
+
+    it('tests if you get the state back in tokenReceived callback, if state is a url', function () {
+        spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        msal._loginInProgress = true;
+        var errDesc = '', token = '', err = '', tokenType = '', state= '' ;
+        var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string, valState: string) {
+            errDesc = valErrDesc;
+            token = valToken;
+            err = valErr;
+            tokenType = valTokenType;
+            state= valState;
+        };
+
+        msal._tokenReceivedCallback = callback;
+        msal.loginRedirect();
+        expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        expect(err).toBe(ErrorCodes.loginProgressError);
+        expect(token).toBe(null);
+        expect(tokenType).toBe(Constants.idToken);
+        expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
+        msal._loginInProgress = false;
     });
 
 });

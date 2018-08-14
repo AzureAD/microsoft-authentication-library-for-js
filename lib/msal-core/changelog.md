@@ -1,3 +1,9 @@
+# 0.2.1
+### New Features
+* Added State parameter in login request. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/262
+
+* Removed istanbul code coverage due to webpack bundle size issue.
+
 # 0.2.0
 ### New Features
 Moved npmjs package to @azure/msal
