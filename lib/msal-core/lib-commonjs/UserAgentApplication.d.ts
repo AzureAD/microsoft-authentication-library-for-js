@@ -21,7 +21,7 @@ export interface CacheResult {
     token: string;
     error: string;
 }
-export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string) => void;
 export declare class UserAgentApplication {
     private _cacheLocations;
     private _cacheLocation;
@@ -38,6 +38,7 @@ export declare class UserAgentApplication {
     authority: string;
     validateAuthority: boolean;
     private _redirectUri;
+    private _state;
     private _postLogoutredirectUri;
     loadFrameTimeout: number;
     protected _navigateToLoginRequestUrl: boolean;
@@ -52,6 +53,7 @@ export declare class UserAgentApplication {
         logger?: Logger;
         loadFrameTimeout?: number;
         navigateToLoginRequestUrl?: boolean;
+        state?: string;
         isAngular?: boolean;
         unprotectedResources?: Array<string>;
         protectedResourceMap?: Map<string, Array<string>>;
@@ -98,6 +100,7 @@ export declare class UserAgentApplication {
     private getHash(hash);
     protected getRequestInfo(hash: string): TokenResponse;
     private getScopeFromState(state);
+    getUserState(state: string): string;
     private isInIframe();
     loginInProgress(): boolean;
     private getHostFromUri(uri);
