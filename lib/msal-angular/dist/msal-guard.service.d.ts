@@ -15,6 +15,6 @@ export declare class MsalGuard implements CanActivate {
     private broadcastService;
     constructor(config: MsalConfig, authService: MsalService, router: Router, activatedRoute: ActivatedRoute, location: Location, platformLocation: PlatformLocation, broadcastService: BroadcastService);
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean>;
-    private getBaseUrl;
+    private getBaseUrl();
     isEmpty: (str: any) => boolean;
 }
