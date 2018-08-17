@@ -50,95 +50,124 @@ export class Storage {// Singleton
     return Storage._instance;
   }
 
-  // add value to storage
-  setItem(key: string, value: string): void {
-    if (window[this._cacheLocation]) {
-      window[this._cacheLocation].setItem(key, value);
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+    // add value to storage
+    setItem(key: string, value: string, enableCookieStorage?: boolean): void {
+        if (enableCookieStorage) {
+            this.setItemCookie(key, value);
+        }
+        if (window[this._cacheLocation]) {
+            window[this._cacheLocation].setItem(key, value);
+        }
     }
-  }
 
-  // get one item by key from storage
-  getItem(key: string): string {
-    if (window[this._cacheLocation]) {
-      return window[this._cacheLocation].getItem(key);
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+    // get one item by key from storage
+    getItem(key: string, enableCookieStorage?: boolean): string {
+        if (enableCookieStorage) {
+            return this.getItemCookie(key);
+        }
+        if (window[this._cacheLocation]) {
+            return window[this._cacheLocation].getItem(key);
+        }
     }
-  }
 
-  // remove value from storage
-  removeItem(key: string): void {
-    if (window[this._cacheLocation]) {
-      return window[this._cacheLocation].removeItem(key);
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+    // remove value from storage
+    removeItem(key: string): void {
+        if (window[this._cacheLocation]) {
+            return window[this._cacheLocation].removeItem(key);
+        }
     }
-  }
 
-  // clear storage (remove all items from it)
-  clear(): void {
-    if (window[this._cacheLocation]) {
-      return window[this._cacheLocation].clear();
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+    // clear storage (remove all items from it)
+    clear(): void {
+        if (window[this._cacheLocation]) {
+            return window[this._cacheLocation].clear();
+        }
     }
-  }
 
-  getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
-    const results: Array<AccessTokenCacheItem> = [];
-    let accessTokenCacheItem: AccessTokenCacheItem;
-    const storage = window[this._cacheLocation];
-    if (storage) {
-      let key: string;
-      for (key in storage) {
-        if (storage.hasOwnProperty(key)) {
-          if (key.match(clientId) && key.match(userIdentifier)) {
-            let value = this.getItem(key);
-            if (value) {
-              accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-              results.push(accessTokenCacheItem);
+    getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
+        const results: Array<AccessTokenCacheItem> = [];
+        let accessTokenCacheItem: AccessTokenCacheItem;
+        const storage = window[this._cacheLocation];
+        if (storage) {
+            let key: string;
+            for (key in storage) {
+                if (storage.hasOwnProperty(key)) {
+                    if (key.match(clientId) && key.match(userIdentifier)) {
+                        let value = this.getItem(key);
+                        if (value) {
+                            accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                            results.push(accessTokenCacheItem);
+                        }
+                    }
+                }
             }
-          }
         }
-      }
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+
+        return results;
     }
 
-    return results;
-  }
-
-  removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
-    const storage = window[this._cacheLocation];
-    if (storage) {
-      let key: string;
-      for (key in storage) {
-        if (storage.hasOwnProperty(key)) {
-            if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey!= "" && key.indexOf(acquireTokenUserKey) > -1)) {
-            this.removeItem(key);
-          }
+    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
+        const storage = window[this._cacheLocation];
+        if (storage) {
+            let key: string;
+            for (key in storage) {
+                if (storage.hasOwnProperty(key)) {
+                    if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                        this.removeItem(key);
+                    }
+                }
+            }
         }
-      }
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
     }
-  }
 
-  resetCacheItems(): void {
-    const storage = window[this._cacheLocation];
-    if (storage) {
-      let key: string;
-      for (key in storage) {
-          if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
-              this.setItem(key,"");
-          }
-          if (storage.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
-              this.removeItem(key);
-      }
-    } else {
-      throw new Error("localStorage and sessionStorage are not supported");
+    resetCacheItems(): void {
+        const storage = window[this._cacheLocation];
+        if (storage) {
+            let key: string;
+            for (key in storage) {
+                if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
+                    this.setItem(key, "");
+                }
+                if (storage.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
+                    this.removeItem(key);
+            }
+        }
     }
-  }
+
+    setItemCookie(cName: string, cValue: string, expires?: number): void {
+        var cookieStr = cName + "=" + cValue + ";";
+        if (expires) {
+            var expireTime = this.setExpirationCookie(expires);
+            cookieStr += "expires=" + expireTime + ";";
+        }
+
+        document.cookie = cookieStr;
+    }
+
+    getItemCookie(cName: string): string {
+        var name = cName + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    setExpirationCookie(cookieLife: number): string {
+        var today = new Date();
+        var expr = new Date(today.getTime() + cookieLife * 24 * 60 * 60 * 1000);
+        return expr.toUTCString();
+    }
+
+    clearCookie(): void {
+        this.setItemCookie(Constants.nonceIdToken, '', -1);
+        this.setItemCookie(Constants.stateLogin, '', -1);
+        this.setItemCookie(Constants.loginRequest, '', -1);
+    }
 }
