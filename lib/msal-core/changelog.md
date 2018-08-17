@@ -1,3 +1,8 @@
+# 0.2.2
+### New Features
+* Added fix for IE and Edge support. This can be enabled by setting storeAuthStateInCookie flag in config to true. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/347
+
+
 # 0.2.1
 ### New Features
 * Added State parameter in login request. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/262
