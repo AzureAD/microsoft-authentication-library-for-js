@@ -202,6 +202,7 @@ export class UserAgentApplication {
 
   private _unprotectedResources: Array<string>;
 
+  private storeAuthStateInCookie: boolean;
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -229,7 +230,8 @@ export class UserAgentApplication {
           state?: string,
           isAngular?: boolean,
           unprotectedResources?: Array<string>
-          protectedResourceMap?:Map<string,Array<string>>
+          protectedResourceMap?:Map<string,Array<string>>,
+          storeAuthStateInCookie?:boolean
       } = {}) {
       const {
           validateAuthority = true,
@@ -243,6 +245,7 @@ export class UserAgentApplication {
           isAngular = false,
           unprotectedResources = new Array<string>(),
           protectedResourceMap = new Map<string, Array<string>>(),
+          storeAuthStateInCookie = false
       } = options;
 
     this.loadFrameTimeout = loadFrameTimeout;
@@ -266,6 +269,7 @@ export class UserAgentApplication {
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
     this._logger = logger;
+    this.storeAuthStateInCookie = storeAuthStateInCookie;
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
@@ -313,6 +317,7 @@ export class UserAgentApplication {
 
       try {
           if (this._tokenReceivedCallback) {
+              this._cacheStorage.clearCookie();
               this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
           }
 
@@ -368,10 +373,10 @@ export class UserAgentApplication {
             this._cacheStorage.setItem(Constants.angularLoginRequest, "")
         }
 
-        this._cacheStorage.setItem(Constants.loginRequest, loginStartPage);
+        this._cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.storeAuthStateInCookie);
         this._cacheStorage.setItem(Constants.loginError, "");
-        this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
-        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+        this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state, this.storeAuthStateInCookie);
+        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
         this._cacheStorage.setItem(Constants.msalError, "");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "");
         const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
@@ -571,6 +576,7 @@ export class UserAgentApplication {
       this._cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
     }
     this._cacheStorage.resetCacheItems();
+    this._cacheStorage.clearCookie();
   }
 
    protected clearCacheForScope(accessToken: string) {
@@ -1417,7 +1423,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             self._cacheStorage.setItem(Constants.urlHash, hash);
             saveToken = false;
             if (window.parent === window && !isPopup) {
-                window.location.href = self._cacheStorage.getItem(Constants.loginRequest);
+                window.location.href = self._cacheStorage.getItem(Constants.loginRequest, this.storeAuthStateInCookie);
             }
             return;
         }
@@ -1609,7 +1615,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
             this._user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
             if (idToken && idToken.nonce) {
-              if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken)) {
+              if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie)) {
                 this._user = null;
                 this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
                 this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
@@ -1707,7 +1713,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         tokenResponse.stateResponse = stateResponse;
         // async calls can fire iframe and login request at the same time if developer does not use the API as expected
         // incoming callback needs to be looked up to find the request type
-        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin)) { // loginRedirect
+        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)) { // loginRedirect
           tokenResponse.requestType = Constants.login;
           tokenResponse.stateMatch = true;
           return tokenResponse;

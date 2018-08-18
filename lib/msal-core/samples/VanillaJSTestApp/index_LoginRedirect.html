@@ -43,7 +43,7 @@
             console.log(message);
         }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { cacheLocation: 'localStorage', logger: logger });// cacheLocation defaults to sessionStorage if not set in the constructor
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: true });// cacheLocation defaults to sessionStorage if not set in the constructor
         function authCallback(errorDesc, token, error, tokenType) {
             //This function is called after loginRedirect and acquireTokenRedirect. Use tokenType to determine context. 
             //For loginRedirect, tokenType = "id_token". For acquireTokenRedirect, tokenType:"access_token".

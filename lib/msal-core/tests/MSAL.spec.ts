@@ -51,13 +51,20 @@ describe('Msal', function (): any {
         }
 
         return {
-            getItem: function (key: any) {
+            getItem: function (key: any, storeAuthStateInCookie?: boolean) {
+                if (storeAuthStateInCookie) {
+                    return this.getItemCookie(key);
+                }
                 return store[key];
             },
-            setItem: function (key: any, value: any) {
+            setItem: function (key: any, value: any, storeAuthStateInCookie?: boolean) {
                 if (typeof value != 'undefined') {
                     store[key] = value;
                 }
+                if (storeAuthStateInCookie) {
+                    this.setItemCookie(key, value);
+                }
+
             },
             removeItem: function (key: any) {
                 if (typeof store[key] != 'undefined') {
@@ -86,6 +93,47 @@ describe('Msal', function (): any {
                     }
                 }
                 return results;
+            },
+
+            setItemCookie(cName: string, cValue: string, expires?: number): void {
+                var cookieStr = cName + "=" + cValue + ";";
+                if (expires) {
+                    var expireTime = this.setExpirationCookie(expires);
+                    cookieStr += "expires=" + expireTime + ";";
+                }
+
+                document.cookie = cookieStr;
+            },
+
+            getItemCookie(cName: string): string {
+                var name = cName + "=";
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            },
+
+            removeAcquireTokenEntries: function () {
+                return;
+            },
+
+            setExpirationCookie(cookieLife: number): string {
+                var today = new Date();
+                var expr = new Date(today.getTime() + cookieLife * 24 * 60 * 60 * 1000);
+                return expr.toUTCString();
+            },
+
+            clearCookie(): void {
+                this.setItemCookie(Constants.nonceIdToken, '', -1);
+                this.setItemCookie(Constants.stateLogin, '', -1);
+                this.setItemCookie(Constants.loginRequest, '', -1);
             }
         };
     }();
@@ -537,6 +585,34 @@ describe('Msal', function (): any {
         expect(tokenType).toBe(Constants.idToken);
         expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
         msal._loginInProgress = false;
+    });
+
+    it('tests that loginStartPage, nonce and state are saved in cookies if enableCookieStorage flag is enables through the msal optional params', function (done) {
+        var msalInstance = msal;
+        var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+            expect(document.cookie).toBe('');
+            expect(errorDesc).toBeUndefined();
+            expect(error).toBeUndefined();
+            expect(token).toBe(mockIdToken);
+            expect(tokenType).toBe(Constants.idToken);
+        }, { storeAuthStateInCookie: true });
+        msal._cacheStorage = storageFake;
+        var _promptUser = msal.promptUser;
+        msal.promptUser = function () {
+            expect(document.cookie).toContain(Constants.stateLogin);
+            expect(document.cookie).toContain(Constants.nonceIdToken);
+            expect(document.cookie).toContain(Constants.loginRequest);
+            var urlHash = '#' + 'id_token=' + mockIdToken + '&state=' + storageFake.getItem(Constants.stateLogin) + '&nonce=' + storageFake.getItem(Constants.nonceIdToken)
+            storageFake.setItem(Constants.urlHash, urlHash);
+            storageFake.removeItem(Constants.stateLogin);
+            storageFake.removeItem(Constants.nonceIdToken);
+            storageFake.removeItem(Constants.loginRequest);
+            msal.processCallBack(urlHash);
+            msal = msalInstance;
+            done();
+        }
+        msal.loginRedirect();
     });
 
 });
