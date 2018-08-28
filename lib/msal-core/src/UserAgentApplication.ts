@@ -1640,7 +1640,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         }
 
         if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
-            //get id token only if user is requesting it
          // if (scope.indexOf(this.clientId) > -1) {
             this._logger.info("Fragment has id token");
             this._loginInProgress = false;
