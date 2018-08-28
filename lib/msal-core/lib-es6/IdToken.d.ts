@@ -11,5 +11,6 @@ export declare class IdToken {
     expiration: string;
     rawIdToken: string;
     decodedIdToken: Object;
+    sid: string;
     constructor(rawIdToken: string);
 }

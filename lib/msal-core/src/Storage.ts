@@ -52,17 +52,17 @@ export class Storage {// Singleton
 
     // add value to storage
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
-        if (enableCookieStorage) {
-            this.setItemCookie(key, value);
-        }
         if (window[this._cacheLocation]) {
             window[this._cacheLocation].setItem(key, value);
+        }
+        if (enableCookieStorage) {
+            this.setItemCookie(key, value);
         }
     }
 
     // get one item by key from storage
     getItem(key: string, enableCookieStorage?: boolean): string {
-        if (enableCookieStorage) {
+        if (enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
         }
         if (window[this._cacheLocation]) {

@@ -893,30 +893,39 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    */
   private addHintParameters(urlNavigate: string, user: User): string {
     const userObject = user ? user : this.getUser();
-    const decodedClientInfo = userObject.userIdentifier.split(".");
-    const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
-    const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
-    if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-      urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
-    }
+      if (userObject) {
+          const decodedClientInfo = userObject.userIdentifier.split(".");
+          const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
+          const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
 
-    if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-      if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
-        urlNavigate += "&domain_req=" + encodeURIComponent(utid);
-      }
+          if(userObject.sid)
+          {
+              if (!this.urlContainsQueryStringParameter("sid", urlNavigate)) {
+                  urlNavigate += '&sid=' + encodeURIComponent(this._user.sid);
+              }
+          }
+          else {
+              if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
+                  urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
+              }
+              if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
+                  if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+                      urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
+                  } else {
+                      urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
+                  }
+              }
+              if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+                  if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
+                      urlNavigate += "&domain_req=" + encodeURIComponent(utid);
+                  }
 
-      if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
-        urlNavigate += "&login_req=" + encodeURIComponent(uid);
+                  if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
+                      urlNavigate += "&login_req=" + encodeURIComponent(uid);
+                  }
+              }
+          }
       }
-
-      if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
-        if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-          urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
-        } else {
-          urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
-        }
-      }
-    }
 
     return urlNavigate;
   }
@@ -966,12 +975,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
 
     const scope = scopes.join(" ").toLowerCase();
-    if (!userObject) {
-      if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
-        return;
+      if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf('login_hint') !== -1 ))) {
+          if (this._tokenReceivedCallback) {
+              this._logger.info('User login is required');
+              this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
+              return;
+          }
       }
-    }
 
     this._acquireTokenInProgress = true;
     let authenticationRequest: AuthenticationRequestParameters;
@@ -990,7 +1000,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
 
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-      const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+      var acquireTokenUserKey;
+      if(userObject) {
+           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+      }
+      else {
+          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  authenticationRequest.state;
+      }
+
       if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
         this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
       }
@@ -1047,10 +1064,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
 
       const scope = scopes.join(" ").toLowerCase();
-      if (!userObject) {
-        reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
-        return;
-      }
+        //if user is not currently logged in and no login_hint is passed
+        if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf('login_hint') !== -1))) {
+            this._logger.info('User login is required');
+            reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+            return;
+        }
 
       this._acquireTokenInProgress = true;
       let authenticationRequest: AuthenticationRequestParameters;
@@ -1074,8 +1093,15 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
         authenticationRequest.state = authenticationRequest.state;
-        const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-        if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
+        var acquireTokenUserKey;
+        if(userObject) {
+            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+        }
+         else {
+            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  authenticationRequest.state;
+        }
+
+          if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
           this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
         }
 
@@ -1140,10 +1166,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         const scope = scopes.join(" ").toLowerCase();
         const userObject = user ? user : this.getUser();
-        if (!userObject) {
-          reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
-          return;
-        }
+          if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf('login_hint') !== -1 ||  extraQueryParameters.indexOf('sid') !== -1 ))) {
+              this._logger.info('User login is required');
+              reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+              return;
+          }
 
         let authenticationRequest: AuthenticationRequestParameters;
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
@@ -1296,7 +1323,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
 
-    const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+    var acquireTokenUserKey;
+    if(user) {
+        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+    }
+    else {
+        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  authenticationRequest.state;
+    }
+
     if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
       this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
     }
@@ -1332,7 +1366,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
 
-    const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+    var acquireTokenUserKey;
+    if(user) {
+        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+    }
+    else {
+        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + "no_user" + Constants.resourceDelimeter + authenticationRequest.state;
+    }
     if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
       this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
     }
@@ -1455,7 +1495,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   
     try {
         if (tokenReceivedCallback) {
-            tokenReceivedCallback.call(self, errorDesc, token, error, tokenType);
+            tokenReceivedCallback.call(self, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
         }
 
     } catch (err) {
@@ -1581,6 +1621,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           }
 
           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          var   acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  tokenResponse.stateResponse;
           let acquireTokenUser: User;
           if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
             acquireTokenUser = JSON.parse(this._cacheStorage.getItem(acquireTokenUserKey));
@@ -1593,10 +1634,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 "The user object created from the response is not the same as the one passed in the acquireToken request");
             }
           }
+          else if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey_nouser))) {
+                  this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
+          }
         }
 
         if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
-          if (scope.indexOf(this.clientId) > -1) {
+            //get id token only if user is requesting it
+         // if (scope.indexOf(this.clientId) > -1) {
             this._logger.info("Fragment has id token");
             this._loginInProgress = false;
             idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
@@ -1635,7 +1680,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
               this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
-          }
+       //  }
         }
       } else {
         authorityKey = tokenResponse.stateResponse;
@@ -1649,6 +1694,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
       this._cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
       this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
+      //this is required if navigateToLoginRequestUrl=false
+      this._cacheStorage.clearCookie();
   }
 
   /*
