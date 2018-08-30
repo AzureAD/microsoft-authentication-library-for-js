@@ -169,5 +169,6 @@ export class Storage {// Singleton
         this.setItemCookie(Constants.nonceIdToken, '', -1);
         this.setItemCookie(Constants.stateLogin, '', -1);
         this.setItemCookie(Constants.loginRequest, '', -1);
+        this.setItemCookie(Constants.stateAcquireToken, '', -1);
     }
 }

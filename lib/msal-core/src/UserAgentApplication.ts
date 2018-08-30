@@ -434,9 +434,9 @@ export class UserAgentApplication {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+        this._cacheStorage.setItem(Constants.loginRequest, window.location.href, this.storeAuthStateInCookie);
         this._cacheStorage.setItem(Constants.loginError, "");
-        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
         this._cacheStorage.setItem(Constants.msalError, "");
         this._cacheStorage.setItem(Constants.msalErrorDescription, "");
         const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
@@ -891,44 +891,45 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * @ignore
    * @hidden
    */
-  private addHintParameters(urlNavigate: string, user: User): string {
-    const userObject = user ? user : this.getUser();
-      if (userObject) {
-          const decodedClientInfo = userObject.userIdentifier.split(".");
-          const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
-          const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
+    private addHintParameters(urlNavigate: string, user: User): string {
+        const userObject = user ? user : this.getUser();
+        if (userObject) {
+            const decodedClientInfo = userObject.userIdentifier.split(".");
+            const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
+            const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
 
-          if(userObject.sid)
-          {
-              if (!this.urlContainsQueryStringParameter("sid", urlNavigate)) {
-                  urlNavigate += '&sid=' + encodeURIComponent(this._user.sid);
-              }
-          }
-          else {
-              if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-                  urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
-              }
-              if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
-                  if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-                      urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
-                  } else {
-                      urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
-                  }
-              }
-              if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-                  if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
-                      urlNavigate += "&domain_req=" + encodeURIComponent(utid);
-                  }
+            if (userObject.sid) {
+                if (!this.urlContainsQueryStringParameter("sid", urlNavigate) && !this.urlContainsQueryStringParameter("login_hint", urlNavigate)) {
+                    urlNavigate += '&sid=' + encodeURIComponent(this._user.sid);
+                }
+            }
+            else {
+                if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
+                    urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
+                }
+            }
 
-                  if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
-                      urlNavigate += "&login_req=" + encodeURIComponent(uid);
-                  }
-              }
-          }
-      }
+            if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+                if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
+                    urlNavigate += "&domain_req=" + encodeURIComponent(utid);
+                }
 
-    return urlNavigate;
-  }
+                if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
+                    urlNavigate += "&login_req=" + encodeURIComponent(uid);
+                }
+            }
+            if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
+                if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+                    urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
+                } else {
+                    urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
+                }
+            }
+
+        }
+
+        return urlNavigate;
+    }
 
   /*
    * Checks if the authorization endpoint URL contains query string parameters
@@ -999,7 +1000,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
       }
 
-      this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+      this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
       var acquireTokenUserKey;
       if(userObject) {
            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
@@ -1024,7 +1025,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
       if (urlNavigate) {
-        this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
+        this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state, this.storeAuthStateInCookie);
         window.location.replace(urlNavigate);
       }
     });
@@ -1682,7 +1683,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       } else {
         authorityKey = tokenResponse.stateResponse;
         acquireTokenUserKey = tokenResponse.stateResponse;
-        this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin) + "," + "Actual State: " + tokenResponse.stateResponse);
+        this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin,this.storeAuthStateInCookie ) + "," + "Actual State: " + tokenResponse.stateResponse);
         tokenResponse.parameters['error'] = 'Invalid_state';
         tokenResponse.parameters['error_description'] = 'Invalid_state. state: ' + tokenResponse.stateResponse;
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
@@ -1761,7 +1762,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           tokenResponse.requestType = Constants.login;
           tokenResponse.stateMatch = true;
           return tokenResponse;
-        } else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken)) { //acquireTokenRedirect
+        } else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken, this.storeAuthStateInCookie)) { //acquireTokenRedirect
           tokenResponse.requestType = Constants.renewToken;
           tokenResponse.stateMatch = true;
           return tokenResponse;
