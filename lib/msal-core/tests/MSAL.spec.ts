@@ -1,12 +1,10 @@
 import {UserAgentApplication} from '../src/index';
 import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
-<<<<<<< HEAD
 import { User } from '../src/User';
-=======
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
->>>>>>> dev
+
 
 describe('Msal', function (): any {
     let window: any;

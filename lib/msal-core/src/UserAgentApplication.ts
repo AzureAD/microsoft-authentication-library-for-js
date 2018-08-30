@@ -948,7 +948,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         resolve(idToken);
       }
 
-      const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, null, ResponseTypes.id_token, this._redirectUri);
+      const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, null, ResponseTypes.id_token, this._redirectUri, this._state);
 
       return this.authorityInstance.ResolveEndpointsAsync()
         .then(() => {
@@ -1033,14 +1033,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return;
     }
 
-<<<<<<< HEAD
     this.getUser()
       .then((cachedUser) => {
         const userObject = user ? user : cachedUser;
 
         if (!userObject) {
           if (this._tokenReceivedCallback) {
-            this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken);
+            this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
             return;
           }
         }
@@ -1051,9 +1050,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     
         acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
           if (Utils.compareObjects(userObject, cachedUser)) {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
           } else {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
           }
     
           this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -1082,54 +1081,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       .catch((err) => {
         this._logger.error("Unable to resolve endpoints:" + err);
       });
-=======
-    const scope = scopes.join(" ").toLowerCase();
-    if (!userObject) {
-      if (this._tokenReceivedCallback) {
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
-        return;
-      }
-    }
-
-    this._acquireTokenInProgress = true;
-    let authenticationRequest: AuthenticationRequestParameters;
-    let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-
-    acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-      if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
-          }
-          else {
-              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
-          }
-      } else {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
-      }
-
-      this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-      const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-      if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-      }
-
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-      if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
-      }
-
-      if (extraQueryParameters) {
-        authenticationRequest.extraQueryParameters = extraQueryParameters;
-      }
-
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
-      urlNavigate = this.addHintParameters(urlNavigate, userObject);
-      if (urlNavigate) {
-        this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
-        window.location.replace(urlNavigate);
-      }
-    });
->>>>>>> dev
   }
 
   /*
@@ -1257,7 +1208,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           scopes = this.filterScopes(scopes);
         }
 
-<<<<<<< HEAD
         return this.getUser()
           .then((cachedUser) => {
             const scope = scopes.join(" ").toLowerCase();
@@ -1265,66 +1215,19 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             if (!userObject) {
               reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
               return;
-=======
-        const scope = scopes.join(" ").toLowerCase();
-        const userObject = user ? user : this.getUser();
-        if (!userObject) {
-          reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
-          return;
-        }
-
-        let authenticationRequest: AuthenticationRequestParameters;
-        let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
-          }
-          else {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
-          }
-        } else {
-          authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
-        }
-
-        const cacheResult = this.getCachedToken(authenticationRequest, userObject);
-        if (cacheResult) {
-          if (cacheResult.token) {
-            this._logger.info("Token is already in cache for scope:" + scope);
-            resolve(cacheResult.token);
-            return;
-          }
-          else if (cacheResult.errorDesc || cacheResult.error) {
-            this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + "|" + cacheResult.error);
-            return;
-          }
-        }
-        else {
-            this._logger.verbose("Token is not in cache for scope:" + scope);
-        }
-        // cache miss
-        return newAuthority.ResolveEndpointsAsync()
-          .then(() => {
-            // refresh attept with iframe
-            //Already renewing for this scope, callback when we get the token.
-              if (window.activeRenewals[scope]) {
-              this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
-              //Active renewals contains the state for each renewal.
-              this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
->>>>>>> dev
             }
     
             let authenticationRequest: AuthenticationRequestParameters;
             let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
             if (Utils.compareObjects(userObject, cachedUser)) {
               if (scopes.indexOf(this.clientId) > -1) {
-                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri);
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
               }
               else {
-                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri);
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
               }
             } else {
-              authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri);
+              authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
             }
     
             const cacheResult = this.getCachedToken(authenticationRequest, userObject);
