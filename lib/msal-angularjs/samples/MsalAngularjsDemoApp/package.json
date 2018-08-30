@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/msal-angularjs": "0.1.0"
+    "@azure/msal-angularjs": "0.1.2"
   },
   "devDependencies": {
     "webpack": "^2.4.1",

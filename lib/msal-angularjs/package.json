@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Angular JS Wrapper for MSAL JS",
   "keywords": [
     "implicit",
@@ -24,7 +24,7 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "msal": "0.2.0"
+    "msal": "0.2.1"
   },
   "devDependencies": {
     "angular": "^1.7.0",

@@ -116,6 +116,7 @@
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_authenticationrequestparameters_.authenticationrequestparameters.html#createnavigateurl" class="tsd-kind-icon">create<wbr>Navigate<wbr>Url</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_authenticationrequestparameters_.authenticationrequestparameters.html#createnavigationurlstring" class="tsd-kind-icon">create<wbr>Navigation<wbr>Url<wbr>String</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_authenticationrequestparameters_.authenticationrequestparameters.html#parsescope" class="tsd-kind-icon">parse<wbr>Scope</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_authenticationrequestparameters_.authenticationrequestparameters.html#translateclientidusedinscope" class="tsd-kind-icon">translateclient<wbr>IdUsed<wbr>InScope</a></li>
 							</ul>
@@ -129,7 +130,7 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Authentication<wbr>Request<wbr>Parameters<span class="tsd-signature-symbol">(</span>authority<span class="tsd-signature-symbol">: </span><a href="_authority_.authority.html" class="tsd-signature-type">Authority</a>, clientId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, scope<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span>, responseType<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, redirectUri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_authenticationrequestparameters_.authenticationrequestparameters.html" class="tsd-signature-type">AuthenticationRequestParameters</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Authentication<wbr>Request<wbr>Parameters<span class="tsd-signature-symbol">(</span>authority<span class="tsd-signature-symbol">: </span><a href="_authority_.authority.html" class="tsd-signature-type">Authority</a>, clientId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, scope<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span>, responseType<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, redirectUri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_authenticationrequestparameters_.authenticationrequestparameters.html" class="tsd-signature-type">AuthenticationRequestParameters</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -154,6 +155,9 @@
 								</li>
 								<li>
 									<h5>redirectUri: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>state: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_authenticationrequestparameters_.authenticationrequestparameters.html" class="tsd-signature-type">AuthenticationRequestParameters</a></h4>
@@ -350,6 +354,29 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<a name="createnavigationurlstring" class="tsd-anchor"></a>
+					<h3>create<wbr>Navigation<wbr>Url<wbr>String</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Navigation<wbr>Url<wbr>String<span class="tsd-signature-symbol">(</span>scopes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationRequestParameters.ts#L77">AuthenticationRequestParameters.ts:77</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>scopes: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
 					<a name="parsescope" class="tsd-anchor"></a>
 					<h3>parse<wbr>Scope</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
@@ -359,7 +386,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationRequestParameters.ts#L116">AuthenticationRequestParameters.ts:116</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationRequestParameters.ts#L120">AuthenticationRequestParameters.ts:120</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -382,7 +409,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationRequestParameters.ts#L103">AuthenticationRequestParameters.ts:103</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationRequestParameters.ts#L107">AuthenticationRequestParameters.ts:107</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -534,6 +561,9 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
 								<a href="_authenticationrequestparameters_.authenticationrequestparameters.html#createnavigateurl" class="tsd-kind-icon">create<wbr>Navigate<wbr>Url</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
+								<a href="_authenticationrequestparameters_.authenticationrequestparameters.html#createnavigationurlstring" class="tsd-kind-icon">create<wbr>Navigation<wbr>Url<wbr>String</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
 								<a href="_authenticationrequestparameters_.authenticationrequestparameters.html#parsescope" class="tsd-kind-icon">parse<wbr>Scope</a>

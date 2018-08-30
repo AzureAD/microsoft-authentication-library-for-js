@@ -27,11 +27,15 @@ export declare class Storage {
     private _sessionStorageSupported;
     private _cacheLocation;
     constructor(cacheLocation: string);
-    setItem(key: string, value: string): void;
-    getItem(key: string): string;
+    setItem(key: string, value: string, enableCookieStorage?: boolean): void;
+    getItem(key: string, enableCookieStorage?: boolean): string;
     removeItem(key: string): void;
     clear(): void;
     getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem>;
     removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void;
     resetCacheItems(): void;
+    setItemCookie(cName: string, cValue: string, expires?: number): void;
+    getItemCookie(cName: string): string;
+    setExpirationCookie(cookieLife: number): string;
+    clearCookie(): void;
 }

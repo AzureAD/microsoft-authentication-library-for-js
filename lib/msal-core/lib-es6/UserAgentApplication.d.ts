@@ -43,7 +43,7 @@ export interface CacheResult {
     token: string;
     error: string;
 }
-export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string) => void;
+export declare type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string) => void;
 export declare class UserAgentApplication {
     private _cacheLocations;
     private _cacheLocation;
@@ -63,12 +63,14 @@ export declare class UserAgentApplication {
     authority: string;
     validateAuthority: boolean;
     private _redirectUri;
+    private _state;
     private _postLogoutredirectUri;
     loadFrameTimeout: number;
     protected _navigateToLoginRequestUrl: boolean;
     private _isAngular;
     private _protectedResourceMap;
     private _unprotectedResources;
+    private storeAuthStateInCookie;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
@@ -77,9 +79,11 @@ export declare class UserAgentApplication {
         logger?: Logger;
         loadFrameTimeout?: number;
         navigateToLoginRequestUrl?: boolean;
+        state?: string;
         isAngular?: boolean;
         unprotectedResources?: Array<string>;
         protectedResourceMap?: Map<string, Array<string>>;
+        storeAuthStateInCookie?: boolean;
     });
     private processCallBack;
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
@@ -123,6 +127,7 @@ export declare class UserAgentApplication {
     private getHash;
     protected getRequestInfo(hash: string): TokenResponse;
     private getScopeFromState;
+    getUserState(state: string): string;
     private isInIframe;
     loginInProgress(): boolean;
     private getHostFromUri;

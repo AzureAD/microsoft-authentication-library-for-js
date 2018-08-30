@@ -1,8 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TodoListService} from "./todo-list.service";
-import {BroadcastService, MsalService} from "@azure/msal-angular";
 import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
+import {BroadcastService} from "../../../../../dist/broadcast.service";
+import { MsalService} from "../../../../../dist/msal.service";
 
 @Component({
   selector: 'app-todo-list',
@@ -12,9 +13,9 @@ import {Subscription} from "rxjs/Subscription";
 export class TodoListComponent implements OnInit, OnDestroy  {
 
  private error = "";
-  private loadingMessage = "Loading...";
+  public loadingMessage = "Loading...";
    todoList: TodoList[];
-  private newTodoCaption = "";
+  public newTodoCaption = "";
   private submitted = false;
 private subscription: Subscription;
   constructor(private todoListService: TodoListService, private broadcastService : BroadcastService, private msalService: MsalService) { }
