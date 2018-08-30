@@ -1640,7 +1640,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         }
 
         if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
-         // if (scope.indexOf(this.clientId) > -1) {
             this._logger.info("Fragment has id token");
             this._loginInProgress = false;
             idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
@@ -1679,7 +1678,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
               this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
-       //  }
         }
       } else {
         authorityKey = tokenResponse.stateResponse;
