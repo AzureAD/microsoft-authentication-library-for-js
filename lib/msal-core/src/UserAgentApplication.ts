@@ -1005,7 +1005,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
       }
       else {
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  authenticationRequest.state;
+          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  authenticationRequest.state;
       }
 
       if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
@@ -1098,7 +1098,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
         }
          else {
-            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  authenticationRequest.state;
+            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  authenticationRequest.state;
         }
 
           if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
@@ -1328,7 +1328,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
     }
     else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  authenticationRequest.state;
+        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  authenticationRequest.state;
     }
 
     if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
@@ -1371,7 +1371,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
     }
     else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + "no_user" + Constants.resourceDelimeter + authenticationRequest.state;
+        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
     }
     if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
       this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
@@ -1621,7 +1621,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           }
 
           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          var   acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter  + "no_user" +Constants.resourceDelimeter +  tokenResponse.stateResponse;
+          var   acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  tokenResponse.stateResponse;
           let acquireTokenUser: User;
           if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
             acquireTokenUser = JSON.parse(this._cacheStorage.getItem(acquireTokenUserKey));

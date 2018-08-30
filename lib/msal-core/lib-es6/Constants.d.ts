@@ -27,6 +27,7 @@ export declare class Constants {
     static readonly loginError: string;
     static readonly renewStatus: string;
     static readonly msal: string;
+    static readonly no_user: string;
     static readonly resourceDelimeter: string;
     static readonly tokenRenewStatusCancelled: string;
     static readonly tokenRenewStatusCompleted: string;
