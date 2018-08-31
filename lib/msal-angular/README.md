@@ -175,8 +175,11 @@ only consent it and no access token will be acquired till the time client actual
 
 * **unprotectedResources** : Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'.
 
-* **protectedResourceMap** : Mapping of resources to scopes {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
+* **protectedResourceMap** : Mapping of resources to scopes  {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
 This is required only for CORS calls.
+```js
+export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
+```
 
 * **level** : Configurable log level. Default value is Info.
 
@@ -229,10 +232,8 @@ You should protect your site for XSS. Please check the article here: [https://ww
 MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.
 
 ```js
-export const  protectedResourceMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
 
-protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
-protectedResourceMap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
 
 @NgModule({
   imports: [ MsalModule.forRoot({

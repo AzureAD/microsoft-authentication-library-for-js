@@ -898,7 +898,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
             const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
 
-            if (userObject.sid) {
+            if (userObject.sid  && urlNavigate.indexOf('&prompt=none') !== -1) {
                 if (!this.urlContainsQueryStringParameter("sid", urlNavigate) && !this.urlContainsQueryStringParameter("login_hint", urlNavigate)) {
                     urlNavigate += '&sid=' + encodeURIComponent(this._user.sid);
                 }

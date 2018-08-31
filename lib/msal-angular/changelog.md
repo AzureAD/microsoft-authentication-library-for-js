@@ -1,3 +1,6 @@
+# 0.1.2
+* AOT fix for protectedResourceMap issue  https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/407
+
 # 0.1.1
 * Fixed AOT issue https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/386
 
