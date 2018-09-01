@@ -34,7 +34,7 @@ export class MsalService extends UserAgentApplication {
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
                 unprotectedResources: config.unprotectedResources,
-                protectedResourceMap: config.protectedResourceMap,
+                protectedResourceMap: new Map(config.protectedResourceMap),
             });
 
         this.loginScopes = [this.clientId];

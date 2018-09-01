@@ -39,7 +39,8 @@ export class IdToken {
   nonce: string;
   expiration: string;
   rawIdToken: string;
-  decodedIdToken: Object
+  decodedIdToken: Object;
+  sid:string;
 
   constructor(rawIdToken: string) {
     if (Utils.isEmpty(rawIdToken)) {
@@ -88,6 +89,11 @@ export class IdToken {
         if (this.decodedIdToken.hasOwnProperty("home_oid")) {
             this.homeObjectId = this.decodedIdToken["home_oid"];
         }
+
+          if (this.decodedIdToken.hasOwnProperty("sid")) {
+              this.sid = this.decodedIdToken["sid"];
+          }
+
       }
     } catch (e) {
       throw new Error("Failed to parse the returned id token");
