@@ -1146,7 +1146,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
               reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
               return;
           }
-          //if user didn't passes the login_hint and adal's idtoken is present and no userobject, user the login_hint gfrom adal's idToken
+          //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
           else if(!userObject && !extraQueryParameters  && !Utils.isEmpty(adalIdToken))
           {
               const idTokenObject = Utils.extractIdToken(adalIdToken);
