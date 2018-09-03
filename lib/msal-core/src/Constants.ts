@@ -53,7 +53,9 @@ export class Constants {
   static get loginError(): string { return "msal.login.error"; }
   static get renewStatus(): string { return "msal.token.renew.status"; }
   static get msal(): string { return "msal"; }
+  static get adal(): string { return "adal"; }
   static get resourceDelimeter(): string { return "|"; }
+  static get adalIdToken(): string { return "adal.idtoken"; }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
   static get tokenRenewStatusInProgress(): string { return "In Progress"; }

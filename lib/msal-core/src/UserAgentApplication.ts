@@ -1140,14 +1140,24 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         const scope = scopes.join(" ").toLowerCase();
         const userObject = user ? user : this.getUser();
-        if (!userObject) {
-          reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
-          return;
-        }
+        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+          if (!userObject && (extraQueryParameters && (extraQueryParameters.indexOf('login_hint') == -1 ||  extraQueryParameters.indexOf('sid') == -1 )) && Utils.isEmpty(adalIdToken)) {
+              this._logger.info('User login is required');
+              reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+              return;
+          }
+          //if user didn't passes the login_hint and adal's idtoken is present and no userobject, user the login_hint gfrom adal's idToken
+          else if(!userObject && !extraQueryParameters  && !Utils.isEmpty(adalIdToken))
+          {
+              const idTokenObject = Utils.extractIdToken(adalIdToken);
+              console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+              extraQueryParameters= "&login_hint=" +idTokenObject.upn;
+          }
 
         let authenticationRequest: AuthenticationRequestParameters;
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-        if (Utils.compareObjects(userObject, this.getUser())) {
+          const msalIdToken = this._cacheStorage.getItem(Constants.idTokenKey);
+          if (Utils.compareObjects(userObject, this.getUser()) && !Utils.isEmpty(msalIdToken)) { //TODO revisit this change if getUser() is not null
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
           }
@@ -1363,16 +1373,35 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return this._user;
     }
 
-    // frame is used to get idToken
-    const rawIdToken = this._cacheStorage.getItem(Constants.idTokenKey);
-    const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
-    if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
-      const idToken = new IdToken(rawIdToken);
-      const clientInfo = new ClientInfo(rawClientInfo);
-      this._user = User.createUser(idToken, clientInfo, this.authority);
-      return this._user;
-    }
-
+      const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+      if (!Utils.isEmpty(adalIdToken)) {
+         const idTokenObject = Utils.extractIdToken(adalIdToken);
+          const displayableId = idTokenObject.upn;
+          const uid = idTokenObject.oid;
+          const utid = idTokenObject.tid;
+          if (!Utils.isEmpty(displayableId) && !Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
+              this._logger.verbose("Found ADAL idtoken which can be used to create MSAL's user object");
+              const idToken = new IdToken(adalIdToken);
+              var clientInfoObject = {};
+              clientInfoObject["uid"] = uid;
+              clientInfoObject["utid"] = utid;
+              const rawClientInfo = Utils.base64EncodeStringUrlSafe(JSON.stringify(clientInfoObject));
+              const clientInfo = new ClientInfo(rawClientInfo);
+              this._user = User.createUser(idToken, clientInfo, this.authority);
+              return this._user;
+          }
+      }
+      else {
+          // frame is used to get idToken
+          const rawIdToken = this._cacheStorage.getItem(Constants.idTokenKey);
+          const rawClientInfo = this._cacheStorage.getItem(Constants.msalClientInfo);
+          if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
+              const idToken = new IdToken(rawIdToken);
+              const clientInfo = new ClientInfo(rawClientInfo);
+              this._user = User.createUser(idToken, clientInfo, this.authority);
+              return this._user;
+          }
+      }
     return null;
   }
 

@@ -125,7 +125,7 @@ export class Storage {// Singleton
         if (storage) {
             let key: string;
             for (key in storage) {
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
+                if (storage.hasOwnProperty(key) && (key.indexOf(Constants.msal) !== -1 || key.indexOf(Constants.adal) !== -1)) {
                     this.setItem(key, "");
                 }
                 if (storage.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
