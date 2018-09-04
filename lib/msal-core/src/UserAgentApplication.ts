@@ -1855,6 +1855,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return "test";
     }
 
+    protected testAPI1() {
+        return "test1";
+    }
+
 
 
 }
