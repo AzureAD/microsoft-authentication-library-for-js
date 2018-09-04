@@ -1,3 +1,12 @@
+# 0.2.3
+### New Features
+* Single Sign on
+* IE and edge bug fix if navigateToLoginRequestUrl=false (cookies not deleted)
+* IE and edge bug fix for login_popup (state mismatch)
+* User state not passed to callback if navigateToLoginrequestUrl = false
+* Added sample app for single sign on
+
+
 # 0.2.2
 ### New Features
 * Added support to handle the issue of the session storage and local storage getting cleared in IE and edge browsers during redirects across different security zones. This can be enabled by setting storeAuthStateInCookie flag in config to true. Default value is false.  

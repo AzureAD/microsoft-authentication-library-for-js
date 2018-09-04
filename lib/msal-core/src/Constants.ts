@@ -53,6 +53,13 @@ export class Constants {
   static get loginError(): string { return "msal.login.error"; }
   static get renewStatus(): string { return "msal.token.renew.status"; }
   static get msal(): string { return "msal"; }
+  static get no_user(): string { return "NO_USER"; }
+  static get login_hint(): string { return "login_hint"; }
+  static get domain_hint(): string { return "domain_hint"; }
+  static get sid(): string { return "sid"; }
+  static get prompt_select_account(): string { return "&prompt=select_account"; }
+  static get prompt_none(): string { return "&prompt=none"; }
+  static get response_mode_fragment(): string { return "&response_mode=fragment"; }
   static get resourceDelimeter(): string { return "|"; }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
