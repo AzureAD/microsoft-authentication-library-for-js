@@ -221,8 +221,10 @@
 					</li>
 					<li><p><strong>unprotectedResources</strong> : Array of  URI&#39;s. Msal will not attach a token to outgoing requests that have these uri. Defaults to &#39;null&#39;.</p>
 					</li>
-					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
+					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes  {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
 						This is required only for CORS calls.</p>
+						<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
+</code></pre>
 					</li>
 					<li><p><strong>level</strong> : Configurable log level. Default value is Info.</p>
 					</li>
@@ -266,10 +268,8 @@
 				You should protect your site for XSS. Please check the article here: <a href="https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting">https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet</a>_Prevention_Cheat_Sheet)</p>
 				<h4 id="cors-api-usage">CORS API usage</h4>
 				<p>MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.</p>
-				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span>  protectedResourceMap: <span class="hljs-built_in">Map</span>&lt;string, <span class="hljs-built_in">Array</span>&lt;string&gt;&gt; = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Map</span>&lt;string, <span class="hljs-built_in">Array</span>&lt;string&gt;&gt;();
+				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
 
-protectedResourceMap.set(<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>]);
-protectedResourceMap.set(<span class="hljs-string">"https://buildtodoservice.azurewebsites.net/api/todolist"</span>, [<span class="hljs-string">"api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"</span>]);
 
 @NgModule({
   <span class="hljs-attr">imports</span>: [ MsalModule.forRoot({

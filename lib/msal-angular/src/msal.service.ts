@@ -133,7 +133,7 @@ export class MsalService extends UserAgentApplication {
                     // id_token or access_token can be renewed
                     if (window.parent === window && !window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
                         if (token) {
-                            this.broadcastService.broadcast("msal:acquireTokenSuccess", token);
+                            this.broadcastService.broadcast("msal:acquireTokenSuccess", {token});
                         }
                         else if (error && errorDescription) {
                             this.broadcastService.broadcast("msal:acquireTokenFailure", {errorDescription, error});
@@ -150,7 +150,7 @@ export class MsalService extends UserAgentApplication {
                             //todo temp commented
                             //  this.userInfo = this._oauthData;
                         }, 1);
-                        this.broadcastService.broadcast("msal:loginSuccess", token);
+                        this.broadcastService.broadcast("msal:loginSuccess", {token});
                     } else {
                         this.broadcastService.broadcast("msal:loginFailure", {errorDescription, error});
                     }
@@ -304,11 +304,11 @@ export class MsalService extends UserAgentApplication {
         return new Promise((resolve, reject) => {
             super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
+                this.broadcastService.broadcast('msal:acquireTokenSuccess', {token});
                 resolve(token);
             }, (error: any) => {
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
+                this.broadcastService.broadcast('msal:acquireTokenFailure', {error});
                 this._logger.error('Error when acquiring token for scopes: ' + scopes + " " + error);
                 reject(error);
             })
@@ -320,11 +320,11 @@ export class MsalService extends UserAgentApplication {
         return new Promise((resolve, reject) => {
             super.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', token);
+                this.broadcastService.broadcast('msal:acquireTokenSuccess', {token});
                 resolve(token);
             }, (error: any) => {
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
+                this.broadcastService.broadcast('msal:acquireTokenFailure', {error});
                 this._logger.error('Error when acquiring token for scopes : ' + scopes + error);
                 reject(error);
             })

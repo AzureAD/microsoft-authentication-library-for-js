@@ -384,7 +384,7 @@ export class UserAgentApplication {
           this._cacheStorage.setItem(authorityKey, this.authority);
         }
 
-        const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+        const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.prompt_select_account + Constants.response_mode_fragment;
         this.promptUser(urlNavigate);
       });
   }
@@ -403,14 +403,14 @@ export class UserAgentApplication {
      */
     return new Promise<string>((resolve, reject) => {
       if (this._loginInProgress) {
-        reject(ErrorCodes.loginProgressError + "|" + ErrorDescription.loginProgressError);
+        reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
         return;
       }
 
       if (scopes) {
         const isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils.isEmpty(isValidScope)) {
-          reject(ErrorCodes.inputScopesError + "|" + ErrorDescription.inputScopesError);
+          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
           return;
         }
 
@@ -444,7 +444,7 @@ export class UserAgentApplication {
           this._cacheStorage.setItem(authorityKey, this.authority);
         }
 
-        const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+        const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.prompt_select_account  + Constants.response_mode_fragment;
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.login;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
@@ -500,7 +500,7 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, ErrorCodes.popUpWindowError);
       this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.popUpWindowError);
       if (reject) {
-        reject(ErrorCodes.popUpWindowError + "|" + ErrorDescription.popUpWindowError);
+        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimeter + ErrorDescription.popUpWindowError);
       }
       return null;
     }
@@ -509,11 +509,11 @@ export class UserAgentApplication {
     var pollTimer = window.setInterval(() => {
       if (popupWindow && popupWindow.closed && instance._loginInProgress) {
         if (reject) {
-          reject(ErrorCodes.userCancelledError + "|" + ErrorDescription.userCancelledError);
+          reject(ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
         }
         window.clearInterval(pollTimer);
         if (this._isAngular) {
-            this.broadcast('msal:popUpClosed', ErrorCodes.userCancelledError + "|" + ErrorDescription.userCancelledError);
+            this.broadcast('msal:popUpClosed', ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
             return;
         }
         instance._loginInProgress = false;
@@ -684,7 +684,7 @@ export class UserAgentApplication {
           for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
             try {
               if (errorDesc || error) {
-                  window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + "|" + error);
+                  window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimeter + error);
               }
               else if (token) {
                   window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -898,14 +898,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             const uid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[0]);
             const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
 
-            if (userObject.sid  && urlNavigate.indexOf('&prompt=none') !== -1) {
-                if (!this.urlContainsQueryStringParameter("sid", urlNavigate) && !this.urlContainsQueryStringParameter("login_hint", urlNavigate)) {
-                    urlNavigate += '&sid=' + encodeURIComponent(this._user.sid);
+            if (userObject.sid  && urlNavigate.indexOf(Constants.prompt_none) !== -1) {
+                if (!this.urlContainsQueryStringParameter(Constants.sid, urlNavigate) && !this.urlContainsQueryStringParameter(Constants.login_hint, urlNavigate)) {
+                    urlNavigate += "&" + Constants.sid +"=" + encodeURIComponent(this._user.sid);
                 }
             }
             else {
-                if (!this.urlContainsQueryStringParameter("login_hint", urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-                    urlNavigate += "&login_hint=" + encodeURIComponent(user.displayableId);
+                if (!this.urlContainsQueryStringParameter(Constants.login_hint, urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
+                    urlNavigate += "&" + Constants.login_hint +"=" + encodeURIComponent(user.displayableId);
                 }
             }
 
@@ -918,11 +918,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                     urlNavigate += "&login_req=" + encodeURIComponent(uid);
                 }
             }
-            if (!this.urlContainsQueryStringParameter("domain_hint", urlNavigate) && !Utils.isEmpty(utid)) {
+            if (!this.urlContainsQueryStringParameter(Constants.domain_hint, urlNavigate) && !Utils.isEmpty(utid)) {
                 if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-                    urlNavigate += "&domain_hint=" + encodeURIComponent("consumers");
+                    urlNavigate += "&" +  Constants.domain_hint + "=" + encodeURIComponent("consumers");
                 } else {
-                    urlNavigate += "&domain_hint=" + encodeURIComponent("organizations");
+                    urlNavigate += "&" + Constants.domain_hint + "=" + encodeURIComponent("organizations");
                 }
             }
 
@@ -976,7 +976,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
 
     const scope = scopes.join(" ").toLowerCase();
-      if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf('login_hint') !== -1 ))) {
+      if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
           if (this._tokenReceivedCallback) {
               this._logger.info('User login is required');
               this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin)));
@@ -1022,7 +1022,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest.extraQueryParameters = extraQueryParameters;
       }
 
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) +  Constants.prompt_select_account  + Constants.response_mode_fragment;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
       if (urlNavigate) {
         this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state, this.storeAuthStateInCookie);
@@ -1051,7 +1051,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return new Promise<string>((resolve, reject) => {
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        reject(ErrorCodes.inputScopesError + "|" + isValidScope);
+        reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + isValidScope);
       }
 
       if (scopes) {
@@ -1060,15 +1060,15 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
       const userObject = user ? user : this.getUser();
       if (this._acquireTokenInProgress) {
-        reject(ErrorCodes.acquireTokenProgressError + "|" + ErrorDescription.acquireTokenProgressError);
+        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimeter + ErrorDescription.acquireTokenProgressError);
         return;
       }
 
       const scope = scopes.join(" ").toLowerCase();
         //if user is not currently logged in and no login_hint is passed
-        if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf('login_hint') !== -1))) {
+        if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
             this._logger.info('User login is required');
-            reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+            reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
             return;
         }
 
@@ -1115,7 +1115,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=select_account" + "&response_mode=fragment";
+        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account  + Constants.response_mode_fragment;
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.renewToken;
@@ -1129,7 +1129,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         this._cacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
         this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
         if (reject) {
-          reject(ErrorCodes.endpointResolutionError + "|" + ErrorDescription.endpointResolutionError);
+          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimeter + ErrorDescription.endpointResolutionError);
         }
         if (popUpWindow) {
             popUpWindow.close();
@@ -1167,9 +1167,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         const scope = scopes.join(" ").toLowerCase();
         const userObject = user ? user : this.getUser();
-          if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf('login_hint') !== -1 ||  extraQueryParameters.indexOf('sid') !== -1 ))) {
+          if (!userObject && !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )))) {
               this._logger.info('User login is required');
-              reject(ErrorCodes.userLoginError + "|" + ErrorDescription.userLoginError);
+              reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
               return;
           }
 
@@ -1195,7 +1195,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           }
           else if (cacheResult.errorDesc || cacheResult.error) {
             this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + "|" + cacheResult.error);
+            reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
             return;
           }
         }
@@ -1344,7 +1344,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     // renew happens in iframe, so it keeps javascript context
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
-    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
+    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
     window.renewStates.push(authenticationRequest.state);
     window.requestType = Constants.renewToken;
@@ -1385,7 +1385,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
-    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + "&prompt=none";
+    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
     window.renewStates.push(authenticationRequest.state);
     window.requestType = Constants.renewToken;

@@ -31,8 +31,7 @@
 
     <script class="pre">
         var applicationConfig = {
-            //clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
-            clientID: '78b2b4ce-941b-4378-8d5f-197a28d6d120',
+            clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
             graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
             graphScopes: ["user.read", "mail.send"]
         };
@@ -91,7 +90,7 @@
         }
 
         function sendEmail() {
-            userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes)
+            userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes)
                 .then(function (token, error) {
                     $.ajax({
                         type: "POST",

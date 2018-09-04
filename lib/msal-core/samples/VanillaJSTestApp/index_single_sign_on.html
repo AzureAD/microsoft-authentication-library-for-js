@@ -44,6 +44,7 @@
 
         function authCallback(errorDesc, token, error, tokenType) {
             console.log(" token " + token);
+            console.log(" error " + error + "  errorDesc " + errorDesc);
         }
         
         function updateUI() {
@@ -88,7 +89,7 @@
 
             //with domain hint and client id
            // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
-             // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+            //  userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=neagrawa@microsoft.com&domain_hint=organizations" )
           //  userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
            // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
 
@@ -97,7 +98,7 @@
            // userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
           //   userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
             // userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
-               /* .then(function (token, error) {
+                .then(function (token, error) {
                     $.ajax({
                         type: "POST",
                         contentType: "application/json",
@@ -122,7 +123,7 @@
                         }
                     });
                 });
-*/
+
             // acquireTokenRedirect
             //userAgentApplication.acquireTokenRedirect(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
             // this should result in an error. sid can't be used with prompt=select_account
