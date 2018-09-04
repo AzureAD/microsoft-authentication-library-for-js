@@ -254,5 +254,6 @@ paket-files/
 # MSAL specific ignore files
 node_modules/
 typings/
-lib-commonjs/
-lib-es6/
+lib/msal-core/docs/*
+lib/msal-core/lib-es6/*
+lib/msal-core/lib-commonjs/*
