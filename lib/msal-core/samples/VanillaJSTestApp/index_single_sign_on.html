@@ -73,7 +73,7 @@
         function sendEmail() {
 
             //without queryParam
-            userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+           // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
            // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null )
             //userAgentApplication.acquireTokenRedirect(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
             //userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
@@ -89,7 +89,7 @@
 
             //with domain hint and client id
            // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
-            //  userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=neagrawa@microsoft.com&domain_hint=organizations" )
+              userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
           //  userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
            // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
 
