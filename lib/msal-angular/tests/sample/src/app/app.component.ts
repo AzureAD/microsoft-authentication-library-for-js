@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {BroadcastService, MsalService} from "ms-msal-angular";
+import {BroadcastService, MsalService} from "../../../../dist";
 import {ProductService} from "./product.service";
 import {Subscription} from "rxjs/Subscription";
 
@@ -29,12 +29,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   login()
   {
-   this.authService.login_redirect();
+   this.authService.loginRedirect();
   }
 
   loginPopup()
   {
-    this.authService.login_popup();
+    this.authService.loginPopup();
   }
 
 
@@ -55,8 +55,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
       console.log("login success");
-      var userData = this.authService.get_user();
-      console.log("getUser " + JSON.stringify(this.authService.get_user()));
+      var userData = this.authService.getUser();
+      console.log("getUser " + JSON.stringify(this.authService.getUser()));
       window.localStorage.setItem("userIdentifier" , userData.userIdentifier);
       window.localStorage.setItem("userData" , JSON.stringify(userData));
 

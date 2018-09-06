@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {BroadcastService, MsalService} from "ms-msal-angular";
+import {BroadcastService, MsalService} from "../../../../dist";
 import {Subscription} from "rxjs/Subscription";
 import {MsGraphService} from "./msGraph.service";
 
@@ -50,7 +50,7 @@ export class MsGraphComponent implements OnInit, OnDestroy{
     this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload))
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1) {
-        this.authService.acquire_token_popup(["calendars.read"]).then( (token) => {
+        this.authService.acquireTokenPopup(["calendars.read"]).then( (token) => {
           this.getCalendar();
         },  (error) => {
           this.loadingMessage = "";

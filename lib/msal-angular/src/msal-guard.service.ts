@@ -48,13 +48,18 @@ export class MsalGuard implements CanActivate {
         }
         //token is expired/deleted but userdata still exists in _oauthData object
         else if (!this.authService._oauthData.isAuthenticated && this.authService._oauthData.userName) {
-            this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
-                if (token) {
-                    this.authService._oauthData.isAuthenticated = true;
-                    this.broadcastService.broadcast("msal:loginSuccess", token);
-                }
-            }, (error: any) => {
-                this.broadcastService.broadcast("msal:loginFailure", {error});
+            return new Promise((resolve, reject) => {
+                this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
+                    if (token) {
+                        this.authService._oauthData.isAuthenticated = true;
+                        this.broadcastService.broadcast("msal:loginSuccess", {"token" : token});
+                        resolve (true);
+                    }
+                }, (error: any) => {
+                    var errorParts = error.split('|');
+                    this.broadcastService.broadcast("msal:loginFailure", {"error" : errorParts[0], "errorDesc": errorParts[1]});
+                    resolve(false);
+                });
             });
         }
         else {
