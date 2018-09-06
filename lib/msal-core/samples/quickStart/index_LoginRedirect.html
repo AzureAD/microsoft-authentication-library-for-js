@@ -1,0 +1,86 @@
+<html>
+<head>
+    <title>Quickstart for Microsoft authentication libray for JS</title>
+</head>
+<body>
+<!-- bluebird only needed if this page needs to run on Internet Explorer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
+<script src="https://secure.aadcdn.microsoftonline-p.com/lib/0.2.1/js/msal.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
+
+<div>
+    <div id="label">Sign-in with Microsoft</div>
+    <br>
+    <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
+</div>
+
+<pre class="response"></pre>
+
+<script class="pre">
+
+    var applicationConfig = {
+        clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
+    };
+    //MSAL Initialization
+    var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, {
+        cacheLocation: 'localStorage',
+        logger: logger,
+        storeAuthStateInCookie: true
+    });// cacheLocation defaults to sessionStorage if not set in the constructor
+
+    //Optional Logging
+    var logger = new Msal.Logger(loggerCallback, {level: Msal.LogLevel.Verbose, correlationId: '12345'});
+    function loggerCallback(logLevel, message, piiEnabled) {
+        console.log(message);
+    }
+
+
+    if(userAgentApplication.getUser())
+    {
+        updateUI();
+    }
+    else {
+        var authButton = document.getElementById('auth');
+        authButton.innerHTML = 'login';
+        authButton.setAttribute('onclick', 'loginRedirect();');
+        var label = document.getElementById('label');
+        label.innerText= "Sign-in with Microsoft";
+
+    }
+
+  //token callback
+    function authCallback(errorDesc, token, error, tokenType) {
+        if (token) {
+            console.log("token " + token);
+            updateUI();
+        }
+        else if (errorDesc || error) {
+            console.log(error + ':' + errorDesc);
+        }
+    }
+
+
+    function updateUI(  ) {
+        var authButton = document.getElementById('auth');
+        authButton.innerHTML = 'logout';
+        authButton.setAttribute('onclick', 'logout();');
+        var label = document.getElementById('label');
+        label.innerText= "Welcome to Microsoft Authentication library";
+
+    }
+
+    //invoke login API
+    function loginRedirect() {
+        userAgentApplication.loginRedirect(applicationConfig.graphScopes);
+    }
+
+    //invoke logout API
+    function logout() {
+        // Removes all sessions, need to call AAD endpoint to do full logout
+        userAgentApplication.logout();
+    }
+
+
+</script>
+</body>
+</html>
