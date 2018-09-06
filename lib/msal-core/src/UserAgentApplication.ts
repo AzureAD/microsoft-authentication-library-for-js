@@ -1167,6 +1167,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         const scope = scopes.join(" ").toLowerCase();
         const userObject = user ? user : this.getUser();
+        //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
           if (!userObject && !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )))) {
               this._logger.info('User login is required');
               reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
