@@ -1897,4 +1897,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return this._logger;
     }
 
+    protected test() {
+        return "test";
+    }
+
 }
