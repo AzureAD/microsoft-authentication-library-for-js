@@ -11,6 +11,8 @@ import {Location, PlatformLocation} from "@angular/common";
 import {MsalConfig} from "./msal-config";
 import {BroadcastService} from "./broadcast.service";
 import {Constants} from "msal";
+import {ErrorData} from "./errorData";
+import {SuccessData} from "./successData";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
@@ -48,13 +50,20 @@ export class MsalGuard implements CanActivate {
         }
         //token is expired/deleted but userdata still exists in _oauthData object
         else if (!this.authService._oauthData.isAuthenticated && this.authService._oauthData.userName) {
-            this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
-                if (token) {
-                    this.authService._oauthData.isAuthenticated = true;
-                    this.broadcastService.broadcast("msal:loginSuccess", token);
-                }
-            }, (error: any) => {
-                this.broadcastService.broadcast("msal:loginFailure", {error});
+            return new Promise((resolve, reject) => {
+                this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
+                    if (token) {
+                        this.authService._oauthData.isAuthenticated = true;
+                        const successData = new SuccessData(token ,"");
+                        this.broadcastService.broadcast("msal:loginSuccess",  successData);
+                        resolve (true);
+                    }
+                }, (error: any) => {
+                    var errorParts = error.split('|');
+                    const errorData = new ErrorData(errorParts[0], errorParts[1], "");
+                    this.broadcastService.broadcast("msal:loginFailure", errorData);
+                    resolve(false);
+                });
             });
         }
         else {

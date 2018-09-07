@@ -43,13 +43,13 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
 
     this.broadcastService.subscribe("msal:loginFailure", (payload) => {
-      console.log("login failure");
+      console.log("login failure " + JSON.stringify(payload));
       this.loggedIn = false;
 
     });
 
     this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
-      console.log("login success");
+      console.log("login success " + JSON.stringify(payload));
       this.loggedIn = true;
     });
 
