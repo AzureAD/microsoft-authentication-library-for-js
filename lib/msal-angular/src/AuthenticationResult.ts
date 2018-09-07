@@ -1,4 +1,4 @@
-export class SuccessData {
+export class AuthenticationResult {
     private _token:string;
     private _tokenType:string;
 

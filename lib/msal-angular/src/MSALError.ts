@@ -1,4 +1,4 @@
-export class ErrorData {
+export class MSALError {
     private _error: string;
     private _errorDesc: string;
     private _scopes: string;
