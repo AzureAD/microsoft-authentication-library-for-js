@@ -37,7 +37,7 @@ export class MsalInterceptor implements HttpInterceptor {
                     if (tokenStored && tokenStored.token) {
                         this.auth.clearCacheForScope(tokenStored.token);
                     }
-                    const msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
+                    var msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
                     this.broadcastService.broadcast('msal:notAuthorized', msalError);
                 }
             });
@@ -57,7 +57,7 @@ export class MsalInterceptor implements HttpInterceptor {
                     if (tokenStored && tokenStored.token) {
                         this.auth.clearCacheForScope(tokenStored.token);
                     }
-                    const msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
+                    var msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
                     this.broadcastService.broadcast('msal:notAuthorized', msalError);
                 }
             })); //calling next.handle means we are passing control to next interceptor in chain

@@ -1,11 +1,12 @@
 export class AuthenticationResult {
-    private _token:string;
-    private _tokenType:string;
+    private _token: string = "";
+    private _tokenType: string = "";
 
-    constructor(token?: string , tokenType?: string)
-    {
-    this._token = token;
-    this._tokenType = tokenType;
+    constructor(token: string, tokenType?: string) {
+        this._token = token;
+        if (tokenType) {
+            this._tokenType = tokenType;
+        }
     }
 
     get token(): string {
@@ -23,8 +24,6 @@ export class AuthenticationResult {
     set tokenType(value: string) {
         this._tokenType = value;
     }
-
-
 
 }
 
