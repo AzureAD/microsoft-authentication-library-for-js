@@ -15,7 +15,7 @@
     <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
     <br>
     <br>
-    <button id="callGraph" class="hidden" onclick="callGraph();">Call Microsoft Graph </button>
+    <button id="callGraph" class="hidden" onclick="callGraph();">Call Microsoft Graph</button>
 </div>
 
 <pre class="response"></pre>
@@ -37,13 +37,13 @@
 
     //Optional Logging
     var logger = new Msal.Logger(loggerCallback, {level: Msal.LogLevel.Verbose, correlationId: '12345'});
+
     function loggerCallback(logLevel, message, piiEnabled) {
         console.log(message);
     }
 
-// use the getUser() API to check if user session already exists
-    if(userAgentApplication.getUser())
-    {
+    // use the getUser() API to check if user session already exists
+    if (userAgentApplication.getUser()) {
         updateUI();
     }
     else {
@@ -55,33 +55,39 @@
         callGraphButton.innerHTML = '';
         callGraphButton.style.display = "none";
         var label = document.getElementById('label');
-        label.innerText= "Sign-in with Microsoft";
+        label.innerText = "Sign-in with Microsoft";
 
     }
 
-  //token receive callback
+    //token receive callback
     function authCallback(errorDesc, token, error, tokenType) {
         if (token) {
-            console.log("token " + token);
-            updateUI();
+            if (tokenType === "id_token") {
+                console.log("id token " + token);
+                updateUI();
+            }
+            else  if (tokenType === "access_token") {
+                console.log("access token " + token);
+                httpGetAsync(applicationConfig.graphEndpoint, token, httpGetCallback);
+            }
         }
         else if (errorDesc || error) {
-            console.log(error + ':' + errorDesc);
+            console.log(error + ' : ' + errorDesc);
         }
     }
 
 
-    function updateUI(  ) {
+    function updateUI() {
         var authButton = document.getElementById('auth');
         authButton.innerHTML = 'logout';
         authButton.setAttribute('onclick', 'logout();');
         var label = document.getElementById('label');
-        label.innerText= "Welcome to Microsoft Authentication library";
+        label.innerText = "Welcome to Microsoft Authentication library";
 
         var callGraphButton = document.getElementById('callGraph');
         callGraphButton.innerHTML = 'Call MS Graph';
         callGraphButton.setAttribute('onclick', 'callGraph();');
-        callGraphButton.style.visibility  = "visible";
+        callGraphButton.style.visibility = "visible";
 
     }
 
@@ -106,35 +112,28 @@
         }, function (error) {
             //if silent call fails call the interactive.
             console.log(error);
-            userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
-                console.log("access token " + accessToken);
-                httpGetAsync(applicationConfig.graphEndpoint, accessToken, httpGetCallback);
-            }, function (error) {
-                console.log(error);
-            });
+            userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes);
         });
 
     }
 
     //callback function for XMLHttpRequest
-  function httpGetCallback(responseText)
-  {
-      var res = JSON.parse(responseText);
-      var label = document.getElementById('label');
-      label.innerText= "Welcome to Microsoft Authentication library " +  res.displayName;
-  }
+    function httpGetCallback(responseText) {
+        var res = JSON.parse(responseText);
+        var label = document.getElementById('label');
+        label.innerText = "Welcome to Microsoft Authentication library " + res.displayName;
+    }
 
 
-  //function to make http get request using XMLHttpRequest
-    function httpGetAsync(theUrl, accessToken, callback)
-    {
+    //function to make http get request using XMLHttpRequest
+    function httpGetAsync(theUrl, accessToken, callback) {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
+        xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-              callback(xmlHttp.responseText);
+                callback(xmlHttp.responseText);
         }
         xmlHttp.open("GET", theUrl, true); // true for asynchronous
-        xmlHttp.setRequestHeader('Authorization', 'Bearer ' + accessToken );
+        xmlHttp.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xmlHttp.send(null);
     }
 
