@@ -11,7 +11,11 @@
 <div>
     <div id="label">Sign-in with Microsoft</div>
     <br>
+    <br>
     <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
+    <br>
+    <br>
+    <button id="callGraph" class="hidden" onclick="callGraph();">Call Microsoft Graph </button>
 </div>
 
 <pre class="response"></pre>
@@ -20,7 +24,10 @@
 
     var applicationConfig = {
         clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
+        graphScopes: ["user.read"],
+        graphEndpoint: "https://graph.microsoft.com/v1.0/me"
     };
+
     //MSAL Initialization
     var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, {
         cacheLocation: 'localStorage',
@@ -34,7 +41,7 @@
         console.log(message);
     }
 
-
+// use the getUser() API to check if user session already exists
     if(userAgentApplication.getUser())
     {
         updateUI();
@@ -43,12 +50,16 @@
         var authButton = document.getElementById('auth');
         authButton.innerHTML = 'login';
         authButton.setAttribute('onclick', 'loginRedirect();');
+
+        var callGraphButton = document.getElementById('callGraph');
+        callGraphButton.innerHTML = '';
+        callGraphButton.style.display = "none";
         var label = document.getElementById('label');
         label.innerText= "Sign-in with Microsoft";
 
     }
 
-  //token callback
+  //token receive callback
     function authCallback(errorDesc, token, error, tokenType) {
         if (token) {
             console.log("token " + token);
@@ -67,10 +78,16 @@
         var label = document.getElementById('label');
         label.innerText= "Welcome to Microsoft Authentication library";
 
+        var callGraphButton = document.getElementById('callGraph');
+        callGraphButton.innerHTML = 'Call MS Graph';
+        callGraphButton.setAttribute('onclick', 'callGraph();');
+        callGraphButton.style.visibility  = "visible";
+
     }
 
     //invoke login API
     function loginRedirect() {
+        //passing scopes for consent. No access token would be acquire for these scopes at this time.
         userAgentApplication.loginRedirect(applicationConfig.graphScopes);
     }
 
@@ -80,6 +97,46 @@
         userAgentApplication.logout();
     }
 
+    //Call MS Graph API
+    function callGraph() {
+        console.log(" calling MS Graph...");
+        userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+            console.log("access token " + accessToken);
+            httpGetAsync(applicationConfig.graphEndpoint, accessToken, httpGetCallback);
+        }, function (error) {
+            //if silent call fails call the interactive.
+            console.log(error);
+            userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                console.log("access token " + accessToken);
+                httpGetAsync(applicationConfig.graphEndpoint, accessToken, httpGetCallback);
+            }, function (error) {
+                console.log(error);
+            });
+        });
+
+    }
+
+    //callback function for XMLHttpRequest
+  function httpGetCallback(responseText)
+  {
+      var res = JSON.parse(responseText);
+      var label = document.getElementById('label');
+      label.innerText= "Welcome to Microsoft Authentication library " +  res.displayName;
+  }
+
+
+  //function to make http get request using XMLHttpRequest
+    function httpGetAsync(theUrl, accessToken, callback)
+    {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+              callback(xmlHttp.responseText);
+        }
+        xmlHttp.open("GET", theUrl, true); // true for asynchronous
+        xmlHttp.setRequestHeader('Authorization', 'Bearer ' + accessToken );
+        xmlHttp.send(null);
+    }
 
 </script>
 </body>
