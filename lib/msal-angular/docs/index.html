@@ -270,13 +270,17 @@
 				<h4 id="cors-api-usage">CORS API usage</h4>
 				<p>MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.</p>
 				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
+<span class="xml"><span class="hljs-tag">&lt;&lt;&lt;&lt;&lt;&lt;&lt; <span class="hljs-attr">HEAD</span>
+
+=======
+&gt;</span>&gt;&gt;&gt;&gt;&gt;&gt; dev
 
 @NgModule({
-  <span class="hljs-attr">imports</span>: [ MsalModule.forRoot({
-                  <span class="hljs-attr">clientID</span>: Your client ID,
-                  <span class="hljs-attr">protectedResourceMap</span> : protectedResourceMap
+  imports: [ MsalModule.forRoot({
+                  clientID: Your client ID,
+                  protectedResourceMap : protectedResourceMap
                 })]
-           })
+           })</span>
 </code></pre>
 				<p>In your API project, you need to enable CORS API requests to receive flight requests.</p>
 				<blockquote>
