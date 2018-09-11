@@ -11,6 +11,8 @@ import {Location, PlatformLocation} from "@angular/common";
 import {MsalConfig} from "./msal-config";
 import {BroadcastService} from "./broadcast.service";
 import {Constants} from "msal";
+import {MSALError} from "./MSALError";
+import {AuthenticationResult} from "./AuthenticationResult";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
@@ -52,12 +54,14 @@ export class MsalGuard implements CanActivate {
                 this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
                     if (token) {
                         this.authService._oauthData.isAuthenticated = true;
-                        this.broadcastService.broadcast("msal:loginSuccess", {"token" : token});
+                        var authenticationResult = new AuthenticationResult(token );
+                        this.broadcastService.broadcast("msal:loginSuccess",  authenticationResult);
                         resolve (true);
                     }
                 }, (error: any) => {
                     var errorParts = error.split('|');
-                    this.broadcastService.broadcast("msal:loginFailure", {"error" : errorParts[0], "errorDesc": errorParts[1]});
+                    var msalError = new MSALError(errorParts[0], errorParts[1], "");
+                    this.broadcastService.broadcast("msal:loginFailure", msalError);
                     resolve(false);
                 });
             });

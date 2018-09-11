@@ -16,7 +16,7 @@ export class MsalConfig {
     consentScopes?: string[];
     isAngular?:true;
     unprotectedResources? :  string[];
-    protectedResourceMap?:[string, string[]][];
+    protectedResourceMap?: [string, string[]][];
     extraQueryParameters?: string;
     correlationId?: string;
     level?: LogLevel;

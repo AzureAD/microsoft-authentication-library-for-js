@@ -221,11 +221,12 @@
 					</li>
 					<li><p><strong>unprotectedResources</strong> : Array of  URI&#39;s. Msal will not attach a token to outgoing requests that have these uri. Defaults to &#39;null&#39;.</p>
 					</li>
-					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes  {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
-						This is required only for CORS calls.</p>
-						<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
-</code></pre>
-					</li>
+					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes  {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.</p>
+						<pre><code>                       <span class="hljs-type">This</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">required</span> only <span class="hljs-keyword">for</span> <span class="hljs-type">CORS</span> calls.
+</code></pre></li>
+				</ul>
+				<p>export const protectedResourceMap:[string, string[]][]=[ [&#39;<a href="https://buildtodoservice.azurewebsites.net/api/todolist&#39;,[&#39;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&#39;]]">https://buildtodoservice.azurewebsites.net/api/todolist&#39;,[&#39;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&#39;]]</a> , [&#39;<a href="https://graph.microsoft.com/v1.0/me&#39;">https://graph.microsoft.com/v1.0/me&#39;</a>, [&#39;user.read&#39;]] ];</p>
+				<ul>
 					<li><p><strong>level</strong> : Configurable log level. Default value is Info.</p>
 					</li>
 					<li><p><strong>logger</strong> : Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature.
@@ -269,14 +270,17 @@
 				<h4 id="cors-api-usage">CORS API usage</h4>
 				<p>MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.</p>
 				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
+<span class="xml"><span class="hljs-tag">&lt;&lt;&lt;&lt;&lt;&lt;&lt; <span class="hljs-attr">HEAD</span>
 
+=======
+&gt;</span>&gt;&gt;&gt;&gt;&gt;&gt; dev
 
 @NgModule({
-  <span class="hljs-attr">imports</span>: [ MsalModule.forRoot({
-                  <span class="hljs-attr">clientID</span>: Your client ID,
-                  <span class="hljs-attr">protectedResourceMap</span> : protectedResourceMap
+  imports: [ MsalModule.forRoot({
+                  clientID: Your client ID,
+                  protectedResourceMap : protectedResourceMap
                 })]
-           })
+           })</span>
 </code></pre>
 				<p>In your API project, you need to enable CORS API requests to receive flight requests.</p>
 				<blockquote>
@@ -332,6 +336,12 @@ npm <span class="hljs-keyword">run</span><span class="bash"> <span class="hljs-b
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_authenticationresult_.html">"<wbr>Authentication<wbr>Result"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_msalerror_.html">"MSALError"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_broadcast_service_.html">"broadcast.service"</a>

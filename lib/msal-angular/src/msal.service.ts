@@ -12,6 +12,8 @@ import {
      Router
 } from "@angular/router";
 import {BroadcastService} from "./broadcast.service";
+import {AuthenticationResult} from "./AuthenticationResult";
+import {MSALError} from "./MSALError";
 
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
 
@@ -19,7 +21,7 @@ export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
 export class MsalService extends UserAgentApplication {
     public user: any;
     _oauthData = {isAuthenticated: false, userName: "", loginError: "", idToken: {}};
-    loginScopes: string[];
+    private loginScopes: string[];
     _renewActive: boolean;
 
     constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private router: Router, private broadcastService: BroadcastService) {
@@ -49,12 +51,13 @@ export class MsalService extends UserAgentApplication {
 
         window.addEventListener('msal:popUpClosed', (e: CustomEvent) => {
             var errorParts = e.detail.split('|');
+            var msalError = new MSALError(errorParts[0], errorParts[1]);
             if (this.loginInProgress()) {
-                broadcastService.broadcast('msal:loginFailure', {"error" : errorParts[0], "errorDesc": errorParts[1]});
+                broadcastService.broadcast('msal:loginFailure', msalError);
                 this.setloginInProgress(false);
             }
             else if (this.getAcquireTokenInProgress()) {
-                broadcastService.broadcast('msal:acquireTokenFailure', {"error": errorParts[0], "errorDesc": errorParts[1]});
+                broadcastService.broadcast('msal:acquireTokenFailure', msalError);
                 this.setAcquireTokenInProgress(false);
             }
         });
@@ -124,24 +127,28 @@ export class MsalService extends UserAgentApplication {
             var error = requestInfo.parameters["error"];
             var errorDescription = requestInfo.parameters["error_description"];
             var tokenType = null;
+            var msalError = new MSALError(error, errorDescription);
+            var authenticationResult = new AuthenticationResult(token);
 
             if (requestInfo.stateMatch) {
                 if (requestInfo.requestType === "RENEW_TOKEN") {
                     tokenType = Constants.accessToken;
+                    authenticationResult.tokenType = tokenType;
                     this._renewActive = false;
                     // Call within the same context without full page redirect keeps the callback
                     // id_token or access_token can be renewed
                     if (window.parent === window && !window.parent.callBackMappedToRenewStates[requestInfo.stateResponse]) {
                         if (token) {
-                            this.broadcastService.broadcast("msal:acquireTokenSuccess", {"token" : token});
+                            this.broadcastService.broadcast("msal:acquireTokenSuccess", authenticationResult);
                         }
                         else if (error && errorDescription) {
-                            this.broadcastService.broadcast("msal:acquireTokenFailure", {"error":  error, "errorDesc": errorDescription});
+                            this.broadcastService.broadcast("msal:acquireTokenFailure",   msalError);
                         }
                     }
 
                 } else if (requestInfo.requestType === "LOGIN") {
                     tokenType = Constants.idToken;
+                    authenticationResult.tokenType = tokenType;
                     this.updateDataFromCache(this.loginScopes);
                     if (this._oauthData.userName) {
                         setTimeout(() => {
@@ -150,9 +157,9 @@ export class MsalService extends UserAgentApplication {
                             //todo temp commented
                             //  this.userInfo = this._oauthData;
                         }, 1);
-                        this.broadcastService.broadcast("msal:loginSuccess", {"token": token});
+                        this.broadcastService.broadcast("msal:loginSuccess", authenticationResult);
                     } else {
-                        this.broadcastService.broadcast("msal:loginFailure", {"error":  error, "errorDesc": errorDescription});
+                        this.broadcastService.broadcast("msal:loginFailure", msalError);
                     }
                 }
 
@@ -188,7 +195,7 @@ export class MsalService extends UserAgentApplication {
             }
             else {
                 // state did not match, broadcast an error
-                this.broadcastService.broadcast("msal:stateMismatch", {"error":  error, "errorDesc": errorDescription});
+                this.broadcastService.broadcast("msal:stateMismatch", msalError);
             }
         }
         else {
@@ -208,23 +215,27 @@ export class MsalService extends UserAgentApplication {
         const error = requestInfo.parameters[Constants.error];
         var tokenType: string;
         this._cacheStorage.removeItem(Constants.urlHash);
+        var msalError = new MSALError(error, errorDesc);
+        var authenticationResult = new AuthenticationResult(token);
         if (requestInfo.parameters[Constants.accessToken]) {
             tokenType = Constants.accessToken;
             if (token) {
-                this.broadcastService.broadcast("msal:acquireTokenSuccess", {"token": token});
+                authenticationResult.tokenType= tokenType;
+                this.broadcastService.broadcast("msal:acquireTokenSuccess", authenticationResult);
             }
             else if (error && errorDesc) {
                 //TODO this should also send back the scopes
-                this.broadcastService.broadcast("msal:acquireTokenFailure", {"error":  error, "errorDesc": errorDesc});
+                this.broadcastService.broadcast("msal:acquireTokenFailure", msalError);
             }
         }
         else {
             tokenType = Constants.idToken;
             if (token) {
-                this.broadcastService.broadcast("msal:loginSuccess", {"token" :token});
+                authenticationResult.tokenType= tokenType;
+                this.broadcastService.broadcast("msal:loginSuccess", authenticationResult);
             }
             else if (error && errorDesc) {
-                this.broadcastService.broadcast("msal:loginFailure", { "error": error, "errorDesc": errorDesc});
+                this.broadcastService.broadcast("msal:loginFailure", msalError);
             }
         }
     }
@@ -281,12 +292,14 @@ export class MsalService extends UserAgentApplication {
         this._logger.verbose("login popup flow");
         return new Promise((resolve, reject) => {
             super.loginPopup(consentScopes, extraQueryParameters).then((idToken) => {
-                this.broadcastService.broadcast("msal:loginSuccess", {idToken});
+                var authenticationResult = new AuthenticationResult(idToken, "idToken");
+                this.broadcastService.broadcast("msal:loginSuccess", authenticationResult);
                 resolve(idToken);
             }, (error: any) => {
-                this._logger.error("Error during login:\n" + error);
                 var errorParts = error.split('|');
-                this.broadcastService.broadcast("msal:loginFailure", {"error" :errorParts[0],"errorDesc": errorParts[1]});
+                var msalError = new MSALError(errorParts[0], errorParts[1]);
+                this._logger.error("Error during login:\n" + error);
+                this.broadcastService.broadcast("msal:loginFailure", msalError);
                 reject( error);
             });
         });
@@ -305,12 +318,14 @@ export class MsalService extends UserAgentApplication {
         return new Promise((resolve, reject) => {
             super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', {"token": token});
+                var authenticationResult = new AuthenticationResult(token);
+                this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
                 resolve(token);
             }, (error: any) => {
                 var errorParts = error.split('|');
+                var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', {"error":errorParts[0], "errorDesc": errorParts[1]});
+                this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
                 this._logger.error('Error when acquiring token for scopes: ' + scopes + " " + error);
                 reject(error);
             })
@@ -322,13 +337,15 @@ export class MsalService extends UserAgentApplication {
         return new Promise((resolve, reject) => {
             super.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', {"token": token});
+                var authenticationResult = new AuthenticationResult(token);
+                this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
                 resolve(token);
             }, (error: any) => {
                 var errorParts = error.split('|');
+                var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', {"error":errorParts[0], "errorDesc": errorParts[1]});
-                this._logger.error('Error when acquiring token for scopes : ' + scopes + " " + error);
+                this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
+                this._logger.error('Error when acquiring token for scopes : ' + scopes +" "+  error);
                 reject(error);
             })
         });

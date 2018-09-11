@@ -22,7 +22,9 @@ export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
 }
 
+
 export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
+
 
 @NgModule({
   declarations: [
@@ -41,7 +43,7 @@ export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoserv
         cacheLocation : "localStorage",
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
-        popUp: true,
+        popUp: false,
         consentScopes: [ "user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
         unprotectedResources: ["https://www.microsoft.com/en-us/"],
         protectedResourceMap: protectedResourceMap,

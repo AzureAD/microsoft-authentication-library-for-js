@@ -176,10 +176,9 @@ only consent it and no access token will be acquired till the time client actual
 * **unprotectedResources** : Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'.
 
 * **protectedResourceMap** : Mapping of resources to scopes  {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
-This is required only for CORS calls.
-```js
+                             This is required only for CORS calls.	
+                            
 export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
-```
 
 * **level** : Configurable log level. Default value is Info.
 
@@ -233,7 +232,10 @@ MSAL will get access tokens using a hidden Iframe for given CORS API endpoints i
 
 ```js
 export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
+<<<<<<< HEAD
 
+=======
+>>>>>>> dev
 
 @NgModule({
   imports: [ MsalModule.forRoot({
