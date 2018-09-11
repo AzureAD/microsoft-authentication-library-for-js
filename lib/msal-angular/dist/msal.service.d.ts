@@ -18,7 +18,7 @@ export declare class MsalService extends UserAgentApplication {
         loginError: string;
         idToken: {};
     };
-    loginScopes: string[];
+    private loginScopes;
     _renewActive: boolean;
     constructor(config: MsalConfig, router: Router, broadcastService: BroadcastService);
     updateDataFromCache(scopes: string[]): void;

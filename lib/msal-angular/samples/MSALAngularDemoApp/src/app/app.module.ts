@@ -1,7 +1,6 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {HttpModule} from '@angular/http';
 import {RouterModule} from '@angular/router';
 import {AppComponent} from './app.component';
 import {HomeComponent} from './home/home.component'
@@ -23,9 +22,9 @@ export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
 }
 
-export const protectedResourceMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-protectedResourceMap.set("https://buildtodoservice.azurewebsites.net/api/todolist", ["api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]);
-protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
+
+export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
+
 
 @NgModule({
   declarations: [
@@ -34,9 +33,8 @@ protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule,
     HttpClientModule,
-    RouterModule.forRoot(appRoutes),  // RouterModule.forRoot(appRoutes,{useHash:true}) for hashbang url
+    RouterModule.forRoot(appRoutes,{useHash:true}) ,
     MsalModule.forRoot({
         clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
         authority: "https://login.microsoftonline.com/common/",
@@ -45,7 +43,7 @@ protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
         cacheLocation : "localStorage",
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
-        popUp: true,
+        popUp: false,
         consentScopes: [ "user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
         unprotectedResources: ["https://www.microsoft.com/en-us/"],
         protectedResourceMap: protectedResourceMap,
