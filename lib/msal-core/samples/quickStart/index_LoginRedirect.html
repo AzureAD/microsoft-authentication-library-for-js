@@ -1,6 +1,15 @@
 <html>
 <head>
-    <title>Quickstart for Microsoft authentication libray for JS</title>
+    <title>Quickstart for Microsoft authentication library for JS</title>
+    <style>
+        .hidden {
+            visibility: hidden;
+        }
+
+        .visible {
+            visibility: visible;
+        }
+    </style>
 </head>
 <body>
 <!-- bluebird only needed if this page needs to run on Internet Explorer -->
@@ -12,7 +21,7 @@
     <div id="label">Sign-in with Microsoft</div>
     <br>
     <br>
-    <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
+    <button id="auth" onclick="loginRedirect();">Login</button>
     <br>
     <br>
     <button id="callGraph" class="hidden" onclick="callGraph();">Call Microsoft Graph</button>
@@ -21,7 +30,7 @@
 <pre class="response"></pre>
 
 <script class="pre">
-
+//=========================================================================== Authentication code =======================================================================================
     var applicationConfig = {
         clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
         graphScopes: ["user.read"],
@@ -46,17 +55,21 @@
     if (userAgentApplication.getUser()) {
         updateUI();
     }
-    else {
-        var authButton = document.getElementById('auth');
-        authButton.innerHTML = 'login';
-        authButton.setAttribute('onclick', 'loginRedirect();');
+    else
+    {
+        //do something
+    }
 
-        var callGraphButton = document.getElementById('callGraph');
-        callGraphButton.innerHTML = '';
-        callGraphButton.style.display = "none";
-        var label = document.getElementById('label');
-        label.innerText = "Sign-in with Microsoft";
+    //invoke login API
+    function loginRedirect() {
+        //passing scopes for consent. No access token would be acquire for these scopes at this time.
+        userAgentApplication.loginRedirect(applicationConfig.graphScopes);
+    }
 
+    //invoke logout API
+    function logout() {
+        // Removes all sessions, need to call AAD endpoint to do full logout
+        userAgentApplication.logout();
     }
 
     //token receive callback
@@ -77,32 +90,6 @@
     }
 
 
-    function updateUI() {
-        var authButton = document.getElementById('auth');
-        authButton.innerHTML = 'logout';
-        authButton.setAttribute('onclick', 'logout();');
-        var label = document.getElementById('label');
-        label.innerText = "Welcome to Microsoft Authentication library";
-
-        var callGraphButton = document.getElementById('callGraph');
-        callGraphButton.innerHTML = 'Call MS Graph';
-        callGraphButton.setAttribute('onclick', 'callGraph();');
-        callGraphButton.style.visibility = "visible";
-
-    }
-
-    //invoke login API
-    function loginRedirect() {
-        //passing scopes for consent. No access token would be acquire for these scopes at this time.
-        userAgentApplication.loginRedirect(applicationConfig.graphScopes);
-    }
-
-    //invoke logout API
-    function logout() {
-        // Removes all sessions, need to call AAD endpoint to do full logout
-        userAgentApplication.logout();
-    }
-
     //Call MS Graph API
     function callGraph() {
         console.log(" calling MS Graph...");
@@ -116,12 +103,26 @@
         });
 
     }
+//===========================================================================Authentication code ends here ========================================================================
+    function updateUI() {
+        var authButton = document.getElementById('auth');
+        authButton.innerHTML = 'logout';
+        authButton.setAttribute('onclick', 'logout();');
+        var label = document.getElementById('label');
+        label.innerText = "Welcome to Microsoft Authentication library!!";
+
+        var callGraphButton = document.getElementById('callGraph');
+        callGraphButton.innerHTML = 'Call MS Graph';
+        callGraphButton.setAttribute('onclick', 'callGraph();');
+        callGraphButton.style.visibility = "visible";
+
+    }
 
     //callback function for XMLHttpRequest
     function httpGetCallback(responseText) {
         var res = JSON.parse(responseText);
         var label = document.getElementById('label');
-        label.innerText = "Welcome to Microsoft Authentication library " + res.displayName;
+        label.innerText = "Welcome " + res.displayName + " to Microsoft Graph API!!";
     }
 
 
