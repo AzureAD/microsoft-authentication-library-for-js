@@ -17,12 +17,9 @@
     <script src="dist/msal.js" class="pre"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
 
+    <h1>Single sign on </h1>
     <h1>Sending an email with msal.js and Microsoft Graph</h1>
-    <div>
-        <div id="label">Sign-in with Microsoft</div>
-        <button id="auth" onclick="loginRedirect();">Login (with Redirect)</button>
-    </div>
-    <div id="sendEmail" class="hidden">
+    <div id="sendEmail">
         <input id="emailToSendTo" type="text" />
         <button id="auth" onclick="sendEmail();">Send email</button>
     </div>
@@ -31,7 +28,7 @@
 
     <script class="pre">
         var applicationConfig = {
-            clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
+            clientID:  '78b2b4ce-941b-4378-8d5f-197a28d6d120',
             graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
             graphScopes: ["user.read", "mail.send"]
         };
@@ -43,27 +40,11 @@
             console.log(message);
         }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: true , state:"12345", navigateToLoginRequestUrl: false});// cacheLocation defaults to sessionStorage if not set in the constructor
-        function authCallback(errorDesc, token, error, tokenType, state) {
-            console.log("user state " + state);
-            //This function is called after loginRedirect and acquireTokenRedirect. Use tokenType to determine context. 
-            //For loginRedirect, tokenType = "id_token". For acquireTokenRedirect, tokenType:"access_token".
-            if (token) {
-                this.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
-                    // Change button to Sign Out
-                    updateUI();
-                }, function (error) {
-                    console.log(error);
-                    this.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
-                        updateUI();
-                    }, function (error) {
-                        console.log(error);
-                    });
-                });
-            }
-            else if (errorDesc || error) {
-                console.log(error + ':' + errorDesc);
-            }
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: true , navigateToLoginRequestUrl: false});// cacheLocation defaults to sessionStorage if not set in the constructor
+
+        function authCallback(errorDesc, token, error, tokenType) {
+            console.log(" token " + token);
+            console.log(" error " + error + "  errorDesc " + errorDesc);
         }
         
         function updateUI() {
@@ -90,7 +71,33 @@
         }
 
         function sendEmail() {
-            userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes)
+
+            //without queryParam
+           // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+           // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null )
+            //userAgentApplication.acquireTokenRedirect(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+            //userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+            //userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null )
+            //userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+
+
+
+            //without domain_hint
+          // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>" )
+          // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>)
+
+
+            //with domain hint and client id
+           // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+              userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+          //  userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+           // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+
+            //with domain hint and api scopes
+            //userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+           // userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+          //   userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+            // userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
                 .then(function (token, error) {
                     $.ajax({
                         type: "POST",
@@ -116,6 +123,16 @@
                         }
                     });
                 });
+
+            // acquireTokenRedirect
+            //userAgentApplication.acquireTokenRedirect(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+            // this should result in an error. sid can't be used with prompt=select_account
+            //userAgentApplication.acquireTokenRedirect(['9f064d41-aa20-4561-9aa5-d1a63f2c6130'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+            //this should result in an error. sid can't be used with prompt=select_account
+            //userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+             //userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+
+
         }
 
         function log(s) {
