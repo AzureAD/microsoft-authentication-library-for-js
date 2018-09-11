@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>MsalInterceptor | @azure/msal-angular</title>
+	<title>AuthenticationResult | @azure/msal-angular</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,13 +56,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_msal_interceptor_.html">&quot;msal.interceptor&quot;</a>
+					<a href="../modules/_authenticationresult_.html">&quot;AuthenticationResult&quot;</a>
 				</li>
 				<li>
-					<a href="_msal_interceptor_.msalinterceptor.html">MsalInterceptor</a>
+					<a href="_authenticationresult_.authenticationresult.html">AuthenticationResult</a>
 				</li>
 			</ul>
-			<h1>Class MsalInterceptor</h1>
+			<h1>Class AuthenticationResult</h1>
 		</div>
 	</div>
 </header>
@@ -73,14 +73,8 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">MsalInterceptor</span>
+						<span class="target">AuthenticationResult</span>
 					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel">
-				<h3>Implements</h3>
-				<ul class="tsd-hierarchy">
-					<li><span class="tsd-signature-type">HttpInterceptor</span></li>
 				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -90,20 +84,21 @@
 						<section class="tsd-index-section tsd-is-external">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="_msal_interceptor_.msalinterceptor.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="_authenticationresult_.authenticationresult.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-private tsd-is-private-protected tsd-is-external">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_msal_interceptor_.msalinterceptor.html#auth" class="tsd-kind-icon">auth</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_msal_interceptor_.msalinterceptor.html#broadcastservice" class="tsd-kind-icon">broadcast<wbr>Service</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_authenticationresult_.authenticationresult.html#_token" class="tsd-kind-icon">_token</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external"><a href="_authenticationresult_.authenticationresult.html#_tokentype" class="tsd-kind-icon">_token<wbr>Type</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-external">
-							<h3>Methods</h3>
+							<h3>Accessors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="_msal_interceptor_.msalinterceptor.html#intercept" class="tsd-kind-icon">intercept</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-external"><a href="_authenticationresult_.authenticationresult.html#token" class="tsd-kind-icon">token</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-external"><a href="_authenticationresult_.authenticationresult.html#tokentype" class="tsd-kind-icon">token<wbr>Type</a></li>
 							</ul>
 						</section>
 					</div>
@@ -115,25 +110,25 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Msal<wbr>Interceptor<span class="tsd-signature-symbol">(</span>auth<span class="tsd-signature-symbol">: </span><a href="_msal_service_.msalservice.html" class="tsd-signature-type">MsalService</a>, broadcastService<span class="tsd-signature-symbol">: </span><a href="_broadcast_service_.broadcastservice.html" class="tsd-signature-type">BroadcastService</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_msal_interceptor_.msalinterceptor.html" class="tsd-signature-type">MsalInterceptor</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Authentication<wbr>Result<span class="tsd-signature-symbol">(</span>token<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, tokenType<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_authenticationresult_.authenticationresult.html" class="tsd-signature-type">AuthenticationResult</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.interceptor.ts#L16">msal.interceptor.ts:16</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L3">AuthenticationResult.ts:3</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>auth: <a href="_msal_service_.msalservice.html" class="tsd-signature-type">MsalService</a></h5>
+									<h5>token: <span class="tsd-signature-type">string</span></h5>
 								</li>
 								<li>
-									<h5>broadcastService: <a href="_broadcast_service_.broadcastservice.html" class="tsd-signature-type">BroadcastService</a></h5>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> tokenType: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_msal_interceptor_.msalinterceptor.html" class="tsd-signature-type">MsalInterceptor</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_authenticationresult_.authenticationresult.html" class="tsd-signature-type">AuthenticationResult</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -141,51 +136,89 @@
 			<section class="tsd-panel-group tsd-member-group tsd-is-private tsd-is-private-protected tsd-is-external">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external">
-					<a name="auth" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagPrivate">Private</span> auth</h3>
-					<div class="tsd-signature tsd-kind-icon">auth<span class="tsd-signature-symbol">:</span> <a href="_msal_service_.msalservice.html" class="tsd-signature-type">MsalService</a></div>
+					<a name="_token" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> _token</h3>
+					<div class="tsd-signature tsd-kind-icon">_token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.interceptor.ts#L18">msal.interceptor.ts:18</a></li>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L2">AuthenticationResult.ts:2</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external">
-					<a name="broadcastservice" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagPrivate">Private</span> broadcast<wbr>Service</h3>
-					<div class="tsd-signature tsd-kind-icon">broadcast<wbr>Service<span class="tsd-signature-symbol">:</span> <a href="_broadcast_service_.broadcastservice.html" class="tsd-signature-type">BroadcastService</a></div>
+					<a name="_tokentype" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> _token<wbr>Type</h3>
+					<div class="tsd-signature tsd-kind-icon">_token<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.interceptor.ts#L18">msal.interceptor.ts:18</a></li>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L3">AuthenticationResult.ts:3</a></li>
 						</ul>
 					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group tsd-is-external">
-				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
-					<a name="intercept" class="tsd-anchor"></a>
-					<h3>intercept</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">intercept<span class="tsd-signature-symbol">(</span>req<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HttpRequest</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span>, next<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HttpHandler</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">HttpEvent</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+					<a name="token" class="tsd-anchor"></a>
+					<h3>token</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> token<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> token<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.interceptor.ts#L20">msal.interceptor.ts:20</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L13">AuthenticationResult.ts:13</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L17">AuthenticationResult.ts:17</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>req: <span class="tsd-signature-type">HttpRequest</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5>
-								</li>
-								<li>
-									<h5>next: <span class="tsd-signature-type">HttpHandler</span></h5>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">HttpEvent</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+					<a name="tokentype" class="tsd-anchor"></a>
+					<h3>token<wbr>Type</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> tokenType<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> tokenType<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L21">AuthenticationResult.ts:21</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/AuthenticationResult.ts#L25">AuthenticationResult.ts:25</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -206,7 +239,7 @@
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
+					<li class="current tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_authenticationresult_.html">"<wbr>Authentication<wbr>Result"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
@@ -221,7 +254,7 @@
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_msal_guard_service_.html">"msal-<wbr>guard.service"</a>
 					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_msal_interceptor_.html">"msal.interceptor"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
@@ -237,19 +270,22 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="_msal_interceptor_.msalinterceptor.html" class="tsd-kind-icon">Msal<wbr>Interceptor</a>
+						<a href="_authenticationresult_.authenticationresult.html" class="tsd-kind-icon">Authentication<wbr>Result</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_interceptor_.msalinterceptor.html#constructor" class="tsd-kind-icon">constructor</a>
+								<a href="_authenticationresult_.authenticationresult.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external">
-								<a href="_msal_interceptor_.msalinterceptor.html#auth" class="tsd-kind-icon">auth</a>
+								<a href="_authenticationresult_.authenticationresult.html#_token" class="tsd-kind-icon">_token</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external">
-								<a href="_msal_interceptor_.msalinterceptor.html#broadcastservice" class="tsd-kind-icon">broadcast<wbr>Service</a>
+								<a href="_authenticationresult_.authenticationresult.html#_tokentype" class="tsd-kind-icon">_token<wbr>Type</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
-								<a href="_msal_interceptor_.msalinterceptor.html#intercept" class="tsd-kind-icon">intercept</a>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+								<a href="_authenticationresult_.authenticationresult.html#token" class="tsd-kind-icon">token</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-external">
+								<a href="_authenticationresult_.authenticationresult.html#tokentype" class="tsd-kind-icon">token<wbr>Type</a>
 							</li>
 						</ul>
 					</li>

@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/msal-config.ts"],"names":[],"mappings":"AAGA,MAAM;IAAN;QAEI,cAAS,GAAI,0CAA0C,CAAC;QAExD,sBAAiB,GAAK,IAAI,CAAC;QAC3B,kBAAa,GAAI,gBAAgB,CAAC;QAIlC,qBAAgB,GAAI,IAAI,CAAC;QACzB,8BAAyB,GAAG,IAAI,CAAE;IAWtC,CAAC;CAAA","file":"msal-config.js","sourceRoot":""}
+{"version":3,"file":"msal-config.js","sourceRoot":"","sources":["../src/msal-config.ts"],"names":[],"mappings":"AAGA,MAAM;;yBAEW,0CAA0C;iCAEjC,IAAI;6BACT,gBAAgB;gCAIb,IAAI;yCACI,IAAI;;CAWnC"}

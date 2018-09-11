@@ -65,7 +65,7 @@
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
 				<h1 id="microsoft-authentication-library-for-angular-preview">Microsoft Authentication Library for Angular Preview</h1>
-				<p>The MSAL library preview for Angular is a wrapper of the core MSAL.js library which enables Angular(4.3 and above) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
+				<p>The MSAL library preview for Angular is a wrapper of the core MSAL.js library which enables Angular(4.3 to 5) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to <a href="https://cloud.microsoft.com">Microsoft Cloud</a> OR  <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
 				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a></p>
 				<h2 id="important-note-about-the-msal-angular-preview">Important Note about the MSAL Angular Preview</h2>
 				<p>This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.</p>
@@ -221,9 +221,12 @@
 					</li>
 					<li><p><strong>unprotectedResources</strong> : Array of  URI&#39;s. Msal will not attach a token to outgoing requests that have these uri. Defaults to &#39;null&#39;.</p>
 					</li>
-					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
-						This is required only for CORS calls.</p>
-					</li>
+					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes  {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.</p>
+						<pre><code>                       <span class="hljs-type">This</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">required</span> only <span class="hljs-keyword">for</span> <span class="hljs-type">CORS</span> calls.
+</code></pre></li>
+				</ul>
+				<p>export const protectedResourceMap:[string, string[]][]=[ [&#39;<a href="https://buildtodoservice.azurewebsites.net/api/todolist&#39;,[&#39;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&#39;]]">https://buildtodoservice.azurewebsites.net/api/todolist&#39;,[&#39;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&#39;]]</a> , [&#39;<a href="https://graph.microsoft.com/v1.0/me&#39;">https://graph.microsoft.com/v1.0/me&#39;</a>, [&#39;user.read&#39;]] ];</p>
+				<ul>
 					<li><p><strong>level</strong> : Configurable log level. Default value is Info.</p>
 					</li>
 					<li><p><strong>logger</strong> : Callback instance that can be provided by the developer to consume and publish logs in a custom manner. Callback method must follow this signature.
@@ -266,10 +269,7 @@
 				You should protect your site for XSS. Please check the article here: <a href="https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting">https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet</a>_Prevention_Cheat_Sheet)</p>
 				<h4 id="cors-api-usage">CORS API usage</h4>
 				<p>MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.</p>
-				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span>  protectedResourceMap: <span class="hljs-built_in">Map</span>&lt;string, <span class="hljs-built_in">Array</span>&lt;string&gt;&gt; = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Map</span>&lt;string, <span class="hljs-built_in">Array</span>&lt;string&gt;&gt;();
-
-protectedResourceMap.set(<span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>, [<span class="hljs-string">"user.read"</span>]);
-protectedResourceMap.set(<span class="hljs-string">"https://buildtodoservice.azurewebsites.net/api/todolist"</span>, [<span class="hljs-string">"api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"</span>]);
+				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
 
 @NgModule({
   <span class="hljs-attr">imports</span>: [ MsalModule.forRoot({
@@ -332,6 +332,12 @@ npm <span class="hljs-keyword">run</span><span class="bash"> <span class="hljs-b
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_authenticationresult_.html">"<wbr>Authentication<wbr>Result"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_msalerror_.html">"MSALError"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/_broadcast_service_.html">"broadcast.service"</a>
