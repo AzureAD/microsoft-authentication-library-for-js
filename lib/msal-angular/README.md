@@ -232,10 +232,6 @@ MSAL will get access tokens using a hidden Iframe for given CORS API endpoints i
 
 ```js
 export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
-<<<<<<< HEAD
-
-=======
->>>>>>> dev
 
 @NgModule({
   imports: [ MsalModule.forRoot({
