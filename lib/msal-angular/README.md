@@ -13,6 +13,10 @@ This library is suitable for use in a production environment. We provide the sam
 ## Installation
 The msal-angular package is available on NPM:
 
+`npm install msal-angular --save`
+
+or
+
 `npm install @azure/msal-angular --save`
 
 ## Usage
