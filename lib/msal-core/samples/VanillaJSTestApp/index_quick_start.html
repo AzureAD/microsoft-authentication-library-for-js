@@ -81,7 +81,7 @@
 
         function showWelcomeMessage() {
             var divWelcome = document.getElementById('WelcomeMessage');
-            divWelcome.innerHTML += 'Welcome ' + msal.getUser().name;
+            divWelcome.innerHTML += 'Welcome ' + myMSALObj.getUser().name;
             var loginbutton = document.getElementById('SignIn');
             loginbutton.innerHTML = 'Sign Out';
             loginbutton.setAttribute('onclick', 'signOut();');
