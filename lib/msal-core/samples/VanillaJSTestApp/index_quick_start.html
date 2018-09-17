@@ -25,7 +25,7 @@
         };
 
         //pass null for default authority (https://login.microsoftonline.com/common) and tokenReceivedCallback if using popup api's'
-        var myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, null, null);
+        var myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, null, null, { cacheLocation: 'localStorage'});
 
         function signIn() {
             myMSALObj.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
