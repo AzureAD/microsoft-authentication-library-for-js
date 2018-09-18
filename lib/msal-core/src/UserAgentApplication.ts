@@ -356,37 +356,51 @@ export class UserAgentApplication {
       scopes = this.filterScopes(scopes);
     }
 
-    this._loginInProgress = true;
-    
-    this.authorityInstance.ResolveEndpointsAsync()
-      .then(() => {
-        const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
-        if (extraQueryParameters) {
-          authenticationRequest.extraQueryParameters = extraQueryParameters;
-        }
+      this._loginInProgress = true;
+      const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+      var idTokenObject;
+      if(adalIdToken) {
+           idTokenObject = Utils.extractIdToken(adalIdToken);
+      }
+      if (idTokenObject && idTokenObject.upn ) {
+          console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+          var extraQueryParam= "&" + Constants.login_hint+ "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+          this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParam)
+              .then((idToken) => {
+                  this._tokenReceivedCallback.call(this, "", idToken, "", "idToken", "");
+              });
+      }
+      else {
+          this.authorityInstance.ResolveEndpointsAsync()
+              .then(() => {
+                  const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+                  if (extraQueryParameters) {
+                      authenticationRequest.extraQueryParameters = extraQueryParameters;
+                  }
 
-        var loginStartPage = this._cacheStorage.getItem(Constants.angularLoginRequest);
-        if (!loginStartPage || loginStartPage === "") {
-            loginStartPage = window.location.href;
-        }
-        else {
-            this._cacheStorage.setItem(Constants.angularLoginRequest, "")
-        }
+                  var loginStartPage = this._cacheStorage.getItem(Constants.angularLoginRequest);
+                  if (!loginStartPage || loginStartPage === "") {
+                      loginStartPage = window.location.href;
+                  }
+                  else {
+                      this._cacheStorage.setItem(Constants.angularLoginRequest, "")
+                  }
 
-        this._cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.storeAuthStateInCookie);
-        this._cacheStorage.setItem(Constants.loginError, "");
-        this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state, this.storeAuthStateInCookie);
-        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
-        this._cacheStorage.setItem(Constants.msalError, "");
-        this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-          this._cacheStorage.setItem(authorityKey, this.authority);
-        }
+                  this._cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.storeAuthStateInCookie);
+                  this._cacheStorage.setItem(Constants.loginError, "");
+                  this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state, this.storeAuthStateInCookie);
+                  this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
+                  this._cacheStorage.setItem(Constants.msalError, "");
+                  this._cacheStorage.setItem(Constants.msalErrorDescription, "");
+                  const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                  if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                      this._cacheStorage.setItem(authorityKey, this.authority);
+                  }
 
-        const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.prompt_select_account + Constants.response_mode_fragment;
-        this.promptUser(urlNavigate);
-      });
+                  const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
+                  this.promptUser(urlNavigate);
+              });
+      }
   }
 
   /*
@@ -420,55 +434,72 @@ export class UserAgentApplication {
         scopes = [this.clientId];
       }
 
-      const scope = scopes.join(" ").toLowerCase();
-      var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
-      if (!popUpWindow) {
-        return;
-      }
-    
-      this._loginInProgress = true;
-
-      this.authorityInstance.ResolveEndpointsAsync().then(() => {
-        const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
-        if (extraQueryParameters) {
-          authenticationRequest.extraQueryParameters = extraQueryParameters;
+        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+        var idTokenObject;
+        if (adalIdToken) {
+            idTokenObject = Utils.extractIdToken(adalIdToken);
         }
-
-        this._cacheStorage.setItem(Constants.loginRequest, window.location.href, this.storeAuthStateInCookie);
-        this._cacheStorage.setItem(Constants.loginError, "");
-        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
-        this._cacheStorage.setItem(Constants.msalError, "");
-        this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-          this._cacheStorage.setItem(authorityKey, this.authority);
+        if (idTokenObject && idTokenObject.upn) {
+            console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+            var extraQueryParam= "&" + Constants.login_hint+ "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+            this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParam)
+                .then(function (idToken) {
+                    resolve(idToken);
+                });
         }
+        else {
 
-        const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.prompt_select_account  + Constants.response_mode_fragment;
-        window.renewStates.push(authenticationRequest.state);
-        window.requestType = Constants.login;
-        this.registerCallback(authenticationRequest.state, scope, resolve, reject);
-        if (popUpWindow) {
-            this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
-            popUpWindow.location.href = urlNavigate;
-        }
+            const scope = scopes.join(" ").toLowerCase();
+            var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+            if (!popUpWindow) {
+                return;
+            }
 
-      }, () => {
-        this._logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
-        this._cacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
-        this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
-        if (reject) {
-          reject(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
-        }
+            this._loginInProgress = true;
 
-        if (popUpWindow) {
-          popUpWindow.close();
+            this.authorityInstance.ResolveEndpointsAsync().then(() => {
+                const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+                if (extraQueryParameters) {
+                    authenticationRequest.extraQueryParameters = extraQueryParameters;
+                }
+
+                this._cacheStorage.setItem(Constants.loginRequest, window.location.href, this.storeAuthStateInCookie);
+                this._cacheStorage.setItem(Constants.loginError, "");
+                this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
+                this._cacheStorage.setItem(Constants.msalError, "");
+                this._cacheStorage.setItem(Constants.msalErrorDescription, "");
+                const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+                if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
+                    this._cacheStorage.setItem(authorityKey, this.authority);
+                }
+
+                const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
+                window.renewStates.push(authenticationRequest.state);
+                window.requestType = Constants.login;
+                this.registerCallback(authenticationRequest.state, scope, resolve, reject);
+                if (popUpWindow) {
+                    this._logger.infoPii("Navigated Popup window to:" + urlNavigate);
+                    popUpWindow.location.href = urlNavigate;
+                }
+
+            }, () => {
+                this._logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
+                this._cacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
+                this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
+                if (reject) {
+                    reject(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
+                }
+
+                if (popUpWindow) {
+                    popUpWindow.close();
+                }
+            }).catch((err) => {
+                this._logger.warning("could not resolve endpoints");
+                reject(err);
+            });
         }
-        }).catch((err) => {
-              this._logger.warning("could not resolve endpoints");
-              reject(err);
-        });
     });
+
   }
 
   /*
@@ -919,10 +950,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 }
             }
             if (!this.urlContainsQueryStringParameter(Constants.domain_hint, urlNavigate) && !Utils.isEmpty(utid)) {
-                if (utid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-                    urlNavigate += "&" +  Constants.domain_hint + "=" + encodeURIComponent("consumers");
+                if (utid === Constants.consumersUtid) {
+                    urlNavigate += "&" +  Constants.domain_hint + "=" + encodeURIComponent(Constants.consumers);
                 } else {
-                    urlNavigate += "&" + Constants.domain_hint + "=" + encodeURIComponent("organizations");
+                    urlNavigate += "&" + Constants.domain_hint + "=" + encodeURIComponent(Constants.organizations);
                 }
             }
 
@@ -1167,14 +1198,24 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         const scope = scopes.join(" ").toLowerCase();
         const userObject = user ? user : this.getUser();
+        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
         //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
-          if (!userObject && !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )))) {
+          if (!userObject && this.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
               this._logger.info('User login is required');
               reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
               return;
           }
+          //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
+          else if(!userObject && !Utils.isEmpty(adalIdToken))
+          {
+              const idTokenObject = Utils.extractIdToken(adalIdToken);
+              console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+              if(idTokenObject && idTokenObject.upn) {
+                  extraQueryParameters = "&" + Constants.login_hint+ "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+              }
+          }
 
-        let authenticationRequest: AuthenticationRequestParameters;
+          let authenticationRequest: AuthenticationRequestParameters;
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
@@ -1184,7 +1225,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
           }
         } else {
-          authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
+            if (scopes.indexOf(this.clientId) > -1) {
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+            }
+            else {
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
+            }
         }
 
         const cacheResult = this.getCachedToken(authenticationRequest, userObject);
@@ -1230,6 +1276,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           });
       }
     });
+  }
+
+  private checkSSO(extraQueryParameters: string)
+  {
+      return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
   }
 
   /*

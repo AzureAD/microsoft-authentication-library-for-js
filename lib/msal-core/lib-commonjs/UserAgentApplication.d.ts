@@ -114,6 +114,7 @@ export declare class UserAgentApplication {
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
     acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
+    private checkSSO;
     private loadIframeTimeout;
     private loadFrame;
     private addAdalFrame;

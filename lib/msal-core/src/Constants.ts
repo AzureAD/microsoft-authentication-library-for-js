@@ -56,7 +56,11 @@ export class Constants {
   static get no_user(): string { return "NO_USER"; }
   static get login_hint(): string { return "login_hint"; }
   static get domain_hint(): string { return "domain_hint"; }
+  static get organizations(): string { return "organizations"; }
+  static get consumers(): string { return "consumers"; }
+  static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
   static get sid(): string { return "sid"; }
+  static get adalIdToken(): string { return "adal.idtoken"; }
   static get prompt_select_account(): string { return "&prompt=select_account"; }
   static get prompt_none(): string { return "&prompt=none"; }
   static get response_mode_fragment(): string { return "&response_mode=fragment"; }
