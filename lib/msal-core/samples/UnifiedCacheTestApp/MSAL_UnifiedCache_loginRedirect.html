@@ -59,24 +59,7 @@
             }
 
             function login() {
-
-             /*clientApplication.loginPopup(applicationConfig.graphScopes).then(function(token)
-             {
-                 console.log("token receieved " + token);
-                 document.getElementById('username').textContent = "User successfully logged in";
-                 document.getElementById('logout_button').style.display = "block";
-                 document.getElementById('login_button').style.display = "none";
-                 document.getElementById('callWebApi_button').style.display = "block";
-
-             },
-                  function (error) {
-                     console.log("error " + error);
-                 }
-             ); */
-
-             //uncomment this and comment out loginPopup to test redirect flow
-                clientApplication.loginRedirect(applicationConfig.graphScopes);
-
+                clientApplication.loginRedirect();
             }
 
             function logout() {

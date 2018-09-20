@@ -23,6 +23,7 @@
 
 import { IUri } from "./IUri";
 import { User } from "./User";
+import {Constants} from "./Constants";
 
 /*
  * @hidden
@@ -406,4 +407,18 @@ export class Utils {
 
     return url.indexOf(suffix, url.length - suffix.length) !== -1;
   }
+
+     static checkSSO(extraQueryParameters: string)
+    {
+        return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
+    }
+
+     static constructUnifiedCacheExtraQueryParameter(idTokenObject : any, extraQueryParameters ?: string)
+    {
+        if(idTokenObject && idTokenObject.upn) {
+            return  extraQueryParameters = "&" + Constants.login_hint+ "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+        }
+        return "";
+    }
+
 }

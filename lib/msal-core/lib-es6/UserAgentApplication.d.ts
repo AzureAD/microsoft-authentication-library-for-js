@@ -87,7 +87,9 @@ export declare class UserAgentApplication {
     });
     private processCallBack;
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
-    loginPopup(scopes: Array<string>, extraQueryParameters?: string): Promise<string>;
+    private loginRedirectHelper;
+    loginPopup(scopes?: Array<string>, extraQueryParameters?: string): Promise<string>;
+    private loginPopupHelper;
     private promptUser;
     private openWindow;
     private broadcast;
@@ -114,7 +116,7 @@ export declare class UserAgentApplication {
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
     acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
-    private checkSSO;
+    private extratADALIdToken;
     private loadIframeTimeout;
     private loadFrame;
     private addAdalFrame;

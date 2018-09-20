@@ -60,7 +60,7 @@
 
             function login() {
 
-             clientApplication.loginPopup(applicationConfig.graphScopes).then(function(token)
+             clientApplication.loginPopup().then(function(token)
              {
                  console.log("token receieved " + token);
                  document.getElementById('username').textContent = "User successfully logged in";

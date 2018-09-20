@@ -69,7 +69,8 @@
             }
 
             function login() {
-                clientApplication.loginRedirect(applicationConfig.graphScopes);
+               // clientApplication.loginRedirect(applicationConfig.graphScopes);
+                clientApplication.loginPopup(applicationConfig.graphScopes);
             }
 
             function logout() {

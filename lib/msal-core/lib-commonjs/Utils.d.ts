@@ -46,4 +46,6 @@ export declare class Utils {
     static GetUrlComponents(url: string): IUri;
     static CanonicalizeUri(url: string): string;
     static endsWith(url: string, suffix: string): boolean;
+    static checkSSO(extraQueryParameters: string): boolean;
+    static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string): string;
 }
