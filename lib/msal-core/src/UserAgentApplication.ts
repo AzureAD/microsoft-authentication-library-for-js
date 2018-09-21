@@ -367,7 +367,7 @@ export class UserAgentApplication {
           var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
           extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
           this._silentLogin = true;
-          this.acquireTokenSilent(scopes, this.authority, this.getUser(), extraQueryParameters)
+          this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
               .then((idToken) => {
                   this._silentLogin = false;
                   this._logger.info("Unified cache call is successful");
@@ -452,7 +452,7 @@ export class UserAgentApplication {
             var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
             extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
             this._silentLogin = true;
-            this.acquireTokenSilent(scopes, this.authority, this.getUser(), extraQueryParameters)
+            this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
                 .then((idToken) => {
                     this._silentLogin = false;
                     this._logger.info("Unified cache call is successful");
