@@ -5,7 +5,7 @@
         <title>Vanilla MSAL.JS</title>
         <meta charset="utf-8" />
         <style type="text/css">body { font-family: Tahoma; padding: 3em; }</style>
-        <script src="dist/msal.js" class="pre"></script>
+        <script src="src/msal.js" class="pre"></script>
     </head>
 
     <body>
@@ -45,7 +45,8 @@
 
             var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, {cacheLocation: "localStorage", state:"12345"});
 
-            function authCallback(errorDesc, token, error, tokenType) {
+            function authCallback(errorDesc, token, error, tokenType, state) {
+                console.log("State received in the response:" + state);
                if (token) {
                     console.log("token received " + token);
                    document.getElementById('username').textContent = "User successfully logged in";
@@ -59,7 +60,7 @@
             }
 
             function login() {
-                clientApplication.loginRedirect();
+                clientApplication.loginRedirect(null,"&prompt=select_account&login_hint=log&domain_hint=dom&Rohit=12345");
             }
 
             function logout() {
