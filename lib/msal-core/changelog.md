@@ -1,3 +1,8 @@
+# 0.2.4
+### New Features
+* Unified Cache - This is to support migration from ADAL.js to MSAL.js. If your app is currently using ADAL.js and if user already has an existing session there, when your app migrates to MSAL.js,
+MSAL.js will do a Silent login.
+
 # 0.2.3
 ### New Features
 * Single Sign on
