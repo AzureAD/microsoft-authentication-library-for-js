@@ -48,4 +48,5 @@ export declare class Utils {
     static endsWith(url: string, suffix: string): boolean;
     static checkSSO(extraQueryParameters: string): boolean;
     static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string): string;
+    static urlRemoveQueryStringParameter(url: string, name: string): string;
 }

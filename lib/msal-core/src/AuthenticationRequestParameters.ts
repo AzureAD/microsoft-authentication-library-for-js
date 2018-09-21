@@ -23,6 +23,7 @@
 
 import { Authority } from "./Authority";
 import { Utils } from "./Utils";
+import { Constants } from "./Constants";
 
 /*
  * @hidden
@@ -71,6 +72,8 @@ export class AuthenticationRequestParameters {
             authEndpoint += "&";
         }
         let requestUrl: string = `${authEndpoint}${str.join("&")}`;
+        //Library already handles prompt values, remove duplicate prompt values to avoid server error.
+        requestUrl = Utils.urlRemoveQueryStringParameter(requestUrl, Constants.prompt);
         return requestUrl;
     }
 
