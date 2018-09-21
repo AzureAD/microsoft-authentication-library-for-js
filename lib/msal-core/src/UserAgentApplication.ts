@@ -1845,12 +1845,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         tokenResponse.stateResponse = stateResponse;
         // async calls can fire iframe and login request at the same time if developer does not use the API as expected
         // incoming callback needs to be looked up to find the request type
-        if (stateResponse === this._silentAuthenticationState) {
-            tokenResponse.requestType = Constants.login;
-            tokenResponse.stateMatch = true;
-            return tokenResponse;
-        }
-        else if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)) { // loginRedirect
+        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie) || stateResponse === this._silentAuthenticationState) { // loginRedirect
             tokenResponse.requestType = Constants.login;
             tokenResponse.stateMatch = true;
             return tokenResponse;
