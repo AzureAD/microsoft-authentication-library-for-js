@@ -361,7 +361,7 @@ export class UserAgentApplication {
     }
 
       var idTokenObject;
-      idTokenObject= this.extratADALIdToken();
+      idTokenObject= this.extractADALIdToken();
       if (idTokenObject && !scopes) {
           this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
           var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
@@ -446,7 +446,7 @@ export class UserAgentApplication {
       }
 
         var idTokenObject;
-        idTokenObject= this.extratADALIdToken();
+        idTokenObject= this.extractADALIdToken();
         if (idTokenObject && !scopes) {
             this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
             var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
@@ -1297,7 +1297,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     });
   }
 
-    private extratADALIdToken(): any
+    private extractADALIdToken(): any
     {
         const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
         if(adalIdToken) {

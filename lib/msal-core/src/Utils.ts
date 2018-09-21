@@ -269,7 +269,7 @@ export class Utils {
   static replaceFirstPath(href: string, tenantId: string): string {
     var match = href.match(/^(https?\:)\/\/(([^:\/?#] *)(?:\:([0-9]+))?)([\/]{0,1}[^?#] *)(\?[^#] *|)(#. *|)$/);
     if (match) {
-      var urlObject = Utils.GetUrlComponents(href);
+      var urlObject = this.GetUrlComponents(href);
       var pathArray = urlObject.PathSegments;
       pathArray.shift();
       if (pathArray[0] && pathArray[0] === "common" || pathArray[0] === "organizations") {
@@ -415,12 +415,12 @@ export class Utils {
 
      static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
          if (idTokenObject && idTokenObject.upn) {
-             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
-             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+             extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
+             extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
              return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
          }
          else if (idTokenObject && this.isEmpty(idTokenObject.upn)) {
-             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+             extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
              return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
          }
 
@@ -428,7 +428,7 @@ export class Utils {
      }
 
      static urlRemoveQueryStringParameter(url: string, name: string): string {
-         if (!url || url === "") {
+         if (this.isEmpty(url)) {
              return url;
          }
 
