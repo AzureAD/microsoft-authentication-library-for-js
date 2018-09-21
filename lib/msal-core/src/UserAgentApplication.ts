@@ -203,6 +203,10 @@ export class UserAgentApplication {
   private _unprotectedResources: Array<string>;
 
   private storeAuthStateInCookie: boolean;
+
+  private _silentAuthenticationState: string;
+
+  private _silentLogin: boolean;
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -358,18 +362,22 @@ export class UserAgentApplication {
 
       this._loginInProgress = true;
       var idTokenObject;
-      idTokenObject= this.extratADALIdToken();
+      idTokenObject= this.extractADALIdToken();
       if (idTokenObject && !scopes) {
           extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
           this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+          this._silentLogin = true;
           this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
               .then((idToken) => {
                   this._loginInProgress = false;
+                  this._silentLogin = false;
                   this._logger.info("Unified cache call is successful");
-                  this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-              } ,  (error) => {
+                  this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+              }, (error) => {
+                  this._silentLogin = false;
+                  this._loginInProgress = false;
                   this._logger.error("Error occurred during unified cache ATS");
-                  this.loginRedirectHelper(scopes,extraQueryParameters);
+                  this.loginRedirectHelper(scopes, extraQueryParameters);
               });
       }
       else {
@@ -439,7 +447,7 @@ export class UserAgentApplication {
       }
 
         var idTokenObject;
-        idTokenObject= this.extratADALIdToken();
+        idTokenObject= this.extractADALIdToken();
         if (idTokenObject && !scopes) {
             this._loginInProgress = true;
             extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
@@ -1287,7 +1295,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     });
   }
 
-    private extratADALIdToken(): any
+    private extractADALIdToken(): any
     {
         const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
         if(adalIdToken) {
@@ -1332,7 +1340,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this._logger.info("LoadFrame: " + frameName);
     var frameCheck = frameName;
     setTimeout(() => {
-      var frameHandle = this.addAdalFrame(frameCheck);
+      var frameHandle = this.addMsalFrame(frameCheck);
       if (frameHandle.src === "" || frameHandle.src === "about:blank") {
           frameHandle.src = urlNavigate;
           this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
@@ -1346,14 +1354,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
    * @ignore
    * @hidden
    */
-  private addAdalFrame(iframeId: string): HTMLIFrameElement {
+  private addMsalFrame(iframeId: string): HTMLIFrameElement {
     if (typeof iframeId === "undefined") {
       return null;
     }
 
     this._logger.info("Add msal frame to document:" + iframeId);
-    let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
-    if (!adalFrame) {
+    let msalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
+    if (!msalFrame) {
       if (document.createElement &&
         document.documentElement &&
         (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
@@ -1363,17 +1371,17 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         ifr.style.position = "absolute";
         ifr.style.width = ifr.style.height = "0";
         ifr.style.border = "0";
-        adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
+        msalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
       } else if (document.body && document.body.insertAdjacentHTML) {
           document.body.insertAdjacentHTML('beforeend', '<iframe name="' + iframeId + '" id="' + iframeId + '" style="display:none"></iframe>');
       }
 
       if (window.frames && window.frames[iframeId]) {
-        adalFrame = window.frames[iframeId];
+        msalFrame = window.frames[iframeId];
       }
     }
 
-    return adalFrame;
+    return msalFrame;
   }
 
   /*
@@ -1384,7 +1392,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
     const scope = scopes.join(" ").toLowerCase();
     this._logger.verbose("renewToken is called for scope:" + scope);
-    const frameHandle = this.addAdalFrame("msalRenewFrame" + scope);
+    const frameHandle = this.addMsalFrame("msalRenewFrame" + scope);
     if (extraQueryParameters) {
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
@@ -1427,7 +1435,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
     const scope = scopes.join(" ").toLowerCase();
     this._logger.info("renewidToken is called");
-    const frameHandle = this.addAdalFrame("msalIdTokenFrame");
+    const frameHandle = this.addMsalFrame("msalIdTokenFrame");
     if (extraQueryParameters) {
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
@@ -1452,7 +1460,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
     let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
-    window.renewStates.push(authenticationRequest.state);
+    if (this._silentLogin) {
+        this._silentAuthenticationState = authenticationRequest.state;
+    } else {
+        window.renewStates.push(authenticationRequest.state);
+    }
     window.requestType = Constants.renewToken;
     this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
@@ -1561,7 +1573,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   
     try {
         if (tokenReceivedCallback) {
-            tokenReceivedCallback.call(self, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+            if (requestInfo.stateMatch) {
+                tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, this.getUserState(requestInfo.stateResponse));
+            }
+            else {
+                tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, null);
+            }
         }
 
     } catch (err) {
@@ -1823,7 +1840,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         tokenResponse.stateResponse = stateResponse;
         // async calls can fire iframe and login request at the same time if developer does not use the API as expected
         // incoming callback needs to be looked up to find the request type
-        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)) { // loginRedirect
+        if (stateResponse === this._silentAuthenticationState) {
+            tokenResponse.requestType = Constants.login;
+            tokenResponse.stateMatch = true;
+            return tokenResponse;
+        }
+        else if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)) { // loginRedirect
           tokenResponse.requestType = Constants.login;
           tokenResponse.stateMatch = true;
           return tokenResponse;

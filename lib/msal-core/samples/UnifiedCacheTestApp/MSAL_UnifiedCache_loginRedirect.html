@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html>
     <head>
@@ -43,7 +43,7 @@
                 logger: logger
             };
 
-            var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, {cacheLocation: "localStorage"});
+            var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, {cacheLocation: "localStorage", state:"12345"});
 
             function authCallback(errorDesc, token, error, tokenType) {
                if (token) {

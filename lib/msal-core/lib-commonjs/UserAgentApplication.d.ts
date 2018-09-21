@@ -71,6 +71,8 @@ export declare class UserAgentApplication {
     private _protectedResourceMap;
     private _unprotectedResources;
     private storeAuthStateInCookie;
+    private _silentAuthenticationState;
+    private _silentLogin;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
@@ -116,10 +118,10 @@ export declare class UserAgentApplication {
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
     acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
     acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string>;
-    private extratADALIdToken;
+    private extractADALIdToken;
     private loadIframeTimeout;
     private loadFrame;
-    private addAdalFrame;
+    private addMsalFrame;
     private renewToken;
     private renewIdToken;
     getUser(): User;
