@@ -413,17 +413,34 @@ export class Utils {
         return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
     }
 
-     static constructUnifiedCacheExtraQueryParameter(idTokenObject : any, extraQueryParameters ?: string)
-    {
-      if(idTokenObject) {
-          if (idTokenObject.hasOwnProperty(Constants.upn)) {
-              return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-          }
-          else  {
-              return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
-          }
-      }
-        return "";
-    }
+     static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
+         if (idTokenObject && idTokenObject.upn) {
+             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, 'login_hint');
+             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, 'domain_hint');
+             return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+         }
+         else if (idTokenObject && this.isEmpty(idTokenObject.upn)) {
+             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, 'domain_hint');
+             return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
+         }
+
+         return extraQueryParameters;
+     }
+
+     static urlRemoveQueryStringParameter(url: string, name: string): string {
+         if (!url || url === "") {
+             return url;
+         }
+
+         var regex = new RegExp('(\\&' + name + '=)[^\&]+');
+         url = url.replace(regex, '');
+         // name=value&
+         regex = new RegExp('(' + name + '=)[^\&]+&');
+         url = url.replace(regex, '');
+         // name=value
+         regex = new RegExp('(' + name + '=)[^\&]+');
+         url = url.replace(regex, '');
+         return url;
+     }
 
 }

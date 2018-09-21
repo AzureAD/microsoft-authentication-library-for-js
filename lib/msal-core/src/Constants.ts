@@ -64,6 +64,7 @@ export class Constants {
   static get adalIdToken(): string { return "adal.idtoken"; }
   static get prompt_select_account(): string { return "&prompt=select_account"; }
   static get prompt_none(): string { return "&prompt=none"; }
+  static get prompt(): string { return "prompt"; }
   static get response_mode_fragment(): string { return "&response_mode=fragment"; }
   static get resourceDelimeter(): string { return "|"; }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }

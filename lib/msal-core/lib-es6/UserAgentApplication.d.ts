@@ -71,6 +71,8 @@ export declare class UserAgentApplication {
     private _protectedResourceMap;
     private _unprotectedResources;
     private storeAuthStateInCookie;
+    private _silentAuthenticationState;
+    private _silentLogin;
     constructor(clientId: string, authority: string | null, tokenReceivedCallback: tokenReceivedCallback, options?: {
         validateAuthority?: boolean;
         cacheLocation?: string;
@@ -139,4 +141,5 @@ export declare class UserAgentApplication {
     protected getAcquireTokenInProgress(): boolean;
     protected setAcquireTokenInProgress(acquireTokenInProgress: boolean): void;
     protected getLogger(): Logger;
+    private silentLogin;
 }

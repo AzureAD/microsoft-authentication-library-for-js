@@ -38,6 +38,7 @@ export declare class Constants {
     static readonly adalIdToken: string;
     static readonly prompt_select_account: string;
     static readonly prompt_none: string;
+    static readonly prompt: string;
     static readonly response_mode_fragment: string;
     static readonly resourceDelimeter: string;
     static readonly tokenRenewStatusCancelled: string;

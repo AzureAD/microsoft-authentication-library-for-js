@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html>
     <head>
@@ -43,15 +43,16 @@
                 logger: logger
             };
 
-            var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, {cacheLocation: "localStorage"});
+            var clientApplication = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, authCallback, { cacheLocation: "localStorage", state: "12345" });
 
-            function authCallback(errorDesc, token, error, tokenType) {
-               if (token) {
+            function authCallback(errorDesc, token, error, tokenType, state) {
+                console.log("State received in the response:" + state);
+                if (token) {
                     console.log("token received " + token);
-                   document.getElementById('username').textContent = "User successfully logged in";
-                   document.getElementById('logout_button').style.display = "block";
-                   document.getElementById('login_button').style.display = "none";
-                   document.getElementById('callWebApi_button').style.display = "block";
+                    document.getElementById('username').textContent = "User successfully logged in";
+                    document.getElementById('logout_button').style.display = "block";
+                    document.getElementById('login_button').style.display = "none";
+                    document.getElementById('callWebApi_button').style.display = "block";
                 }
                 else if (errorDesc || error) {
                     console.log(error + ':' + errorDesc);
@@ -59,7 +60,7 @@
             }
 
             function login() {
-                clientApplication.loginRedirect();
+                clientApplication.loginRedirect(null, "&prompt=select_account&login_hint=xxx&domain_hint=xxx&Rohit=12345");
             }
 
             function logout() {

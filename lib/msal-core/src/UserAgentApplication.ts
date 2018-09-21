@@ -203,6 +203,10 @@ export class UserAgentApplication {
   private _unprotectedResources: Array<string>;
 
   private storeAuthStateInCookie: boolean;
+
+  private _silentAuthenticationState: string;
+
+  private _silentLogin: boolean;
   /*
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -356,21 +360,13 @@ export class UserAgentApplication {
       scopes = this.filterScopes(scopes);
     }
 
-      this._loginInProgress = true;
       var idTokenObject;
       idTokenObject= this.extratADALIdToken();
       if (idTokenObject && !scopes) {
-          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
           this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
-              .then((idToken) => {
-                  this._loginInProgress = false;
-                  this._logger.info("Unified cache call is successful");
-                  this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-              } ,  (error) => {
-                  this._logger.error("Error occurred during unified cache ATS");
-                  this.loginRedirectHelper(scopes,extraQueryParameters);
-              });
+          var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
+          extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
+          this.silentLogin([this.clientId], this.authority, this.getUser(), extraQueryParams);
       }
       else {
           this.loginRedirectHelper(scopes, extraQueryParameters);
@@ -379,6 +375,7 @@ export class UserAgentApplication {
 
   private loginRedirectHelper(scopes?: Array<string>, extraQueryParameters?: string)
   {
+      this._loginInProgress = true;
       this.authorityInstance.ResolveEndpointsAsync()
           .then(() => {
               const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
@@ -441,18 +438,10 @@ export class UserAgentApplication {
         var idTokenObject;
         idTokenObject= this.extratADALIdToken();
         if (idTokenObject && !scopes) {
-            this._loginInProgress = true;
-            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
             this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-            this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
-                .then( (idToken) => {
-                    this._loginInProgress = false;
-                    this._logger.info("Unified cache call is successful");
-                    resolve(idToken);
-                },  (error) => {
-                    this._logger.error("Error occurred during unified cache ATS");
-                    this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters);
-                });
+            var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
+            extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
+            this.silentLogin([this.clientId], this.authority, this.getUser(), extraQueryParams);
         }
          else {
             this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters );
@@ -942,12 +931,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
             if (userObject.sid  && urlNavigate.indexOf(Constants.prompt_none) !== -1) {
                 if (!this.urlContainsQueryStringParameter(Constants.sid, urlNavigate) && !this.urlContainsQueryStringParameter(Constants.login_hint, urlNavigate)) {
-                    urlNavigate += "&" + Constants.sid +"=" + encodeURIComponent(this._user.sid);
+                    urlNavigate += "&" + Constants.sid + "=" + encodeURIComponent(userObject.sid);
                 }
             }
             else {
                 if (!this.urlContainsQueryStringParameter(Constants.login_hint, urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-                    urlNavigate += "&" + Constants.login_hint +"=" + encodeURIComponent(user.displayableId);
+                    urlNavigate += "&" + Constants.login_hint + "=" + encodeURIComponent(userObject.displayableId);
                 }
             }
 
@@ -1452,8 +1441,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
     let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
-    window.renewStates.push(authenticationRequest.state);
-    window.requestType = Constants.renewToken;
+    if (this._silentLogin) {
+        window.requestType = Constants.idToken;
+        this._silentAuthenticationState = authenticationRequest.state;
+    } else {
+        window.requestType = Constants.renewToken;
+        window.renewStates.push(authenticationRequest.state);
+    }
+
     this.registerCallback(authenticationRequest.state, this.clientId, resolve, reject);
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
@@ -1561,7 +1556,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   
     try {
         if (tokenReceivedCallback) {
-            tokenReceivedCallback.call(self, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+            //We should only send the stae back to the developer if it matches with what we received from the server
+            if (requestInfo.stateMatch) {
+                tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, this.getUserState(requestInfo.stateResponse));
+            }
+            else {
+                tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, null);
+            }
         }
 
     } catch (err) {
@@ -1823,14 +1824,19 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         tokenResponse.stateResponse = stateResponse;
         // async calls can fire iframe and login request at the same time if developer does not use the API as expected
         // incoming callback needs to be looked up to find the request type
-        if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)) { // loginRedirect
-          tokenResponse.requestType = Constants.login;
-          tokenResponse.stateMatch = true;
-          return tokenResponse;
+        if (stateResponse === this._silentAuthenticationState) {
+            tokenResponse.requestType = Constants.login;
+            tokenResponse.stateMatch = true;
+            return tokenResponse;
+        }
+        else if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)) { // loginRedirect
+            tokenResponse.requestType = Constants.login;
+            tokenResponse.stateMatch = true;
+            return tokenResponse;
         } else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken, this.storeAuthStateInCookie)) { //acquireTokenRedirect
-          tokenResponse.requestType = Constants.renewToken;
-          tokenResponse.stateMatch = true;
-          return tokenResponse;
+            tokenResponse.requestType = Constants.renewToken;
+            tokenResponse.stateMatch = true;
+            return tokenResponse;
         }
 
         // external api requests may have many renewtoken requests for different resource
@@ -1960,5 +1966,23 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     {
         return this._logger;
     }
+
+    /*
+    * Uses adal's id_token to achieve silent SSO.
+    */
+    private silentLogin(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
+        this._silentLogin = true;
+        this.acquireTokenSilent(scopes, authority, user, extraQueryParameters)
+            .then((idToken) => {
+                this._silentLogin = false;
+                this._logger.info("Unified cache call is successful");
+                this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+            }, (error) => {
+                this._silentLogin = false;
+                this._logger.error("Error occurred during unified cache ATS");
+                this.loginRedirectHelper(scopes, extraQueryParameters);
+            });
+    }
+
 
 }
