@@ -366,7 +366,17 @@ export class UserAgentApplication {
           this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
           var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
           extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
-          this.silentLogin([this.clientId], this.authority, this.getUser(), extraQueryParams);
+          this._silentLogin = true;
+          this.acquireTokenSilent(scopes, this.authority, this.getUser(), extraQueryParameters)
+              .then((idToken) => {
+                  this._silentLogin = false;
+                  this._logger.info("Unified cache call is successful");
+                  this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+              }, (error) => {
+                  this._silentLogin = false;
+                  this._logger.error("Error occurred during unified cache ATS");
+                  this.loginRedirectHelper(scopes, extraQueryParameters);
+              });
       }
       else {
           this.loginRedirectHelper(scopes, extraQueryParameters);
@@ -441,13 +451,24 @@ export class UserAgentApplication {
             this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
             var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
             extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
-            this.silentLogin([this.clientId], this.authority, this.getUser(), extraQueryParams);
+            this._silentLogin = true;
+            this.acquireTokenSilent(scopes, this.authority, this.getUser(), extraQueryParameters)
+                .then((idToken) => {
+                    this._silentLogin = false;
+                    this._logger.info("Unified cache call is successful");
+                    this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+                }, (error) => {
+                    this._silentLogin = false;
+                    this._logger.error("Error occurred during unified cache ATS");
+                    this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters);
+                });
+            
         }
          else {
             this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters );
         }
-    });
-  }
+      });
+  } 
 
 
   private loginPopupHelper( resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string)
@@ -1966,23 +1987,4 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     {
         return this._logger;
     }
-
-    /*
-    * Uses adal's id_token to achieve silent SSO.
-    */
-    private silentLogin(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
-        this._silentLogin = true;
-        this.acquireTokenSilent(scopes, authority, user, extraQueryParameters)
-            .then((idToken) => {
-                this._silentLogin = false;
-                this._logger.info("Unified cache call is successful");
-                this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
-            }, (error) => {
-                this._silentLogin = false;
-                this._logger.error("Error occurred during unified cache ATS");
-                this.loginRedirectHelper(scopes, extraQueryParameters);
-            });
-    }
-
-
 }

@@ -141,5 +141,4 @@ export declare class UserAgentApplication {
     protected getAcquireTokenInProgress(): boolean;
     protected setAcquireTokenInProgress(acquireTokenInProgress: boolean): void;
     protected getLogger(): Logger;
-    private silentLogin;
 }
