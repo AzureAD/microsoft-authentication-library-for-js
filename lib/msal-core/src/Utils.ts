@@ -414,16 +414,17 @@ export class Utils {
     }
 
      static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
-         if (idTokenObject && idTokenObject.upn) {
-             extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
-             extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-             return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+         if (idTokenObject) {
+             if (idTokenObject.hasOwnProperty(Constants.upn)) {
+                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
+                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+                 return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+             }
+             else {
+                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+                 return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
+             }
          }
-         else if (idTokenObject && this.isEmpty(idTokenObject.upn)) {
-             extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-             return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
-         }
-
          return extraQueryParameters;
      }
 
