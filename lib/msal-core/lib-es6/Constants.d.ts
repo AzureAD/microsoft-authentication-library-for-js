@@ -30,9 +30,15 @@ export declare class Constants {
     static readonly no_user: string;
     static readonly login_hint: string;
     static readonly domain_hint: string;
+    static readonly organizations: string;
+    static readonly consumers: string;
+    static readonly consumersUtid: string;
     static readonly sid: string;
+    static readonly upn: string;
+    static readonly adalIdToken: string;
     static readonly prompt_select_account: string;
     static readonly prompt_none: string;
+    static readonly prompt: string;
     static readonly response_mode_fragment: string;
     static readonly resourceDelimeter: string;
     static readonly tokenRenewStatusCancelled: string;
