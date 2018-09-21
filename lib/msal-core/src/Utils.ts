@@ -415,12 +415,14 @@ export class Utils {
 
      static constructUnifiedCacheExtraQueryParameter(idTokenObject : any, extraQueryParameters ?: string)
     {
-        if(idTokenObject && idTokenObject.upn) {
-            return  extraQueryParameters = "&" + Constants.login_hint+ "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
-        else if(idTokenObject &&  this.isEmpty(idTokenObject.upn)){
-            return  extraQueryParameters =  "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
+      if(idTokenObject) {
+          if (idTokenObject.hasOwnProperty(Constants.upn)) {
+              return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+          }
+          else  {
+              return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
+          }
+      }
         return "";
     }
 

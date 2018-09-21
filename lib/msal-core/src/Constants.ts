@@ -60,6 +60,7 @@ export class Constants {
   static get consumers(): string { return "consumers"; }
   static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
   static get sid(): string { return "sid"; }
+  static get upn(): string { return "upn"; }
   static get adalIdToken(): string { return "adal.idtoken"; }
   static get prompt_select_account(): string { return "&prompt=select_account"; }
   static get prompt_none(): string { return "&prompt=none"; }

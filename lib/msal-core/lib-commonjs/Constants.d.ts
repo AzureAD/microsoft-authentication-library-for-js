@@ -34,6 +34,7 @@ export declare class Constants {
     static readonly consumers: string;
     static readonly consumersUtid: string;
     static readonly sid: string;
+    static readonly upn: string;
     static readonly adalIdToken: string;
     static readonly prompt_select_account: string;
     static readonly prompt_none: string;
