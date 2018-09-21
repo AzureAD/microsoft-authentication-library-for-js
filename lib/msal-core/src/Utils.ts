@@ -258,7 +258,7 @@ export class Utils {
   }
 
   static getLibraryVersion(): string {
-    return "0.2.3";
+    return "0.2.4";
   }
 
   /*
@@ -417,6 +417,9 @@ export class Utils {
     {
         if(idTokenObject && idTokenObject.upn) {
             return  extraQueryParameters = "&" + Constants.login_hint+ "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+        }
+        else if(idTokenObject &&  this.isEmpty(idTokenObject.upn)){
+            return  extraQueryParameters =  "&" + Constants.domain_hint + "=" + Constants.organizations;
         }
         return "";
     }

@@ -359,7 +359,7 @@ export class UserAgentApplication {
       this._loginInProgress = true;
       var idTokenObject;
       idTokenObject= this.extratADALIdToken();
-      if (idTokenObject && idTokenObject.upn && !scopes) {
+      if (idTokenObject && !scopes) {
           extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
           this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
           this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
@@ -440,7 +440,7 @@ export class UserAgentApplication {
 
         var idTokenObject;
         idTokenObject= this.extratADALIdToken();
-        if (idTokenObject && idTokenObject.upn && !scopes) {
+        if (idTokenObject && !scopes) {
             this._loginInProgress = true;
             extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
             this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
