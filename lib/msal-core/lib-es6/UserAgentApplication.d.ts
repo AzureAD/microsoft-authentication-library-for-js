@@ -88,6 +88,7 @@ export declare class UserAgentApplication {
         storeAuthStateInCookie?: boolean;
     });
     private processCallBack;
+    private silentLogin;
     loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void;
     private loginRedirectHelper;
     loginPopup(scopes?: Array<string>, extraQueryParameters?: string): Promise<string>;
