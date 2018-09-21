@@ -1022,8 +1022,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest.extraQueryParameters = extraQueryParameters;
       }
 
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) +  Constants.prompt_select_account  + Constants.response_mode_fragment;
-      urlNavigate = this.addHintParameters(urlNavigate, userObject);
+        let urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+        //if user didn't pass the prompt parameter and user didn't pass the userObject/login_hint/sid then send the prompt=select_account.
+        urlNavigate = this.conditionallyAddSelectAccount(urlNavigate, userObject, extraQueryParameters);
+        urlNavigate = this.addHintParameters(urlNavigate, userObject);
       if (urlNavigate) {
         this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state, this.storeAuthStateInCookie);
         window.location.replace(urlNavigate);
@@ -1115,8 +1117,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account  + Constants.response_mode_fragment;
-        urlNavigate = this.addHintParameters(urlNavigate, userObject);
+         let urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+          urlNavigate = this.conditionallyAddSelectAccount(urlNavigate, userObject, extraQueryParameters);
+          urlNavigate = this.addHintParameters(urlNavigate, userObject);
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.renewToken;
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
@@ -1895,6 +1898,15 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     protected getLogger()
     {
         return this._logger;
+    }
+
+    private conditionallyAddSelectAccount( urlNavigate : string, userObject : User , extraQueryParameters?: string )
+    {
+        if ( !userObject && !(extraQueryParameters && ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ) || extraQueryParameters.indexOf(Constants.sid) !== -1 )|| (extraQueryParameters.indexOf('&prompt') !== -1 )))
+        {
+            return   urlNavigate += Constants.prompt_select_account;
+        }
+        return urlNavigate;
     }
 
 }
