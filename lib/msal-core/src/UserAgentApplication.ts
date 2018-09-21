@@ -1988,7 +1988,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
     private conditionallyAddSelectAccount( urlNavigate : string, userObject : User , extraQueryParameters?: string )
     {
-        if ( !userObject && !(extraQueryParameters && ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ) || extraQueryParameters.indexOf(Constants.sid) !== -1 )|| (extraQueryParameters.indexOf('&prompt') !== -1 )))
+        var existsLoginHint = (extraQueryParameters.indexOf(Constants.login_hint) !== -1 );
+        var existsSID = (extraQueryParameters.indexOf(Constants.sid) !== -1 );
+        var existsPrompt = (extraQueryParameters.indexOf('&' + Constants.prompt) !== -1 );
+        if ( !userObject && !(extraQueryParameters && ( existsLoginHint|| existsSID || existsPrompt)))
         {
             return   urlNavigate += Constants.prompt_select_account;
         }
