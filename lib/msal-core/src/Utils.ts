@@ -415,12 +415,12 @@ export class Utils {
 
      static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
          if (idTokenObject && idTokenObject.upn) {
-             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, 'login_hint');
-             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, 'domain_hint');
+             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
+             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
              return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
          }
          else if (idTokenObject && this.isEmpty(idTokenObject.upn)) {
-             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, 'domain_hint');
+             extraQueryParameters = Utils.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
              return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
          }
 

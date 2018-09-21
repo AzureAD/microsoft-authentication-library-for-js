@@ -1419,7 +1419,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     // renew happens in iframe, so it keeps javascript context
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
-    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_none;
+    let urlNavigate = Utils.urlRemoveQueryStringParameter(authenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
     window.renewStates.push(authenticationRequest.state);
     window.requestType = Constants.renewToken;
@@ -1460,10 +1460,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
-    let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_none;
+    let urlNavigate = Utils.urlRemoveQueryStringParameter(authenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
     if (this._silentLogin) {
-        window.requestType = Constants.idToken;
+        window.requestType = Constants.login;
         this._silentAuthenticationState = authenticationRequest.state;
     } else {
         window.requestType = Constants.renewToken;
