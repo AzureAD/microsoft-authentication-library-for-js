@@ -456,7 +456,7 @@ export class UserAgentApplication {
                 .then((idToken) => {
                     this._silentLogin = false;
                     this._logger.info("Unified cache call is successful");
-                    this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+                    resolve(idToken);
                 }, (error) => {
                     this._silentLogin = false;
                     this._logger.error("Error occurred during unified cache ATS");
@@ -473,6 +473,10 @@ export class UserAgentApplication {
 
   private loginPopupHelper( resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string)
   {
+      //TODO why this is needed only for loginpopup
+      if(!scopes) {
+          scopes = [this.clientId];
+      }
       const scope = scopes.join(" ").toLowerCase();
       var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
