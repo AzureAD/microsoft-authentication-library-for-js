@@ -364,14 +364,15 @@ export class UserAgentApplication {
       idTokenObject= this.extractADALIdToken();
       if (idTokenObject && !scopes) {
           this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
-          extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
+          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
           this._silentLogin = true;
           this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
               .then((idToken) => {
                   this._silentLogin = false;
                   this._logger.info("Unified cache call is successful");
-                  this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+                  if (this._tokenReceivedCallback) {
+                      this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+                  }
               }, (error) => {
                   this._silentLogin = false;
                   this._logger.error("Error occurred during unified cache ATS");
@@ -449,8 +450,7 @@ export class UserAgentApplication {
         idTokenObject= this.extractADALIdToken();
         if (idTokenObject && !scopes) {
             this._logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-            var extraQueryParams = extraQueryParameters ? extraQueryParameters : "";
-            extraQueryParams = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParams);
+            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
             this._silentLogin = true;
             this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
                 .then((idToken) => {
@@ -1304,10 +1304,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     private extractADALIdToken(): any
     {
         const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
-        if(adalIdToken) {
+        if (!Utils.isEmpty(adalIdToken)) {
             return Utils.extractIdToken(adalIdToken);
         }
-        return;
+        return null;
     }
 
   /*
