@@ -189,7 +189,7 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login by default', (done) => {
-        expect(msal._redirectUri).toBe("http://localhost:8080/context.html");
+        expect(msal._redirectUri).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(args).toContain('&client_id=' + msal.clientId);
@@ -202,6 +202,23 @@ describe('Msal', function (): any {
 
         msal.redirectUri = 'contoso_site';
         msal.loginRedirect();
+    });
+
+    it('navigates user to redirectURI passed as extraQueryParameter', function() {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+                }, { redirectUri: "https://localhost:8081/redirect.html" });
+        msal._user = null;
+        msal._renewStates = [];
+        msal._activeRenewals = {};
+        msal._cacheStorage = storageFake;
+        expect(msal._redirectUri).toBe("https://localhost:8081/redirect.html");
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal._redirectUri));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+        };
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -615,6 +632,50 @@ describe('Msal', function (): any {
         msal.loginRedirect();
     });
 
+    it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {
+        var msalInstance = msal;
+        var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+             expect(document.cookie).toBe('');
+             expect(errorDesc).toBeUndefined();
+             expect(error).toBeUndefined();
+             expect(token).toBe(mockIdToken);
+             expect(tokenType).toBe(Constants.idToken);
+         }, { cacheLocation: 'localStorage' });
+
+         expect(msal._cacheLocation).toBe('localStorage');
+    });
+
+    it('tests cacheLocation functionality defaults to sessionStorage', function () {
+        var msalInstance = msal;
+        var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+             expect(document.cookie).toBe('');
+             expect(errorDesc).toBeUndefined();
+             expect(error).toBeUndefined();
+             expect(token).toBe(mockIdToken);
+             expect(tokenType).toBe(Constants.idToken);
+         });
+
+         expect(msal._cacheLocation).toBe('sessionStorage');
+    });
+    /**
+    it('tests cacheLocation functionality malformed strings throw error', function () {
+         var msalInstance = msal;
+         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+             expect(document.cookie).toBe('');
+             expect(errorDesc).toBe("Cache Location is not valid.");
+             console.log(error);
+             expect(token).toBe(mockIdToken);
+             expect(tokenType).toBe(Constants.idToken);
+         }, { cacheLocation: 'lclStrge' });
+    });
+    **/
+
 });
 
 describe('loginPopup functionality', function () {
@@ -667,3 +728,5 @@ describe('acquireTokenSilent functionality', function () {
     });
 
 });
+
+
