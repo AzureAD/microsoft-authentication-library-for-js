@@ -29,6 +29,7 @@ describe('Msal', function (): any {
 
     var RESOURCE_DELIMETER = '|';
     var DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
+    var TEST_REDIR_URI = "https://localhost:8081/redirect.html"
     var TENANT = 'common';
     var validAuthority = DEFAULT_INSTANCE + TENANT;
 
@@ -206,12 +207,12 @@ describe('Msal', function (): any {
 
     it('navigates user to redirectURI passed as extraQueryParameter', function() {
         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-                }, { redirectUri: "https://localhost:8081/redirect.html" });
+                }, { redirectUri: TEST_REDIR_URI });
         msal._user = null;
         msal._renewStates = [];
         msal._activeRenewals = {};
         msal._cacheStorage = storageFake;
-        expect(msal._redirectUri).toBe("https://localhost:8081/redirect.html");
+        expect(msal._redirectUri).toBe(TEST_REDIR_URI);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(args).toContain('&client_id=' + msal.clientId);
@@ -219,6 +220,7 @@ describe('Msal', function (): any {
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
         };
+        msal.loginRedirect();
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
