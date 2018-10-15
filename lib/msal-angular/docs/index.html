@@ -75,6 +75,9 @@
 				<h2 id="usage">Usage</h2>
 				<h4 id="prerequisite">Prerequisite</h4>
 				<p>Before using MSAL, register your application in <a href="https://apps.dev.microsoft.com/">Azure AD v2.0 portal</a> to get your clientID. As part of the registration, you will also need to add the Web platform, check the &quot;Implicit Flow&quot; checkbox, and add the redirectURI to your application.</p>
+				<blockquote>
+					<p>NOTE: To use MSAL Angular with Angular 6, please install the <code>rxjs-compat</code> NPM module for now. In future, we plan to add support for Angular 6 in the library and you can track this <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/421">issue</a> for more information.</p>
+				</blockquote>
 				<h4 id="1-include-and-initialize-the-msal-module-in-your-app-module-">1. Include and initialize the MSAL module in your app module.</h4>
 				<p>Import MsalModule into app.module.ts. To initialize MSAL module you are required to pass the clientID of your application which you can get from the application registration.</p>
 				<pre><code class="lang-js">@NgModule({
@@ -270,15 +273,13 @@
 				<h4 id="cors-api-usage">CORS API usage</h4>
 				<p>MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.</p>
 				<pre><code class="lang-js"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> protectedResourceMap:[string, string[]][]=[ [<span class="hljs-string">'https://buildtodoservice.azurewebsites.net/api/todolist'</span>,[<span class="hljs-string">'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'</span>]] , [<span class="hljs-string">'https://graph.microsoft.com/v1.0/me'</span>, [<span class="hljs-string">'user.read'</span>]] ];
-&gt;</span>&gt;&gt;&gt;&gt;&gt;&gt; dev
-=======
 
 @NgModule({
-  imports: [ MsalModule.forRoot({
-                  clientID: Your client ID,
-                  protectedResourceMap : protectedResourceMap
+  <span class="hljs-attr">imports</span>: [ MsalModule.forRoot({
+                  <span class="hljs-attr">clientID</span>: Your client ID,
+                  <span class="hljs-attr">protectedResourceMap</span> : protectedResourceMap
                 })]
-           })</span>
+           })
 </code></pre>
 				<p>In your API project, you need to enable CORS API requests to receive flight requests.</p>
 				<blockquote>
