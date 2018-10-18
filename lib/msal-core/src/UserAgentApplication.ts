@@ -180,7 +180,7 @@ export class UserAgentApplication {
    * The redirect URI of the application, this should be same as the value in the application registration portal.
    * Defaults to `window.location.href`.
    */
-  private _redirectUri: string;
+  private _redirectUri: string | (() => string);
 
     /*
      * Use to send the state parameter with authentication request
@@ -190,7 +190,7 @@ export class UserAgentApplication {
    * Used to redirect the user to this location after logout.
    * Defaults to `window.location.href`.
    */
-  private _postLogoutredirectUri: string;
+  private _postLogoutredirectUri: string | (() => string);
 
   loadFrameTimeout: number;
 
@@ -226,8 +226,8 @@ export class UserAgentApplication {
       {
         validateAuthority?: boolean,
         cacheLocation?: string,
-        redirectUri?: string,
-        postLogoutRedirectUri?: string,
+        redirectUri?: string | (() => string),
+        postLogoutRedirectUri?: string | (() => string),
         logger?: Logger,
         loadFrameTimeout?: number,
         navigateToLoginRequestUrl?: boolean,
@@ -240,8 +240,8 @@ export class UserAgentApplication {
       const {
           validateAuthority = true,
           cacheLocation = "sessionStorage",
-          redirectUri = window.location.href.split("?")[0].split("#")[0],
-          postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
+          redirectUri = () => window.location.href.split("?")[0].split("#")[0],
+          postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0],
           logger = new Logger(null),
           loadFrameTimeout = 6000,
           navigateToLoginRequestUrl = true,
@@ -332,6 +332,32 @@ export class UserAgentApplication {
 
 
   /*
+   * Used to get the redirect uri. Evaluates redirectUri if its a function, otherwise simply returns its value.
+   * @ignore
+   * @hidden
+   */
+  private getRedirectUri(): string {
+    if (typeof this._redirectUri === 'function') {
+      return this._redirectUri();
+    }
+    return this._redirectUri;
+  }
+
+
+  /*
+   * Used to get the post logout redirect uri. Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
+   * @ignore
+   * @hidden
+   */
+  private getPostLogoutRedirectUri(): string {
+    if (typeof this._postLogoutredirectUri === 'function') {
+      return this._postLogoutredirectUri();
+    }
+    return this._postLogoutredirectUri;
+  }
+
+
+  /*
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
@@ -389,7 +415,7 @@ export class UserAgentApplication {
       this._loginInProgress = true;
       this.authorityInstance.ResolveEndpointsAsync()
           .then(() => {
-              const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+              const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
               if (extraQueryParameters) {
                   authenticationRequest.extraQueryParameters = extraQueryParameters;
               }
@@ -486,7 +512,7 @@ export class UserAgentApplication {
       this._loginInProgress = true;
 
       this.authorityInstance.ResolveEndpointsAsync().then(() => {
-          const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+          const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           if (extraQueryParameters) {
               authenticationRequest.extraQueryParameters = extraQueryParameters;
           }
@@ -578,7 +604,7 @@ export class UserAgentApplication {
 
       try {
         var popUpWindowLocation = popupWindow.location;
-        if (popUpWindowLocation.href.indexOf(this._redirectUri) !== -1) {
+        if (popUpWindowLocation.href.indexOf(this.getRedirectUri()) !== -1) {
           window.clearInterval(pollTimer);
           instance._loginInProgress = false;
           instance._acquireTokenInProgress = false;
@@ -612,8 +638,8 @@ export class UserAgentApplication {
     this.clearCache();
     this._user = null;
     let logout = "";
-    if (this._postLogoutredirectUri) {
-      logout = "post_logout_redirect_uri=" + encodeURIComponent(this._postLogoutredirectUri);
+    if (this.getPostLogoutRedirectUri()) {
+      logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
 
     const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
@@ -767,13 +793,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
     if (Utils.compareObjects(userObject, this.getUser())) {
         if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
         }
         else {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
         }
     } else {
-        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
+        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
     }
 
         return this.getCachedToken(authenticationRequest, user);
@@ -1047,13 +1073,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
-              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           }
           else {
-              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
+              authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
           }
       } else {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
+        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
       }
 
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
@@ -1139,13 +1165,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
           if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           }
           else {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
+            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
           }
         } else {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
+          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
         }
 
         this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
@@ -1242,17 +1268,17 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           }
           else {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this._redirectUri, this._state);
+            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
           }
         } else {
             if (scopes.indexOf(this.clientId) > -1) {
-                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this._redirectUri, this._state);
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
             }
             else {
-                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this._redirectUri, this._state);
+                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
             }
         }
 
@@ -1954,7 +1980,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       // App will use idtoken for calls to itself
       // check if it's staring from http or https, needs to match with app host
       if (endpoint.indexOf('http://') > -1 || endpoint.indexOf('https://') > -1) {
-          if (this.getHostFromUri(endpoint) === this.getHostFromUri(this._redirectUri)) {
+          if (this.getHostFromUri(endpoint) === this.getHostFromUri(this.getRedirectUri())) {
               return new Array<string>(this.clientId);
           }
       }
