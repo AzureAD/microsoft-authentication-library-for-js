@@ -316,7 +316,14 @@ export class MsalService extends UserAgentApplication {
 
     public acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
+            super.acquireTokenSilent(scopes, authority, user, extraQueryParameters)
+            .catch((error: any) => {
+                if (this.config.popUp) {
+                    return super.acquireTokenPopup(scopes, authority, user, extraQueryParameters)
+                }
+                return Promise.reject(error);
+            })
+            .then((token: any) => {
                 this._renewActive = false;
                 var authenticationResult = new AuthenticationResult(token);
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
