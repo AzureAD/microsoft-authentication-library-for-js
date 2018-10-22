@@ -266,19 +266,17 @@ export class Utils {
     * @param href The url
     * @param tenantId The tenant id to replace
     */
-  static replaceFirstPath(href: string, tenantId: string): string {
-    var match = href.match(/^(https?\:)\/\/(([^:\/?#] *)(?:\:([0-9]+))?)([\/]{0,1}[^?#] *)(\?[^#] *|)(#. *|)$/);
-    if (match) {
-      var urlObject = this.GetUrlComponents(href);
-      var pathArray = urlObject.PathSegments;
-      pathArray.shift();
-      if (pathArray[0] && pathArray[0] === "common" || pathArray[0] === "organizations") {
-        pathArray[0] = tenantId;
-        href = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
-      }
+    static replaceFirstPath(url: string, tenantId: string): string {
+        if (!tenantId)
+            return url;
+        var urlObject = this.GetUrlComponents(url);
+        var pathArray = urlObject.PathSegments;
+        if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
+            pathArray[0] = tenantId;
+            url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
+        }
+        return url;
     }
-    return href;
-  }
 
   static createNewGuid(): string {
     // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
