@@ -43,8 +43,8 @@ export class AuthenticationRequestParameters {
   loginHint: string;
   domainHint: string;
   redirectUri: string;
-  public get authority(): string {
-    return this.authorityInstance.CanonicalAuthority;
+    public get authority(): string {
+        return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
   }
 
   constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string,state: string ) {

@@ -49,7 +49,7 @@ export class User {
     /*
      * @hidden
      */
-    static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User {
+    static createUser(idToken: IdToken, clientInfo: ClientInfo): User {
         let uid: string;
         let utid: string;
         if (!clientInfo) {

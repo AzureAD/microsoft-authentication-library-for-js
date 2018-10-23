@@ -435,10 +435,7 @@ export class UserAgentApplication {
               this._cacheStorage.setItem(Constants.msalError, "");
               this._cacheStorage.setItem(Constants.msalErrorDescription, "");
               const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-              if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-                  this._cacheStorage.setItem(authorityKey, this.authority);
-              }
-
+              this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
               const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
               this.promptUser(urlNavigate);
           });
@@ -523,10 +520,7 @@ export class UserAgentApplication {
           this._cacheStorage.setItem(Constants.msalError, "");
           this._cacheStorage.setItem(Constants.msalErrorDescription, "");
           const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-          if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-              this._cacheStorage.setItem(authorityKey, this.authority);
-          }
-
+          this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
           const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
           window.renewStates.push(authenticationRequest.state);
           window.requestType = Constants.login;
@@ -915,7 +909,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     for (let i = 0; i < accessTokenCacheItems.length; i++) {
       const idToken = new IdToken(accessTokenCacheItems[i].value.idToken);
       const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.clientInfo);
-      const user = User.createUser(idToken, clientInfo, this.authority);
+      const user = User.createUser(idToken, clientInfo);
       users.push(user);
     }
 
@@ -1091,15 +1085,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  authenticationRequest.state;
       }
 
-      if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
         this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-      }
-
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-      if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
-      }
-
+        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
       if (extraQueryParameters) {
         authenticationRequest.extraQueryParameters = extraQueryParameters;
       }
@@ -1184,14 +1172,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  authenticationRequest.state;
         }
 
-          if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-          this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-        }
-
+        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
         const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-          this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
-        }
+        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
 
         if (extraQueryParameters) {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
@@ -1265,20 +1248,19 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           }
 
           let authenticationRequest: AuthenticationRequestParameters;
-        let newAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
+              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           }
           else {
-            authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
+              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
           }
         } else {
             if (scopes.indexOf(this.clientId) > -1) {
-                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
+                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
             }
             else {
-                authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
+                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
             }
         }
 
@@ -1297,9 +1279,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         }
         else {
             this._logger.verbose("Token is not in cache for scope:" + scope);
+          }
+
+        if (!authenticationRequest.authorityInstance) {//Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+            authenticationRequest.authorityInstance = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
         }
-        // cache miss
-        return newAuthority.ResolveEndpointsAsync()
+          // cache miss
+          return authenticationRequest.authorityInstance.ResolveEndpointsAsync()
           .then(() => {
             // refresh attept with iframe
             //Already renewing for this scope, callback when we get the token.
@@ -1437,15 +1423,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  authenticationRequest.state;
     }
 
-    if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-      this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
-    }
-
+    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
     const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-      this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
-    }
-
+    this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
     // renew happens in iframe, so it keeps javascript context
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
@@ -1479,15 +1459,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     else {
         acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
     }
-    if (Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-      this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
-    }
-
+    
+    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
     const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-    if (Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-      this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
-    }
-
+    this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
     let urlNavigate = Utils.urlRemoveQueryStringParameter(authenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
@@ -1521,7 +1496,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
       const idToken = new IdToken(rawIdToken);
       const clientInfo = new ClientInfo(rawClientInfo);
-      this._user = User.createUser(idToken, clientInfo, this.authority);
+      this._user = User.createUser(idToken, clientInfo);
       return this._user;
     }
 
@@ -1723,26 +1698,26 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             idToken = new IdToken(this._cacheStorage.getItem(Constants.idTokenKey));
           }
 
-          authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          let authority: string;
-          if (!Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-            authority = this._cacheStorage.getItem(authorityKey);
-            authority = Utils.replaceFirstPath(authority, idToken.tenantId);
+            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+            let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
+            if (!Utils.isEmpty(authority)) {
+                authority = Utils.replaceFirstPath(authority, idToken.tenantId);
           }
 
           if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = tokenResponse.parameters[Constants.clientInfo];
-            user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
+            user = User.createUser(idToken, new ClientInfo(clientInfo));
           } else {
             this._logger.warning("ClientInfo not received in the response from AAD");
-            user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
+            user = User.createUser(idToken, new ClientInfo(clientInfo));
           }
 
           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          var   acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user +Constants.resourceDelimeter +  tokenResponse.stateResponse;
-          let acquireTokenUser: User;
-          if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey))) {
-            acquireTokenUser = JSON.parse(this._cacheStorage.getItem(acquireTokenUserKey));
+            var acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + tokenResponse.stateResponse;
+            let cachedUser: string = this._cacheStorage.getItem(acquireTokenUserKey);
+            let acquireTokenUser: User;
+            if (!Utils.isEmpty(cachedUser)) {
+                acquireTokenUser = JSON.parse(cachedUser);
             if (user && acquireTokenUser && Utils.compareObjects(user, acquireTokenUser)) {
               this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
               this._logger.info(
@@ -1751,8 +1726,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
               this._logger.warning(
                 "The user object created from the response is not the same as the one passed in the acquireToken request");
             }
-          }
-          else if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey_nouser))) {
+            }
+            else if (!Utils.isEmpty(this._cacheStorage.getItem(acquireTokenUserKey_nouser))) {
                   this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
           }
         }
@@ -1768,18 +1743,17 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             }
 
             authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
-            let authority: string;
-            if (!Utils.isEmpty(this._cacheStorage.getItem(authorityKey))) {
-              authority = this._cacheStorage.getItem(authorityKey);
+            let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
+            if (!Utils.isEmpty(authority)) {
               authority = Utils.replaceFirstPath(authority, idToken.tenantId);
             }
 
-            this._user = User.createUser(idToken, new ClientInfo(clientInfo), authority);
+            this._user = User.createUser(idToken, new ClientInfo(clientInfo));
             if (idToken && idToken.nonce) {
               if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie)) {
-                this._user = null;
-                this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
-                this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken) + "," + "Actual Nonce: " + idToken.nonce);
+                  this._user = null;
+                  this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie) + "," + "Actual Nonce: " + idToken.nonce);
+                  this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie) + "," + "Actual Nonce: " + idToken.nonce);
               } else {
                 this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
                 this._cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
@@ -1810,7 +1784,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       this._cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
       this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
       //this is required if navigateToLoginRequestUrl=false
-      this._cacheStorage.clearCookie();
+      if (this.storeAuthStateInCookie) {
+          this._cacheStorage.setItemCookie(authorityKey, '', -1);
+          this._cacheStorage.clearCookie();
+      }
   }
 
   /*
