@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/handlebars": "4.0.33",
-    "@types/jasmine": "^2.6.0",
+    "@types/jasmine": "2.5.41",
     "@types/jasmine-ajax": "^3.1.35",
     "atob": "~2.1.1",
     "awesome-typescript-loader": "^3.2.3",

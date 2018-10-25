@@ -86,6 +86,7 @@ export class Constants {
   static get urlHash(): string { return "msal.urlHash"; }
     static get angularLoginRequest(): string { return "msal.angular.login.request"; }
     static get userIdentifier(): string { return "userIdentifier"; }
+    static get common(): string { return "common"; }
 }
 
 /*

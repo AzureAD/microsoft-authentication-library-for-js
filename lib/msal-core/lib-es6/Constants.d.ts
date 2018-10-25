@@ -54,6 +54,7 @@ export declare class Constants {
     static readonly urlHash: string;
     static readonly angularLoginRequest: string;
     static readonly userIdentifier: string;
+    static readonly common: string;
 }
 export declare class ErrorCodes {
     static readonly loginProgressError: string;
