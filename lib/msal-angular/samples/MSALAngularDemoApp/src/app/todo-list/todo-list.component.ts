@@ -2,8 +2,8 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TodoListService} from "./todo-list.service";
 import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
-import {BroadcastService} from "../../../../../dist/broadcast.service";
-import { MsalService} from "../../../../../dist/msal.service";
+import {BroadcastService} from "@azure/msal-angular";
+import { MsalService} from "@azure/msal-angular";
 
 @Component({
   selector: 'app-todo-list',
