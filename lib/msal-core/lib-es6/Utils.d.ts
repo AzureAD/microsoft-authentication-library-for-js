@@ -41,7 +41,7 @@ export declare class Utils {
     static removeElement(scopes: Array<string>, scope: string): Array<string>;
     static decimalToHex(num: number): string;
     static getLibraryVersion(): string;
-    static replaceFirstPath(href: string, tenantId: string): string;
+    static replaceFirstPath(url: string, tenantId: string): string;
     static createNewGuid(): string;
     static GetUrlComponents(url: string): IUri;
     static CanonicalizeUri(url: string): string;
