@@ -4,7 +4,7 @@
   "description": "",
   "main": "e2eCoreTestsSpec.js",
   "scripts": {
-    "endToEnd": "jasmine-node spec/e2eCoreTestsSpec.js"
+    "endToEnd": "node seTestRunner.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +14,7 @@
     "promise": "^8.0.1"
   },
   "dependencies": {
+    "mocha": "^5.2.0",
     "jasmine": "^3.3.0",
     "jasmine-node": "^1.16.2",
     "selenium-webdriver": "^4.0.0-alpha.1"
