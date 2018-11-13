@@ -9,12 +9,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "chai": "*",
+    "mocha": "*",
     "azure-keyvault": "0.11.0",
     "mock-local-storage": "^1.0.5",
     "promise": "^8.0.1"
   },
   "dependencies": {
-    "mocha": "^5.2.0",
     "jasmine": "^3.3.0",
     "jasmine-node": "^1.16.2",
     "selenium-webdriver": "^4.0.0-alpha.1"
