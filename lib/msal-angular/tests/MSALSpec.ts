@@ -38,7 +38,8 @@ describe('Msal Angular Pubic API tests', function () {
                     consentScopes: ["user.read", "mail.send"],
                     unprotectedResources: ["https:google.com"],
                     correlationId: '1234',
-                    piiLoggingEnabled: true
+                    piiLoggingEnabled: true,
+                    response_mode: 'fragment'
                 }
             }, BroadcastService, {provide: Storage, useClass: {mockLocalStorage: "localStorage"}}
             ]

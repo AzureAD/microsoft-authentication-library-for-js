@@ -192,6 +192,12 @@ export class UserAgentApplication {
    */
   private _postLogoutredirectUri: string;
 
+  /*
+   * Used to set the response_mode
+   * Defaults to `fragment`.
+   */
+  private _response_mode: string;
+
   loadFrameTimeout: number;
 
   protected _navigateToLoginRequestUrl: boolean;
@@ -228,6 +234,7 @@ export class UserAgentApplication {
         cacheLocation?: string,
         redirectUri?: string,
         postLogoutRedirectUri?: string,
+        response_mode?: string,
         logger?: Logger,
         loadFrameTimeout?: number,
         navigateToLoginRequestUrl?: boolean,
@@ -242,6 +249,7 @@ export class UserAgentApplication {
           cacheLocation = "sessionStorage",
           redirectUri = window.location.href.split("?")[0].split("#")[0],
           postLogoutRedirectUri = window.location.href.split("?")[0].split("#")[0],
+          response_mode = 'fragment',
           logger = new Logger(null),
           loadFrameTimeout = 6000,
           navigateToLoginRequestUrl = true,
@@ -258,6 +266,7 @@ export class UserAgentApplication {
     this.authority = authority || "https://login.microsoftonline.com/common";
     this._tokenReceivedCallback = tokenReceivedCallback;
     this._redirectUri = redirectUri;
+    this._response_mode = response_mode;
     this._postLogoutredirectUri = postLogoutRedirectUri;
     this._loginInProgress = false;
     this._acquireTokenInProgress = false;
@@ -410,7 +419,7 @@ export class UserAgentApplication {
               this._cacheStorage.setItem(Constants.msalErrorDescription, "");
               const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
               this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
-              const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
+              const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode + this._response_mode;
               this.promptUser(urlNavigate);
           });
   }
@@ -495,7 +504,7 @@ export class UserAgentApplication {
           this._cacheStorage.setItem(Constants.msalErrorDescription, "");
           const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
           this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
-          const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
+          const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode + this._response_mode;
           window.renewStates.push(authenticationRequest.state);
           window.requestType = Constants.login;
           this.registerCallback(authenticationRequest.state, scope, resolve, reject);
@@ -1066,7 +1075,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest.extraQueryParameters = extraQueryParameters;
       }
 
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) +  Constants.prompt_select_account  + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) +  Constants.prompt_select_account  + Constants.response_mode + this._response_mode;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
       if (urlNavigate) {
         this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state, this.storeAuthStateInCookie);
@@ -1154,7 +1163,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account  + Constants.response_mode_fragment;
+        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account  + Constants.response_mode + this._response_mode;
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.renewToken;

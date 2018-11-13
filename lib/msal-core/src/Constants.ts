@@ -66,6 +66,7 @@ export class Constants {
   static get prompt_none(): string { return "&prompt=none"; }
   static get prompt(): string { return "prompt"; }
   static get response_mode_fragment(): string { return "&response_mode=fragment"; }
+  static get response_mode(): string { return "&response_mode="; }
   static get resourceDelimeter(): string { return "|"; }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }

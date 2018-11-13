@@ -20,4 +20,5 @@ export declare class MsalConfig {
     correlationId?: string;
     level?: LogLevel;
     piiLoggingEnabled?: boolean;
+    response_mode: 'fragment'
 }

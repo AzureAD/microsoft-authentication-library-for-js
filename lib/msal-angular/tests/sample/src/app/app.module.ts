@@ -52,7 +52,8 @@ export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoserv
         logger: loggerCallback,
         correlationId: '1234',
         level: LogLevel.Info,
-        piiLoggingEnabled: true
+        piiLoggingEnabled: true,
+        response_mode: 'fragment',
       }
     ),
   ],

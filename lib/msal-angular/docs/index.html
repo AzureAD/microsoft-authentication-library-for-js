@@ -181,7 +181,8 @@
                   <span class="hljs-attr">logger</span> :loggerCallback,
                   <span class="hljs-attr">correlationId</span>: <span class="hljs-string">'1234'</span>,
                   <span class="hljs-attr">level</span>: LogLevel.Verbose,
-                  <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">true</span>,
+				  <span class="hljs-attr">piiLoggingEnabled</span>: <span class="hljs-literal">true</span>,
+				  <span class="hljs-attr">response_mode</span>: <span class="hljs-literal">'fragment'</span>,
                 })]
            })
 
@@ -237,6 +238,8 @@
 					</li>
 					<li><p><strong>piiLoggingEnabled</strong> : PII stands for Personal Identifiable Information. By default, MSAL does not capture or log any PII. By turning on PII, the app takes responsibility for safely handling highly-sensitive data and complying with any regulatory requirements.
 						This flag is to enable/disable logging of PII data. PII logs are never written to default outputs like Console, Logcat or NSLog. Default is set to false.</p>
+					</li>
+					<li><p><strong>response_mode</strong> : The method that you use to send the resulting authorization code back to your app. It can be query, form_post, or fragment.</p>
 					</li>
 					<li><p><strong>correlationId</strong> : Unique identifier used to map the request with the response. Defaults to RFC4122 version 4 guid (128 bits).</p>
 					</li>
