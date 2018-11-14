@@ -5,6 +5,7 @@ import {
     HttpEvent,
     HttpInterceptor, HttpErrorResponse
 } from '@angular/common/http';
+import { from } from 'rxjs';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/mergeMap'
@@ -43,7 +44,7 @@ export class MsalInterceptor implements HttpInterceptor {
             });
         }
         else {
-            return Observable.fromPromise(this.auth.acquireTokenSilent(scopes).then(token => {
+            return from(this.auth.acquireTokenSilent(scopes).then(token => {
                 const JWT = `Bearer ${token}`;
                 return req.clone({
                     setHeaders: {
