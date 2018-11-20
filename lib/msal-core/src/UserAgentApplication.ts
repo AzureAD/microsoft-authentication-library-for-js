@@ -1066,7 +1066,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest.extraQueryParameters = extraQueryParameters;
       }
 
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) +  Constants.prompt_select_account  + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes)   + Constants.response_mode_fragment;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
       if (urlNavigate) {
         this._cacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state, this.storeAuthStateInCookie);
@@ -1154,7 +1154,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
 
-        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account  + Constants.response_mode_fragment;
+        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.renewToken;
