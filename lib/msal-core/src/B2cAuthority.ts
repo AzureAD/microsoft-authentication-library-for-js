@@ -22,9 +22,11 @@
  */
 
 import { AadAuthority } from "./AadAuthority";
-import { Authority, AuthorityType } from "./Authority";
+import {  AuthorityType } from "./Authority";
 import { ErrorMessage } from "./ErrorMessage";
 import { Utils } from "./Utils";
+import {MSALClientException} from "./exception/MSALClientException";
+import {ErrorCodes, ErrorDescription} from "./Constants";
 
 /*
  * @hidden
@@ -36,7 +38,7 @@ export class B2cAuthority extends AadAuthority {
 
     let pathSegments = urlComponents.PathSegments;
     if (pathSegments.length < 3) {
-        throw ErrorMessage.b2cAuthorityUriInvalidPath;
+        throw new MSALClientException (ErrorCodes.b2cAuthorityUriInvalidPath, ErrorDescription.b2cAuthorityUriInvalidPath);
     }
 
     this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}/`;

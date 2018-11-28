@@ -21,8 +21,9 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Constants } from "./Constants";
+import {Constants, ErrorCodes, ErrorDescription} from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import {MSALClientException} from "./exception/MSALClientException";
 
 /*
  * @hidden
@@ -44,7 +45,7 @@ export class Storage {// Singleton
     this._sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
     Storage._instance = this;
     if (!this._localStorageSupported && !this._sessionStorageSupported) {
-      throw new Error("localStorage and sessionStorage not supported");
+      throw new MSALClientException(ErrorCodes.localSessionStorageNotSupported, ErrorDescription.localSessionStorageNotSupported);
     }
 
     return Storage._instance;

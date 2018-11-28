@@ -35,6 +35,7 @@ import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
+import {MSALClientException} from "./exception/MSALClientException";
 
 declare global {
     interface Window {
@@ -268,7 +269,7 @@ export class UserAgentApplication {
     this._unprotectedResources = unprotectedResources;
     this._protectedResourceMap = protectedResourceMap;
     if (!this._cacheLocations[cacheLocation]) {
-      throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
+      throw new MSALClientException( ErrorCodes.invalid_cache_location , "Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
     }
 
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
@@ -326,7 +327,7 @@ export class UserAgentApplication {
           }
 
       } catch (err) {
-          this._logger.error("Error occurred in token received callback function: " + err);
+          this._logger.error( ErrorDescription.errorOccurredInTheTokenReceivedCallbackFunction + err);
       }
   }
 
@@ -375,7 +376,7 @@ export class UserAgentApplication {
                   }
               }, (error) => {
                   this._silentLogin = false;
-                  this._logger.error("Error occurred during unified cache ATS");
+                  this._logger.error(ErrorDescription.errorOccurredDuringUnifiedCacheATS);
                   this.loginRedirectHelper(scopes, extraQueryParameters);
               });
       }
@@ -456,7 +457,7 @@ export class UserAgentApplication {
                     resolve(idToken);
                 }, (error) => {
                     this._silentLogin = false;
-                    this._logger.error("Error occurred during unified cache ATS");
+                    this._logger.error(ErrorDescription.errorOccurredDuringUnifiedCacheATS);
                     this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters);
                 });
             
@@ -516,7 +517,7 @@ export class UserAgentApplication {
               popUpWindow.close();
           }
       }).catch((err) => {
-          this._logger.warning("could not resolve endpoints");
+          this._logger.warning(ErrorDescription.couldNotResolveEndpoint);
           reject(err);
       });
   }
@@ -531,7 +532,7 @@ export class UserAgentApplication {
       this._logger.infoPii("Navigate to:" + urlNavigate);
       window.location.replace(urlNavigate);
     } else {
-      this._logger.info("Navigate url is empty");
+      this._logger.info(ErrorDescription.navigateUrlIsEmpty);
     }
   }
 
@@ -682,16 +683,16 @@ export class UserAgentApplication {
    */
   private validateInputScope(scopes: Array<string>): string {
     if (!scopes || scopes.length < 1) {
-      return "Scopes cannot be passed as an empty array";
+      return ErrorDescription.emptyArrayScopes
     }
 
     if (!Array.isArray(scopes)) {
-      throw new Error("API does not accept non-array scopes");
+      throw new MSALClientException(ErrorCodes.non_array_scopes ,ErrorDescription.non_array_scopes);
     }
 
     if (scopes.indexOf(this.clientId) > -1) {
       if (scopes.length > 1) {
-        return "ClientId can only be provided as a single scope";
+        return ErrorDescription.clientIDShouldBeSingleScope;
       }
     }
     return "";
@@ -807,9 +808,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
       else if (filteredItems.length > 1) {
         return {
-          errorDesc: "The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority",
+          errorDesc: ErrorDescription.cacheContainsMultipleTokens,
           token: null,
-          error: "multiple_matching_tokens_detected"
+          error: ErrorCodes.multipleMatchingTokensDetected
         };
       }
       else {
@@ -817,9 +818,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
         if (authorityList.length > 1) {
           return {
-            errorDesc: "Multiple authorities found in the cache. Pass authority in the API overload.",
+            errorDesc: ErrorDescription.multipleAuthoritiesFoundInCachePassAuthority,
             token: null,
-            error: "multiple_matching_tokens_detected"
+            error: ErrorCodes.multipleMatchingTokensDetected
           };
         }
 
@@ -847,9 +848,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       else {
         //more than one match found.
         return {
-          errorDesc: "The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority",
+          errorDesc: ErrorDescription.cacheContainsMultipleTokens,
           token: null,
-          error: "multiple_matching_tokens_detected"
+          error: ErrorCodes.multipleMatchingTokensDetected
         };
       }
     }
@@ -1028,7 +1029,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     const scope = scopes.join(" ").toLowerCase();
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
           if (this._tokenReceivedCallback) {
-              this._logger.info('User login is required');
+              this._logger.error(ErrorDescription.userLoginIsRequired);
               this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
               return;
           }
@@ -1111,7 +1112,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       const scope = scopes.join(" ").toLowerCase();
         //if user is not currently logged in and no login_hint is passed
         if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
-            this._logger.info('User login is required');
+            this._logger.error(ErrorDescription.userLoginIsRequired);
             reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
             return;
         }
@@ -1209,7 +1210,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
         //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
           if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
-              this._logger.info('User login is required');
+              this._logger.error(ErrorDescription.userLoginIsRequired);
               reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
               return;
           }
@@ -1566,7 +1567,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         }
 
     } catch (err) {
-        self._logger.error("Error occurred in token received callback function: " + err);
+        self._logger.error(ErrorDescription.errorOccurredInTheTokenReceivedCallbackFunction + err);
     }
     if (isWindowOpenerMsal) {
         for (var i = 0; i < window.opener.openedWindows.length; i++) {
@@ -1682,7 +1683,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             clientInfo = tokenResponse.parameters[Constants.clientInfo];
             user = User.createUser(idToken, new ClientInfo(clientInfo));
           } else {
-            this._logger.warning("ClientInfo not received in the response from AAD");
+            this._logger.warning(ErrorDescription.clientInfoNotReceivedInTheResponseFromAAD);
             user = User.createUser(idToken, new ClientInfo(clientInfo));
           }
 
@@ -1713,7 +1714,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = tokenResponse.parameters[Constants.clientInfo];
             } else {
-              this._logger.warning("ClientInfo not received in the response from AAD");
+              this._logger.warning(ErrorDescription.clientInfoNotReceivedInTheResponseFromAAD);
             }
 
             authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
@@ -1738,10 +1739,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             } else {
               authorityKey = tokenResponse.stateResponse;
               acquireTokenUserKey = tokenResponse.stateResponse;
-              this._logger.error("Invalid id_token received in the response");
-              tokenResponse.parameters['error'] = 'invalid idToken';
+              this._logger.error(ErrorDescription.invalidIdTokenInTheResponse);
+              tokenResponse.parameters['error'] = ErrorCodes.invalidIdToken;
               tokenResponse.parameters['error_description'] = 'Invalid idToken. idToken: ' + tokenResponse.parameters[Constants.idToken];
-              this._cacheStorage.setItem(Constants.msalError, "invalid idToken");
+              this._cacheStorage.setItem(Constants.msalError,  ErrorCodes.invalidIdToken);
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
         }
@@ -1749,9 +1750,9 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authorityKey = tokenResponse.stateResponse;
         acquireTokenUserKey = tokenResponse.stateResponse;
         this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin,this.storeAuthStateInCookie ) + "," + "Actual State: " + tokenResponse.stateResponse);
-        tokenResponse.parameters['error'] = 'Invalid_state';
-        tokenResponse.parameters['error_description'] = 'Invalid_state. state: ' + tokenResponse.stateResponse;
-        this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
+        tokenResponse.parameters['error'] = ErrorCodes.invalidState;
+        tokenResponse.parameters['error_description'] = 'Invalid state. state: ' + tokenResponse.stateResponse;
+        this._cacheStorage.setItem(Constants.msalError, ErrorCodes.invalidState);
         this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }
       }

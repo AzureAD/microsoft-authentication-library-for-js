@@ -64,6 +64,19 @@ export declare class ErrorCodes {
     static readonly popUpWindowError: string;
     static readonly userLoginError: string;
     static readonly userCancelledError: string;
+    static readonly multipleMatchingTokensDetected: string;
+    static readonly invalidState: string;
+    static readonly invalidIdToken: string;
+    static readonly invalid_cache_location: string;
+    static readonly non_array_scopes: string;
+    static readonly empty_idtoken: string;
+    static readonly idtoken_parsing_error: string;
+    static readonly authorityUriInvalidPath: string;
+    static readonly authorityUriInsecure: string;
+    static readonly invalidAuthorityType: string;
+    static readonly unsupportedAuthorityValidation: string;
+    static readonly b2cAuthorityUriInvalidPath: string;
+    static readonly localSessionStorageNotSupported: string;
 }
 export declare class ErrorDescription {
     static readonly loginProgressError: string;
@@ -73,4 +86,23 @@ export declare class ErrorDescription {
     static readonly popUpWindowError: string;
     static readonly userLoginError: string;
     static readonly userCancelledError: string;
+    static readonly multipleAuthoritiesFoundInCachePassAuthority: string;
+    static readonly cacheContainsMultipleTokens: string;
+    static readonly emptyArrayScopes: string;
+    static readonly clientIDShouldBeSingleScope: string;
+    static readonly userLoginIsRequired: string;
+    static readonly invalidIdTokenInTheResponse: string;
+    static readonly clientInfoNotReceivedInTheResponseFromAAD: string;
+    static readonly errorOccurredDuringUnifiedCacheATS: string;
+    static readonly errorOccurredInTheTokenReceivedCallbackFunction: string;
+    static readonly couldNotResolveEndpoint: string;
+    static readonly navigateUrlIsEmpty: string;
+    static readonly localSessionStorageNotSupported: string;
+    static readonly authorityUriInvalidPath: string;
+    static readonly authorityUriInsecure: string;
+    static readonly invalidAuthorityType: string;
+    static readonly b2cAuthorityUriInvalidPath: string;
+    static readonly non_array_scopes: string;
+    static readonly empty_idtoken: string;
+    static readonly idtoken_parsing_error: string;
 }

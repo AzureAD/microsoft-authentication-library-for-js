@@ -1,8 +1,9 @@
 import { IUri } from "./IUri";
 import { Utils } from "./Utils";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ErrorMessage } from "./ErrorMessage";
 import { XhrClient } from "./XHRClient";
+import {MSALClientException} from "./exception/MSALClientException";
+import {ErrorCodes, ErrorDescription} from "./Constants";
 
 /**
  * Copyright (c) Microsoft Corporation
@@ -117,15 +118,15 @@ export abstract class Authority {
     try {
       components = this.CanonicalAuthorityUrlComponents;
     } catch (e) {
-      throw ErrorMessage.invalidAuthorityType;
+       throw new MSALClientException(ErrorCodes.invalidAuthorityType, ErrorDescription.invalidAuthorityType);
     }
 
     if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
-      throw ErrorMessage.authorityUriInsecure;
+      throw new MSALClientException(ErrorCodes.authorityUriInsecure, ErrorDescription.authorityUriInsecure);
     }
 
     if (!components.PathSegments || components.PathSegments.length < 1) {
-      throw ErrorMessage.authorityUriInvalidPath;
+      throw new MSALClientException(ErrorCodes.authorityUriInvalidPath, ErrorDescription.authorityUriInvalidPath);
     }
   }
 

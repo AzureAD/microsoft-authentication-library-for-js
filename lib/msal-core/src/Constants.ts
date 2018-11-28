@@ -100,6 +100,19 @@ export class ErrorCodes {
   static get popUpWindowError(): string { return "popup_window_error"; }
   static get userLoginError(): string { return "user_login_error"; }
   static get userCancelledError(): string { return "user_cancelled"; }
+  static get multipleMatchingTokensDetected() : string { return "multiple_matching_tokens_detected"; }
+  static get invalidState(): string { return "Invalid_state"; }
+  static get invalidIdToken(): string { return "Invalid_idtoken"; }
+  static get invalid_cache_location(): string { return "Invalid_cache_location"; }
+  static get non_array_scopes(): string { return "non_array_scopes"; }
+  static get empty_idtoken(): string { return "empty_idtoken"; }
+  static get idtoken_parsing_error(): string { return "idtoken_parsing_error"; }
+  static get authorityUriInvalidPath(): string { return "Authority_uri_invalid_path"; }
+  static get authorityUriInsecure(): string { return "Authority_uri_insecure"; }
+  static get invalidAuthorityType(): string { return "Invalid_authority_type"; }
+  static get unsupportedAuthorityValidation(): string { return "Unsupported_authority_validation"; }
+  static get b2cAuthorityUriInvalidPath(): string { return "B2c_authority_uri_invalid_path"; }
+  static get localSessionStorageNotSupported(): string { return "local_and_session_storage_not_supported"; }
 }
 
 /*
@@ -113,5 +126,24 @@ export class ErrorDescription {
   static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
   static get userLoginError(): string { return "User login is required"; }
   static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
+  static get multipleAuthoritiesFoundInCachePassAuthority(): string { return "Multiple authorities found in the cache. Pass authority in the API overload."; }
+  static get cacheContainsMultipleTokens(): string { return "The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority"; }
+  static get emptyArrayScopes(): string { return "Scopes cannot be passed as an empty array."; }
+  static get clientIDShouldBeSingleScope(): string { return "ClientId can only be provided as a single scope."; }
+  static get userLoginIsRequired(): string { return "User login is required"; }
+  static get invalidIdTokenInTheResponse(): string { return "Invalid id_token received in the response"; }
+  static get clientInfoNotReceivedInTheResponseFromAAD(): string { return "ClientInfo not received in the response from AAD";}
+  static get errorOccurredDuringUnifiedCacheATS(): string { return "Error occurred during unified cache ATS"; }
+  static get errorOccurredInTheTokenReceivedCallbackFunction(): string { return "Error occurred in token received callback function: "; }
+  static get couldNotResolveEndpoint() : string { return "Could not resolve endpoints"; }
+  static get navigateUrlIsEmpty() : string { return "Navigate Url Is Empty"; }
+  static get localSessionStorageNotSupported(): string { return "localStorage and sessionStorage not supported"; }
+  static get authorityUriInvalidPath(): string { return "Authority uri has invalid path"; }
+  static get authorityUriInsecure(): string { return "Authority uri insecure"; }
+  static get invalidAuthorityType(): string { return "Invalid authority type"; }
+  static get b2cAuthorityUriInvalidPath(): string { return "B2c authority uri invalid path"; }
+  static get non_array_scopes(): string { return "API does not accept non-array scopes"; }
+  static get empty_idtoken(): string { return "null or empty raw idtoken"; }
+  static get idtoken_parsing_error(): string { return "Failed to parse the returned id token"; }
 
 }

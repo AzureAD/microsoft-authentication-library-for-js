@@ -3,6 +3,8 @@ import {Authority, AuthorityType} from '../src/Authority';
 import { ErrorMessage } from "../src/ErrorMessage";
 
 import { AuthorityFactory } from "../src/AuthorityFactory";
+import {MSALClientException} from "../src/exception/MSALClientException";
+import {ErrorCodes, ErrorDescription} from "../src/Constants";
 
 describe("Authority", () => {
     const validOpenIdConfigurationResponse = '{"authorization_endpoint":"https://authorization_endpoint","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}';
@@ -96,7 +98,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.b2cAuthorityUriInvalidPath);
+            expect(call).toThrow(new MSALClientException (ErrorCodes.invalidAuthorityType, ErrorDescription.invalidAuthorityType));
         });
 
         it("should fail when validation is not supported", (done) => {
@@ -126,7 +128,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.invalidAuthorityType);
+            expect(call).toThrow( new MSALClientException (ErrorCodes.invalidAuthorityType, ErrorDescription.invalidAuthorityType));
         });
     });
 
@@ -151,15 +153,15 @@ describe("Authority", () => {
         it("is thrown when tenant discovery endpoint fails with invalid data", (done) => {
             verifyError(done, {
                 status: 500,
-                responseText: 'fatalError'
-            }, "fatalError");
+                responseText: 'invalid_instance'
+            }, "invalid_instance");
         });
 
         it("is thrown when tenant discovery endpoint fails with error details", (done) => {
             verifyError(done, {
                 status: 400,
-                responseText: '{"error": "OMG_EPIC_FAIL"}'
-            }, "OMG_EPIC_FAIL");
+                responseText: '{"error": "invalid_instance"}'
+            }, "invalid_instance");
         });
 
         it("is thrown when authority is not https", () => {
@@ -171,7 +173,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.authorityUriInsecure);
+            expect(call).toThrow( new MSALClientException (ErrorCodes.authorityUriInsecure, ErrorDescription.authorityUriInsecure));
         });
     });
 });

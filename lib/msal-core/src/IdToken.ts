@@ -22,6 +22,8 @@
   */
 
 import { Utils } from "./Utils";
+import {MSALClientException} from "./exception/MSALClientException";
+import {ErrorCodes, ErrorDescription} from "./Constants";
 
 /*
  * @hidden
@@ -44,7 +46,7 @@ export class IdToken {
 
   constructor(rawIdToken: string) {
     if (Utils.isEmpty(rawIdToken)) {
-      throw new Error("null or empty raw idtoken");
+      throw new MSALClientException(ErrorCodes.empty_idtoken,ErrorDescription.empty_idtoken);
     }
     try {
       this.rawIdToken = rawIdToken;
@@ -96,7 +98,7 @@ export class IdToken {
 
       }
     } catch (e) {
-      throw new Error("Failed to parse the returned id token");
+      throw new MSALClientException(ErrorCodes.idtoken_parsing_error,ErrorDescription.idtoken_parsing_error);
     }
   }
 

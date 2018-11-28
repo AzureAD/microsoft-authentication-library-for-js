@@ -1,0 +1,1 @@
+{"version":3,"file":"MSALClientException.js","sourceRoot":"","sources":["../../src/exception/MSALClientException.ts"],"names":[],"mappings":";AACA,OAAO,EAAC,aAAa,EAAC,MAAM,iBAAiB,CAAC;AAE9C;IAAyC,+CAAa;IAGlD,6BAAY,SAAiB,EAAE,YAAoB;eAC/C,kBAAM,SAAS,EAAE,YAAY,CAAC;IAClC,CAAC;IAGL,0BAAC;AAAD,CAAC,AARD,CAAyC,aAAa,GAQrD"}
