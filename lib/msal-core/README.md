@@ -6,7 +6,7 @@ Microsoft Authentication Library Preview for JavaScript (MSAL.js)
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library preview for JavaScript is the core library which enables JavaScript web applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
+The MSAL library preview for JavaScript is the core library which enables JavaScript web applications to authenticate users using Azure Active Directory accounts (AAD), Microsoft accounts (MSA) through [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) service as well as users using social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
 
