@@ -365,6 +365,10 @@ export class MsalService extends UserAgentApplication {
         super.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
     }
 
+    public acquireTokenInProgress(): boolean {
+        return super.getAcquireTokenInProgress();
+    }
+
     public loginInProgress(): boolean {
         return super.loginInProgress();
     }
