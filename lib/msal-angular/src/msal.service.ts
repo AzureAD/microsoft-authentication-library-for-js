@@ -317,18 +317,25 @@ export class MsalService extends UserAgentApplication {
     public acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
         return new Promise((resolve, reject) => {
             super.acquireTokenSilent(scopes, authority, user, extraQueryParameters)
-            .catch((error: any) => {
-                if (this.config.popUp) {
-                    return super.acquireTokenPopup(scopes, authority, user, extraQueryParameters)
-                }
-                return Promise.reject(error);
-            })
             .then((token: any) => {
                 this._renewActive = false;
                 var authenticationResult = new AuthenticationResult(token);
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
                 resolve(token);
-            }, (error: any) => {
+            }, (error: string = '') => {
+                if (this.config && this.config.fallbackToInteractive) {
+                    if (this.config.popUp) {
+                        return this.acquireTokenPopup(scopes, authority, user, extraQueryParameters);
+                    } else {
+                        try {
+                            this.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
+                            return resolve(true);
+                        }
+                        catch (err) {
+                            error += ' ' + err;
+                        }
+                    }
+                }
                 var errorParts = error.split('|');
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;

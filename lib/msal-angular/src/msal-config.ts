@@ -15,6 +15,7 @@ export class MsalConfig {
     popUp?: boolean;
     consentScopes?: string[];
     isAngular?:true;
+    fallbackToInteractive?: false;
     unprotectedResources? :  string[];
     protectedResourceMap?: [string, string[]][];
     extraQueryParameters?: string;
