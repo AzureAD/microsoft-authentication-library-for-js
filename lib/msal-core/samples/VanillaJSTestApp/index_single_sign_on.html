@@ -1,0 +1,167 @@
+<html>
+<head>
+    <title>authentication with Msal.js app</title>
+    <style>
+        .hidden {
+            visibility: hidden;
+        }
+
+        .visible {
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <!-- bluebird only needed if this page needs to run on Internet Explorer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
+    <script src="dist/msal.js" class="pre"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
+
+    <h1>Single sign on </h1>
+    <h1>Sending an email with msal.js and Microsoft Graph</h1>
+    <div id="sendEmail">
+        <input id="emailToSendTo" type="text" />
+        <button id="auth" onclick="sendEmail();">Send email</button>
+    </div>
+
+    <pre class="response"></pre>
+
+    <script class="pre">
+        var applicationConfig = {
+            clientID:  '78b2b4ce-941b-4378-8d5f-197a28d6d120',
+            graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
+            graphScopes: ["user.read", "mail.send"]
+        };
+    </script>
+
+    <script>
+        var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345' });
+        function loggerCallback(logLevel, message, piiEnabled) {
+            console.log(message);
+        }
+
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: true , navigateToLoginRequestUrl: false});// cacheLocation defaults to sessionStorage if not set in the constructor
+
+        function authCallback(errorDesc, token, error, tokenType) {
+            console.log(" token " + token);
+            console.log(" error " + error + "  errorDesc " + errorDesc);
+        }
+        
+        function updateUI() {
+            var authButton = document.getElementById('auth');
+            authButton.innerHTML = 'logout';
+            authButton.setAttribute('onclick', 'logout();');
+            var label = document.getElementById('label');
+            label.innerText = "Hello " + userAgentApplication.getUser().name + "! Please send an email with Microsoft Graph";
+
+            // Show the email address part
+            var sendEmailSpan = document.getElementById('sendEmail');
+            sendEmailSpan.className = "visible";
+            var emailAddress = document.getElementById('emailToSendTo');
+            emailAddress.value = userAgentApplication.getUser().displayableId;
+        }
+
+        function loginRedirect() {
+            userAgentApplication.loginRedirect(applicationConfig.graphScopes);
+        }
+
+        function logout() {
+            // Removes all sessions, need to call AAD endpoint to do full logout
+            userAgentApplication.logout();
+        }
+
+        function sendEmail() {
+
+            //without queryParam
+           // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+           // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null )
+            //userAgentApplication.acquireTokenRedirect(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+            //userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+            //userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null )
+            //userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null)
+
+
+
+            //without domain_hint
+          // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>" )
+          // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>)
+
+
+            //with domain hint and client id
+           // userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+              userAgentApplication.acquireTokenSilent(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+          //  userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+           // userAgentApplication.acquireTokenPopup(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+
+            //with domain hint and api scopes
+            //userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+           // userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+          //   userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+            // userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+                .then(function (token, error) {
+                    $.ajax({
+                        type: "POST",
+                        contentType: "application/json",
+                        dataType: 'json',
+                        beforeSend: function (request) {
+                            request.setRequestHeader('Authorization', 'bearer ' + token);
+                        },
+                        url: applicationConfig.graphEndpoint,
+                        data: JSON.stringify({ 'message': getEmail(), 'saveToSentItems': true }),
+                        processData: false,
+                        success: function (msg) {
+                            log('Mail sucessfully sent.');
+                        },
+                        statusCode: {
+                            200: function () {
+                                log('Mail sucessfully sent.');
+                            },
+                            202: function () {
+                                log('Mail sucessfully sent.');
+                            }
+
+                        }
+                    });
+                });
+
+            // acquireTokenRedirect
+            //userAgentApplication.acquireTokenRedirect(['78b2b4ce-941b-4378-8d5f-197a28d6d120'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+            // this should result in an error. sid can't be used with prompt=select_account
+            //userAgentApplication.acquireTokenRedirect(['9f064d41-aa20-4561-9aa5-d1a63f2c6130'], 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+            //this should result in an error. sid can't be used with prompt=select_account
+            //userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "sid=<>&domain_hint=organizations" )
+             //userAgentApplication.acquireTokenRedirect(applicationConfig.graphScopes, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', null, "login_hint=<>&domain_hint=organizations" )
+
+
+        }
+
+        function log(s) {
+            document.body.querySelector('.response').appendChild(document.createTextNode("\n\n" + JSON.stringify(s, true, 2)));
+        }
+
+        function getEmail() {
+            var email = {
+                Subject: 'Welcome to Microsoft Graph development with Msal and the Microsoft Graph sample',
+                Body: {
+                    ContentType: 'HTML',
+                    Content: getEmailContent()
+                },
+                ToRecipients: [
+                    {
+                        EmailAddress: {
+                            Address: userAgentApplication.getUser().displayableId
+                        }
+                    }
+                ]
+            };
+            return email;
+        }
+
+        // Get the HTMl for the email to send.
+        function getEmailContent() {
+            return "<html><head> <meta http-equiv=\'Content-Type\' content=\'text/html; charset=us-ascii\'> <title></title> </head><body style=\'font-family:calibri\'> <p>Congratulations " + userAgentApplication.getUser().name + ",</p> <p>This is a message from the Microsoft Graph Connect sample. You are well on your way to incorporating Microsoft Graph endpoints in your apps. </p> <h3>What&#8217;s next?</h3><ul><li>Check out <a href='https://graph.microsoft.io' target='_blank'>graph.microsoft.io</a> to start building Microsoft Graph apps today with all the latest tools, templates, and guidance to get started quickly.</li><li>Use the <a href='https://graph.microsoft.io/graph-explorer' target='_blank'>Graph explorer</a> to explore the rest of the APIs and start your testing.</li><li>Browse other <a href='https://github.com/microsoftgraph/' target='_blank'>samples on GitHub</a> to see more of the APIs in action.</li></ul> <h3>Give us feedback</h3> <ul><li>If you have any trouble running this sample, please <a href='https://github.com/microsoftgraph/angular-connect-rest-sample/issues' target='_blank'>log an issue</a>.</li><li>For general questions about the Microsoft Graph API, post to <a href='https://stackoverflow.com/questions/tagged/microsoftgraph?sort=newest' target='blank'>Stack Overflow</a>. Make sure that your questions or comments are tagged with [microsoftgraph].</li></ul><p>Thanks and happy coding!<br>Your Microsoft Graph samples development team</p> <div style=\'text-align:center; font-family:calibri\'> <table style=\'width:100%; font-family:calibri\'> <tbody> <tr> <td><a href=\'https://github.com/microsoftgraph/angular-connect-rest-sample\'>See on GitHub</a> </td> <td><a href=\'https://officespdev.uservoice.com/\'>Suggest on UserVoice</a> </td> <td><a href=\'https://twitter.com/share?text=I%20just%20started%20developing%20%23Angular%20apps%20using%20the%20%23MicrosoftGraph%20Connect%20sample!%20&url=https://github.com/microsoftgraph/angular-connect-rest-sample\'>Share on Twitter</a> </td> </tr> </tbody> </table> </div>  </body> </html>";
+        };
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "msalreact",
+  "version": "0.1.5",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack && node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jquery": "^3.2.13",
+    "awesome-typescript-loader": "^3.2.3",
+    "express": "^4.12.3",
+    "jquery": "^3.2.1",
+    "morgan": "^1.5.2",
+    "path": "^0.11.14",
+    "source-map-loader": "^0.2.2",
+    "tslib": "^1.8.0",
+    "typescript": "^2.5.3",
+    "webpack": "^3.7.1",
+    "msal": "0.1.3"
+  }
+}
