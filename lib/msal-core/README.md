@@ -40,7 +40,9 @@ Before using MSAL, register an application in Azure AD v2.0 using the [applicati
 
 #### 1. Instantiate the UserAgentApplication
 
-Instantiate the UserAgentApplication with a clientID and callback that is called after the authentication request is complete.
+Instantiate the UserAgentApplication with a minimal required configuration of clientID.   
+
+A callback function must be passed in for the redirect flows(loginRedirect and acquireTokenRedirect). This callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 UserAgentApplication has other optional parameters like redirectUri which can be assigned. Please refer to the [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics#configuration-options) to see the full list and their default values.
 
@@ -49,9 +51,10 @@ UserAgentApplication has other optional parameters like redirectUri which can be
         clientID: 'your_client_id'
     };
 
-     var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback);
+     var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, tokenReceivedCallback);
 
-    function authCallback(errorDesc, token, error, tokenType) {
+    //callback function for redirect flows
+    function tokenReceivedCallback(errorDesc, token, error, tokenType) {
         if (token) {
         }
         else {
@@ -60,9 +63,28 @@ UserAgentApplication has other optional parameters like redirectUri which can be
     }
 ```
 
-#### 2. Login the user and then get an access token
+#### 2. Login the user
 
-Your app must login the user with either loginPopup or the loginRedirect method to establish user context. Next, you can get access tokens for the APIs your app needs to call using the acquireTokenSilent method. If the silent token acquisition fails for some reasons such as expiration, you will need to invoke an interactive method to acquire tokens.
+Your app must login the user with either loginPopup or the loginRedirect method to establish user context. When the login methods are called and the authentication of the user is completed by the Azure AD service, an [id token](https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens) is returned which is used to identify the user with some basic information.
+
+```JavaScript
+   var graphScopes = ["user.read", "mail.send"];
+
+   userAgentApplication.loginPopup(graphScopes).then(function (idToken) {
+       //login success
+   }, function (error) {
+       //login failure
+       console.log(error);
+   });
+
+```
+> Note: The scopes passed to the login method are optional. In this example, the graphScopes are passed in the login method to obtain consent upfront from the user for your app to access certain Graph API scopes. The idtoken returned here does not contain the scopes. In the next step, you can see how to get an access token which will contain the consented scopes.
+
+#### 3. Get an access token to call an API
+
+In MSAL, you can get access tokens for the APIs your app needs to call using the acquireTokenSilent method which makes a silent request(without prompting the user) to Azure AD to obtain an access token. The Azure AD service then returns an [access token](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.  
+
+If the silent token acquisition fails for some reasons such as an expired token or password change, you will need to invoke an interactive method to acquire tokens such as acquireTokenPopup or acquireTokenRedirect.
 
  ```JavaScript
     var graphScopes = ["user.read", "mail.send"];
@@ -80,11 +102,12 @@ Your app must login the user with either loginPopup or the loginRedirect method 
             });
         })
     }, function (error) {
+        //login failure
         console.log(error);
     });
 ```
 
-#### 3. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API
+#### 4. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API
 
 ```JavaScript
     var headers = new Headers();
