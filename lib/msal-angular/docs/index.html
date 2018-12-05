@@ -111,7 +111,7 @@
 				<h4 id="4-subscribe-to-event-callbacks">4. Subscribe to event callbacks</h4>
 				<p>MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.</p>
 				<ol>
-					<li>login_popup()/login_redirect using api or using routes.</li>
+					<li>loginPopup()/loginRedirect using api or using routes.</li>
 				</ol>
 				<pre><code class="lang-js"><span class="hljs-keyword">this</span>.broadcastService.subscribe(<span class="hljs-string">"msal:loginFailure"</span>, (payload) =&gt; {
 <span class="hljs-comment">// do something here</span>
@@ -122,7 +122,7 @@
 });
 </code></pre>
 				<ol start="2">
-					<li>acquire_token_silent()/acquire_token_popup()/acquire_token_redirect()</li>
+					<li>acquireTokenSilent()/acquireTokenPopup()/acquireTokenRedirect()</li>
 				</ol>
 				<pre><code class="lang-js"><span class="hljs-keyword">this</span>.broadcastService.subscribe(<span class="hljs-string">"msal:acquireTokenSuccess"</span>, (payload) =&gt; {
      <span class="hljs-comment">// do something here</span>
@@ -151,13 +151,13 @@
 				<h4 id="login-and-acquiretoken-apis">Login and AcquireToken APIs</h4>
 				<p>The wrapper exposes APIs for login, logout, acquiring access token and more.</p>
 				<ol>
-					<li>login_redirect()</li>
-					<li>login_popup()</li>
-					<li>log_out()</li>
-					<li>acquire_token_silent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.</li>
-					<li>acquire_token_popup()</li>
-					<li>acquire_token_redirect()</li>
-					<li>get_user()</li>
+					<li>loginRedirect()</li>
+					<li>loginPopup()</li>
+					<li>logOut()</li>
+					<li>acquireTokenSilent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquireTokenPopup() or acquireTokenRedirect() there to acquire the token interactively.</li>
+					<li>acquireTokenPopup()</li>
+					<li>acquireTokenRedirect()</li>
+					<li>getUser()</li>
 				</ol>
 				<blockquote>
 					<p>Note: Since MSAL Angular wrapper is inheriting from UserAgentApplication of msal-core, all the public APIs of msal-core are still accessible from msal-angular. But it is recommended not to use
@@ -225,7 +225,7 @@
 					<li><p><strong>unprotectedResources</strong> : Array of  URI&#39;s. Msal will not attach a token to outgoing requests that have these uri. Defaults to &#39;null&#39;.</p>
 					</li>
 					<li><p><strong>protectedResourceMap</strong> : Mapping of resources to scopes  {&quot;<a href="https://graph.microsoft.com/v1.0/me&quot;">https://graph.microsoft.com/v1.0/me&quot;</a>, [&quot;user.read&quot;, &quot;mail.send&quot;]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.</p>
-						<pre><code>                       <span class="hljs-type">This</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">required</span> only <span class="hljs-keyword">for</span> <span class="hljs-type">CORS</span> calls.
+						<pre><code>                       This <span class="hljs-keyword">is</span> required <span class="hljs-keyword">only</span> <span class="hljs-keyword">for</span> CORS calls.
 </code></pre></li>
 				</ul>
 				<p>export const protectedResourceMap:[string, string[]][]=[ [&#39;<a href="https://buildtodoservice.azurewebsites.net/api/todolist&#39;,[&#39;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&#39;]]">https://buildtodoservice.azurewebsites.net/api/todolist&#39;,[&#39;api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user&#39;]]</a> , [&#39;<a href="https://graph.microsoft.com/v1.0/me&#39;">https://graph.microsoft.com/v1.0/me&#39;</a>, [&#39;user.read&#39;]] ];</p>

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;broadcast.service&quot; | @azure/msal-angular</title>
+	<title>BroadcastMessage | @azure/msal-angular</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,97 +56,81 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_broadcast_service_.html">&quot;broadcast.service&quot;</a>
+					<a href="../modules/_broadcast_service_.html">&quot;broadcast.service&quot;</a>
+				</li>
+				<li>
+					<a href="_broadcast_service_.broadcastmessage.html">BroadcastMessage</a>
 				</li>
 			</ul>
-			<h1>External module &quot;broadcast.service&quot;</h1>
+			<h1>Interface BroadcastMessage&lt;T, K&gt;</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-type-parameters">
+				<h3>Type parameters</h3>
+				<ul class="tsd-type-parameters">
+					<li>
+						<h4>T</h4>
+					</li>
+					<li>
+						<h4>K</h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">BroadcastMessage</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<a href="_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a>
+							</li>
+							<li>
+								<a href="_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Classes</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module tsd-is-external"><a href="../classes/_broadcast_service_.broadcastservice.html" class="tsd-kind-icon">Broadcast<wbr>Service</a></li>
-							</ul>
-						</section>
 						<section class="tsd-index-section tsd-is-external tsd-is-not-exported">
-							<h3>Interfaces</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter tsd-is-external tsd-is-not-exported"><a href="../interfaces/_broadcast_service_.broadcastmessage.html" class="tsd-kind-icon">Broadcast<wbr>Message</a></li>
-								<li class="tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported"><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure</a></li>
-								<li class="tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported"><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Type aliases</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported"><a href="_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure<wbr>Type</a></li>
-								<li class="tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported"><a href="_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success<wbr>Type</a></li>
-								<li class="tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external"><a href="_broadcast_service_.html#messagecallback" class="tsd-kind-icon">Message<wbr>Callback</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external tsd-is-not-exported"><a href="_broadcast_service_.broadcastmessage.html#payload" class="tsd-kind-icon">payload</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external tsd-is-not-exported"><a href="_broadcast_service_.broadcastmessage.html#type" class="tsd-kind-icon">type</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
-				<h2>Type aliases</h2>
-				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-					<a name="broadcastmessagefailuretype" class="tsd-anchor"></a>
-					<h3>Broadcast<wbr>Message<wbr>Failure<wbr>Type</h3>
-					<div class="tsd-signature tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"msal:acquireTokenFailure"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"msal:loginFailure"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"msal:notAuthorized"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"msal:stateMismatch"</span></div>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external tsd-is-not-exported">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external tsd-is-not-exported">
+					<a name="payload" class="tsd-anchor"></a>
+					<h3>payload</h3>
+					<div class="tsd-signature tsd-kind-icon">payload<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">K</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L13">broadcast.service.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L17">broadcast.service.ts:17</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-					<a name="broadcastmessagesuccesstype" class="tsd-anchor"></a>
-					<h3>Broadcast<wbr>Message<wbr>Success<wbr>Type</h3>
-					<div class="tsd-signature tsd-kind-icon">Broadcast<wbr>Message<wbr>Success<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"msal:acquireTokenSuccess"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"msal:loginSuccess"</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external tsd-is-not-exported">
+					<a name="type" class="tsd-anchor"></a>
+					<h3>type</h3>
+					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">T</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L12">broadcast.service.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L16">broadcast.service.ts:16</a></li>
 						</ul>
 					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external">
-					<a name="messagecallback" class="tsd-anchor"></a>
-					<h3>Message<wbr>Callback</h3>
-					<div class="tsd-signature tsd-kind-icon">Message<wbr>Callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L10">broadcast.service.ts:10</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-siganture">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias tsd-is-not-exported">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>payload<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>payload: <span class="tsd-signature-type">T</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -160,34 +144,34 @@
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_index_.html">"index"</a>
+						<a href="../modules/_index_.html">"index"</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_authenticationresult_.html">"<wbr>Authentication<wbr>Result"</a>
+						<a href="../modules/_authenticationresult_.html">"<wbr>Authentication<wbr>Result"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_msalerror_.html">"MSALError"</a>
+						<a href="../modules/_msalerror_.html">"MSALError"</a>
 					</li>
 					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="_broadcast_service_.html">"broadcast.service"</a>
+						<a href="../modules/_broadcast_service_.html">"broadcast.service"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_msal_config_.html">"msal-<wbr>config"</a>
+						<a href="../modules/_msal_config_.html">"msal-<wbr>config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_msal_guard_service_.html">"msal-<wbr>guard.service"</a>
+						<a href="../modules/_msal_guard_service_.html">"msal-<wbr>guard.service"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_msal_interceptor_.html">"msal.interceptor"</a>
+						<a href="../modules/_msal_interceptor_.html">"msal.interceptor"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_msal_module_.html">"msal.module"</a>
+						<a href="../modules/_msal_module_.html">"msal.module"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_msal_service_.html">"msal.service"</a>
+						<a href="../modules/_msal_service_.html">"msal.service"</a>
 					</li>
 				</ul>
 			</nav>
@@ -196,23 +180,35 @@
 					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
 						<a href="../classes/_broadcast_service_.broadcastservice.html" class="tsd-kind-icon">Broadcast<wbr>Service</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
-						<a href="../interfaces/_broadcast_service_.broadcastmessage.html" class="tsd-kind-icon">Broadcast<wbr>Message</a>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
+						<a href="_broadcast_service_.broadcastmessage.html" class="tsd-kind-icon">Broadcast<wbr>Message</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external tsd-is-not-exported">
+								<a href="_broadcast_service_.broadcastmessage.html#payload" class="tsd-kind-icon">payload</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external tsd-is-not-exported">
+								<a href="_broadcast_service_.broadcastmessage.html#type" class="tsd-kind-icon">type</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
+						<a href="_broadcast_service_.broadcastmessagefailure.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success</a>
+						<a href="_broadcast_service_.broadcastmessagesuccess.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure<wbr>Type</a>
+						<a href="../modules/_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure<wbr>Type</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success<wbr>Type</a>
+						<a href="../modules/_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success<wbr>Type</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external">
-						<a href="_broadcast_service_.html#messagecallback" class="tsd-kind-icon">Message<wbr>Callback</a>
+						<a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-kind-icon">Message<wbr>Callback</a>
 					</li>
 				</ul>
 			</nav>

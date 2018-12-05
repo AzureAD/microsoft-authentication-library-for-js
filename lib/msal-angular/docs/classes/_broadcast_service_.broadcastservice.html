@@ -118,7 +118,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L12">broadcast.service.ts:12</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L27">broadcast.service.ts:27</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="_broadcast_service_.broadcastservice.html" class="tsd-signature-type">BroadcastService</a></h4>
@@ -131,20 +131,20 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external">
 					<a name="_msalsubject" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagPrivate">Private</span> _msal<wbr>Subject</h3>
-					<div class="tsd-signature tsd-kind-icon">_msal<wbr>Subject<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BehaviorSubject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<div class="tsd-signature tsd-kind-icon">_msal<wbr>Subject<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BehaviorSubject</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L11">broadcast.service.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L26">broadcast.service.ts:26</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private tsd-is-external">
 					<a name="msalitem_" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagPrivate">Private</span> msal<wbr>Item$</h3>
-					<div class="tsd-signature tsd-kind-icon">msal<wbr>Item$<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<div class="tsd-signature tsd-kind-icon">msal<wbr>Item$<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L12">broadcast.service.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L27">broadcast.service.ts:27</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -155,22 +155,40 @@
 					<a name="broadcast" class="tsd-anchor"></a>
 					<h3>broadcast</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">broadcast<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, payload<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">broadcast<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-signature-type">BroadcastMessageSuccessType</a>, payload<span class="tsd-signature-symbol">: </span><a href="_authenticationresult_.authenticationresult.html" class="tsd-signature-type">AuthenticationResult</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">broadcast<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-signature-type">BroadcastMessageFailureType</a>, payload<span class="tsd-signature-symbol">: </span><a href="_msalerror_.msalerror.html" class="tsd-signature-type">MSALError</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L20">broadcast.service.ts:20</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L36">broadcast.service.ts:36</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>type: <span class="tsd-signature-type">string</span></h5>
+									<h5>type: <a href="../modules/_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-signature-type">BroadcastMessageSuccessType</a></h5>
 								</li>
 								<li>
-									<h5>payload: <span class="tsd-signature-type">any</span></h5>
+									<h5>payload: <a href="_authenticationresult_.authenticationresult.html" class="tsd-signature-type">AuthenticationResult</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L37">broadcast.service.ts:37</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>type: <a href="../modules/_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-signature-type">BroadcastMessageFailureType</a></h5>
+								</li>
+								<li>
+									<h5>payload: <a href="_msalerror_.msalerror.html" class="tsd-signature-type">MSALError</a></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -181,16 +199,16 @@
 					<a name="getmsalitem" class="tsd-anchor"></a>
 					<h3>getMSALItem</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">getMSALItem<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">getMSALItem<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L29">broadcast.service.ts:29</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L48">broadcast.service.ts:48</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -198,16 +216,16 @@
 					<a name="getmsalsubject" class="tsd-anchor"></a>
 					<h3>getMSALSubject</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">getMSALSubject<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BehaviorSubject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">getMSALSubject<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BehaviorSubject</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L24">broadcast.service.ts:24</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L43">broadcast.service.ts:43</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">BehaviorSubject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">BehaviorSubject</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-signature-type">BroadcastMessageSuccess</a><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-signature-type">BroadcastMessageFailure</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -215,22 +233,40 @@
 					<a name="subscribe" class="tsd-anchor"></a>
 					<h3>subscribe</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, callback<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-signature-type">MessageCallback</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Subscription</span></li>
+						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-signature-type">BroadcastMessageSuccessType</a>, callback<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-signature-type">MessageCallback</a><span class="tsd-signature-symbol">&lt;</span><a href="_authenticationresult_.authenticationresult.html" class="tsd-signature-type">AuthenticationResult</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Subscription</span></li>
+						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-signature-type">BroadcastMessageFailureType</a>, callback<span class="tsd-signature-symbol">: </span><a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-signature-type">MessageCallback</a><span class="tsd-signature-symbol">&lt;</span><a href="_msalerror_.msalerror.html" class="tsd-signature-type">MSALError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Subscription</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L34">broadcast.service.ts:34</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L53">broadcast.service.ts:53</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>type: <span class="tsd-signature-type">string</span></h5>
+									<h5>type: <a href="../modules/_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-signature-type">BroadcastMessageSuccessType</a></h5>
 								</li>
 								<li>
-									<h5>callback: <a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-signature-type">MessageCallback</a></h5>
+									<h5>callback: <a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-signature-type">MessageCallback</a><span class="tsd-signature-symbol">&lt;</span><a href="_authenticationresult_.authenticationresult.html" class="tsd-signature-type">AuthenticationResult</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Subscription</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/broadcast.service.ts#L54">broadcast.service.ts:54</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>type: <a href="../modules/_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-signature-type">BroadcastMessageFailureType</a></h5>
+								</li>
+								<li>
+									<h5>callback: <a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-signature-type">MessageCallback</a><span class="tsd-signature-symbol">&lt;</span><a href="_msalerror_.msalerror.html" class="tsd-signature-type">MSALError</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Subscription</span></h4>
@@ -312,6 +348,21 @@
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
+						<a href="../interfaces/_broadcast_service_.broadcastmessage.html" class="tsd-kind-icon">Broadcast<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
+						<a href="../interfaces/_broadcast_service_.broadcastmessagefailure.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
+						<a href="../interfaces/_broadcast_service_.broadcastmessagesuccess.html" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
+						<a href="../modules/_broadcast_service_.html#broadcastmessagefailuretype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Failure<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
+						<a href="../modules/_broadcast_service_.html#broadcastmessagesuccesstype" class="tsd-kind-icon">Broadcast<wbr>Message<wbr>Success<wbr>Type</a>
+					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external">
 						<a href="../modules/_broadcast_service_.html#messagecallback" class="tsd-kind-icon">Message<wbr>Callback</a>
 					</li>
