@@ -40,7 +40,7 @@ export class IdToken {
   expiration: string;
   rawIdToken: string;
   decodedIdToken: Object;
-  sid:string;
+  sid: string;
 
   constructor(rawIdToken: string) {
     if (Utils.isEmpty(rawIdToken)) {
