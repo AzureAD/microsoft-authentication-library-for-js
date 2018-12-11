@@ -68,6 +68,7 @@ export class Storage {// Singleton
         if (window[this._cacheLocation]) {
             return window[this._cacheLocation].getItem(key);
         }
+        return null;
     }
 
     // remove value from storage
@@ -112,7 +113,7 @@ export class Storage {// Singleton
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey != "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey != "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey !== "" && key.indexOf(acquireTokenUserKey) > -1)) {
                         this.removeItem(key);
                     }
                 }
@@ -125,11 +126,14 @@ export class Storage {// Singleton
         if (storage) {
             let key: string;
             for (key in storage) {
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants.msal) !== -1) {
-                    this.setItem(key, "");
+                if (storage.hasOwnProperty(key)) {
+                    if (key.indexOf(Constants.msal) !== -1) {
+                        this.setItem(key, "");
+                    }
+                    if (key.indexOf(Constants.renewStatus) !== -1) {
+                        this.removeItem(key);
+                    }
                 }
-                if (storage.hasOwnProperty(key) && key.indexOf(Constants.renewStatus) !== -1)
-                    this.removeItem(key);
             }
         }
     }
@@ -146,13 +150,13 @@ export class Storage {// Singleton
 
     getItemCookie(cName: string): string {
         var name = cName + "=";
-        var ca = document.cookie.split(';');
+        var ca = document.cookie.split(";");
         for (var i = 0; i < ca.length; i++) {
             var c = ca[i];
-            while (c.charAt(0) == ' ') {
+            while (c.charAt(0) === " ") {
                 c = c.substring(1);
             }
-            if (c.indexOf(name) == 0) {
+            if (c.indexOf(name) === 0) {
                 return c.substring(name.length, c.length);
             }
         }
@@ -166,9 +170,9 @@ export class Storage {// Singleton
     }
 
     clearCookie(): void {
-        this.setItemCookie(Constants.nonceIdToken, '', -1);
-        this.setItemCookie(Constants.stateLogin, '', -1);
-        this.setItemCookie(Constants.loginRequest, '', -1);
-        this.setItemCookie(Constants.stateAcquireToken, '', -1);
+        this.setItemCookie(Constants.nonceIdToken, "", -1);
+        this.setItemCookie(Constants.stateLogin, "", -1);
+        this.setItemCookie(Constants.loginRequest, "", -1);
+        this.setItemCookie(Constants.stateAcquireToken, "", -1);
     }
 }
