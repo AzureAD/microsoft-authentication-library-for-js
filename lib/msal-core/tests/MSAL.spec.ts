@@ -189,11 +189,11 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login by default', (done) => {
-        expect(msal._redirectUri).toBe("http://localhost:8080/context.html");
+        expect(msal.getRedirectUri()).toBe("http://localhost:8080/context.html");
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(args).toContain('&client_id=' + msal.clientId);
-            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal._redirectUri));
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
 
@@ -201,6 +201,16 @@ describe('Msal', function (): any {
         };
 
         msal.redirectUri = 'contoso_site';
+        msal.loginRedirect();
+    });
+
+    it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
+        history.pushState(null, null, '/new_pushstate_uri');
+        msal.promptUser = function (args: string) {
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
+            done();
+        };
+
         msal.loginRedirect();
     });
 
@@ -484,6 +494,18 @@ describe('Msal', function (): any {
         spyOn(msal, 'promptUser');
         msal.logout();
         expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogout');
+        msal.clearCache = _clearCache;
+    });
+
+    it('checks if postLogoutRedirectUri is added to logout url if provided in the config as a function', function () {
+        var _clearCache = msal.clearCache;
+        msal.clearCache = function () {
+            return;
+        }
+        msal._postLogoutredirectUri = () => 'https://contoso.com/logoutfn';
+        spyOn(msal, 'promptUser');
+        msal.logout();
+        expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogoutfn');
         msal.clearCache = _clearCache;
     });
 
