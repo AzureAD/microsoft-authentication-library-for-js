@@ -1952,7 +1952,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       // App will use idtoken for calls to itself
       // check if it's staring from http or https, needs to match with app host
       if (endpoint.indexOf("http://") > -1 || endpoint.indexOf("https://") > -1) {
-          if (this.getHostFromUri(endpoint) === this.getHostFromUri(this._redirectUri)) {
+          if (this.getHostFromUri(endpoint) === this.getHostFromUri(this.getRedirectUri())) {
               return new Array<string>(this.clientId);
           }
       } else {
