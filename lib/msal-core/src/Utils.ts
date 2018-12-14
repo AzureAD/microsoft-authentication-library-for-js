@@ -267,8 +267,9 @@ export class Utils {
     * @param tenantId The tenant id to replace
     */
     static replaceFirstPath(url: string, tenantId: string): string {
-        if (!tenantId)
+        if (!tenantId) {
             return url;
+        }
         var urlObject = this.GetUrlComponents(url);
         var pathArray = urlObject.PathSegments;
         if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
@@ -406,8 +407,7 @@ export class Utils {
     return url.indexOf(suffix, url.length - suffix.length) !== -1;
   }
 
-     static checkSSO(extraQueryParameters: string)
-    {
+     static checkSSO(extraQueryParameters: string) {
         return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
     }
 
@@ -441,14 +441,14 @@ export class Utils {
              return url;
          }
 
-         var regex = new RegExp('(\\&' + name + '=)[^\&]+');
-         url = url.replace(regex, '');
+         var regex = new RegExp("(\\&" + name + "=)[^\&]+");
+         url = url.replace(regex, "");
          // name=value&
-         regex = new RegExp('(' + name + '=)[^\&]+&');
-         url = url.replace(regex, '');
+         regex = new RegExp("(" + name + "=)[^\&]+&");
+         url = url.replace(regex, "");
          // name=value
-         regex = new RegExp('(' + name + '=)[^\&]+');
-         url = url.replace(regex, '');
+         regex = new RegExp("(" + name + "=)[^\&]+");
+         url = url.replace(regex, "");
          return url;
      }
 

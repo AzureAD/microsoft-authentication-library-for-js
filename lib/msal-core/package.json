@@ -30,10 +30,12 @@
   "devDependencies": {
     "@types/handlebars": "4.0.33",
     "@types/jasmine": "2.5.41",
-    "@types/jasmine-ajax": "^3.1.35",
+    "@types/jasmine-ajax": "^3.1.39",
+    "ajv": "6.6.1",
     "atob": "~2.1.1",
     "awesome-typescript-loader": "^3.2.3",
     "babel-polyfill": "^6.26.0",
+    "fork-ts-checker-webpack-plugin": "^0.5.1",
     "grunt": "^1.0.3",
     "grunt-banner": "^0.6.0",
     "grunt-contrib-uglify": "^2.3.0",
@@ -47,7 +49,7 @@
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.5.2",
     "jasmine-node": "^2.0.1",
-    "jshint": "2.9.5",
+    "jshint": "^2.9.7",
     "karma": "^2.0.4",
     "karma-chrome-launcher": "^2.0.0",
     "karma-cli": "^1.0.1",
@@ -63,15 +65,18 @@
     "karma-spec-reporter": "0.0.32",
     "karma-typescript": "^3.0.13",
     "karma-verbose-reporter": "0.0.6",
-    "karma-webpack": "^2.0.5",
+    "karma-webpack": "^4.0.0-rc.5",
     "phantomjs-polyfill": "0.0.2",
     "shx": "^0.2.2",
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
+    "ts-loader": "^5.3.1",
     "tslint": "^5.8.0",
     "typedoc": "^0.6.0",
     "typescript": "^2.5.3",
     "typings": "^2.1.1",
-    "webpack": "^3.6.0"
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-middleware": "^3.4.0"
   },
   "directories": {
     "test": "tests"
