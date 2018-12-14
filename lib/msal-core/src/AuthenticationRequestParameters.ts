@@ -47,7 +47,7 @@ export class AuthenticationRequestParameters {
         return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
   }
 
-  constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string,state: string ) {
+  constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string ) {
     this.authorityInstance = authority;
     this.clientId = clientId;
     this.scopes = scope;
