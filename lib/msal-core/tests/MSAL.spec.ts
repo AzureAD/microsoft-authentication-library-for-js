@@ -189,7 +189,7 @@ describe('Msal', function (): any {
         jasmine.Ajax.uninstall();
     });
 
-    it('navigates user to login by default', (done) => {
+    it('navigates user to login and prompt parameter is not passed by default', (done) => {
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -197,15 +197,49 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
-
+            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(Constants.prompt_none);
             done();
         };
 
-        msal.redirectUri = 'contoso_site';
         msal.loginRedirect();
+
     });
 
-    it('navigates user to redirectURI passed as extraQueryParameter', function() {
+    it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(Constants.prompt_none);
+            done();
+        };
+
+        msal.loginRedirect(null, Constants.prompt_select_account);
+    });
+
+    it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).toContain(Constants.prompt_none);
+            done();
+        };
+
+        msal.loginRedirect(null, Constants.prompt_none);
+        console.log(msal.getUser());
+    });
+
+    it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
                 }, { redirectUri: TEST_REDIR_URI });
         msal._user = null;
@@ -219,7 +253,9 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal._redirectUri));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
+            done();
         };
+
         msal.loginRedirect();
     });
 
@@ -408,7 +444,7 @@ describe('Msal', function (): any {
             stateResponse: '',
             requestType: 'unknown'
         };
-       
+
         var _cacheStorage = msal._cacheStorage.removeAcquireTokenEntries;
         msal._cacheStorage.removeAcquireTokenEntries = function () {
             return;
@@ -545,7 +581,7 @@ describe('Msal', function (): any {
         requestInfo = msal.getRequestInfo('#error_description=someting_wrong&state=1232');
         expect(requestInfo.valid).toBe(true);
         expect(requestInfo.stateResponse).toBe('1232');
-        expect(requestInfo.stateMatch).toBe(false);       
+        expect(requestInfo.stateMatch).toBe(false);
     });
 
     it('test getUserState with a user passed state', function () {
@@ -716,6 +752,13 @@ describe('loginPopup functionality', function () {
         expect(loginPopupPromise).toEqual(jasmine.any(Promise));
     });
 
+    it('does not pass prompt parameter', function() {
+        console.log(loginPopupPromise);
+    });
+
+    it('passes prompt parameter as extraQueryParameter', function() {
+
+    });
 });
 
 describe('acquireTokenPopup functionality', function () {
@@ -728,9 +771,12 @@ describe('acquireTokenPopup functionality', function () {
         acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
     });
 
-
     it('returns a promise', function () {
         expect(acquireTokenPopupPromise).toEqual(jasmine.any(Promise));
+    });
+
+    it('does not pass prompt parameter', function() {
+
     });
 
 });
@@ -742,12 +788,17 @@ describe('acquireTokenSilent functionality', function () {
         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
         });
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
+        spyOn(msal, 'loadIframeTimeout').and.callThrough();
         acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
     });
 
 
     it('returns a promise', function () {
         expect(acquireTokenSilentPromise).toEqual(jasmine.any(Promise));
+    });
+
+    it('passes prompt=none', function() {
+        expect(msal.loadIframeTimeout).toHaveBeenCalled();
     });
 
 });
