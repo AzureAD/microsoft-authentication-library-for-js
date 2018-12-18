@@ -67,7 +67,6 @@
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^4.0.0-rc.5",
     "phantomjs-polyfill": "0.0.2",
-    "se-runner-framework-jasmine": "^1.1.1",
     "shx": "^0.2.2",
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
     "ts-loader": "^5.3.1",
