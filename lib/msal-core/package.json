@@ -88,6 +88,7 @@
     "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run doc && npm run build:modules && webpack && grunt && npm test",
-    "test": "typings install && karma start && jasmine-node tests/MSALSpec.js"
+    "test": "typings install && karma start && jasmine-node tests/MSALSpec.js",
+    "endToEnd": "cd tests/endToEndTests && npm install && npm run endToEnd"
   }
 }
