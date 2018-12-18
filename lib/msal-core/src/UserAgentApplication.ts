@@ -437,7 +437,7 @@ export class UserAgentApplication {
               this._cacheStorage.setItem(Constants.msalErrorDescription, "");
               const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
               this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
-              const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
+              const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
               this.promptUser(urlNavigate);
           });
   }
@@ -519,7 +519,7 @@ export class UserAgentApplication {
           this._cacheStorage.setItem(Constants.msalErrorDescription, "");
           const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
           this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
-          const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.prompt_select_account + Constants.response_mode_fragment;
+          const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
           window.renewStates.push(authenticationRequest.state);
           window.requestType = Constants.login;
           this.registerCallback(authenticationRequest.state, scope, resolve, reject);
