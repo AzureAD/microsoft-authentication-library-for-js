@@ -747,17 +747,8 @@ describe('loginPopup functionality', function () {
         loginPopupPromise = msal.loginPopup([msal.clientId]);
     });
 
-
     it('returns a promise', function () {
         expect(loginPopupPromise).toEqual(jasmine.any(Promise));
-    });
-
-    it('does not pass prompt parameter', function() {
-        console.log(loginPopupPromise);
-    });
-
-    it('passes prompt parameter as extraQueryParameter', function() {
-
     });
 });
 
@@ -773,10 +764,6 @@ describe('acquireTokenPopup functionality', function () {
 
     it('returns a promise', function () {
         expect(acquireTokenPopupPromise).toEqual(jasmine.any(Promise));
-    });
-
-    it('does not pass prompt parameter', function() {
-
     });
 
 });
@@ -795,10 +782,6 @@ describe('acquireTokenSilent functionality', function () {
 
     it('returns a promise', function () {
         expect(acquireTokenSilentPromise).toEqual(jasmine.any(Promise));
-    });
-
-    it('passes prompt=none', function() {
-        expect(msal.loadIframeTimeout).toHaveBeenCalled();
     });
 
 });
