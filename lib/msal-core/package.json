@@ -35,7 +35,6 @@
     "atob": "~2.1.1",
     "awesome-typescript-loader": "^3.2.3",
     "babel-polyfill": "^6.26.0",
-    "chai": "*",
     "fork-ts-checker-webpack-plugin": "^0.5.1",
     "grunt": "^1.0.3",
     "grunt-banner": "^0.6.0",
