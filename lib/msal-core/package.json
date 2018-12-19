@@ -48,7 +48,7 @@
     "jasmine": "^2.8.0",
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.5.2",
-    "jasmine-node": "^2.0.1",
+    "jasmine-node": "^1.16.2",
     "jshint": "^2.9.7",
     "karma": "^2.0.4",
     "karma-chrome-launcher": "^2.0.0",
