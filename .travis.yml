@@ -23,6 +23,3 @@ install:
   - npm install -g karma
   - npm install -g typings
 
-
-#The default build script for projects using nodejs is:
-#npm test
