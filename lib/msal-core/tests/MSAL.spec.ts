@@ -236,7 +236,6 @@ describe('Msal', function (): any {
         };
 
         msal.loginRedirect(null, Constants.prompt_none);
-        console.log(msal.getUser());
     });
 
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
@@ -728,7 +727,6 @@ describe('Msal', function (): any {
          msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
              expect(document.cookie).toBe('');
              expect(errorDesc).toBe("Cache Location is not valid.");
-             console.log(error);
              expect(token).toBe(mockIdToken);
              expect(tokenType).toBe(Constants.idToken);
          }, { cacheLocation: 'lclStrge' });
