@@ -2,6 +2,9 @@
 ### New Features
 * Unified Cache - This is to support migration from ADAL.js to MSAL.js. If your app is currently using ADAL.js and if user already has an existing session there, when your app migrates to MSAL.js,
 MSAL.js will do a Silent login.
+* Removal of prompt-select account - Removes prompt parameter from interactive login and acquireToken requests. acquireTokenSilent will continue to pass prompt=none.
+* End-to-end testing for msal-core
+
 
 # 0.2.3
 ### New Features
