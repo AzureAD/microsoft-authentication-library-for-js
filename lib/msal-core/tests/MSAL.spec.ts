@@ -758,6 +758,9 @@ describe('acquireTokenPopup functionality', function () {
         });
         spyOn(msal, 'acquireTokenPopup').and.callThrough();
         acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
+        acquireTokenPopupPromise.then(function(accessToken) {
+        }, function(error) {
+        });
     });
 
     it('returns a promise', function () {
@@ -775,6 +778,9 @@ describe('acquireTokenSilent functionality', function () {
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
         spyOn(msal, 'loadIframeTimeout').and.callThrough();
         acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        acquireTokenSilentPromise.then(function(accessToken) {
+        }, function(error) {
+        });
     });
 
 
