@@ -1,16 +1,11 @@
 import {Inject, Injectable, InjectionToken} from "@angular/core";
 import {MsalConfig} from "./msal-config";
-import "rxjs/add/observable/of";
-import "rxjs/add/operator/do";
-import "rxjs/add/operator/delay";
 import {
     UserAgentApplication,
     CacheResult,
     User, Constants, Logger
 } from "msal";
-import {
-     Router
-} from "@angular/router";
+import {Router} from "@angular/router";
 import {BroadcastService} from "./broadcast.service";
 import {AuthenticationResult} from "./AuthenticationResult";
 import {MSALError} from "./MSALError";
@@ -31,7 +26,7 @@ export class MsalService extends UserAgentApplication {
                 cacheLocation: config.cacheLocation,
                 redirectUri: config.redirectUri,
                 postLogoutRedirectUri: config.postLogoutRedirectUri,
-                logger: new Logger(config.logger, { correlationId: config.correlationId, level :config.level  ,piiLoggingEnabled: config.piiLoggingEnabled}),
+                logger: new Logger(config.logger, { correlationId: config.correlationId, level : config.level  , piiLoggingEnabled: config.piiLoggingEnabled}),
                 loadFrameTimeout: config.loadFrameTimeout,
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
@@ -49,15 +44,15 @@ export class MsalService extends UserAgentApplication {
             this.processHash(e.detail);
         });
 
-        window.addEventListener('msal:popUpClosed', (e: CustomEvent) => {
-            var errorParts = e.detail.split('|');
+        window.addEventListener("msal:popUpClosed", (e: CustomEvent) => {
+            var errorParts = e.detail.split("|");
             var msalError = new MSALError(errorParts[0], errorParts[1]);
             if (this.loginInProgress()) {
-                broadcastService.broadcast('msal:loginFailure', msalError);
+                broadcastService.broadcast("msal:loginFailure", msalError);
                 this.setloginInProgress(false);
             }
             else if (this.getAcquireTokenInProgress()) {
-                broadcastService.broadcast('msal:acquireTokenFailure', msalError);
+                broadcastService.broadcast("msal:acquireTokenFailure", msalError);
                 this.setAcquireTokenInProgress(false);
             }
         });
@@ -72,7 +67,7 @@ export class MsalService extends UserAgentApplication {
                     }
                 }
             }
-        })
+        });
     }
 
      updateDataFromCache(scopes: string[]) {
@@ -81,7 +76,7 @@ export class MsalService extends UserAgentApplication {
         cacheResult = super.getCachedTokenInternal(scopes, this.getUser());
         this._oauthData.isAuthenticated = cacheResult != null && cacheResult.token !== null && cacheResult.token.length > 0;
         var user = this.getUser();
-        if(user) {
+        if (user) {
             this._oauthData.userName = user.name;
             this._oauthData.idToken = user.idToken;
         }
@@ -123,9 +118,9 @@ export class MsalService extends UserAgentApplication {
             this.getLogger().verbose("Processing the hash: " + hash);
             this.saveTokenFromHash(requestInfo);
             // Return to callback if it is sent from iframe
-            var token = requestInfo.parameters["access_token"] || requestInfo.parameters["id_token"];
-            var error = requestInfo.parameters["error"];
-            var errorDescription = requestInfo.parameters["error_description"];
+            var token = requestInfo.parameters.access_token || requestInfo.parameters.id_token;
+            var error = requestInfo.parameters.error;
+            var errorDescription = requestInfo.parameters.error_description;
             var tokenType = null;
             var msalError = new MSALError(error, errorDescription);
             var authenticationResult = new AuthenticationResult(token);
@@ -189,7 +184,7 @@ export class MsalService extends UserAgentApplication {
                     }
                     //redirect to redirect uri. No page reload here since we are only removing the url after the hash
                     else {
-                        window.location.hash = '';
+                        window.location.hash = "";
                     }
                 }
             }
@@ -204,11 +199,11 @@ export class MsalService extends UserAgentApplication {
                this.processRedirectCallBack(pendingCallback);
             }
         }
-    };
+    }
 
 
     private processRedirectCallBack(hash: string): void {
-        this._logger.info('Processing the callback from redirect response');
+        this._logger.info("Processing the callback from redirect response");
         const requestInfo = this.getRequestInfo(hash);
         const token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
         const errorDesc = requestInfo.parameters[Constants.errorDescription];
@@ -220,7 +215,7 @@ export class MsalService extends UserAgentApplication {
         if (requestInfo.parameters[Constants.accessToken]) {
             tokenType = Constants.accessToken;
             if (token) {
-                authenticationResult.tokenType= tokenType;
+                authenticationResult.tokenType = tokenType;
                 this.broadcastService.broadcast("msal:acquireTokenSuccess", authenticationResult);
             }
             else if (error && errorDesc) {
@@ -231,7 +226,7 @@ export class MsalService extends UserAgentApplication {
         else {
             tokenType = Constants.idToken;
             if (token) {
-                authenticationResult.tokenType= tokenType;
+                authenticationResult.tokenType = tokenType;
                 this.broadcastService.broadcast("msal:loginSuccess", authenticationResult);
             }
             else if (error && errorDesc) {
@@ -258,7 +253,7 @@ export class MsalService extends UserAgentApplication {
 
     //dummy method for future use
     private authCallback(errorDesc: any, _token: any, error: any, _tokenType: any) {
-
+        return;
     }
 
     protected clearCache() {
@@ -267,8 +262,7 @@ export class MsalService extends UserAgentApplication {
 
 
     /*This is a private api and not supposed to be use by customers */
-    getLogger()
-    {
+    getLogger() {
         return super.getLogger();
     }
 
@@ -277,15 +271,14 @@ export class MsalService extends UserAgentApplication {
 
     }
 
-    public isCallback(hash: string): boolean
-    {
+    public isCallback(hash: string): boolean {
         return super.isCallback(hash);
     }
 
     public loginRedirect(consentScopes?: string[], extraQueryParameters?: string) {
 
         this._logger.verbose("login redirect flow");
-        super.loginRedirect(consentScopes, extraQueryParameters)
+        super.loginRedirect(consentScopes, extraQueryParameters);
     }
 
     public loginPopup(consentScopes?: string[], extraQueryParameters?: string): Promise<any> {
@@ -296,7 +289,7 @@ export class MsalService extends UserAgentApplication {
                 this.broadcastService.broadcast("msal:loginSuccess", authenticationResult);
                 resolve(idToken);
             }, (error: any) => {
-                var errorParts = error.split('|');
+                var errorParts = error.split("|");
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._logger.error("Error during login:\n" + error);
                 this.broadcastService.broadcast("msal:loginFailure", msalError);
@@ -319,16 +312,16 @@ export class MsalService extends UserAgentApplication {
             super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 var authenticationResult = new AuthenticationResult(token);
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
+                this.broadcastService.broadcast("msal:acquireTokenSuccess", authenticationResult);
                 resolve(token);
             }, (error: any) => {
-                var errorParts = error.split('|');
+                var errorParts = error.split("|");
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
-                this._logger.error('Error when acquiring token for scopes: ' + scopes + " " + error);
+                this.broadcastService.broadcast("msal:acquireTokenFailure", msalError);
+                this._logger.error("Error when acquiring token for scopes: " + scopes + " " + error);
                 reject(error);
-            })
+            });
         });
 
     }
@@ -338,23 +331,24 @@ export class MsalService extends UserAgentApplication {
             super.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 var authenticationResult = new AuthenticationResult(token);
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
+                this.broadcastService.broadcast("msal:acquireTokenSuccess", authenticationResult);
                 resolve(token);
             }, (error: any) => {
-                var errorParts = error.split('|');
+                var errorParts = error.split("|");
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
-                this._logger.error('Error when acquiring token for scopes : ' + scopes +" "+  error);
+                this.broadcastService.broadcast("msal:acquireTokenFailure", msalError);
+                this._logger.error("Error when acquiring token for scopes : " + scopes + " " +  error);
                 reject(error);
-            })
+            });
         });
     }
 
     public acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {
         var acquireTokenStartPage = this._cacheStorage.getItem(Constants.loginRequest);
-        if (window.location.href !== acquireTokenStartPage)
+        if (window.location.href !== acquireTokenStartPage) {
             this._cacheStorage.setItem(Constants.loginRequest, window.location.href);
+        }
         super.acquireTokenRedirect(scopes, authority, user, extraQueryParameters);
     }
 

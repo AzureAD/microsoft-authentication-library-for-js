@@ -1,12 +1,12 @@
 import {MsalConfig} from "./msal-config";
 import {Injectable, ModuleWithProviders, NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
-import { MsalService, MSAL_CONFIG} from "./msal.service";
+import {MsalService, MSAL_CONFIG} from "./msal.service";
 import {MsalGuard} from "./msal-guard.service";
 import {BroadcastService} from "./broadcast.service";
 
 
-Injectable()
+Injectable();
 export class WindowWrapper extends Window {
 
 }
@@ -22,9 +22,9 @@ export class MsalModule {
     return {
       ngModule: MsalModule,
       providers: [
-          {provide: MSAL_CONFIG, useValue: config} ,   MsalService ,{provide :WindowWrapper, useValue: window}
+          {provide: MSAL_CONFIG, useValue: config}, MsalService, {provide: WindowWrapper, useValue: window}
       ]
-    }
+    };
   }
 
 }

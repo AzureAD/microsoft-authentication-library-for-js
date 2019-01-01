@@ -5,8 +5,6 @@ import {
     RouterStateSnapshot,
 } from "@angular/router";
 import {MSAL_CONFIG, MsalService} from "./msal.service";
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/pairwise';
 import {Location, PlatformLocation} from "@angular/common";
 import {MsalConfig} from "./msal-config";
 import {BroadcastService} from "./broadcast.service";
@@ -17,7 +15,9 @@ import {AuthenticationResult} from "./AuthenticationResult";
 @Injectable()
 export class MsalGuard implements CanActivate {
 
-    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private authService: MsalService, private router: Router, private activatedRoute: ActivatedRoute, private location: Location, private platformLocation: PlatformLocation, private broadcastService: BroadcastService) {
+    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private authService: MsalService, private router: Router
+                , private activatedRoute: ActivatedRoute, private location: Location, private platformLocation: PlatformLocation
+                , private broadcastService: BroadcastService) {
     }
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
@@ -39,7 +39,7 @@ export class MsalGuard implements CanActivate {
                                 resolve(true);
                             }, function (error) {
                                 reject(false);
-                            })
+                            });
                         });
                     }
                     else {
@@ -59,7 +59,7 @@ export class MsalGuard implements CanActivate {
                         resolve (true);
                     }
                 }, (error: any) => {
-                    var errorParts = error.split('|');
+                    var errorParts = error.split("|");
                     var msalError = new MSALError(errorParts[0], errorParts[1], "");
                     this.broadcastService.broadcast("msal:loginFailure", msalError);
                     resolve(false);
@@ -76,7 +76,7 @@ export class MsalGuard implements CanActivate {
         var currentRelativeUrl = this.location.path();
         if (this.isEmpty(currentRelativeUrl)) {
             if (currentAbsoluteUrl.endsWith("/")) {
-                currentAbsoluteUrl = currentAbsoluteUrl.replace(/\/$/, '');
+                currentAbsoluteUrl = currentAbsoluteUrl.replace(/\/$/, "");
             }
             return currentAbsoluteUrl;
         }
