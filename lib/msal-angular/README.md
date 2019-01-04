@@ -4,7 +4,6 @@ Microsoft Authentication Library for Angular Preview
 
 The MSAL library preview for Angular is a wrapper of the core MSAL.js library which enables Angular(4.3 to 5) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
 
-
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
 ## Important Note about the MSAL Angular Preview
@@ -20,6 +19,8 @@ The msal-angular package is available on NPM:
 #### Prerequisite
 
 Before using MSAL, register your application in [Azure AD v2.0 portal](https://apps.dev.microsoft.com/) to get your clientID. As part of the registration, you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
+
+> NOTE: To use MSAL Angular with Angular 6, please install the `rxjs-compat` NPM module for now. In future, we plan to add support for Angular 6 in the library and you can track this [issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/421) for more information.
 
 #### 1. Include and initialize the MSAL module in your app module.
 Import MsalModule into app.module.ts. To initialize MSAL module you are required to pass the clientID of your application which you can get from the application registration.
@@ -66,7 +67,7 @@ Using MsalInterceptor is optional and you can write your own interceptor if you 
 
 MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
 
-1. login_popup()/login_redirect using api or using routes.
+1. loginPopup()/loginRedirect using api or using routes.
 
 ```js
 this.broadcastService.subscribe("msal:loginFailure", (payload) => {
@@ -78,7 +79,7 @@ this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
 });
 ```
 
-2. acquire_token_silent()/acquire_token_popup()/acquire_token_redirect()
+2. acquireTokenSilent()/acquireTokenPopup()/acquireTokenRedirect()
 
 ```js
 this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
@@ -111,13 +112,13 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
 #### Login and AcquireToken APIs
 
 The wrapper exposes APIs for login, logout, acquiring access token and more.
-1. login_redirect()
-2. login_popup()
-3. log_out()
-4. acquire_token_silent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquire_token_popup() or acquire_token_redirect() there to acquire the token interactively.
-5. acquire_token_popup()
-6. acquire_token_redirect()
-7. get_user()
+1. loginRedirect()
+2. loginPopup()
+3. logOut()
+4. acquireTokenSilent() - This will try to acquire the token silently. If the scope is not already consented then user will get a callback at msal:acquireTokenFailure event. User can call either acquireTokenPopup() or acquireTokenRedirect() there to acquire the token interactively.
+5. acquireTokenPopup()
+6. acquireTokenRedirect()
+7. getUser()
 
 > Note: Since MSAL Angular wrapper is inheriting from UserAgentApplication of msal-core, all the public APIs of msal-core are still accessible from msal-angular. But it is recommended not to use
 any of the msal-core APIs like acquireTokenSilent(), acquireTokenPopup(), acquireTokenRedirect() etc from Angular application and use only the APIs which are exposed directly from the msal-angular wrapper itself.

@@ -15,11 +15,11 @@ Resolving the server.js references
 - In a command prompt, run npm install
 
 Running the sample
-- In a command prompt, run ìnode server.jsî
+- In a command prompt, run ‚Äúnode server.js‚Äù
 
 - Navigate to http://localhost:6420 with the browser of your choice
 
-- In the web page, click on the ìLoginî button
+- In the web page, click on the ‚ÄúLogin‚Äù button
 - Sign-up with a local account (at the bottom of the page click sign-up, and then answer the questions)
   alternatively sign-in with a gmail account
 - Once signed-in, the "Logout" button appears

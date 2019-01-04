@@ -29,6 +29,7 @@ describe('Msal', function (): any {
 
     var RESOURCE_DELIMETER = '|';
     var DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
+    var TEST_REDIR_URI = "https://localhost:8081/redirect.html"
     var TENANT = 'common';
     var validAuthority = DEFAULT_INSTANCE + TENANT;
 
@@ -188,19 +189,81 @@ describe('Msal', function (): any {
         jasmine.Ajax.uninstall();
     });
 
-    it('navigates user to login by default', (done) => {
-        expect(msal._redirectUri).toBe("http://localhost:8080/context.html");
+    it('navigates user to login and prompt parameter is not passed by default', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(Constants.prompt_none);
+            done();
+        };
+
+        msal.loginRedirect();
+
+    });
+
+    it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(Constants.prompt_none);
+            done();
+        };
+
+        msal.loginRedirect(null, Constants.prompt_select_account);
+    });
+
+    it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).toContain(Constants.prompt_none);
+            done();
+        };
+
+        msal.loginRedirect(null, Constants.prompt_none);
+    });
+
+    it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+                }, { redirectUri: TEST_REDIR_URI });
+        msal._user = null;
+        msal._renewStates = [];
+        msal._activeRenewals = {};
+        msal._cacheStorage = storageFake;
+        expect(msal._redirectUri).toBe(TEST_REDIR_URI);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(args).toContain('&client_id=' + msal.clientId);
             expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal._redirectUri));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
-
             done();
         };
 
-        msal.redirectUri = 'contoso_site';
+        msal.loginRedirect();
+    });
+
+    it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
+        history.pushState(null, null, '/new_pushstate_uri');
+        msal.promptUser = function (args: string) {
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
+            done();
+        };
         msal.loginRedirect();
     });
 
@@ -380,7 +443,7 @@ describe('Msal', function (): any {
             stateResponse: '',
             requestType: 'unknown'
         };
-       
+
         var _cacheStorage = msal._cacheStorage.removeAcquireTokenEntries;
         msal._cacheStorage.removeAcquireTokenEntries = function () {
             return;
@@ -487,6 +550,18 @@ describe('Msal', function (): any {
         msal.clearCache = _clearCache;
     });
 
+    it('checks if postLogoutRedirectUri is added to logout url if provided in the config as a function', function () {
+        var _clearCache = msal.clearCache;
+        msal.clearCache = function () {
+            return;
+        }
+        msal._postLogoutredirectUri = () => 'https://contoso.com/logoutfn';
+        spyOn(msal, 'promptUser');
+        msal.logout();
+        expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogoutfn');
+        msal.clearCache = _clearCache;
+    });
+
     it('is callback if has error or access_token or id_token', function () {
         expect(msal.isCallback('not a callback')).toBe(false);
         expect(msal.isCallback('#error_description=someting_wrong')).toBe(true);
@@ -505,7 +580,7 @@ describe('Msal', function (): any {
         requestInfo = msal.getRequestInfo('#error_description=someting_wrong&state=1232');
         expect(requestInfo.valid).toBe(true);
         expect(requestInfo.stateResponse).toBe('1232');
-        expect(requestInfo.stateMatch).toBe(false);       
+        expect(requestInfo.stateMatch).toBe(false);
     });
 
     it('test getUserState with a user passed state', function () {
@@ -615,6 +690,49 @@ describe('Msal', function (): any {
         msal.loginRedirect();
     });
 
+    it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {
+        var msalInstance = msal;
+        var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+             expect(document.cookie).toBe('');
+             expect(errorDesc).toBeUndefined();
+             expect(error).toBeUndefined();
+             expect(token).toBe(mockIdToken);
+             expect(tokenType).toBe(Constants.idToken);
+         }, { cacheLocation: 'localStorage' });
+
+         expect(msal._cacheLocation).toBe('localStorage');
+    });
+
+    it('tests cacheLocation functionality defaults to sessionStorage', function () {
+        var msalInstance = msal;
+        var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+             expect(document.cookie).toBe('');
+             expect(errorDesc).toBeUndefined();
+             expect(error).toBeUndefined();
+             expect(token).toBe(mockIdToken);
+             expect(tokenType).toBe(Constants.idToken);
+         });
+
+         expect(msal._cacheLocation).toBe('sessionStorage');
+    });
+    /**
+    it('tests cacheLocation functionality malformed strings throw error', function () {
+         var msalInstance = msal;
+         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+             expect(document.cookie).toBe('');
+             expect(errorDesc).toBe("Cache Location is not valid.");
+             expect(token).toBe(mockIdToken);
+             expect(tokenType).toBe(Constants.idToken);
+         }, { cacheLocation: 'lclStrge' });
+    });
+    **/
+
 });
 
 describe('loginPopup functionality', function () {
@@ -627,11 +745,9 @@ describe('loginPopup functionality', function () {
         loginPopupPromise = msal.loginPopup([msal.clientId]);
     });
 
-
     it('returns a promise', function () {
         expect(loginPopupPromise).toEqual(jasmine.any(Promise));
     });
-
 });
 
 describe('acquireTokenPopup functionality', function () {
@@ -642,8 +758,10 @@ describe('acquireTokenPopup functionality', function () {
         });
         spyOn(msal, 'acquireTokenPopup').and.callThrough();
         acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
+        acquireTokenPopupPromise.then(function(accessToken) {
+        }, function(error) {
+        });
     });
-
 
     it('returns a promise', function () {
         expect(acquireTokenPopupPromise).toEqual(jasmine.any(Promise));
@@ -658,7 +776,11 @@ describe('acquireTokenSilent functionality', function () {
         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
         });
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
+        spyOn(msal, 'loadIframeTimeout').and.callThrough();
         acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        acquireTokenSilentPromise.then(function(accessToken) {
+        }, function(error) {
+        });
     });
 
 
@@ -667,3 +789,5 @@ describe('acquireTokenSilent functionality', function () {
     });
 
 });
+
+

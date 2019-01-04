@@ -32,12 +32,12 @@ export class User {
     identityProvider: string;
     userIdentifier: string;
     idToken: Object;
-    sid: string
+    sid: string;
 
     /*
      * @hidden
      */
-    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken:Object, sid: string) {
+    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: Object, sid: string) {
         this.displayableId = displayableId;
         this.name = name;
         this.identityProvider = identityProvider;
@@ -49,7 +49,7 @@ export class User {
     /*
      * @hidden
      */
-    static createUser(idToken: IdToken, clientInfo: ClientInfo, authority: string): User {
+    static createUser(idToken: IdToken, clientInfo: ClientInfo): User {
         let uid: string;
         let utid: string;
         if (!clientInfo) {

@@ -22,11 +22,11 @@ export declare class MsalService extends UserAgentApplication {
     _renewActive: boolean;
     constructor(config: MsalConfig, router: Router, broadcastService: BroadcastService);
     updateDataFromCache(scopes: string[]): void;
-    private processHash(hash);
-    private processRedirectCallBack(hash);
-    private isUnprotectedResource(url);
-    private isEmpty(str);
-    private authCallback(errorDesc, _token, error, _tokenType);
+    private processHash;
+    private processRedirectCallBack;
+    private isUnprotectedResource;
+    private isEmpty;
+    private authCallback;
     protected clearCache(): void;
     getLogger(): Logger;
     getCacheStorage(): any;
