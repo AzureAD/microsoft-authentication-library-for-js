@@ -5,7 +5,6 @@ MSAL.js will do a Silent login.
 * Removal of prompt-select account - Removes prompt parameter from interactive login and acquireToken requests. acquireTokenSilent will continue to pass prompt=none.
 * End-to-end testing for msal-core
 * Support for redirect URI as a function
-* Introduced editor.config for IDE plugins
 
 # 0.2.3
 ### New Features
