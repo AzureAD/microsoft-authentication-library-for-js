@@ -56,7 +56,7 @@
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.99.1",
     "jasmine-node": "2.0.1",
-    "karma": "^2.0.5",
+    "karma": "^3.1.4",
     "karma-chrome-launcher": "^2.0.0",
     "karma-cli": "^1.0.1",
     "karma-coverage-istanbul-reporter": "^2.0.1",
@@ -76,7 +76,6 @@
     "tslint": "^5.8.0",
     "typedoc": "^0.6.0",
     "typescript": "^2.7.2",
-    "typings": "^2.1.1",
     "webpack": "3.6.0",
     "zone.js": "^0.8.10"
   },
