@@ -50,7 +50,7 @@
     "jasmine-core": "^2.5.2",
     "jasmine-node": "^1.16.2",
     "jshint": "^2.9.7",
-    "karma": "^2.0.4",
+    "karma": "^3.1.4",
     "karma-chrome-launcher": "^2.0.0",
     "karma-cli": "^1.0.1",
     "karma-coverage-istanbul-reporter": "^2.0.1",
@@ -73,7 +73,6 @@
     "tslint": "^5.8.0",
     "typedoc": "^0.6.0",
     "typescript": "^2.5.3",
-    "typings": "^2.1.1",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
     "webpack-dev-middleware": "^3.4.0"
