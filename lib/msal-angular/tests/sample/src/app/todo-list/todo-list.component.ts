@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TodoListService} from "./todo-list.service";
-import {BroadcastService, MsalService} from "ms-msal-angular";
+import {BroadcastService, MsalService} from "../../../../../dist";
 import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
 
@@ -25,7 +25,7 @@ private subscription: Subscription;
     this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure");
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1 ) {
-        this.msalService.acquire_token_popup(['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']).then( (token) => {
+        this.msalService.acquireTokenPopup(['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']).then( (token) => {
           this.todoListService.getItems().subscribe( (results) => {
             this.error = '';
             this.todoList = results;

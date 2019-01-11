@@ -200,6 +200,9 @@ You can pass the following config options as an optional object to MSAL during i
 
 * **correlationId** : Unique identifier used to map the request with the response. Defaults to RFC4122 version 4 guid (128 bits).
 
+* **storeAuthStateInCookie** : This will store the auth state (state and nonce) in cookie to handle the issue of the session storage and local storage getting cleared in IE and edge browsers during redirects across different security zones. Default value is false.
+
+
 #### Optional config Object for Route protection
 This is an optional object you can pass to the wrapper. It has the following properties:
 

@@ -1,0 +1,24 @@
+{
+  "name": "endtoendtests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "e2eCoreTestsSpec.js",
+  "scripts": {
+    "endToEnd": "node seTestRunner.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "azure-keyvault": "0.11.0",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "mock-local-storage": "^1.0.5",
+    "promise": "^8.0.1",
+    "selenium-webdriver": "^4.0.0-alpha.1"
+  },
+  "dependencies": {
+    "jasmine": "^3.3.0",
+    "jasmine-node": "^1.16.2",
+    "q": "^1.5.1"
+  }
+}

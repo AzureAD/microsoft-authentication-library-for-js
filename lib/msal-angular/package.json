@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "0.1.0",
+  "version": "0.1.2",
   "keywords": [
     "implicit",
     "angular",
@@ -24,7 +24,7 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "msal": "0.2.0",
+    "msal": "0.2.1",
     "tslib": "1.7.1"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
     "@angular/platform-browser-dynamic": "~4.3.0",
     "@angular/router": "^4.3.0",
     "@types/handlebars": "4.0.33",
-    "@types/jasmine": "^2.8.6",
+    "@types/jasmine": "2.5.41",
     "@types/jasmine-ajax": "^3.1.35",
     "angular-router-loader": "^0.8.5",
     "angular2-template-loader": "^0.6.2",

@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {MsalService, BroadcastService} from "@azure/msal-angular";
+import {BroadcastService} from "@azure/msal-angular";
+import { MsalService} from "@azure/msal-angular";
 import {HttpClient} from "@angular/common/http";
 import {HttpServiceHelper} from "../common/HttpServiceHelper";
 import {Subscription} from "rxjs/Subscription";

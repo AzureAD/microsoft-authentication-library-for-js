@@ -1,8 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TodoListService} from "./todo-list.service";
-import {BroadcastService, MsalService} from "@azure/msal-angular";
 import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
+import {BroadcastService} from "@azure/msal-angular";
+import { MsalService} from "@azure/msal-angular";
 
 @Component({
   selector: 'app-todo-list',
@@ -12,9 +13,9 @@ import {Subscription} from "rxjs/Subscription";
 export class TodoListComponent implements OnInit, OnDestroy  {
 
  private error = "";
-  private loadingMessage = "Loading...";
+  public loadingMessage = "Loading...";
    todoList: TodoList[];
-  private newTodoCaption = "";
+  public newTodoCaption = "";
   private submitted = false;
 private subscription: Subscription;
   constructor(private todoListService: TodoListService, private broadcastService : BroadcastService, private msalService: MsalService) { }
@@ -23,7 +24,7 @@ private subscription: Subscription;
     this.populate();
 
     this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
-      console.log("acquire token failure");
+      console.log("acquire token failure " + JSON.stringify(payload));
       if (payload.indexOf("consent_required") !== -1 || payload.indexOf("interaction_required") != -1 ) {
         this.msalService.acquireTokenPopup(['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']).then( (token) => {
           this.todoListService.getItems().subscribe( (results) => {

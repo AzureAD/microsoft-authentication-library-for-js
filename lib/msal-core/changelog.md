@@ -1,3 +1,32 @@
+# 0.2.4
+### New Features
+* Unified Cache - This is to support migration from ADAL.js to MSAL.js. If your app is currently using ADAL.js and if user already has an existing session there, when your app migrates to MSAL.js,
+MSAL.js will do a Silent login.
+* Removal of prompt-select account - Removes prompt parameter from interactive login and acquireToken requests. acquireTokenSilent will continue to pass prompt=none.
+* End-to-end testing for msal-core
+* Support for redirect URI as a function
+
+# 0.2.3
+### New Features
+* Single Sign on
+* IE and edge bug fix if navigateToLoginRequestUrl=false (cookies not deleted)
+* IE and edge bug fix for login_popup (state mismatch)
+* User state not passed to callback if navigateToLoginrequestUrl = false
+* Added sample app for single sign on
+
+
+# 0.2.2
+### New Features
+* Added support to handle the issue of the session storage and local storage getting cleared in IE and edge browsers during redirects across different security zones. This can be enabled by setting storeAuthStateInCookie flag in config to true. Default value is false.  
+https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/347 
+
+
+# 0.2.1
+### New Features
+* Added State parameter in login request. https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/262
+
+* Removed istanbul code coverage due to webpack bundle size issue.
+
 # 0.2.0
 ### New Features
 Moved npmjs package to @azure/msal

@@ -10,6 +10,7 @@ import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/mergeMap'
 import {MsalService} from "./msal.service";
 import {BroadcastService} from "./broadcast.service";
+import {MSALError} from "./MSALError";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -36,7 +37,8 @@ export class MsalInterceptor implements HttpInterceptor {
                     if (tokenStored && tokenStored.token) {
                         this.auth.clearCacheForScope(tokenStored.token);
                     }
-                    this.broadcastService.broadcast('msal:notAuthorized', {err, scopes});
+                    var msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
+                    this.broadcastService.broadcast('msal:notAuthorized', msalError);
                 }
             });
         }
@@ -55,7 +57,8 @@ export class MsalInterceptor implements HttpInterceptor {
                     if (tokenStored && tokenStored.token) {
                         this.auth.clearCacheForScope(tokenStored.token);
                     }
-                    this.broadcastService.broadcast('msal:notAuthorized', {err, scopes});
+                    var msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
+                    this.broadcastService.broadcast('msal:notAuthorized', msalError);
                 }
             })); //calling next.handle means we are passing control to next interceptor in chain
         }

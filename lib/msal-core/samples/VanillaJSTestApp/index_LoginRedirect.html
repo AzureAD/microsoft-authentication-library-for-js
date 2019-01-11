@@ -43,8 +43,9 @@
             console.log(message);
         }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { cacheLocation: 'localStorage', logger: logger });// cacheLocation defaults to sessionStorage if not set in the constructor
-        function authCallback(errorDesc, token, error, tokenType) {
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, 'https://login.microsoftonline.com/common/', authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: true , state:"12345"});// cacheLocation defaults to sessionStorage if not set in the constructor
+        function authCallback(errorDesc, token, error, tokenType, state) {
+            console.log("user state " + state);
             //This function is called after loginRedirect and acquireTokenRedirect. Use tokenType to determine context. 
             //For loginRedirect, tokenType = "id_token". For acquireTokenRedirect, tokenType:"access_token".
             if (token) {
@@ -53,7 +54,7 @@
                     updateUI();
                 }, function (error) {
                     console.log(error);
-                    this.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
                         updateUI();
                     }, function (error) {
                         console.log(error);

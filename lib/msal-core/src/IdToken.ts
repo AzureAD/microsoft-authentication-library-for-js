@@ -39,8 +39,9 @@ export class IdToken {
   nonce: string;
   expiration: string;
   rawIdToken: string;
-  decodedIdToken: Object
-
+  decodedIdToken: Object;
+  sid: string;
+  /* tslint:disable:no-string-literal */
   constructor(rawIdToken: string) {
     if (Utils.isEmpty(rawIdToken)) {
       throw new Error("null or empty raw idtoken");
@@ -54,7 +55,7 @@ export class IdToken {
         }
 
         if (this.decodedIdToken.hasOwnProperty("oid")) {
-            this.objectId = this.decodedIdToken['oid'];
+            this.objectId = this.decodedIdToken["oid"];
         }
 
         if (this.decodedIdToken.hasOwnProperty("sub")) {
@@ -88,6 +89,11 @@ export class IdToken {
         if (this.decodedIdToken.hasOwnProperty("home_oid")) {
             this.homeObjectId = this.decodedIdToken["home_oid"];
         }
+
+          if (this.decodedIdToken.hasOwnProperty("sid")) {
+              this.sid = this.decodedIdToken["sid"];
+          }
+      /* tslint:enable:no-string-literal */
       }
     } catch (e) {
       throw new Error("Failed to parse the returned id token");

@@ -23,6 +23,7 @@
 
 import { IUri } from "./IUri";
 import { User } from "./User";
+import {Constants} from "./Constants";
 
 /*
  * @hidden
@@ -257,7 +258,7 @@ export class Utils {
   }
 
   static getLibraryVersion(): string {
-    return "0.2.0";
+    return "0.2.4";
   }
 
   /*
@@ -265,19 +266,18 @@ export class Utils {
     * @param href The url
     * @param tenantId The tenant id to replace
     */
-  static replaceFirstPath(href: string, tenantId: string): string {
-    var match = href.match(/^(https?\:)\/\/(([^:\/?#] *)(?:\:([0-9]+))?)([\/]{0,1}[^?#] *)(\?[^#] *|)(#. *|)$/);
-    if (match) {
-      var urlObject = Utils.GetUrlComponents(href);
-      var pathArray = urlObject.PathSegments;
-      pathArray.shift();
-      if (pathArray[0] && pathArray[0] === "common" || pathArray[0] === "organizations") {
-        pathArray[0] = tenantId;
-        href = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
-      }
+    static replaceFirstPath(url: string, tenantId: string): string {
+        if (!tenantId) {
+            return url;
+        }
+        var urlObject = this.GetUrlComponents(url);
+        var pathArray = urlObject.PathSegments;
+        if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
+            pathArray[0] = tenantId;
+            url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
+        }
+        return url;
     }
-    return href;
-  }
 
   static createNewGuid(): string {
     // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
@@ -406,4 +406,50 @@ export class Utils {
 
     return url.indexOf(suffix, url.length - suffix.length) !== -1;
   }
+
+     static checkSSO(extraQueryParameters: string) {
+        return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
+    }
+
+     static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
+         if (idTokenObject) {
+             if (idTokenObject.hasOwnProperty(Constants.upn)) {
+                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
+                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+                 if (extraQueryParameters) {
+                     return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+                 }
+                 else {
+                     return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+                 }
+             }
+             else {
+                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+                 if (extraQueryParameters) {
+                     return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
+                 }
+                 else {
+                     return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
+                 }
+             }
+         }
+         return extraQueryParameters;
+     }
+
+     static urlRemoveQueryStringParameter(url: string, name: string): string {
+         if (this.isEmpty(url)) {
+             return url;
+         }
+
+         var regex = new RegExp("(\\&" + name + "=)[^\&]+");
+         url = url.replace(regex, "");
+         // name=value&
+         regex = new RegExp("(" + name + "=)[^\&]+&");
+         url = url.replace(regex, "");
+         // name=value
+         regex = new RegExp("(" + name + "=)[^\&]+");
+         url = url.replace(regex, "");
+         return url;
+     }
+
 }

@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {BroadcastService, MsalService} from "@azure/msal-angular";
+import {BroadcastService} from "@azure/msal-angular";
+import { MsalService} from "@azure/msal-angular";
 import {ProductService} from "./product/product.service";
 import {Subscription} from "rxjs/Subscription";
 
@@ -13,7 +14,7 @@ export class AppComponent implements OnInit, OnDestroy {
   loggedIn : boolean;
   public userInfo: any = null;
   private subscription: Subscription;
-  private isIframe: boolean;
+  public isIframe: boolean;
 
   constructor(private broadcastService: BroadcastService , private authService : MsalService,   private productService: ProductService)
   {
@@ -42,13 +43,13 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
 
     this.broadcastService.subscribe("msal:loginFailure", (payload) => {
-      console.log("login failure");
+      console.log("login failure " + JSON.stringify(payload));
       this.loggedIn = false;
 
     });
 
     this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
-      console.log("login success");
+      console.log("login success " + JSON.stringify(payload));
       this.loggedIn = true;
     });
 
