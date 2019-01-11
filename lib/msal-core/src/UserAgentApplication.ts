@@ -1771,11 +1771,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         tokenResponse.parameters["error"] = "Invalid_state";
         tokenResponse.parameters["error_description"] = "Invalid_state. state: " + tokenResponse.stateResponse;
         this._cacheStorage.setItem(Constants.msalError, "Invalid_state");
-        this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
+          this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }
       }
       this._cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
-      this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
+      this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey, tokenResponse.stateResponse);
       //this is required if navigateToLoginRequestUrl=false
       if (this.storeAuthStateInCookie) {
           this._cacheStorage.setItemCookie(authorityKey, "", -1);

@@ -107,13 +107,13 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
+    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string, tokenStateResponse: string): void {
         const storage = window[this._cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey !== "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    if ((authorityKey !== "" && key.indexOf(tokenStateResponse) > -1) || (acquireTokenUserKey !== "" && key.indexOf(tokenStateResponse) > -1)) {
                         this.removeItem(key);
                     }
                 }
