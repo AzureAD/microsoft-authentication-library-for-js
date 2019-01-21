@@ -14,7 +14,6 @@ import {
 } from "@angular/platform-browser-dynamic/testing";
 import {MSAL_CONFIG} from "../src/msal.service";
 import {RouterTestingModule} from '@angular/router/testing';
-import {} from 'jasmine';
 
 describe('Msal Angular Pubic API tests', function () {
 

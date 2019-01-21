@@ -1,4 +1,3 @@
-import {Observable} from 'rxjs/Rx'
 import {HttpClient} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 
@@ -17,12 +16,7 @@ export class MsGraphService {
   }
 
   public httpGetRequest() {
-    return this.http.get(this.getUrl())
-      .map(response => {
-        return response;
-      })
-      .catch(response => (Observable.throw(response)
-      ))
+    return this.http.get(this.getUrl());
   }
 
 }

@@ -5,8 +5,6 @@ import {
     RouterStateSnapshot,
 } from "@angular/router";
 import {MSAL_CONFIG, MsalService} from "./msal.service";
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/pairwise';
 import {Location, PlatformLocation} from "@angular/common";
 import {MsalConfig} from "./msal-config";
 import {BroadcastService} from "./broadcast.service";
