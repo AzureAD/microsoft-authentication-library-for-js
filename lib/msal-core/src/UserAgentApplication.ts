@@ -200,6 +200,8 @@ export class UserAgentApplication {
 
   private _isAngular: boolean = false;
 
+  private _requireSsoHint: boolean = true;
+
   private _protectedResourceMap: Map<string, Array<string>>;
 
   private _unprotectedResources: Array<string>;
@@ -235,6 +237,7 @@ export class UserAgentApplication {
         navigateToLoginRequestUrl?: boolean,
         state?: string,
         isAngular?: boolean,
+        requireSsoHint?: boolean,
         unprotectedResources?: Array<string>
         protectedResourceMap?: Map<string, Array<string>>,
         storeAuthStateInCookie?: boolean
@@ -249,6 +252,7 @@ export class UserAgentApplication {
           navigateToLoginRequestUrl = true,
           state = "",
           isAngular = false,
+          requireSsoHint = true,
           unprotectedResources = new Array<string>(),
           protectedResourceMap = new Map<string, Array<string>>(),
           storeAuthStateInCookie = false
@@ -267,6 +271,7 @@ export class UserAgentApplication {
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     this._state = state;
     this._isAngular = isAngular;
+    this._requireSsoHint = requireSsoHint;
     this._unprotectedResources = unprotectedResources;
     this._protectedResourceMap = protectedResourceMap;
     if (!this._cacheLocations[cacheLocation]) {
@@ -1230,19 +1235,23 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
         const scope = scopes.join(" ").toLowerCase();
         const userObject = user ? user : this.getUser();
-        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
-        //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
-          if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
-              this._logger.info("User login is required");
-              reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
-              return null;
+
+        //if user is unavailable and no SSO hint is provided...
+        if (!userObject && !Utils.hasSsoHint(extraQueryParameters)) {
+          const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+          //if adalIdToken is available, get hint parameters from that
+          if (!Utils.isEmpty(adalIdToken)) {
+            const idTokenObject = Utils.extractIdToken(adalIdToken);
+            this._logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken");
+            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
           }
-          //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
-          else if (!userObject && !Utils.isEmpty(adalIdToken)) {
-              const idTokenObject = Utils.extractIdToken(adalIdToken);
-              console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-              extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
+          //else if SSO hint is required, reject token
+          else if (this._requireSsoHint) {
+            this._logger.warning("User login or SSO hint (login_hint or sid) is required");
+            reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+            return null;
           }
+        }
 
           let authenticationRequest: AuthenticationRequestParameters;
         if (Utils.compareObjects(userObject, this.getUser())) {
