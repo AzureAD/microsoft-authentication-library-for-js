@@ -29,6 +29,7 @@ Icon?
 Thumbs.db
 
 # Node Files #
+/dist
 /node_modules
 /bower_components
 
