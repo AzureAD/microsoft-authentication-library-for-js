@@ -107,17 +107,36 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
+    removeAcquireTokenEntries(clearCookies?: boolean): void {
         const storage = window[this._cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey !== "" && key.indexOf(acquireTokenUserKey) > -1)) {
-                        this.removeItem(key);
+                    if (key.indexOf(Constants.authority) !== -1 || key.indexOf(Constants.acquireTokenUser) !== -1) {
+                        const value: string = storage[key];
+                        const state = value.split(Constants.resourceDelimeter).slice(-1)[0];
+                        const renewStatus = storage[Constants.renewStatus + state];
+                        if (!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress) {
+                            this.removeItem(key);
+
+                            if (clearCookies) {
+                                this.setItemCookie(key, "", -1);
+                            }
+                        }
+                    }
+                    if (key.indexOf(Constants.renewStatus) !== -1) {
+                        const value = storage[key];
+                        if (value !== Constants.tokenRenewStatusInProgress) {
+                            this.removeItem(key);
+                        }
                     }
                 }
             }
+        }
+
+        if (clearCookies) {
+            this.clearCookie();
         }
     }
 
@@ -130,8 +149,9 @@ export class Storage {// Singleton
                     if (key.indexOf(Constants.msal) !== -1) {
                         this.setItem(key, "");
                     }
-                    if (key.indexOf(Constants.renewStatus) !== -1) {
+                    if (key.indexOf(Constants.renewStatus) !== -1 || key.indexOf(Constants.authority) !== -1 || key.indexOf(Constants.acquireTokenUser) !== -1) {
                         this.removeItem(key);
+                        this.setItemCookie(key, "", -1);
                     }
                 }
             }

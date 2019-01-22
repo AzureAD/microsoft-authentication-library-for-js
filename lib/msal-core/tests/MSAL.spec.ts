@@ -665,7 +665,16 @@ describe('Msal', function (): any {
     it('tests that loginStartPage, nonce and state are saved in cookies if enableCookieStorage flag is enables through the msal optional params', function (done) {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+        // cookie-clearing is expected to be handled in Storage
+        spyOn(storageFake, 'removeAcquireTokenEntries').and.callFake(function (clearCookies) {
+            expect(clearCookies).toBe(true);
+            const state = this.getItemCookie(Constants.stateLogin);
+            const authorityKey = Constants.authority + Constants.resourceDelimeter + state;
+            this.setItemCookie(authorityKey, '', -1);
+            this.clearCookie();
+        });
         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+            expect(storageFake.removeAcquireTokenEntries).toHaveBeenCalled();
             expect(document.cookie).toBe('');
             expect(errorDesc).toBeUndefined();
             expect(error).toBeUndefined();
@@ -675,11 +684,14 @@ describe('Msal', function (): any {
         msal._cacheStorage = storageFake;
         var _promptUser = msal.promptUser;
         msal.promptUser = function () {
+            expect(document.cookie).toContain(Constants.authority);
             expect(document.cookie).toContain(Constants.stateLogin);
             expect(document.cookie).toContain(Constants.nonceIdToken);
             expect(document.cookie).toContain(Constants.loginRequest);
-            var urlHash = '#' + 'id_token=' + mockIdToken + '&state=' + storageFake.getItem(Constants.stateLogin) + '&nonce=' + storageFake.getItem(Constants.nonceIdToken)
+            const state = storageFake.getItem(Constants.stateLogin);
+            var urlHash = '#' + 'id_token=' + mockIdToken + '&state=' + state + '&nonce=' + storageFake.getItem(Constants.nonceIdToken)
             storageFake.setItem(Constants.urlHash, urlHash);
+            storageFake.removeItem(Constants.authority + Constants.resourceDelimeter + state);
             storageFake.removeItem(Constants.stateLogin);
             storageFake.removeItem(Constants.nonceIdToken);
             storageFake.removeItem(Constants.loginRequest);

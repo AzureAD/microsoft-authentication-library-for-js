@@ -323,7 +323,6 @@ export class UserAgentApplication {
 
       try {
           if (this._tokenReceivedCallback) {
-              this._cacheStorage.clearCookie();
               this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
           }
 
@@ -1073,21 +1072,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
       }
 
-      this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
-      var acquireTokenUserKey;
-      if (userObject) {
-           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-      }
-      else {
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-      }
-
-        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
       if (extraQueryParameters) {
         authenticationRequest.extraQueryParameters = extraQueryParameters;
       }
+
+      this.updateAcquireTokenCache(authenticationRequest, user);
 
       let urlNavigate = authenticationRequest.createNavigateUrl(scopes)   + Constants.response_mode_fragment;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
@@ -1159,23 +1148,11 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
           authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
         }
 
-        this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
-        authenticationRequest.state = authenticationRequest.state;
-        var acquireTokenUserKey;
-        if (userObject) {
-            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-        }
-        else {
-            acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-        }
-
-        this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
-
         if (extraQueryParameters) {
           authenticationRequest.extraQueryParameters = extraQueryParameters;
         }
+
+        this.updateAcquireTokenCache(authenticationRequest, userObject);
 
         let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
@@ -1408,23 +1385,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     const scope = scopes.join(" ").toLowerCase();
     this._logger.verbose("renewToken is called for scope:" + scope);
     const frameHandle = this.addAdalFrame("msalRenewFrame" + scope);
+
     if (extraQueryParameters) {
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
 
-    var acquireTokenUserKey;
-    if (user) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-    }
+    this.updateAcquireTokenCache(authenticationRequest, user);
 
-    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
-    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-    this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
-    // renew happens in iframe, so it keeps javascript context
-    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
     this._logger.verbose("Renew token Expected state: " + authenticationRequest.state);
     let urlNavigate = Utils.urlRemoveQueryStringParameter(authenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
@@ -1445,21 +1412,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     const scope = scopes.join(" ").toLowerCase();
     this._logger.info("renewidToken is called");
     const frameHandle = this.addAdalFrame("msalIdTokenFrame");
+
     if (extraQueryParameters) {
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
 
-    var acquireTokenUserKey;
-    if (user) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
-    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-    this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
-    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+    this.updateAcquireTokenCache(authenticationRequest, user);
+
     this._logger.verbose("Renew Idtoken Expected state: " + authenticationRequest.state);
     let urlNavigate = Utils.urlRemoveQueryStringParameter(authenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
@@ -1475,6 +1434,16 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this._logger.infoPii("Navigate to:" + urlNavigate);
     frameHandle.src = "about:blank";
     this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+  }
+
+  private updateAcquireTokenCache(authenticationRequest: AuthenticationRequestParameters, user: User) {
+    const userIdentifier = user && user.userIdentifier || Constants.no_user;
+    const acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
+    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+
+    this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
+    this._cacheStorage.setItem(authorityKey, authenticationRequest.authority, this.storeAuthStateInCookie);
+    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
   }
 
   /*
@@ -1643,15 +1612,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this._logger.info("State status:" + tokenResponse.stateMatch + "; Request type:" + tokenResponse.requestType);
     this._cacheStorage.setItem(Constants.msalError, "");
     this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-      var scope: string = "";
-      var authorityKey: string = "";
-      var acquireTokenUserKey: string = "";
-    if (tokenResponse.parameters.hasOwnProperty("scope")) {
-      scope = tokenResponse.parameters["scope"].toLowerCase();
-    }
-    else {
-      scope = this.clientId;
-    }
+    const authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+    var acquireTokenUserKey: string = "";
 
     // Record error
     if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
@@ -1661,12 +1623,10 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       if (tokenResponse.requestType === Constants.login) {
         this._loginInProgress = false;
         this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
-        authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
       }
 
       if (tokenResponse.requestType === Constants.renewToken) {
           this._acquireTokenInProgress = false;
-          authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
           var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
           acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
       }
@@ -1691,7 +1651,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             idToken = new IdToken(this._cacheStorage.getItem(Constants.idTokenKey));
           }
 
-            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
             let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
             if (!Utils.isEmpty(authority)) {
                 authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -1735,7 +1694,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
               this._logger.warning("ClientInfo not received in the response from AAD");
             }
 
-            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
             let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
             if (!Utils.isEmpty(authority)) {
               authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -1755,8 +1713,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
                 this.saveAccessToken(authority, tokenResponse, this._user, clientInfo, idToken);
               }
             } else {
-              authorityKey = tokenResponse.stateResponse;
-              acquireTokenUserKey = tokenResponse.stateResponse;
               this._logger.error("Invalid id_token received in the response");
               tokenResponse.parameters["error"] = "invalid idToken";
               tokenResponse.parameters["error_description"] = "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken];
@@ -1765,8 +1721,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
             }
         }
       } else {
-        authorityKey = tokenResponse.stateResponse;
-        acquireTokenUserKey = tokenResponse.stateResponse;
         this._logger.error("State Mismatch.Expected State: " + this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie) + "," + "Actual State: " + tokenResponse.stateResponse);
         tokenResponse.parameters["error"] = "Invalid_state";
         tokenResponse.parameters["error_description"] = "Invalid_state. state: " + tokenResponse.stateResponse;
@@ -1775,12 +1729,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
       }
       this._cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
-      this._cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
-      //this is required if navigateToLoginRequestUrl=false
-      if (this.storeAuthStateInCookie) {
-          this._cacheStorage.setItemCookie(authorityKey, "", -1);
-          this._cacheStorage.clearCookie();
-      }
+      this._cacheStorage.removeAcquireTokenEntries(this.storeAuthStateInCookie);
   }
   /* tslint:enable:no-string-literal */
 
