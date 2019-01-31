@@ -93,7 +93,14 @@ export class Utils {
     // html5 should support atob function for decoding
     base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
     if (window.atob) {
-        return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
+      // Source: jwt-decode.js in jwt.ms
+      return decodeURIComponent(atob(base64IdToken).replace(/(.)/g, function (m, p) {
+        var code = p.charCodeAt(0).toString(16).toUpperCase();
+        if (code.length < 2) {
+          code = '0' + code;
+        }
+        return '%' + code;
+      })); // jshint ignore:line
     }
     else {
         return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
