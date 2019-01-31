@@ -7,7 +7,7 @@ The MSAL library preview for Angular is a wrapper of the core MSAL.js library wh
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
 ## Important Note about the MSAL Angular Preview
-This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
+Please note that during the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
 ## Installation
 The msal-angular package is available on NPM:
@@ -18,7 +18,7 @@ The msal-angular package is available on NPM:
 
 #### Prerequisite
 
-Before using MSAL, register your application in [Azure AD v2.0 portal](https://apps.dev.microsoft.com/) to get your clientID. As part of the registration, you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
+Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get your clientID.
 
 > NOTE: To use MSAL Angular with Angular 6, please install the `rxjs-compat` NPM module for now. In future, we plan to add support for Angular 6 in the library and you can track this [issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/421) for more information.
 
