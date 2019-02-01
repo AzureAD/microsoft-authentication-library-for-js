@@ -34,7 +34,7 @@ export class User {
     idToken: Object;
     sid: string;
 
-    /*
+    /**
      * @hidden
      */
     constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: Object, sid: string) {
@@ -46,7 +46,7 @@ export class User {
         this.sid = sid;
     }
 
-    /*
+    /**
      * @hidden
      */
     static createUser(idToken: IdToken, clientInfo: ClientInfo): User {

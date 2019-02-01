@@ -21,7 +21,7 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
+/**
  * XHR client for JSON endpoints
  * https://www.npmjs.com/package/async-promise
  * @hidden

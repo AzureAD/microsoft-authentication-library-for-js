@@ -21,7 +21,7 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
+/**
  * @hidden
  */
 import { Utils } from "./Utils";
@@ -31,7 +31,7 @@ import { Authority, AuthorityType } from "./Authority";
 import { ErrorMessage } from "./ErrorMessage";
 
 export class AuthorityFactory {
-    /*
+    /**
     * Parse the url and determine the type of authority
     */
     private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
@@ -48,7 +48,7 @@ export class AuthorityFactory {
         }
     }
 
-    /*
+    /**
     * Create an authority object of the correct type based on the url
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
