@@ -97,7 +97,7 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
  private subscription: Subscription;
 
  this.subscription=  this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
- }
+ });
 
  ngOnDestroy() {
     this.broadcastService.getMSALSubject().next(1);
