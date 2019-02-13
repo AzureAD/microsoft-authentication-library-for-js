@@ -50,7 +50,7 @@ declare global {
     }
 }
 
-/*
+/**
  * @hidden
  */
 let ResponseTypes = {
@@ -59,7 +59,7 @@ let ResponseTypes = {
   id_token_token: "id_token token"
 };
 
-/*
+/**
  * @hidden
  */
 export interface CacheResult {
@@ -68,7 +68,7 @@ export interface CacheResult {
   error: string;
 }
 
-/*
+/**
  * A type alias of for a tokenReceivedCallback function.
  * @param tokenReceivedCallback.errorDesc error description returned from the STS if API call fails.
  * @param tokenReceivedCallback.token token returned from STS if token request is successful.
@@ -89,7 +89,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
 };
 export class UserAgentApplication {
 
-  /*
+  /**
    * @hidden
    */
   private _cacheLocations = {
@@ -97,64 +97,64 @@ export class UserAgentApplication {
     sessionStorage: "sessionStorage"
   };
 
-  /*
+  /**
    * @hidden
    */
   private _cacheLocation: string;
 
-  /*
+  /**
    * Used to get the cache location
    */
   get cacheLocation(): string {
     return this._cacheLocation;
   }
 
-  /*
+  /**
    * @hidden
    */
   protected _logger: Logger;
 
-  /*
+  /**
    * @hidden
    */
   private _loginInProgress: boolean;
 
-  /*
+  /**
    * @hidden
    */
   private _acquireTokenInProgress: boolean;
 
-  /*
+  /**
    * @hidden
    */
   private _clockSkew = 300;
 
-  /*
+  /**
    * @hidden
    */
   protected _cacheStorage: Storage;
 
-  /*
+  /**
    * @hidden
    */
   private _tokenReceivedCallback: tokenReceivedCallback = null;
 
-  /*
+  /**
    * @hidden
    */
   private _user: User;
 
-  /*
+  /**
    * Client ID assigned to your app by Azure Active Directory.
    */
   clientId: string;
 
-  /*
+  /**
    * @hidden
    */
   protected authorityInstance: Authority;
 
-  /*
+  /**
    * Used to set the authority.
    * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
    * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
@@ -165,30 +165,30 @@ export class UserAgentApplication {
     this.authorityInstance = AuthorityFactory.CreateInstance(val, this.validateAuthority);
   }
 
-  /*
+  /**
    * Used to get the authority.
    */
   public get authority(): string {
     return this.authorityInstance.CanonicalAuthority;
   }
 
-  /*
+  /**
    * Used to turn authority validation on/off.
    * When set to true (default), MSAL will compare the application"s authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
    */
   validateAuthority: boolean;
 
-  /*
+  /**
    * The redirect URI of the application, this should be same as the value in the application registration portal.
    * Defaults to `window.location.href`.
    */
   private _redirectUri: string | (() => string);
 
-    /*
+    /**
      * Use to send the state parameter with authentication request
      */
     private _state: string;
-  /*
+  /**
    * Used to redirect the user to this location after logout.
    * Defaults to `window.location.href`.
    */
@@ -209,7 +209,7 @@ export class UserAgentApplication {
   private _silentAuthenticationState: string;
 
   private _silentLogin: boolean;
-  /*
+  /**
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
    * @param {string} clientId - The clientID of your application, you should get this from the application registration portal.
@@ -298,7 +298,7 @@ export class UserAgentApplication {
     }
   }
 
-  /*
+  /**
    * Used to call the constructor callback with the token/error
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
    * @hidden
@@ -332,7 +332,7 @@ export class UserAgentApplication {
   }
 
 
-  /*
+  /**
    * Used to get the redirect uri. Evaluates redirectUri if its a function, otherwise simply returns its value.
    * @ignore
    * @hidden
@@ -345,7 +345,7 @@ export class UserAgentApplication {
   }
 
 
-  /*
+  /**
    * Used to get the post logout redirect uri. Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
    * @ignore
    * @hidden
@@ -358,7 +358,7 @@ export class UserAgentApplication {
   }
 
 
-  /*
+  /**
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
@@ -441,7 +441,7 @@ export class UserAgentApplication {
           });
   }
 
-  /*
+  /**
    * Initiate the login process by opening a popup window.
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
@@ -544,7 +544,7 @@ export class UserAgentApplication {
       });
   }
 
-  /*
+  /**
     * Used to redirect the browser to the STS authorization endpoint
     * @param {string} urlNavigate - URL of the authorization endpoint
     * @hidden
@@ -558,7 +558,7 @@ export class UserAgentApplication {
     }
   }
 
-  /*
+  /**
    * Used to send the user to the redirect_uri after authentication is complete. The user"s bearer token is attached to the URI fragment as an id_token/access_token field.
    * This function also closes the popup window after redirection.
    * @hidden
@@ -621,7 +621,7 @@ export class UserAgentApplication {
       window.dispatchEvent(evt);
   }
 
-  /*
+  /**
    * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
    * Defaults behaviour is to redirect the user to `window.location.href`.
    */
@@ -637,7 +637,7 @@ export class UserAgentApplication {
     this.promptUser(urlNavigate);
   }
 
-  /*
+  /**
    * Used to configure the popup window for login.
    * @ignore
    * @hidden
@@ -661,20 +661,20 @@ export class UserAgentApplication {
           }
       }
   }
-  /*
+  /**
    * Configures popup window for login.
    * @ignore
    * @hidden
    */
   private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
     try {
-      /*
+      /**
        * adding winLeft and winTop to account for dual monitor
        * using screenLeft and screenTop for IE8 and earlier
        */
       const winLeft = window.screenLeft ? window.screenLeft : window.screenX;
       const winTop = window.screenTop ? window.screenTop : window.screenY;
-      /*
+      /**
        * window.innerWidth displays browser window"s height and width excluding toolbars
        * using document.documentElement.clientWidth for IE8 and earlier
        */
@@ -697,7 +697,7 @@ export class UserAgentApplication {
     }
   }
 
-  /*
+  /**
    * Used to validate the scopes input parameter requested  by the developer.
    * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
    * @ignore
@@ -720,7 +720,7 @@ export class UserAgentApplication {
     return "";
   }
 
-  /*
+  /**
     * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
     * @hidden
     */
@@ -735,7 +735,7 @@ export class UserAgentApplication {
 
     return scopes;
   }
-  /*
+  /**
    * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
    * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} expectedState - Unique state identifier (guid).
@@ -795,7 +795,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return this.getCachedToken(authenticationRequest, user);
 }
 
-  /*
+  /**
    * Used to get token for the specified set of scopes from the cache
    * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
    * @param {User} user - User for which the scopes were requested
@@ -895,7 +895,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
   }
 
-  /*
+  /**
    * Used to filter all cached items and return a list of unique users based on userIdentifier.
    * @param {Array<User>} Users - users saved in the cache.
    */
@@ -912,7 +912,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return this.getUniqueUsers(users);
   }
 
-  /*
+  /**
    * Used to filter users based on userIdentifier
    * @param {Array<User>}  Users - users saved in the cache
    * @ignore
@@ -935,7 +935,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return uniqueUsers;
   }
 
-  /*
+  /**
   * Used to get a unique list of authoritues from the cache
   * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems - accessTokenCacheItems saved in the cache
   * @ignore
@@ -953,7 +953,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return authorityList;
   }
 
-  /*
+  /**
    * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
    * domain_hint can be one of users/organisations which when added skips the email based discovery process of the user
    * domain_req utid received as part of the clientInfo
@@ -1003,7 +1003,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return urlNavigate;
     }
 
-  /*
+  /**
    * Checks if the authorization endpoint URL contains query string parameters
    * @ignore
    * @hidden
@@ -1014,7 +1014,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return regex.test(url);
   }
 
-  /*
+  /**
    * Used to obtain an access_token by redirecting the user to the authorization endpoint.
    * To renew idToken, clientId should be passed as the only scope in the scopes array.
    * @param {Array<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token. Scopes like "openid" and "profile" are sent with every request.
@@ -1087,7 +1087,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     });
   }
 
-  /*
+  /**
    * Used to acquire an access token for a new user using interactive authentication via a popup Window.
    * To request an id_token, pass the clientId as the only scope in the scopes array.
    * @param {Array<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token. Scopes like "openid" and "profile" are sent with every request.
@@ -1180,7 +1180,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     });
   }
 
-  /*
+  /**
    * Used to get the token from cache.
    * MSAL will return the cached token if it is not expired.
    * Or it will send a request to the STS to obtain an access_token using a hidden iframe. To renew idToken, clientId should be passed as the only scope in the scopes array.
@@ -1296,7 +1296,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return null;
     }
 
-  /*
+  /**
    * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
    * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
    * @ignore
@@ -1321,7 +1321,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }, this.loadFrameTimeout);
   }
 
-  /*
+  /**
    * Loads iframe with authorization endpoint URL
    * @ignore
    * @hidden
@@ -1341,7 +1341,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       500);
   }
 
-  /*
+  /**
    * Adds the hidden iframe for silent token renewal.
    * @ignore
    * @hidden
@@ -1376,7 +1376,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return adalFrame;
   }
 
-  /*
+  /**
    * Acquires access token using a hidden iframe.
    * @ignore
    * @hidden
@@ -1403,7 +1403,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
   }
 
-  /*
+  /**
    * Renews idtoken for app"s own backend when clientId is passed as a single scope in the scopes array.
    * @ignore
    * @hidden
@@ -1446,7 +1446,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
   }
 
-  /*
+  /**
     * Returns the signed in user (received from a user object created at the time of login) or null.
     */
   getUser(): User {
@@ -1468,7 +1468,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return null;
   }
 
-  /*
+  /**
    * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
    * calls the registered callbacks in case of redirect or resolves the promises with the result.
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
@@ -1563,7 +1563,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
   }
 
-  /*
+  /**
    * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
    * @param {string} authority authority received in the redirect response from AAD.
    * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
@@ -1603,7 +1603,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
   }
 
-  /*
+  /**
    * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the user object.
    * @ignore
    * @hidden
@@ -1733,7 +1733,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   }
   /* tslint:enable:no-string-literal */
 
-  /*
+  /**
    * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
    * @param {string} hash - Hash passed from redirect page.
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
@@ -1751,7 +1751,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     );
   }
 
-  /*
+  /**
    * Returns the anchor part(#) of the URL
    * @ignore
    * @hidden
@@ -1766,7 +1766,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return hash;
   }
 
-  /*
+  /**
     * Creates a requestInfo object from the URL fragment and returns it.
     * @param {string} hash  -  Hash passed from redirect page
     * @returns {TokenResponse} an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
@@ -1821,7 +1821,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return tokenResponse;
   }
 
-  /*
+  /**
     * Extracts scope value from the state sent with the authentication request.
     * @returns {string} scope.
     * @ignore
@@ -1837,7 +1837,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     return "";
   }
 
-    /*
+    /**
     * Extracts state value from the userState sent with the authentication request.
     * @returns {string} scope.
     * @ignore
@@ -1854,7 +1854,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
     }
 
 
-  /*
+  /**
     * Returns whether current window is in ifram for token renewal
     * @ignore
     * @hidden

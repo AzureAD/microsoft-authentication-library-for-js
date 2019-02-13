@@ -25,7 +25,7 @@ import { Authority } from "./Authority";
 import { Utils } from "./Utils";
 import { Constants } from "./Constants";
 
-/*
+/**
  * @hidden
  */
 export class AuthenticationRequestParameters {

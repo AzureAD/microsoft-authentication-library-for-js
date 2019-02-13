@@ -24,7 +24,7 @@
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 
-/*
+/**
  * @hidden
  */
 export class Storage {// Singleton
