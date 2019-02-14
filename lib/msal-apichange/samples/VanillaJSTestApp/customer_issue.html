@@ -1,0 +1,43 @@
+html>
+
+<head>
+    <script>
+        var popupWindow;
+
+        function popup() {
+            var url = document.getElementById("popupURL").value;
+            var target = document.getElementById("popupTarget").value;
+            popupWindow = window.open(url, target, "width=483,height=600,top=89.5,left=325.5");
+        }
+
+        function closePopup() {
+            popupWindow.close();
+        }
+
+        function setLocation() {
+            popupWindow.location.href = document.getElementById("setLocationId").value;
+        }
+    </script>
+
+</head>
+
+<body>
+Open URL:
+<br>
+<input id="popupURL" type="text" name="enteredURL" size="100" value="about:blank">
+<br> Target:
+<br>
+<input id="popupTarget" type="text" name="enteredTarget" size="100" value="_blank">
+<br> Redirect URL:
+<BR>
+<input id="setLocationId" type="text" name="setLocation" size="100" value="https://login.microsoftonline.com/">
+<br>
+<br>
+<input type="button" value="Open" onclick="popup();" />
+<br>
+<input type="button" value="Close" onclick="closePopup();" />
+<br>
+<input type="button" value="Location" onclick="setLocation();" />
+</body>
+
+</html>
