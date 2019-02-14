@@ -258,3 +258,4 @@ tests/
 typings/
 .git
 coverage/
+src
