@@ -3,6 +3,9 @@
   "version": "1.1.0",
   "license": "MIT",
   "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "express": "^4.12.3",
     "morgan": "^1.5.2",

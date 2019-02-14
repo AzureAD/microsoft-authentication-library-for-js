@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-/*
+/**
  * @hidden
  */
 export class Constants {
@@ -89,7 +89,7 @@ export class Constants {
     static get common(): string { return "common"; }
 }
 
-/*
+/**
  * @hidden
  */
 export class ErrorCodes {
@@ -102,7 +102,7 @@ export class ErrorCodes {
   static get userCancelledError(): string { return "user_cancelled"; }
 }
 
-/*
+/**
  * @hidden
  */
 export class ErrorDescription {

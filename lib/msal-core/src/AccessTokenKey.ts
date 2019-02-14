@@ -23,7 +23,7 @@
 
 import { Utils } from "./Utils";
 
-/*
+/**
  * @hidden
  */
 export class AccessTokenKey {

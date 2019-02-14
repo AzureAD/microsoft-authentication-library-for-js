@@ -25,7 +25,7 @@ import { IUri } from "./IUri";
 import { User } from "./User";
 import {Constants} from "./Constants";
 
-/*
+/**
  * @hidden
  */
 export class Utils {
@@ -261,7 +261,7 @@ export class Utils {
     return "0.2.4";
   }
 
-  /*
+  /**
     * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
     * @param href The url
     * @param tenantId The tenant id to replace
@@ -348,7 +348,7 @@ export class Utils {
     }
   }
 
-  /*
+  /**
    * Parses out the components from a url string.
    * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
    */
@@ -378,7 +378,7 @@ export class Utils {
     return urlComponents;
   }
 
-  /*
+  /**
    * Given a url or path, append a trailing slash if one doesnt exist
    */
   static CanonicalizeUri(url: string): string {
@@ -393,7 +393,7 @@ export class Utils {
     return url;
   }
 
-  /*
+  /**
     * Checks to see if the url ends with the suffix
     * Required because we are compiling for es5 instead of es6
     * @param url
