@@ -160,7 +160,7 @@ export class Configuration {
     static buildConfiguration(
         // destructure with default setting
         {clientId = "", authority = null, validateAuthority = true, redirectUri = () => window.location.href.split("?")[0].split("#")[0], postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0], state = "", navigateToLoginRequestUrl = true}: TAuthOptions = {clientId},
-        {cacheLocation = "localStorage", storeAuthStateInCookie = false}: TCacheOptions = {},
+        {cacheLocation = "sessionStorage", storeAuthStateInCookie = false}: TCacheOptions = {},
         {logger = new Logger(null), loadFrameTimeout = 6000, tokenRenewalOffsetSeconds = 300}: TSystemOptions = {},
         {isAngular = false, unprotectedResources = new Array<string>(), protectedResourceMap = new Map<string, Array<string>>()}: TFrameworkOptions = {}
     ) {

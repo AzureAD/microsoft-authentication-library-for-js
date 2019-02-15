@@ -1,5 +1,5 @@
 import {Configuration, UserAgentApplication} from "../src/index";
-import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
+import {Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
@@ -248,11 +248,11 @@ describe('Msal', function (): any {
         msal.renewStates = [];
         msal.activeRenewals = {};
         msal.pCacheStorage = storageFake;
-        expect(msal.pConfig.redirectUri).toBe(TEST_REDIR_URI);
+        expect(msal.pConfig.auth.redirectUri).toBe(TEST_REDIR_URI);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-            expect(args).toContain('&client_id=' + msal.pConfig.clientId);
-            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.pConfig.redirectUri));
+            expect(args).toContain('&client_id=' + msal.pConfig.auth.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.pConfig.auth.redirectUri));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
             done();
@@ -447,18 +447,18 @@ describe('Msal', function (): any {
             requestType: 'unknown'
         };
 
-        var _cacheStorage = msal._cacheStorage.removeAcquireTokenEntries;
-        msal._cacheStorage.removeAcquireTokenEntries = function () {
+        var cacheStorage = msal.pCacheStorage.removeAcquireTokenEntries;
+        msal.pCacheStorage.removeAcquireTokenEntries = function () {
             return;
         };
         msal.saveTokenFromHash(requestInfo);
-        msal._cacheStorage.removeAcquireTokenEntries = _cacheStorage;
+        msal.pCacheStorage.removeAcquireTokenEntries = cacheStorage;
         expect(storageFake.getItem(Constants.msalError)).toBe('invalid');
         expect(storageFake.getItem(Constants.msalErrorDescription)).toBe('error description');
     });
 
     it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
-        msal._loginInProgress = true;
+        msal.pLoginInProgress = true;
         var errDesc = '', token = '', err = '', tokenType = '';
         var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
             errDesc = valErrDesc;
@@ -466,13 +466,13 @@ describe('Msal', function (): any {
             err = valErr;
             tokenType = valTokenType;
         };
-        msal._tokenReceivedCallback = callback;
+        msal.pTokenReceivedCallback = callback;
         msal.loginRedirect();
         expect(errDesc).toBe(ErrorDescription.loginProgressError);
         expect(err).toBe(ErrorCodes.loginProgressError);
         expect(token).toBe(null);
         expect(tokenType).toBe(Constants.idToken);
-        msal._loginInProgress = false;
+        msal.pLoginInProgress = false;
     });
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
@@ -483,7 +483,7 @@ describe('Msal', function (): any {
             err = valErr;
             tokenType = valTokenType;
         };
-        msal._tokenReceivedCallback = callback;
+        msal.pTokenReceivedCallback = callback;
         msal.loginRedirect([]);
         expect(errDesc).toBe(ErrorDescription.inputScopesError);
         expect(err).toBe(ErrorCodes.inputScopesError);
@@ -499,8 +499,8 @@ describe('Msal', function (): any {
             err = valErr;
             tokenType = valTokenType;
         };
-        msal._tokenReceivedCallback = callback;
-        msal.loginRedirect([msal.clientId, '123']);
+        msal.pTokenReceivedCallback = callback;
+        msal.loginRedirect([msal.pConfig.auth.clientId, '123']);
         expect(errDesc).toBe(ErrorDescription.inputScopesError);
         expect(err).toBe(ErrorCodes.inputScopesError);
         expect(token).toBe(null);
@@ -542,27 +542,27 @@ describe('Msal', function (): any {
     });
 
     it('checks if postLogoutRedirectUri is added to logout url if provided in the config ', function () {
-        var _clearCache = msal.clearCache;
+        var clearCache = msal.clearCache;
         msal.clearCache = function () {
             return;
         };
-        msal._postLogoutredirectUri = 'https://contoso.com/logout';
+        msal.pConfig.auth.postLogoutRedirectUri = 'https://contoso.com/logout';
         spyOn(msal, 'promptUser');
         msal.logout();
         expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogout');
-        msal.clearCache = _clearCache;
+        msal.clearCache = clearCache;
     });
 
     it('checks if postLogoutRedirectUri is added to logout url if provided in the config as a function', function () {
-        var _clearCache = msal.clearCache;
+        var clearCache = msal.clearCache;
         msal.clearCache = function () {
             return;
         };
-        msal._postLogoutredirectUri = () => 'https://contoso.com/logoutfn';
+        msal.pConfig.auth.postLogoutRedirectUri = () => 'https://contoso.com/logoutfn';
         spyOn(msal, 'promptUser');
         msal.logout();
         expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogoutfn');
-        msal.clearCache = _clearCache;
+        msal.clearCache = clearCache;
     });
 
     it('is callback if has error or access_token or id_token', function () {
@@ -623,7 +623,7 @@ describe('Msal', function (): any {
 
     it('tests if you get the state back in tokenReceived callback, if state is a number', function () {
         spyOn(msal, 'getUserState').and.returnValue("1234");
-        msal._loginInProgress = true;
+        msal.pLoginInProgress = true;
         let errDesc = '', token = '', err = '', tokenType = '', state= '' ;
         var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string, valState: string) {
             errDesc = valErrDesc;
@@ -633,19 +633,19 @@ describe('Msal', function (): any {
             state = valState;
         };
 
-        msal._tokenReceivedCallback = callback;
+        msal.pTokenReceivedCallback = callback;
         msal.loginRedirect();
         expect(errDesc).toBe(ErrorDescription.loginProgressError);
         expect(err).toBe(ErrorCodes.loginProgressError);
         expect(token).toBe(null);
         expect(tokenType).toBe(Constants.idToken);
         expect(state).toBe('1234');
-        msal._loginInProgress = false;
+        msal.pLoginInProgress = false;
     });
 
     it('tests if you get the state back in tokenReceived callback, if state is a url', function () {
         spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
-        msal._loginInProgress = true;
+        msal.pLoginInProgress = true;
         let errDesc = '', token = '', err = '', tokenType = '', state= '' ;
         let callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string, valState: string) {
             errDesc = valErrDesc;
@@ -655,7 +655,7 @@ describe('Msal', function (): any {
             state = valState;
         };
 
-        msal._tokenReceivedCallback = callback;
+        msal.pTokenReceivedCallback = callback;
         msal.loginRedirect();
         expect(errDesc).toBe(ErrorDescription.loginProgressError);
         expect(err).toBe(ErrorCodes.loginProgressError);
@@ -729,7 +729,7 @@ describe('Msal', function (): any {
          }, { cacheLocation: 'localStorage' });
          */
 
-         expect(msal.pCacheLocation).toBe('localStorage');
+         expect(msal.pConfig.cache.cacheLocation).toBe('localStorage');
     });
 
     it('tests cacheLocation functionality defaults to sessionStorage', function () {
@@ -756,7 +756,7 @@ describe('Msal', function (): any {
             expect(tokenType).toBe(Constants.idToken);
         });
 
-         expect(msal.pCacheLocation).toBe('sessionStorage');
+         expect(msal.pConfig.cache.cacheLocation).toBe('sessionStorage');
     });
     /**
     it('tests cacheLocation functionality malformed strings throw error', function () {
