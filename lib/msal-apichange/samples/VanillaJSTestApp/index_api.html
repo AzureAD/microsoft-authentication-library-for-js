@@ -33,26 +33,11 @@
     //Pass null for default authority (https://login.microsoftonline.com/common)
     var myMSALObj = new Msal.UserAgentApplication(config, acquireTokenRedirectCallBack);
 
-    // Auth request Object for new API calls
-    var authRequest = { scopes: applicationConfig.graphScopes };
-
-
     function signIn() {
         myMSALObj.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
             //Login Success
             showWelcomeMessage();
             acquireTokenPopupAndCallMSGraph();
-        }, function (error) {
-            console.log(error);
-        });
-    }
-
-    // new login method with Request Object
-    function signInNew() {
-        myMSALObj.loginPopupNew(authRequest).then(function (idToken) {
-            //Login Success
-            showWelcomeMessage();
-            acquireTokenPopupAndCallMSGraphNew();
         }, function (error) {
             console.log(error);
         });
@@ -71,23 +56,6 @@
             // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
             if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
                 myMSALObj.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
-                    callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
-                }, function (error) {
-                    console.log(error);
-                });
-            }
-        });
-    }
-
-    function acquireTokenPopupAndCallMSGraphNew() {
-        //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
-        myMSALObj.acquireTokenSilentNew(authRequest).then(function (accessToken) {
-            callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
-        }, function (error) {
-            console.log(error);
-            // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
-            if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
-                myMSALObj.acquireTokenPopupNew(authRequest).then(function (accessToken) {
                     callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
                 }, function (error) {
                     console.log(error);

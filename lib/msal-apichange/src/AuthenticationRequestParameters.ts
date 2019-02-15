@@ -24,7 +24,6 @@
 import { Authority } from "./Authority";
 import { Utils } from "./Utils";
 import { Constants } from "./Constants";
-import { AuthenticationParameters } from "./Request";
 
 /**
  * Class to construct the Request to be sent to the Auth Server for Authentication/Authorization

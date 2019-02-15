@@ -22,7 +22,7 @@
  */
 
 import { IUri } from "./IUri";
-import { Account } from "./Account";
+import { User } from "./User";
 import { Constants } from "./Constants";
 
 /** 
@@ -31,17 +31,17 @@ import { Constants } from "./Constants";
 export class Utils {
 
   /**
-   * Utils function to compare two Account objects - used to check if the same user is logged in
+   * Utils function to compare two User objects - used to check if the same user is logged in
    * 
-   * @param u1: Account object 
-   * @param u2: Account object
+   * @param u1: User object 
+   * @param u2: User object
    */
-  static compareObjects(u1: Account, u2: Account): boolean {
+  static compareObjects(u1: User, u2: User): boolean {
     if (!u1 || !u2) {
       return false;
     }
-    if (u1.homeAccountIdentifier && u2.homeAccountIdentifier) {
-      if (u1.homeAccountIdentifier === u2.homeAccountIdentifier) {
+    if (u1.userIdentifier && u2.userIdentifier) {
+      if (u1.userIdentifier === u2.userIdentifier) {
         return true;
       }
     }
@@ -295,12 +295,14 @@ export class Utils {
    * @param scopes 
    */
   static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+
     cachedScopes = this.convertToLowerCase(cachedScopes);
     for (let i = 0; i < scopes.length; i++) {
       if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
         return true;
       }
     }
+    
     return false;
   }
 
