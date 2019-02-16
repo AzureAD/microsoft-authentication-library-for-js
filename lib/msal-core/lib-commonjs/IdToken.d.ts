@@ -1,3 +1,6 @@
+/**
+ * @hidden
+ */
 export declare class IdToken {
     issuer: string;
     objectId: string;

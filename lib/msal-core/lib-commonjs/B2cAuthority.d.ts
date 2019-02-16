@@ -22,8 +22,14 @@
  */
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./Authority";
+/**
+ * @hidden
+ */
 export declare class B2cAuthority extends AadAuthority {
     constructor(authority: string, validateAuthority: boolean);
     readonly AuthorityType: AuthorityType;
+    /**
+     * Returns a promise with the TenantDiscoveryEndpoint
+     */
     GetOpenIdConfigurationEndpointAsync(): Promise<string>;
 }

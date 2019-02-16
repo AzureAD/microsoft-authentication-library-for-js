@@ -22,6 +22,9 @@
  */
 import { IUri } from "./IUri";
 import { User } from "./User";
+/**
+ * @hidden
+ */
 export declare class Utils {
     static compareObjects(u1: User, u2: User): boolean;
     static expiresIn(expires: string): number;
@@ -41,10 +44,28 @@ export declare class Utils {
     static removeElement(scopes: Array<string>, scope: string): Array<string>;
     static decimalToHex(num: number): string;
     static getLibraryVersion(): string;
+    /**
+      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
+      * @param href The url
+      * @param tenantId The tenant id to replace
+      */
     static replaceFirstPath(url: string, tenantId: string): string;
     static createNewGuid(): string;
+    /**
+     * Parses out the components from a url string.
+     * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
+     */
     static GetUrlComponents(url: string): IUri;
+    /**
+     * Given a url or path, append a trailing slash if one doesnt exist
+     */
     static CanonicalizeUri(url: string): string;
+    /**
+      * Checks to see if the url ends with the suffix
+      * Required because we are compiling for es5 instead of es6
+      * @param url
+      * @param str
+      */
     static endsWith(url: string, suffix: string): boolean;
     static checkSSO(extraQueryParameters: string): boolean;
     static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string): string;

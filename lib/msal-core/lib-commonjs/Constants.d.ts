@@ -1,3 +1,6 @@
+/**
+ * @hidden
+ */
 export declare class Constants {
     static readonly errorDescription: string;
     static readonly error: string;
@@ -56,6 +59,9 @@ export declare class Constants {
     static readonly userIdentifier: string;
     static readonly common: string;
 }
+/**
+ * @hidden
+ */
 export declare class ErrorCodes {
     static readonly loginProgressError: string;
     static readonly acquireTokenProgressError: string;
@@ -65,6 +71,9 @@ export declare class ErrorCodes {
     static readonly userLoginError: string;
     static readonly userCancelledError: string;
 }
+/**
+ * @hidden
+ */
 export declare class ErrorDescription {
     static readonly loginProgressError: string;
     static readonly acquireTokenProgressError: string;

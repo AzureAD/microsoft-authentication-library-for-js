@@ -21,6 +21,9 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+/**
+ * @hidden
+ */
 export declare class Storage {
     private static _instance;
     private _localStorageSupported;

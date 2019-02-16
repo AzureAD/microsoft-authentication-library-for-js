@@ -30,24 +30,69 @@ export declare enum LogLevel {
     Verbose = 3
 }
 export declare class Logger {
+    /**
+     * @hidden
+     */
     private static _instance;
+    /**
+     * @hidden
+     */
     private _correlationId;
+    /**
+     * @hidden
+     */
     private _level;
+    /**
+     * @hidden
+     */
     private _piiLoggingEnabled;
+    /**
+     * @hidden
+     */
     private _localCallback;
     constructor(localCallback: ILoggerCallback, options?: {
         correlationId?: string;
         level?: LogLevel;
         piiLoggingEnabled?: boolean;
     });
+    /**
+     * @hidden
+     */
     private logMessage;
+    /**
+     * @hidden
+     */
     executeCallback(level: LogLevel, message: string, containsPii: boolean): void;
+    /**
+     * @hidden
+     */
     error(message: string): void;
+    /**
+     * @hidden
+     */
     errorPii(message: string): void;
+    /**
+     * @hidden
+     */
     warning(message: string): void;
+    /**
+     * @hidden
+     */
     warningPii(message: string): void;
+    /**
+     * @hidden
+     */
     info(message: string): void;
+    /**
+     * @hidden
+     */
     infoPii(message: string): void;
+    /**
+     * @hidden
+     */
     verbose(message: string): void;
+    /**
+     * @hidden
+     */
     verbosePii(message: string): void;
 }

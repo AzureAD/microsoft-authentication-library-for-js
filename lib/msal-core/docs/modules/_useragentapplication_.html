@@ -83,12 +83,6 @@
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-external">
-							<h3>Interfaces</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-external-module tsd-is-external"><a href="../interfaces/_useragentapplication_.cacheresult.html" class="tsd-kind-icon">Cache<wbr>Result</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section tsd-is-external">
 							<h3>Type aliases</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external"><a href="_useragentapplication_.html#tokenreceivedcallback" class="tsd-kind-icon">token<wbr>Received<wbr>Callback</a></li>
@@ -98,12 +92,6 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported"><a href="_useragentapplication_.html#resolvetokenonlyifoutofiframe" class="tsd-kind-icon">resolve<wbr>Token<wbr>Only<wbr>IfOut<wbr>OfIframe</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section tsd-is-external tsd-is-not-exported">
-							<h3>Object literals</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported"><a href="_useragentapplication_.html#responsetypes" class="tsd-kind-icon">Response<wbr>Types</a></li>
 							</ul>
 						</section>
 					</div>
@@ -120,6 +108,11 @@
 							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L78">UserAgentApplication.ts:78</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A type alias of for a tokenReceivedCallback function.</p>
+						</div>
+					</div>
 					<div class="tsd-type-declaration">
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
@@ -133,15 +126,27 @@
 										<ul class="tsd-parameters">
 											<li>
 												<h5>errorDesc: <span class="tsd-signature-type">string</span></h5>
+												<div class="tsd-comment tsd-typography">
+													<p>error description returned from the STS if API call fails.</p>
+												</div>
 											</li>
 											<li>
 												<h5>token: <span class="tsd-signature-type">string</span></h5>
+												<div class="tsd-comment tsd-typography">
+													<p>token returned from STS if token request is successful.</p>
+												</div>
 											</li>
 											<li>
 												<h5>error: <span class="tsd-signature-type">string</span></h5>
+												<div class="tsd-comment tsd-typography">
+													<p>error code returned from the STS if API call fails.</p>
+												</div>
 											</li>
 											<li>
 												<h5>tokenType: <span class="tsd-signature-type">string</span></h5>
+												<div class="tsd-comment tsd-typography">
+													<p>tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.</p>
+												</div>
 											</li>
 											<li>
 												<h5>userState: <span class="tsd-signature-type">string</span></h5>
@@ -185,49 +190,6 @@
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">PropertyDescriptor</span></h4>
 						</li>
 					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external tsd-is-not-exported">
-				<h2>Object literals</h2>
-				<section class="tsd-panel tsd-member tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-					<a name="responsetypes" class="tsd-anchor"></a>
-					<h3>Response<wbr>Types</h3>
-					<div class="tsd-signature tsd-kind-icon">Response<wbr>Types<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L56">UserAgentApplication.ts:56</a></li>
-						</ul>
-					</aside>
-					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-external tsd-is-not-exported">
-						<a name="responsetypes.id_token" class="tsd-anchor"></a>
-						<h3>id_<wbr>token</h3>
-						<div class="tsd-signature tsd-kind-icon">id_<wbr>token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;id_token&quot;</span></div>
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L57">UserAgentApplication.ts:57</a></li>
-							</ul>
-						</aside>
-					</section>
-					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-external tsd-is-not-exported">
-						<a name="responsetypes.id_token_token" class="tsd-anchor"></a>
-						<h3>id_<wbr>token_<wbr>token</h3>
-						<div class="tsd-signature tsd-kind-icon">id_<wbr>token_<wbr>token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;id_token token&quot;</span></div>
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L59">UserAgentApplication.ts:59</a></li>
-							</ul>
-						</aside>
-					</section>
-					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-external tsd-is-not-exported">
-						<a name="responsetypes.token" class="tsd-anchor"></a>
-						<h3>token</h3>
-						<div class="tsd-signature tsd-kind-icon">token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;token&quot;</span></div>
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L58">UserAgentApplication.ts:58</a></li>
-							</ul>
-						</aside>
-					</section>
 				</section>
 			</section>
 		</div>
@@ -321,17 +283,11 @@
 					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
 						<a href="../classes/_useragentapplication_.useragentapplication.html" class="tsd-kind-icon">User<wbr>Agent<wbr>Application</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external">
-						<a href="../interfaces/_useragentapplication_.cacheresult.html" class="tsd-kind-icon">Cache<wbr>Result</a>
-					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-external">
 						<a href="_useragentapplication_.html#tokenreceivedcallback" class="tsd-kind-icon">token<wbr>Received<wbr>Callback</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
 						<a href="_useragentapplication_.html#resolvetokenonlyifoutofiframe" class="tsd-kind-icon">resolve<wbr>Token<wbr>Only<wbr>IfOut<wbr>OfIframe</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="_useragentapplication_.html#responsetypes" class="tsd-kind-icon">Response<wbr>Types</a>
 					</li>
 				</ul>
 			</nav>

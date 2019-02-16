@@ -97,7 +97,7 @@
 					<a name="createinstance" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> Create<wbr>Instance</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">Create<wbr>Instance<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, validateAuthority<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_authority_.authority.html" class="tsd-signature-type">Authority</a></li>
+						<li class="tsd-signature tsd-kind-icon">Create<wbr>Instance<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, validateAuthority<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Authority</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -106,6 +106,12 @@
 									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthorityFactory.ts#L55">AuthorityFactory.ts:55</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Create an authority object of the correct type based on the url
+									Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -115,7 +121,7 @@
 									<h5>validateAuthority: <span class="tsd-signature-type">boolean</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_authority_.authority.html" class="tsd-signature-type">Authority</a></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Authority</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -123,7 +129,7 @@
 					<a name="detectauthorityfromurl" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagPrivate">Private</span> Detect<wbr>Authority<wbr>From<wbr>Url</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-static tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">Detect<wbr>Authority<wbr>From<wbr>Url<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/_authority_.authoritytype.html" class="tsd-signature-type">AuthorityType</a></li>
+						<li class="tsd-signature tsd-kind-icon">Detect<wbr>Authority<wbr>From<wbr>Url<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AuthorityType</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -132,13 +138,18 @@
 									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthorityFactory.ts#L37">AuthorityFactory.ts:37</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Parse the url and determine the type of authority</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>authorityUrl: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../enums/_authority_.authoritytype.html" class="tsd-signature-type">AuthorityType</a></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">AuthorityType</span></h4>
 						</li>
 					</ul>
 				</section>
