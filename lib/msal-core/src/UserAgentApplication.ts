@@ -1227,106 +1227,107 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         reject(ErrorCodes.inputScopesError + "|" + isValidScope);
-        return null;
-      } else {
-        if (scopes) {
-          scopes = this.filterScopes(scopes);
+        return;
+      }
+
+      if (scopes) {
+        scopes = this.filterScopes(scopes);
+      }
+
+      const scope = scopes.join(" ").toLowerCase();
+      const userObject = user ? user : this.getUser();
+
+      //if user is unavailable and no SSO hint is provided...
+      if (!userObject && !Utils.hasSsoHint(extraQueryParameters)) {
+        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+        //if adalIdToken is available, get hint parameters from that
+        if (!Utils.isEmpty(adalIdToken)) {
+          const idTokenObject = Utils.extractIdToken(adalIdToken);
+          this._logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken");
+          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
         }
-
-        const scope = scopes.join(" ").toLowerCase();
-        const userObject = user ? user : this.getUser();
-
-        //if user is unavailable and no SSO hint is provided...
-        if (!userObject && !Utils.hasSsoHint(extraQueryParameters)) {
-          const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
-          //if adalIdToken is available, get hint parameters from that
-          if (!Utils.isEmpty(adalIdToken)) {
-            const idTokenObject = Utils.extractIdToken(adalIdToken);
-            this._logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken");
-            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
-          }
-          //else if SSO hint is required, reject token
-          else if (this._requireSsoHint) {
-            this._logger.warning("User login or SSO hint (login_hint or sid) is required");
-            reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
-            return null;
-          }
+        //else if SSO hint is required, reject token
+        else if (this._requireSsoHint) {
+          this._logger.warning("User login or SSO hint (login_hint or sid) is required");
+          reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+          return;
         }
+      }
 
-          let authenticationRequest: AuthenticationRequestParameters;
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-          }
-          else {
-              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-          }
-        } else {
-            if (scopes.indexOf(this.clientId) > -1) {
-                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-            }
-            else {
-                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-            }
-        }
-
-        const cacheResult = this.getCachedToken(authenticationRequest, userObject);
-        if (cacheResult) {
-          if (cacheResult.token) {
-            this._logger.info("Token is already in cache for scope:" + scope);
-            resolve(cacheResult.token);
-            return null;
-          }
-          else if (cacheResult.errorDesc || cacheResult.error) {
-            this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
-            return null;
-          }
+      let authenticationRequest: AuthenticationRequestParameters;
+      if (Utils.compareObjects(userObject, this.getUser())) {
+        if (scopes.indexOf(this.clientId) > -1) {
+            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
         }
         else {
-            this._logger.verbose("Token is not in cache for scope:" + scope);
-          }
-
-        if (!authenticationRequest.authorityInstance) {//Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
-            authenticationRequest.authorityInstance = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
         }
-          // cache miss
-          return authenticationRequest.authorityInstance.ResolveEndpointsAsync()
-          .then(() => {
-            // refresh attept with iframe
-            //Already renewing for this scope, callback when we get the token.
-              if (window.activeRenewals[scope]) {
-              this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
-              //Active renewals contains the state for each renewal.
-              this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
-            }
-            else {
-              if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-                // App uses idToken to send to api endpoints
-                // Default scope is tracked as clientId to store this token
-                this._logger.verbose("renewing idToken");
-                this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-              } else {
-                this._logger.verbose("renewing accesstoken");
-                this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-              }
-            }
-          }).catch((err) => {
-            this._logger.warning("could not resolve endpoints");
-            reject(err);
-            return null;
-          });
+      } else {
+        if (scopes.indexOf(this.clientId) > -1) {
+            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
+        }
+        else {
+            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
+        }
       }
+
+      // Check for an existing token in cache
+      const cacheResult = this.getCachedToken(authenticationRequest, userObject);
+      if (cacheResult) {
+        if (cacheResult.token) {
+          this._logger.info("Token is already in cache for scope:" + scope);
+          resolve(cacheResult.token);
+          return;
+        }
+        else if (cacheResult.errorDesc || cacheResult.error) {
+          this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
+          reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
+          return;
+        }
+      }
+
+      this._logger.verbose("Token is not in cache for scope:" + scope);
+
+      // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+      if (!authenticationRequest.authorityInstance) {
+          authenticationRequest.authorityInstance = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+      }
+
+      // Make the authentication request to the authority
+      authenticationRequest.authorityInstance.ResolveEndpointsAsync()
+        .then(() => {
+          // refresh attept with iframe
+          //Already renewing for this scope, callback when we get the token.
+          if (window.activeRenewals[scope]) {
+            this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+            //Active renewals contains the state for each renewal.
+            this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+          }
+          else {
+            if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+              // App uses idToken to send to api endpoints
+              // Default scope is tracked as clientId to store this token
+              this._logger.verbose("renewing idToken");
+              this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+            } else {
+              this._logger.verbose("renewing accesstoken");
+              this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+            }
+          }
+        }).catch((err) => {
+          this._logger.warning("could not resolve endpoints");
+          reject(err);
+        });
     });
   }
 
-    private extractADALIdToken(): any {
-        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
-        if (!Utils.isEmpty(adalIdToken)) {
-            return Utils.extractIdToken(adalIdToken);
-        }
-        return null;
-    }
+  private extractADALIdToken(): any {
+      const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+      if (!Utils.isEmpty(adalIdToken)) {
+          return Utils.extractIdToken(adalIdToken);
+      }
+      return null;
+  }
 
   /*
    * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
