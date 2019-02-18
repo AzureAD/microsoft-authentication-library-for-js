@@ -26,112 +26,82 @@ import { Logger } from "./Logger";
 // make CacheStorage a fixed type to limit it to specific inputs
 type storage = "localStorage" | "sessionStorage";
 
+
+/** 
+ * Defaults for the Configuration Options 
+ */
+ const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
+ const FRAME_TIMEOUT = 6000;
+ const OFFSET = 300;
+ 
+
 /**
- * Authentication Options
+ *  Authentication Options
+ *
+ *  clientId                    - Client ID assigned to your app by Azure Active Directory
+ *  authority                   - Developer can choose to send an authority, defaults to " "
+ *                                  (TODO: Follow up with the authority discussion with the PMs - Until then this comment is a placeholder)
+ *  validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority 
+ *                                  against well-known URLs templates representing well-formed authorities.
+ *                                  It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
+ *  redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal. 
+ *                                  Defaults to `window.location.href`.
+ *  postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
+ *  state                       - Use to send the state parameter with authentication request
+ *  navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
+ * 
  */
 export type TAuthOptions = {
-
-  /**
-   * Client ID assigned to your app by Azure Active Directory.
-   */
   clientId: string;
-
-  /**
-   * Follow up with the authority discussion with the PMs
-   * Until then this is a placeholder
-   */
   authority?: string;
-
-  /**
-   * Used to turn authority validation on/off.
-   * When set to true (default), MSAL will compare the application"s authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
-   */
   validateAuthority?: boolean;
-
-  /**
-   * The redirect URI of the application, this should be same as the value in the application registration portal.
-   * Defaults to `window.location.href`.
-   */
   redirectUri?: string | (() => string);
-
-  /**
-   * Used to redirect the user to this location after logout.
-   * Defaults to `window.location.href`.
-   */
   postLogoutRedirectUri?: string | (() => string);
-
-  /**
-   * Use to send the state parameter with authentication request
-   */
   state?: string;
-
-  /**
-   * Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
-   */
   navigateToLoginRequestUrl?: boolean;
 };
 
 /**
  * Cache Options
+ * 
+ * cacheLocation            - Used to specify the cacheLocation user wants to set: Valid values are "localStorage" and "sessionStorage"
+ * storeAuthStateInCookie   - If set, the library will store the auth request state required for validation of the auth flows in the browser cookies. 
+ *                              By default this flag is set to false.
  */
 export type TCacheOptions = {
-
-    /**
-     * Used to specify the cacheLocation user wants to set: Valid values are "localStorage" and "sessionStorage"
-     */
     cacheLocation?: string;
-
-    /**
-     * If set, the library will store the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
-     */
     storeAuthStateInCookie?: boolean;
 };
 
 /**
  * Library Specific Options
+ * 
+ * logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
+ * loadFrameTimeout             - maximum time the library should wait for a frame to load
+ * tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
+ *                                 
  */
 export type TSystemOptions = {
-
-    /**
-     * Used to initialize the Logger object;
-     * TODO: Expand on logger details
-     */
     logger?: Logger;
-
-    /**
-     * maximum time the library should wait for a frame to load
-     */
     loadFrameTimeout?: number;
-
-    /**
-     * sets the window of offset needed to renew the token before expiry?
-     * TODO: Get the exact description for this variable
-     * TODO: Clarify clockSkew, we may need clockSkew too which serves a different purpose (ref: Aashima's discussion)
-     */
     tokenRenewalOffsetSeconds?: number;
 };
 
 /**
  * App/Framework specific environment Support
+ * 
+ * isAngular                - flag set to determine if it is Angular Framework. Used to broadcast tokens. TODO: detangle this dependency from core.
+ * unprotectedResources     - Array of URI's which are unprotected resources. MSAL will not attach a token to outgoing requests that have these URI. Defaults to 'null'.
+ * protectedResourceMap     - This is mapping of resources to scopes used by MSAL for automatically attaching access tokens in web API calls.
+ *                              A single access token is obtained for the resource. So you can map a specific resource path as follows: 
+ *                              {"https://graph.microsoft.com/v1.0/me", ["user.read"]}, 
+ *                              or the app URL of the resource as: {"https://graph.microsoft.com/", ["user.read", "mail.send"]}.  
+ *                              This is required for CORS calls.
+ *                             
  */
 export type TFrameworkOptions = {
-
-    /**
-     * flag set to determine if it is Angular Framework
-     */
     isAngular?: boolean;
-
-    /**
-     * Array of URI's which are unprotected resources. MSAL will not attach a token to outgoing requests that have these URI. Defaults to 'null'.
-     */
     unprotectedResources?: Array<string>;
-
-    /**
-     * This is mapping of resources to scopes used by MSAL for automatically attaching access tokens in web API calls.
-     * A single access token is obtained for the resource. So you can map a specific resource path as follows:
-     * {"https://graph.microsoft.com/v1.0/me", ["user.read"]}, or the app URL of the resource as: {"https://graph.microsoft.com/", ["user.read", "mail.send"]}.
-     * This is required for CORS calls.
-     */
     protectedResourceMap?: Map<string, Array<string>>;
 };
 
@@ -157,12 +127,32 @@ export type TConfiguration = {
  */
 
 export class Configuration {
-    static buildConfiguration(
-        // destructure with default setting
-        {clientId = "", authority = null, validateAuthority = true, redirectUri = () => window.location.href.split("?")[0].split("#")[0], postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0], state = "", navigateToLoginRequestUrl = true}: TAuthOptions = {clientId},
-        {cacheLocation = "sessionStorage", storeAuthStateInCookie = false}: TCacheOptions = {},
-        {logger = new Logger(null), loadFrameTimeout = 6000, tokenRenewalOffsetSeconds = 300}: TSystemOptions = {},
-        {isAngular = false, unprotectedResources = new Array<string>(), protectedResourceMap = new Map<string, Array<string>>()}: TFrameworkOptions = {}
+
+    // destructure with default settings
+    static buildConfiguration( 
+        {
+            clientId = "", 
+            authority = DEFAULT_AUTHORITY, 
+            validateAuthority = true, 
+            redirectUri = () => window.location.href.split("?")[0].split("#")[0], 
+            postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0], 
+            state = "", 
+            navigateToLoginRequestUrl = true
+        }: TAuthOptions = {clientId},
+        {
+            cacheLocation = "sessionStorage", 
+            storeAuthStateInCookie = false
+        }: TCacheOptions = {},       
+        {
+            logger = new Logger(null), 
+            loadFrameTimeout = FRAME_TIMEOUT, 
+            tokenRenewalOffsetSeconds = OFFSET
+        }: TSystemOptions = {},
+        {
+            isAngular = false, 
+            unprotectedResources = new Array<string>(), 
+            protectedResourceMap = new Map<string, Array<string>>()
+        }: TFrameworkOptions = {}
     ) {
         // restructure
         let config = {
@@ -175,17 +165,29 @@ export class Configuration {
                 state,
                 navigateToLoginRequestUrl
             },
-            cache: {cacheLocation, storeAuthStateInCookie},
-            system: {logger, loadFrameTimeout, tokenRenewalOffsetSeconds},
-            framework: {isAngular, unprotectedResources, protectedResourceMap}
+            cache: {
+                cacheLocation, 
+                storeAuthStateInCookie
+            },
+            system: {
+                logger, 
+                loadFrameTimeout, 
+                tokenRenewalOffsetSeconds
+            },
+            framework: {
+                isAngular, 
+                unprotectedResources, 
+                protectedResourceMap
+            }
         };
 
         return config;
     }
-}
 
-/**
- * Test Code
- * var c:TConfiguration = buildConfiguration({clientId: "TestClient "}, {}, {}, {isAngular: true});
- * console.log(c);
-*/
+
+    // Build a request from configuration
+    static buildRequest(scopes: Array<string>) {
+
+    }
+
+}
