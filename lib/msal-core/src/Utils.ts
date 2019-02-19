@@ -411,7 +411,7 @@ export class Utils {
     * Checks to see if query parameters include login_hint or sid
   */
   static hasSsoHint(extraQueryParameters: string) {
-    return extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 || extraQueryParameters.indexOf(Constants.sid) !== -1 );
+    return extraQueryParameters && (extraQueryParameters.includes(Constants.login_hint) || extraQueryParameters.includes(Constants.sid));
   }
 
      static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
