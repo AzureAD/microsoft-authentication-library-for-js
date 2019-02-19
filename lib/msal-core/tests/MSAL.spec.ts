@@ -1,5 +1,5 @@
-import {UserAgentApplication} from '../src/index';
-import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
+import {UserAgentApplication, User} from '../src/index';
+import {Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
@@ -140,6 +140,17 @@ describe('Msal', function (): any {
     }();
 
     beforeEach(function () {
+        // clear all cookies
+        var cookies = document.cookie.split(';');
+        for (var i in cookies) {
+            const cookie = cookies[i];
+            if (!cookie) {
+                continue;
+            }
+            const key = cookie.substring(0, cookie.indexOf('='));
+            document.cookie = key + "=;expires=" + new Date(0).toUTCString();
+        }
+
         // one item in cache
         storageFake.clear();
         var secondsNow = mathMock.round(0);
@@ -170,7 +181,6 @@ describe('Msal', function (): any {
         });
         msal._user = null;
         msal._renewStates = [];
-        msal._activeRenewals = {};
         msal._cacheStorage = storageFake;
 
         jasmine.Ajax.install();
@@ -243,7 +253,6 @@ describe('Msal', function (): any {
                 }, { redirectUri: TEST_REDIR_URI });
         msal._user = null;
         msal._renewStates = [];
-        msal._activeRenewals = {};
         msal._cacheStorage = storageFake;
         expect(msal._redirectUri).toBe(TEST_REDIR_URI);
         msal.promptUser = function (args: string) {
@@ -258,13 +267,26 @@ describe('Msal', function (): any {
         msal.loginRedirect();
     });
 
-    it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
-        history.pushState(null, null, '/new_pushstate_uri');
-        msal.promptUser = function (args: string) {
-            expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
-            done();
-        };
-        msal.loginRedirect();
+    describe('in case of location change', function () {
+        var currentHref: string;
+
+        beforeEach(function () {
+            currentHref = global.window.location.href;
+        });
+
+        afterEach(function () {
+            // Reset location
+            history.pushState(null, null, currentHref);
+        });
+
+        it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
+            history.pushState(null, null, '/new_pushstate_uri');
+            msal.promptUser = function (args: string) {
+                expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
+                done();
+            };
+            msal.loginRedirect();
+        });
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -736,58 +758,244 @@ describe('Msal', function (): any {
 });
 
 describe('loginPopup functionality', function () {
-    var loginPopupPromise:Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, null);
+
+        spyOn(msal, 'openWindow').and.callFake(function (urlNavigate: string, title: string, interval: number, instance: UserAgentApplication, resolve?: Function, reject?: Function) {
+            resolve();
         });
-        spyOn(msal, 'loginPopup').and.callThrough();
-        loginPopupPromise = msal.loginPopup([msal.clientId]);
     });
 
     it('returns a promise', function () {
+        const loginPopupPromise = msal.loginPopup([msal.clientId]);
         expect(loginPopupPromise).toEqual(jasmine.any(Promise));
+
+        // Make sure the promise completes before continuing
+        return new Promise(function (resolve, reject) {
+            loginPopupPromise
+                .then(function () {
+                    resolve();
+                })
+                .catch(function (err) {
+                    resolve();
+                });
+        });
     });
 });
 
 describe('acquireTokenPopup functionality', function () {
-    var acquireTokenPopupPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-        });
-        spyOn(msal, 'acquireTokenPopup').and.callThrough();
-        acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
-        acquireTokenPopupPromise.then(function(accessToken) {
-        }, function(error) {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, null);
+        
+        spyOn(msal, 'openWindow').and.callFake(function (urlNavigate: string, title: string, interval: number, instance: UserAgentApplication, resolve?: Function, reject?: Function) {
+            resolve();
         });
     });
 
     it('returns a promise', function () {
+        const acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
         expect(acquireTokenPopupPromise).toEqual(jasmine.any(Promise));
+
+        // Make sure the promise completes before continuing
+        return new Promise(function (resolve, reject) {
+            acquireTokenPopupPromise
+                .then(function () {
+                    resolve();
+                })
+                .catch(function (err) {
+                    resolve();
+                });
+        });
     });
 
 });
 
 describe('acquireTokenSilent functionality', function () {
-    var acquireTokenSilentPromise: Promise<string>;
     var msal;
+
+    const CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201"
+    const ID_TOKEN = "fake_id_token";
+    const ACCESS_TOKEN = "fake_access_token"
+
+    const userFake = new User("fake_user_display_id", "Fake User", "fake_identity_provider", "fake_user_id", ID_TOKEN, "fake_sid");
+
     beforeEach(function () {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+        msal = new UserAgentApplication(CLIENT_ID, null, null);
+
+        // Fake the iframe redirects that actually try to get the token from the authority
+        spyOn(msal, 'renewIdToken').and.callFake(function (scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string) {
+            resolve(ID_TOKEN);
         });
-        spyOn(msal, 'acquireTokenSilent').and.callThrough();
-        spyOn(msal, 'loadIframeTimeout').and.callThrough();
-        acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
-        acquireTokenSilentPromise.then(function(accessToken) {
-        }, function(error) {
+        
+        spyOn(msal, 'renewToken').and.callFake(function (scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string) {
+            resolve(ACCESS_TOKEN);
         });
     });
-
 
     it('returns a promise', function () {
+        const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
         expect(acquireTokenSilentPromise).toEqual(jasmine.any(Promise));
+
+        // Make sure the promise completes before continuing
+        return new Promise(function (resolve, reject) {
+            acquireTokenSilentPromise
+                .then(function () {
+                    resolve();
+                })
+                .catch(function () {
+                    resolve();
+                });
+        });
     });
 
+    describe('when the user is not logged in to the local application', function () {
+        it('rejects if no hint is provided and no adal token is cached', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        reject();
+                    })
+                    .catch(function (err) {
+                        expect(msal.renewIdToken).not.toHaveBeenCalled();
+                        expect(msal.renewToken).not.toHaveBeenCalled();
+
+                        resolve();
+                    });
+            });
+        });
+
+        it('gets token if a login_hint query parameter is provided', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId], null, null, Constants.login_hint + "=test");
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject();
+                    });
+            });
+        });
+
+        it('gets token if an sid query parameter is provided', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId], null, null, Constants.sid + "=test");
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject();
+                    });
+            });
+        });
+
+        it('gets token if an ADAL id token is cached', function () {
+            const realGetItem = msal._cacheStorage.getItem;
+            spyOn(msal._cacheStorage, 'getItem').and.callFake(function (key: string, enableCookieStorage?: boolean) {
+                if (key === Constants.adalIdToken) {
+                    return "fake_adal_id_token";
+                }
+
+                // For all other keys, defer to the real method
+                return realGetItem.call(msal._cacheStorage, key, enableCookieStorage);
+            });
+
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject(err);
+                    });
+            });
+        });
+    });
+
+    describe('when the user is logged in to the local application', function () {
+        beforeEach(function () {
+            spyOn(msal, 'getUser').and.returnValue(userFake);
+        })
+
+        it('gets token if no hint is provided and no ADAL token is cached', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject();
+                    });
+            });
+        });
+
+        it('gets an id token if the scope is the clientId', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        expect(msal.renewIdToken).toHaveBeenCalled();
+                        expect(msal.renewToken).not.toHaveBeenCalled();
+                        expect(token).toEqual(ID_TOKEN);
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject(err);
+                    });
+            });
+        });
+    
+        it('gets an access token if the scope is not the clientId', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent(["otherscope"]);
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        expect(msal.renewIdToken).not.toHaveBeenCalled();
+                        expect(msal.renewToken).toHaveBeenCalled();
+                        expect(token).toEqual(ACCESS_TOKEN);
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject(err);
+                    });
+            });
+        });
+    });
+
+    describe('with requireSsoHint=false', function () {
+        beforeEach(function () {
+            msal._requireSsoHint = false;
+        });
+
+        afterEach(function () { 
+            msal._requireSsoHint = true;
+        });
+
+        it('gets token even if the user is not logged in to the local application, no hint is provided, and no ADAL token is cached', function () {
+            return new Promise(function (resolve, reject) {
+                const acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        
+                acquireTokenSilentPromise
+                    .then(function (token) {
+                        resolve();
+                    })
+                    .catch(function (err) {
+                        reject();
+                    });
+            });
+        });
+    });
 });
-
-
