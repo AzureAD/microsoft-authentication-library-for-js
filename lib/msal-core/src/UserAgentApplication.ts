@@ -1038,8 +1038,8 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
     const isValidScope = this.validateInputScope(scopes);
     if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        if (this._tokenReceivedCallback) {
-            this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+      if (this._tokenReceivedCallback) {
+        this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
         return;
       }
     }
@@ -1053,14 +1053,14 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       return;
     }
 
-    const scope = scopes.join(" ").toLowerCase();
-      if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
-          if (this._tokenReceivedCallback) {
-              this._logger.info("User login is required");
-              this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-              return;
-          }
+    //if user is not currently logged in and no SSO hint is provided
+    if (!userObject && !Utils.hasSsoHint(extraQueryParameters) && this._requireSsoHint) {
+      if (this._tokenReceivedCallback) {
+        this._logger.info("User login or SSO hint (login_hint or sid) is required");
+        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+        return;
       }
+    }
 
     this._acquireTokenInProgress = true;
     let authenticationRequest: AuthenticationRequestParameters;
@@ -1136,13 +1136,12 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         return;
       }
 
-      const scope = scopes.join(" ").toLowerCase();
-        //if user is not currently logged in and no login_hint is passed
-        if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
-            this._logger.info("User login is required");
-            reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
-            return;
-        }
+      //if user is not currently logged in and no SSO hint is provided
+      if (!userObject && !Utils.hasSsoHint(extraQueryParameters) && this._requireSsoHint) {
+        this._logger.info("User login or SSO hint (login_hint or sid) is required");
+        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        return;
+      }
 
       this._acquireTokenInProgress = true;
       let authenticationRequest: AuthenticationRequestParameters;
@@ -1153,7 +1152,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
-          if (Utils.compareObjects(userObject, this.getUser())) {
+        if (Utils.compareObjects(userObject, this.getUser())) {
           if (scopes.indexOf(this.clientId) > -1) {
             authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           }
@@ -1186,6 +1185,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.renewToken;
+        const scope = scopes.join(" ").toLowerCase();
         this.registerCallback(authenticationRequest.state, scope, resolve, reject);
         if (popUpWindow) {
           popUpWindow.location.href = urlNavigate;
@@ -1234,7 +1234,6 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         scopes = this.filterScopes(scopes);
       }
 
-      const scope = scopes.join(" ").toLowerCase();
       const userObject = user ? user : this.getUser();
 
       //if user is unavailable and no SSO hint is provided...
@@ -1271,11 +1270,13 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         }
       }
 
+      const scope = scopes.join(" ").toLowerCase();
+
       // Check for an existing token in cache
       const cacheResult = this.getCachedToken(authenticationRequest, userObject);
       if (cacheResult) {
         if (cacheResult.token) {
-          this._logger.info("Token is already in cache for scope:" + scope);
+          this._logger.info("Token is already in cache for scope: " + scope);
           resolve(cacheResult.token);
           return;
         }
@@ -1286,7 +1287,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
         }
       }
 
-      this._logger.verbose("Token is not in cache for scope:" + scope);
+      this._logger.verbose("Token is not in cache for scope: " + scope);
 
       // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
       if (!authenticationRequest.authorityInstance) {
