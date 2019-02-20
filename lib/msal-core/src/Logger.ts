@@ -36,27 +36,27 @@ export enum LogLevel {
 
 export class Logger {// Singleton Class
 
-  /*
+  /**
    * @hidden
    */
   private static _instance: Logger;
 
-  /*
+  /**
    * @hidden
    */
   private _correlationId: string;
 
-  /*
+  /**
    * @hidden
    */
   private _level: LogLevel = LogLevel.Info;
 
-  /*
+  /**
    * @hidden
    */
   private _piiLoggingEnabled: boolean;
 
-  /*
+  /**
    * @hidden
    */
   private _localCallback: ILoggerCallback;
@@ -80,7 +80,7 @@ export class Logger {// Singleton Class
       this._piiLoggingEnabled = piiLoggingEnabled;
   }
 
-  /*
+  /**
    * @hidden
    */
   private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
@@ -98,7 +98,7 @@ export class Logger {// Singleton Class
     this.executeCallback(logLevel, log, containsPii);
   }
 
-  /*
+  /**
    * @hidden
    */
   executeCallback(level: LogLevel, message: string, containsPii: boolean) {
@@ -107,56 +107,56 @@ export class Logger {// Singleton Class
     }
   }
 
-  /*
+  /**
    * @hidden
    */
   error(message: string): void {
     this.logMessage(LogLevel.Error, message, false);
   }
 
-  /*
+  /**
    * @hidden
    */
   errorPii(message: string): void {
     this.logMessage(LogLevel.Error, message, true);
   }
 
-  /*
+  /**
    * @hidden
    */
   warning(message: string): void {
     this.logMessage(LogLevel.Warning, message, false);
   }
 
-  /*
+  /**
    * @hidden
    */
   warningPii(message: string): void {
     this.logMessage(LogLevel.Warning, message, true);
   }
 
-  /*
+  /**
    * @hidden
    */
   info(message: string): void {
     this.logMessage(LogLevel.Info, message, false);
   }
 
-  /*
+  /**
    * @hidden
    */
   infoPii(message: string): void {
     this.logMessage(LogLevel.Info, message, true);
   }
 
-  /*
+  /**
    * @hidden
    */
   verbose(message: string): void {
     this.logMessage(LogLevel.Verbose, message, false);
   }
 
-  /*
+  /**
    * @hidden
    */
   verbosePii(message: string): void {

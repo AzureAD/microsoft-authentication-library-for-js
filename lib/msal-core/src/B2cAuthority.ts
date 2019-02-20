@@ -26,7 +26,7 @@ import { Authority, AuthorityType } from "./Authority";
 import { ErrorMessage } from "./ErrorMessage";
 import { Utils } from "./Utils";
 
-/*
+/**
  * @hidden
  */
 export class B2cAuthority extends AadAuthority {
@@ -46,7 +46,7 @@ export class B2cAuthority extends AadAuthority {
     return AuthorityType.B2C;
   }
 
-  /*
+  /**
    * Returns a promise with the TenantDiscoveryEndpoint
    */
   public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
