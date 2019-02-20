@@ -107,7 +107,7 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(clearCookies?: boolean): void {
+    removeAcquireTokenEntries(): void {
         const storage = window[this._cacheLocation];
         if (storage) {
             let key: string;
@@ -119,10 +119,7 @@ export class Storage {// Singleton
                         const renewStatus = storage[Constants.renewStatus + state];
                         if (!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress) {
                             this.removeItem(key);
-
-                            if (clearCookies) {
-                                this.setItemCookie(key, "", -1);
-                            }
+                            this.setItemCookie(key, "", -1);
                         }
                     }
                     if (key.indexOf(Constants.renewStatus) !== -1) {
@@ -135,9 +132,7 @@ export class Storage {// Singleton
             }
         }
 
-        if (clearCookies) {
-            this.clearCookie();
-        }
+        this.clearCookie();
     }
 
     resetCacheItems(): void {

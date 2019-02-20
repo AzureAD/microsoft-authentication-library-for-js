@@ -666,8 +666,7 @@ describe('Msal', function (): any {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
         // cookie-clearing is expected to be handled in Storage
-        spyOn(storageFake, 'removeAcquireTokenEntries').and.callFake(function (clearCookies) {
-            expect(clearCookies).toBe(true);
+        spyOn(storageFake, 'removeAcquireTokenEntries').and.callFake(function () {
             const state = this.getItemCookie(Constants.stateLogin);
             const authorityKey = Constants.authority + Constants.resourceDelimeter + state;
             this.setItemCookie(authorityKey, '', -1);

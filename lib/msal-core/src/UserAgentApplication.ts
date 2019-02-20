@@ -1729,7 +1729,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
       }
       }
       this._cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
-      this._cacheStorage.removeAcquireTokenEntries(this.storeAuthStateInCookie);
+      this._cacheStorage.removeAcquireTokenEntries();
   }
   /* tslint:enable:no-string-literal */
 
