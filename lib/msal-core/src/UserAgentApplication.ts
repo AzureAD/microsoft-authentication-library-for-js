@@ -1443,7 +1443,7 @@ protected getCachedTokenInternal(scopes : Array<string> , user: User): CacheResu
 
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
     this._cacheStorage.setItem(authorityKey, authenticationRequest.authority, this.storeAuthStateInCookie);
-    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
+    this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
   }
 
   /*
