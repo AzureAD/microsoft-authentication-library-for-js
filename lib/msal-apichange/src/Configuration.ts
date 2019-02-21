@@ -155,7 +155,7 @@ export class Configuration {
         }: TFrameworkOptions = {}
     ) {
         // restructure
-        let config = {
+        let config : TConfiguration = {
             auth: {
                 clientId,
                 authority,

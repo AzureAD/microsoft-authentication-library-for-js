@@ -87,19 +87,44 @@ export class Constants {
   static get angularLoginRequest(): string { return "msal.angular.login.request"; }
   static get userIdentifier(): string { return "userIdentifier"; }
   static get common(): string { return "common"; }
+  static get cacheLocationLocal(): string {return "localStorage"}
+  static get cacheLocationSession(): string {return "sessionStorage"}
 }
 
 /*
  * @hidden
  */
 export class ErrorCodes {
-  static get loginProgressError(): string { return "login_progress_error"; }
-  static get acquireTokenProgressError(): string { return "acquiretoken_progress_error"; }
-  static get inputScopesError(): string { return "input_scopes_error"; }
+  static get userLoginError(): string { return "user_login_error"; }
+  static get unexpected(): string { return "unexpected"; }
+  
+  // Client Auth Error Codes
+  static get multipleMatchingTokens(): string { return "multiple_matching_tokens_detected"; }
+  static get multipleMatchingAuthorities(): string { return "multiple_matching_authorities"; }
   static get endpointResolutionError(): string { return "endpoints_resolution_error"; }
   static get popUpWindowError(): string { return "popup_window_error"; }
-  static get userLoginError(): string { return "user_login_error"; }
+  static get tokenRenewalError() : string { return "token_renewal_error"; }
+  static get invalidStateError() : string { return "invalid_state_error"; }
+  static get nonceMismatchError() : string { return "nonce_mismatch_error"; }
+  static get loginProgressError(): string { return "login_progress_error"; }
+  static get acquireTokenProgressError(): string { return "acquiretoken_progress_error"; }
   static get userCancelledError(): string { return "user_cancelled"; }
+  static get callbackError(): string {return "callback_error"}
+  
+  // Configuration  Error Codes
+  static get invalidCacheLocation() : string { return "invalid_cache_location" }
+  static get noCallbackGiven() : string { return "no_callback_given"; }
+  static get inputScopesError(): string { return "input_scopes_error"; }
+
+  // Server Error Codes
+  static get serverUnavailable(): string { return "server_unavailable"; }
+  static get unknownServerError(): string { return "unknown_server_error"; }
+
+  // Interaction Required Auth Error
+  static get loginRequired(): string { return "login_required"; }
+  static get interactionRequired(): string { return "interaction_required"; }
+  static get consentRequired(): string { return "consent_required"; }
+  
 }
 
 /*
