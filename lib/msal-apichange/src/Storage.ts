@@ -23,72 +23,125 @@
 
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { CacheStorage } from './Configuration';
 
-/*
+/** 
+ * Singleton Class - Manages the Cache and browser Storage
+ * 
  * @hidden
  */
-export class Storage {// Singleton
+export class Storage {
 
-  private static _instance: Storage;
-  private _localStorageSupported: boolean;
-  private _sessionStorageSupported: boolean;
-  private _cacheLocation: string;
+    private static instance: Storage;
+    private localStorageSupported: boolean;
+    private sessionStorageSupported: boolean;
+    private cacheLocation: CacheStorage;
+    private enableCookieStorage: boolean;
 
-  constructor(cacheLocation: string) {
-    if (Storage._instance) {
-      return Storage._instance;
-    }
+    /**
+     * Constructor, create a singleton instance of the Storage class
+     * 
+     * @param cacheLocation 
+     */
+    constructor(cacheLocation: CacheStorage) {
 
-    this._cacheLocation = cacheLocation;
-    this._localStorageSupported = typeof window[this._cacheLocation] !== "undefined" && window[this._cacheLocation] != null;
-    this._sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-    Storage._instance = this;
-    if (!this._localStorageSupported && !this._sessionStorageSupported) {
-      throw new Error("localStorage and sessionStorage not supported");
-    }
-
-    return Storage._instance;
-  }
-
-    // add value to storage
-    setItem(key: string, value: string, enableCookieStorage?: boolean): void {
-        if (window[this._cacheLocation]) {
-            window[this._cacheLocation].setItem(key, value);
+        // if an exisiting session has storage instance already, return it
+        if (Storage.instance) {
+            return Storage.instance;
         }
-        if (enableCookieStorage) {
+
+        // create a storage instance and return it
+        this.cacheLocation = cacheLocation;
+        this.localStorageSupported = typeof window[this.cacheLocation] !== "undefined" && window[this.cacheLocation] != null;
+        this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
+        Storage.instance = this;
+
+        if (!this.localStorageSupported && !this.sessionStorageSupported) {
+            throw new Error("localStorage and sessionStorage not supported");
+        }
+
+        return Storage.instance;
+    }
+
+
+    /**
+     * sets the cookie storage setting
+     * 
+     * @param enableCookieStorage 
+     */
+    setEnableCookieStorage(enableCookieStorage: boolean) {
+        this.enableCookieStorage = enableCookieStorage;
+    }
+
+
+    /**
+     * Returns the cookie storage setting
+     */
+    getEnableCookieStorage() {
+        return this.enableCookieStorage;
+    }
+
+    /**
+     * add value to storage
+     * 
+     * @param key 
+     * @param value 
+     * @param enableCookieStorage 
+     */
+    setItem(key: string, value: string): void {
+        if (window[this.cacheLocation]) {
+            window[this.cacheLocation].setItem(key, value);
+        }
+        if (this.enableCookieStorage) {
             this.setItemCookie(key, value);
         }
     }
 
-    // get one item by key from storage
-    getItem(key: string, enableCookieStorage?: boolean): string {
-        if (enableCookieStorage && this.getItemCookie(key)) {
+    /**
+     * get one item by key from storage
+     * 
+     * @param key 
+     * @param enableCookieStorage 
+     */
+    getItem(key: string): string {
+
+        // if stored in cookies, return
+        if (this.enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
         }
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].getItem(key);
+
+        // return from "localStorage" or "sessionStorage"
+         if (window[this.cacheLocation]) {
+            return window[this.cacheLocation].getItem(key);
         }
+
         return null;
     }
 
-    // remove value from storage
+    
+    /**
+     * remove value from storage
+     * 
+     * @param key 
+     */
     removeItem(key: string): void {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].removeItem(key);
+        if (window[this.cacheLocation]) {
+            return window[this.cacheLocation].removeItem(key);
         }
     }
 
     // clear storage (remove all items from it)
     clear(): void {
-        if (window[this._cacheLocation]) {
-            return window[this._cacheLocation].clear();
+        if (window[this.cacheLocation]) {
+            return window[this.cacheLocation].clear();
         }
     }
 
+    // retrieve all access tokens from the storage
     getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
         const results: Array<AccessTokenCacheItem> = [];
         let accessTokenCacheItem: AccessTokenCacheItem;
-        const storage = window[this._cacheLocation];
+        const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
@@ -107,8 +160,9 @@ export class Storage {// Singleton
         return results;
     }
 
+    // remove all acquire token entries from the storage
     removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
-        const storage = window[this._cacheLocation];
+        const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
@@ -121,8 +175,9 @@ export class Storage {// Singleton
         }
     }
 
+    // reset all cache
     resetCacheItems(): void {
-        const storage = window[this._cacheLocation];
+        const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
@@ -138,6 +193,7 @@ export class Storage {// Singleton
         }
     }
 
+
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         var cookieStr = cName + "=" + cValue + ";";
         if (expires) {
@@ -148,6 +204,7 @@ export class Storage {// Singleton
         document.cookie = cookieStr;
     }
 
+    
     getItemCookie(cName: string): string {
         var name = cName + "=";
         var ca = document.cookie.split(";");

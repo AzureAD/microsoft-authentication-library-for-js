@@ -23,14 +23,13 @@
 
 import { Logger } from "./Logger";
 
-// make CacheStorage a fixed type to limit it to specific inputs
-type storage = "localStorage" | "sessionStorage";
 
+// make CacheStorage a fixed type to limit it to specific inputs
+export type CacheStorage = "localStorage" | "sessionStorage";
 
 /** 
  * Defaults for the Configuration Options 
  */
- const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
  const FRAME_TIMEOUT = 6000;
  const OFFSET = 300;
  
@@ -69,7 +68,7 @@ export type TAuthOptions = {
  *                              By default this flag is set to false.
  */
 export type TCacheOptions = {
-    cacheLocation?: string;
+    cacheLocation?: CacheStorage;
     storeAuthStateInCookie?: boolean;
 };
 
@@ -132,7 +131,7 @@ export class Configuration {
     static buildConfiguration( 
         {
             clientId = "", 
-            authority = DEFAULT_AUTHORITY, 
+            authority = null, 
             validateAuthority = true, 
             redirectUri = () => window.location.href.split("?")[0].split("#")[0], 
             postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0], 
@@ -155,7 +154,7 @@ export class Configuration {
         }: TFrameworkOptions = {}
     ) {
         // restructure
-        let config = {
+        let config: TConfiguration = {
             auth: {
                 clientId,
                 authority,
@@ -183,11 +182,4 @@ export class Configuration {
 
         return config;
     }
-
-
-    // Build a request from configuration
-    static buildRequest(scopes: Array<string>) {
-
-    }
-
 }
