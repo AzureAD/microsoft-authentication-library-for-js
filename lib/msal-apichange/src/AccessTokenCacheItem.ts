@@ -24,7 +24,7 @@
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 
-/*
+/** 
  * @hidden
  */
 export class AccessTokenCacheItem {

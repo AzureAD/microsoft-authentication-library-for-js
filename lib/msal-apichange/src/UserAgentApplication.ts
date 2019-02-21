@@ -39,6 +39,10 @@ import { TConfiguration } from "./Configuration";
 import * as MSALError from "./AuthError";
 import { type } from 'os';
 
+
+// TODO: move this when Constants are refactored
+const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
+
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
  * TODO: Add more accurate description and document the design choices made 
@@ -59,7 +63,8 @@ declare global {
 
 /** 
  * response_type from OpenIDConnect
- * TODO: Add the link here for the spec
+ * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
+ * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
  * 
  * @hidden
  */
@@ -122,16 +127,9 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
  */
 export class UserAgentApplication {
 
-  /**
-   * TODO: Should this be @hidden?
-   * All Config Params in a single object
-   */
   pConfig: TConfiguration;
 
-  /** 
-   * @hidden
-   * TODO: Remove this from Configuration and add this as a parameter to redirect() calls
-   */
+  // TODO: Remove this from Configuration and add this as a parameter to redirect() calls
   private pTokenReceivedCallback: tokenReceivedCallback = null;
 
   /**
@@ -151,8 +149,7 @@ export class UserAgentApplication {
    * Used to set the authority.
    * 
    * TODO: Setter and Getter for authority is used to set the authorityInstance. 
-   * Should we rework this as a part of pConfig.auth.authority or maintain this as a class variable?
-   * 
+   * Review: Should we rework this as a part of pConfig.auth.authority or maintain this as a class variable?
    * 
    * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
    * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt; 
@@ -173,58 +170,20 @@ export class UserAgentApplication {
     return this.authorityInstance.CanonicalAuthority;
   }
 
-  /** 
-   * TODO: These are constants and cannot be changed, hence may be make them constant?
-   * 
-   * @hidden
-   */
-  private cacheLocations = {
-    localStorage: "localStorage",
-    sessionStorage: "sessionStorage"
-  };
+  /** Other Variables */
 
-  /** 
-   * Used to get the cache location
-   */
-  get cacheLocation(): string {
-    return this.pConfig.cache.cacheLocation;
-  }
-
-  /**
-   * @hidden
+  /**  
+   * @hidden 
+   * Storage instance
    */
   protected pCacheStorage: Storage;
 
-
-  /** Other Variables */
-
-  /** 
-   * @hidden 
-   * Tracks if login is already initiated
-   */
   private pLoginInProgress: boolean;
-
-  /** 
-   * @hidden
-   * Tracks in Token Request is already initiated
-   */
   private pAcquireTokenInProgress: boolean;
-
-  /**
-   * @hidden
-   */
   private pSilentAuthenticationState: string;
-
-  /**
-   * @hidden
-   */
   private pSilentLogin: boolean;
-
-  /** 
-   * @hidden
-   * Account object - Current login/token request account
-   */
   private _user: User;
+
 
   /** 
    * Initialize a UserAgentApplication with a given clientId and authority.
@@ -247,14 +206,12 @@ export class UserAgentApplication {
     // Set the Configuration 
     this.pConfig = config;
 
-    this.authority = config.auth.authority || "https://login.microsoftonline.com/common";
+    // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
+    this.authority = config.auth.authority || DEFAULT_AUTHORITY;
 
     // Set the callback
     this.pTokenReceivedCallback = callback;
     this.pErrorReceivedCallback = errorCallback;
-
-    // TODO: New design for redirect - add a new function. Placeholder until then
-    // this.pTokenReceivedCallback = tokenReceivedCallback;
 
     // track login and acquireToken in progress
     this.pLoginInProgress = false;
@@ -262,16 +219,18 @@ export class UserAgentApplication {
 
 
     // Validate cache location and initialize storage 
-    if (!this.cacheLocations[this.pConfig.cache.cacheLocation]) {
-      throw MSALError.ConfigurationError.createInvalidCacheLocationConfigError(
-          this.pConfig.cache.cacheLocation,
-          "unavailable",
-          config.auth.state
-        );
-    }
+    // if (!this.cacheLocations[this.pConfig.cache.cacheLocation]) {
+    //   throw MSALError.ConfigurationError.createInvalidCacheLocationConfigError(
+    //       this.pConfig.cache.cacheLocation,
+    //       "unavailable",
+    //       config.auth.state
+    //     );
+    // }
 
     //cache keys msal
+    // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
     this.pCacheStorage = new Storage(this.pConfig.cache.cacheLocation);
+    this.pCacheStorage.setEnableCookieStorage(this.pConfig.cache.storeAuthStateInCookie);
 
     // Initialize the Window Handling code
     // TODO: refactor - write a utility function 
@@ -282,6 +241,7 @@ export class UserAgentApplication {
     window.callBacksMappedToRenewStates = {};
     window.msal = this;
 
+    // identify if this is reinitialization post 302 from the server
     var urlHash = window.location.hash;
     var isCallback = this.isCallback(urlHash);
 
@@ -341,13 +301,13 @@ export class UserAgentApplication {
           token,
           error,
           tokenType,
-          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
       }
 
     } catch (err) {
       let e = MSALError.ClientAuthError.createErrorInCallbackFunction(err, tokenType,
-         this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie)));
+         this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin)));
       this.pConfig.system.logger.error(e.message);
       // TODO: check if we should throw e here
       // throw e;
@@ -399,7 +359,7 @@ export class UserAgentApplication {
         this.pErrorReceivedCallback(
           MSALError.ClientAuthError.createLoginInProgressError(
             Constants.idToken,
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           )
         );
       }
@@ -420,7 +380,7 @@ export class UserAgentApplication {
             MSALError.AuthError.createUnexpectedError(
               error.toString(), 
               Constants.idToken, 
-              this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+              this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
               )
             );
         }
@@ -500,15 +460,15 @@ export class UserAgentApplication {
         }
 
         // Cache the state, nonce and login request data
-        this.pCacheStorage.setItem(Constants.loginRequest, loginStartPage, this.pConfig.cache.storeAuthStateInCookie);
+        this.pCacheStorage.setItem(Constants.loginRequest, loginStartPage);
         this.pCacheStorage.setItem(Constants.loginError, "");
-        this.pCacheStorage.setItem(Constants.stateLogin, authenticationRequest.state, this.pConfig.cache.storeAuthStateInCookie);
-        this.pCacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.pConfig.cache.storeAuthStateInCookie);
+        this.pCacheStorage.setItem(Constants.stateLogin, authenticationRequest.state);
+        this.pCacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
         this.pCacheStorage.setItem(Constants.msalError, "");
         this.pCacheStorage.setItem(Constants.msalErrorDescription, "");
 
         const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        this.pCacheStorage.setItem(authorityKey, this.authority, this.pConfig.cache.storeAuthStateInCookie);
+        this.pCacheStorage.setItem(authorityKey, this.authority);
 
         // generate the URL to navigate to proceed with the login
         const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
@@ -535,7 +495,7 @@ export class UserAgentApplication {
         reject(
           MSALError.ClientAuthError.createLoginInProgressError(
             Constants.idToken, 
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           )
         );
         return;
@@ -555,7 +515,7 @@ export class UserAgentApplication {
               MSALError.AuthError.createUnexpectedError(
                 error.toString(), 
                 Constants.idToken, 
-                this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+                this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
               )
             );
           }
@@ -639,14 +599,14 @@ export class UserAgentApplication {
       }
 
       // Cache the state, nonce and login request data
-      this.pCacheStorage.setItem(Constants.loginRequest, window.location.href, this.pConfig.cache.storeAuthStateInCookie);
+      this.pCacheStorage.setItem(Constants.loginRequest, window.location.href);
       this.pCacheStorage.setItem(Constants.loginError, "");
-      this.pCacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.pConfig.cache.storeAuthStateInCookie);
+      this.pCacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
       this.pCacheStorage.setItem(Constants.msalError, "");
       this.pCacheStorage.setItem(Constants.msalErrorDescription, "");
 
       const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-      this.pCacheStorage.setItem(authorityKey, this.authority, this.pConfig.cache.storeAuthStateInCookie);
+      this.pCacheStorage.setItem(authorityKey, this.authority);
 
       // generate the URL to navigate in the popup window
       const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
@@ -667,7 +627,7 @@ export class UserAgentApplication {
       let e = MSALError.ClientAuthError.createEndpointResolutionError(
         err.toString(),
         Constants.idToken, 
-        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
       );
       this.pConfig.system.logger.info(e.errorCode + ":" + e.message);
       this.pCacheStorage.setItem(Constants.msalError, e.errorCode);
@@ -687,7 +647,7 @@ export class UserAgentApplication {
       let e = MSALError.ClientAuthError.createEndpointResolutionError(
         err.toString(), 
         Constants.idToken, 
-        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
       )
       this.pConfig.system.logger.warning(e.message);
       reject(e);
@@ -739,7 +699,7 @@ export class UserAgentApplication {
       // TODO: figure out some way to pass tokenType
       let e = MSALError.ClientAuthError.createPopupWindowError(
         "Unavailable", 
-        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
       );
 
       this.pConfig.system.logger.info(e.errorCode + ":" + e.message);
@@ -763,7 +723,7 @@ export class UserAgentApplication {
         // TODO: Figure out some way to pass tokenType
         let e = MSALError.ClientAuthError.createUserCancelledError(
           "Unavailable", 
-          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
         if (reject) {
           reject(e);
@@ -928,7 +888,7 @@ export class UserAgentApplication {
       throw MSALError.ConfigurationError.createScopesNonArrayError(
         scopes,
         tokenType,
-        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
       );
     }
 
@@ -937,7 +897,7 @@ export class UserAgentApplication {
       throw MSALError.ConfigurationError.createEmptyScopesArrayError(
         scopes.toString(), 
         tokenType, 
-        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
       );
     }
 
@@ -947,7 +907,7 @@ export class UserAgentApplication {
         throw MSALError.ConfigurationError.createClientIdSingleScopeError(
           scopes.toString(),
           tokenType,
-          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
       }
     }
@@ -1121,7 +1081,7 @@ export class UserAgentApplication {
         throw MSALError.ClientAuthError.createMultipleMatchingTokensInCacheError(
           scopes.toString(), 
           Constants.accessToken, 
-          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
       }
       // if no match found. check if there was a single authority used
@@ -1132,7 +1092,7 @@ export class UserAgentApplication {
           throw MSALError.ClientAuthError.createMultipleAuthoritiesInCacheError(
             scopes.toString(),
             Constants.accessToken,
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           );
         }
 
@@ -1165,7 +1125,7 @@ export class UserAgentApplication {
         throw MSALError.ClientAuthError.createMultipleMatchingTokensInCacheError(
           scopes.toString(), 
           Constants.accessToken, 
-          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
       }
     }
@@ -1363,7 +1323,7 @@ export class UserAgentApplication {
             MSALError.AuthError.createUnexpectedError(
               error.toString(), 
               Constants.accessToken, 
-              this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+              this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
             )
           );
         }
@@ -1389,7 +1349,7 @@ export class UserAgentApplication {
       // TODO: is it always access token?
       let e = MSALError.InteractionRequiredAuthError.createLoginRequiredAuthError(
         Constants.accessToken,
-        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+        this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
       );
       this.pConfig.system.logger.info(e.errorCode + ": " + e.message);
       if (this.pErrorReceivedCallback) {
@@ -1420,7 +1380,7 @@ export class UserAgentApplication {
         this.pConfig.auth.state
       );
 
-      this.pCacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.pConfig.cache.storeAuthStateInCookie);
+      this.pCacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
 
       // Cache acquireTokenUserKey
       var acquireTokenUserKey;
@@ -1431,7 +1391,7 @@ export class UserAgentApplication {
 
       // Cache authorityKey
       const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-      this.pCacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.pConfig.cache.storeAuthStateInCookie);
+      this.pCacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
 
       // Set extraParameters to be sent to the Server
       if (extraQueryParameters) {
@@ -1444,7 +1404,7 @@ export class UserAgentApplication {
 
       // set state in Cache and redirect to the urlNavigate
       if (urlNavigate) {
-        this.pCacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state, this.pConfig.cache.storeAuthStateInCookie);
+        this.pCacheStorage.setItem(Constants.stateAcquireToken, authenticationRequest.state);
         window.location.replace(urlNavigate);
       }
 
@@ -1491,7 +1451,7 @@ export class UserAgentApplication {
               MSALError.AuthError.createUnexpectedError(
                 error.toString(), 
                 Constants.accessToken, 
-                this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+                this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
               )
             );
           }
@@ -1511,7 +1471,7 @@ export class UserAgentApplication {
           // TODO: Is this always access token?
           MSALError.ClientAuthError.createAcquireTokenInProgressError(
             Constants.accessToken,
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           )
         );
         return;
@@ -1580,7 +1540,7 @@ export class UserAgentApplication {
 
         // Cache authorityKey
         const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
-        this.pCacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.pConfig.cache.storeAuthStateInCookie);
+        this.pCacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority);
 
         // set the extra Parameters
         if (extraQueryParameters) {
@@ -1606,7 +1566,7 @@ export class UserAgentApplication {
         let e = MSALError.ClientAuthError.createEndpointResolutionError(
           "",
           responseType,
-          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+          this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
         this.pConfig.system.logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
 
@@ -1667,7 +1627,7 @@ export class UserAgentApplication {
               MSALError.AuthError.createUnexpectedError(
                 error.toString(), 
                 Constants.accessToken, 
-                this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+                this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
               )
             );
           }
@@ -1687,7 +1647,7 @@ export class UserAgentApplication {
         reject(
           MSALError.InteractionRequiredAuthError.createLoginRequiredAuthError(
             Constants.accessToken,
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           )
         );
         return null;
@@ -1725,7 +1685,7 @@ export class UserAgentApplication {
           let e = MSALError.AuthError.createUnexpectedError(
             "Error retrieving cached token result: " + err.toString(),
             responseType,
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           )
           this.pConfig.system.logger.infoPii(e.errorCode + ":" + e.message);
           reject(e);
@@ -1779,7 +1739,7 @@ export class UserAgentApplication {
           let e = MSALError.ClientAuthError.createEndpointResolutionError(
             err.toString(),
             Constants.accessToken,
-            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie))
+            this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
           );
           this.pConfig.system.logger.warning(e.errorCode + ": "  + e.message);
           reject(e);
@@ -2317,7 +2277,7 @@ export class UserAgentApplication {
 
           // retrieve the authority from cache and replace with tenantID 
           authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          let authority: string = this.pCacheStorage.getItem(authorityKey, this.pConfig.cache.storeAuthStateInCookie);
+          let authority: string = this.pCacheStorage.getItem(authorityKey);
           if (!Utils.isEmpty(authority)) {
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
           }
@@ -2385,7 +2345,7 @@ export class UserAgentApplication {
           }
 
           authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          let authority: string = this.pCacheStorage.getItem(authorityKey, this.pConfig.cache.storeAuthStateInCookie);
+          let authority: string = this.pCacheStorage.getItem(authorityKey);
           if (!Utils.isEmpty(authority)) {
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
           }
@@ -2395,21 +2355,21 @@ export class UserAgentApplication {
           
           if (idToken && idToken.nonce) {
             // check nonce integrity if idToken has nonce - throw an error if not matched
-            if (idToken.nonce !== this.pCacheStorage.getItem(Constants.nonceIdToken, this.pConfig.cache.storeAuthStateInCookie)) {
+            if (idToken.nonce !== this.pCacheStorage.getItem(Constants.nonceIdToken)) {
               this._user = null;
               
               // TODO: optimize this - may be combine if it is a string in both cases
               this.pCacheStorage.setItem(
                 Constants.loginError, 
                 "Nonce Mismatch. Expected Nonce: " + 
-                this.pCacheStorage.getItem(Constants.nonceIdToken, this.pConfig.cache.storeAuthStateInCookie) + 
+                this.pCacheStorage.getItem(Constants.nonceIdToken) + 
                 "," + 
                 "Actual Nonce: " + 
                 idToken.nonce
               );
 
               this.pConfig.system.logger.error("Nonce Mismatch.Expected Nonce: " + 
-                this.pCacheStorage.getItem(Constants.nonceIdToken, this.pConfig.cache.storeAuthStateInCookie) + 
+                this.pCacheStorage.getItem(Constants.nonceIdToken) + 
                 "," + 
                 "Actual Nonce: " + 
                 idToken.nonce
@@ -2447,7 +2407,7 @@ export class UserAgentApplication {
         acquireTokenUserKey = tokenResponse.stateResponse;
 
         this.pConfig.system.logger.error("State Mismatch.Expected State: " + 
-          this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie) + 
+          this.pCacheStorage.getItem(Constants.stateLogin) + 
           "," + 
           "Actual State: " + 
           tokenResponse.stateResponse
@@ -2558,14 +2518,14 @@ export class UserAgentApplication {
         // incoming callback needs to be looked up to find the request type
 
          // loginRedirect
-        if (stateResponse === this.pCacheStorage.getItem(Constants.stateLogin, this.pConfig.cache.storeAuthStateInCookie) || 
+        if (stateResponse === this.pCacheStorage.getItem(Constants.stateLogin) || 
           stateResponse === this.pSilentAuthenticationState) { 
           tokenResponse.requestType = Constants.login;
           tokenResponse.stateMatch = true;
           return tokenResponse;
         } 
         //acquireTokenRedirect
-        else if (stateResponse === this.pCacheStorage.getItem(Constants.stateAcquireToken, this.pConfig.cache.storeAuthStateInCookie)) { 
+        else if (stateResponse === this.pCacheStorage.getItem(Constants.stateAcquireToken)) { 
           tokenResponse.requestType = Constants.renewToken;
           tokenResponse.stateMatch = true;
           return tokenResponse;
@@ -2670,7 +2630,6 @@ export class UserAgentApplication {
    * Get scopes for the Endpoint - Used in Angular to track protected and unprotected resources without interaction from the developer app
    * 
    * @param endpoint 
-   * 
    */
   protected getScopesForEndpoint(endpoint: string): Array<string> {
 

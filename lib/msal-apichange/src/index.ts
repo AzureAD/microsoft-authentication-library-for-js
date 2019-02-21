@@ -7,4 +7,11 @@ export { TokenResponse } from "./RequestInfo";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";
 export { TConfiguration, Configuration } from "./Configuration";
-
+export {
+    AuthError, 
+    ClaimsRequiredAuthError, 
+    ClientAuthError, 
+    ConfigurationError, 
+    InteractionRequiredAuthError, 
+    ServerError 
+} from "./AuthError"

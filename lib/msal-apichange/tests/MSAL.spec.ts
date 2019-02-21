@@ -52,18 +52,36 @@ describe('Msal', function (): any {
             }
         };
 
+        var storeAuthStateInCookie: boolean = false;
+
         return {
-            getItem: function (key: any, storeAuthStateInCookie?: boolean) {
-                if (storeAuthStateInCookie) {
+
+            setAuthStateInCookie(cookie: boolean) {
+                this.storeAuthStateInCookie = cookie;
+            },
+
+            getAuthStateInCookie() {
+                return this.storeAuthStateInCookie;
+            },
+
+            getItem: function (key: any) {
+                // console.log("authStateCookie: " + this.storeAuthStateInCookie);
+
+                if (this.storeAuthStateInCookie) {
                     return this.getItemCookie(key);
                 }
                 return store[key];
             },
-            setItem: function (key: any, value: any, storeAuthStateInCookie?: boolean) {
+            setItem: function (key: any, value: any) {
+                // console.log("authStateCookie: " + this.storeAuthStateInCookie);
+
+                if (key === Constants.nonceIdToken) {
+                    console.log("it is nonce");
+                }
                 if (typeof value !== 'undefined') {
                     store[key] = value;
                 }
-                if (storeAuthStateInCookie) {
+                if (this.storeAuthStateInCookie) {
                     this.setItemCookie(key, value);
                 }
 
@@ -71,6 +89,10 @@ describe('Msal', function (): any {
             removeItem: function (key: any) {
                 if (typeof store[key] !== 'undefined') {
                     delete store[key];
+                }
+
+                if (this.storeAuthStateInCookie) {
+                    this.clearCookie();
                 }
             },
             clear: function () {
@@ -678,6 +700,7 @@ describe('Msal', function (): any {
         }, { storeAuthStateInCookie: true }); */
 
         var config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {storeAuthStateInCookie: true}, {}, {});
+
         msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {
             expect(document.cookie).toBe('');
             expect(errorDesc).toBeUndefined();
@@ -687,9 +710,13 @@ describe('Msal', function (): any {
         });
 
 
+        storageFake.setAuthStateInCookie(config.cache.storeAuthStateInCookie);
         msal.pCacheStorage = storageFake;
+        msal.pCacheStorage.setAuthStateInCookie = config.cache.storeAuthStateInCookie;
+
         var _promptUser = msal.promptUser;
         msal.promptUser = function () {
+            console.log(document.cookie);
             expect(document.cookie).toContain(Constants.stateLogin);
             expect(document.cookie).toContain(Constants.nonceIdToken);
             expect(document.cookie).toContain(Constants.loginRequest);
