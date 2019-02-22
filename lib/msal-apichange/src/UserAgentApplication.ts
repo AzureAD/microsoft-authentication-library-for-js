@@ -355,7 +355,7 @@ export class UserAgentApplication {
     // Create navigate url; saves value in cache; redirect user to AAD
     // If login already in progress, fail
     if (this.pLoginInProgress) {
-      if(this.pErrorReceivedCallback) {
+      if (this.pErrorReceivedCallback) {
         this.pErrorReceivedCallback(
           MSALError.ClientAuthError.createLoginInProgressError(
             Constants.idToken,
@@ -371,7 +371,7 @@ export class UserAgentApplication {
       try {
         this.validateInputScope(scopes, Constants.idToken);
       } catch (error) {
-        if(error instanceof MSALError.ConfigurationError) {
+        if (error instanceof MSALError.ConfigurationError) {
           // Expected error from validation function
           this.pErrorReceivedCallback(error);
         } else {
@@ -486,9 +486,7 @@ export class UserAgentApplication {
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
   loginPopup(scopes?: Array<string>, extraQueryParameters?: string): Promise<string> {
-
     // Create navigate url; saves value in cache; redirect user to AAD
-
     return new Promise<string>((resolve, reject) => {
       // fail if login is already in progress
       if (this.pLoginInProgress) {
@@ -506,7 +504,7 @@ export class UserAgentApplication {
         try {
           this.validateInputScope(scopes, Constants.idToken);
         } catch (error) {
-          if(error instanceof MSALError.ConfigurationError) {
+          if (error instanceof MSALError.ConfigurationError) {
             // Expected error from validation function
             reject(error);
           } else {
@@ -648,7 +646,7 @@ export class UserAgentApplication {
         err.toString(), 
         Constants.idToken, 
         this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
-      )
+      );
       this.pConfig.system.logger.warning(e.message);
       reject(e);
     });
@@ -988,7 +986,7 @@ export class UserAgentApplication {
     }
   }
 
-  // TODO: Where is this being used?
+  // TODO: Where is this being used? Remove if not used
   /**
    * Helper function to retrieve the cached token
    * 
@@ -1274,6 +1272,7 @@ export class UserAgentApplication {
   }
 
   /** 
+   * TODO: Terrible name, rename it
    * Checks if the authorization endpoint URL contains query string parameters
    * 
    * @ignore
@@ -1313,7 +1312,7 @@ export class UserAgentApplication {
         // TODO: is this always accessToken?
         this.validateInputScope(scopes, Constants.accessToken);
       } catch (error) {
-        if(error instanceof MSALError.ConfigurationError) {
+        if (error instanceof MSALError.ConfigurationError) {
           // Expected error from validation function
           this.pErrorReceivedCallback(error);
         } else {
@@ -1441,7 +1440,7 @@ export class UserAgentApplication {
           // TODO: Is this always access token?
           this.validateInputScope(scopes, Constants.accessToken);
         } catch (error) {
-          if(error instanceof MSALError.ConfigurationError) {
+          if (error instanceof MSALError.ConfigurationError) {
             // Expected error from validation function
             reject(error);
           } else {
@@ -1617,7 +1616,7 @@ export class UserAgentApplication {
           // TODO: Is this always access token?
           this.validateInputScope(scopes, Constants.accessToken);
         } catch (error) {
-          if(error instanceof MSALError.ConfigurationError) {
+          if (error instanceof MSALError.ConfigurationError) {
             // Expected error from validation function
             reject(error);
           } else {
@@ -1675,7 +1674,7 @@ export class UserAgentApplication {
       );
       //const cacheResult = this.getCachedToken(authenticationRequest, userObject);
       var cacheResult;
-      try{
+      try {
         cacheResult = this.getCachedToken(authenticationRequest, userObject);
       } catch (err) {
         if (err instanceof MSALError.ClientAuthError) {
@@ -1686,7 +1685,7 @@ export class UserAgentApplication {
             "Error retrieving cached token result: " + err.toString(),
             responseType,
             this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
-          )
+          );
           this.pConfig.system.logger.infoPii(e.errorCode + ":" + e.message);
           reject(e);
         }
@@ -2482,7 +2481,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Change to return AuthResponse object
+  // TODO: Change to return AuthResponse object, rename this, it is not request but response 
   protected getRequestInfo(hash: string): TokenResponse {
 
     hash = this.getHash(hash);

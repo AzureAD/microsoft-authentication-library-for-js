@@ -1,9 +1,10 @@
-import {Configuration, UserAgentApplication} from "../src/index";
+import {Configuration, UserAgentApplication, ClientAuthError, AuthError, ConfigurationError} from "../src/index";
 import {Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
 
+import {} from "jasmine";
 
 describe('Msal', function (): any {
     let window: any;
@@ -190,7 +191,7 @@ describe('Msal', function (): any {
         global.Math = mathMock;
 
         let config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201" }, {}, {}, {});
-        msal = new UserAgentApplication(config, function (errorDes, token, error) {});
+        msal = new UserAgentApplication(config, function (errorDes, token, error) {}, function(error) {});
         // msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {});
         msal.account = null;
         msal.renewStates = [];
@@ -265,7 +266,7 @@ describe('Msal', function (): any {
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
         var config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201", redirectUri: TEST_REDIR_URI}, {}, {}, {});
 
-        msal = new UserAgentApplication(config, function (errorDes, token, error){return; });
+        msal = new UserAgentApplication(config, function (errorDes, token, error){ return; }, function(error) { return; });
         msal.account = null;
         msal.renewStates = [];
         msal.activeRenewals = {};
@@ -332,10 +333,10 @@ describe('Msal', function (): any {
         accessTokenKey.authority = "authority2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, user);
-        expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        expect(msal.getCachedToken({ scopes: ["S1"] }, user)).toThrowError(ClientAuthError);
+        // expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority");
+        // expect(cacheResult.token).toBe(null);
+        // expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
         storageFake.clear();
     });
 
@@ -358,10 +359,10 @@ describe('Msal', function (): any {
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
         var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S3'] }, user);
-        expect(cacheResult.errorDesc).toBe("Multiple authorities found in the cache. Pass authority in the API overload.");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        expect(msal.getCachedToken({ scopes: ['S3'] }, user)).toThrowError(ClientAuthError);
+        // expect(cacheResult.errorDesc).toBe("Multiple authorities found in the cache. Pass authority in the API overload.");
+        // expect(cacheResult.token).toBe(null);
+        // expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
         storageFake.clear();
     });
 
@@ -432,10 +433,10 @@ describe('Msal', function (): any {
         accessTokenKey.scopes = "S1 S2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, user);
-        expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        expect(msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, user)).toThrowError(ClientAuthError);
+        // expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority");
+        // expect(cacheResult.token).toBe(null);
+        // expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
         storageFake.clear();
     });
 
@@ -481,52 +482,67 @@ describe('Msal', function (): any {
 
     it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
         msal.pLoginInProgress = true;
-        var errDesc = '', token = '', err = '', tokenType = '';
-        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
+        var err;
+        // var errDesc = '', token = '', err = '', tokenType = '';
+        // var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+        //     errDesc = valErrDesc;
+        //     token = valToken;
+        //     err = valErr;
+        //     tokenType = valTokenType;
+        // };
+        var errorCallback = function (authError: AuthError) {
+            err = authError;
         };
-        msal.pTokenReceivedCallback = callback;
+        msal.pErrorReceivedCallback = errorCallback;
         msal.loginRedirect();
-        expect(errDesc).toBe(ErrorDescription.loginProgressError);
-        expect(err).toBe(ErrorCodes.loginProgressError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        // expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        // expect(err).toBe(ErrorCodes.loginProgressError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
+        expect(err).toBe(jasmine.any(ClientAuthError));
         msal.pLoginInProgress = false;
     });
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
-        var errDesc = '', token = '', err = '', tokenType = '';
-        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
+        // var errDesc = '', token = '', err = '', tokenType = '';
+        // var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+        //     errDesc = valErrDesc;
+        //     token = valToken;
+        //     err = valErr;
+        //     tokenType = valTokenType;
+        // };
+        var err;
+        var errorCallback = function (authError: AuthError) {
+            err = authError;
         };
-        msal.pTokenReceivedCallback = callback;
+        msal.pErrorReceivedCallback = errorCallback;
         msal.loginRedirect([]);
-        expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        expect(err).toBe(ErrorCodes.inputScopesError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
+        expect(err).toBe(jasmine.any(ConfigurationError));
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
-        var errDesc = '', token = '', err = '', tokenType = '';
-        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
+        // var errDesc = '', token = '', err = '', tokenType = '';
+        // var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
+        //     errDesc = valErrDesc;
+        //     token = valToken;
+        //     err = valErr;
+        //     tokenType = valTokenType;
+        // };
+        var err;
+        var errorCallback = function (authError: AuthError) {
+            err = authError;
         };
-        msal.pTokenReceivedCallback = callback;
+        msal.pErrorReceivedCallback = errorCallback;
         msal.loginRedirect([msal.pConfig.auth.clientId, '123']);
-        expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        expect(err).toBe(ErrorCodes.inputScopesError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
+        expect(err).toBe(jasmine.any(ConfigurationError));
     });
 
     it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
@@ -646,44 +662,55 @@ describe('Msal', function (): any {
     it('tests if you get the state back in tokenReceived callback, if state is a number', function () {
         spyOn(msal, 'getUserState').and.returnValue("1234");
         msal.pLoginInProgress = true;
-        let errDesc = '', token = '', err = '', tokenType = '', state= '' ;
-        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string, valState: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
-            state = valState;
+        // let errDesc = '', token = '', err = '', tokenType = '', state= '' ;
+        // var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string, valState: string) {
+        //     errDesc = valErrDesc;
+        //     token = valToken;
+        //     err = valErr;
+        //     tokenType = valTokenType;
+        //     state = valState;
+        // };
+        var err: AuthError;
+        var errorCallback = function (authError: AuthError) {
+            err = authError;
         };
+        msal.pErrorReceivedCallback = errorCallback;
 
-        msal.pTokenReceivedCallback = callback;
         msal.loginRedirect();
-        expect(errDesc).toBe(ErrorDescription.loginProgressError);
-        expect(err).toBe(ErrorCodes.loginProgressError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
-        expect(state).toBe('1234');
+        // expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        // expect(err).toBe(ErrorCodes.loginProgressError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
+        // expect(state).toBe('1234');
+        expect(err).toBe(jasmine.any(ClientAuthError));
+        expect(err.userState).toBe('1234');
         msal.pLoginInProgress = false;
     });
 
     it('tests if you get the state back in tokenReceived callback, if state is a url', function () {
         spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         msal.pLoginInProgress = true;
-        let errDesc = '', token = '', err = '', tokenType = '', state= '' ;
-        let callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string, valState: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
-            state = valState;
+        // let errDesc = '', token = '', err = '', tokenType = '', state= '' ;
+        // let callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string, valState: string) {
+        //     errDesc = valErrDesc;
+        //     token = valToken;
+        //     err = valErr;
+        //     tokenType = valTokenType;
+        //     state = valState;
+        // };
+        var err: AuthError;
+        var errorCallback = function (authError: AuthError) {
+            err = authError;
         };
-
-        msal.pTokenReceivedCallback = callback;
+        msal.pErrorReceivedCallback = errorCallback;
+        // msal.pTokenReceivedCallback = callback;
         msal.loginRedirect();
-        expect(errDesc).toBe(ErrorDescription.loginProgressError);
-        expect(err).toBe(ErrorCodes.loginProgressError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
-        expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
+        expect(err).toBe(jasmine.any(ClientAuthError));
+        // expect(errDesc).toBe(ErrorDescription.loginProgressError);
+        // expect(err).toBe(ErrorCodes.loginProgressError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
+        expect(err.userState).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
         msal._loginInProgress = false;
     });
 
@@ -703,10 +730,12 @@ describe('Msal', function (): any {
 
         msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {
             expect(document.cookie).toBe('');
-            expect(errorDesc).toBeUndefined();
-            expect(error).toBeUndefined();
+            // expect(errorDesc).toBeUndefined();
+            // expect(error).toBeUndefined();
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
+        }, function(authError) {
+            return;
         });
 
 

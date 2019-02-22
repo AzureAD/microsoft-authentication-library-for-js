@@ -12,11 +12,6 @@
   "files": [
     "./src/index.ts"
   ],
-  "types": [
-    "jasmine",
-    "node",
-    "jasmine-ajax"
-  ],
    "typeRoots": [
       "../node_modules/@types"
     ]

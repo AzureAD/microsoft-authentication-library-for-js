@@ -14,4 +14,4 @@ export {
     ConfigurationError, 
     InteractionRequiredAuthError, 
     ServerError 
-} from "./AuthError"
+} from "./AuthError";

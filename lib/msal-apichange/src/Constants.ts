@@ -87,8 +87,8 @@ export class Constants {
   static get angularLoginRequest(): string { return "msal.angular.login.request"; }
   static get userIdentifier(): string { return "userIdentifier"; }
   static get common(): string { return "common"; }
-  static get cacheLocationLocal(): string {return "localStorage"}
-  static get cacheLocationSession(): string {return "sessionStorage"}
+  static get cacheLocationLocal(): string { return "localStorage"; }
+  static get cacheLocationSession(): string { return "sessionStorage"; }
 }
 
 /*
@@ -109,10 +109,10 @@ export class ErrorCodes {
   static get loginProgressError(): string { return "login_progress_error"; }
   static get acquireTokenProgressError(): string { return "acquiretoken_progress_error"; }
   static get userCancelledError(): string { return "user_cancelled"; }
-  static get callbackError(): string {return "callback_error"}
+  static get callbackError(): string { return "callback_error"; }
   
   // Configuration  Error Codes
-  static get invalidCacheLocation() : string { return "invalid_cache_location" }
+  static get invalidCacheLocation() : string { return "invalid_cache_location"; }
   static get noCallbackGiven() : string { return "no_callback_given"; }
   static get inputScopesError(): string { return "input_scopes_error"; }
 
