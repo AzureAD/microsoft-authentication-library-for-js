@@ -288,54 +288,7 @@ export class Utils {
     return obj;
   }
 
-  /**
-   * Check if there are dup scopes in a given request
-   * 
-   * @param cachedScopes 
-   * @param scopes 
-   */
-  static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-
-    cachedScopes = this.convertToLowerCase(cachedScopes);
-    for (let i = 0; i < scopes.length; i++) {
-      if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-
-  /**
-   * Check if a given scope is present in the request
-   * 
-   * @param cachedScopes 
-   * @param scopes 
-   */
-  static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-    cachedScopes = this.convertToLowerCase(cachedScopes);
-    return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
-  }
-
-  /**
-   * toLower
-   * 
-   * @param scopes 
-   */
-  static convertToLowerCase(scopes: Array<string>): Array<string> {
-    return scopes.map(scope => scope.toLowerCase());
-  }
-
-  /**
-   * remove one element from a scope array
-   * 
-   * @param scopes 
-   * @param scope 
-   */
-  static removeElement(scopes: Array<string>, scope: string): Array<string> {
-    return scopes.filter(value => value !== scope);
-  }
+  
 
   /**
    * Decimal to Hex
@@ -618,5 +571,59 @@ export class Utils {
 
     return extraQueryParameters;
   }
+
+
+  /* -------------------------------------------------   Move this set of functions to Scopes.ts <START> ------------------------------------------------- */
+
+  /**
+   * Check if there are dup scopes in a given request
+   * 
+   * @param cachedScopes 
+   * @param scopes 
+   */
+  static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+
+    cachedScopes = this.convertToLowerCase(cachedScopes);
+    for (let i = 0; i < scopes.length; i++) {
+      if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+
+  /** 
+   * Check if a given scope is present in the request
+   * 
+   * @param cachedScopes 
+   * @param scopes 
+   */
+  static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+    cachedScopes = this.convertToLowerCase(cachedScopes);
+    return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
+  }
+
+  /** TODO: rename this
+   * toLower
+   * 
+   * @param scopes 
+   */
+  static convertToLowerCase(scopes: Array<string>): Array<string> {
+    return scopes.map(scope => scope.toLowerCase());
+  }
+
+  /** TODO: rename this
+   * remove one element from a scope array
+   * 
+   * @param scopes 
+   * @param scope 
+   */
+  static removeElement(scopes: Array<string>, scope: string): Array<string> {
+    return scopes.filter(value => value !== scope);
+  }
+
+  /* -------------------------------------------------   Move this set of functions to Scopes.ts <END> ------------------------------------------------- */
 
 }
