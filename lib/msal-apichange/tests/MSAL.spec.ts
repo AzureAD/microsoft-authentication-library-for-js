@@ -1,5 +1,6 @@
 import {Configuration, UserAgentApplication, ClientAuthError, AuthError, ConfigurationError} from "../src/index";
-import {Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
+import {Constants} from '../src/Constants';
+import { E } from '../src/Error';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
@@ -341,7 +342,7 @@ describe('Msal', function (): any {
             mmAccessTokenErr = err;
         }
         expect(mmAccessTokenErr instanceof ClientAuthError);
-       
+
         storageFake.clear();
     });
 
@@ -365,7 +366,7 @@ describe('Msal', function (): any {
 
         var user = { userIdentifier: "1234" };
         var nmAccessTokenError: ClientAuthError;
-        
+
         try {
             msal.getCachedToken({ scopes: ['S3'] }, user);
         } catch (err) {
@@ -455,7 +456,7 @@ describe('Msal', function (): any {
             console.log(err);
             mmAccessTokenErr = err;
         }
-        
+
         expect(mmAccessTokenErr instanceof ClientAuthError);
         storageFake.clear();
     });
@@ -519,7 +520,7 @@ describe('Msal', function (): any {
         // expect(err).toBe(ErrorCodes.loginProgressError);
         // expect(token).toBe(null);
         // expect(tokenType).toBe(Constants.idToken);
-        expect(err instanceof(ClientAuthError));
+        expect(err instanceof (ClientAuthError));
         msal.pLoginInProgress = false;
     });
 
@@ -541,7 +542,7 @@ describe('Msal', function (): any {
         // expect(err).toBe(ErrorCodes.inputScopesError);
         // expect(token).toBe(null);
         // expect(tokenType).toBe(Constants.idToken);
-        expect(err instanceof(ConfigurationError));
+        expect(err instanceof (ConfigurationError));
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {

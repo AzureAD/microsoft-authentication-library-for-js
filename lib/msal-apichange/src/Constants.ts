@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-/*
+/**
  * @hidden
  */
 export class Constants {
@@ -91,52 +91,3 @@ export class Constants {
   static get cacheLocationSession(): string { return "sessionStorage"; }
 }
 
-/*
- * @hidden
- */
-export class ErrorCodes {
-  static get userLoginError(): string { return "user_login_error"; }
-  static get unexpected(): string { return "unexpected"; }
-  
-  // Client Auth Error Codes
-  static get multipleMatchingTokens(): string { return "multiple_matching_tokens_detected"; }
-  static get multipleMatchingAuthorities(): string { return "multiple_matching_authorities"; }
-  static get endpointResolutionError(): string { return "endpoints_resolution_error"; }
-  static get popUpWindowError(): string { return "popup_window_error"; }
-  static get tokenRenewalError() : string { return "token_renewal_error"; }
-  static get invalidStateError() : string { return "invalid_state_error"; }
-  static get nonceMismatchError() : string { return "nonce_mismatch_error"; }
-  static get loginProgressError(): string { return "login_progress_error"; }
-  static get acquireTokenProgressError(): string { return "acquiretoken_progress_error"; }
-  static get userCancelledError(): string { return "user_cancelled"; }
-  static get callbackError(): string { return "callback_error"; }
-  
-  // Configuration  Error Codes
-  static get invalidCacheLocation() : string { return "invalid_cache_location"; }
-  static get noCallbackGiven() : string { return "no_callback_given"; }
-  static get inputScopesError(): string { return "input_scopes_error"; }
-
-  // Server Error Codes
-  static get serverUnavailable(): string { return "server_unavailable"; }
-  static get unknownServerError(): string { return "unknown_server_error"; }
-
-  // Interaction Required Auth Error
-  static get loginRequired(): string { return "login_required"; }
-  static get interactionRequired(): string { return "interaction_required"; }
-  static get consentRequired(): string { return "consent_required"; }
-  
-}
-
-/*
- * @hidden
- */
-export class ErrorDescription {
-  static get loginProgressError(): string { return "Login is in progress"; }
-  static get acquireTokenProgressError(): string { return "Acquire token is in progress"; }
-  static get inputScopesError(): string { return "Invalid value of input scopes provided"; }
-  static get endpointResolutionError(): string { return "Endpoints cannot be resolved"; }
-  static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
-  static get userLoginError(): string { return "User login is required"; }
-  static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
-
-}

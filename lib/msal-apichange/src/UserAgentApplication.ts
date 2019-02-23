@@ -27,7 +27,8 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { AuthenticationRequestParameters } from "./AuthenticationRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
+import { Constants } from "./Constants";
+import { E } from "./Error";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -59,11 +60,11 @@ declare global {
   }
 }
 
-/** 
+/**
  * response_type from OpenIDConnect
  * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
  * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
- * 
+ *
  * @hidden
  */
 let ResponseTypes = {
@@ -85,7 +86,7 @@ export interface CacheResult {
 
 /** TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
  * A type alias of for a tokenReceivedCallback function.
- * 
+ *
  * @param tokenReceivedCallback.errorDesc error description returned from the STS if API call fails.
  * @param tokenReceivedCallback.token token returned from STS if token request is successful.
  * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
@@ -101,10 +102,10 @@ export type errorReceivedCallback = (error: MSALError.AuthError) => void;
 
 /** TODO: This functionality of wrapper aroung a function seem to be changing in the latest TS, check this while fixing npm issues
  * A wrapper to handle the token response/error within the iFrame always
- * 
- * @param target 
- * @param propertyKey 
- * @param descriptor 
+ *
+ * @param target
+ * @param propertyKey
+ * @param descriptor
  */
 const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
   const tokenAcquisitionMethod = descriptor.value;
@@ -134,20 +135,20 @@ export class UserAgentApplication {
 
   /** Authority Support Code */
 
-  /** 
+  /**
    * @hidden
    */
   protected authorityInstance: Authority;
 
-  /** TODO: Setter and Getter for authority is used to set the authorityInstance. 
+  /** TODO: Setter and Getter for authority is used to set the authorityInstance.
    * Should we rework this as a part of pConfig.auth.authority or maintain this as a class variable?
-   * 
+   *
    * Used to set the authority.
-   * 
+   *
    * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
-   * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt; 
-   *      where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) 
-   *      and &lt;tenant&gt; is a identifier within the directory itself 
+   * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;
+   *      where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com)
+   *      and &lt;tenant&gt; is a identifier within the directory itself
    *      (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
    * - Default value is: "https://login.microsoftonline.com/common"
@@ -165,8 +166,8 @@ export class UserAgentApplication {
 
   /** Other Variables */
 
-  /**  
-   * @hidden 
+  /**
+   * @hidden
    * Storage instance
    */
   protected pCacheStorage: Storage;
@@ -178,25 +179,25 @@ export class UserAgentApplication {
   private _user: User;
 
 
-  /** 
+  /**
    * Initialize a UserAgentApplication with a given clientId and authority.
-   * 
+   *
    * @constructor
    * @param {string} clientId - The clientID of your application, you should get this from the application registration portal.
    * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
-   * 
+   *
    * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;,\
-   *    where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself 
+   *    where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself
    *    (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
    * - Default value is: "https://login.microsoftonline.com/common"
-   * 
+   *
    * @param pTokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
    * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
    */
   constructor(config: TConfiguration, callback: tokenReceivedCallback, errorCallback: errorReceivedCallback) {
 
-    // Set the Configuration 
+    // Set the Configuration
     this.pConfig = config;
 
     // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
@@ -211,7 +212,7 @@ export class UserAgentApplication {
     this.pAcquireTokenInProgress = false;
 
 
-    // // Validate cache location and initialize storage 
+    // // Validate cache location and initialize storage
     // if (!this.cacheLocations[this.pConfig.cache.cacheLocation]) {
     //   throw MSALError.ConfigurationError.createInvalidCacheLocationConfigError(
     //     this.pConfig.cache.cacheLocation,
@@ -226,7 +227,7 @@ export class UserAgentApplication {
     this.pCacheStorage.setEnableCookieStorage(this.pConfig.cache.storeAuthStateInCookie);
 
     // Initialize the Window Handling code
-    // TODO: refactor - write a utility function 
+    // TODO: refactor - write a utility function
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
@@ -255,9 +256,9 @@ export class UserAgentApplication {
 
   /* -------------------------------------------------   REDIRECT FLOW <START> ------------------------------------------------- */
 
-  /** 
+  /**
    * Initiate the login process by redirecting the user to the STS authorization endpoint.
-   * 
+   *
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
    */
@@ -302,7 +303,7 @@ export class UserAgentApplication {
       scopes = this.filterScopes(scopes);
     }
 
-    // extract ADAL id_token if exists 
+    // extract ADAL id_token if exists
     var idTokenObject;
     idTokenObject = this.extractADALIdToken();
 
@@ -334,16 +335,16 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
     * Used to obtain an access_token by redirecting the user to the authorization endpoint.
     * To renew idToken, clientId should be passed as the only scope in the scopes array.
-    * 
-    * @param {Array<string>} scopes - Permissions you want included in the access token. 
+    *
+    * @param {Array<string>} scopes - Permissions you want included in the access token.
     *  Not all scopes are  guaranteed to be included in the access token. Scopes like "openid" and "profile" are sent with every request.
     * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
-    * - In Azure AD, it is of the form https://{instance}/&lt;tenant&gt;, 
-    *    where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) 
-    *    and &lt;tenant&gt; is a identifier within the directory itself 
+    * - In Azure AD, it is of the form https://{instance}/&lt;tenant&gt;,
+    *    where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com)
+    *    and &lt;tenant&gt; is a identifier within the directory itself
     *    (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
     * - In Azure B2C, it is of the form https://{instance}/tfp/&lt;tenant&gt;/<policyName>
     * - Default value is: "https://login.microsoftonline.com/common"
@@ -355,7 +356,7 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
-    
+
     // validate the scopes; TODO: is this always accessToken?
     if (scopes) {
       try {
@@ -457,10 +458,10 @@ export class UserAgentApplication {
 
   /**
    * Helper function to loginRedirect
-   * 
+   *
    * @hidden
-   * @param scopes 
-   * @param extraQueryParameters 
+   * @param scopes
+   * @param extraQueryParameters
    */
   // TODO: params to accept AuthRequest object instead
   private loginRedirectHelper(scopes?: Array<string>, extraQueryParameters?: string) {
@@ -513,9 +514,9 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
     * Used to redirect the browser to the STS authorization endpoint
-    * 
+    *
     * @param {string} urlNavigate - URL of the authorization endpoint
     * @hidden
     */
@@ -535,7 +536,7 @@ export class UserAgentApplication {
 
   /** TODO - rename this, the name is confusing
    * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
-   * 
+   *
    * @param {string} hash - Hash passed from redirect page.
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
    * @hidden
@@ -559,9 +560,9 @@ export class UserAgentApplication {
 
   /* -------------------------------------------------   POPUP FLOW <START> ------------------------------------------------- */
 
-  /** 
+  /**
   * Initiate the login process by opening a popup window.
-  * 
+  *
   * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are  guaranteed to be included in the access token returned.
   * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
   * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
@@ -634,16 +635,16 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
   * Used to acquire an access token for a new user using interactive authentication via a popup Window.
   * To request an id_token, pass the clientId as the only scope in the scopes array.
-  * 
-  * @param {Array<string>} scopes - Permissions you want included in the access token. 
+  *
+  * @param {Array<string>} scopes - Permissions you want included in the access token.
   *  Not all scopes are  guaranteed to be included in the access token. Scopes like "openid" and "profile" are sent with every request.
   * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
-  * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, 
-  *    where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) 
-  *    and &lt;tenant&gt; is a identifier within the directory itself 
+  * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;,
+  *    where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com)
+  *    and &lt;tenant&gt; is a identifier within the directory itself
   *    (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
   * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
   * - Default value is: "https://login.microsoftonline.com/common".
@@ -703,7 +704,7 @@ export class UserAgentApplication {
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this.pConfig.system.logger.info("User login is required");
-        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        reject(E.userLoginError.code + Constants.resourceDelimeter + E.userLoginError.desc);
         return;
       }
 
@@ -791,13 +792,13 @@ export class UserAgentApplication {
           responseType,
           this.getUserState(this.pCacheStorage.getItem(Constants.stateLogin))
         );
-        this.pConfig.system.logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
+        this.pConfig.system.logger.info(E.endpointResolutionError.code + ":" + E.endpointResolutionError.desc);
 
-        this.pCacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
-        this.pCacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
+        this.pCacheStorage.setItem(Constants.msalError, E.endpointResolutionError.code);
+        this.pCacheStorage.setItem(Constants.msalErrorDescription, E.endpointResolutionError.desc);
 
         if (reject) {
-          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimeter + ErrorDescription.endpointResolutionError);
+          reject(E.endpointResolutionError.code + Constants.resourceDelimeter + E.endpointResolutionError.desc);
         }
         if (popUpWindow) {
           popUpWindow.close();
@@ -812,12 +813,12 @@ export class UserAgentApplication {
 
   /**
   * Helper function to loginPopup
-  * 
+  *
   * @hidden
-  * @param resolve 
-  * @param reject 
-  * @param scopes 
-  * @param extraQueryParameters 
+  * @param resolve
+  * @param reject
+  * @param scopes
+  * @param extraQueryParameters
   */
   private loginPopupHelper(resolve: any, reject: any, scopes: Array<string>, extraQueryParameters?: string) {
 
@@ -911,16 +912,16 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
  * Used to send the user to the redirect_uri after authentication is complete. The user's bearer token is attached to the URI fragment as an id_token/access_token field.
  * This function also closes the popup window after redirection.
- * 
- * @param urlNavigate 
- * @param title 
- * @param interval 
- * @param instance 
- * @param resolve 
- * @param reject 
+ *
+ * @param urlNavigate
+ * @param title
+ * @param interval
+ * @param instance
+ * @param resolve
+ * @param reject
  * @hidden
  * @ignore
  */
@@ -956,7 +957,7 @@ export class UserAgentApplication {
 
     var pollTimer = window.setInterval(() => {
 
-      // if the popup is closed or the login is already in progress, cancel the login 
+      // if the popup is closed or the login is already in progress, cancel the login
       if (popupWindow && popupWindow.closed && instance.pLoginInProgress) {
         // TODO: Figure out some way to pass tokenType
         let e = MSALError.ClientAuthError.createUserCancelledError(
@@ -998,7 +999,7 @@ export class UserAgentApplication {
 
         }
       } catch (e) {
-        // Cross Domain url check error. 
+        // Cross Domain url check error.
         // Will be thrown until AAD redirects the user back to the app"s root page with the token.
         // No need to log or throw this error as it will create unnecessary traffic.
       }
@@ -1010,11 +1011,11 @@ export class UserAgentApplication {
 
   /**
    * Configures popup window for login.
-   * 
-   * @param urlNavigate 
-   * @param title 
-   * @param popUpWidth 
-   * @param popUpHeight 
+   *
+   * @param urlNavigate
+   * @param title
+   * @param popUpWidth
+   * @param popUpHeight
    * @ignore
    * @hidden
    */
@@ -1056,24 +1057,24 @@ export class UserAgentApplication {
   /* -------------------------------------------------   SILENT FLOW <START> ------------------------------------------------- */
 
 
-  /** 
+  /**
    * Used to get the token from cache.
    * MSAL will return the cached token if it is not expired.
-   * Or it will send a request to the STS to obtain an access_token using a hidden iframe. 
+   * Or it will send a request to the STS to obtain an access_token using a hidden iframe.
    * To renew idToken, clientId should be passed as the only scope in the scopes array.
-   * 
-   * @param {Array<string>} scopes - Permissions you want included in the access token. 
+   *
+   * @param {Array<string>} scopes - Permissions you want included in the access token.
    *  Not all scopes are  guaranteed to be included in the access token. Scopes like "openid" and "profile" are sent with every request.
    * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
-   * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, 
-   *    where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) 
-   *    and &lt;tenant&gt; is a identifier within the directory itself 
+   * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;,
+   *    where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com)
+   *    and &lt;tenant&gt; is a identifier within the directory itself
    *    (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
    * - Default value is: "https://login.microsoftonline.com/common"
    * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
-   * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. 
+   * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised.
    *  Resolved with token or rejected with error.
    */
   @resolveTokenOnlyIfOutOfIframe
@@ -1219,9 +1220,9 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
    * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
-   * 
+   *
    * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} expectedState - Unique state identifier (guid).
    * @param {Function} resolve - The resolve function of the promise object.
@@ -1231,7 +1232,7 @@ export class UserAgentApplication {
    */
   private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
 
-    // init the callbacks Mapped 
+    // init the callbacks Mapped
     window.activeRenewals[scope] = expectedState;
 
     if (!window.callBacksMappedToRenewStates[expectedState]) {
@@ -1264,17 +1265,17 @@ export class UserAgentApplication {
           }
         }
 
-        // reset 
+        // reset
         window.callBacksMappedToRenewStates[expectedState] = null;
         window.callBackMappedToRenewStates[expectedState] = null;
       };
     }
   }
 
-  /** 
+  /**
     * Returns whether current window is in ifram for token renewal
     * TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs. Will there be a performance issue for fn calls?
-    * 
+    *
     * @ignore
     * @hidden
     */
@@ -1282,10 +1283,10 @@ export class UserAgentApplication {
     return window.parent !== window;
   }
 
-  /** 
+  /**
    * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
    * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -1315,9 +1316,9 @@ export class UserAgentApplication {
     }, this.pConfig.system.loadFrameTimeout);
   }
 
-  /** 
+  /**
    * Loads iframe with authorization endpoint URL
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -1337,10 +1338,10 @@ export class UserAgentApplication {
     }, 500);
   }
 
-  /** 
+  /**
    * Adds the hidden iframe for silent token renewal.
    * TODO: Should we rename this function as addHiddenIFrame??
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -1377,12 +1378,12 @@ export class UserAgentApplication {
     return adalFrame;
   }
 
-  /** 
+  /**
    * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
    * domain_hint can be one of users/organisations which when added skips the email based discovery process of the user
    * domain_req utid received as part of the clientInfo
    * login_req uid received as part of clientInfo
-   * 
+   *
    * @param {string} urlNavigate - Authentication request url
    * @param {User} user - User for which the token is requested
    * @ignore
@@ -1463,7 +1464,7 @@ export class UserAgentApplication {
   /**
    * Clear all Access Tokens in the Cache
    * TODO: Consider moving this to Storage.ts
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -1480,8 +1481,8 @@ export class UserAgentApplication {
   /**
    * Clear a given access token from the cache
    * TODO: Consider moving this to Storage.ts
-   * 
-   * @param accessToken 
+   *
+   * @param accessToken
    */
   protected clearCacheForScope(accessToken: string) {
     const accessTokenItems = this.pCacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
@@ -1499,9 +1500,9 @@ export class UserAgentApplication {
   /* -------------------------------------------------   RESPONSE <START> ------------------------------------------------- */
 
 
-  /** 
+  /**
    * Used to call the constructor callback with the token/error
-   * 
+   *
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
    * @hidden
    */
@@ -1533,7 +1534,7 @@ export class UserAgentApplication {
         this.pCacheStorage.clearCookie();
 
         // trigger callback
-        // TODO: Refactor to 
+        // TODO: Refactor to
         this.pTokenReceivedCallback.call(
           this,
           errorDesc,
@@ -1552,13 +1553,13 @@ export class UserAgentApplication {
       // throw e;
     }
   }
-  
 
-  /** 
-   * This method must be called for processing the response received from the STS. 
-   * It extracts the hash, processes the token or error information and saves it in the cache. 
+
+  /**
+   * This method must be called for processing the response received from the STS.
+   * It extracts the hash, processes the token or error information and saves it in the cache.
    * It then calls the registered callbacks in case of redirect or resolves the promises with the result.
-   * 
+   *
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
    * @hidden
    */
@@ -1573,7 +1574,7 @@ export class UserAgentApplication {
     var isPopup: boolean = false;
     var isWindowOpenerMsal = false;
 
-    // check if the current window opened the iFrame/popup 
+    // check if the current window opened the iFrame/popup
     try {
       isWindowOpenerMsal = window.opener && window.opener.msal && window.opener.msal !== window.msal;
     } catch (err) {
@@ -1679,17 +1680,17 @@ export class UserAgentApplication {
 
   }
 
-  
+
   /**
    * Creates a requestInfo object from the URL fragment and returns it.
-   * 
+   *
    * @param {string} hash  -  Hash passed from redirect page
-   * @returns {TokenResponse} an object created from the redirect response from AAD comprising of the keys 
+   * @returns {TokenResponse} an object created from the redirect response from AAD comprising of the keys
    *  - parameters, requestType, stateMatch, stateResponse and valid.
    * @ignore
    * @hidden
    */
-  // TODO: Change to return AuthResponse object, rename this, it is not request but response 
+  // TODO: Change to return AuthResponse object, rename this, it is not request but response
   protected getRequestInfo(hash: string): TokenResponse {
 
     hash = this.getHash(hash);
@@ -1759,10 +1760,10 @@ export class UserAgentApplication {
     return tokenResponse;
   }
 
-  /** 
+  /**
    * Returns the anchor part(#) of the URL
-   * 
-   * @param hash 
+   *
+   * @param hash
    * @ignore
    * @hidden
    */
@@ -1783,11 +1784,11 @@ export class UserAgentApplication {
 
   /* ------------------------------------------------- TokenProcessing.ts <START> ------------------------------------------------- */
 
-  /** 
+  /**
    * Used to get token for the specified set of scopes from the cache
    * TODO: There is a lot of duplication code in this function, rework this sooner than later, may be as a part of Error??
    * TODO: Only used in ATS - we should separate this
-   * 
+   *
    * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
    * @param {User} user - User for which the scopes were requested
    * @hidden
@@ -1901,10 +1902,10 @@ export class UserAgentApplication {
 
   }
 
-  
+
   /**
    * Used to get a unique list of authoritues from the cache
-   * 
+   *
    * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems - accessTokenCacheItems saved in the cache
    * @ignore
    * @hidden
@@ -1926,7 +1927,7 @@ export class UserAgentApplication {
 
   /**
    * Check if ADAL id_token exists
-   * 
+   *
    * @hidden
    */
   private extractADALIdToken(): any {
@@ -1938,7 +1939,7 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
    * Acquires access token using a hidden iframe.
    *
    * @ignore
@@ -1990,9 +1991,9 @@ export class UserAgentApplication {
     this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
   }
 
-  /** 
+  /**
    * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -2051,10 +2052,10 @@ export class UserAgentApplication {
   }
 
 
-  /** 
-   * This method must be called for processing the response received from AAD. 
+  /**
+   * This method must be called for processing the response received from AAD.
    * It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-   * 
+   *
    * @param {string} authority authority received in the redirect response from AAD.
    * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
    * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
@@ -2069,7 +2070,7 @@ export class UserAgentApplication {
     let scope: string;
     let clientObj: ClientInfo = new ClientInfo(clientInfo);
 
-    // if the response contains "scope" 
+    // if the response contains "scope"
     if (tokenResponse.parameters.hasOwnProperty("scope")) {
 
       // read scopes
@@ -2123,8 +2124,8 @@ export class UserAgentApplication {
 
   /** TODO: Break this function - either into utils or token specific --- too long to be readable
    * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the user object.
-   * 
-   * @param tokenResponse 
+   *
+   * @param tokenResponse
    * @ignore
    * @hidden
    */
@@ -2175,7 +2176,7 @@ export class UserAgentApplication {
       }
 
     }
-    // if the server returns "Success" 
+    // if the server returns "Success"
     else {
 
       // Verify the state from redirect and record tokens to storage if exists
@@ -2205,7 +2206,7 @@ export class UserAgentApplication {
             idToken = new IdToken(this.pCacheStorage.getItem(Constants.idTokenKey));
           }
 
-          // retrieve the authority from cache and replace with tenantID 
+          // retrieve the authority from cache and replace with tenantID
           authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
           let authority: string = this.pCacheStorage.getItem(authorityKey);
           if (!Utils.isEmpty(authority)) {
@@ -2263,7 +2264,7 @@ export class UserAgentApplication {
 
           this.pConfig.system.logger.info("Fragment has id token");
 
-          // Stop 
+          // Stop
           this.pLoginInProgress = false;
 
           idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
@@ -2331,7 +2332,7 @@ export class UserAgentApplication {
           }
         }
       }
-      // Unexpected state 
+      // Unexpected state
       else {
         authorityKey = tokenResponse.stateResponse;
         acquireTokenUserKey = tokenResponse.stateResponse;
@@ -2369,7 +2370,7 @@ export class UserAgentApplication {
 
   /** TODO: Terrible name, rename it
    * Checks if the authorization endpoint URL contains query string parameters
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -2379,7 +2380,7 @@ export class UserAgentApplication {
     return regex.test(url);
   }
 
-  
+
   /* -------------------------------------------------   Account <START> ------------------------------------------------- */
 
   /**
@@ -2409,9 +2410,9 @@ export class UserAgentApplication {
     return null;
   }
 
-  /** 
+  /**
    * Extracts state value from the userState sent with the authentication request.
-   * 
+   *
    * @returns {string} scope.
    * @ignore
    * @hidden
@@ -2471,8 +2472,8 @@ export class UserAgentApplication {
 
   /**
   * extract URI from the host
-  * 
-  * @param uri 
+  *
+  * @param uri
   * @hidden
   */
   private getHostFromUri(uri: string): string {
@@ -2485,9 +2486,9 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
    * Used to get the redirect uri. Evaluates redirectUri if its a function, otherwise simply returns its value.
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -2499,9 +2500,9 @@ export class UserAgentApplication {
   }
 
 
-  /** 
+  /**
    * Used to get the post logout redirect uri. Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
-   * 
+   *
    * @ignore
    * @hidden
    */
@@ -2515,13 +2516,13 @@ export class UserAgentApplication {
 
   /* -------------------------------------------------  Scopes.ts <START> ------------------------------------------------- */
 
-  // TODO: "this" dependency in this section is minimal. 
+  // TODO: "this" dependency in this section is minimal.
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
-  
-  
+
+
   /** TODO: Check if filterScopes()can be combined
    * Used to validate the scopes input parameter requested  by the developer.
-   * 
+   *
    * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
    * @ignore
    * @hidden
@@ -2560,10 +2561,10 @@ export class UserAgentApplication {
     return;
   }
 
-  /** 
+  /**
    * Used to remove openid and profile from the list of scopes passed by the developer. These scopes are added by default
    *
-   * @param scopes 
+   * @param scopes
    * @hidden
    */
   private filterScopes(scopes: Array<string>): Array<string> {
@@ -2581,7 +2582,7 @@ export class UserAgentApplication {
 
   /** TODO: can this function be removed? not used.
     * Extracts scope value from the state sent with the authentication request.
-    * 
+    *
     * @returns {string} scope.
     * @ignore
     * @hidden
@@ -2601,12 +2602,12 @@ export class UserAgentApplication {
 
   /* -------------------------------------------------   Angular <START> ------------------------------------------------- */
 
-  
+
   /** TODO: Is there a better way to do this? At the least, sandbox this to the wrapper listening in to the core after the handshake
    * Broadcast messages - Used only for Angular?
-   * 
-   * @param eventName 
-   * @param data 
+   *
+   * @param eventName
+   * @param data
    */
   private broadcast(eventName: string, data: string) {
     var evt = new CustomEvent(eventName, { detail: data });
@@ -2616,13 +2617,13 @@ export class UserAgentApplication {
   // TODO: All the below fns are used in msal-angular ONLY, refactor this, implement the bulk in angular if possible?
   /**
    * Helper function to retrieve the cached token
-   * 
-   * @param scopes 
-   * @param user 
+   *
+   * @param scopes
+   * @param user
    */
   protected getCachedTokenInternal(scopes: Array<string>, user: User): CacheResult {
 
-    // Get the current session's user object 
+    // Get the current session's user object
     const userObject = user ? user : this.getUser();
     if (!userObject) {
       return null;
@@ -2659,10 +2660,10 @@ export class UserAgentApplication {
     return this.getCachedToken(authenticationRequest, user);
   }
 
-  /** 
+  /**
    * Get scopes for the Endpoint - Used in Angular to track protected and unprotected resources without interaction from the developer app
-   * 
-   * @param endpoint 
+   *
+   * @param endpoint
    */
   protected getScopesForEndpoint(endpoint: string): Array<string> {
 
@@ -2715,7 +2716,7 @@ export class UserAgentApplication {
   }
 
   /**
-   * @param loginInProgress 
+   * @param loginInProgress
    */
   protected setloginInProgress(loginInProgress: boolean) {
     this.pLoginInProgress = loginInProgress;
@@ -2729,7 +2730,7 @@ export class UserAgentApplication {
   }
 
   /**
-   * @param acquireTokenInProgress 
+   * @param acquireTokenInProgress
    */
   protected setAcquireTokenInProgress(acquireTokenInProgress: boolean) {
     this.pAcquireTokenInProgress = acquireTokenInProgress;

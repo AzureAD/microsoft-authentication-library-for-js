@@ -21,7 +21,8 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
+import { Constants } from "./Constants";
+import { E } from "./Error";
 import { Utils } from "./Utils";
  /**
  * @hidden
@@ -43,7 +44,7 @@ export class AuthError extends Error {
         Object.setPrototypeOf(this, AuthError.prototype);
     }
      static createUnexpectedError(errDesc: string, tokenRequestType: string, userState: string) {
-        return new AuthError(ErrorCodes.unexpected, errDesc, tokenRequestType, userState);
+        return new AuthError(E.unexpectedError.code, errDesc, tokenRequestType, userState);
     }
 }
 
@@ -69,46 +70,77 @@ export class ClientAuthError extends AuthError {
         if (!Utils.isEmpty(errDesc)) {
             errorMessage += " Details: " + errDesc;
         }
-        return new ClientAuthError(ErrorCodes.endpointResolutionError, errDesc, tokenType, userState);
+        // TODO: Isn't this supposed to be "errorMessage" instead of "errorDesc"?
+        return new ClientAuthError(E.endpointResolutionError.code, errDesc, tokenType, userState);
     }
 
     static createMultipleMatchingTokensInCacheError(scope: string, tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.multipleMatchingTokens, "Cache error for scope " + scope + ": The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority.", tokenType, userState);
+        return new ClientAuthError(E.multipleMatchingTokens.code,
+            "Cache error for scope " + scope + ": " + E.multipleMatchingTokens.desc,
+            tokenType,
+            userState);
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string, tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.multipleMatchingAuthorities, "Cache error for scope " + scope + ": Multiple authorities found in the cache. Pass authority in the API overload.", tokenType, userState);
+        return new ClientAuthError(E.multipleMatchingAuthorities.code,
+            "Cache error for scope " + scope + ": " + E.multipleMatchingAuthorities.desc,
+            tokenType,
+            userState);
     }
 
     static createPopupWindowError(tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.popUpWindowError, "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.", tokenType, userState);
+        return new ClientAuthError(E.popUpWindowError.code,
+            E.popUpWindowError.desc,
+            tokenType,
+            userState);
     }
 
     static createTokenRenewalTimeoutError(tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.tokenRenewalError, "Token renewal operation failed due to timeout.", tokenType, userState);
+        return new ClientAuthError(E.tokenRenewalError.code,
+            E.tokenRenewalError.desc,
+            tokenType,
+            userState);
     }
 
     static createInvalidStateError(invalidState: string, actualState: string, tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.invalidStateError, "Invalid state: " + invalidState + ", should be state: " + actualState, tokenType, userState);
+        return new ClientAuthError(E.invalidStateError.code,
+            E.invalidStateError.desc + invalidState + ", state expected : " + actualState,
+            tokenType,
+            userState);
     }
 
     static createNonceMismatchError(invalidNonce: string, actualNonce: string, tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.nonceMismatchError, "Invalid nonce: " + invalidNonce + ", should be nonce: " + actualNonce, tokenType, userState);
+        return new ClientAuthError(E.nonceMismatchError.code,
+            E.nonceMismatchError + invalidNonce + ", nonce expected : " + actualNonce,
+            tokenType,
+            userState);
     }
 
     static createLoginInProgressError(tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.loginProgressError, "Login_In_Progress: Error during login call - login is already in progress.", tokenType, userState);
+        return new ClientAuthError(E.loginProgressError.code,
+            E.loginProgressError.desc,
+            tokenType,
+            userState);
     }
 
     static createAcquireTokenInProgressError(tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.acquireTokenProgressError, "AcquireToken_In_Progress: Error during login call - login is already in progress.", tokenType, userState);
+        return new ClientAuthError(E.acquireTokenProgressError.code,
+            E.acquireTokenProgressError.desc,
+            tokenType,
+            userState);
     }
 
     static createUserCancelledError(tokenType: string, userState: string) : ClientAuthError {
-        return new ClientAuthError(ErrorCodes.userCancelledError, "User_Cancelled: User cancelled ", tokenType, userState);
+        return new ClientAuthError(E.userCancelledError.code,
+            E.userCancelledError.desc,
+            tokenType,
+            userState);
     }
      static createErrorInCallbackFunction(errorDesc: string, tokenType: string, userState: string) : ClientAuthError {
-       return new ConfigurationError(ErrorCodes.callbackError, "Error occurred in token received callback function: " + errorDesc, tokenType, userState);
+       return new ConfigurationError(E.callbackError.code,
+            E.callbackError.desc + errorDesc,
+            tokenType,
+            userState);
     }
 }
 
@@ -125,35 +157,54 @@ export class ConfigurationError extends ClientAuthError {
     }
 
     static createInvalidCacheLocationConfigError(givenCacheLocation: string, tokenType: string, userState: string) : ConfigurationError {
-        return new ConfigurationError(ErrorCodes.invalidCacheLocation, "Cache Location is not valid. Provided value:" + givenCacheLocation + ". Possible values are: " + Constants.cacheLocationLocal + ", " + Constants.cacheLocationSession, tokenType, userState);
+        return new ConfigurationError(E.invalidCacheLocation.code,
+            E.invalidCacheLocation.desc + "Provided value:" + givenCacheLocation +
+            ". Possible values are: " + Constants.cacheLocationLocal + ", " + Constants.cacheLocationSession,
+            tokenType,
+            userState);
     }
 
-    static createNoCallbackGivenError(tokenType: string, userState: string) : ConfigurationError {
-        return new ConfigurationError(ErrorCodes.noCallbackGiven, "Error in configuration: no callback(s) registered for login/acquireTokenRedirect flows. Plesae call handleRedirectCallbacks() with the appropriate callback signatures. More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics", tokenType, userState);
+    static createNoCallbackError(tokenType: string, userState: string) : ConfigurationError {
+        return new ConfigurationError(E.noCallback.code,
+            E.noCallback.desc,
+            tokenType,
+            userState);
     }
-    //
+
+    // TODO: Add these to Error.ts in case if they are uncommented/not deleted later
     // static createCallbackParametersError(numArgs: number, tokenType: string, userState: string) : ClientAuthError {
-    //     return new ClientConfigurationAuthError("Error occurred in callback - incorrect number of arguments, expected 2, got " + numArgs + ".", tokenType, userState);
+    //     return new ClientConfigurationAuthError("Error occurred in callback - incorrect number of arguments, expected 2, got " + numArgs + ".",
+    //         tokenType,
+    //         userState);
     // }
 
-   //  static createSuccessCallbackParametersError(numArgs: number, tokenType: string, userState: string) : ClientAuthError {
-   //      return new ConfigurationAuthError("Error occurred in callback for successful token response - incorrect number of arguments, expected 1, got " + numArgs + ".", tokenType, userState);
-   //  }
+    // static createSuccessCallbackParametersError(numArgs: number, tokenType: string, userState: string) : ClientAuthError {
+    //     return new ConfigurationAuthError("Error occurred in callback for successful token response - incorrect number of arguments, expected 1, got " + numArgs + ".", tokenType, userState);
+    // }
 
-   //  static createErrorCallbackParametersError(numArgs: number, tokenType: string, userState: string) : ClientAuthError {
-   //      return new ConfigurationAuthError("Error occurred in callback for error response - incorrect number of arguments, expected 1, got " + numArgs + ".", tokenType, userState);
-   //  }
+    // static createErrorCallbackParametersError(numArgs: number, tokenType: string, userState: string) : ClientAuthError {
+    //     return new ConfigurationAuthError("Error occurred in callback for error response - incorrect number of arguments, expected 1, got " + numArgs + ".", tokenType, userState);
+    // }
 
     static createEmptyScopesArrayError(scopesValue: string, tokenType: string, userState: string) : ConfigurationError {
-        return new ConfigurationError(ErrorCodes.inputScopesError, "Scopes cannot be passed as empty array. Given value: " + scopesValue, tokenType, userState);
+        return new ConfigurationError(E.emptyScopes.code,
+            E.emptyScopes.desc + ". Given value: " + scopesValue,
+            tokenType,
+            userState);
     }
 
     static createScopesNonArrayError(scopesValue: string, tokenType: string, userState: string) : ConfigurationError {
-        return new ConfigurationError(ErrorCodes.inputScopesError, "Scopes cannot be passed as non-array. Given value: " + scopesValue, tokenType, userState);
+        return new ConfigurationError(E.nonArrayScopes.code,
+            E.nonArrayScopes.desc + " Given value: " + scopesValue,
+            tokenType,
+            userState);
     }
 
     static createClientIdSingleScopeError(scopesValue: string, tokenType: string, userState: string) : ConfigurationError {
-        return new ConfigurationError(ErrorCodes.inputScopesError, "Client ID can only be provided as a single scope. Given value: " + scopesValue, tokenType, userState);
+        return new ConfigurationError(E.clientScope.code,
+           E.clientScope.desc + " Given value: " + scopesValue,
+           tokenType,
+           userState);
     }
 }
 
@@ -171,11 +222,17 @@ export class ServerError extends AuthError {
     }
 
     static createServerUnavailableError(tokenType: string, userState: string) : ServerError {
-        return new ServerError(ErrorCodes.serverUnavailable, "Server is temporarily unavailable.", tokenType, userState);
+        return new ServerError(E.serverUnavailable.code,
+            E.serverUnavailable.desc,
+            tokenType,
+            userState);
     }
 
     static createUnknownServerError(errorDesc: string, tokenType: string, userState: string) : ServerError {
-        return new ServerError(ErrorCodes.unknownServerError, errorDesc, tokenType, userState);
+        return new ServerError(E.unknownServerError.code,
+            errorDesc,
+            tokenType,
+            userState);
     }
 }
 
@@ -198,15 +255,24 @@ export class InteractionRequiredAuthError extends ServerError {
     }
 
     static createLoginRequiredAuthError(tokenType: string, userState: string) : InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorCodes.loginRequired, "login_required: User must login.", tokenType, userState);
+        return new InteractionRequiredAuthError(E.loginRequired.code,
+            E.loginRequired.desc,
+            tokenType,
+            userState);
     }
 
     static createInteractionRequiredAuthError(errorDesc: string, tokenType: string, userState: string) : InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorCodes.interactionRequired, "interaction_required: " + errorDesc, tokenType, userState);
+        return new InteractionRequiredAuthError(E.interactionRequired.code,
+            E.interactionRequired + errorDesc,
+            tokenType,
+            userState);
     }
 
     static createConsentRequiredAuthError(errorDesc: string, tokenType: string, userState: string) : InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorCodes.consentRequired, "consent_required: " + errorDesc, tokenType, userState);
+        return new InteractionRequiredAuthError(E.consentRequired.code,
+            E.consentRequired.desc + errorDesc,
+            tokenType,
+            userState);
     }
 }
 
