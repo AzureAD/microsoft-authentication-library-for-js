@@ -25,15 +25,15 @@ import { IUri } from "./IUri";
 import { User } from "./User";
 import { Constants } from "./Constants";
 
-/** 
+/**
  * @hidden
  */
 export class Utils {
 
   /**
    * Utils function to compare two User objects - used to check if the same user is logged in
-   * 
-   * @param u1: User object 
+   *
+   * @param u1: User object
    * @param u2: User object
    */
   static compareObjects(u1: User, u2: User): boolean {
@@ -50,8 +50,8 @@ export class Utils {
 
   /**
    * expiresin in time
-   * 
-   * @param expires 
+   *
+   * @param expires
    */
   static expiresIn(expires: string): number {
     // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
@@ -70,8 +70,8 @@ export class Utils {
 
   /**
    * Check if a string is empty
-   * 
-   * @param str 
+   *
+   * @param str
    */
   static isEmpty(str: string): boolean {
     return (typeof str === "undefined" || !str || 0 === str.length);
@@ -79,8 +79,8 @@ export class Utils {
 
   /**
    * Extract IdToken by decoding the RAWIdToken
-   * 
-   * @param encodedIdToken 
+   *
+   * @param encodedIdToken
    */
   static extractIdToken(encodedIdToken: string): any {
     // id token will be decoded to get the username
@@ -107,8 +107,8 @@ export class Utils {
 
   /**
    * encoding - platform specific check
-   * 
-   * @param input 
+   *
+   * @param input
    */
   static base64EncodeStringUrlSafe(input: string): string {
     // html5 should support atob function for decoding
@@ -122,8 +122,8 @@ export class Utils {
 
   /**
    * decoding - platform specific check
-   * 
-   * @param base64IdToken 
+   *
+   * @param base64IdToken
    */
   static base64DecodeStringUrlSafe(base64IdToken: string): string {
     // html5 should support atob function for decoding
@@ -138,8 +138,8 @@ export class Utils {
 
   /**
    * encode a string
-   * 
-   * @param input 
+   *
+   * @param input
    */
   static encode(input: string): string {
     const keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -173,8 +173,8 @@ export class Utils {
 
   /**
    * utf8 encode a string
-   * 
-   * @param input 
+   *
+   * @param input
    */
   static utf8Encode(input: string): string {
     input = input.replace(/\r\n/g, "\n");
@@ -202,8 +202,8 @@ export class Utils {
 
   /**
    * decode a string
-   * 
-   * @param base64IdToken 
+   *
+   * @param base64IdToken
    */
   static decode(base64IdToken: string): string {
     var codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -247,8 +247,8 @@ export class Utils {
 
   /**
    * decode a JWT
-   * 
-   * @param jwtToken 
+   *
+   * @param jwtToken
    */
   static decodeJwt(jwtToken: string): any {
     if (this.isEmpty(jwtToken)) {
@@ -271,8 +271,8 @@ export class Utils {
 
   /**
    * deserialize a string
-   * 
-   * @param query 
+   *
+   * @param query
    */
   static deserialize(query: string): any {
     let match: Array<string>; // Regex for replacing addition symbol with a space
@@ -288,12 +288,12 @@ export class Utils {
     return obj;
   }
 
-  
+
 
   /**
    * Decimal to Hex
-   * 
-   * @param num 
+   *
+   * @param num
    */
   static decimalToHex(num: number): string {
     var hex: string = num.toString(16);
@@ -310,9 +310,9 @@ export class Utils {
     return "0.2.4";
   }
 
-  /** 
+  /**
     * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-    * 
+    *
     * @param href The url
     * @param tenantId The tenant id to replace
     */
@@ -402,9 +402,9 @@ export class Utils {
     }
   }
 
-  /** 
+  /**
    * Parses out the components from a url string.
-   * 
+   *
    * @params string
    * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
    */
@@ -437,8 +437,8 @@ export class Utils {
 
   /**
    * Given a url or path, append a trailing slash if one doesnt exist
-   * 
-   * @param url 
+   *
+   * @param url
    */
   static CanonicalizeUri(url: string): string {
     if (url) {
@@ -452,10 +452,10 @@ export class Utils {
     return url;
   }
 
-  /** 
+  /**
     * Checks to see if the url ends with the suffix
     * Required because we are compiling for es5 instead of es6
-    * 
+    *
     * @param url
     * @param str
     */
@@ -468,8 +468,8 @@ export class Utils {
   }
 
   /**
-   * 
-   * @param extraQueryParameters 
+   *
+   * @param extraQueryParameters
    */
   static checkSSO(extraQueryParameters: string) {
     return !(extraQueryParameters && ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 || extraQueryParameters.indexOf(Constants.sid) !== -1)));
@@ -478,21 +478,21 @@ export class Utils {
   /**
    * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
    * in any login() or acquireToken() calls
-   * 
+   *
    * //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
    * //TODO: Test all paths thoroughly
-   * 
-   * @param idTokenObject 
-   * @param login_hint 
-   * @param extraQueryParameters 
+   *
+   * @param idTokenObject
+   * @param login_hint
+   * @param extraQueryParameters
    */
-  static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, login_hint: string, extraQueryParameters?: string) {
-    
+  static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string, login_hint?: string) {
+
     // if login_hint is sent as a part of the request, give developer priority the preference
     if (login_hint) {
       return extraQueryParameters += "&" + Constants.login_hint + "=" + login_hint + "&" + Constants.domain_hint + "=" + Constants.organizations;
     }
-    
+
     // else extract the login_hint from the idToken; login_hint = idToken.upn
     if (idTokenObject) {
       // if upn is present in idToken, construct login_hint and domain_hint from the idToken
@@ -517,14 +517,14 @@ export class Utils {
         }
       }
     }
-    
+
     return extraQueryParameters;
   }
 
   /**
    * Utils function to remove the login_hint and domain_hint from the i/p extraQueryParameters
-   * @param url 
-   * @param name 
+   * @param url
+   * @param name
    */
   static urlRemoveQueryStringParameter(url: string, name: string): string {
     if (this.isEmpty(url)) {
@@ -548,18 +548,18 @@ export class Utils {
 
   /**
    * Construct extraQueryParameters from the request
-   * 
+   *
    */
   static constructExtraQueryParametersString (reqExtraQueryParameters: {[header: string]: string}): string {
-      
+
     let extraQueryParameters: string = null;
     let value: string;
 
     for (var key in reqExtraQueryParameters) {
-      
+
       if (key !== undefined) {
         value = reqExtraQueryParameters[key];
-      
+
         if (extraQueryParameters == null) {
           extraQueryParameters = "&" + key + "=" + value;
         }
@@ -577,9 +577,9 @@ export class Utils {
 
   /**
    * Check if there are dup scopes in a given request
-   * 
-   * @param cachedScopes 
-   * @param scopes 
+   *
+   * @param cachedScopes
+   * @param scopes
    */
   static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
 
@@ -589,16 +589,16 @@ export class Utils {
         return true;
       }
     }
-    
+
     return false;
   }
 
 
-  /** 
+  /**
    * Check if a given scope is present in the request
-   * 
-   * @param cachedScopes 
-   * @param scopes 
+   *
+   * @param cachedScopes
+   * @param scopes
    */
   static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
     cachedScopes = this.convertToLowerCase(cachedScopes);
@@ -607,8 +607,8 @@ export class Utils {
 
   /** TODO: rename this
    * toLower
-   * 
-   * @param scopes 
+   *
+   * @param scopes
    */
   static convertToLowerCase(scopes: Array<string>): Array<string> {
     return scopes.map(scope => scope.toLowerCase());
@@ -616,9 +616,9 @@ export class Utils {
 
   /** TODO: rename this
    * remove one element from a scope array
-   * 
-   * @param scopes 
-   * @param scope 
+   *
+   * @param scopes
+   * @param scope
    */
   static removeElement(scopes: Array<string>, scope: string): Array<string> {
     return scopes.filter(value => value !== scope);

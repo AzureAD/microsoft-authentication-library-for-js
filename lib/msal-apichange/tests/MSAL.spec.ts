@@ -54,36 +54,18 @@ describe('Msal', function (): any {
             }
         };
 
-        var storeAuthStateInCookie: boolean = false;
-
         return {
-
-            setAuthStateInCookie(cookie: boolean) {
-                this.storeAuthStateInCookie = cookie;
-            },
-
-            getAuthStateInCookie() {
-                return this.storeAuthStateInCookie;
-            },
-
-            getItem: function (key: any) {
-                // console.log("authStateCookie: " + this.storeAuthStateInCookie);
-
-                if (this.storeAuthStateInCookie) {
+            getItem: function (key: any, storeAuthStateInCookie?: boolean) {
+                if (storeAuthStateInCookie) {
                     return this.getItemCookie(key);
                 }
                 return store[key];
             },
-            setItem: function (key: any, value: any) {
-                // console.log("authStateCookie: " + this.storeAuthStateInCookie);
-
-                if (key === Constants.nonceIdToken) {
-                    console.log("it is nonce");
-                }
+            setItem: function (key: any, value: any, storeAuthStateInCookie?: boolean) {
                 if (typeof value !== 'undefined') {
                     store[key] = value;
                 }
-                if (this.storeAuthStateInCookie) {
+                if (storeAuthStateInCookie) {
                     this.setItemCookie(key, value);
                 }
 
@@ -91,10 +73,6 @@ describe('Msal', function (): any {
             removeItem: function (key: any) {
                 if (typeof store[key] !== 'undefined') {
                     delete store[key];
-                }
-
-                if (this.storeAuthStateInCookie) {
-                    this.clearCookie();
                 }
             },
             clear: function () {
@@ -193,7 +171,6 @@ describe('Msal', function (): any {
 
         let config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201" }, {}, {}, {});
         msal = new UserAgentApplication(config, function (errorDes, token, error) {}, function(error) {});
-        // msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {});
         msal.account = null;
         msal.renewStates = [];
         msal.activeRenewals = {};
@@ -739,30 +716,18 @@ describe('Msal', function (): any {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
-        /* msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
-            expect(document.cookie).toBe('');
-            expect(errorDesc).toBeUndefined();
-            expect(error).toBeUndefined();
-            expect(token).toBe(mockIdToken);
-            expect(tokenType).toBe(Constants.idToken);
-        }, { storeAuthStateInCookie: true }); */
-
         var config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {storeAuthStateInCookie: true}, {}, {});
 
-        msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {
+        msal = new UserAgentApplication(config,
+            function (errorDesc, token, error, tokenType) {
             expect(document.cookie).toBe('');
-            // expect(errorDesc).toBeUndefined();
-            // expect(error).toBeUndefined();
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
         }, function(authError) {
             return;
         });
 
-
-        storageFake.setAuthStateInCookie(config.cache.storeAuthStateInCookie);
         msal.pCacheStorage = storageFake;
-        msal.pCacheStorage.setAuthStateInCookie = config.cache.storeAuthStateInCookie;
 
         var _promptUser = msal.promptUser;
         msal.promptUser = function () {
@@ -787,24 +752,14 @@ describe('Msal', function (): any {
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
         var config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {cacheLocation: 'localStorage'}, {}, {});
-        msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {
+        msal = new UserAgentApplication(config,
+            function (errorDesc, token, error, tokenType) {
             expect(document.cookie).toBe('');
-            expect(errorDesc).toBeUndefined();
-            expect(error).toBeUndefined();
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
+        }, function(authError) {
+            return;
         });
-
-
-         /*
-         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
-             expect(document.cookie).toBe('');
-             expect(errorDesc).toBeUndefined();
-             expect(error).toBeUndefined();
-             expect(token).toBe(mockIdToken);
-             expect(tokenType).toBe(Constants.idToken);
-         }, { cacheLocation: 'localStorage' });
-         */
 
          expect(msal.pConfig.cache.cacheLocation).toBe('localStorage');
     });
@@ -813,24 +768,14 @@ describe('Msal', function (): any {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
-
-        /*
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
-             expect(document.cookie).toBe('');
-             expect(errorDesc).toBeUndefined();
-             expect(error).toBeUndefined();
-             expect(token).toBe(mockIdToken);
-             expect(tokenType).toBe(Constants.idToken);
-         });
-         */
-
         var config = Configuration.buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
-        msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {
+        msal = new UserAgentApplication(config,
+            function (errorDesc, token, error, tokenType) {
             expect(document.cookie).toBe('');
-            expect(errorDesc).toBeUndefined();
-            expect(error).toBeUndefined();
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
+        }, function(authError) {
+            return;
         });
 
          expect(msal.pConfig.cache.cacheLocation).toBe('sessionStorage');
@@ -838,7 +783,7 @@ describe('Msal', function (): any {
     /**
     it('tests cacheLocation functionality malformed strings throw error', function () {
          var msalInstance = msal;
-         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
+         var mockIdTo   ken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
          msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
              expect(document.cookie).toBe('');

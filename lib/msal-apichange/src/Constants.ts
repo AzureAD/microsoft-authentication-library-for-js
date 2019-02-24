@@ -25,15 +25,26 @@
  * @hidden
  */
 export class Constants {
+
+  // for callbacks
   static get errorDescription(): string { return "error_description"; }
   static get error(): string { return "error"; }
-  static get scope(): string { return "scope"; }
-  static get acquireTokenUser(): string { return "msal.acquireTokenUser"; }
-  static get clientInfo(): string { return "client_info"; }
-  static get clientId(): string { return "clientId"; }
-  static get authority(): string { return "msal.authority"; }
   static get idToken(): string { return "id_token"; }
   static get accessToken(): string { return "access_token"; }
+
+  // to cache/retrieve tokens
+  static get acquireTokenUser(): string { return "msal.acquireTokenUser"; }
+  static get resourceDelimeter(): string { return "|"; }
+  static get no_user(): string { return "NO_USER"; }
+  static get authority(): string { return "msal.authority"; }
+
+
+  static get scope(): string { return "scope"; }
+
+  static get clientInfo(): string { return "client_info"; }
+  static get clientId(): string { return "clientId"; }
+
+
   static get expiresIn(): string { return "expires_in"; }
   static get sessionState(): string { return "session_state"; }
   static get msalClientInfo(): string { return "msal.client.info"; }
@@ -53,7 +64,7 @@ export class Constants {
   static get loginError(): string { return "msal.login.error"; }
   static get renewStatus(): string { return "msal.token.renew.status"; }
   static get msal(): string { return "msal"; }
-  static get no_user(): string { return "NO_USER"; }
+
   static get login_hint(): string { return "login_hint"; }
   static get domain_hint(): string { return "domain_hint"; }
   static get organizations(): string { return "organizations"; }
@@ -66,7 +77,7 @@ export class Constants {
   static get prompt_none(): string { return "&prompt=none"; }
   static get prompt(): string { return "prompt"; }
   static get response_mode_fragment(): string { return "&response_mode=fragment"; }
-  static get resourceDelimeter(): string { return "|"; }
+
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
   static get tokenRenewStatusInProgress(): string { return "In Progress"; }

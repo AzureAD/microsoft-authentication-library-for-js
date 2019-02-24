@@ -25,9 +25,9 @@ import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheStorage } from './Configuration';
 
-/** 
+/**
  * Singleton Class - Manages the Cache and browser Storage
- * 
+ *
  * @hidden
  */
 export class Storage {
@@ -40,8 +40,8 @@ export class Storage {
 
     /**
      * Constructor, create a singleton instance of the Storage class
-     * 
-     * @param cacheLocation 
+     *
+     * @param cacheLocation
      */
     constructor(cacheLocation: CacheStorage) {
 
@@ -63,50 +63,32 @@ export class Storage {
         return Storage.instance;
     }
 
-
-    /**
-     * sets the cookie storage setting
-     * 
-     * @param enableCookieStorage 
-     */
-    setEnableCookieStorage(enableCookieStorage: boolean) {
-        this.enableCookieStorage = enableCookieStorage;
-    }
-
-
-    /**
-     * Returns the cookie storage setting
-     */
-    getEnableCookieStorage() {
-        return this.enableCookieStorage;
-    }
-
     /**
      * add value to storage
-     * 
-     * @param key 
-     * @param value 
-     * @param enableCookieStorage 
+     *
+     * @param key
+     * @param value
+     * @param enableCookieStorage
      */
-    setItem(key: string, value: string): void {
+    setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         if (window[this.cacheLocation]) {
             window[this.cacheLocation].setItem(key, value);
         }
-        if (this.enableCookieStorage) {
+        if (enableCookieStorage) {
             this.setItemCookie(key, value);
         }
     }
 
     /**
      * get one item by key from storage
-     * 
-     * @param key 
-     * @param enableCookieStorage 
+     *
+     * @param key
+     * @param enableCookieStorage
      */
-    getItem(key: string): string {
+    getItem(key: string, enableCookieStorage?: boolean ): string {
 
         // if stored in cookies, return
-        if (this.enableCookieStorage && this.getItemCookie(key)) {
+        if (enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
         }
 
@@ -118,11 +100,11 @@ export class Storage {
         return null;
     }
 
-    
+
     /**
      * remove value from storage
-     * 
-     * @param key 
+     *
+     * @param key
      */
     removeItem(key: string): void {
         if (window[this.cacheLocation]) {
@@ -130,14 +112,21 @@ export class Storage {
         }
     }
 
-    // clear storage (remove all items from it)
+    /**
+     * clear storage (remove all items from it)
+     */
     clear(): void {
         if (window[this.cacheLocation]) {
             return window[this.cacheLocation].clear();
         }
     }
 
-    // retrieve all access tokens from the storage
+    /**
+     * retrieve all access tokens from the storage
+     *
+     * @param clientId
+     * @param userIdentifier
+     */
     getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
         const results: Array<AccessTokenCacheItem> = [];
         let accessTokenCacheItem: AccessTokenCacheItem;
@@ -160,7 +149,12 @@ export class Storage {
         return results;
     }
 
-    // remove all acquire token entries from the storage
+    /**
+     * remove all acquire token entries from the storage
+     *
+     * @param authorityKey
+     * @param acquireTokenUserKey
+     */
     removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
         const storage = window[this.cacheLocation];
         if (storage) {
@@ -175,7 +169,9 @@ export class Storage {
         }
     }
 
-    // reset all cache
+    /**
+     * reset all cache
+     */
     resetCacheItems(): void {
         const storage = window[this.cacheLocation];
         if (storage) {
@@ -193,7 +189,13 @@ export class Storage {
         }
     }
 
-
+    /**
+     * Sets cookies
+     *
+     * @param cName
+     * @param cValue
+     * @param expires
+     */
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         var cookieStr = cName + "=" + cValue + ";";
         if (expires) {
@@ -204,7 +206,11 @@ export class Storage {
         document.cookie = cookieStr;
     }
 
-    
+    /**
+     * gets cookies
+     *
+     * @param cName
+     */
     getItemCookie(cName: string): string {
         var name = cName + "=";
         var ca = document.cookie.split(";");
@@ -220,16 +226,42 @@ export class Storage {
         return "";
     }
 
+    /**
+     * Set the cookie lifetime
+     *
+     * @param cookieLife
+     */
     setExpirationCookie(cookieLife: number): string {
         var today = new Date();
         var expr = new Date(today.getTime() + cookieLife * 24 * 60 * 60 * 1000);
         return expr.toUTCString();
     }
 
+    /**
+     * Clear all cookies set
+     */
     clearCookie(): void {
         this.setItemCookie(Constants.nonceIdToken, "", -1);
         this.setItemCookie(Constants.stateLogin, "", -1);
         this.setItemCookie(Constants.loginRequest, "", -1);
         this.setItemCookie(Constants.stateAcquireToken, "", -1);
     }
+
+    /**
+     * Create acquireTokenUserKey to cache user object
+     * acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userId + Constants.resourceDelimeter + authenticationRequest.state;
+     */
+    static generateATUserKey(userId: any, state: string) {
+        return `msal.acquireTokenUser|${userId}|${state}`;
+    }
+
+    /**
+     * Create authorityKey to cache authority
+     * const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+     */
+    static generateAuthKey(state: string) {
+        return `msal.authority|${state}`;
+    }
+
+
 }

@@ -26,8 +26,8 @@ export const E = {
 
     // Client Authentication Errors
     multipleMatchingTokens: {
-        code: "multiple_matching_tokens_detected",
-        desc: "The cache contains multiple tokens satisfying the requirements" +
+        code: "multiple_matching_tokens",
+        desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements like authority."
     },
     multipleMatchingAuthorities: {
