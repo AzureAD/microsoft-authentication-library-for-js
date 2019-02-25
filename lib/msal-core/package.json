@@ -44,6 +44,7 @@
     "grunt-jasmine-node": "~0.3.1",
     "grunt-tslint": "^5.0.1",
     "grunt-typedoc": "^0.2.4",
+    "highlight.js": "~9.14.1",
     "istanbul-instrumenter-loader": "^3.0.1",
     "jasmine": "^2.8.0",
     "jasmine-ajax": "^3.3.1",
