@@ -100,6 +100,7 @@ export class ErrorCodes {
   static get popUpWindowError(): string { return "popup_window_error"; }
   static get userLoginError(): string { return "user_login_error"; }
   static get userCancelledError(): string { return "user_cancelled"; }
+  static get iframeError(): string { return "iframe_error"; }
 }
 
 /**
@@ -113,5 +114,5 @@ export class ErrorDescription {
   static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
   static get userLoginError(): string { return "User login is required"; }
   static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
-
+  static get iframeError(): string { return "Cannot open an iframe from inside an iframe"; }
 }

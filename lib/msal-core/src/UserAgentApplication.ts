@@ -80,9 +80,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
   const tokenAcquisitionMethod = descriptor.value;
   descriptor.value = function (...args: any[]) {
       return this.isInIframe()
-          ? new Promise(() => {
-            return;
-          })
+          ? new Promise((resolve, reject) => reject(ErrorCodes.iframeError + Constants.resourceDelimeter + ErrorDescription.iframeError))
           : tokenAcquisitionMethod.apply(this, args);
   };
   return descriptor;
@@ -543,6 +541,71 @@ export class UserAgentApplication {
           this._logger.warning("could not resolve endpoints");
           reject(err);
       });
+  }
+
+  /**
+   * Initiate the login process by directing a hidden iframe to the STS authorization endpoint.  This relies on an active session in the authority.
+   * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
+   * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
+   */
+  public loginSilent(scopes?: string[], extraQueryParameters?: string): Promise<string | void> {
+    if (this._loginInProgress) {
+        return Promise.reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
+    }
+
+    if (scopes) {
+        const isValidScope = this.validateInputScope(scopes);
+        if (isValidScope && !Utils.isEmpty(isValidScope)) {
+            return Promise.reject(ErrorCodes.inputScopesError + "|" + isValidScope);
+        }
+        scopes = this.filterScopes(scopes);
+    }
+    else {
+        scopes = [this.clientId];
+    }
+
+    // Try to get a cached token first
+    return this.acquireTokenSilent(scopes, null, null, extraQueryParameters)
+        // If that failed, try a new silent login
+        .catch(() => {
+            return this.loginSilentHelper(scopes, extraQueryParameters);
+        });
+  }
+
+  @resolveTokenOnlyIfOutOfIframe
+  private loginSilentHelper(scopes?: string[], extraQueryParameters?: string): Promise<string | void> {
+    this._loginInProgress = true;
+
+    return this.authorityInstance.ResolveEndpointsAsync()
+        .then(() => {
+            const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
+            if (extraQueryParameters) {
+                authenticationRequest.extraQueryParameters = extraQueryParameters;
+            }
+
+            // refresh attempt with iframe
+            // Already renewing for this scope, callback when we get the token.
+            const scope = scopes.join(" ").toLowerCase();
+            if (window.activeRenewals[scope]) {
+                this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+                //Active renewals contains the state for each renewal.
+                return new Promise<string>((resolve, reject) => this.registerCallback(window.activeRenewals[scope], scope, resolve, reject));
+            }
+            else {
+                // Start a new attempt
+                return new Promise<string>((resolve, reject) => this.renewIdToken(scopes, resolve, reject, null, authenticationRequest, extraQueryParameters));
+            }
+        })
+        .then(
+            (token) => {
+                this._loginInProgress = false;
+                return token;
+            },
+            (error) => {
+                this._loginInProgress = false;
+                throw error;
+            }
+        );
   }
 
   /**
