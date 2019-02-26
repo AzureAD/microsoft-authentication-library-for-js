@@ -29,6 +29,16 @@ import {Constants} from "./Constants";
  * @hidden
  */
 export class Utils {
+
+  //#region General Util
+
+  /**
+   * Utils function to compare two User objects - used to check if the same user is logged in
+   *
+   * @param u1: User object
+   * @param u2: User object
+   */
+  // TODO: Change the name of this to compareUsers or compareAccounts
   static compareObjects(u1: User, u2: User): boolean {
    if (!u1 || !u2) {
           return false;
@@ -41,214 +51,11 @@ export class Utils {
     return false;
   }
 
-  static expiresIn(expires: string): number {
-    // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-     if (!expires) {
-         expires = "3599";
-      }
-    return this.now() + parseInt(expires, 10);
-  }
-
-  static now(): number {
-    return Math.round(new Date().getTime() / 1000.0);
-  }
-
-  static isEmpty(str: string): boolean {
-    return (typeof str === "undefined" || !str || 0 === str.length);
-  }
-
-  static extractIdToken(encodedIdToken: string): any {
-    // id token will be decoded to get the username
-    const decodedToken = this.decodeJwt(encodedIdToken);
-    if (!decodedToken) {
-      return null;
-    }
-    try {
-      const base64IdToken = decodedToken.JWSPayload;
-      const base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
-      if (!base64Decoded) {
-        //this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
-        return null;
-      }
-      // ECMA script has JSON built-in support
-      return JSON.parse(base64Decoded);
-    } catch (err) {
-      //this._requestContext.logger.error("The returned id_token could not be decoded" + err);
-    }
-
-    return null;
-  }
-
-  static base64EncodeStringUrlSafe(input: string): string {
-    // html5 should support atob function for decoding
-    if (window.btoa) {
-      return window.btoa(input);
-    }
-    else {
-      return this.encode(input);
-    }
-  }
-
-  static base64DecodeStringUrlSafe(base64IdToken: string): string {
-    // html5 should support atob function for decoding
-    base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
-    if (window.atob) {
-        return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
-    }
-    else {
-        return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
-    }
-  }
-
-  static encode(input: string): string {
-    const keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    let output = "";
-    let chr1: number, chr2: number, chr3: number, enc1: number, enc2: number, enc3: number, enc4: number;
-    var i = 0;
-
-    input = this.utf8Encode(input);
-
-    while (i < input.length) {
-      chr1 = input.charCodeAt(i++);
-      chr2 = input.charCodeAt(i++);
-      chr3 = input.charCodeAt(i++);
-
-      enc1 = chr1 >> 2;
-      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-      enc4 = chr3 & 63;
-
-      if (isNaN(chr2)) {
-        enc3 = enc4 = 64;
-      } else if (isNaN(chr3)) {
-        enc4 = 64;
-      }
-
-      output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) + keyStr.charAt(enc3) + keyStr.charAt(enc4);
-    }
-
-    return output.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  }
-
-  static utf8Encode(input: string): string {
-    input = input.replace(/\r\n/g, "\n");
-    var utftext = "";
-
-    for (var n = 0; n < input.length; n++) {
-      var c = input.charCodeAt(n);
-
-      if (c < 128) {
-        utftext += String.fromCharCode(c);
-      }
-      else if ((c > 127) && (c < 2048)) {
-        utftext += String.fromCharCode((c >> 6) | 192);
-        utftext += String.fromCharCode((c & 63) | 128);
-      }
-      else {
-        utftext += String.fromCharCode((c >> 12) | 224);
-        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-        utftext += String.fromCharCode((c & 63) | 128);
-      }
-    }
-
-    return utftext;
-  }
-
-  static decode(base64IdToken: string): string {
-    var codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    base64IdToken = String(base64IdToken).replace(/=+$/, "");
-    var length = base64IdToken.length;
-    if (length % 4 === 1) {
-      throw new Error("The token to be decoded is not correctly encoded.");
-    }
-    let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = "";
-    for (var i = 0; i < length; i += 4) {
-      //Every 4 base64 encoded character will be converted to 3 byte string, which is 24 bits
-      // then 6 bits per base64 encoded character
-      h1 = codes.indexOf(base64IdToken.charAt(i));
-      h2 = codes.indexOf(base64IdToken.charAt(i + 1));
-      h3 = codes.indexOf(base64IdToken.charAt(i + 2));
-      h4 = codes.indexOf(base64IdToken.charAt(i + 3));
-      // For padding, if last two are "="
-      if (i + 2 === length - 1) {
-        bits = h1 << 18 | h2 << 12 | h3 << 6;
-        c1 = bits >> 16 & 255;
-        c2 = bits >> 8 & 255;
-        decoded += String.fromCharCode(c1, c2);
-        break;
-      }
-      // if last one is "="
-      else if (i + 1 === length - 1) {
-        bits = h1 << 18 | h2 << 12;
-        c1 = bits >> 16 & 255;
-        decoded += String.fromCharCode(c1);
-        break;
-      }
-      bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
-      // then convert to 3 byte chars
-      c1 = bits >> 16 & 255;
-      c2 = bits >> 8 & 255;
-      c3 = bits & 255;
-      decoded += String.fromCharCode(c1, c2, c3);
-    }
-    return decoded;
-  }
-
-  static decodeJwt(jwtToken: string): any {
-    if (this.isEmpty(jwtToken)) {
-      return null;
-    }
-    const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-    const matches = idTokenPartsRegex.exec(jwtToken);
-    if (!matches || matches.length < 4) {
-      //this._requestContext.logger.warn("The returned id_token is not parseable.");
-      return null;
-    }
-    const crackedToken = {
-      header: matches[1],
-      JWSPayload: matches[2],
-      JWSSig: matches[3]
-    };
-    return crackedToken;
-  }
-
-  static deserialize(query: string): any {
-    let match: Array<string>; // Regex for replacing addition symbol with a space
-    const pl = /\+/g;
-    const search = /([^&=]+)=([^&]*)/g;
-    const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));
-    const obj: {} = {};
-    match = search.exec(query);
-    while (match) {
-      obj[decode(match[1])] = decode(match[2]);
-      match = search.exec(query);
-    }
-    return obj;
-  }
-
-  static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-    cachedScopes = this.convertToLowerCase(cachedScopes);
-    for (let i = 0; i < scopes.length; i++) {
-        if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
-            return true;
-        }
-    }
-    return false;
-  }
-
-  static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-    cachedScopes = this.convertToLowerCase(cachedScopes);
-    return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
-  }
-
-  static convertToLowerCase(scopes: Array<string>): Array<string> {
-    return scopes.map(scope => scope.toLowerCase());
-  }
-
-  static removeElement(scopes: Array<string>, scope: string): Array<string> {
-    return scopes.filter(value => value !== scope);
-  }
-
+  /**
+   * Decimal to Hex
+   *
+   * @param num
+   */
   static decimalToHex(num: number): string {
     var hex: string = num.toString(16);
     while (hex.length < 2) {
@@ -257,28 +64,17 @@ export class Utils {
     return hex;
   }
 
+  /**
+   * MSAL JS Library Version
+   */
   static getLibraryVersion(): string {
     return "0.2.4";
   }
 
   /**
-    * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-    * @param href The url
-    * @param tenantId The tenant id to replace
-    */
-    static replaceFirstPath(url: string, tenantId: string): string {
-        if (!tenantId) {
-            return url;
-        }
-        var urlObject = this.GetUrlComponents(url);
-        var pathArray = urlObject.PathSegments;
-        if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
-            pathArray[0] = tenantId;
-            url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
-        }
-        return url;
-    }
-
+   * Creates a new random GUID - used to populate state?
+   * @returns string (GUID)
+   */
   static createNewGuid(): string {
     // RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
     // pseudo-random numbers.
@@ -348,6 +144,337 @@ export class Utils {
     }
   }
 
+  //#endregion
+
+  //#region Time
+
+  /**
+   * Returns time in seconds for expiration based on string value passed in.
+   *
+   * @param expires
+   */
+  static expiresIn(expires: string): number {
+    // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
+     if (!expires) {
+         expires = "3599";
+      }
+    return this.now() + parseInt(expires, 10);
+  }
+
+  /**
+   * return the current time
+   */
+  static now(): number {
+    return Math.round(new Date().getTime() / 1000.0);
+  }
+
+  //#endregion
+
+  //#region String Ops
+
+  /**
+   * Check if a string is empty
+   *
+   * @param str
+   */
+  static isEmpty(str: string): boolean {
+    return (typeof str === "undefined" || !str || 0 === str.length);
+  }
+
+  //#endregion
+
+  //#region Token Processing (Extract to TokenProcessing.ts)
+
+  /**
+   * decode a JWT
+   *
+   * @param jwtToken
+   */
+  static decodeJwt(jwtToken: string): any {
+    if (this.isEmpty(jwtToken)) {
+      return null;
+    }
+    const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
+    const matches = idTokenPartsRegex.exec(jwtToken);
+    if (!matches || matches.length < 4) {
+      //this._requestContext.logger.warn("The returned id_token is not parseable.");
+      return null;
+    }
+    const crackedToken = {
+      header: matches[1],
+      JWSPayload: matches[2],
+      JWSSig: matches[3]
+    };
+    return crackedToken;
+  }
+
+  /**
+   * Extract IdToken by decoding the RAWIdToken
+   *
+   * @param encodedIdToken
+   */
+  static extractIdToken(encodedIdToken: string): any {
+    // id token will be decoded to get the username
+    const decodedToken = this.decodeJwt(encodedIdToken);
+    if (!decodedToken) {
+      return null;
+    }
+    try {
+      const base64IdToken = decodedToken.JWSPayload;
+      const base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
+      if (!base64Decoded) {
+        //this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
+        return null;
+      }
+      // ECMA script has JSON built-in support
+      return JSON.parse(base64Decoded);
+    } catch (err) {
+      //this._requestContext.logger.error("The returned id_token could not be decoded" + err);
+    }
+
+    return null;
+  }
+
+  //#endregion
+
+  //#region Encode and Decode
+
+  /**
+   * encoding string to base64 - platform specific check
+   *
+   * @param input
+   */
+  static base64EncodeStringUrlSafe(input: string): string {
+    // html5 should support atob function for decoding
+    if (window.btoa) {
+      return window.btoa(input);
+    }
+    else {
+      return this.encode(input);
+    }
+  }
+
+  /**
+   * decoding base64 token - platform specific check
+   *
+   * @param base64IdToken
+   */
+  static base64DecodeStringUrlSafe(base64IdToken: string): string {
+    // html5 should support atob function for decoding
+    base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
+    if (window.atob) {
+        return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
+    }
+    else {
+        return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
+    }
+  }
+  
+  /**
+   * base64 encode a string
+   *
+   * @param input
+   */
+  // TODO: Rename to specify type of encoding
+  static encode(input: string): string {
+    const keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    let output = "";
+    let chr1: number, chr2: number, chr3: number, enc1: number, enc2: number, enc3: number, enc4: number;
+    var i = 0;
+
+    input = this.utf8Encode(input);
+
+    while (i < input.length) {
+      chr1 = input.charCodeAt(i++);
+      chr2 = input.charCodeAt(i++);
+      chr3 = input.charCodeAt(i++);
+
+      enc1 = chr1 >> 2;
+      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+      enc4 = chr3 & 63;
+
+      if (isNaN(chr2)) {
+        enc3 = enc4 = 64;
+      } else if (isNaN(chr3)) {
+        enc4 = 64;
+      }
+
+      output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) + keyStr.charAt(enc3) + keyStr.charAt(enc4);
+    }
+
+    return output.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  /**
+   * utf8 encode a string
+   *
+   * @param input
+   */
+  static utf8Encode(input: string): string {
+    input = input.replace(/\r\n/g, "\n");
+    var utftext = "";
+
+    for (var n = 0; n < input.length; n++) {
+      var c = input.charCodeAt(n);
+
+      if (c < 128) {
+        utftext += String.fromCharCode(c);
+      }
+      else if ((c > 127) && (c < 2048)) {
+        utftext += String.fromCharCode((c >> 6) | 192);
+        utftext += String.fromCharCode((c & 63) | 128);
+      }
+      else {
+        utftext += String.fromCharCode((c >> 12) | 224);
+        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+        utftext += String.fromCharCode((c & 63) | 128);
+      }
+    }
+
+    return utftext;
+  }
+
+  /**
+   * decode a base64 token string
+   *
+   * @param base64IdToken
+   */
+  // TODO: Rename to specify type of encoding
+  static decode(base64IdToken: string): string {
+    var codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    base64IdToken = String(base64IdToken).replace(/=+$/, "");
+    var length = base64IdToken.length;
+    if (length % 4 === 1) {
+      throw new Error("The token to be decoded is not correctly encoded.");
+    }
+    let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = "";
+    for (var i = 0; i < length; i += 4) {
+      //Every 4 base64 encoded character will be converted to 3 byte string, which is 24 bits
+      // then 6 bits per base64 encoded character
+      h1 = codes.indexOf(base64IdToken.charAt(i));
+      h2 = codes.indexOf(base64IdToken.charAt(i + 1));
+      h3 = codes.indexOf(base64IdToken.charAt(i + 2));
+      h4 = codes.indexOf(base64IdToken.charAt(i + 3));
+      // For padding, if last two are "="
+      if (i + 2 === length - 1) {
+        bits = h1 << 18 | h2 << 12 | h3 << 6;
+        c1 = bits >> 16 & 255;
+        c2 = bits >> 8 & 255;
+        decoded += String.fromCharCode(c1, c2);
+        break;
+      }
+      // if last one is "="
+      else if (i + 1 === length - 1) {
+        bits = h1 << 18 | h2 << 12;
+        c1 = bits >> 16 & 255;
+        decoded += String.fromCharCode(c1);
+        break;
+      }
+      bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
+      // then convert to 3 byte chars
+      c1 = bits >> 16 & 255;
+      c2 = bits >> 8 & 255;
+      c3 = bits & 255;
+      decoded += String.fromCharCode(c1, c2, c3);
+    }
+    return decoded;
+  }
+
+  /**
+   * deserialize a string
+   *
+   * @param query
+   */
+  static deserialize(query: string): any {
+    let match: Array<string>; // Regex for replacing addition symbol with a space
+    const pl = /\+/g;
+    const search = /([^&=]+)=([^&]*)/g;
+    const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));
+    const obj: {} = {};
+    match = search.exec(query);
+    while (match) {
+      obj[decode(match[1])] = decode(match[2]);
+      match = search.exec(query);
+    }
+    return obj;
+  }
+
+  //#endregion
+
+  //#region Scopes (extract to Scopes.ts)
+
+  /**
+   * Check if there are dup scopes in a given request
+   *
+   * @param cachedScopes
+   * @param scopes
+   */
+  // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
+  static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+    cachedScopes = this.convertToLowerCase(cachedScopes);
+    for (let i = 0; i < scopes.length; i++) {
+        if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
+            return true;
+        }
+    }
+    return false;
+  }
+
+  /**
+   * Check if a given scope is present in the request
+   *
+   * @param cachedScopes
+   * @param scopes
+   */
+  static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
+    cachedScopes = this.convertToLowerCase(cachedScopes);
+    return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
+  }
+
+  /** 
+   * toLower
+   *
+   * @param scopes
+   */
+  // TODO: Rename this, too generic name for a function that only deals with scopes
+  static convertToLowerCase(scopes: Array<string>): Array<string> {
+    return scopes.map(scope => scope.toLowerCase());
+  }
+
+  /** 
+   * remove one element from a scope array
+   *
+   * @param scopes
+   * @param scope
+   */
+  // TODO: Rename this, too generic name for a function that only deals with scopes
+  static removeElement(scopes: Array<string>, scope: string): Array<string> {
+    return scopes.filter(value => value !== scope);
+  }
+
+  //#endregion
+
+  //#region URL Processing (Extract to UrlProcessing.ts?)
+
+  /**
+   * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
+   * @param href The url
+   * @param tenantId The tenant id to replace
+   */
+  static replaceFirstPath(url: string, tenantId: string): string {
+      if (!tenantId) {
+          return url;
+      }
+      var urlObject = this.GetUrlComponents(url);
+      var pathArray = urlObject.PathSegments;
+      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
+          pathArray[0] = tenantId;
+          url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
+      }
+      return url;
+  }
+
   /**
    * Parses out the components from a url string.
    * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
@@ -380,6 +507,8 @@ export class Utils {
 
   /**
    * Given a url or path, append a trailing slash if one doesnt exist
+   * 
+   * @param url
    */
   static CanonicalizeUri(url: string): string {
     if (url) {
@@ -394,11 +523,12 @@ export class Utils {
   }
 
   /**
-    * Checks to see if the url ends with the suffix
-    * Required because we are compiling for es5 instead of es6
-    * @param url
-    * @param str
-    */
+   * Checks to see if the url ends with the suffix
+   * Required because we are compiling for es5 instead of es6
+   * @param url
+   * @param str
+   */
+  // TODO: Rename this, not clear what it is supposed to do 
   static endsWith(url: string, suffix: string): boolean {
     if (!url || !suffix) {
       return false;
@@ -407,49 +537,74 @@ export class Utils {
     return url.indexOf(suffix, url.length - suffix.length) !== -1;
   }
 
-     static checkSSO(extraQueryParameters: string) {
-        return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
+  /**
+   * Utils function to remove the login_hint and domain_hint from the i/p extraQueryParameters
+   * @param url
+   * @param name
+   */
+  static urlRemoveQueryStringParameter(url: string, name: string): string {
+    if (this.isEmpty(url)) {
+      return url;
     }
 
-     static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
-         if (idTokenObject) {
-             if (idTokenObject.hasOwnProperty(Constants.upn)) {
-                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
-                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-                 if (extraQueryParameters) {
-                     return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-                 }
-                 else {
-                     return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-                 }
-             }
-             else {
-                 extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-                 if (extraQueryParameters) {
-                     return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
-                 }
-                 else {
-                     return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
-                 }
-             }
-         }
-         return extraQueryParameters;
-     }
+    var regex = new RegExp("(\\&" + name + "=)[^\&]+");
+    url = url.replace(regex, "");
+    // name=value&
+    regex = new RegExp("(" + name + "=)[^\&]+&");
+    url = url.replace(regex, "");
+    // name=value
+    regex = new RegExp("(" + name + "=)[^\&]+");
+    url = url.replace(regex, "");
+    return url;
+  }
 
-     static urlRemoveQueryStringParameter(url: string, name: string): string {
-         if (this.isEmpty(url)) {
-             return url;
-         }
+  //#endregion
 
-         var regex = new RegExp("(\\&" + name + "=)[^\&]+");
-         url = url.replace(regex, "");
-         // name=value&
-         regex = new RegExp("(" + name + "=)[^\&]+&");
-         url = url.replace(regex, "");
-         // name=value
-         regex = new RegExp("(" + name + "=)[^\&]+");
-         url = url.replace(regex, "");
-         return url;
-     }
+  //#region ExtraQueryParameters Processing (Extract?)
+
+  /**
+   *
+   * @param extraQueryParameters
+   */
+  static checkSSO(extraQueryParameters: string) {
+    return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
+  }
+
+   /**
+   * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
+   * in any login() or acquireToken() calls
+   *
+   * @param idTokenObject
+   * @param login_hint
+   * @param extraQueryParameters
+   */
+  //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
+  //TODO: Test all paths thoroughly
+  static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
+    if (idTokenObject) {
+      if (idTokenObject.hasOwnProperty(Constants.upn)) {
+        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
+        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+        if (extraQueryParameters) {
+          return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+        }
+        else {
+          return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+        }
+      }
+      else {
+        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
+        if (extraQueryParameters) {
+          return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
+        }
+        else {
+          return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
+        }
+      }
+    }
+    return extraQueryParameters;
+  }
+
+  //#endregion
 
 }
