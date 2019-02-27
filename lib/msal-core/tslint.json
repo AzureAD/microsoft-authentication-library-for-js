@@ -22,7 +22,7 @@
     "no-empty": true,
     "no-eval": true,
     "no-string-literal": true,
-    "no-trailing-whitespace": true,
+    "no-trailing-whitespace": [true, "ignore-blank-lines"],
     "one-line": [true,
         "check-open-brace",
         "check-catch",
