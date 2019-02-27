@@ -24,142 +24,142 @@
 import { Utils } from "./Utils";
 
 export interface ILoggerCallback {
-  (level: LogLevel, message: string, containsPii: boolean): void;
+    (level: LogLevel, message: string, containsPii: boolean): void;
 }
 
 export enum LogLevel {
-  Error,
-  Warning,
-  Info,
-  Verbose
+    Error,
+    Warning,
+    Info,
+    Verbose
 }
 
 export class Logger {// Singleton Class
 
-  /**
-   * @hidden
-   */
-  private static _instance: Logger;
+    /**
+     * @hidden
+     */
+    private static _instance: Logger;
 
-  /**
-   * @hidden
-   */
-  private _correlationId: string;
+    /**
+     * @hidden
+     */
+    private _correlationId: string;
 
-  /**
-   * @hidden
-   */
-  private _level: LogLevel = LogLevel.Info;
+    /**
+     * @hidden
+     */
+    private _level: LogLevel = LogLevel.Info;
 
-  /**
-   * @hidden
-   */
-  private _piiLoggingEnabled: boolean;
+    /**
+     * @hidden
+     */
+    private _piiLoggingEnabled: boolean;
 
-  /**
-   * @hidden
-   */
-  private _localCallback: ILoggerCallback;
+    /**
+     * @hidden
+     */
+    private _localCallback: ILoggerCallback;
 
-  constructor(localCallback: ILoggerCallback,
-      options:
-      {
-          correlationId?: string,
-          level?: LogLevel,
-          piiLoggingEnabled?: boolean,
-      } = {}) {
-      const {
-          correlationId = "",
-          level = LogLevel.Info,
-          piiLoggingEnabled = false
-      } = options;
+    constructor(localCallback: ILoggerCallback,
+        options:
+            {
+                correlationId?: string,
+                level?: LogLevel,
+                piiLoggingEnabled?: boolean,
+            } = {}) {
+        const {
+            correlationId = "",
+            level = LogLevel.Info,
+            piiLoggingEnabled = false
+        } = options;
 
-      this._localCallback = localCallback;
-      this._correlationId = correlationId;
-      this._level = level;
-      this._piiLoggingEnabled = piiLoggingEnabled;
-  }
-
-  /**
-   * @hidden
-   */
-  private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
-    if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
-      return;
+        this._localCallback = localCallback;
+        this._correlationId = correlationId;
+        this._level = level;
+        this._piiLoggingEnabled = piiLoggingEnabled;
     }
-    var timestamp = new Date().toUTCString();
-    var log: string;
-    if (!Utils.isEmpty(this._correlationId)) {
-      log = timestamp + ":" + this._correlationId + "-" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+
+    /**
+     * @hidden
+     */
+    private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
+        if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
+            return;
+        }
+        var timestamp = new Date().toUTCString();
+        var log: string;
+        if (!Utils.isEmpty(this._correlationId)) {
+            log = timestamp + ":" + this._correlationId + "-" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        else {
+            log = timestamp + ":" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        this.executeCallback(logLevel, log, containsPii);
     }
-    else {
-      log = timestamp + ":" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+
+    /**
+     * @hidden
+     */
+    executeCallback(level: LogLevel, message: string, containsPii: boolean) {
+        if (this._localCallback) {
+            this._localCallback(level, message, containsPii);
+        }
     }
-    this.executeCallback(logLevel, log, containsPii);
-  }
 
-  /**
-   * @hidden
-   */
-  executeCallback(level: LogLevel, message: string, containsPii: boolean) {
-    if (this._localCallback) {
-      this._localCallback(level, message, containsPii);
+    /**
+     * @hidden
+     */
+    error(message: string): void {
+        this.logMessage(LogLevel.Error, message, false);
     }
-  }
 
-  /**
-   * @hidden
-   */
-  error(message: string): void {
-    this.logMessage(LogLevel.Error, message, false);
-  }
+    /**
+     * @hidden
+     */
+    errorPii(message: string): void {
+        this.logMessage(LogLevel.Error, message, true);
+    }
 
-  /**
-   * @hidden
-   */
-  errorPii(message: string): void {
-    this.logMessage(LogLevel.Error, message, true);
-  }
+    /**
+     * @hidden
+     */
+    warning(message: string): void {
+        this.logMessage(LogLevel.Warning, message, false);
+    }
 
-  /**
-   * @hidden
-   */
-  warning(message: string): void {
-    this.logMessage(LogLevel.Warning, message, false);
-  }
+    /**
+     * @hidden
+     */
+    warningPii(message: string): void {
+        this.logMessage(LogLevel.Warning, message, true);
+    }
 
-  /**
-   * @hidden
-   */
-  warningPii(message: string): void {
-    this.logMessage(LogLevel.Warning, message, true);
-  }
+    /**
+     * @hidden
+     */
+    info(message: string): void {
+        this.logMessage(LogLevel.Info, message, false);
+    }
 
-  /**
-   * @hidden
-   */
-  info(message: string): void {
-    this.logMessage(LogLevel.Info, message, false);
-  }
+    /**
+     * @hidden
+     */
+    infoPii(message: string): void {
+        this.logMessage(LogLevel.Info, message, true);
+    }
 
-  /**
-   * @hidden
-   */
-  infoPii(message: string): void {
-    this.logMessage(LogLevel.Info, message, true);
-  }
+    /**
+     * @hidden
+     */
+    verbose(message: string): void {
+        this.logMessage(LogLevel.Verbose, message, false);
+    }
 
-  /**
-   * @hidden
-   */
-  verbose(message: string): void {
-    this.logMessage(LogLevel.Verbose, message, false);
-  }
-
-  /**
-   * @hidden
-   */
-  verbosePii(message: string): void {
-    this.logMessage(LogLevel.Verbose, message, true);
-  }
+    /**
+     * @hidden
+     */
+    verbosePii(message: string): void {
+        this.logMessage(LogLevel.Verbose, message, true);
+    }
 }

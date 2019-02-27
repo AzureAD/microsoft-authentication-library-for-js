@@ -25,18 +25,18 @@
  * @hidden
  */
 export class Telemetry {
-  private static instance: Telemetry;
-  private receiverCallback: (r: Array<Object>) => void;
+    private static instance: Telemetry;
+    private receiverCallback: (r: Array<Object>) => void;
 
-  constructor() {
-      return;
-  }
+    constructor() {
+        return;
+    }
 
-  RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void {
-    this.receiverCallback = receiverCallback;
-  }
+    RegisterReceiver(receiverCallback: (receiver: Array<Object>) => void): void {
+        this.receiverCallback = receiverCallback;
+    }
 
-  static GetInstance(): Telemetry {
-    return this.instance || (this.instance = new this());
-  }
+    static GetInstance(): Telemetry {
+        return this.instance || (this.instance = new this());
+    }
 }

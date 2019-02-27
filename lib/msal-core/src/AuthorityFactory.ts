@@ -31,9 +31,10 @@ import { Authority, AuthorityType } from "./Authority";
 import { ErrorMessage } from "./ErrorMessage";
 
 export class AuthorityFactory {
+
     /**
-    * Parse the url and determine the type of authority
-    */
+     * Parse the url and determine the type of authority
+     */
     private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
         authorityUrl = Utils.CanonicalizeUri(authorityUrl);
         let components = Utils.GetUrlComponents(authorityUrl);
@@ -49,9 +50,9 @@ export class AuthorityFactory {
     }
 
     /**
-    * Create an authority object of the correct type based on the url
-    * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
-    */
+     * Create an authority object of the correct type based on the url
+     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
+     */
     public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
         if (Utils.isEmpty(authorityUrl)) {
             return null;

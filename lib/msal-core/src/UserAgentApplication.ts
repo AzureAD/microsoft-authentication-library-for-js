@@ -1190,7 +1190,7 @@ export class UserAgentApplication {
                     }
                     else {
                         authenticationRequest = new AuthenticationRequestParameters(
-                            AuthorityFactory.CreateInstance(authority,this.validateAuthority),
+                            AuthorityFactory.CreateInstance(authority, this.validateAuthority),
                             this.clientId,
                             scopes,
                             ResponseTypes.token,

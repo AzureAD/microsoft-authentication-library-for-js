@@ -21,6 +21,7 @@
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// TODO: Rename and resconstruct as Account.ts
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { Utils } from "./Utils";

@@ -29,39 +29,43 @@ import { Constants } from "./Constants";
  * @hidden
  */
 export class AuthenticationRequestParameters {
-  authorityInstance: Authority;
-  clientId: string;
-  nonce: string;
-  state: string;
-  correlationId: string;
-  xClientVer: string;
-  xClientSku: string;
-  scopes: Array<string>;
-  responseType: string;
-  promptValue: string;
-  extraQueryParameters: string;
-  loginHint: string;
-  domainHint: string;
-  redirectUri: string;
+    authorityInstance: Authority;
+    clientId: string;
+    nonce: string;
+    state: string;
+    correlationId: string;
+    xClientVer: string;
+    xClientSku: string;
+    scopes: Array<string>;
+    responseType: string;
+    promptValue: string;
+    extraQueryParameters: string;
+    loginHint: string;
+    domainHint: string;
+    redirectUri: string;
     public get authority(): string {
         return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
-  }
+    }
 
-  constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string ) {
-    this.authorityInstance = authority;
-    this.clientId = clientId;
-    this.scopes = scope;
-    this.responseType = responseType;
-    this.redirectUri = redirectUri;
-    // randomly generated values
-    this.correlationId = Utils.createNewGuid();
-    this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
-    this.nonce = Utils.createNewGuid();
-    // telemetry information
-    this.xClientSku = "MSAL.JS";
-    this.xClientVer = Utils.getLibraryVersion();
-  }
+    constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string) {
+        this.authorityInstance = authority;
+        this.clientId = clientId;
+        this.scopes = scope;
+        this.responseType = responseType;
+        this.redirectUri = redirectUri;
+        // randomly generated values
+        this.correlationId = Utils.createNewGuid();
+        this.state = state && !Utils.isEmpty(state) ? Utils.createNewGuid() + "|" + state : Utils.createNewGuid();
+        this.nonce = Utils.createNewGuid();
+        // telemetry information
+        this.xClientSku = "MSAL.JS";
+        this.xClientVer = Utils.getLibraryVersion();
+    }
 
+    /**
+     * Constructs the UrlNavigate added to the server request
+     * @param scopes
+     */
     createNavigateUrl(scopes: Array<string>): string {
         var str = this.createNavigationUrlString(scopes);
         let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
@@ -75,6 +79,10 @@ export class AuthenticationRequestParameters {
         return requestUrl;
     }
 
+    /**
+     * Helper function to construct UrlNavigate
+     * @param scopes
+     */
     createNavigationUrlString(scopes: Array<string>): Array<string> {
         if (!scopes) {
             scopes = [this.clientId];
@@ -105,27 +113,35 @@ export class AuthenticationRequestParameters {
         return str;
     }
 
-  translateclientIdUsedInScope(scopes: Array<string>): void {
-    const clientIdIndex: number = scopes.indexOf(this.clientId);
-    if (clientIdIndex >= 0) {
-      scopes.splice(clientIdIndex, 1);
-      if (scopes.indexOf("openid") === -1) {
-        scopes.push("openid");
-      }
-      if (scopes.indexOf("profile") === -1) {
-        scopes.push("profile");
-      }
-    }
-  }
-
-  parseScope(scopes: Array<string>): string {
-    let scopeList: string = "";
-    if (scopes) {
-        for (let i: number = 0; i < scopes.length; ++i) {
-        scopeList += (i !== scopes.length - 1) ? scopes[i] + " " : scopes[i];
-      }
+    /**
+     * add well known open-id scopes
+     * @param scopes
+     */
+    translateclientIdUsedInScope(scopes: Array<string>): void {
+        const clientIdIndex: number = scopes.indexOf(this.clientId);
+        if (clientIdIndex >= 0) {
+            scopes.splice(clientIdIndex, 1);
+            if (scopes.indexOf("openid") === -1) {
+                scopes.push("openid");
+            }
+            if (scopes.indexOf("profile") === -1) {
+                scopes.push("profile");
+            }
+        }
     }
 
-    return scopeList;
-  }
+    /**
+     * Parse input scopes
+     * @param scopes
+     */
+    parseScope(scopes: Array<string>): string {
+        let scopeList: string = "";
+        if (scopes) {
+            for (let i: number = 0; i < scopes.length; ++i) {
+                scopeList += (i !== scopes.length - 1) ? scopes[i] + " " : scopes[i];
+            }
+        }
+
+        return scopeList;
+    }
 }
