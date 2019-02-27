@@ -5,7 +5,7 @@ addons:
 language: node_js
 
 node_js:
-  - 'stable'
+  - '10'
 
 cache:
   directories:
