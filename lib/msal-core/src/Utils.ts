@@ -269,7 +269,7 @@ export class Utils {
         return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
     }
   }
-  
+
   /**
    * base64 encode a string
    *
@@ -432,7 +432,7 @@ export class Utils {
     return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
   }
 
-  /** 
+  /**
    * toLower
    *
    * @param scopes
@@ -442,7 +442,7 @@ export class Utils {
     return scopes.map(scope => scope.toLowerCase());
   }
 
-  /** 
+  /**
    * remove one element from a scope array
    *
    * @param scopes
@@ -507,7 +507,7 @@ export class Utils {
 
   /**
    * Given a url or path, append a trailing slash if one doesnt exist
-   * 
+   *
    * @param url
    */
   static CanonicalizeUri(url: string): string {
@@ -528,7 +528,7 @@ export class Utils {
    * @param url
    * @param str
    */
-  // TODO: Rename this, not clear what it is supposed to do 
+  // TODO: Rename this, not clear what it is supposed to do
   static endsWith(url: string, suffix: string): boolean {
     if (!url || !suffix) {
       return false;

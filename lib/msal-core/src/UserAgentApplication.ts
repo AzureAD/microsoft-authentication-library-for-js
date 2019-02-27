@@ -37,7 +37,7 @@ import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 
 
-/** 
+/**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
  */
 // TODO: Add more accurate description and document the design choices made
@@ -68,7 +68,7 @@ let ResponseTypes = {
   id_token_token: "id_token token"
 };
 
-/** 
+/**
  *
  * @hidden
  */
@@ -91,7 +91,7 @@ export type tokenReceivedCallback = (errorDesc: string, token: string, error: st
 
 // TODO: Add second callback for error cases
 
-/** 
+/**
  * A wrapper to handle the token response/error within the iFrame always
  *
  * @param target
@@ -115,7 +115,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
  * UserAgentApplication class - Object Instance that the developer would need to make login/acquireToken calls
  */
 export class UserAgentApplication {
-  
+
   // TODO: Initialize configuration object
   // TODO: Many of these variables will be set in the configuration object
 
@@ -303,21 +303,21 @@ export class UserAgentApplication {
     this._postLogoutredirectUri = postLogoutRedirectUri;
     this._logger = logger;
     this.storeAuthStateInCookie = storeAuthStateInCookie;
-    
+
     // TODO: This should be replaced with two different callbacks for success and error cases
     this._tokenReceivedCallback = tokenReceivedCallback;
-    
+
     // Track login and acquireToken in progress
     this._loginInProgress = false;
     this._acquireTokenInProgress = false;
 
     // TODO: This should be replaced with cache object, typescript checking for "localStorage" and "sessionStorage" values
-    this._cacheLocation = cacheLocation; 
+    this._cacheLocation = cacheLocation;
     if (!this._cacheLocations[cacheLocation]) {
       throw new Error("Cache Location is not valid. Provided value:" + this._cacheLocation + ".Possible values are: " + this._cacheLocations.localStorage + ", " + this._cacheLocations.sessionStorage);
     }
     this._cacheStorage = new Storage(this._cacheLocation); //cache keys msal
-    
+
     // Initialize window handling code
     // TODO: refactor - write a utility function
     window.openedWindows = [];
@@ -441,10 +441,10 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-      
+
       const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
-      
+
       // build URL to navigate to proceed with the login
       const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
 
@@ -493,7 +493,7 @@ export class UserAgentApplication {
     if (this._acquireTokenInProgress) {
       return;
     }
-    
+
     // If no session exists, prompt the user to login.
     const scope = scopes.join(" ").toLowerCase();
     if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
@@ -558,7 +558,7 @@ export class UserAgentApplication {
     });
   }
 
-  /** 
+  /**
    * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
    * @param {string} hash - Hash passed from redirect page.
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
@@ -643,7 +643,7 @@ export class UserAgentApplication {
       }
     });
   }
-  
+
   /**
    * Helper function to loginPopup
    *
@@ -673,7 +673,7 @@ export class UserAgentApplication {
     // Resolve endpoint
     this.authorityInstance.ResolveEndpointsAsync().then(() => {
       const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-      
+
       // set extraQueryParameters
       if (extraQueryParameters) {
         authenticationRequest.extraQueryParameters = extraQueryParameters;
@@ -749,7 +749,7 @@ export class UserAgentApplication {
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         // TODO: Should reject with custom error
-        // TODO: Is this always accessToken? 
+        // TODO: Is this always accessToken?
         reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + isValidScope);
       }
 
@@ -769,7 +769,6 @@ export class UserAgentApplication {
         return;
       }
 
-      
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this._logger.info("User login is required");
@@ -782,7 +781,7 @@ export class UserAgentApplication {
 
       let authenticationRequest: AuthenticationRequestParameters;
       let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-      
+
       // Open the popup window
       var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
@@ -1070,7 +1069,7 @@ export class UserAgentApplication {
         else {
           this._logger.verbose("Token is not in cache for scope:" + scope);
         }
-        
+
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         // TODO: Do we need to check if cache result is empty before calling this?
         if (!authenticationRequest.authorityInstance) {//Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
@@ -1270,8 +1269,8 @@ export class UserAgentApplication {
     if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
       this._logger.infoPii("Navigate to:" + urlNavigate);
       window.location.replace(urlNavigate);
-    } 
-    
+    }
+
     // TODO: Log error on failure - we should be erroring out, unexpected library error
     else {
       this._logger.info("Navigate url is empty");
@@ -1464,7 +1463,7 @@ export class UserAgentApplication {
 
     // if (window.parent !== window), by using self, window.parent becomes equal to window in getRequestInfo method specifically
     // TODO: Refactor so that this or saveTokenFromHash function returns a response object
-    const requestInfo = self.getRequestInfo(hash); 
+    const requestInfo = self.getRequestInfo(hash);
 
     let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken: boolean = true;
     self._logger.info("Returned from redirect url");
@@ -1510,7 +1509,7 @@ export class UserAgentApplication {
       // retrieve id_token or access_token, in case of response_type = id_token_token, retrieve only access_token
       token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
       tokenType = Constants.accessToken;
-    } 
+    }
     // login request
     else if (requestInfo.requestType === Constants.login) {
       token = requestInfo.parameters[Constants.idToken];
@@ -1561,7 +1560,7 @@ export class UserAgentApplication {
     // If there is a hash with parameters in the redirect response
     if (parameters) {
       tokenResponse.parameters = parameters;
-      
+
       // Check for error or tokens
       if (parameters.hasOwnProperty(Constants.errorDescription) ||
         parameters.hasOwnProperty(Constants.error) ||
@@ -1569,7 +1568,7 @@ export class UserAgentApplication {
         parameters.hasOwnProperty(Constants.idToken)
       ) {
         tokenResponse.valid = true;
-        
+
         // Identify the callback based on the state
         let stateResponse: string;
         if (parameters.hasOwnProperty("state")) {
@@ -1581,13 +1580,13 @@ export class UserAgentApplication {
         tokenResponse.stateResponse = stateResponse;
         // async calls can fire iframe and login request at the same time if developer does not use the API as expected
         // incoming callback needs to be looked up to find the request type
-        
+
         // loginRedirect
         if (stateResponse === this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie) || stateResponse === this._silentAuthenticationState) { // loginRedirect
           tokenResponse.requestType = Constants.login;
           tokenResponse.stateMatch = true;
           return tokenResponse;
-        } 
+        }
         // acquireTokenRedirect
         else if (stateResponse === this._cacheStorage.getItem(Constants.stateAcquireToken, this.storeAuthStateInCookie)) { //acquireTokenRedirect
           tokenResponse.requestType = Constants.renewToken;
@@ -1631,7 +1630,7 @@ export class UserAgentApplication {
     const tokenCacheItems = this._cacheStorage.getAllAccessTokens(this.clientId, user ? user.userIdentifier : null);
 
     // No match found after initial filtering
-    if (tokenCacheItems.length === 0) { 
+    if (tokenCacheItems.length === 0) {
       return null;
     }
 
@@ -1746,7 +1745,7 @@ export class UserAgentApplication {
     });
     return authorityList;
   }
-  
+
   /**
    * Check if ADAL id_token exists and return if exists.
    *
@@ -1831,7 +1830,7 @@ export class UserAgentApplication {
     // Cache authorityKey
     const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
     this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
-    
+
     // Cache nonce
     this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce);
 
@@ -1891,7 +1890,7 @@ export class UserAgentApplication {
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
       const accessTokenValue = new AccessTokenValue(tokenResponse.parameters[Constants.accessToken], idToken.rawIdToken, Utils.expiresIn(tokenResponse.parameters[Constants.expiresIn]).toString(), clientInfo);
       this._cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-    } 
+    }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
       scope = this.clientId;
@@ -1899,7 +1898,7 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
       // TODO: since there is no access_token, this is also set to id_token?
-      const accessTokenValue = new AccessTokenValue(tokenResponse.parameters[Constants.idToken], tokenResponse.parameters[Constants.idToken], idToken.expiration, clientInfo); 
+      const accessTokenValue = new AccessTokenValue(tokenResponse.parameters[Constants.idToken], tokenResponse.parameters[Constants.idToken], idToken.expiration, clientInfo);
       this._cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
     }
   }
@@ -1945,7 +1944,7 @@ export class UserAgentApplication {
         var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
         acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
       }
-    } 
+    }
     // If the server returns "Success"
     else {
       // Verify the state from redirect and record tokens to storage if exists
@@ -1956,14 +1955,14 @@ export class UserAgentApplication {
         }
         var idToken: IdToken;
         var clientInfo: string = "";
-        
+
         // Process access_token
         if (tokenResponse.parameters.hasOwnProperty(Constants.accessToken)) {
           this._logger.info("Fragment has access token");
           this._acquireTokenInProgress = false;
           let user: User;
 
-          // retrieve the id_token from response if present : 
+          // retrieve the id_token from response if present :
           // TODO: Is this the case of id_token_token??
           if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
             idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
@@ -2026,7 +2025,7 @@ export class UserAgentApplication {
             }
 
             this._user = User.createUser(idToken, new ClientInfo(clientInfo));
-            
+
             if (idToken && idToken.nonce) {
               // check nonce integrity if idToken has nonce - throw an error if not matched
               if (idToken.nonce !== this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie)) {
@@ -2034,7 +2033,7 @@ export class UserAgentApplication {
                 // TODO: optimize this - may be combine if it is a string in both cases
                 this._cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie) + "," + "Actual Nonce: " + idToken.nonce);
                 this._logger.error("Nonce Mismatch.Expected Nonce: " + this._cacheStorage.getItem(Constants.nonceIdToken, this.storeAuthStateInCookie) + "," + "Actual Nonce: " + idToken.nonce);
-              } 
+              }
               // Save the token
               else {
                 this._cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
@@ -2054,7 +2053,7 @@ export class UserAgentApplication {
               this._cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
             }
         }
-      } 
+      }
       // State mismatch - unexpected/invalid state
       else {
         authorityKey = tokenResponse.stateResponse;
@@ -2238,7 +2237,7 @@ export class UserAgentApplication {
 
   //#region Angular
 
-  /** 
+  /**
   * Broadcast messages - Used only for Angular?
   *
   * @param eventName
@@ -2277,7 +2276,7 @@ export class UserAgentApplication {
     } else {
       authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
     }
-    
+
     // get cached token
     return this.getCachedToken(authenticationRequest, user);
   }
@@ -2296,7 +2295,7 @@ export class UserAgentApplication {
             }
         }
     }
-    
+
     // process all protected resources and send the matched one
     if (this._protectedResourceMap.size > 0) {
         for (let key of Array.from(this._protectedResourceMap.keys())) {
