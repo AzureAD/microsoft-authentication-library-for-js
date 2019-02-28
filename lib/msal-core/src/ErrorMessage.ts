@@ -105,18 +105,9 @@ export const ErrorMessage = {
   },
 
   // Interaction Required Errors
-  loginRequired: {
-    code: "login_required",
-    desc: "login_required: User must login"
-  },
-  interactionRequired: {
-    code: "interaction_required",
-    desc: "interaction_required: "
-  },
-  consentRequired: {
-    code: "consent_required",
-    desc: "consent_required: "
-  },
+  loginRequired: "login_required", 
+  interactionRequired: "interaction_required", 
+  consentRequired: "consent_required",
 
   // No bucket failure
   userLoginError: {

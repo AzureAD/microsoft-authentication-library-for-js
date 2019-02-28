@@ -73,42 +73,42 @@
             "Cache error for scope " + scope + ": " + ErrorMessage.multipleMatchingTokens.desc);
      }
  
-     static createMultipleAuthoritiesInCacheError(scope: string, tokenType: string, userState: string) : ClientAuthError {
+     static createMultipleAuthoritiesInCacheError(scope: string) : ClientAuthError {
          return new ClientAuthError(ErrorMessage.multipleMatchingAuthorities.code,
              "Cache error for scope " + scope + ": " + ErrorMessage.multipleMatchingAuthorities.desc);
      }
  
-     static createPopupWindowError(tokenType: string, userState: string) : ClientAuthError {
+     static createPopupWindowError() : ClientAuthError {
          return new ClientAuthError(ErrorMessage.popUpWindowError.code,
              ErrorMessage.popUpWindowError.desc);
      }
  
-     static createTokenRenewalTimeoutError(tokenType: string, userState: string) : ClientAuthError {
+     static createTokenRenewalTimeoutError() : ClientAuthError {
          return new ClientAuthError(ErrorMessage.tokenRenewalError.code,
              ErrorMessage.tokenRenewalError.desc);
      }
  
-     static createInvalidStateError(invalidState: string, actualState: string, tokenType: string, userState: string) : ClientAuthError {
+     static createInvalidStateError(invalidState: string, actualState: string) : ClientAuthError {
          return new ClientAuthError(ErrorMessage.invalidStateError.code,
              ErrorMessage.invalidStateError.desc + invalidState + ", state expected : " + actualState);
      }
  
-     static createNonceMismatchError(invalidNonce: string, actualNonce: string, tokenType: string, userState: string) : ClientAuthError {
+     static createNonceMismatchError(invalidNonce: string, actualNonce: string) : ClientAuthError {
          return new ClientAuthError(ErrorMessage.nonceMismatchError.code,
              ErrorMessage.nonceMismatchError + invalidNonce + ", nonce expected : " + actualNonce);
      }
  
-     static createLoginInProgressError(tokenType: string, userState: string) : ClientAuthError {
+     static createLoginInProgressError() : ClientAuthError {
          return new ClientAuthError(ErrorMessage.loginProgressError.code,
              ErrorMessage.loginProgressError.desc);
      }
  
-     static createAcquireTokenInProgressError(tokenType: string, userState: string) : ClientAuthError {
+     static createAcquireTokenInProgressError() : ClientAuthError {
          return new ClientAuthError(ErrorMessage.acquireTokenProgressError.code,
              ErrorMessage.acquireTokenProgressError.desc);
      }
  
-     static createUserCancelledError(tokenType: string, userState: string) : ClientAuthError {
+     static createUserCancelledError() : ClientAuthError {
          return new ClientAuthError(ErrorMessage.userCancelledError.code,
              ErrorMessage.userCancelledError.desc);
      }
@@ -202,7 +202,6 @@
   *
   * Error thrown when the user is required to perform an interactive token request.
   */
- // TODO: Error should be thrown if the server requires additional interaction.
  export class InteractionRequiredAuthError extends ServerError {
      constructor(error: string, errorDesc: string) {
          super(error, errorDesc);
@@ -211,19 +210,16 @@
          Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
      }
 
-    static createLoginRequiredAuthError(tokenType: string, userState: string) : InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.loginRequired.code,
-            ErrorMessage.loginRequired.desc);
+    static createLoginRequiredAuthError(errorDesc: string) : InteractionRequiredAuthError {
+        return new InteractionRequiredAuthError(ErrorMessage.loginRequired, errorDesc);
     }
 
-    static createInteractionRequiredAuthError(errorDesc: string, tokenType: string, userState: string) : InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.interactionRequired.code,
-            ErrorMessage.interactionRequired + errorDesc);
+    static createInteractionRequiredAuthError(errorDesc: string) : InteractionRequiredAuthError {
+        return new InteractionRequiredAuthError(ErrorMessage.interactionRequired, errorDesc);
     }
 
-    static createConsentRequiredAuthError(errorDesc: string, tokenType: string, userState: string) : InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.consentRequired.code,
-            ErrorMessage.consentRequired.desc + errorDesc);
+    static createConsentRequiredAuthError(errorDesc: string) : InteractionRequiredAuthError {
+        return new InteractionRequiredAuthError(ErrorMessage.consentRequired, errorDesc);
     }
  }
  
