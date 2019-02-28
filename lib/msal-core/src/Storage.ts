@@ -175,4 +175,20 @@ export class Storage {// Singleton
         this.setItemCookie(Constants.loginRequest, "", -1);
         this.setItemCookie(Constants.stateAcquireToken, "", -1);
     }
+
+    /**
+     * Create acquireTokenUserKey to cache user object
+     * acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userId + Constants.resourceDelimeter + authenticationRequest.state;
+     */
+    static generateATUserKey(userId: any, state: string) {
+        return `msal.acquireTokenUser|${userId}|${state}`;
+    }
+
+    /**
+     * Create authorityKey to cache authority
+     * const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+     */
+    static generateAuthKey(state: string) {
+        return `msal.authority|${state}`;
+    }
 }
