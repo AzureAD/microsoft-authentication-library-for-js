@@ -1928,7 +1928,7 @@ export class UserAgentApplication {
         this._acquireTokenInProgress = false;
         authorityKey = Storage.generateAuthKey(tokenResponse.stateResponse);
         var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        acquireTokenUserKey = Storage.generateATUserKey(userKey, tokenResponse.stateResponse);
       }
     }
     // If the server returns "Success"
