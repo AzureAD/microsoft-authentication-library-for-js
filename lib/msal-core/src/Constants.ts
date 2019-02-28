@@ -84,9 +84,11 @@ export class Constants {
   static get renewToken(): string { return "RENEW_TOKEN"; }
   static get unknown(): string { return "UNKNOWN"; }
   static get urlHash(): string { return "msal.urlHash"; }
-    static get angularLoginRequest(): string { return "msal.angular.login.request"; }
-    static get userIdentifier(): string { return "userIdentifier"; }
-    static get common(): string { return "common"; }
+  static get angularLoginRequest(): string { return "msal.angular.login.request"; }
+  static get userIdentifier(): string { return "userIdentifier"; }
+  static get common(): string { return "common"; }
+  static get cacheLocationLocal(): string { return "localStorage"; }
+  static get cacheLocationSession(): string { return "sessionStorage"; }
 }
 
 /**
