@@ -35,7 +35,6 @@ import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { AuthError, ClientAuthError } from './AuthError';
 
 
 /**
@@ -81,21 +80,17 @@ export interface CacheResult {
 }
 
 /**
- * A type alias for a tokenReceivedCallback function.
+ * A type alias of for a tokenReceivedCallback function.
  * @param tokenReceivedCallback.errorDesc error description returned from the STS if API call fails.
  * @param tokenReceivedCallback.token token returned from STS if token request is successful.
  * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
 // TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
-export type tokenReceivedCallback = (token: string, tokenType: string, userState: string) => void;
+export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
 
-/**
- * A type alias for an errorRecieved callback function.
- * 
- * @param errorReceivedCallback.err error object returned during a redirect callback. 
- */
-export type errorReceivedCallback = (err: AuthError) => void;
+// TODO: Add second callback for error cases
+
 /**
  * A wrapper to handle the token response/error within the iFrame always
  *
@@ -173,11 +168,6 @@ export class UserAgentApplication {
    * @hidden
    */
   private _tokenReceivedCallback: tokenReceivedCallback = null;
-
-  /**
-   * @hidden
-   */
-  private _errorReceivedCallback: errorReceivedCallback = null;
 
   /**
    * @hidden
@@ -260,8 +250,7 @@ export class UserAgentApplication {
    * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;,\ where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenantId&gt;/&lt;policyName&gt;/
    * - Default value is: "https://login.microsoftonline.com/common"
-   * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed successfully.
-   * @param _errorReceivedCallback - The function that will get the callback once this API is completed in case of a failure or error.
+   * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
    * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
    */
   // TODO: Update constructor to accept configuration object, success callback and error callback
@@ -269,7 +258,6 @@ export class UserAgentApplication {
     clientId: string,
     authority: string | null,
     tokenReceivedCallback: tokenReceivedCallback,
-    errorReceivedCallback: errorReceivedCallback,
     options:
       {
         validateAuthority?: boolean,
@@ -318,7 +306,6 @@ export class UserAgentApplication {
 
     // TODO: This should be replaced with two different callbacks for success and error cases
     this._tokenReceivedCallback = tokenReceivedCallback;
-    this._errorReceivedCallback = errorReceivedCallback;
 
     // Track login and acquireToken in progress
     this._loginInProgress = false;
@@ -371,7 +358,12 @@ export class UserAgentApplication {
     3. redirect user to AAD
      */
     if (this._loginInProgress) {
-      throw ClientAuthError.createLoginInProgressError();
+      // TODO: use error callback here
+      if (this._tokenReceivedCallback) {
+            this._tokenReceivedCallback(ErrorDescription.loginProgressError, null, ErrorCodes.loginProgressError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+        return;
+      }
+      // TODO: Should we throw noCallback error here?
     }
 
     // TODO: Replace with new validation pattern
