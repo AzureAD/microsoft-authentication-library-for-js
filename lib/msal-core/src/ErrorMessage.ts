@@ -93,6 +93,26 @@ export const ErrorMessage = {
     code: "clientid_input_scopes_error",
     desc: "Client ID can only be provided as a single scope"
   },
+  invalidAuthorityType: {
+    code: "invalid_authority_type",
+    desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>"
+  },
+  authorityUriInsecure: {
+    code: "authority_uri_insecure",
+    desc: "Authority URIs must use https."
+  },
+  authorityUriInvalidPath: {
+    code: "authority_uri_invalid_path",
+    desc: "Given authority URI is invalid."
+  },
+  unsupportedAuthorityValidation: {
+    code: "unsupported_authority_validation",
+    desc: "The authority validation is not supported for this authority type."
+  },
+  b2cAuthorityUriInvalidPath: {
+    code: "b2c_authority_uri_invalid_path",
+    desc: "The given URI for the B2C authority is invalid."
+  },
 
   // Server Authentication Errors
   serverUnavailable: {
@@ -105,8 +125,8 @@ export const ErrorMessage = {
   },
 
   // Interaction Required Errors
-  loginRequired: "login_required", 
-  interactionRequired: "interaction_required", 
+  loginRequired: "login_required",
+  interactionRequired: "interaction_required",
   consentRequired: "consent_required",
 
   // No bucket failure
