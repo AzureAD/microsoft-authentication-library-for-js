@@ -29,7 +29,7 @@ import { ErrorMessage } from "./ErrorMessage";
 * General error class thrown by the MSAL.js library.
 */
 export class AuthError extends Error {
-    
+
     error: string;
     errorDesc: string;
 

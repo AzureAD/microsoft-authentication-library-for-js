@@ -31,7 +31,7 @@ import { ErrorMessage } from "./ErrorMessage";
  * Error thrown when there is an error in configuration of the .js library.
  */
 export class ClientConfigurationError extends ClientAuthError {
-    
+
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
         this.name = "ConfigurationError";
@@ -40,8 +40,8 @@ export class ClientConfigurationError extends ClientAuthError {
 
     static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
         return new ClientConfigurationError(ErrorMessage.invalidCacheLocation.code,
-            ErrorMessage.invalidCacheLocation.desc + "Provided value:" + givenCacheLocation +
-            ". Possible values are: " + Constants.cacheLocationLocal + ", " + Constants.cacheLocationSession);
+            ErrorMessage.invalidCacheLocation.desc +
+            " Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}");
     }
 
     static createNoCallbackError(): ClientConfigurationError {
@@ -56,16 +56,16 @@ export class ClientConfigurationError extends ClientAuthError {
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ErrorMessage.emptyScopes.code,
-            ErrorMessage.emptyScopes.desc + ". Given value: " + scopesValue);
+            ErrorMessage.emptyScopes.desc + ". Given value: ${scopesValue}");
     }
 
     static createScopesNonArrayError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ErrorMessage.nonArrayScopes.code,
-            ErrorMessage.nonArrayScopes.desc + " Given value: " + scopesValue);
+            ErrorMessage.nonArrayScopes.desc + " Given value: ${scopesValue}");
     }
 
     static createClientIdSingleScopeError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ErrorMessage.clientScope.code,
-            ErrorMessage.clientScope.desc + " Given value: " + scopesValue);
+            ErrorMessage.clientScope.desc + " Given value: ${scopesValue}");
     }
 }

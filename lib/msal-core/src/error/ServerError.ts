@@ -30,7 +30,7 @@ import { ErrorMessage } from "./ErrorMessage";
  * Error thrown when there is an error with the server code, for example, unavailability.
  */
 export class ServerError extends AuthError {
-    
+
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
         this.name = "ServerError";

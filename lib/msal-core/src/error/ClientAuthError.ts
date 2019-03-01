@@ -31,7 +31,7 @@ import { Utils } from "../Utils";
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
-    
+
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
         this.name = "ClientAuthError";
@@ -40,21 +40,21 @@ export class ClientAuthError extends AuthError {
     }
 
     static createEndpointResolutionError(errDesc: string): ClientAuthError {
-        var errorMessage = "Error: could not resolve endpoints. Please check network and try again.";
+        var errorMessage = ErrorMessage.endpointResolutionError.desc;
         if (!Utils.isEmpty(errDesc)) {
-            errorMessage += " Details: " + errDesc;
+            errorMessage += " Details: ${errDesc}";
         }
         return new ClientAuthError(ErrorMessage.endpointResolutionError.code, errorMessage);
     }
 
     static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ErrorMessage.multipleMatchingTokens.code,
-            "Cache error for scope " + scope + ": " + ErrorMessage.multipleMatchingTokens.desc);
+            "Cache error for scope ${scope}: ${ErrorMessage.multipleMatchingTokens.desc}");
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ErrorMessage.multipleMatchingAuthorities.code,
-            "Cache error for scope " + scope + ": " + ErrorMessage.multipleMatchingAuthorities.desc);
+            "Cache error for scope ${scope}: ${ErrorMessage.multipleMatchingAuthorities.desc}");
     }
 
     static createPopupWindowError(): ClientAuthError {
@@ -69,12 +69,12 @@ export class ClientAuthError extends AuthError {
 
     static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {
         return new ClientAuthError(ErrorMessage.invalidStateError.code,
-            ErrorMessage.invalidStateError.desc + invalidState + ", state expected : " + actualState);
+            ErrorMessage.invalidStateError.desc + invalidState + ", state expected : ${actualState}");
     }
 
     static createNonceMismatchError(invalidNonce: string, actualNonce: string): ClientAuthError {
         return new ClientAuthError(ErrorMessage.nonceMismatchError.code,
-            ErrorMessage.nonceMismatchError + invalidNonce + ", nonce expected : " + actualNonce);
+            ErrorMessage.nonceMismatchError + invalidNonce + ", nonce expected : ${actualNonce}");
     }
 
     static createLoginInProgressError(): ClientAuthError {

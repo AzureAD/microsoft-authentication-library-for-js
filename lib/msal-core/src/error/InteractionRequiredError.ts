@@ -30,7 +30,7 @@ import { ErrorMessage } from "./ErrorMessage";
  * Error thrown when the user is required to perform an interactive token request.
  */
 export class InteractionRequiredAuthError extends ServerError {
-    
+
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
         this.name = "InteractionRequiredAuthError";

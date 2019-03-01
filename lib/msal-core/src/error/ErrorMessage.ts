@@ -35,7 +35,7 @@ export const ErrorMessage = {
   },
   endpointResolutionError: {
     code: "endpoints_resolution_error",
-    desc: "ErrorL: could not resolve endpoints. Please check network and try again"
+    desc: "Error: could not resolve endpoints. Please check network and try again"
   },
   popUpWindowError: {
     code: "popup_window_error",
@@ -127,12 +127,12 @@ export const ErrorMessage = {
 
   // Interaction Required Errors
   loginRequired: {
-    code: "login_required" 
+    code: "login_required"
   },
   interactionRequired: {
     code: "interaction_required"
   },
-  consentRequired: { 
+  consentRequired: {
     code: "consent_required"
   },
 

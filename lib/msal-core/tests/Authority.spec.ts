@@ -1,6 +1,6 @@
 
 import {Authority, AuthorityType} from '../src/Authority';
-import { ErrorMessage } from "../src/ErrorMessage";
+import { ErrorMessage } from "../src/error/ErrorMessage";
 
 import { AuthorityFactory } from "../src/AuthorityFactory";
 
