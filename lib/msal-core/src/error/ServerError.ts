@@ -21,12 +21,12 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { AuthError } from "./AuthError";
+import AuthError from "./AuthError";
 
 export const ServerErrorMessage = {
     serverUnavailable: {
         code: "server_unavailable",
-        desc: "Server is temporarily unavailable"
+        desc: "Server is temporarily unavailable."
     },
     unknownServerError: {
         code: "unknown_server_error"
@@ -34,11 +34,9 @@ export const ServerErrorMessage = {
 };
 
 /**
- * @hidden
- *
  * Error thrown when there is an error with the server code, for example, unavailability.
  */
-export class ServerError extends AuthError {
+export default class ServerError extends AuthError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);

@@ -22,36 +22,35 @@
   */
 
 import { Constants } from "../Constants";
-import { ClientAuthError } from "./ClientAuthError";
+import ClientAuthError from "./ClientAuthError";
 
 export const ClientConfigurationErrorMessage = {
-
     invalidCacheLocation: {
         code: "invalid_cache_location",
-        desc: "The cache contains multiple tokens satisfying the requirements" +
+        desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements like authority."
     },
     noCallback: {
         code: "no_callback",
-        desc: "Error in configuration: no callback(s) registered for login/acquireTokenRedirect flows." +
-            "Please call handleRedirectCallbacks() with the appropriate callback signatures." +
-            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics"
+        desc: "Error in configuration: no callback(s) registered for login/acquireTokenRedirect flows. " +
+            "Please call handleRedirectCallbacks() with the appropriate callback signatures. " +
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
     },
     emptyScopes: {
         code: "empty_input_scopes_error",
-        desc: "Scopes cannot be passed as empty array"
+        desc: "Scopes cannot be passed as empty array."
     },
     nonArrayScopes: {
         code: "nonarray_input_scopes_error",
-        desc: "Scopes cannot be passed as non-array"
+        desc: "Scopes cannot be passed as non-array."
     },
     clientScope: {
         code: "clientid_input_scopes_error",
-        desc: "Client ID can only be provided as a single scope"
+        desc: "Client ID can only be provided as a single scope."
     },
     invalidAuthorityType: {
         code: "invalid_authority_type",
-        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>"
+        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>."
     },
     authorityUriInsecure: {
         code: "authority_uri_insecure",
@@ -72,22 +71,19 @@ export const ClientConfigurationErrorMessage = {
 };
 
 /**
- * @hidden
- *
  * Error thrown when there is an error in configuration of the .js library.
  */
-export class ClientConfigurationError extends ClientAuthError {
+export default class ClientConfigurationError extends ClientAuthError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
-        this.name = "ConfigurationError";
+        this.name = "ClientConfigurationError";
         Object.setPrototypeOf(this, ClientConfigurationError.prototype);
     }
 
     static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCacheLocation.code,
-            ClientConfigurationErrorMessage.invalidCacheLocation.desc +
-            " Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}");
+            `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
     }
 
     static createNoCallbackError(): ClientConfigurationError {
@@ -97,16 +93,16 @@ export class ClientConfigurationError extends ClientAuthError {
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopes.code,
-            ClientConfigurationErrorMessage.emptyScopes.desc + ". Given value: ${scopesValue}");
+            `${ClientConfigurationErrorMessage.emptyScopes.desc} Given value: ${scopesValue}.`);
     }
 
     static createScopesNonArrayError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopes.code,
-            ClientConfigurationErrorMessage.nonArrayScopes.desc + " Given value: ${scopesValue}");
+            `${ClientConfigurationErrorMessage.nonArrayScopes.desc} Given value: ${scopesValue}.`);
     }
 
     static createClientIdSingleScopeError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.clientScope.code,
-            ClientConfigurationErrorMessage.clientScope.desc + " Given value: ${scopesValue}");
+            `${ClientConfigurationErrorMessage.clientScope.desc} Given value: ${scopesValue}.`);
     }
 }

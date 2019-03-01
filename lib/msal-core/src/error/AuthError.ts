@@ -22,32 +22,29 @@
   */
 
 export const AuthErrorMessage = {
-
     // TODO: Should this be an interaction required error?
     userLoginError: {
         code: "user_login_error",
-        desc: "User login is required"
+        desc: "User login is required."
     },
     unexpectedError: {
         code: "unexpected_error",
-        desc: "unexpected error in authentication"
+        desc: "Unexpected error in authentication."
     }
 };
 
 /**
-* @hidden
-*
 * General error class thrown by the MSAL.js library.
 */
-export class AuthError extends Error {
+export default class AuthError extends Error {
 
-    error: string;
-    errorDesc: string;
+    errorCode: string;
+    errorMessage: string;
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorMessage);
-        this.error = errorCode;
-        this.errorDesc = errorMessage;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
         this.name = "AuthError";
         this.stack = new Error().stack;
 

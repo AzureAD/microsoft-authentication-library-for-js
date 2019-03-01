@@ -21,11 +21,10 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { AuthError } from "./AuthError";
+import AuthError from "./AuthError";
 import { Utils } from "../Utils";
 
 export const ClientAuthErrorMessage = {
-
     multipleMatchingTokens: {
         code: "multiple_matching_tokens",
         desc: "The cache contains multiple tokens satisfying the requirements. " +
@@ -33,23 +32,23 @@ export const ClientAuthErrorMessage = {
     },
     multipleMatchingAuthorities: {
         code: "multiple_matching_authorities",
-        desc: "Multiple authorities found in the cache. Pass authority in the API overload"
+        desc: "Multiple authorities found in the cache. Pass authority in the API overload."
     },
     endpointResolutionError: {
         code: "endpoints_resolution_error",
-        desc: "Error: could not resolve endpoints. Please check network and try again"
+        desc: "Error: could not resolve endpoints. Please check network and try again."
     },
     popUpWindowError: {
         code: "popup_window_error",
-        desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser"
+        desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
     tokenRenewalError: {
         code: "token_renewal_error",
-        desc: "Token renewal operation failed due to timeout"
+        desc: "Token renewal operation failed due to timeout."
     },
     invalidStateError: {
         code: "invalid_state_error",
-        desc: "Invalid state"
+        desc: "Invalid state."
     },
     nonceMismatchError: {
         code: "nonce_mismatch_error",
@@ -57,7 +56,7 @@ export const ClientAuthErrorMessage = {
     },
     loginProgressError: {
         code: "login_progress_error",
-        desc: "Login_In_Progress: Error during login call - login is already in progress"
+        desc: "Login_In_Progress: Error during login call - login is already in progress."
     },
     acquireTokenProgressError: {
         code: "acquiretoken_progress_error",
@@ -65,20 +64,18 @@ export const ClientAuthErrorMessage = {
     },
     userCancelledError: {
         code: "user_cancelled",
-        desc: "User cancelled the flow"
+        desc: "User cancelled the flow."
     },
     callbackError: {
         code: "callback_error",
-        desc: "Error occurred in token received callback function"
+        desc: "Error occurred in token received callback function."
     },
 };
 
 /**
- * @hidden
- *
  * Error thrown when there is an error in the client code running on the browser.
  */
-export class ClientAuthError extends AuthError {
+export default class ClientAuthError extends AuthError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
@@ -90,19 +87,19 @@ export class ClientAuthError extends AuthError {
     static createEndpointResolutionError(errDesc: string): ClientAuthError {
         var errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
         if (!Utils.isEmpty(errDesc)) {
-            errorMessage += " Details: ${errDesc}";
+            errorMessage += ` Details: ${errDesc}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
     }
 
     static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
-            "Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}");
+            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAuthorities.code,
-            "Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingAuthorities.desc}");
+            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingAuthorities.desc}.`);
     }
 
     static createPopupWindowError(): ClientAuthError {
@@ -117,12 +114,12 @@ export class ClientAuthError extends AuthError {
 
     static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
-            ClientAuthErrorMessage.invalidStateError.desc + invalidState + ", state expected : ${actualState}");
+            `${ClientAuthErrorMessage.invalidStateError.desc} ${invalidState}, state expected : ${actualState}.`);
     }
 
     static createNonceMismatchError(invalidNonce: string, actualNonce: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
-            ClientAuthErrorMessage.nonceMismatchError + invalidNonce + ", nonce expected : ${actualNonce}");
+            `${ClientAuthErrorMessage.nonceMismatchError} ${invalidNonce}, nonce expected : ${actualNonce}.`);
     }
 
     static createLoginInProgressError(): ClientAuthError {
@@ -142,6 +139,6 @@ export class ClientAuthError extends AuthError {
 
     static createErrorInCallbackFunction(errorDesc: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.callbackError.code,
-            ClientAuthErrorMessage.callbackError.desc + errorDesc);
+            `${ClientAuthErrorMessage.callbackError.desc} ${errorDesc}.`);
     }
 }

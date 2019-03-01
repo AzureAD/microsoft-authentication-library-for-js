@@ -21,14 +21,12 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { InteractionRequiredAuthError } from "./InteractionRequiredAuthError";
+import InteractionRequiredAuthError from "./InteractionRequiredAuthError";
 
 /**
- * @hidden
- *
  * Error thrown when the client must provide additional proof to acquire a token. This will be used for conditional access cases.
  */
-export class ClaimsRequiredAuthError extends InteractionRequiredAuthError {
+export default class ClaimsRequiredAuthError extends InteractionRequiredAuthError {
     claimsRequired: string;
     constructor(errorCode: string, errorMessage: string, claimsRequired: string) {
         super(errorCode, errorMessage);
