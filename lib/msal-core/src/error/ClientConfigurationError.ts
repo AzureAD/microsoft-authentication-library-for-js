@@ -23,7 +23,7 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
-import { ErrorMessage } from "../ErrorMessage";
+import { ErrorMessage } from "./ErrorMessage";
 
 /**
  * @hidden
@@ -31,8 +31,9 @@ import { ErrorMessage } from "../ErrorMessage";
  * Error thrown when there is an error in configuration of the .js library.
  */
 export class ClientConfigurationError extends ClientAuthError {
-    constructor(error: string, errorDesc: string) {
-        super(error, errorDesc);
+    
+    constructor(errorCode: string, errorMessage: string) {
+        super(errorCode, errorMessage);
         this.name = "ConfigurationError";
         Object.setPrototypeOf(this, ClientConfigurationError.prototype);
     }

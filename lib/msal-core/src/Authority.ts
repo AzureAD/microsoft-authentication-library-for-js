@@ -1,7 +1,7 @@
 import { IUri } from "./IUri";
 import { Utils } from "./Utils";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ErrorMessage } from "./ErrorMessage";
+import { ErrorMessage } from "./error/ErrorMessage";
 import { XhrClient } from "./XHRClient";
 
 /**

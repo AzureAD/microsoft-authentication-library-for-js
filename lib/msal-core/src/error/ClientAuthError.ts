@@ -22,7 +22,7 @@
   */
 
 import { AuthError } from "./AuthError";
-import { ErrorMessage } from "../ErrorMessage";
+import { ErrorMessage } from "./ErrorMessage";
 import { Utils } from "../Utils";
 
 /**
@@ -31,8 +31,9 @@ import { Utils } from "../Utils";
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
-    constructor(error: string, errorDesc: string) {
-        super(error, errorDesc);
+    
+    constructor(errorCode: string, errorMessage: string) {
+        super(errorCode, errorMessage);
         this.name = "ClientAuthError";
 
         Object.setPrototypeOf(this, ClientAuthError.prototype);

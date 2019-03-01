@@ -23,7 +23,7 @@
 
 import { AadAuthority } from "./AadAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ErrorMessage } from "./ErrorMessage";
+import { ErrorMessage } from "./error/ErrorMessage";
 import { Utils } from "./Utils";
 
 /**

@@ -3,7 +3,7 @@ export { Logger } from "./Logger";
 export { LogLevel } from "./Logger";
 export { User } from "./User";
 export { Constants } from "./Constants";
-export { ErrorMessage } from "./ErrorMessage";
+export { ErrorMessage } from "./error/ErrorMessage";
 export { TokenResponse } from "./RequestInfo";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";

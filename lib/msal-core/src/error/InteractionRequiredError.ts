@@ -22,7 +22,7 @@
   */
 
 import { ServerError } from "./ServerError";
-import { ErrorMessage } from "../ErrorMessage";
+import { ErrorMessage } from "./ErrorMessage";
 
 /**
  * @hidden
@@ -30,22 +30,23 @@ import { ErrorMessage } from "../ErrorMessage";
  * Error thrown when the user is required to perform an interactive token request.
  */
 export class InteractionRequiredAuthError extends ServerError {
-    constructor(error: string, errorDesc: string) {
-        super(error, errorDesc);
+    
+    constructor(errorCode: string, errorMessage: string) {
+        super(errorCode, errorMessage);
         this.name = "InteractionRequiredAuthError";
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
 
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.loginRequired, errorDesc);
+        return new InteractionRequiredAuthError(ErrorMessage.loginRequired.code, errorDesc);
     }
 
     static createInteractionRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.interactionRequired, errorDesc);
+        return new InteractionRequiredAuthError(ErrorMessage.interactionRequired.code, errorDesc);
     }
 
     static createConsentRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.consentRequired, errorDesc);
+        return new InteractionRequiredAuthError(ErrorMessage.consentRequired.code, errorDesc);
     }
 }

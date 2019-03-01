@@ -22,7 +22,7 @@
   */
 
 import { AuthError } from "./AuthError";
-import { ErrorMessage } from "../ErrorMessage";
+import { ErrorMessage } from "./ErrorMessage";
 
 /**
  * @hidden
@@ -30,8 +30,9 @@ import { ErrorMessage } from "../ErrorMessage";
  * Error thrown when there is an error with the server code, for example, unavailability.
  */
 export class ServerError extends AuthError {
-    constructor(error: string, errorDesc: string) {
-        super(error, errorDesc);
+    
+    constructor(errorCode: string, errorMessage: string) {
+        super(errorCode, errorMessage);
         this.name = "ServerError";
 
         Object.setPrototypeOf(this, ServerError.prototype);

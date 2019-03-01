@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { ErrorMessage } from "../ErrorMessage";
+import { ErrorMessage } from "./ErrorMessage";
 
 /**
 * @hidden
@@ -29,13 +29,14 @@ import { ErrorMessage } from "../ErrorMessage";
 * General error class thrown by the MSAL.js library.
 */
 export class AuthError extends Error {
+    
     error: string;
     errorDesc: string;
 
-    constructor(error: string, errorDesc: string) {
-        super(errorDesc);
-        this.error = error;
-        this.errorDesc = errorDesc;
+    constructor(errorCode: string, errorMessage: string) {
+        super(errorMessage);
+        this.error = errorCode;
+        this.errorDesc = errorMessage;
         this.name = "AuthError";
         this.stack = new Error().stack;
 

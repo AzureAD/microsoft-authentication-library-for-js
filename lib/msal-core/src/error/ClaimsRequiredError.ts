@@ -30,8 +30,8 @@ import { InteractionRequiredAuthError } from "./InteractionRequiredError";
  */
 export class ClaimsRequiredAuthError extends InteractionRequiredAuthError {
     claimsRequired: string;
-    constructor(error: string, errorDesc: string, claimsRequired: string) {
-        super(error, errorDesc);
+    constructor(errorCode: string, errorMessage: string, claimsRequired: string) {
+        super(errorCode, errorMessage);
         this.name = "ClaimsRequiredAuthError";
         this.claimsRequired = claimsRequired;
 

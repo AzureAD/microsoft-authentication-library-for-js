@@ -22,6 +22,7 @@
   */
 
 export const ErrorMessage = {
+
   // Client Authentication Errors
   multipleMatchingTokens: {
     code: "multiple_matching_tokens",
@@ -125,9 +126,15 @@ export const ErrorMessage = {
   },
 
   // Interaction Required Errors
-  loginRequired: "login_required",
-  interactionRequired: "interaction_required",
-  consentRequired: "consent_required",
+  loginRequired: {
+    code: "login_required" 
+  },
+  interactionRequired: {
+    code: "interaction_required"
+  },
+  consentRequired: { 
+    code: "consent_required"
+  },
 
   // No bucket failure
   userLoginError: {
@@ -138,10 +145,4 @@ export const ErrorMessage = {
     code: "unexpected_error",
     desc: "unexpected error in authentication"
   }
-
-  // static get authorityUriInvalidPath(): string { return "AuthorityUriInvalidPath"; }
-  // static get authorityUriInsecure(): string { return "AuthorityUriInsecure"; }
-  // static get invalidAuthorityType(): string { return "InvalidAuthorityType"; }
-  // static get unsupportedAuthorityValidation(): string { return "UnsupportedAuthorityValidation"; }
-  // static get b2cAuthorityUriInvalidPath(): string { return "B2cAuthorityUriInvalidPath"; }
 };
