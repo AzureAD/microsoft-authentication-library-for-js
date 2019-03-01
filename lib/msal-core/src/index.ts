@@ -13,4 +13,4 @@ export { ClientAuthError } from "./error/ClientAuthError";
 export { ServerError } from "./error/ServerError";
 export { ClientConfigurationError } from "./error/ClientConfigurationError";
 export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
-export { ClaimsRequiredAuthError } from "./error/ClaimsRequiredError";
+export { ClaimsRequiredAuthError } from "./error/ClaimsRequiredAuthError";

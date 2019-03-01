@@ -22,7 +22,7 @@
   */
 
 import { Constants } from "../Constants";
-import ClientAuthError from "./ClientAuthError";
+import { ClientAuthError } from "./ClientAuthError";
 
 export const ClientConfigurationErrorMessage = {
     invalidCacheLocation: {
@@ -73,7 +73,7 @@ export const ClientConfigurationErrorMessage = {
 /**
  * Error thrown when there is an error in configuration of the .js library.
  */
-export default class ClientConfigurationError extends ClientAuthError {
+export class ClientConfigurationError extends ClientAuthError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);

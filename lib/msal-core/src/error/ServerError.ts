@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import AuthError from "./AuthError";
+import { AuthError } from "./AuthError";
 
 export const ServerErrorMessage = {
     serverUnavailable: {
@@ -36,7 +36,7 @@ export const ServerErrorMessage = {
 /**
  * Error thrown when there is an error with the server code, for example, unavailability.
  */
-export default class ServerError extends AuthError {
+export class ServerError extends AuthError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);

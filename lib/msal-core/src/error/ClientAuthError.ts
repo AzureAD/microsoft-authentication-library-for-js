@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import AuthError from "./AuthError";
+import { AuthError } from "./AuthError";
 import { Utils } from "../Utils";
 
 export const ClientAuthErrorMessage = {
@@ -75,7 +75,7 @@ export const ClientAuthErrorMessage = {
 /**
  * Error thrown when there is an error in the client code running on the browser.
  */
-export default class ClientAuthError extends AuthError {
+export class ClientAuthError extends AuthError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);

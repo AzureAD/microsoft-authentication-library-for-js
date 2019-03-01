@@ -36,7 +36,7 @@ export const AuthErrorMessage = {
 /**
 * General error class thrown by the MSAL.js library.
 */
-export default class AuthError extends Error {
+export class AuthError extends Error {
 
     errorCode: string;
     errorMessage: string;

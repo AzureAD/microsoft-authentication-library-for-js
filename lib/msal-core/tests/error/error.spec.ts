@@ -1,11 +1,11 @@
-import AuthError, { AuthErrorMessage } from "../../src/error/AuthError";
-import ClientAuthError, { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
-import ServerError, { ServerErrorMessage } from "../../src/error/ServerError";
-import ClientConfigurationError, { ClientConfigurationErrorMessage }  from "../../src/error/ClientConfigurationError";
-import InteractionRequiredAuthError, { InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
-import ClaimsRequiredError from "../../src/error/ClaimsRequiredError";
+import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ServerError, ServerErrorMessage } from "../../src/error/ServerError";
+import { ClientConfigurationError, ClientConfigurationErrorMessage }  from "../../src/error/ClientConfigurationError";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
+import { ClaimsRequiredAuthError } from "../../src/error/ClaimsRequiredAuthError";
 
-describe("ClientAuthError", () => {
+describe("Error", () => {
     const TEST_ERROR_CODE: string = "test";
     const TEST_ERROR_MSG: string = "This is a test error";
 
@@ -82,9 +82,9 @@ describe("ClientAuthError", () => {
 
     describe("ClaimsRequiredError", () => {
         it("can be created", () => {
-            let claimsRequiredError = new ClaimsRequiredError("test", "This is a test error", "claims: {}");
+            let claimsRequiredError = new ClaimsRequiredAuthError("test", "This is a test error", "claims: {}");
 
-            expect(claimsRequiredError).toEqual(jasmine.any(ClaimsRequiredError), "ClaimsRequiredError could not be created.");
+            expect(claimsRequiredError).toEqual(jasmine.any(ClaimsRequiredAuthError), "ClaimsRequiredError could not be created.");
             expect(claimsRequiredError.errorCode).toBe(TEST_ERROR_CODE);
             expect(claimsRequiredError.errorMessage).toBe(TEST_ERROR_MSG);
             expect(claimsRequiredError.message).toBe(TEST_ERROR_MSG);

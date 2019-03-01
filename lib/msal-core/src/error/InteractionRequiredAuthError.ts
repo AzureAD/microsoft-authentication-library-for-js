@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import ServerError from "./ServerError";
+import { ServerError } from "./ServerError";
 
 export const InteractionRequiredAuthErrorMessage = {
     loginRequired: {
@@ -38,7 +38,7 @@ export const InteractionRequiredAuthErrorMessage = {
 /**
  * Error thrown when the user is required to perform an interactive token request.
  */
-export default class InteractionRequiredAuthError extends ServerError {
+export class InteractionRequiredAuthError extends ServerError {
 
     constructor(errorCode: string, errorMessage: string) {
         super(errorCode, errorMessage);
