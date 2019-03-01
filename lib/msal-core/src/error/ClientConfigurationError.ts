@@ -23,7 +23,53 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
-import { ErrorMessage } from "./ErrorMessage";
+
+export const ClientConfigurationErrorMessage = {
+
+    invalidCacheLocation: {
+        code: "invalid_cache_location",
+        desc: "The cache contains multiple tokens satisfying the requirements" +
+            "Call AcquireToken again providing more requirements like authority."
+    },
+    noCallback: {
+        code: "no_callback",
+        desc: "Error in configuration: no callback(s) registered for login/acquireTokenRedirect flows." +
+            "Please call handleRedirectCallbacks() with the appropriate callback signatures." +
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics"
+    },
+    emptyScopes: {
+        code: "empty_input_scopes_error",
+        desc: "Scopes cannot be passed as empty array"
+    },
+    nonArrayScopes: {
+        code: "nonarray_input_scopes_error",
+        desc: "Scopes cannot be passed as non-array"
+    },
+    clientScope: {
+        code: "clientid_input_scopes_error",
+        desc: "Client ID can only be provided as a single scope"
+    },
+    invalidAuthorityType: {
+        code: "invalid_authority_type",
+        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>"
+    },
+    authorityUriInsecure: {
+        code: "authority_uri_insecure",
+        desc: "Authority URIs must use https."
+    },
+    authorityUriInvalidPath: {
+        code: "authority_uri_invalid_path",
+        desc: "Given authority URI is invalid."
+    },
+    unsupportedAuthorityValidation: {
+        code: "unsupported_authority_validation",
+        desc: "The authority validation is not supported for this authority type."
+    },
+    b2cAuthorityUriInvalidPath: {
+        code: "b2c_authority_uri_invalid_path",
+        desc: "The given URI for the B2C authority is invalid."
+    },
+};
 
 /**
  * @hidden
@@ -39,33 +85,28 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
-        return new ClientConfigurationError(ErrorMessage.invalidCacheLocation.code,
-            ErrorMessage.invalidCacheLocation.desc +
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCacheLocation.code,
+            ClientConfigurationErrorMessage.invalidCacheLocation.desc +
             " Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}");
     }
 
     static createNoCallbackError(): ClientConfigurationError {
-        return new ClientConfigurationError(ErrorMessage.noCallback.code,
-            ErrorMessage.noCallback.desc);
-    }
-
-    static createErrorInCallbackFunction(errorDesc: string): ClientAuthError {
-        return new ClientConfigurationError(ErrorMessage.callbackError.code,
-            ErrorMessage.callbackError.desc + errorDesc);
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.noCallback.code,
+            ClientConfigurationErrorMessage.noCallback.desc);
     }
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {
-        return new ClientConfigurationError(ErrorMessage.emptyScopes.code,
-            ErrorMessage.emptyScopes.desc + ". Given value: ${scopesValue}");
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopes.code,
+            ClientConfigurationErrorMessage.emptyScopes.desc + ". Given value: ${scopesValue}");
     }
 
     static createScopesNonArrayError(scopesValue: string): ClientConfigurationError {
-        return new ClientConfigurationError(ErrorMessage.nonArrayScopes.code,
-            ErrorMessage.nonArrayScopes.desc + " Given value: ${scopesValue}");
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopes.code,
+            ClientConfigurationErrorMessage.nonArrayScopes.desc + " Given value: ${scopesValue}");
     }
 
     static createClientIdSingleScopeError(scopesValue: string): ClientConfigurationError {
-        return new ClientConfigurationError(ErrorMessage.clientScope.code,
-            ErrorMessage.clientScope.desc + " Given value: ${scopesValue}");
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.clientScope.code,
+            ClientConfigurationErrorMessage.clientScope.desc + " Given value: ${scopesValue}");
     }
 }

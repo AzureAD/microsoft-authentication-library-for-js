@@ -22,7 +22,18 @@
   */
 
 import { ServerError } from "./ServerError";
-import { ErrorMessage } from "./ErrorMessage";
+
+export const InteractionRequiredAuthErrorMessage = {
+    loginRequired: {
+        code: "login_required"
+    },
+    interactionRequired: {
+        code: "interaction_required"
+    },
+    consentRequired: {
+        code: "consent_required"
+    },
+};
 
 /**
  * @hidden
@@ -39,14 +50,14 @@ export class InteractionRequiredAuthError extends ServerError {
     }
 
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.loginRequired.code, errorDesc);
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.loginRequired.code, errorDesc);
     }
 
     static createInteractionRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.interactionRequired.code, errorDesc);
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.interactionRequired.code, errorDesc);
     }
 
     static createConsentRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(ErrorMessage.consentRequired.code, errorDesc);
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.consentRequired.code, errorDesc);
     }
 }

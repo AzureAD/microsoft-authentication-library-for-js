@@ -1,6 +1,6 @@
 
 import {Authority, AuthorityType} from '../src/Authority';
-import { ErrorMessage } from "../src/error/ErrorMessage";
+import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 
 import { AuthorityFactory } from "../src/AuthorityFactory";
 
@@ -96,7 +96,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.b2cAuthorityUriInvalidPath);
+            expect(call).toThrow(ClientConfigurationErrorMessage.b2cAuthorityUriInvalidPath);
         });
 
         it("should fail when validation is not supported", (done) => {
@@ -110,7 +110,7 @@ describe("Authority", () => {
 
             // Assert
             promise.catch((error) => {
-                expect(error).toEqual(ErrorMessage.unsupportedAuthorityValidation);
+                expect(error).toEqual(ClientConfigurationErrorMessage.unsupportedAuthorityValidation);
                 done();
             });
         });
@@ -126,7 +126,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.invalidAuthorityType);
+            expect(call).toThrow(ClientConfigurationErrorMessage.invalidAuthorityType);
         });
     });
 
@@ -171,7 +171,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.authorityUriInsecure);
+            expect(call).toThrow(ClientConfigurationErrorMessage.authorityUriInsecure);
         });
     });
 });

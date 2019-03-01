@@ -21,7 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { InteractionRequiredAuthError } from "./InteractionRequiredError";
+import { InteractionRequiredAuthError } from "./InteractionRequiredAuthError";
 
 /**
  * @hidden

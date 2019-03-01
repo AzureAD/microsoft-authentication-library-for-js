@@ -21,7 +21,18 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
-import { ErrorMessage } from "./ErrorMessage";
+export const AuthErrorMessage = {
+
+    // TODO: Should this be an interaction required error?
+    userLoginError: {
+        code: "user_login_error",
+        desc: "User login is required"
+    },
+    unexpectedError: {
+        code: "unexpected_error",
+        desc: "unexpected error in authentication"
+    }
+};
 
 /**
 * @hidden
@@ -43,6 +54,6 @@ export class AuthError extends Error {
         Object.setPrototypeOf(this, AuthError.prototype);
     }
     static createUnexpectedError(errDesc: string) {
-        return new AuthError(ErrorMessage.unexpectedError.code, errDesc);
+        return new AuthError(AuthErrorMessage.unexpectedError.code, errDesc);
     }
 }

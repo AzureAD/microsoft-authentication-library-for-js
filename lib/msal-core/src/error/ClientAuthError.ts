@@ -22,8 +22,56 @@
   */
 
 import { AuthError } from "./AuthError";
-import { ErrorMessage } from "./ErrorMessage";
 import { Utils } from "../Utils";
+
+export const ClientAuthErrorMessage = {
+
+    multipleMatchingTokens: {
+        code: "multiple_matching_tokens",
+        desc: "The cache contains multiple tokens satisfying the requirements. " +
+            "Call AcquireToken again providing more requirements like authority."
+    },
+    multipleMatchingAuthorities: {
+        code: "multiple_matching_authorities",
+        desc: "Multiple authorities found in the cache. Pass authority in the API overload"
+    },
+    endpointResolutionError: {
+        code: "endpoints_resolution_error",
+        desc: "Error: could not resolve endpoints. Please check network and try again"
+    },
+    popUpWindowError: {
+        code: "popup_window_error",
+        desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser"
+    },
+    tokenRenewalError: {
+        code: "token_renewal_error",
+        desc: "Token renewal operation failed due to timeout"
+    },
+    invalidStateError: {
+        code: "invalid_state_error",
+        desc: "Invalid state"
+    },
+    nonceMismatchError: {
+        code: "nonce_mismatch_error",
+        desc: "Nonce is not matching, Nonce received: "
+    },
+    loginProgressError: {
+        code: "login_progress_error",
+        desc: "Login_In_Progress: Error during login call - login is already in progress"
+    },
+    acquireTokenProgressError: {
+        code: "acquiretoken_progress_error",
+        desc: "AcquireToken_In_Progress: Error during login call - login is already in progress."
+    },
+    userCancelledError: {
+        code: "user_cancelled",
+        desc: "User cancelled the flow"
+    },
+    callbackError: {
+        code: "callback_error",
+        desc: "Error occurred in token received callback function"
+    },
+};
 
 /**
  * @hidden
@@ -40,55 +88,60 @@ export class ClientAuthError extends AuthError {
     }
 
     static createEndpointResolutionError(errDesc: string): ClientAuthError {
-        var errorMessage = ErrorMessage.endpointResolutionError.desc;
+        var errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
         if (!Utils.isEmpty(errDesc)) {
             errorMessage += " Details: ${errDesc}";
         }
-        return new ClientAuthError(ErrorMessage.endpointResolutionError.code, errorMessage);
+        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
     }
 
     static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.multipleMatchingTokens.code,
-            "Cache error for scope ${scope}: ${ErrorMessage.multipleMatchingTokens.desc}");
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
+            "Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}");
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.multipleMatchingAuthorities.code,
-            "Cache error for scope ${scope}: ${ErrorMessage.multipleMatchingAuthorities.desc}");
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAuthorities.code,
+            "Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingAuthorities.desc}");
     }
 
     static createPopupWindowError(): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.popUpWindowError.code,
-            ErrorMessage.popUpWindowError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code,
+            ClientAuthErrorMessage.popUpWindowError.desc);
     }
 
     static createTokenRenewalTimeoutError(): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.tokenRenewalError.code,
-            ErrorMessage.tokenRenewalError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRenewalError.code,
+            ClientAuthErrorMessage.tokenRenewalError.desc);
     }
 
     static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.invalidStateError.code,
-            ErrorMessage.invalidStateError.desc + invalidState + ", state expected : ${actualState}");
+        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
+            ClientAuthErrorMessage.invalidStateError.desc + invalidState + ", state expected : ${actualState}");
     }
 
     static createNonceMismatchError(invalidNonce: string, actualNonce: string): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.nonceMismatchError.code,
-            ErrorMessage.nonceMismatchError + invalidNonce + ", nonce expected : ${actualNonce}");
+        return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
+            ClientAuthErrorMessage.nonceMismatchError + invalidNonce + ", nonce expected : ${actualNonce}");
     }
 
     static createLoginInProgressError(): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.loginProgressError.code,
-            ErrorMessage.loginProgressError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.loginProgressError.code,
+            ClientAuthErrorMessage.loginProgressError.desc);
     }
 
     static createAcquireTokenInProgressError(): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.acquireTokenProgressError.code,
-            ErrorMessage.acquireTokenProgressError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.acquireTokenProgressError.code,
+            ClientAuthErrorMessage.acquireTokenProgressError.desc);
     }
 
     static createUserCancelledError(): ClientAuthError {
-        return new ClientAuthError(ErrorMessage.userCancelledError.code,
-            ErrorMessage.userCancelledError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.userCancelledError.code,
+            ClientAuthErrorMessage.userCancelledError.desc);
+    }
+
+    static createErrorInCallbackFunction(errorDesc: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.callbackError.code,
+            ClientAuthErrorMessage.callbackError.desc + errorDesc);
     }
 }

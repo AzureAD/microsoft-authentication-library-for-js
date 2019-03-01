@@ -22,7 +22,16 @@
   */
 
 import { AuthError } from "./AuthError";
-import { ErrorMessage } from "./ErrorMessage";
+
+export const ServerErrorMessage = {
+    serverUnavailable: {
+        code: "server_unavailable",
+        desc: "Server is temporarily unavailable"
+    },
+    unknownServerError: {
+        code: "unknown_server_error"
+    },
+};
 
 /**
  * @hidden
@@ -39,12 +48,12 @@ export class ServerError extends AuthError {
     }
 
     static createServerUnavailableError(): ServerError {
-        return new ServerError(ErrorMessage.serverUnavailable.code,
-            ErrorMessage.serverUnavailable.desc);
+        return new ServerError(ServerErrorMessage.serverUnavailable.code,
+            ServerErrorMessage.serverUnavailable.desc);
     }
 
     static createUnknownServerError(errorDesc: string): ServerError {
-        return new ServerError(ErrorMessage.unknownServerError.code,
+        return new ServerError(ServerErrorMessage.unknownServerError.code,
             errorDesc);
     }
 }
