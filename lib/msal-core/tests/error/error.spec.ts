@@ -3,7 +3,6 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientA
 import { ServerError, ServerErrorMessage } from "../../src/error/ServerError";
 import { ClientConfigurationError, ClientConfigurationErrorMessage }  from "../../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
-import { ClaimsRequiredAuthError } from "../../src/error/ClaimsRequiredAuthError";
 
 describe("Error", () => {
     const TEST_ERROR_CODE: string = "test";
@@ -77,18 +76,6 @@ describe("Error", () => {
             expect(interactionReqError.errorMessage).toBe(TEST_ERROR_MSG);
             expect(interactionReqError.message).toBe(TEST_ERROR_MSG);
             expect(interactionReqError.name).toBe("InteractionRequiredAuthError");
-        });
-    });
-
-    describe("ClaimsRequiredError", () => {
-        it("can be created", () => {
-            let claimsRequiredError = new ClaimsRequiredAuthError("test", "This is a test error", "claims: {}");
-
-            expect(claimsRequiredError).toEqual(jasmine.any(ClaimsRequiredAuthError), "ClaimsRequiredError could not be created.");
-            expect(claimsRequiredError.errorCode).toBe(TEST_ERROR_CODE);
-            expect(claimsRequiredError.errorMessage).toBe(TEST_ERROR_MSG);
-            expect(claimsRequiredError.message).toBe(TEST_ERROR_MSG);
-            expect(claimsRequiredError.name).toBe("ClaimsRequiredAuthError");
         });
     });
 });
