@@ -530,7 +530,7 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
 
       // Cache acquireTokenUserKey
-      const userId = (userObject) ? userObject.userIdentifier : Constants.no_user;
+      const userId = userObject ? userObject.userIdentifier : Constants.no_user;
       const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
       this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
@@ -806,7 +806,7 @@ export class UserAgentApplication {
         authenticationRequest.state = authenticationRequest.state;
 
         // Cache acquireTokenUserKey
-        const userId = (userObject) ? userObject.userIdentifier : Constants.no_user;
+        const userId = userObject ? userObject.userIdentifier : Constants.no_user;
         const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
 
         this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
@@ -1769,7 +1769,7 @@ export class UserAgentApplication {
     }
 
     // Cache acquireTokenUserKey
-    const userId = (user) ? user.userIdentifier : Constants.no_user;
+    const userId = user ? user.userIdentifier : Constants.no_user;
     const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
 
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
@@ -1809,7 +1809,7 @@ export class UserAgentApplication {
     }
 
     // Cache acquireTokenUserKey
-    const userId = (user) ? user.userIdentifier : Constants.no_user;
+    const userId = user ? user.userIdentifier : Constants.no_user;
     const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
 
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
