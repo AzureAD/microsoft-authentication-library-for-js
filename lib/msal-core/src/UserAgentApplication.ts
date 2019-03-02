@@ -292,6 +292,7 @@ export class UserAgentApplication {
     this.loadFrameTimeout = loadFrameTimeout;
     this.clientId = clientId;
     this.validateAuthority = validateAuthority;
+
     // TODO: Replace string with constant
     this.authority = authority || "https://login.microsoftonline.com/common";
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
@@ -516,15 +517,15 @@ export class UserAgentApplication {
     // TODO: Set response type here
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       // On Fulfillment
-      if (Utils.compareObjects(userObject, this.getUser())) {
-        if (scopes.indexOf(this.clientId) > -1) {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-        } else {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-        }
-      } else {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-      }
+      const responseType = this.getTokenType(userObject, scopes, false);
+      authenticationRequest = new AuthenticationRequestParameters(
+        acquireTokenAuthority,
+        this.clientId,
+        scopes,
+        responseType,
+        this.getRedirectUri(),
+        this._state
+      );
 
       // Cache nonce
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
@@ -679,7 +680,9 @@ export class UserAgentApplication {
       // Cache the state, nonce, and login request data
       this._cacheStorage.setItem(Constants.loginRequest, window.location.href, this.storeAuthStateInCookie);
       this._cacheStorage.setItem(Constants.loginError, "");
+
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
+
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
@@ -789,16 +792,15 @@ export class UserAgentApplication {
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
         // On fullfillment
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-          }
-          else {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-          }
-        } else {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-        }
+        const responseType = this.getTokenType(userObject, scopes, false);
+        authenticationRequest = new AuthenticationRequestParameters(
+          acquireTokenAuthority,
+          this.clientId,
+          scopes,
+          responseType,
+          this.getRedirectUri(),
+          this._state
+      );
 
         // Cache nonce
         // TODO: why is storeAuthStateInCookie not passed here?
@@ -1028,22 +1030,15 @@ export class UserAgentApplication {
           extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
         }
 
-        let authenticationRequest: AuthenticationRequestParameters;
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-          }
-          else {
-              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-          }
-        } else {
-            if (scopes.indexOf(this.clientId) > -1) {
-                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-            }
-            else {
-                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-            }
-        }
+        const responseType = this.getTokenType(userObject, scopes, true);
+        const authenticationRequest = new AuthenticationRequestParameters(
+          AuthorityFactory.CreateInstance(authority, this.validateAuthority),
+          this.clientId,
+          scopes,
+          responseType,
+          this.getRedirectUri(),
+          this._state
+        );
 
         const cacheResult = this.getCachedToken(authenticationRequest, userObject);
         // resolve/reject based on cacheResult
@@ -2246,20 +2241,18 @@ export class UserAgentApplication {
     if (!userObject) {
         return null;
     }
-    let authenticationRequest: AuthenticationRequestParameters;
-    const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
 
     // Construct AuthenticationRequest based on response type
-    if (Utils.compareObjects(userObject, this.getUser())) {
-      if (scopes.indexOf(this.clientId) > -1) {
-        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-      }
-      else {
-        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-      }
-    } else {
-      authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-    }
+    const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+    const responseType = this.getTokenType(userObject, scopes, true);
+    const authenticationRequest = new AuthenticationRequestParameters(
+      newAuthority,
+      this.clientId,
+      scopes,
+      responseType,
+      this.getRedirectUri(),
+      this._state
+    );
 
     // get cached token
     return this.getCachedToken(authenticationRequest, user);
@@ -2417,6 +2410,42 @@ export class UserAgentApplication {
     let extractedUri = String(uri).replace(/^(https?:)\/\//, "");
     extractedUri = extractedUri.split("/")[0];
     return extractedUri;
+  }
+
+  /**
+   * Utils function to create the Authentication
+   * @param userObject
+   * @param scopes
+   * @param silentCall
+   */
+  private getTokenType(userObject: User, scopes: string[], silentCall: boolean) {
+
+    // if user is passed and matches the user object/or set to getUser() from cache
+    // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
+    let tokenType;
+
+    // acquireTokenSilent
+    if (silentCall) {
+      if (Utils.compareObjects(userObject, this.getUser())) {
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+      }
+      else {
+        tokenType  = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
+      }
+
+      return tokenType;
+    }
+    // all other cases
+    else {
+      tokenType = Utils.compareObjects(userObject, this.getUser()) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
+
+      if (tokenType === ResponseTypes.id_token) {
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+      }
+
+      return tokenType;
+    }
+
   }
 
  //#endregion
