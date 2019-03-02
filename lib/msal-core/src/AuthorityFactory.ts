@@ -36,8 +36,8 @@ export class AuthorityFactory {
     */
     private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
         authorityUrl = Utils.CanonicalizeUri(authorityUrl);
-        let components = Utils.GetUrlComponents(authorityUrl);
-        let pathSegments = components.PathSegments;
+        const components = Utils.GetUrlComponents(authorityUrl);
+        const pathSegments = components.PathSegments;
         switch (pathSegments[0]) {
             case "tfp":
                 return AuthorityType.B2C;
@@ -56,7 +56,7 @@ export class AuthorityFactory {
         if (Utils.isEmpty(authorityUrl)) {
             return null;
         }
-        let type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
+        const type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.B2C:

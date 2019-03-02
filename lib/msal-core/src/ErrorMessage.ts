@@ -21,6 +21,7 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
+// TODO: Shouldn't this class go away post Error API completion?
 /**
  * @hidden
  */

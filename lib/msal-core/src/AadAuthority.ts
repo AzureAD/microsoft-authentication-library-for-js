@@ -56,7 +56,7 @@ export class AadAuthority extends Authority {
    * Only responds with the endpoint
    */
   public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
-      var resultPromise: Promise<string> = new Promise<string>((resolve, reject) =>
+      const resultPromise: Promise<string> = new Promise<string>((resolve, reject) =>
       resolve(this.DefaultOpenIdConfigurationEndpoint));
 
     if (!this.IsValidationEnabled) {
