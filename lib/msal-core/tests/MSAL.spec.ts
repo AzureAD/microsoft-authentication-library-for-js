@@ -32,6 +32,7 @@ describe('Msal', function (): any {
     var TEST_REDIR_URI = "https://localhost:8081/redirect.html"
     var TENANT = 'common';
     var validAuthority = DEFAULT_INSTANCE + TENANT;
+    var TEST_SCOPES = ["openid", "profile"];
 
     var storageFake = function () {
         var store = {};
@@ -190,6 +191,7 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login and prompt parameter is not passed by default', (done) => {
+        
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -202,7 +204,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect();
+        msal.loginRedirect(TEST_SCOPES);
 
     });
 
@@ -219,7 +221,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect(null, Constants.prompt_select_account);
+        msal.loginRedirect(TEST_SCOPES, Constants.prompt_select_account);
     });
 
     it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
@@ -235,7 +237,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect(null, Constants.prompt_none);
+        msal.loginRedirect(TEST_SCOPES, Constants.prompt_none);
     });
 
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
@@ -255,7 +257,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect();
+        msal.loginRedirect(TEST_SCOPES);
     });
 
     it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
@@ -264,7 +266,7 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
             done();
         };
-        msal.loginRedirect();
+        msal.loginRedirect(TEST_SCOPES);
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -464,7 +466,7 @@ describe('Msal', function (): any {
             tokenType = valTokenType;
         };
         msal._tokenReceivedCallback = callback;
-        msal.loginRedirect();
+        msal.loginRedirect(TEST_SCOPES);
         expect(errDesc).toBe(ErrorDescription.loginProgressError);
         expect(err).toBe(ErrorCodes.loginProgressError);
         expect(token).toBe(null);
@@ -473,19 +475,17 @@ describe('Msal', function (): any {
     });
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
-        var errDesc = '', token = '', err = '', tokenType = '';
-        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
-        };
-        msal._tokenReceivedCallback = callback;
-        msal.loginRedirect([]);
-        expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        expect(err).toBe(ErrorCodes.inputScopesError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        var authErr: AuthError;
+        try {
+            msal.loginRedirect([]);
+        } catch (e) {
+            authErr = e;
+        }
+        expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
@@ -496,19 +496,25 @@ describe('Msal', function (): any {
             err = valErr;
             tokenType = valTokenType;
         };
+        var authErr = AuthError;
         msal._tokenReceivedCallback = callback;
-        msal.loginRedirect([msal.clientId,'123']);
-        expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        expect(err).toBe(ErrorCodes.inputScopesError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        try {
+            msal.loginRedirect([msal.clientId,'123']);
+        } catch (e) {
+            authErr = e;
+        }
+        expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
     });
 
     it('tests if error is thrown when non-array scopes are passed', function () {
         var scopes = "S1, S2";
         var err: AuthError;
         try {
-            scopes = msal.validateAndFilterInputScope(scopes);
+            msal.validateInputScope(scopes);
         } catch (e) {
             err = e;
         }
@@ -519,7 +525,7 @@ describe('Msal', function (): any {
         var scopes = [];
         var err: AuthError;
         try {
-            scopes = msal.validateAndFilterInputScope(scopes);
+            msal.validateInputScope(scopes);
         } catch (e) {
             err = e;
         }
@@ -530,7 +536,7 @@ describe('Msal', function (): any {
         var scopes = [msal.clientId, "S1"];
         var err: AuthError;
         try {
-            scopes = msal.validateAndFilterInputScope(scopes);
+            msal.validateInputScope(scopes);
         } catch (e) {
             err = e;
         }
@@ -539,7 +545,7 @@ describe('Msal', function (): any {
 
     it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
         var scopes = ['openid', 'profile'];
-        scopes = msal.validateAndFilterInputScope(scopes);
+        scopes = msal.filterScopes(scopes);
         expect(scopes.length).toEqual(0);
     });
 
@@ -720,7 +726,7 @@ describe('Msal', function (): any {
             msal = msalInstance;
             done();
         }
-        msal.loginRedirect();
+        msal.loginRedirect(TEST_SCOPES);
     });
 
     it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {

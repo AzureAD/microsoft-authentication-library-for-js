@@ -35,7 +35,7 @@ import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { ClientConfigurationError } from './error/ClientConfigurationError';
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 
 /**
@@ -367,21 +367,13 @@ export class UserAgentApplication {
       // TODO: Should we throw noCallback error here?
     }
 
+    // Validate and filter scopes
     try {
-      scopes = this.validateAndFilterInputScope(scopes);
+      this.validateInputScope(scopes);
     } catch (err) {
-      if (err instanceof ClientConfigurationError) {
-        if (this._tokenReceivedCallback) {
-          this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-          return;
-        } else {
-          // We should be checking for callback earlier
-          throw err;
-        }
-      } else {
-        // TODO: Should create an error and return in error callback here
-      }
+      throw err;
     }
+    scopes = this.filterScopes(scopes);
 
     // extract ADAL id_token if exists
     var idTokenObject;
@@ -475,22 +467,13 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
-    // Validate scopes
+    // Validate and filter scopes
     try {
-      scopes = this.validateAndFilterInputScope(scopes);
+      this.validateInputScope(scopes);
     } catch (err) {
-      if (err instanceof ClientConfigurationError) {
-        if (this._tokenReceivedCallback) {
-          this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-          return;
-        } else {
-          // We should be checking for callback earlier
-          throw err;
-        }
-      } else {
-        // TODO: Should create an error and return in error callback here
-      }
+      throw err;
     }
+    scopes = this.filterScopes(scopes);
 
     // Get the user object if a session exists
     const userObject = user ? user : this.getUser();
@@ -608,19 +591,13 @@ export class UserAgentApplication {
         reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
         return;
       }
-
-      // Validate scopes
+      // Validate and filter scopes
       try {
-        scopes = this.validateAndFilterInputScope(scopes);
+        this.validateInputScope(scopes);
       } catch (err) {
-        if (err instanceof ClientConfigurationError) {
-          // These will return errors instead of strings in the future
-          // Should we throw instead of reject here?
-          reject(err.message);
-        } else {
-          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
-        }
+        throw err;
       }
+      scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
       var idTokenObject;
@@ -751,18 +728,13 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // Validate scopes
+      // Validate and filter scopes
       try {
-        scopes = this.validateAndFilterInputScope(scopes);
+        this.validateInputScope(scopes);
       } catch (err) {
-        if (err instanceof ClientConfigurationError) {
-          // These will return errors instead of strings in the future
-          // Should we throw instead of reject here?
-          reject(err.message);
-        } else {
-          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
-        }
+        throw err;
       }
+      scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
 
@@ -1010,18 +982,13 @@ export class UserAgentApplication {
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // Validate scopes
+      // Validate and filter scopes
       try {
-        scopes = this.validateAndFilterInputScope(scopes);
+        this.validateInputScope(scopes);
       } catch (err) {
-        if (err instanceof ClientConfigurationError) {
-          // These will return errors instead of strings in the future
-          // Should we throw instead of reject here?
-          reject(err.message);
-        } else {
-          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
-        }
+        throw err;
       }
+      scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
       const userObject = user ? user : this.getUser();
@@ -2178,21 +2145,15 @@ export class UserAgentApplication {
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
 
   /**
-   * Used to validate the scopes input parameter requested  by the developer and
-   * to remove openid and profile from the list of scopes passed by the developer.
-   * These scopes are added by default.
-   * 
+   * Used to validate the scopes input parameter requested  by the developer.
+   *
    * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
    * @ignore
    * @hidden
    */
   // TODO: Check if this can be combined with filterScopes()
-  private validateAndFilterInputScope(scopes: Array<string>): Array<string> {
-    if (scopes == null) {
-      return null;
-    }
-
-    // Check that scopes is an array object
+  private validateInputScope(scopes: Array<string>): void {
+    // Check that scopes is an array object (also throws error if scopes == null)
     if (!Array.isArray(scopes)) {
       throw ClientConfigurationError.createScopesNonArrayError(scopes);
     }
@@ -2208,14 +2169,21 @@ export class UserAgentApplication {
         throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
       }
     }
+  }
 
-    scopes = scopes.filter(function (element) {
-      return element !== "openid";
-    });
+  /**
+  * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
+  * @hidden
+  */
+  // TODO: Check if this can be combined with validateInputScope()
+  private filterScopes(scopes: Array<string>): Array<string> {
+      scopes = scopes.filter(function (element) {
+        return element !== "openid";
+      });
 
-    scopes = scopes.filter(function (element) {
-      return element !== "profile";
-    });
+      scopes = scopes.filter(function (element) {
+        return element !== "profile";
+      });
 
     return scopes;
   }
