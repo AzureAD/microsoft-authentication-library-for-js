@@ -4,6 +4,7 @@ export { LogLevel } from "./Logger";
 export { User } from "./User";
 export { Constants } from "./Constants";
 export { TokenResponse} from "./RequestInfo";
-export {Authority} from "./Authority";
-export {CacheResult} from "./UserAgentApplication";
+export { Authority } from "./Authority";
+export { CacheResult } from "./UserAgentApplication";
+export { CacheLocation, buildConfiguration } from "./Configuration";
 
