@@ -35,6 +35,7 @@ import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
+import { ClientConfigurationError } from './error/ClientConfigurationError';
 
 
 /**
@@ -366,16 +367,20 @@ export class UserAgentApplication {
       // TODO: Should we throw noCallback error here?
     }
 
-    // TODO: Replace with new validation pattern
-    if (scopes) {
-      const isValidScope = this.validateInputScope(scopes);
-      if (isValidScope && !Utils.isEmpty(isValidScope)) {
-          if (this._tokenReceivedCallback) {
-              this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+    try {
+      scopes = this.validateAndFilterInputScope(scopes);
+    } catch (err) {
+      if (err instanceof ClientConfigurationError) {
+        if (this._tokenReceivedCallback) {
+          this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
           return;
+        } else {
+          // We should be checking for callback earlier
+          throw err;
         }
+      } else {
+        // TODO: Should create an error and return in error callback here
       }
-      scopes = this.filterScopes(scopes);
     }
 
     // extract ADAL id_token if exists
@@ -471,18 +476,20 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
     // Validate scopes
-    // TODO: Change to new validation pattern
-    // TODO: is this always access token?
-    const isValidScope = this.validateInputScope(scopes);
-    if (isValidScope && !Utils.isEmpty(isValidScope)) {
+    try {
+      scopes = this.validateAndFilterInputScope(scopes);
+    } catch (err) {
+      if (err instanceof ClientConfigurationError) {
         if (this._tokenReceivedCallback) {
-            this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-        return;
+          this._tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+          return;
+        } else {
+          // We should be checking for callback earlier
+          throw err;
+        }
+      } else {
+        // TODO: Should create an error and return in error callback here
       }
-    }
-
-    if (scopes) {
-      scopes = this.filterScopes(scopes);
     }
 
     // Get the user object if a session exists
@@ -603,16 +610,16 @@ export class UserAgentApplication {
       }
 
       // Validate scopes
-      // TODO: Replace with new validation pattern
-      if (scopes) {
-        const isValidScope = this.validateInputScope(scopes);
-        if (isValidScope && !Utils.isEmpty(isValidScope)) {
-          // TODO: Return custom error object here in future
+      try {
+        scopes = this.validateAndFilterInputScope(scopes);
+      } catch (err) {
+        if (err instanceof ClientConfigurationError) {
+          // These will return errors instead of strings in the future
+          // Should we throw instead of reject here?
+          reject(err.message);
+        } else {
           reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
-          return;
         }
-
-        scopes = this.filterScopes(scopes);
       }
 
       // Extract ADAL id_token if it exists
@@ -745,16 +752,16 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate scopes
-      // TODO: Replace with new validation pattern
-      const isValidScope = this.validateInputScope(scopes);
-      if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        // TODO: Should reject with custom error
-        // TODO: Is this always accessToken?
-        reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + isValidScope);
-      }
-
-      if (scopes) {
-        scopes = this.filterScopes(scopes);
+      try {
+        scopes = this.validateAndFilterInputScope(scopes);
+      } catch (err) {
+        if (err instanceof ClientConfigurationError) {
+          // These will return errors instead of strings in the future
+          // Should we throw instead of reject here?
+          reject(err.message);
+        } else {
+          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
+        }
       }
 
       const scope = scopes.join(" ").toLowerCase();
@@ -1004,105 +1011,103 @@ export class UserAgentApplication {
   acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate scopes
-      // TODO: Replace with new validation pattern
-      const isValidScope = this.validateInputScope(scopes);
-      if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        // TODO: Reject with custom error here
-        // TODO: Is this always accessToken?
-        reject(ErrorCodes.inputScopesError + "|" + isValidScope);
-        return null;
-      } else {
-        // TODO: Remove this from the else block, it is unnecessary
-        if (scopes) {
-          scopes = this.filterScopes(scopes);
-        }
-
-        const scope = scopes.join(" ").toLowerCase();
-        const userObject = user ? user : this.getUser();
-        const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
-        //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
-        if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
-          this._logger.info("User login is required");
-          // TODO: Reject with custom error here
-          reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
-          return null;
-        }
-        //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
-        else if (!userObject && !Utils.isEmpty(adalIdToken)) {
-          const idTokenObject = Utils.extractIdToken(adalIdToken);
-          console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
-        }
-
-        let authenticationRequest: AuthenticationRequestParameters;
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-          }
-          else {
-              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-          }
+      try {
+        scopes = this.validateAndFilterInputScope(scopes);
+      } catch (err) {
+        if (err instanceof ClientConfigurationError) {
+          // These will return errors instead of strings in the future
+          // Should we throw instead of reject here?
+          reject(err.message);
         } else {
-            if (scopes.indexOf(this.clientId) > -1) {
-                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-            }
-            else {
-                authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-            }
+          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
         }
+      }
 
-        const cacheResult = this.getCachedToken(authenticationRequest, userObject);
-        // resolve/reject based on cacheResult
-        if (cacheResult) {
-          if (cacheResult.token) {
-            this._logger.info("Token is already in cache for scope:" + scope);
-            resolve(cacheResult.token);
-            return null;
-          }
-          else if (cacheResult.errorDesc || cacheResult.error) {
-            this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
-            return null;
-          }
+      const scope = scopes.join(" ").toLowerCase();
+      const userObject = user ? user : this.getUser();
+      const adalIdToken = this._cacheStorage.getItem(Constants.adalIdToken);
+      //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
+      if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
+        this._logger.info("User login is required");
+        // TODO: Reject with custom error here
+        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        return null;
+      }
+      //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
+      else if (!userObject && !Utils.isEmpty(adalIdToken)) {
+        const idTokenObject = Utils.extractIdToken(adalIdToken);
+        console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
+      }
+
+      let authenticationRequest: AuthenticationRequestParameters;
+      if (Utils.compareObjects(userObject, this.getUser())) {
+        if (scopes.indexOf(this.clientId) > -1) {
+          authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
         }
-        // else proceed with login
         else {
-          this._logger.verbose("Token is not in cache for scope:" + scope);
+            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
         }
-
-        // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
-        // TODO: Do we need to check if cache result is empty before calling this?
-        if (!authenticationRequest.authorityInstance) {//Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
-            authenticationRequest.authorityInstance = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
-        }
-        // cache miss
-        return authenticationRequest.authorityInstance.ResolveEndpointsAsync()
-        .then(() => {
-          // refresh attept with iframe
-          // Already renewing for this scope, callback when we get the token.
-          if (window.activeRenewals[scope]) {
-            this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
-            // Active renewals contains the state for each renewal.
-            this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+      } else {
+          if (scopes.indexOf(this.clientId) > -1) {
+              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
           }
           else {
-            if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
-              // App uses idToken to send to api endpoints
-              // Default scope is tracked as clientId to store this token
-              this._logger.verbose("renewing idToken");
-              this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-            } else {
-              // renew access token
-              this._logger.verbose("renewing accesstoken");
-              this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
-            }
+              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
           }
-        }).catch((err) => {
-          this._logger.warning("could not resolve endpoints");
-          reject(err);
-          return null;
-        });
       }
+
+      const cacheResult = this.getCachedToken(authenticationRequest, userObject);
+      // resolve/reject based on cacheResult
+      if (cacheResult) {
+        if (cacheResult.token) {
+          this._logger.info("Token is already in cache for scope:" + scope);
+          resolve(cacheResult.token);
+          return null;
+        }
+        else if (cacheResult.errorDesc || cacheResult.error) {
+          this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
+          reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
+          return null;
+        }
+      }
+      // else proceed with login
+      else {
+        this._logger.verbose("Token is not in cache for scope:" + scope);
+      }
+
+      // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+      // TODO: Do we need to check if cache result is empty before calling this?
+      if (!authenticationRequest.authorityInstance) {//Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+          authenticationRequest.authorityInstance = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+      }
+      // cache miss
+      return authenticationRequest.authorityInstance.ResolveEndpointsAsync()
+      .then(() => {
+        // refresh attept with iframe
+        // Already renewing for this scope, callback when we get the token.
+        if (window.activeRenewals[scope]) {
+          this._logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+          // Active renewals contains the state for each renewal.
+          this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+        }
+        else {
+          if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+            // App uses idToken to send to api endpoints
+            // Default scope is tracked as clientId to store this token
+            this._logger.verbose("renewing idToken");
+            this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+          } else {
+            // renew access token
+            this._logger.verbose("renewing accesstoken");
+            this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+          }
+        }
+      }).catch((err) => {
+        this._logger.warning("could not resolve endpoints");
+        reject(err);
+        return null;
+      });
     });
   }
 
@@ -1200,6 +1205,10 @@ export class UserAgentApplication {
     return adalFrame;
   }
 
+  //#endregion
+
+  //#region General Helpers
+
   /**
    * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
    * domain_hint can be one of users/organisations which when added skips the email based discovery process of the user
@@ -1254,10 +1263,6 @@ export class UserAgentApplication {
 
     return urlNavigate;
   }
-
-  //#endregion
-
-  //#region General Helpers
 
   /**
    * Used to redirect the browser to the STS authorization endpoint
@@ -1378,7 +1383,7 @@ export class UserAgentApplication {
     }
   }
 
-//#endregion
+  //#endregion
 
   //#region Response
 
@@ -2173,38 +2178,37 @@ export class UserAgentApplication {
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
 
   /**
-   * Used to validate the scopes input parameter requested  by the developer.
+   * Used to validate the scopes input parameter requested  by the developer and
+   * to remove openid and profile from the list of scopes passed by the developer.
+   * These scopes are added by default.
+   * 
    * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
    * @ignore
    * @hidden
    */
   // TODO: Check if this can be combined with filterScopes()
-  private validateInputScope(scopes: Array<string>): string {
-    // Check that scopes is not an empty array
-    if (!scopes || scopes.length < 1) {
-      return "Scopes cannot be passed as an empty array";
+  private validateAndFilterInputScope(scopes: Array<string>): Array<string> {
+    if (scopes == null) {
+      return null;
     }
 
     // Check that scopes is an array object
     if (!Array.isArray(scopes)) {
-      throw new Error("API does not accept non-array scopes");
+      throw ClientConfigurationError.createScopesNonArrayError(scopes);
+    }
+
+    // Check that scopes is not an empty array
+    if (!scopes || scopes.length < 1) {
+      throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
     }
 
     // Check that clientId is passed as single scope
     if (scopes.indexOf(this.clientId) > -1) {
       if (scopes.length > 1) {
-        return "ClientId can only be provided as a single scope";
+        throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
       }
     }
-    return "";
-  }
 
-  /**
-  * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
-  * @hidden
-  */
-  // TODO: Check if this can be combined with validateInputScope()
-  private filterScopes(scopes: Array<string>): Array<string> {
     scopes = scopes.filter(function (element) {
       return element !== "openid";
     });

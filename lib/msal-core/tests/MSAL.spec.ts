@@ -506,7 +506,7 @@ describe('Msal', function (): any {
 
     it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
         var scopes = ['openid', 'profile'];
-        scopes = msal.filterScopes(scopes);
+        scopes = msal.validateAndFilterInputScope(scopes);
         expect(scopes.length).toEqual(0);
     });
 
