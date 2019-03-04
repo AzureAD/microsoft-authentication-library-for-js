@@ -1,4 +1,4 @@
-import {UserAgentApplication} from '../src/index';
+import {UserAgentApplication, AuthError, ClientConfigurationError} from '../src/index';
 import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
@@ -502,6 +502,39 @@ describe('Msal', function (): any {
         expect(err).toBe(ErrorCodes.inputScopesError);
         expect(token).toBe(null);
         expect(tokenType).toBe(Constants.idToken);
+    });
+
+    it('tests if error is thrown when non-array scopes are passed', function () {
+        var scopes = "S1, S2";
+        var err: AuthError;
+        try {
+            scopes = msal.validateAndFilterInputScope(scopes);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
+    it('tests if error is thrown when empty array is passed', function () {
+        var scopes = [];
+        var err: AuthError;
+        try {
+            scopes = msal.validateAndFilterInputScope(scopes);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
+    it('tests if error is thrown when client id is not passed as single scope', function () {
+        var scopes = [msal.clientId, "S1"];
+        var err: AuthError;
+        try {
+            scopes = msal.validateAndFilterInputScope(scopes);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
     });
 
     it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
