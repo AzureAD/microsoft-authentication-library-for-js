@@ -2418,11 +2418,11 @@ export class UserAgentApplication {
    * @param scopes
    * @param silentCall
    */
-  private getTokenType(userObject: User, scopes: string[], silentCall: boolean) {
+  private getTokenType(userObject: User, scopes: string[], silentCall: boolean): string {
 
     // if user is passed and matches the user object/or set to getUser() from cache
     // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
-    let tokenType;
+    let tokenType: string;
 
     // acquireTokenSilent
     if (silentCall) {
