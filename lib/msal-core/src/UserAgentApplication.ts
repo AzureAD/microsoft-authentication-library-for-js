@@ -369,7 +369,7 @@ export class UserAgentApplication {
 
     // Validate and filter scopes
     try {
-      this.validateInputScope(scopes);
+      this.validateInputScope(scopes, false);
     } catch (err) {
       throw err;
     }
@@ -469,7 +469,7 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
     // Validate and filter scopes
     try {
-      this.validateInputScope(scopes);
+      this.validateInputScope(scopes, true);
     } catch (err) {
       throw err;
     }
@@ -593,7 +593,7 @@ export class UserAgentApplication {
       }
       // Validate and filter scopes
       try {
-        this.validateInputScope(scopes);
+        this.validateInputScope(scopes, false);
       } catch (err) {
         throw err;
       }
@@ -730,7 +730,7 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes
       try {
-        this.validateInputScope(scopes);
+        this.validateInputScope(scopes, true);
       } catch (err) {
         throw err;
       }
@@ -984,7 +984,7 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes
       try {
-        this.validateInputScope(scopes);
+        this.validateInputScope(scopes, true);
       } catch (err) {
         throw err;
       }
@@ -2148,18 +2148,27 @@ export class UserAgentApplication {
    * Used to validate the scopes input parameter requested  by the developer.
    *
    * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+   * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
    * @ignore
    * @hidden
    */
   // TODO: Check if this can be combined with filterScopes()
-  private validateInputScope(scopes: Array<string>): void {
+  private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
+    if (!scopes) {
+      if (scopesRequired) {
+        throw ClientConfigurationError.createScopesRequiredError(scopes);
+      } else {
+        return;
+      }
+    }
+
     // Check that scopes is an array object (also throws error if scopes == null)
     if (!Array.isArray(scopes)) {
       throw ClientConfigurationError.createScopesNonArrayError(scopes);
     }
 
     // Check that scopes is not an empty array
-    if (!scopes || scopes.length < 1) {
+    if (scopes.length < 1) {
       throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
     }
 
@@ -2177,6 +2186,7 @@ export class UserAgentApplication {
   */
   // TODO: Check if this can be combined with validateInputScope()
   private filterScopes(scopes: Array<string>): Array<string> {
+    if (scopes) {
       scopes = scopes.filter(function (element) {
         return element !== Constants.openidScope;
       });
@@ -2184,6 +2194,7 @@ export class UserAgentApplication {
       scopes = scopes.filter(function (element) {
         return element !== Constants.profileScope;
       });
+    }
 
     return scopes;
   }

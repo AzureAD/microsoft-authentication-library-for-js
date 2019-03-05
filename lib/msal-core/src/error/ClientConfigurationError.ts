@@ -36,6 +36,10 @@ export const ClientConfigurationErrorMessage = {
             "Please call handleRedirectCallbacks() with the appropriate callback signatures. " +
             "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
     },
+    scopesRequired: {
+        code: "scopes_required",
+        desc: "Scopes are required to obtain an access token."
+    },
     emptyScopes: {
         code: "empty_input_scopes_error",
         desc: "Scopes cannot be passed as empty array."
@@ -104,5 +108,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createClientIdSingleScopeError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.clientScope.code,
             `${ClientConfigurationErrorMessage.clientScope.desc} Given value: ${scopesValue}.`);
+    }
+
+    static createScopesRequiredError(scopesValue: any): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequired.code,
+            `${ClientConfigurationErrorMessage.scopesRequired.desc} Given value: ${scopesValue}`);
     }
 }
