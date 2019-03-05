@@ -74,7 +74,7 @@
     "ts-loader": "^2.0.3",
     "tslib": "^1.7.1",
     "tslint": "^5.8.0",
-    "typedoc": "^0.6.0",
+    "typedoc": "^0.14.2",
     "typescript": "^2.7.2",
     "typings": "^2.1.1",
     "webpack": "3.6.0",
@@ -90,7 +90,7 @@
   },
   "scripts": {
     "clean": "shx rm -rf dist docs",
-    "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
+    "doc": "typedoc --out ./docs ./src/ --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run doc && npm run build:modules && webpack",
     "test": "typings install && karma start karma.conf.js",
