@@ -24,6 +24,15 @@
   "engines": {
     "node": ">=0.8.0"
   },
+  "scripts": {
+    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
+    "doc": "typedoc --out ./docs ./src/ --gitRevision dev",
+    "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
+    "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
+    "test": "typings install && karma start && jasmine-node --nohelpers tests/MSALSpec.js",
+    "lint": "tslint -c tslint.json src/**/*.ts",
+    "build:webpack": "webpack"
+  },
   "dependencies": {
     "tslib": "1.7.1"
   },
@@ -71,7 +80,7 @@
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
     "ts-loader": "^5.3.1",
     "tslint": "^5.8.0",
-    "typedoc": "^0.6.0",
+    "typedoc": "^0.14.2",
     "typescript": "^2.5.3",
     "typings": "^2.1.1",
     "webpack": "^4.27.1",
@@ -80,12 +89,5 @@
   },
   "directories": {
     "test": "tests"
-  },
-  "scripts": {
-    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
-    "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
-    "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
-    "build": "npm run clean && npm run doc && npm run build:modules && webpack && grunt && npm test",
-    "test": "typings install && karma start && jasmine-node --nohelpers tests/MSALSpec.js"
   }
 }

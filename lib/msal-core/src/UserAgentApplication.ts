@@ -595,7 +595,7 @@ export class UserAgentApplication {
       // Fail if login is already in progress
       if (this._loginInProgress) {
         // TODO: Return custom error object here in future
-        reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
+        reject(ErrorCodes.loginProgressError + Constants.resourceDelimiter + ErrorDescription.loginProgressError);
         return;
       }
 
@@ -605,7 +605,7 @@ export class UserAgentApplication {
         const isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils.isEmpty(isValidScope)) {
           // TODO: Return custom error object here in future
-          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
+          reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + ErrorDescription.inputScopesError);
           return;
         }
 
@@ -748,7 +748,7 @@ export class UserAgentApplication {
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         // TODO: Should reject with custom error
         // TODO: Is this always accessToken?
-        reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + isValidScope);
+        reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + isValidScope);
       }
 
       if (scopes) {
@@ -763,14 +763,14 @@ export class UserAgentApplication {
       // If already in progress, reject the request
       if (this._acquireTokenInProgress) {
         // TODO: Should reject with custom error
-        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimeter + ErrorDescription.acquireTokenProgressError);
+        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimiter + ErrorDescription.acquireTokenProgressError);
         return;
       }
 
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this._logger.info("User login is required");
-        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
         return;
       }
 
@@ -840,7 +840,7 @@ export class UserAgentApplication {
         this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
         // TODO: Should reject with custom error here
         if (reject) {
-          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimeter + ErrorDescription.endpointResolutionError);
+          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimiter + ErrorDescription.endpointResolutionError);
         }
         if (popUpWindow) {
             popUpWindow.close();
@@ -880,7 +880,7 @@ export class UserAgentApplication {
       if (reject) {
         // TODO: Throw custom error here
         // TODO: Figure out some way to pass tokenType
-        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimeter + ErrorDescription.popUpWindowError);
+        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimiter + ErrorDescription.popUpWindowError);
       }
       return null;
     }
@@ -894,11 +894,11 @@ export class UserAgentApplication {
         if (reject) {
           // TODO: Reject with custom error here
           // TODO: Figure out some way to pass tokenType
-          reject(ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+          reject(ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
         }
         window.clearInterval(pollTimer);
         if (this._isAngular) {
-            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
             return;
         }
         instance._loginInProgress = false;
@@ -1018,7 +1018,7 @@ export class UserAgentApplication {
         if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
           this._logger.info("User login is required");
           // TODO: Reject with custom error here
-          reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+          reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
           return null;
         }
         //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
@@ -1055,7 +1055,7 @@ export class UserAgentApplication {
           }
           else if (cacheResult.errorDesc || cacheResult.error) {
             this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
+            reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
             return null;
           }
         }
@@ -1303,7 +1303,7 @@ export class UserAgentApplication {
         for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimeter + error);
+                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimiter + error);
             }
             else if (token) {
                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
