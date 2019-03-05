@@ -89,6 +89,8 @@ export class Constants {
   static get common(): string { return "common"; }
   static get cacheLocationLocal(): string { return "localStorage"; }
   static get cacheLocationSession(): string { return "sessionStorage"; }
+  static get openidScope(): string { return "openid"; }
+  static get profileScope(): string { return "profile"; }
 }
 
 /**

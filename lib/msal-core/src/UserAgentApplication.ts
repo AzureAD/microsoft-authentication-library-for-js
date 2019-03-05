@@ -2178,11 +2178,11 @@ export class UserAgentApplication {
   // TODO: Check if this can be combined with validateInputScope()
   private filterScopes(scopes: Array<string>): Array<string> {
       scopes = scopes.filter(function (element) {
-        return element !== "openid";
+        return element !== Constants.openidScope;
       });
 
       scopes = scopes.filter(function (element) {
-        return element !== "profile";
+        return element !== Constants.profileScope;
       });
 
     return scopes;
