@@ -367,12 +367,8 @@ export class UserAgentApplication {
       // TODO: Should we throw noCallback error here?
     }
 
-    // Validate and filter scopes
-    try {
-      this.validateInputScope(scopes, false);
-    } catch (err) {
-      throw err;
-    }
+    // Validate and filter scopes (the validate function will throw if validation fails)
+    this.validateInputScope(scopes, false);
     scopes = this.filterScopes(scopes);
 
     // extract ADAL id_token if exists
@@ -467,12 +463,8 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
-    // Validate and filter scopes
-    try {
-      this.validateInputScope(scopes, true);
-    } catch (err) {
-      throw err;
-    }
+    // Validate and filter scopes (the validate function will throw if validation fails)
+    this.validateInputScope(scopes, true);
     scopes = this.filterScopes(scopes);
 
     // Get the user object if a session exists
@@ -591,12 +583,8 @@ export class UserAgentApplication {
         reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
         return;
       }
-      // Validate and filter scopes
-      try {
-        this.validateInputScope(scopes, false);
-      } catch (err) {
-        throw err;
-      }
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(scopes, false);
       scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
@@ -728,12 +716,8 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // Validate and filter scopes
-      try {
-        this.validateInputScope(scopes, true);
-      } catch (err) {
-        throw err;
-      }
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(scopes, true);
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
@@ -982,12 +966,8 @@ export class UserAgentApplication {
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // Validate and filter scopes
-      try {
-        this.validateInputScope(scopes, true);
-      } catch (err) {
-        throw err;
-      }
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(scopes, true);
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
