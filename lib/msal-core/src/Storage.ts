@@ -180,7 +180,7 @@ export class Storage {// Singleton
      * Create acquireTokenUserKey to cache user object
      * acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userId + Constants.resourceDelimeter + authenticationRequest.state;
      */
-    static generateATUserKey(userId: any, state: string) {
+    static generateAcquireTokenUserKey(userId: any, state: string) {
         return `msal.acquireTokenUser|${userId}|${state}`;
     }
 
@@ -188,7 +188,7 @@ export class Storage {// Singleton
      * Create authorityKey to cache authority
      * const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
      */
-    static generateAuthKey(state: string) {
-        return `msal.authority|${state}`;
+    static generateAuthorityKey(state: string) {
+        return Constants.authority + Constants.resourceDelimeter + `${state}`;
     }
 }
