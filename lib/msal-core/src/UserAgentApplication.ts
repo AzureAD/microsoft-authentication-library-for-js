@@ -364,7 +364,12 @@ export class UserAgentApplication {
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
-    this.validateInputScope(scopes, false);
+    try {
+      this.validateInputScope(scopes, false);
+    } catch(e) {
+      // Rethrow for better error tracking
+      throw e;
+    }
     scopes = this.filterScopes(scopes);
 
     // extract ADAL id_token if exists
@@ -460,7 +465,12 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
     // Validate and filter scopes (the validate function will throw if validation fails)
-    this.validateInputScope(scopes, true);
+    try {
+      this.validateInputScope(scopes, true);
+    } catch (e) {
+      // Rethrow for better error tracking
+      throw e;
+    }
     scopes = this.filterScopes(scopes);
 
     // Get the user object if a session exists
@@ -573,7 +583,12 @@ export class UserAgentApplication {
         throw ClientAuthError.createLoginInProgressError();
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
-      this.validateInputScope(scopes, false);
+      try {
+        this.validateInputScope(scopes, false);
+      } catch (e) {
+        // Rethrow for better error tracking
+        throw e;
+      }
       scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
@@ -706,7 +721,12 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
-      this.validateInputScope(scopes, true);
+      try {
+        this.validateInputScope(scopes, true);
+      } catch (e) {
+        // Rethrow for better error tracking
+        throw e;
+      }
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
@@ -952,7 +972,12 @@ export class UserAgentApplication {
   acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
-      this.validateInputScope(scopes, true);
+      try {
+        this.validateInputScope(scopes, true);
+      } catch (e) {
+        // Rethrow for better error tracking
+        throw e;
+      }
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
