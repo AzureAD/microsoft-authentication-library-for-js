@@ -50,6 +50,7 @@ export class AuthError extends Error {
 
         Object.setPrototypeOf(this, AuthError.prototype);
     }
+    
     static createUnexpectedError(errDesc: string) {
         return new AuthError(AuthErrorMessage.unexpectedError.code, errDesc);
     }

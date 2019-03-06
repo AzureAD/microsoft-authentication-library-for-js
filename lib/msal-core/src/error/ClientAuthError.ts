@@ -85,7 +85,7 @@ export class ClientAuthError extends AuthError {
     }
 
     static createEndpointResolutionError(errDesc: string): ClientAuthError {
-        var errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
+        let errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
         if (!Utils.isEmpty(errDesc)) {
             errorMessage += ` Details: ${errDesc}`;
         }
