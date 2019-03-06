@@ -74,6 +74,10 @@ export const ClientAuthErrorMessage = {
         code: "user_login_error",
         desc: "User login is required."
     },
+    userDoesNotExistError: {
+        code: "user_non_existent",
+        desc: "User object does not exist. Please call a login API."
+    }
 };
 
 /**
@@ -88,10 +92,10 @@ export class ClientAuthError extends AuthError {
         Object.setPrototypeOf(this, ClientAuthError.prototype);
     }
 
-    static createEndpointResolutionError(errDesc: string): ClientAuthError {
+    static createEndpointResolutionError(errDetail?: string): ClientAuthError {
         var errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
-        if (!Utils.isEmpty(errDesc)) {
-            errorMessage += ` Details: ${errDesc}`;
+        if (errDetail && !Utils.isEmpty(errDetail)) {
+            errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
     }
@@ -106,9 +110,12 @@ export class ClientAuthError extends AuthError {
             `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingAuthorities.desc}.`);
     }
 
-    static createPopupWindowError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code,
-            ClientAuthErrorMessage.popUpWindowError.desc);
+    static createPopupWindowError(errDetail?: string): ClientAuthError {
+        var errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
+        if (errDetail && !Utils.isEmpty(errDetail)) {
+            errorMessage += ` Details: ${errDetail}`;
+        }
+        return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code, errorMessage);
     }
 
     static createTokenRenewalTimeoutError(): ClientAuthError {
@@ -148,5 +155,9 @@ export class ClientAuthError extends AuthError {
 
     static createUserLoginRequiredError() : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code, ClientAuthErrorMessage.userLoginRequiredError.desc);
+    }
+
+    static createUserDoesNotExistError() : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userDoesNotExistError.code, ClientAuthErrorMessage.userDoesNotExistError.desc);
     }
 }

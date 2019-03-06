@@ -241,10 +241,8 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (token) {
-                }, function (err) {
-                },
-                { redirectUri: TEST_REDIR_URI });
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
+                }, { redirectUri: TEST_REDIR_URI });
         msal._user = null;
         msal._renewStates = [];
         msal._activeRenewals = {};
@@ -466,7 +464,6 @@ describe('Msal', function (): any {
         } catch (e) {
             authErr = e;
         }
-        
         expect(authErr).toEqual(jasmine.any(ClientAuthError));
         msal._loginInProgress = false;
     });
@@ -479,10 +476,6 @@ describe('Msal', function (): any {
             authErr = e;
         }
         expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
-        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        // expect(err).toBe(ErrorCodes.inputScopesError);
-        // expect(token).toBe(null);
-        // expect(tokenType).toBe(Constants.idToken);
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
@@ -676,7 +669,7 @@ describe('Msal', function (): any {
         expect(decodeURIComponent(result[4])).toContain("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
     });
 
-    // TODO: These tests need to be updated to use the success callback path and check that state is passed back there.
+    // We no longer return state as a part of the error, so these tests need to be updated
     // it('tests if you get the state back in tokenReceived callback, if state is a number', function () {
     //     spyOn(msal, 'getUserState').and.returnValue("1234");
     //     msal._loginInProgress = true;
@@ -730,8 +723,6 @@ describe('Msal', function (): any {
             expect(error).toBeUndefined();
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
-        }, function(err) {
-            return err;
         }, { storeAuthStateInCookie: true });
         msal._cacheStorage = storageFake;
         var _promptUser = msal.promptUser;
@@ -761,8 +752,6 @@ describe('Msal', function (): any {
              expect(error).toBeUndefined();
              expect(token).toBe(mockIdToken);
              expect(tokenType).toBe(Constants.idToken);
-         }, function (err) {
-             return err;
          }, { cacheLocation: 'localStorage' });
 
          expect(msal._cacheLocation).toBe('localStorage');
@@ -772,16 +761,12 @@ describe('Msal', function (): any {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
-         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null,
-         function (errorDesc, token, error, tokenType) {
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
              expect(document.cookie).toBe('');
              expect(errorDesc).toBeUndefined();
              expect(error).toBeUndefined();
              expect(token).toBe(mockIdToken);
              expect(tokenType).toBe(Constants.idToken);
-         }, 
-         function (err) {
-             return err;
          });
 
          expect(msal._cacheLocation).toBe('sessionStorage');
@@ -790,7 +775,6 @@ describe('Msal', function (): any {
     it('tests cacheLocation functionality malformed strings throw error', function () {
          var msalInstance = msal;
          var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-
          msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
              expect(document.cookie).toBe('');
              expect(errorDesc).toBe("Cache Location is not valid.");
@@ -856,5 +840,3 @@ describe('acquireTokenSilent functionality', function () {
     });
 
 });
-
-
