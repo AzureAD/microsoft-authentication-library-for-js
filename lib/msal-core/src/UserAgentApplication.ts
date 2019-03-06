@@ -91,11 +91,7 @@ export interface CacheResult {
 // TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
 export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
 
-/**
- * A type alias of for a errorReceivedCallback function.
- * @param errorReceivedCallback.err error object created by library that contains the message returned from the STS if API call fails.
- */
-export type errorReceivedCallback = (err: AuthError) => void;
+// TODO: Add second callback for error cases
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -174,11 +170,6 @@ export class UserAgentApplication {
    * @hidden
    */
   private _tokenReceivedCallback: tokenReceivedCallback = null;
-
-  /**
-   * @hidden
-   */
-  private _errorReceivedCallback: errorReceivedCallback = null;
 
   /**
    * @hidden
@@ -269,7 +260,6 @@ export class UserAgentApplication {
     clientId: string,
     authority: string | null,
     tokenReceivedCallback: tokenReceivedCallback,
-    errorReceivedCallback: errorReceivedCallback,
     options:
       {
         validateAuthority?: boolean,
@@ -316,8 +306,8 @@ export class UserAgentApplication {
     this._logger = logger;
     this.storeAuthStateInCookie = storeAuthStateInCookie;
 
+    // TODO: This should be replaced with two different callbacks for success and error cases
     this._tokenReceivedCallback = tokenReceivedCallback;
-    this._errorReceivedCallback = errorReceivedCallback;
 
     // Track login and acquireToken in progress
     this._loginInProgress = false;
