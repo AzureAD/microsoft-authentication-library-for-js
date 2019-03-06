@@ -35,7 +35,7 @@ import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { Configuration, buildConfiguration } from "./Configuration";
+import { Configuration } from "./Configuration";
 
 // default authority
 /**
@@ -132,13 +132,16 @@ export class UserAgentApplication {
   // Added for readability as these params are very frequently used
   private logger: Logger;
   private clientId: string;
+  private inCookie: boolean;
 
+  // status parameters
   private userLoginInProgress: boolean;
   private acquireTokenInProgress: boolean;
   private silentAuthenticationState: string;
   private silentLogin: boolean;
+
+  // TODO: Account changes pending
   private user: User;
-  private inCookie: boolean;
 
   // Authority Functionality
   protected authorityInstance: Authority;
@@ -169,8 +172,10 @@ export class UserAgentApplication {
 
     // Set the Configuration
     this.config = configuration;
+
     this.logger = this.config.system.logger;
     this.clientId = this.config.auth.clientId;
+    this.inCookie = this.config.cache.storeAuthStateInCookie;
 
     // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
     this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -182,7 +187,6 @@ export class UserAgentApplication {
     this.userLoginInProgress = false;
     this.acquireTokenInProgress = false;
 
-    this.inCookie = this.config.cache.storeAuthStateInCookie;
 
     // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
     try {
