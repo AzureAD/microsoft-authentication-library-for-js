@@ -1923,7 +1923,7 @@ export class UserAgentApplication {
       if (tokenResponse.requestType === Constants.renewToken) {
         this._acquireTokenInProgress = false;
         authorityKey = Storage.generateAuthKey(tokenResponse.stateResponse);
-        
+
         var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
         acquireTokenUserKey = Storage.generateATUserKey(userKey, tokenResponse.stateResponse);
       }
