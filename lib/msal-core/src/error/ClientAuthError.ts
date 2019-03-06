@@ -85,8 +85,8 @@ export const ClientAuthErrorMessage = {
  */
 export class ClientAuthError extends AuthError {
 
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string, errorMessage?: string, state?: string) {
+        super(errorCode, errorMessage, state);
         this.name = "ClientAuthError";
 
         Object.setPrototypeOf(this, ClientAuthError.prototype);

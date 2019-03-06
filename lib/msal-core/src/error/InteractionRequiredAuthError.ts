@@ -40,8 +40,8 @@ export const InteractionRequiredAuthErrorMessage = {
  */
 export class InteractionRequiredAuthError extends ServerError {
 
-    constructor(errorCode: string, errorMessage?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode: string, errorMessage?: string, state?: string) {
+        super(errorCode, errorMessage, state);
         this.name = "InteractionRequiredAuthError";
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
