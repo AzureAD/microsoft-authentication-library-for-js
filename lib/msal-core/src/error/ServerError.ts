@@ -22,7 +22,6 @@
   */
 
 import { AuthError } from "./AuthError";
-import { stat } from 'fs-extra';
 
 export const ServerErrorMessage = {
     serverUnavailable: {
