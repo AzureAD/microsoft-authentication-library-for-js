@@ -366,7 +366,7 @@ export class UserAgentApplication {
     // Validate and filter scopes (the validate function will throw if validation fails)
     try {
       this.validateInputScope(scopes, false);
-    } catch(e) {
+    } catch (e) {
       // Rethrow for better error tracking
       throw e;
     }

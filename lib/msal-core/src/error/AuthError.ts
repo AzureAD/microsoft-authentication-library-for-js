@@ -41,7 +41,6 @@ export class AuthError extends Error {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.name = "AuthError";
-        this.stack = new Error().stack;
 
         Object.setPrototypeOf(this, AuthError.prototype);
     }
