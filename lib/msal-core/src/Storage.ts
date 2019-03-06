@@ -23,6 +23,7 @@
 
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { CacheKeys } from "./Constants";
 
 /**
  * @hidden
@@ -178,17 +179,16 @@ export class Storage {// Singleton
 
     /**
      * Create acquireTokenUserKey to cache user object
-     * acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userId + Constants.resourceDelimeter + authenticationRequest.state;
      */
-    static generateATUserKey(userId: any, state: string) {
-        return `msal.acquireTokenUser|${userId}|${state}`;
+    static generateAcquireTokenUserKey(userId: any, state: string): string {
+        return CacheKeys.ACQUIRE_TOKEN_USER + Constants.resourceDelimiter +
+            `${userId}` + Constants.resourceDelimiter  + `${state}`;
     }
 
     /**
      * Create authorityKey to cache authority
-     * const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
      */
-    static generateAuthKey(state: string) {
-        return `msal.authority|${state}`;
+    static generateAuthorityKey(state: string): string {
+        return CacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;
     }
 }
