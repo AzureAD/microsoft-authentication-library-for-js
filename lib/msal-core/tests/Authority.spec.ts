@@ -1,6 +1,6 @@
 
 import {Authority, AuthorityType} from '../src/Authority';
-import { ErrorMessage } from "../src/ErrorMessage";
+import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 
 import { AuthorityFactory } from "../src/AuthorityFactory";
 
@@ -27,7 +27,7 @@ describe("Authority", () => {
             expect(authority.AuthorityType).toEqual(AuthorityType.Aad);
         });
 
-        it("can be resolved", (done) => {
+        it("can be resolved", (done: DoneFn) => {
             // Arrange
             let url = "https://login.microsoftonline.com/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
             let validate = true;
@@ -43,7 +43,7 @@ describe("Authority", () => {
             verifyAuthority(promise, authority, done);
         });
 
-        it("can be resolved for untrusted hosts", (done) => {
+        it("can be resolved for untrusted hosts", (done: DoneFn) => {
             // Arrange
             let url = "https://login.microsoftonline.in/6babcaad-604b-40ac-a9d7-9fd97c0b779f";
             let validate = true;
@@ -96,7 +96,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.b2cAuthorityUriInvalidPath);
+            expect(call).toThrow(ClientConfigurationErrorMessage.b2cAuthorityUriInvalidPath);
         });
 
         it("should fail when validation is not supported", (done) => {
@@ -110,7 +110,7 @@ describe("Authority", () => {
 
             // Assert
             promise.catch((error) => {
-                expect(error).toEqual(ErrorMessage.unsupportedAuthorityValidation);
+                expect(error).toEqual(ClientConfigurationErrorMessage.unsupportedAuthorityValidation);
                 done();
             });
         });
@@ -126,7 +126,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.invalidAuthorityType);
+            expect(call).toThrow(ClientConfigurationErrorMessage.invalidAuthorityType);
         });
     });
 
@@ -148,14 +148,14 @@ describe("Authority", () => {
             });
         }
 
-        it("is thrown when tenant discovery endpoint fails with invalid data", (done) => {
+        it("is thrown when tenant discovery endpoint fails with invalid data", (done: DoneFn) => {
             verifyError(done, {
                 status: 500,
                 responseText: 'fatalError'
             }, "fatalError");
         });
 
-        it("is thrown when tenant discovery endpoint fails with error details", (done) => {
+        it("is thrown when tenant discovery endpoint fails with error details", (done: DoneFn) => {
             verifyError(done, {
                 status: 400,
                 responseText: '{"error": "OMG_EPIC_FAIL"}'
@@ -171,7 +171,7 @@ describe("Authority", () => {
             let call = () => AuthorityFactory.CreateInstance(url, validate);
 
             // Assert
-            expect(call).toThrow(ErrorMessage.authorityUriInsecure);
+            expect(call).toThrow(ClientConfigurationErrorMessage.authorityUriInsecure);
         });
     });
 });

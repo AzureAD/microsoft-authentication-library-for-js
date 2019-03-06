@@ -3,8 +3,13 @@ export { Logger } from "./Logger";
 export { LogLevel } from "./Logger";
 export { User } from "./User";
 export { Constants } from "./Constants";
-export { ErrorMessage } from "./ErrorMessage";
 export { TokenResponse } from "./RequestInfo";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";
-export { AuthError, ClientAuthError, ConfigurationError, InteractionRequiredAuthError, ServerError, ClaimsRequiredAuthError } from "./AuthError";
+
+// Errors
+export { AuthError } from "./error/AuthError";
+export { ClientAuthError } from "./error/ClientAuthError";
+export { ServerError } from "./error/ServerError";
+export { ClientConfigurationError } from "./error/ClientConfigurationError";
+export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
