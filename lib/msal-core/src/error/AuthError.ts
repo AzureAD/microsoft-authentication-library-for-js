@@ -36,7 +36,7 @@ export class AuthError extends Error {
     errorCode: string;
     errorMessage: string;
 
-    constructor(errorCode: string, errorMessage: string) {
+    constructor(errorCode: string, errorMessage?: string) {
         super(errorMessage);
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
