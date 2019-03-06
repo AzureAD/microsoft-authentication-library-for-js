@@ -35,14 +35,12 @@ export class AuthError extends Error {
 
     errorCode: string;
     errorMessage: string;
-    state: string;
 
-    constructor(errorCode: string, errorMessage?: string, state?: string) {
+    constructor(errorCode: string, errorMessage?: string) {
         super(errorMessage);
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.name = "AuthError";
-        this.state = state;
 
         Object.setPrototypeOf(this, AuthError.prototype);
     }
