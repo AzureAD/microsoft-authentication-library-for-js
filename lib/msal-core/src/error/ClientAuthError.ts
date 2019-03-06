@@ -70,6 +70,10 @@ export const ClientAuthErrorMessage = {
         code: "callback_error",
         desc: "Error occurred in token received callback function."
     },
+    userLoginRequiredError: {
+        code: "user_login_error",
+        desc: "User login is required."
+    },
 };
 
 /**
@@ -140,5 +144,9 @@ export class ClientAuthError extends AuthError {
     static createErrorInCallbackFunction(errorDesc: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.callbackError.code,
             `${ClientAuthErrorMessage.callbackError.desc} ${errorDesc}.`);
+    }
+
+    static createUserLoginRequiredError() : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code, ClientAuthErrorMessage.userLoginRequiredError.desc);
     }
 }

@@ -23,6 +23,7 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
+import { AuthError } from "./AuthError";
 
 export const ClientConfigurationErrorMessage = {
     invalidCacheLocation: {
@@ -30,10 +31,14 @@ export const ClientConfigurationErrorMessage = {
         desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements like authority."
     },
-    noCallback: {
-        code: "no_callback",
-        desc: "Error in configuration: no callback(s) registered for login/acquireTokenRedirect flows. " +
-            "Please call handleRedirectCallbacks() with the appropriate callback signatures. " +
+    noSuccessCallback: {
+        code: "no_success_callback",
+        desc: "Error in configuration: no success callback(s) registered for login/acquireTokenRedirect flows. " +
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+    },
+    noErrorCallback: {
+        code: "no_error_callback",
+        desc: "Error in configuration: no error callback(s) registered for login/acquireTokenRedirect flows. " +
             "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
     },
     scopesRequired: {
@@ -90,9 +95,14 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
     }
 
-    static createNoCallbackError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.noCallback.code,
-            ClientConfigurationErrorMessage.noCallback.desc);
+    static createNoSuccessCallbackError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.noSuccessCallback.code,
+            ClientConfigurationErrorMessage.noSuccessCallback.desc);
+    }
+
+    static createNoErrorCallbackError(thrownError: AuthError): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.noErrorCallback.code,
+            `${ClientConfigurationErrorMessage.noErrorCallback.desc} Thrown Error: ${thrownError}`);
     }
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {

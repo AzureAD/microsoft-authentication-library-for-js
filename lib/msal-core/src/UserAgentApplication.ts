@@ -36,7 +36,8 @@ import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-
+import { AuthError } from "./error/AuthError";
+import { ClientAuthError } from "./error/ClientAuthError";
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -90,7 +91,11 @@ export interface CacheResult {
 // TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
 export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
 
-// TODO: Add second callback for error cases
+/**
+ * A type alias of for a errorReceivedCallback function.
+ * @param errorReceivedCallback.err error object created by library that contains the message returned from the STS if API call fails.
+ */
+export type errorReceivedCallback = (err: AuthError) => void;
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -169,6 +174,11 @@ export class UserAgentApplication {
    * @hidden
    */
   private _tokenReceivedCallback: tokenReceivedCallback = null;
+
+  /**
+   * @hidden
+   */
+  private _errorReceivedCallback: errorReceivedCallback = null;
 
   /**
    * @hidden
@@ -259,6 +269,7 @@ export class UserAgentApplication {
     clientId: string,
     authority: string | null,
     tokenReceivedCallback: tokenReceivedCallback,
+    errorReceivedCallback: errorReceivedCallback,
     options:
       {
         validateAuthority?: boolean,
@@ -305,8 +316,8 @@ export class UserAgentApplication {
     this._logger = logger;
     this.storeAuthStateInCookie = storeAuthStateInCookie;
 
-    // TODO: This should be replaced with two different callbacks for success and error cases
     this._tokenReceivedCallback = tokenReceivedCallback;
+    this._errorReceivedCallback = errorReceivedCallback;
 
     // Track login and acquireToken in progress
     this._loginInProgress = false;
@@ -359,12 +370,7 @@ export class UserAgentApplication {
     3. redirect user to AAD
      */
     if (this._loginInProgress) {
-      // TODO: use error callback here
-      if (this._tokenReceivedCallback) {
-            this._tokenReceivedCallback(ErrorDescription.loginProgressError, null, ErrorCodes.loginProgressError, Constants.idToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-        return;
-      }
-      // TODO: Should we throw noCallback error here?
+      throw ClientAuthError.createLoginInProgressError();
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
@@ -479,13 +485,8 @@ export class UserAgentApplication {
     // If no session exists, prompt the user to login.
     const scope = scopes.join(" ").toLowerCase();
     if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
-    // TODO: This should be replaced with error callback
-    // TODO: Is this always accessToken?
-      if (this._tokenReceivedCallback) {
-        this._logger.info("User login is required");
-        this._tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
-        return;
-      }
+      this._logger.info("User login is required");
+      throw ClientAuthError.createUserLoginRequiredError();
     }
 
     // Track the acquireToken progress
