@@ -24,6 +24,15 @@
   "engines": {
     "node": ">=0.8.0"
   },
+  "scripts": {
+    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
+    "doc": "typedoc --out ./docs ./src/ --gitRevision dev",
+    "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
+    "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
+    "test": "typings install && karma start && jasmine-node --nohelpers tests/MSALSpec.js",
+    "lint": "tslint -c tslint.json src/**/*.ts",
+    "build:webpack": "webpack"
+  },
   "dependencies": {
     "tslib": "1.7.1"
   },
@@ -36,14 +45,6 @@
     "awesome-typescript-loader": "^3.2.3",
     "babel-polyfill": "^6.26.0",
     "fork-ts-checker-webpack-plugin": "^0.5.1",
-    "grunt": "^1.0.3",
-    "grunt-banner": "^0.6.0",
-    "grunt-contrib-uglify": "^2.3.0",
-    "grunt-exec": "^2.0.0",
-    "grunt-file-append": "0.0.7",
-    "grunt-jasmine-node": "~0.3.1",
-    "grunt-tslint": "^5.0.1",
-    "grunt-typedoc": "^0.2.4",
     "istanbul-instrumenter-loader": "^3.0.1",
     "jasmine": "^2.8.0",
     "jasmine-ajax": "^3.3.1",
@@ -71,21 +72,15 @@
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
     "ts-loader": "^5.3.1",
     "tslint": "^5.8.0",
-    "typedoc": "^0.6.0",
+    "typedoc": "^0.14.2",
     "typescript": "^2.5.3",
     "typings": "^2.1.1",
+    "uglifyjs-webpack-plugin": "^2.1.1",
     "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2",
+    "webpack-cli": "^3.2.3",
     "webpack-dev-middleware": "^3.4.0"
   },
   "directories": {
     "test": "tests"
-  },
-  "scripts": {
-    "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
-    "doc": "typedoc --out ./docs ./src/**/* --gitRevision dev",
-    "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
-    "build": "npm run clean && npm run doc && npm run build:modules && webpack && grunt && npm test",
-    "test": "karma start && jasmine-node --nohelpers tests/MSALSpec.js"
   }
 }
