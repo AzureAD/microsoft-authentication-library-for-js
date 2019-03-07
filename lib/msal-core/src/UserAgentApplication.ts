@@ -124,24 +124,26 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
  */
 export class UserAgentApplication {
 
+  // input Configuration by the user
   private config: Configuration;
 
+  // TODO: This will be extracted with Response Changes
   private tokenReceivedCallback: tokenReceivedCallback = null;
-  protected cacheStorage: Storage;
 
   // Added for readability as these params are very frequently used
   private logger: Logger;
   private clientId: string;
   private inCookie: boolean;
 
-  // status parameters
+  // Cache and Account info referred across token grant flow
+  protected cacheStorage: Storage;
+  private user: User;
+
+  // state variables
   private userLoginInProgress: boolean;
   private acquireTokenInProgress: boolean;
   private silentAuthenticationState: string;
   private silentLogin: boolean;
-
-  // TODO: Account changes pending
-  private user: User;
 
   // Authority Functionality
   protected authorityInstance: Authority;
@@ -173,6 +175,9 @@ export class UserAgentApplication {
     // Set the Configuration
     this.config = configuration;
 
+    // Set the callback
+    this.tokenReceivedCallback = callback;
+
     this.logger = this.config.system.logger;
     this.clientId = this.config.auth.clientId;
     this.inCookie = this.config.cache.storeAuthStateInCookie;
@@ -180,13 +185,9 @@ export class UserAgentApplication {
     // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
     this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
 
-    // Set the callback
-    this.tokenReceivedCallback = callback;
-
     // track login and acquireToken in progress
     this.userLoginInProgress = false;
     this.acquireTokenInProgress = false;
-
 
     // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
     try {
@@ -202,6 +203,7 @@ export class UserAgentApplication {
     window.callBackMappedToRenewStates = { };
     window.callBacksMappedToRenewStates = { };
     window.msal = this;
+
     const urlHash = window.location.hash;
     const isCallback = this.isCallback(urlHash);
 
@@ -320,7 +322,7 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
       // Cache authorityKey
-      const authorityKey = Storage.generateAuthKey(authenticationRequest.state);
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
 
       // build URL to navigate to proceed with the login
@@ -407,11 +409,11 @@ export class UserAgentApplication {
 
       // Cache acquireTokenUserKey
       const userId = userObject ? userObject.userIdentifier : Constants.no_user;
-      const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
+      const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
       this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
       // Cache authorityKey
-      const authorityKey = Storage.generateAuthKey(authenticationRequest.state);
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this.cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.inCookie);
 
       // Set extraQueryParameters to be sent to the server
@@ -471,7 +473,7 @@ export class UserAgentApplication {
       // Fail if login is already in progress
       if (this.userLoginInProgress) {
         // TODO: Return custom error object here in future
-        reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
+        reject(ErrorCodes.loginProgressError + Constants.resourceDelimiter + ErrorDescription.loginProgressError);
         return;
       }
 
@@ -481,7 +483,7 @@ export class UserAgentApplication {
         const isValidScope = this.validateInputScope(scopes);
         if (isValidScope && !Utils.isEmpty(isValidScope)) {
           // TODO: Return custom error object here in future
-          reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + ErrorDescription.inputScopesError);
+          reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + ErrorDescription.inputScopesError);
           return;
         }
 
@@ -562,7 +564,7 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
       // cache authorityKey
-      const authorityKey = Storage.generateAuthKey(authenticationRequest.state);
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
 
       // Build the URL to navigate to in the popup window
@@ -626,7 +628,7 @@ export class UserAgentApplication {
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         // TODO: Should reject with custom error
         // TODO: Is this always accessToken?
-        reject(ErrorCodes.inputScopesError + Constants.resourceDelimeter + isValidScope);
+        reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + isValidScope);
       }
 
       if (scopes) {
@@ -641,14 +643,14 @@ export class UserAgentApplication {
       // If already in progress, reject the request
       if (this.acquireTokenInProgress) {
         // TODO: Should reject with custom error
-        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimeter + ErrorDescription.acquireTokenProgressError);
+        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimiter + ErrorDescription.acquireTokenProgressError);
         return;
       }
 
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this.logger.info("User login is required");
-        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
         return;
       }
 
@@ -684,12 +686,12 @@ export class UserAgentApplication {
 
         // Cache acquireTokenUserKey
         const userId = userObject ? userObject.userIdentifier : Constants.no_user;
-        const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
+        const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
 
         this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
         // Cache authorityKey
-        const authorityKey = Storage.generateAuthKey(authenticationRequest.state);
+        const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
         this.cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.inCookie);
 
         // Set the extraQueryParameters
@@ -717,7 +719,7 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
         // TODO: Should reject with custom error here
         if (reject) {
-          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimeter + ErrorDescription.endpointResolutionError);
+          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimiter + ErrorDescription.endpointResolutionError);
         }
         if (popUpWindow) {
             popUpWindow.close();
@@ -757,7 +759,7 @@ export class UserAgentApplication {
       if (reject) {
         // TODO: Throw custom error here
         // TODO: Figure out some way to pass tokenType
-        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimeter + ErrorDescription.popUpWindowError);
+        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimiter + ErrorDescription.popUpWindowError);
       }
       return null;
     }
@@ -771,11 +773,11 @@ export class UserAgentApplication {
         if (reject) {
           // TODO: Reject with custom error here
           // TODO: Figure out some way to pass tokenType
-          reject(ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+          reject(ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
         }
         window.clearInterval(pollTimer);
         if (this.config.framework.isAngular) {
-            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
             return;
         }
         instance.userLoginInProgress = false;
@@ -895,7 +897,7 @@ export class UserAgentApplication {
         if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
           this.logger.info("User login is required");
           // TODO: Reject with custom error here
-          reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+          reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
           return null;
         }
         //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
@@ -925,7 +927,7 @@ export class UserAgentApplication {
           }
           else if (cacheResult.errorDesc || cacheResult.error) {
             this.logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
+            reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
             return null;
           }
         }
@@ -1173,7 +1175,7 @@ export class UserAgentApplication {
         for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimeter + error);
+                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimiter + error);
             }
             else if (token) {
                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -1640,12 +1642,12 @@ export class UserAgentApplication {
 
     // Cache acquireTokenUserKey
     const userId = user ? user.userIdentifier : Constants.no_user;
-    const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
+    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
 
     this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
 
     // Cache authorityKey
-    const authorityKey = Storage.generateAuthKey(authenticationRequest.state);
+    const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
     this.cacheStorage.setItem(authorityKey, authenticationRequest.authority);
 
     // renew happens in iframe, so it keeps javascript context
@@ -1680,12 +1682,12 @@ export class UserAgentApplication {
 
     // Cache acquireTokenUserKey
     const userId = user ? user.userIdentifier : Constants.no_user;
-    const acquireTokenUserKey = Storage.generateATUserKey(userId, authenticationRequest.state);
+    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
 
     this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
 
     // Cache authorityKey
-    const authorityKey = Storage.generateAuthKey(authenticationRequest.state);
+    const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
     this.cacheStorage.setItem(authorityKey, authenticationRequest.authority);
 
     // Cache nonce
@@ -1786,15 +1788,15 @@ export class UserAgentApplication {
       if (tokenResponse.requestType === Constants.login) {
         this.userLoginInProgress = false;
         this.cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
-        authorityKey = Storage.generateAuthKey(tokenResponse.stateResponse);
+        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
       }
 
       // acquireToken
       if (tokenResponse.requestType === Constants.renewToken) {
         this.acquireTokenInProgress = false;
-        authorityKey = Storage.generateAuthKey(tokenResponse.stateResponse);
+        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
         const userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, tokenResponse.stateResponse);
       }
     }
     // If the server returns "Success"
@@ -1824,7 +1826,7 @@ export class UserAgentApplication {
           }
 
           // retrieve the authority from cache and replace with tenantID
-          authorityKey = Storage.generateAuthKey(tokenResponse.stateResponse);
+          const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
           if (!Utils.isEmpty(authority)) {
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -1839,8 +1841,8 @@ export class UserAgentApplication {
             user = User.createUser(idToken, new ClientInfo(clientInfo));
           }
 
-          acquireTokenUserKey = Storage.generateATUserKey(user.userIdentifier, tokenResponse.stateResponse);
-          const acquireTokenUserKey_nouser = Storage.generateATUserKey(Constants.no_user, tokenResponse.stateResponse);
+          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(user.userIdentifier, tokenResponse.stateResponse);
+          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, tokenResponse.stateResponse);
 
           let cachedUser: string = this.cacheStorage.getItem(acquireTokenUserKey);
           let acquireTokenUser: User;
@@ -1872,7 +1874,7 @@ export class UserAgentApplication {
               this.logger.warning("ClientInfo not received in the response from AAD");
             }
 
-            authorityKey = Storage.generateAuthKey(tokenResponse.stateResponse);
+            authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
             if (!Utils.isEmpty(authority)) {
               authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -2293,11 +2295,11 @@ export class UserAgentApplication {
    * @param scopes
    * @param silentCall
    */
-  private getTokenType(userObject: User, scopes: string[], silentCall: boolean) {
+  private getTokenType(userObject: User, scopes: string[], silentCall: boolean): string {
 
     // if user is passed and matches the user object/or set to getUser() from cache
     // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
-    let tokenType;
+    let tokenType: string;
 
     // acquireTokenSilent
     if (silentCall) {

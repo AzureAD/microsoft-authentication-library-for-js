@@ -22,6 +22,7 @@
  */
 
 import { Logger } from "./Logger";
+import { Utils } from "./Utils";
 
 // make CacheStorage a fixed type to limit it to specific inputs
 export type CacheLocation = "localStorage" | "sessionStorage";
@@ -129,25 +130,25 @@ export function buildConfiguration(
     clientId = "",
     authority = null,
     validateAuthority = true,
-    redirectUri = () => window.location.href.split("?")[0].split("#")[0],
-    postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0],
+    redirectUri = () => Utils.getDefaultRedirectUri(),
+    postLogoutRedirectUri = () => Utils.getDefaultRedirectUri(),
     state = "",
     navigateToLoginRequestUrl = true
-  }: AuthOptions = { clientId },
+  }: AuthOptions,
   {
     cacheLocation = "sessionStorage",
     storeAuthStateInCookie = false
-  }: CacheOptions = {},
+  }: CacheOptions,
   {
     logger = new Logger(null),
     loadFrameTimeout = FRAME_TIMEOUT,
     tokenRenewalOffsetSeconds = OFFSET
-  }: SystemOptions = {},
+  }: SystemOptions,
   {
     isAngular = false,
     unprotectedResources = new Array<string>(),
     protectedResourceMap = new Map<string, Array<string>>()
-  }: FrameworkOptions = {}
+  }: FrameworkOptions
 ): Configuration {
   // restructure
   let config: Configuration = {
