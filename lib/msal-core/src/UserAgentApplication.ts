@@ -124,21 +124,26 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
  */
 export class UserAgentApplication {
 
+  // input Configuration by the user
   private config: Configuration;
 
+  // TODO: This will be extracted with Response Changes
   private tokenReceivedCallback: tokenReceivedCallback = null;
-  protected cacheStorage: Storage;
 
   // Added for readability as these params are very frequently used
   private logger: Logger;
   private clientId: string;
+  private inCookie: boolean;
 
+  // Cache and Account info referred across token grant flow
+  protected cacheStorage: Storage;
+  private user: User;
+
+  // state variables
   private userLoginInProgress: boolean;
   private acquireTokenInProgress: boolean;
   private silentAuthenticationState: string;
   private silentLogin: boolean;
-  private user: User;
-  private inCookie: boolean;
 
   // Authority Functionality
   protected authorityInstance: Authority;
@@ -169,20 +174,21 @@ export class UserAgentApplication {
 
     // Set the Configuration
     this.config = configuration;
-    this.logger = this.config.system.logger;
-    this.clientId = this.config.auth.clientId;
-
-    // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
-    this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
 
     // Set the callback
     this.tokenReceivedCallback = callback;
 
+
+    this.logger = this.config.system.logger;
+    this.clientId = this.config.auth.clientId;
+    this.inCookie = this.config.cache.storeAuthStateInCookie;
+
+    // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
+    this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
+
     // track login and acquireToken in progress
     this.userLoginInProgress = false;
     this.acquireTokenInProgress = false;
-
-    this.inCookie = this.config.cache.storeAuthStateInCookie;
 
     // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
     try {
@@ -198,6 +204,7 @@ export class UserAgentApplication {
     window.callBackMappedToRenewStates = { };
     window.callBacksMappedToRenewStates = { };
     window.msal = this;
+
     const urlHash = window.location.hash;
     const isCallback = this.isCallback(urlHash);
 
