@@ -133,21 +133,21 @@ export function buildConfiguration(
     postLogoutRedirectUri = () => window.location.href.split("?")[0].split("#")[0],
     state = "",
     navigateToLoginRequestUrl = true
-  }: AuthOptions = { clientId },
+  }: AuthOptions,
   {
     cacheLocation = "sessionStorage",
     storeAuthStateInCookie = false
-  }: CacheOptions = {},
+  }: CacheOptions,
   {
     logger = new Logger(null),
     loadFrameTimeout = FRAME_TIMEOUT,
     tokenRenewalOffsetSeconds = OFFSET
-  }: SystemOptions = {},
+  }: SystemOptions,
   {
     isAngular = false,
     unprotectedResources = new Array<string>(),
     protectedResourceMap = new Map<string, Array<string>>()
-  }: FrameworkOptions = {}
+  }: FrameworkOptions
 ): Configuration {
   // restructure
   let config: Configuration = {
