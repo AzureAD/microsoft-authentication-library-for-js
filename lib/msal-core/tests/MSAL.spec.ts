@@ -1,8 +1,9 @@
-import {UserAgentApplication} from '../src/index';
+import {UserAgentApplication, AuthError, ClientConfigurationError} from '../src/index';
 import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
+import { IdToken } from '../src/IdToken';
 
 describe('Msal', function (): any {
     let window: any;
@@ -190,6 +191,7 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login and prompt parameter is not passed by default', (done) => {
+        
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -473,19 +475,17 @@ describe('Msal', function (): any {
     });
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
-        var errDesc = '', token = '', err = '', tokenType = '';
-        var callback = function (valErrDesc: string, valToken: string, valErr: string, valTokenType: string) {
-            errDesc = valErrDesc;
-            token = valToken;
-            err = valErr;
-            tokenType = valTokenType;
-        };
-        msal._tokenReceivedCallback = callback;
-        msal.loginRedirect([]);
-        expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        expect(err).toBe(ErrorCodes.inputScopesError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        var authErr: AuthError;
+        try {
+            msal.loginRedirect([]);
+        } catch (e) {
+            authErr = e;
+        }
+        expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
@@ -496,18 +496,73 @@ describe('Msal', function (): any {
             err = valErr;
             tokenType = valTokenType;
         };
+        var authErr = AuthError;
         msal._tokenReceivedCallback = callback;
-        msal.loginRedirect([msal.clientId,'123']);
-        expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        expect(err).toBe(ErrorCodes.inputScopesError);
-        expect(token).toBe(null);
-        expect(tokenType).toBe(Constants.idToken);
+        try {
+            msal.loginRedirect([msal.clientId,'123']);
+        } catch (e) {
+            authErr = e;
+        }
+        expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
     });
 
-    it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
-        var scopes = ['openid', 'profile'];
-        scopes = msal.filterScopes(scopes);
-        expect(scopes.length).toEqual(0);
+    it('tests if error is not thrown if null scope is passed when scopesRequired is false', function () {
+        var scopes;
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, false);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(undefined);
+    });
+
+    it('tests if error is thrown when null scopes are passed', function () {
+        var scopes;
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, true);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
+    it('tests if error is thrown when non-array scopes are passed', function () {
+        var scopes = "S1, S2";
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, true);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
+    it('tests if error is thrown when empty array is passed', function () {
+        var scopes = [];
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, true);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
+    it('tests if error is thrown when client id is not passed as single scope', function () {
+        var scopes = [msal.clientId, "S1"];
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, true);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
     });
 
     it('tests if hint parameters get added when user object is passed to the function', function () {
