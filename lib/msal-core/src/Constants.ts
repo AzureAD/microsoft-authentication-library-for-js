@@ -91,6 +91,7 @@ export class Constants {
   static get cacheLocationSession(): string { return "sessionStorage"; }
   static get openidScope(): string { return "openid"; }
   static get profileScope(): string { return "profile"; }
+
 }
 
 /**
