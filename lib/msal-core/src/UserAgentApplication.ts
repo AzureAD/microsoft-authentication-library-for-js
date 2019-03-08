@@ -369,7 +369,6 @@ export class UserAgentApplication {
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
-    scopes = this.filterScopes(scopes);
 
     // extract ADAL id_token if exists
     var idTokenObject;
@@ -465,7 +464,6 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, true);
-    scopes = this.filterScopes(scopes);
 
     // Get the user object if a session exists
     const userObject = user ? user : this.getUser();
@@ -585,7 +583,6 @@ export class UserAgentApplication {
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
-      scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
       var idTokenObject;
@@ -718,7 +715,6 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, true);
-      scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
 
@@ -968,7 +964,6 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, true);
-      scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
       const userObject = user ? user : this.getUser();
@@ -2132,7 +2127,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Check if this can be combined with filterScopes()
   private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
     if (!scopes) {
       if (scopesRequired) {
@@ -2158,25 +2152,6 @@ export class UserAgentApplication {
         throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
       }
     }
-  }
-
-  /**
-  * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
-  * @hidden
-  */
-  // TODO: Check if this can be combined with validateInputScope()
-  private filterScopes(scopes: Array<string>): Array<string> {
-    if (scopes) {
-      scopes = scopes.filter(function (element) {
-        return element !== Constants.openidScope;
-      });
-
-      scopes = scopes.filter(function (element) {
-        return element !== Constants.profileScope;
-      });
-    }
-
-    return scopes;
   }
 
   /**
