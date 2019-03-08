@@ -1,4 +1,4 @@
-/*
+/**
   * Copyright (c) Microsoft Corporation
   *  All Rights Reserved
   *  MIT License
@@ -21,13 +21,30 @@
   * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
 
+export const AuthErrorMessage = {
+    unexpectedError: {
+        code: "unexpected_error",
+        desc: "Unexpected error in authentication."
+    }
+};
+
 /**
- * @hidden
- */
-export class ErrorMessage {
-  static get authorityUriInvalidPath(): string { return "AuthorityUriInvalidPath"; }
-  static get authorityUriInsecure(): string { return "AuthorityUriInsecure"; }
-  static get invalidAuthorityType(): string { return "InvalidAuthorityType"; }
-  static get unsupportedAuthorityValidation(): string { return "UnsupportedAuthorityValidation"; }
-  static get b2cAuthorityUriInvalidPath(): string { return "B2cAuthorityUriInvalidPath"; }
+* General error class thrown by the MSAL.js library.
+*/
+export class AuthError extends Error {
+
+    errorCode: string;
+    errorMessage: string;
+
+    constructor(errorCode: string, errorMessage?: string) {
+        super(errorMessage);
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+        this.name = "AuthError";
+
+        Object.setPrototypeOf(this, AuthError.prototype);
+    }
+    static createUnexpectedError(errDesc: string) {
+        return new AuthError(AuthErrorMessage.unexpectedError.code, errDesc);
+    }
 }
