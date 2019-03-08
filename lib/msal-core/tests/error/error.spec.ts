@@ -8,20 +8,15 @@ describe("Error", () => {
     const TEST_ERROR_CODE: string = "test";
     const TEST_ERROR_MSG: string = "This is a test error";
 
-    let throwFunc = (err: AuthError): void => {
-        throw err;
-    }
-
     describe("AuthError", () => {
         it("can be created", () => {
             let authError = new AuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
             let err: AuthError;
             try {
-                throwFunc(authError);
+                throw authError;
             } catch(error) {
                 err = error;
             }
-            console.log("Stack trace: " + err.stack);
 
             expect(err).toEqual(jasmine.any(AuthError), "AuthError could not be created.");
             expect(err.errorCode).toBe(TEST_ERROR_CODE);
@@ -37,12 +32,10 @@ describe("Error", () => {
             let clientAuthError = new ClientAuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
             let err: AuthError;
             try {
-                throwFunc(clientAuthError);
+                throw clientAuthError;
             } catch(error) {
                 err = error;
             }
-            console.log("Stack trace: " + err.stack);
-            console.log("Stack trace: " + clientAuthError.stack);
 
             expect(err).toEqual(jasmine.any(ClientAuthError), "ClientAuthError could not be created.");
             expect(err.errorCode).toBe(TEST_ERROR_CODE);
@@ -58,7 +51,7 @@ describe("Error", () => {
             let serverError = new ServerError("test", "This is a test error");
             let err: AuthError;
             try {
-                throwFunc(serverError);
+                throw serverError;
             } catch(error) {
                 err = error;
             }
@@ -77,7 +70,7 @@ describe("Error", () => {
             let clientConfigurationError = new ClientConfigurationError("test", "This is a test error");
             let err: AuthError;
             try {
-                throwFunc(clientConfigurationError);
+                throw clientConfigurationError;
             } catch(error) {
                 err = error;
             }
@@ -96,7 +89,7 @@ describe("Error", () => {
             let interactionReqError = new InteractionRequiredAuthError("test", "This is a test error");
             let err: AuthError;
             try {
-                throwFunc(interactionReqError);
+                throw interactionReqError;
             } catch(error) {
                 err = error;
             }

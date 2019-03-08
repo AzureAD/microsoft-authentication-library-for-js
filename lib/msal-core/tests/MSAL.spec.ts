@@ -3,7 +3,6 @@ import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
-import { IdToken } from '../src/IdToken';
 
 describe('Msal', function (): any {
     let window: any;
