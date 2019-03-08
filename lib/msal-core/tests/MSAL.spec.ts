@@ -222,7 +222,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: Constants.prompt_select_account};
+        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "select_account"};
         msal.loginRedirect(request);
     });
 
@@ -239,7 +239,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: Constants.prompt_none};
+        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "none"};
         msal.loginRedirect(request);
     });
 

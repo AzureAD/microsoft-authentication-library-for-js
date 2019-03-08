@@ -27,7 +27,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { AuthenticationRequestParameters } from "./AuthenticationRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, ErrorCodes, ErrorDescription, SSOTypes } from "./Constants";
+import { Constants, ErrorCodes, ErrorDescription, SSOTypes, PromptState } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -1142,7 +1142,7 @@ export class UserAgentApplication {
         const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
 
         // sid - first preference to identify a session
-        if (userObject.sid  && urlNavigate.indexOf(Constants.prompt_none) !== -1) {
+        if (userObject.sid  && urlNavigate.indexOf(PromptState.NONE) !== -1) {
             if (!this.urlContainsQueryStringParameter(SSOTypes.SID, urlNavigate) && !this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate)) {
                 urlNavigate += Utils.addSSO(userObject.sid, SSOTypes.SID);
             }
@@ -1166,12 +1166,12 @@ export class UserAgentApplication {
         }
 
         // fill in the domain_hint
-        if (!this.urlContainsQueryStringParameter(Constants.domain_hint, urlNavigate) && !Utils.isEmpty(utid)) {
+        if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_HINT, urlNavigate) && !Utils.isEmpty(utid)) {
             if (utid === Constants.consumersUtid) {
-                urlNavigate += Utils.addSSO(uid, SSOTypes.DOMAIN_HINT_C);
+                urlNavigate += Utils.addSSO(uid, SSOTypes.CONSUMERS);
             }
             else {
-                urlNavigate += Utils.addSSO(uid, SSOTypes.DOMAIN_HINT_O);
+                urlNavigate += Utils.addSSO(uid, SSOTypes.ORGANIZATIONS);
             }
         }
     }

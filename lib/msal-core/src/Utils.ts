@@ -23,7 +23,7 @@
 
 import { IUri } from "./IUri";
 import { User } from "./User";
-import {Constants, SSOTypes} from "./Constants";
+import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters } from "./Request";
 
 /**
@@ -486,7 +486,7 @@ export class Utils {
       }
       var urlObject = this.GetUrlComponents(url);
       var pathArray = urlObject.PathSegments;
-      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
+      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
           pathArray[0] = tenantId;
           url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
       }
@@ -633,7 +633,7 @@ export class Utils {
       }
       else {
         ssoData = null;
-        ssoType = SSOTypes.DOMAIN_HINT_O;
+        ssoType = SSOTypes.ORGANIZATIONS;
       }
     }
 
@@ -694,16 +694,16 @@ export class Utils {
         return "&" + SSOTypes.SID + "=" + encodeURIComponent(ssoData);
       }
       case SSOTypes.ID_TOKEN: {
-        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData) + "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.DOMAIN_HINT_O;
+        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData) + "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.ORGANIZATIONS;
       }
       case SSOTypes.LOGIN_HINT: {
         return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData);
       }
-      case SSOTypes.DOMAIN_HINT_O: {
-        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.DOMAIN_HINT_O;
+      case SSOTypes.ORGANIZATIONS: {
+        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.ORGANIZATIONS;
       }
-      case SSOTypes.DOMAIN_HINT_C: {
-        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.DOMAIN_HINT_C;
+      case SSOTypes.CONSUMERS: {
+        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.CONSUMERS;
       }
       case SSOTypes.LOGIN_REQ: {
         return "&" + SSOTypes.LOGIN_REQ + "=" + encodeURIComponent(ssoData);
@@ -745,19 +745,30 @@ export class Utils {
 
   /**
    * Utils to add prompt parameter passed by the user to extraQueryParameters
+   * We considered making this "enum" in the request instead of string, however it looks like the allowed
+   * list of prompt values kept changing over past couple of years. There are some undocumented prompt values
+   * for some internal partners too, hence the choice of generic "string" type instead of the "enum".
    * @param extraQueryParameters
    * @param prompt
    */
   static addPromptParameter (extraQueryParameters: string, prompt: string): string {
 
     if (prompt) {
-      this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
+      // check that prompt is an acceptable value
+      try {
+        if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0) {
+          this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
 
-      if (extraQueryParameters == null) {
-        extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
-      }
-      else {
-        extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+          if (extraQueryParameters == null) {
+            extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+          }
+          else {
+            extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+          }
+        }
+      } catch (e) {
+        // TODO: Add appropriate error during Error PR Merge
+        console.log("Invalid Prompt Value");
       }
     }
 
