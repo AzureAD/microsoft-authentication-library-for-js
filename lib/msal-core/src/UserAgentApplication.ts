@@ -467,9 +467,8 @@ export class UserAgentApplication {
     const userObject = user ? user : this.getUser();
 
     // If already in progress, do not proceed
-    // TODO: Should we throw or return an error here?
     if (this._acquireTokenInProgress) {
-      return;
+      throw ClientAuthError.createAcquireTokenInProgressError();
     }
 
     // If no session exists, prompt the user to login.
@@ -570,7 +569,7 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this._loginInProgress) {
-        throw ClientAuthError.createLoginInProgressError();
+        reject(ClientAuthError.createLoginInProgressError());
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
@@ -623,7 +622,8 @@ export class UserAgentApplication {
 
     // Generate a popup window
     // TODO: Refactor this so that openWindow throws an error, loginPopupHelper rejects or resolves based on that action
-    var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+    var popUpWindow: Window;
+    popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
     if (!popUpWindow) {
       return;
     }
@@ -716,13 +716,13 @@ export class UserAgentApplication {
 
       // If already in progress, throw an error and reject the request
       if (this._acquireTokenInProgress) {
-        throw ClientAuthError.createAcquireTokenInProgressError();
+        return reject(ClientAuthError.createAcquireTokenInProgressError());
       }
 
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this._logger.info("User login is required");
-        throw ClientAuthError.createUserLoginRequiredError();
+        return reject(ClientAuthError.createUserLoginRequiredError());
       }
 
       // track the acquireToken progress
@@ -831,7 +831,6 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, ErrorCodes.popUpWindowError);
       this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.popUpWindowError);
       if (reject) {
-        // TODO: We should throw here instead of passing to reject
         reject(ClientAuthError.createPopupWindowError());
       }
       return null;
@@ -844,7 +843,6 @@ export class UserAgentApplication {
       // If popup closed or login in progress, cancel login
       if (popupWindow && popupWindow.closed && instance._loginInProgress) {
         if (reject) {
-          // TODO: We should throw here instead of passing to reject
           reject(ClientAuthError.createUserCancelledError());
         }
         window.clearInterval(pollTimer);
@@ -913,7 +911,7 @@ export class UserAgentApplication {
 
       // open the window
       const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
-      if (!popupWindow || popupWindow == null) {
+      if (!popupWindow) {
         throw ClientAuthError.createPopupWindowError();
       }
       if (popupWindow.focus) {
@@ -922,7 +920,6 @@ export class UserAgentApplication {
 
       return popupWindow;
     } catch (e) {
-      // TODO: Throw a custom error if opening popup fails
       this._logger.error("error opening popup " + e.message);
       this._loginInProgress = false;
       this._acquireTokenInProgress = false;
@@ -961,7 +958,7 @@ export class UserAgentApplication {
       //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
       if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
         this._logger.info("User login is required");
-        throw ClientAuthError.createUserLoginRequiredError();
+        return reject(ClientAuthError.createUserLoginRequiredError());
       }
       //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
       else if (!userObject && !Utils.isEmpty(adalIdToken)) {
@@ -1035,7 +1032,7 @@ export class UserAgentApplication {
         }
       }).catch((err) => {
         this._logger.warning("could not resolve endpoints");
-        reject(err);
+        reject(ClientAuthError.createEndpointResolutionError(err.toString()));
         return null;
       });
     });
@@ -1359,7 +1356,6 @@ export class UserAgentApplication {
         }
 
     } catch (err) {
-      // TODO: Check if we should be throwing an error here
       this._logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
     }
@@ -1469,7 +1465,6 @@ export class UserAgentApplication {
         }
       }
     } catch (err) {
-      // TODO: Should we throw an error here?
       self._logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
     }
@@ -2041,8 +2036,8 @@ export class UserAgentApplication {
       return this._user;
     }
 
-    // if login not yet done, throw error
-    throw ClientAuthError.createUserDoesNotExistError();
+    // if login not yet done, return null
+    return null;
   }
 
   /**

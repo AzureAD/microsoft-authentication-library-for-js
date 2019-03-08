@@ -111,7 +111,7 @@ export class ClientAuthError extends AuthError {
     }
 
     static createPopupWindowError(errDetail?: string): ClientAuthError {
-        var errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
+        var errorMessage = ClientAuthErrorMessage.popUpWindowError.desc;
         if (errDetail && !Utils.isEmpty(errDetail)) {
             errorMessage += ` Details: ${errDetail}`;
         }
