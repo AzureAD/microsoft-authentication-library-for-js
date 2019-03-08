@@ -23,7 +23,8 @@
 
 import { IUri } from "./IUri";
 import { User } from "./User";
-import {Constants} from "./Constants";
+import {Constants, SSOTypes} from "./Constants";
+import { AuthenticationParameters } from "./Request";
 
 /**
  * @hidden
@@ -453,6 +454,19 @@ export class Utils {
     return scopes.filter(value => value !== scope);
   }
 
+  /**
+   * Append extraScopesToConsent if passed in login request
+   * @param scopes
+   * @param extraScopesToConsent
+   */
+  static appendScopes(scopes: Array<string>, extraScopesToConsent: Array<string>) : Array<string> {
+    if (extraScopesToConsent) {
+      scopes = scopes.concat(extraScopesToConsent);
+    }
+
+    return scopes;
+  }
+
   //#endregion
 
   //#region URL Processing (Extract to UrlProcessing.ts?)
@@ -567,46 +581,211 @@ export class Utils {
   //#region ExtraQueryParameters Processing (Extract?)
 
   /**
-   *
+   * returns 'true' is developer has some SSO info in the token request, else 'false'
    * @param extraQueryParameters
    */
-  static checkSSO(extraQueryParameters: string) {
-    return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
+  static checkSSO(request: AuthenticationParameters) {
+    return  (request.sid  || request.loginHint);
   }
 
-   /**
+  /**
    * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
    * in any login() or acquireToken() calls
-   *
    * @param idTokenObject
-   * @param login_hint
    * @param extraQueryParameters
+   * @param sid
+   * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  //TODO: Test all paths thoroughly
-  static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
-    if (idTokenObject) {
+  static constructUnifiedCacheExtraQueryParameter(extraQueryParameters: string, account: User, sid: string, loginHint: string, idTokenObject: any): string {
+
+    // preference order: account > sid > login_hint
+    let ssoType;
+    let ssoData;
+
+    // if account info is passed, account.sid > account.login_hint
+    if (account) {
+      let user: User = account;
+      if (user.sid) {
+        ssoType = SSOTypes.SID;
+        ssoData = user.sid;
+      }
+      else if (user.displayableId) {
+        ssoType = SSOTypes.LOGIN_HINT;
+        ssoData = user.displayableId;
+      }
+    }
+    // sid from request
+    else if (sid) {
+      ssoData = sid;
+      ssoType = SSOTypes.SID;
+    }
+    // loginHint from request
+    else if (loginHint) {
+      ssoData = loginHint;
+      ssoType = SSOTypes.LOGIN_HINT;
+    }
+    // adalIdToken retrieved from cache
+    else if (idTokenObject) {
       if (idTokenObject.hasOwnProperty(Constants.upn)) {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-        if (extraQueryParameters) {
-          return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
-        else {
-          return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
+        ssoData = idTokenObject.upn;
+        ssoType = SSOTypes.ID_TOKEN;
       }
       else {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-        if (extraQueryParameters) {
-          return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
+        ssoData = null;
+        ssoType = SSOTypes.DOMAIN_HINT_O;
+      }
+    }
+
+    extraQueryParameters = this.processExtraQueryParameters(extraQueryParameters, ssoData, ssoType);
+    return extraQueryParameters;
+  }
+
+  /**
+   * Remove the SSO data from extraQueryParams if passed and
+   * construct the string "extraQueryParameters" needed to be sent to the server
+   * @param extraQueryParameters
+   * @param ssoData
+   * @param ssoType
+   */
+  static processExtraQueryParameters(extraQueryParameters: string, ssoData: string, ssoType: string) {
+    extraQueryParameters = this.removeParam(extraQueryParameters, ssoType);
+
+    if (extraQueryParameters) {
+        extraQueryParameters += this.addSSO(ssoData, ssoType);
+    }
+    else {
+        extraQueryParameters = this.addSSO(ssoData, ssoType);
+    }
+
+    return extraQueryParameters;
+  }
+
+  /**
+   * Add SSO data to extraQueryParameters
+   * @param sid
+   */
+  static removeParam(extraQueryParameters: string, type: string): string {
+
+    let ssoType: string;
+    if (type === SSOTypes.ID_TOKEN) {
+        ssoType = SSOTypes.LOGIN_HINT;
+    }
+    else {
+        ssoType = type;
+    }
+
+    extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, ssoType);
+    if (type === SSOTypes.ID_TOKEN) {
+        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, SSOTypes.DOMAIN_HINT);
+    }
+
+    return extraQueryParameters;
+  }
+
+  /**
+   * Add SID to extraQueryParameters
+   * @param sid
+   */
+  static addSSO(ssoData: string, ssoType: string): string {
+
+    switch (ssoType) {
+      case SSOTypes.SID: {
+        return "&" + SSOTypes.SID + "=" + encodeURIComponent(ssoData);
+      }
+      case SSOTypes.ID_TOKEN: {
+        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData) + "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.DOMAIN_HINT_O;
+      }
+      case SSOTypes.LOGIN_HINT: {
+        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData);
+      }
+      case SSOTypes.DOMAIN_HINT_O: {
+        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.DOMAIN_HINT_O;
+      }
+      case SSOTypes.DOMAIN_HINT_C: {
+        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.DOMAIN_HINT_C;
+      }
+      case SSOTypes.LOGIN_REQ: {
+        return "&" + SSOTypes.LOGIN_REQ + "=" + encodeURIComponent(ssoData);
+      }
+      case SSOTypes.DOMAIN_REQ: {
+        return "&" + SSOTypes.DOMAIN_REQ + "=" + encodeURIComponent(ssoData);
+      }
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Construct extraQueryParameters from the request
+   * @param reqExtraQueryParameters
+   */
+  static constructExtraQueryParametersString (reqExtraQueryParameters: {[header: string]: string}): string {
+
+    let extraQueryParameters: string = null;
+    let value: string;
+
+    for (var key in reqExtraQueryParameters) {
+
+      if (key !== undefined) {
+        value = reqExtraQueryParameters[key];
+
+        if (extraQueryParameters == null) {
+          extraQueryParameters = "&" + key + "=" + value;
         }
         else {
-          return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
+          extraQueryParameters += "&" + key + "=" + value;
         }
       }
     }
+
     return extraQueryParameters;
+  }
+
+  /**
+   * Utils to add prompt parameter passed by the user to extraQueryParameters
+   * @param extraQueryParameters
+   * @param prompt
+   */
+  static addPromptParameter (extraQueryParameters: string, prompt: string): string {
+
+    if (prompt) {
+      this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
+
+      if (extraQueryParameters == null) {
+        extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+      }
+      else {
+        extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+      }
+    }
+
+    return extraQueryParameters;
+  }
+
+  /**
+   * Convert the extraQueryParameters String to Key-Value pair list
+   * @param reqExtraQueryParameters
+   */
+  static destructExtraQueryParameterString (reqExtraQueryParameters: string): {[header: string]: string} {
+    let result: {[header: string]: string};
+    let pair;
+
+    reqExtraQueryParameters.split("&").forEach(function(elem) {
+      if (elem !== "") {
+        var item = elem.split("=");
+        pair = {[item[0]]: item[1]};
+        if (!result) {
+          result = pair;
+        }
+        else {
+          Object.assign(result, pair);
+        }
+      }
+    });
+
+    return result;
   }
 
   //#endregion

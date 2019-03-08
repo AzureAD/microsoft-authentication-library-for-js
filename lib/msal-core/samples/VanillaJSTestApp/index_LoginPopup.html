@@ -13,7 +13,7 @@
 </head>
 <body>
     <!-- bluebird only needed if this page needs to run on Internet Explorer -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
     <script src="dist/msal.js" class="pre"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" class="pre"></script>
 
@@ -38,13 +38,23 @@
     </script>
 
     <script>
-      
+
         var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId:'12345' });
         function loggerCallback(logLevel, message, piiEnabled) {
             console.log(message);
         }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, authCallback, { logger: logger, cacheLocation: 'localStorage', storeAuthStateInCookie: true});
+
+        // Setting a default value in JSON format
+        var config = Msal.buildConfiguration(
+            {clientId: applicationConfig.clientID, validateAuthority: true,},
+            {cacheLocation: "localStorage", storeAuthStateInCookie: true},
+            {logger: logger},
+            {}
+        );
+
+        var userAgentApplication = new Msal.UserAgentApplication(config, authCallback);
+
         function authCallback(errorDesc, token, error, tokenType) {
             if (token) {
             }
@@ -54,14 +64,23 @@
         }
 
         function loginPopup() {
-            userAgentApplication.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
+            let tokenRequest = {
+              scopes: applicationConfig.graphScopes
+              // loginHint: "idlab@msidlab4.microsoft.com",
+              // extraQueryParameters: "mkt:fr-CA"
+            };
+
+            userAgentApplication.loginPopup(tokenRequest).then(function (idToken) {
                 //Login Success
-                userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+                let tokenRequest = {
+                    scopes: applicationConfig.graphScopes
+                };
+                userAgentApplication.acquireTokenSilent(tokenRequest).then(function (accessToken) {
                     //AcquireToken Success
                     updateUI();
                 }, function (error) {
                     //AcquireToken Failure, send an interactive request.
-                    userAgentApplication.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                    userAgentApplication.acquireTokenPopup(tokenRequest).then(function (accessToken) {
                         updateUI();
                     }, function (error) {
                         console.log(error);
@@ -70,7 +89,7 @@
             }, function (error) {
                 console.log(error);
             });
-               
+
         }
 
         function updateUI() {
@@ -93,7 +112,11 @@
         }
 
         function sendEmail() {
-            userAgentApplication.acquireTokenSilent(applicationConfig.graphScopes)
+            let tokenRequest = {
+                scopes: applicationConfig.graphScopes
+            };
+
+            userAgentApplication.acquireTokenSilent(tokenRequest)
                 .then(function (token, error) {
                     $.ajax({
                         type: "POST",

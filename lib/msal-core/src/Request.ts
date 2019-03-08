@@ -1,6 +1,9 @@
 import { User } from "./User";
 
 /**
+ * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
+ * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
+ * internal partners too, hence the choice of generic "string" type instead of the "enum"
  * @hidden
  */
 export enum promptState {
@@ -10,18 +13,12 @@ export enum promptState {
 	none = "none",
 }
 
-// we considered making this as "enum", however it looks like the allowed list of prompt values kept changing
-// over past couple of years. There are some undocumented prompt values for some internal partners too,
-// hence the choice of generic "string" type instead of the "enum"
-export type Prompt = {
-	prompt: string;
-};
 
 export type AuthenticationParameters = {
-    scopes: Array<string>;
+    scopes?: Array<string>;
     extraScopesToConsent?: Array<string>;
-    prompt?: Prompt;
-    extraQueryParameters?: { [ header: string ]: string};
+    prompt?: string;
+    extraQueryParameters?: {[header: string]: string};
     claimsRequest?: null;
     authority?: string;
     correlationId?: string;
@@ -29,5 +26,3 @@ export type AuthenticationParameters = {
     sid?: string;
     loginHint?: string;
 };
-
-

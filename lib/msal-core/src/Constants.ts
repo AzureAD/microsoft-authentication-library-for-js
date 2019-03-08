@@ -120,3 +120,18 @@ export const CacheKeys = {
     AUTHORITY: "msal_authority",
     ACQUIRE_TOKEN_USER: "msal.acquireTokenUser"
 };
+
+/**
+ * @hidden
+ */
+export const SSOTypes = {
+    ACCOUNT: "account",
+    SID: "sid",
+    LOGIN_HINT: "login_hint",
+    DOMAIN_HINT: "domain_hint",
+    ID_TOKEN: "id_token",
+    DOMAIN_HINT_O: "organizations",
+    DOMAIN_HINT_C: "consumers",
+    DOMAIN_REQ: "domain_req",
+    LOGIN_REQ: "login_req"
+};
