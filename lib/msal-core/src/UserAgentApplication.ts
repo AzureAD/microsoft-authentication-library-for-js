@@ -240,7 +240,7 @@ export class UserAgentApplication {
     }
 
     // if extraScopesToConsent is passed, append them to the login request
-    let scopes = Utils.appendScopes(request.scopes, request.extraScopesToConsent);
+    let scopes = [...request.scopes, ...request.extraScopesToConsent];
 
     // TODO: Replace with new validation pattern - This will come with Error
     if (scopes) {
@@ -261,7 +261,7 @@ export class UserAgentApplication {
 
     if (request.account || request.sid || request.loginHint) {
       // if the developer provides one of these, give preference to developer choice
-      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request.account, request.sid, request.loginHint, null);
+      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
 
       // if user is not provided, we pass null
       this.loginRedirectHelper(user, scopes, extraQueryParameters);
@@ -386,7 +386,7 @@ export class UserAgentApplication {
     }
 
     // If no session exists, prompt the user to login.
-    if (!userObject && !Utils.checkSSO(request)) {
+    if (!userObject && !(request.sid  || request.loginHint)) {
     // TODO: This should be replaced with error callback
     // TODO: Is this always accessToken?
       if (this.tokenReceivedCallback) {
@@ -402,7 +402,7 @@ export class UserAgentApplication {
 
     // if the developer provides one of these, give preference to developer choice
     if (request.account || request.sid || request.loginHint) {
-      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request.account, request.sid, request.loginHint, null);
+      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
     }
 
     // Track the acquireToken progress
@@ -493,7 +493,7 @@ export class UserAgentApplication {
       }
 
       // if extraScopesToConsent is passed, append them to the login request
-      let scopes = Utils.appendScopes(request.scopes, request.extraScopesToConsent);
+      let scopes = [...request.scopes, ...request.extraScopesToConsent];
 
       // Validate scopes
       // TODO: Replace with new validation pattern
@@ -515,7 +515,7 @@ export class UserAgentApplication {
 
       // if the developer provides one of these, give preference to developer choice
       if (request.account || request.sid || request.loginHint) {
-        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request.account, request.sid, request.loginHint, null);
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
 
          // if user is not provided, we pass null
          this.loginPopupHelper(user, resolve, reject, scopes, extraQueryParameters);
@@ -681,7 +681,7 @@ export class UserAgentApplication {
       }
 
       // If no session exists, prompt the user to login.
-      if (!userObject && !Utils.checkSSO(request)) {
+      if (!userObject && !!(request.sid  || request.loginHint)) {
         this.logger.info("User login is required");
         reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
         return;
@@ -693,7 +693,7 @@ export class UserAgentApplication {
 
       // if the developer provides one of these, give preference to developer choice
       if (request.account || request.sid || request.loginHint) {
-        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request.account, request.sid, request.loginHint, null);
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
       }
 
       // track the acquireToken progress
@@ -942,7 +942,7 @@ export class UserAgentApplication {
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
         //if user is not currently logged in and no login_hint/sid is passed in the request
-        if (!userObject && !Utils.checkSSO(request) && Utils.isEmpty(adalIdToken) ) {
+        if (!userObject && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
           this.logger.info("User login is required");
           // TODO: Reject with custom error here
           reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
@@ -955,13 +955,13 @@ export class UserAgentApplication {
 
         // if the developer provides one of these, give preference to developer choice
         if (request.account || request.sid || request.loginHint) {
-            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request.account, request.sid, request.loginHint, null);
+            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
         }
         //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
         else if (!userObject && !Utils.isEmpty(adalIdToken)) {
           const idTokenObject = Utils.extractIdToken(adalIdToken);
           console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, null, null, null, idTokenObject);
+          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, null, idTokenObject);
         }
 
         const responseType = this.getTokenType(userObject, request.scopes, true);
@@ -1134,6 +1134,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
+  // TODO: Optimize this
   private addHintParameters(urlNavigate: string, user: User): string {
     const userObject = user ? user : this.getUser();
     if (userObject) {
@@ -1144,34 +1145,34 @@ export class UserAgentApplication {
         // sid - first preference to identify a session
         if (userObject.sid  && urlNavigate.indexOf(PromptState.NONE) !== -1) {
             if (!this.urlContainsQueryStringParameter(SSOTypes.SID, urlNavigate) && !this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate)) {
-                urlNavigate += Utils.addSSO(userObject.sid, SSOTypes.SID);
+                urlNavigate += Utils.generateSSOUrlParameter(userObject.sid, SSOTypes.SID);
             }
         }
         // check for login_hint if sid is not passed
         else {
             if (!this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-                urlNavigate += Utils.addSSO(userObject.displayableId, SSOTypes.LOGIN_HINT);
+                urlNavigate += Utils.generateSSOUrlParameter(userObject.displayableId, SSOTypes.LOGIN_HINT);
             }
         }
 
         // client_info.utid = domain_req and client_info.uid = login_req
         if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
             if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_REQ, urlNavigate) && !Utils.isEmpty(utid)) {
-                urlNavigate += Utils.addSSO(utid, SSOTypes.DOMAIN_REQ);
+                urlNavigate += Utils.generateSSOUrlParameter(utid, SSOTypes.DOMAIN_REQ);
             }
 
             if (!this.urlContainsQueryStringParameter(SSOTypes.LOGIN_REQ, urlNavigate) && !Utils.isEmpty(uid)) {
-                urlNavigate += Utils.addSSO(uid, SSOTypes.LOGIN_REQ);
+                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.LOGIN_REQ);
             }
         }
 
         // fill in the domain_hint
         if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_HINT, urlNavigate) && !Utils.isEmpty(utid)) {
             if (utid === Constants.consumersUtid) {
-                urlNavigate += Utils.addSSO(uid, SSOTypes.CONSUMERS);
+                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.CONSUMERS);
             }
             else {
-                urlNavigate += Utils.addSSO(uid, SSOTypes.ORGANIZATIONS);
+                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.ORGANIZATIONS);
             }
         }
     }
@@ -1888,7 +1889,7 @@ export class UserAgentApplication {
           const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
           if (!Utils.isEmpty(authority)) {
-            authority = Utils.replaceFirstPath(authority, idToken.tenantId);
+            authority = Utils.replaceTenantPath(authority, idToken.tenantId);
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
@@ -1936,7 +1937,7 @@ export class UserAgentApplication {
             authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceFirstPath(authority, idToken.tenantId);
+              authority = Utils.replaceTenantPath(authority, idToken.tenantId);
             }
 
             this.user = User.createUser(idToken, new ClientInfo(clientInfo));

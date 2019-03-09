@@ -454,19 +454,6 @@ export class Utils {
     return scopes.filter(value => value !== scope);
   }
 
-  /**
-   * Append extraScopesToConsent if passed in login request
-   * @param scopes
-   * @param extraScopesToConsent
-   */
-  static appendScopes(scopes: Array<string>, extraScopesToConsent: Array<string>) : Array<string> {
-    if (extraScopesToConsent) {
-      scopes = scopes.concat(extraScopesToConsent);
-    }
-
-    return scopes;
-  }
-
   //#endregion
 
   //#region URL Processing (Extract to UrlProcessing.ts?)
@@ -480,7 +467,7 @@ export class Utils {
    * @param href The url
    * @param tenantId The tenant id to replace
    */
-  static replaceFirstPath(url: string, tenantId: string): string {
+  static replaceTenantPath(url: string, tenantId: string): string {
       if (!tenantId) {
           return url;
       }
@@ -581,14 +568,6 @@ export class Utils {
   //#region ExtraQueryParameters Processing (Extract?)
 
   /**
-   * returns 'true' is developer has some SSO info in the token request, else 'false'
-   * @param extraQueryParameters
-   */
-  static checkSSO(request: AuthenticationParameters) {
-    return  (request.sid  || request.loginHint);
-  }
-
-  /**
    * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
    * in any login() or acquireToken() calls
    * @param idTokenObject
@@ -597,15 +576,17 @@ export class Utils {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  static constructUnifiedCacheExtraQueryParameter(extraQueryParameters: string, account: User, sid: string, loginHint: string, idTokenObject: any): string {
+  static constructUnifiedCacheExtraQueryParameter(extraQueryParameters: string, request: AuthenticationParameters, idTokenObject: any): string {
 
     // preference order: account > sid > login_hint
+
+
     let ssoType;
     let ssoData;
 
     // if account info is passed, account.sid > account.login_hint
-    if (account) {
-      let user: User = account;
+    if (request && request.account) {
+      const user: User = request.account;
       if (user.sid) {
         ssoType = SSOTypes.SID;
         ssoData = user.sid;
@@ -616,13 +597,13 @@ export class Utils {
       }
     }
     // sid from request
-    else if (sid) {
-      ssoData = sid;
+    else if (request.sid) {
+      ssoData = request.sid;
       ssoType = SSOTypes.SID;
     }
     // loginHint from request
-    else if (loginHint) {
-      ssoData = loginHint;
+    else if (request.loginHint) {
+      ssoData = request.loginHint;
       ssoType = SSOTypes.LOGIN_HINT;
     }
     // adalIdToken retrieved from cache
@@ -648,24 +629,24 @@ export class Utils {
    * @param ssoData
    * @param ssoType
    */
-  static processExtraQueryParameters(extraQueryParameters: string, ssoData: string, ssoType: string) {
-    extraQueryParameters = this.removeParam(extraQueryParameters, ssoType);
+  static processExtraQueryParameters(extraQueryParameters: string, ssoData: string, ssoType: string): string {
+    extraQueryParameters = this.removeSSOParams(extraQueryParameters, ssoType);
 
     if (extraQueryParameters) {
-        extraQueryParameters += this.addSSO(ssoData, ssoType);
+        extraQueryParameters += this.generateSSOUrlParameter(ssoData, ssoType);
     }
     else {
-        extraQueryParameters = this.addSSO(ssoData, ssoType);
+        extraQueryParameters = this.generateSSOUrlParameter(ssoData, ssoType);
     }
 
     return extraQueryParameters;
   }
 
   /**
-   * Add SSO data to extraQueryParameters
+   * remove the exisiting SSOData from the extraQueryParameters
    * @param sid
    */
-  static removeParam(extraQueryParameters: string, type: string): string {
+  static removeSSOParams(extraQueryParameters: string, type: string): string {
 
     let ssoType: string;
     if (type === SSOTypes.ID_TOKEN) {
@@ -687,7 +668,7 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static addSSO(ssoData: string, ssoType: string): string {
+  static generateSSOUrlParameter(ssoData: string, ssoType: string): string {
 
     switch (ssoType) {
       case SSOTypes.SID: {
@@ -752,28 +733,30 @@ export class Utils {
    * @param prompt
    */
   static addPromptParameter (extraQueryParameters: string, prompt: string): string {
+    this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
 
-    if (prompt) {
-      // check that prompt is an acceptable value
-      try {
-        if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0) {
-          this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
-
-          if (extraQueryParameters == null) {
-            extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
-          }
-          else {
-            extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
-          }
-        }
-      } catch (e) {
-        // TODO: Add appropriate error during Error PR Merge
-        console.log("Invalid Prompt Value");
-      }
+    if (extraQueryParameters == null) {
+      extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+    }
+    else {
+      extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
     }
 
     return extraQueryParameters;
   }
+
+  /*
+  static validateRequestParameters (request: AuthenticationParameters) {
+    // check that prompt is an acceptable value
+    try {
+      if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)
+    }
+     } catch (e) {
+      // TODO: Add appropriate error during Error PR Merge
+      console.log("Invalid Prompt Value");
+    }
+  }
+  */
 
   /**
    * Convert the extraQueryParameters String to Key-Value pair list
