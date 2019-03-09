@@ -38,6 +38,7 @@ import { AuthorityFactory } from "./AuthorityFactory";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError } from "./error/ClientAuthError";
+import { ServerError } from './error/ServerError';
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -82,16 +83,18 @@ export interface CacheResult {
 }
 
 /**
- * A type alias of for a tokenReceivedCallback function.
- * @param tokenReceivedCallback.errorDesc error description returned from the STS if API call fails.
+ * A type alias for a tokenReceivedCallback function.
  * @param tokenReceivedCallback.token token returned from STS if token request is successful.
- * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
 // TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
-export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
+export type tokenReceivedCallback = (token: string, tokenType: string, userState: string ) => void;
 
-// TODO: Add second callback for error cases
+/**
+ * A type alias for a errorReceivedCallback function.
+ * @param errorReceivedCallback.errorDesc error object created by library containing error string returned from the STS if API call fails.
+ */
+export type errorReceivedCallback = (authError: AuthError) => void;
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -174,6 +177,11 @@ export class UserAgentApplication {
   /**
    * @hidden
    */
+  private _errorReceivedCallback: errorReceivedCallback = null;
+
+  /**
+   * @hidden
+   */
   private _user: User;
 
   /**
@@ -244,6 +252,8 @@ export class UserAgentApplication {
 
   private _silentLogin: boolean;
 
+  private _redirectCallbacksSet: boolean;
+
   /**
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -259,7 +269,6 @@ export class UserAgentApplication {
   constructor(
     clientId: string,
     authority: string | null,
-    tokenReceivedCallback: tokenReceivedCallback,
     options:
       {
         validateAuthority?: boolean,
@@ -305,9 +314,9 @@ export class UserAgentApplication {
     this._postLogoutredirectUri = postLogoutRedirectUri;
     this._logger = logger;
     this.storeAuthStateInCookie = storeAuthStateInCookie;
-
-    // TODO: This should be replaced with two different callbacks for success and error cases
-    this._tokenReceivedCallback = tokenReceivedCallback;
+    
+    // Track redirect callbacks
+    this._redirectCallbacksSet = false;
 
     // Track login and acquireToken in progress
     this._loginInProgress = false;
@@ -345,6 +354,19 @@ export class UserAgentApplication {
     }
   }
 
+  //#region Redirect Callbacks
+  /**
+   * 
+   */
+  handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
+    // Set callbacks
+    this._tokenReceivedCallback = successCallback;
+    this._errorReceivedCallback = errorCallback;
+    this._redirectCallbacksSet = true;
+  }
+
+  //#endregion
+
   //#region Redirect Flow
 
   /**
@@ -361,6 +383,11 @@ export class UserAgentApplication {
      */
     if (this._loginInProgress) {
       throw ClientAuthError.createLoginInProgressError();
+    }
+
+    // Throw error if callbacks are not set before redirect
+    if (!this._redirectCallbacksSet) {
+      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
@@ -387,7 +414,7 @@ export class UserAgentApplication {
         this._logger.info("Unified cache call is successful");
         // TODO: Change callback to return AuthResponse
         if (this._tokenReceivedCallback) {
-          this._tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this._silentAuthenticationState));
+          this._tokenReceivedCallback.call(this, idToken, Constants.idToken, this.getUserState(this._silentAuthenticationState));
         }
       }, (error) => {
         this._silentLogin = false;
@@ -464,6 +491,17 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
+    // If already in progress, do not proceed
+    // TODO: Should we throw or return an error here?
+    if (this._acquireTokenInProgress) {
+      return;
+    }
+
+    // Throw error if callbacks are not set before redirect
+    if (!this._redirectCallbacksSet) {
+      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
+    }
+    
     // Validate and filter scopes (the validate function will throw if validation fails)
     try {
       this.validateInputScope(scopes, true);
@@ -475,12 +513,6 @@ export class UserAgentApplication {
 
     // Get the user object if a session exists
     const userObject = user ? user : this.getUser();
-
-    // If already in progress, do not proceed
-    // TODO: Should we throw or return an error here?
-    if (this._acquireTokenInProgress) {
-      return;
-    }
 
     // If no session exists, prompt the user to login.
     const scope = scopes.join(" ").toLowerCase();
@@ -1374,15 +1406,20 @@ export class UserAgentApplication {
     this._cacheStorage.removeItem(Constants.urlHash);
 
     try {
+      // Clear the cookie in the hash
+      this._cacheStorage.clearCookie();
+      if (error || errorDesc) {
+        if (this._errorReceivedCallback) {
+          this._errorReceivedCallback(new ServerError(error, errorDesc));
+        }
+      }
+      if (token) {
         if (this._tokenReceivedCallback) {
-          // Clear the cookie in the hash
-          this._cacheStorage.clearCookie();
-
           // Trigger callback
           // TODO: Refactor to new callback pattern
-          this._tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+          this._tokenReceivedCallback.call(this, token, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
         }
-
+      }
     } catch (err) {
       // TODO: Check if we should be throwing an error here
       this._logger.error("Error occurred in token received callback function: " + err);
@@ -1427,21 +1464,21 @@ export class UserAgentApplication {
     // TODO: Refactor so that this or saveTokenFromHash function returns a response object
     const requestInfo = self.getRequestInfo(hash);
 
-    let token: string = null, tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken: boolean = true;
+    let token: string = null, tokenResponseCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken: boolean = true;
     self._logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window
     if (window.parent !== window && window.parent.msal) {
-        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+        tokenResponseCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
     // Current window is window opener
     else if (isWindowOpenerMsal) {
-        tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+        tokenResponseCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
-    // Other cases
+    // Redirect cases
     else {
+      tokenResponseCallback = null;
       // if set to navigate to loginRequest page post login
       if (self._navigateToLoginRequestUrl) {
-        tokenReceivedCallback = null;
         self._cacheStorage.setItem(Constants.urlHash, hash);
         saveToken = false;
         if (window.parent === window && !isPopup) {
@@ -1451,7 +1488,6 @@ export class UserAgentApplication {
       }
       // Close current window??
       else {
-        tokenReceivedCallback = self._tokenReceivedCallback;
         window.location.hash = "";
       }
     }
@@ -1482,15 +1518,18 @@ export class UserAgentApplication {
     var error = requestInfo.parameters[Constants.error];
 
     try {
-      // We should only send the state back to the developer if it matches with what we received from the server
+       // We should only send the state back to the developer if it matches with what we received from the server
+      const state = (requestInfo.stateMatch) ? this.getUserState(requestInfo.stateResponse) : null;
       // TODO: Change this so that it sends back response object or error object based on what is returned from getRequestInfo()
-      if (tokenReceivedCallback) {
-        //We should only send the stae back to the developer if it matches with what we received from the server
-        if (requestInfo.stateMatch) {
-          tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, this.getUserState(requestInfo.stateResponse));
-        }
-        else {
-          tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, null);
+      if (tokenResponseCallback) {
+        // We should only send the state back to the developer if it matches with what we received from the server
+        tokenResponseCallback.call(self, errorDesc, token, error, tokenType, state);
+      } else {
+        // Redirect cases
+        if (error || errorDesc) {
+          self._errorReceivedCallback.call(new ServerError(error, errorDesc));
+        } else if (token) {
+          self._tokenReceivedCallback.call(token, tokenType, state);
         }
       }
     } catch (err) {
