@@ -22,11 +22,6 @@
   */
 
 export const AuthErrorMessage = {
-    // TODO: Should this be an interaction required error?
-    userLoginError: {
-        code: "user_login_error",
-        desc: "User login is required."
-    },
     unexpectedError: {
         code: "unexpected_error",
         desc: "Unexpected error in authentication."
