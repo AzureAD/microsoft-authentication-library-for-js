@@ -23,6 +23,7 @@
 
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { CacheKeys } from "./Constants";
 
 /**
  * @hidden
@@ -174,5 +175,20 @@ export class Storage {// Singleton
         this.setItemCookie(Constants.stateLogin, "", -1);
         this.setItemCookie(Constants.loginRequest, "", -1);
         this.setItemCookie(Constants.stateAcquireToken, "", -1);
+    }
+
+    /**
+     * Create acquireTokenUserKey to cache user object
+     */
+    static generateAcquireTokenUserKey(userId: any, state: string): string {
+        return CacheKeys.ACQUIRE_TOKEN_USER + Constants.resourceDelimiter +
+            `${userId}` + Constants.resourceDelimiter  + `${state}`;
+    }
+
+    /**
+     * Create authorityKey to cache authority
+     */
+    static generateAuthorityKey(state: string): string {
+        return CacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;
     }
 }

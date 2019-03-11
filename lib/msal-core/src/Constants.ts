@@ -28,10 +28,8 @@ export class Constants {
   static get errorDescription(): string { return "error_description"; }
   static get error(): string { return "error"; }
   static get scope(): string { return "scope"; }
-  static get acquireTokenUser(): string { return "msal.acquireTokenUser"; }
   static get clientInfo(): string { return "client_info"; }
   static get clientId(): string { return "clientId"; }
-  static get authority(): string { return "msal.authority"; }
   static get idToken(): string { return "id_token"; }
   static get accessToken(): string { return "access_token"; }
   static get expiresIn(): string { return "expires_in"; }
@@ -66,7 +64,7 @@ export class Constants {
   static get prompt_none(): string { return "&prompt=none"; }
   static get prompt(): string { return "prompt"; }
   static get response_mode_fragment(): string { return "&response_mode=fragment"; }
-  static get resourceDelimeter(): string { return "|"; }
+  static get resourceDelimiter(): string { return "|"; }
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
   static get tokenRenewStatusInProgress(): string { return "In Progress"; }
@@ -117,5 +115,12 @@ export class ErrorDescription {
   static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
   static get userLoginError(): string { return "User login is required"; }
   static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
-
 }
+
+/**
+ * @hidden
+ */
+export const CacheKeys = {
+    AUTHORITY: "msal_authority",
+    ACQUIRE_TOKEN_USER: "msal.acquireTokenUser"
+};
