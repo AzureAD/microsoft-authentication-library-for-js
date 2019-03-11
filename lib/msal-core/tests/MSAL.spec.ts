@@ -476,6 +476,10 @@ describe('Msal', function (): any {
             authErr = e;
         }
         expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
+        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
+        // expect(err).toBe(ErrorCodes.inputScopesError);
+        // expect(token).toBe(null);
+        // expect(tokenType).toBe(Constants.idToken);
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {
@@ -555,10 +559,15 @@ describe('Msal', function (): any {
         expect(err).toEqual(jasmine.any(ClientConfigurationError));
     });
 
-    it('tests if openid and profile scopes are removed from the input array if explicitly passed to the filterScopes function', function () {
-        var scopes = ['openid', 'profile'];
-        scopes = msal.filterScopes(scopes);
-        expect(scopes.length).toEqual(0);
+    it('tests if error is thrown when client id is not passed as single scope', function () {
+        var scopes = [msal.clientId, "S1"];
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, true);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
     });
 
     it('tests if hint parameters get added when user object is passed to the function', function () {

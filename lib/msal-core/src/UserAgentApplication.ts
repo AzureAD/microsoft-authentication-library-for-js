@@ -366,7 +366,7 @@ export class UserAgentApplication {
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
     scopes = this.filterScopes(scopes);
-
+    
     // extract ADAL id_token if exists
     var idTokenObject;
     idTokenObject = this.extractADALIdToken();
@@ -960,7 +960,7 @@ export class UserAgentApplication {
         console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
       }
-
+      
       let authenticationRequest: AuthenticationRequestParameters;
       if (Utils.compareObjects(userObject, this.getUser())) {
         if (scopes.indexOf(this.clientId) > -1) {
@@ -2098,7 +2098,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Check if this can be combined with filterScopes()
   private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
     if (!scopes) {
       if (scopesRequired) {
