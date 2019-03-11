@@ -470,7 +470,7 @@ export class Utils {
       var pathArray = urlObject.PathSegments;
       if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
           pathArray[0] = tenantId;
-          url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
+          url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/") + "/";
       }
       return url;
   }
