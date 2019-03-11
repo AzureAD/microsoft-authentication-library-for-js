@@ -434,7 +434,8 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+      // Cache authorityKey
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
 
       // build URL to navigate to proceed with the login
@@ -509,16 +510,12 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
 
       // Cache acquireTokenUserKey
-      var acquireTokenUserKey;
-      if (userObject) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-      } else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-      }
+      const userId = userObject ? userObject.userIdentifier : Constants.no_user;
+      const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
       this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
       // Cache authorityKey
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
 
       // Set extraQueryParameters to be sent to the server
@@ -527,7 +524,7 @@ export class UserAgentApplication {
       }
 
       // Construct urlNavigate
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes)   + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
 
       // set state in cache and redirect to urlNavigate
@@ -578,7 +575,7 @@ export class UserAgentApplication {
       // Fail if login is already in progress
       if (this._loginInProgress) {
         // TODO: Return custom error object here in future
-        reject(ErrorCodes.loginProgressError + Constants.resourceDelimeter + ErrorDescription.loginProgressError);
+        reject(ErrorCodes.loginProgressError + Constants.resourceDelimiter + ErrorDescription.loginProgressError);
         return;
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
@@ -655,7 +652,8 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+      // cache authorityKey
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
 
       // Build the URL to navigate to in the popup window
@@ -724,14 +722,14 @@ export class UserAgentApplication {
       // If already in progress, reject the request
       if (this._acquireTokenInProgress) {
         // TODO: Should reject with custom error
-        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimeter + ErrorDescription.acquireTokenProgressError);
+        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimiter + ErrorDescription.acquireTokenProgressError);
         return;
       }
 
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this._logger.info("User login is required");
-        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
         return;
       }
 
@@ -767,17 +765,13 @@ export class UserAgentApplication {
         authenticationRequest.state = authenticationRequest.state;
 
         // Cache acquireTokenUserKey
-        var acquireTokenUserKey;
-        if (userObject) {
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-        }
-        else {
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-        }
+        const userId = userObject ? userObject.userIdentifier : Constants.no_user;
+        const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
+
         this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
         // Cache authorityKey
-        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+        const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
         this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
 
         // Set the extraQueryParameters
@@ -805,7 +799,7 @@ export class UserAgentApplication {
         this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
         // TODO: Should reject with custom error here
         if (reject) {
-          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimeter + ErrorDescription.endpointResolutionError);
+          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimiter + ErrorDescription.endpointResolutionError);
         }
         if (popUpWindow) {
             popUpWindow.close();
@@ -845,7 +839,7 @@ export class UserAgentApplication {
       if (reject) {
         // TODO: Throw custom error here
         // TODO: Figure out some way to pass tokenType
-        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimeter + ErrorDescription.popUpWindowError);
+        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimiter + ErrorDescription.popUpWindowError);
       }
       return null;
     }
@@ -859,11 +853,11 @@ export class UserAgentApplication {
         if (reject) {
           // TODO: Reject with custom error here
           // TODO: Figure out some way to pass tokenType
-          reject(ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+          reject(ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
         }
         window.clearInterval(pollTimer);
         if (this._isAngular) {
-            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
             return;
         }
         instance._loginInProgress = false;
@@ -972,7 +966,7 @@ export class UserAgentApplication {
       if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
         this._logger.info("User login is required");
         // TODO: Reject with custom error here
-        reject(ErrorCodes.userLoginError + Constants.resourceDelimeter + ErrorDescription.userLoginError);
+        reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
         return null;
       }
       //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
@@ -1009,7 +1003,7 @@ export class UserAgentApplication {
         }
         else if (cacheResult.errorDesc || cacheResult.error) {
           this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-          reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
+          reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
           return null;
         }
       }
@@ -1256,7 +1250,7 @@ export class UserAgentApplication {
         for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimeter + error);
+                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimiter + error);
             }
             else if (token) {
                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -1720,17 +1714,13 @@ export class UserAgentApplication {
     }
 
     // Cache acquireTokenUserKey
-    var acquireTokenUserKey;
-    if (user) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-    }
+    const userId = user ? user.userIdentifier : Constants.no_user;
+    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
+
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
 
     // Cache authorityKey
-    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+    const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
     this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
 
     // renew happens in iframe, so it keeps javascript context
@@ -1764,18 +1754,14 @@ export class UserAgentApplication {
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
 
-    // Cacher acquireTokenUserKey
-    var acquireTokenUserKey;
-    if (user) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-    }
+    // Cache acquireTokenUserKey
+    const userId = user ? user.userIdentifier : Constants.no_user;
+    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
+
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
 
     // Cache authorityKey
-    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+    const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
     this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
 
     // Cache nonce
@@ -1881,15 +1867,15 @@ export class UserAgentApplication {
       if (tokenResponse.requestType === Constants.login) {
         this._loginInProgress = false;
         this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
-        authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
       }
 
       // acquireToken
       if (tokenResponse.requestType === Constants.renewToken) {
         this._acquireTokenInProgress = false;
-        authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
         var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, tokenResponse.stateResponse);
       }
     }
     // If the server returns "Success"
@@ -1918,7 +1904,7 @@ export class UserAgentApplication {
           }
 
           // retrieve the authority from cache and replace with tenantID
-          authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
           let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
           if (!Utils.isEmpty(authority)) {
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -1933,8 +1919,9 @@ export class UserAgentApplication {
             user = User.createUser(idToken, new ClientInfo(clientInfo));
           }
 
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          var acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(user.userIdentifier, tokenResponse.stateResponse);
+          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, tokenResponse.stateResponse);
+
           let cachedUser: string = this._cacheStorage.getItem(acquireTokenUserKey);
           let acquireTokenUser: User;
 
@@ -1965,7 +1952,7 @@ export class UserAgentApplication {
               this._logger.warning("ClientInfo not received in the response from AAD");
             }
 
-            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+            authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
             let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
             if (!Utils.isEmpty(authority)) {
               authority = Utils.replaceFirstPath(authority, idToken.tenantId);
