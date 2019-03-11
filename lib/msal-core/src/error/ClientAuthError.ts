@@ -152,7 +152,7 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.callbackError.code,
             `${ClientAuthErrorMessage.callbackError.desc} ${errorDesc}.`);
     }
-  
+
     static createUserLoginRequiredError() : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code, ClientAuthErrorMessage.userLoginRequiredError.desc);
     }
