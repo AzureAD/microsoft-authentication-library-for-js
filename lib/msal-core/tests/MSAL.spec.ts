@@ -554,6 +554,17 @@ describe('Msal', function (): any {
         expect(err).toEqual(jasmine.any(ClientConfigurationError));
     });
 
+    it('tests if error is thrown when client id is not passed as single scope', function () {
+        var scopes = [msal.clientId, "S1"];
+        var err: AuthError;
+        try {
+            msal.validateInputScope(scopes, true);
+        } catch (e) {
+            err = e;
+        }
+        expect(err).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
     it('tests if hint parameters get added when user object is passed to the function', function () {
         var user = {
             userIdentifier: '1234.5678',
