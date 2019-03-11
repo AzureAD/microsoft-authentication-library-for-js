@@ -478,9 +478,8 @@ export class UserAgentApplication {
     const userObject = user ? user : this.getUser();
 
     // If already in progress, do not proceed
-    // TODO: Should we throw or return an error here?
     if (this._acquireTokenInProgress) {
-      return;
+      throw ClientAuthError.createAcquireTokenInProgressError();
     }
 
     // If no session exists, prompt the user to login.
@@ -577,14 +576,14 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this._loginInProgress) {
-        throw ClientAuthError.createLoginInProgressError();
+        reject(ClientAuthError.createLoginInProgressError());
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
       try {
         this.validateInputScope(scopes, false);
       } catch (e) {
         // Rethrow for better error tracking
-        throw e;
+        reject(e);
       }
       scopes = this.filterScopes(scopes);
 
@@ -627,16 +626,15 @@ export class UserAgentApplication {
    * @param extraQueryParameters
    */
   private loginPopupHelper( resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string) {
-    // TODO: why this is needed only for loginpopup
     if (!scopes) {
       scopes = [this.clientId];
     }
     const scope = scopes.join(" ").toLowerCase();
 
     // Generate a popup window
-    // TODO: Refactor this so that openWindow throws an error, loginPopupHelper rejects or resolves based on that action
     var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
     if (!popUpWindow) {
+      // We pass reject in openWindow, we reject there during an error
       return;
     }
 
@@ -664,7 +662,7 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
 
       // Build the URL to navigate to in the popup window
-      const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
       window.renewStates.push(authenticationRequest.state);
       window.requestType = Constants.login;
 
@@ -722,8 +720,7 @@ export class UserAgentApplication {
       try {
         this.validateInputScope(scopes, true);
       } catch (e) {
-        // Rethrow for better error tracking
-        throw e;
+        reject(e);
       }
       scopes = this.filterScopes(scopes);
 
@@ -734,13 +731,13 @@ export class UserAgentApplication {
 
       // If already in progress, throw an error and reject the request
       if (this._acquireTokenInProgress) {
-        throw ClientAuthError.createAcquireTokenInProgressError();
+        reject(ClientAuthError.createAcquireTokenInProgressError());
       }
 
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this._logger.info("User login is required");
-        throw ClientAuthError.createUserLoginRequiredError();
+        reject(ClientAuthError.createUserLoginRequiredError());
       }
 
       // track the acquireToken progress
@@ -752,7 +749,7 @@ export class UserAgentApplication {
       // Open the popup window
       var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
-        // TODO: we should be rejecting with an error here
+        // We pass reject to openWindow, so we are rejecting there.
         return;
       }
 
@@ -845,7 +842,6 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, ErrorCodes.popUpWindowError);
       this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.popUpWindowError);
       if (reject) {
-        // TODO: We should throw here instead of passing to reject
         reject(ClientAuthError.createPopupWindowError());
       }
       return null;
@@ -858,7 +854,6 @@ export class UserAgentApplication {
       // If popup closed or login in progress, cancel login
       if (popupWindow && popupWindow.closed && instance._loginInProgress) {
         if (reject) {
-          // TODO: We should throw here instead of passing to reject
           reject(ClientAuthError.createUserCancelledError());
         }
         window.clearInterval(pollTimer);
@@ -969,8 +964,7 @@ export class UserAgentApplication {
       try {
         this.validateInputScope(scopes, true);
       } catch (e) {
-        // Rethrow for better error tracking
-        throw e;
+        reject(e);
       }
       scopes = this.filterScopes(scopes);
 
@@ -980,7 +974,7 @@ export class UserAgentApplication {
       //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
       if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
         this._logger.info("User login is required");
-        throw ClientAuthError.createUserLoginRequiredError();
+        reject(ClientAuthError.createUserLoginRequiredError());
       }
       //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
       else if (!userObject && !Utils.isEmpty(adalIdToken)) {
@@ -2053,8 +2047,8 @@ export class UserAgentApplication {
       return this._user;
     }
 
-    // if login not yet done, throw error
-    throw ClientAuthError.createUserDoesNotExistError();
+    // if login not yet done, return null
+    return null;
   }
 
   /**
