@@ -11,4 +11,4 @@ export type AuthResponse = {
     expiresOn: Date;
     account: Account;
     userState: string;
-}
+};

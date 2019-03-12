@@ -38,11 +38,13 @@ export class AuthError extends Error {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorMessage);
+        console.log(this);
+        console.log(this.constructor);
+        Object.setPrototypeOf(this, AuthError.prototype);
+
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.name = "AuthError";
-
-        Object.setPrototypeOf(this, AuthError.prototype);
     }
     static createUnexpectedError(errDesc: string) {
         return new AuthError(AuthErrorMessage.unexpectedError.code, errDesc);

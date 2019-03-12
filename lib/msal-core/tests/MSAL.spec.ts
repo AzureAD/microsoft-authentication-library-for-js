@@ -166,8 +166,7 @@ describe('Msal', function (): any {
         global.document = documentMock;
         global.Math = mathMock;
 
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-        });
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null);
         msal._user = null;
         msal._renewStates = [];
         msal._activeRenewals = {};
@@ -189,8 +188,33 @@ describe('Msal', function (): any {
         jasmine.Ajax.uninstall();
     });
 
+    it('throws error if loginRedirect is called without calling setRedirectCallbacks()', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        try {
+            msal.loginRedirect();
+        } catch (e) {
+            expect(e).toEqual(jasmine.any(ClientConfigurationError));
+        }
+        done();
+    });
+
+    it('throws error if null or non-function argument is passed to either argument of setRedirectCallbacks', (done) => {
+        try {
+            msal.setRedirectCallbacks(function(token, tokenType, state) {}, null);
+        } catch (e) {
+            expect(e).toEqual(jasmine.any(ClientConfigurationError));
+        }
+
+        try {
+            msal.setRedirectCallbacks(null, function(err, state) {});
+        } catch (e) {
+            expect(e).toEqual(jasmine.any(ClientConfigurationError));
+        }
+        done();
+    });
+
     it('navigates user to login and prompt parameter is not passed by default', (done) => {
-        
+        msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -208,6 +232,7 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
+        msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -223,25 +248,9 @@ describe('Msal', function (): any {
         msal.loginRedirect(null, Constants.prompt_select_account);
     });
 
-    it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
-        expect(msal.getRedirectUri()).toBe(global.window.location.href);
-        msal.promptUser = function (args: string) {
-            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-            expect(args).toContain('&client_id=' + msal.clientId);
-            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-            expect(args).toContain('&state');
-            expect(args).toContain('&client_info=1');
-            expect(args).not.toContain(Constants.prompt_select_account);
-            expect(args).toContain(Constants.prompt_none);
-            done();
-        };
-
-        msal.loginRedirect(null, Constants.prompt_none);
-    });
-
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-                }, { redirectUri: TEST_REDIR_URI });
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, { redirectUri: TEST_REDIR_URI });
+        msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
         msal._user = null;
         msal._renewStates = [];
         msal._activeRenewals = {};
@@ -261,6 +270,7 @@ describe('Msal', function (): any {
 
     it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
         history.pushState(null, null, '/new_pushstate_uri');
+        msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
         msal.promptUser = function (args: string) {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
             done();
@@ -673,61 +683,69 @@ describe('Msal', function (): any {
         expect(decodeURIComponent(result[4])).toContain("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
     });
 
-    // We no longer return state as a part of the error, so these tests need to be updated
-    // it('tests if you get the state back in tokenReceived callback, if state is a number', function () {
-    //     spyOn(msal, 'getUserState').and.returnValue("1234");
-    //     msal._loginInProgress = true;
-    //     var errDesc = '', token = '', err = '', tokenType = '', state= '' ;
-    //     var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string, valState: string) {
-    //         errDesc = valErrDesc;
-    //         token = valToken;
-    //         err = valErr;
-    //         tokenType = valTokenType;
-    //         state= valState;
-    //     };
+    it('tests if you get the state back in errorReceived callback, if state is a number', function () {
+        spyOn(msal, 'getUserState').and.returnValue("1234");
+        var err: AuthError;
+        var token = "";
+        var tokenType = "";
+        var state = "";
+        var tokenCallback = function (valToken:string, valTokenType: string, valState: string) {
+            token = valToken;
+            tokenType = valTokenType;
+            state = valState;
+        };
+        var errorCallback = function (valErr:AuthError) {
+            err = valErr;
+            // state= valState;
+        };
+        msal.setRedirectCallbacks(tokenCallback, errorCallback);
+        msal._loginInProgress = true;
 
-    //     msal._tokenReceivedCallback = callback;
-    //     msal.loginRedirect();
-    //     expect(errDesc).toBe(ErrorDescription.loginProgressError);
-    //     expect(err).toBe(ErrorCodes.loginProgressError);
-    //     expect(token).toBe(null);
-    //     expect(tokenType).toBe(Constants.idToken);
-    //     expect(state).toBe('1234');
-    //     msal._loginInProgress = false;
-    // });
+        msal.loginRedirect();
+        console.log(err);
+        expect(err).toEqual(jasmine.any(ClientAuthError));
+        console.log(err.stack);
+        expect(token).toBe("");
+        expect(tokenType).toBe("");
+        // expect(state).toBe('1234');
+        msal._loginInProgress = false;
+    });
 
-    // it('tests if you get the state back in tokenReceived callback, if state is a url', function () {
-    //     spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
-    //     msal._loginInProgress = true;
-    //     var errDesc = '', token = '', err = '', tokenType = '', state= '' ;
-    //     var callback = function (valErrDesc:string, valToken:string, valErr:string, valTokenType:string, valState: string) {
-    //         errDesc = valErrDesc;
-    //         token = valToken;
-    //         err = valErr;
-    //         tokenType = valTokenType;
-    //         state= valState;
-    //     };
+    it('tests if you get the state back in tokenReceived callback, if state is a url', function () {
+        spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        var err: AuthError;
+        var token = "";
+        var tokenType = "";
+        var state = "";
+        var tokenCallback = function (valToken:string, valTokenType: string, valState: string) {
+            token = valToken;
+            tokenType = valTokenType;
+            state = valState;
+        };
+        var errorCallback = function (valErr:AuthError, valState: string) {
+            err = valErr;
+            state= valState;
+        };
+        msal.setRedirectCallbacks(tokenCallback, errorCallback);
+        msal._loginInProgress = true;
 
-    //     msal._tokenReceivedCallback = callback;
-    //     msal.loginRedirect();
-    //     expect(errDesc).toBe(ErrorDescription.loginProgressError);
-    //     expect(err).toBe(ErrorCodes.loginProgressError);
-    //     expect(token).toBe(null);
-    //     expect(tokenType).toBe(Constants.idToken);
-    //     expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
-    //     msal._loginInProgress = false;
-    // });
+        msal.loginRedirect();
+        expect(err).toEqual(jasmine.any(ClientAuthError));
+        expect(token).toBe("");
+        expect(tokenType).toBe("");
+        expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
+        msal._loginInProgress = false;
+    });
 
     it('tests that loginStartPage, nonce and state are saved in cookies if enableCookieStorage flag is enables through the msal optional params', function (done) {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, { storeAuthStateInCookie: true });
+        msal.setRedirectCallbacks(function(token, tokenType, state) {
             expect(document.cookie).toBe('');
-            expect(errorDesc).toBeUndefined();
-            expect(error).toBeUndefined();
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
-        }, { storeAuthStateInCookie: true });
+        }, function (error) {});
         msal._cacheStorage = storageFake;
         var _promptUser = msal.promptUser;
         msal.promptUser = function () {
@@ -750,13 +768,12 @@ describe('Msal', function (): any {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
-         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
-             expect(document.cookie).toBe('');
-             expect(errorDesc).toBeUndefined();
-             expect(error).toBeUndefined();
-             expect(token).toBe(mockIdToken);
-             expect(tokenType).toBe(Constants.idToken);
-         }, { cacheLocation: 'localStorage' });
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, { cacheLocation: 'localStorage' });
+         msal.setRedirectCallbacks(function(token, tokenType, state) {
+            expect(document.cookie).toBe('');
+            expect(token).toBe(mockIdToken);
+            expect(tokenType).toBe(Constants.idToken);
+        }, function (error) {});
 
          expect(msal._cacheLocation).toBe('localStorage');
     });
@@ -765,13 +782,12 @@ describe('Msal', function (): any {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
-         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
-             expect(document.cookie).toBe('');
-             expect(errorDesc).toBeUndefined();
-             expect(error).toBeUndefined();
-             expect(token).toBe(mockIdToken);
-             expect(tokenType).toBe(Constants.idToken);
-         });
+         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null);
+         msal.setRedirectCallbacks(function(token, tokenType, state) {
+            expect(document.cookie).toBe('');
+            expect(token).toBe(mockIdToken);
+            expect(tokenType).toBe(Constants.idToken);
+        }, function (error) {});
 
          expect(msal._cacheLocation).toBe('sessionStorage');
     });

@@ -38,7 +38,7 @@ import { AuthorityFactory } from "./AuthorityFactory";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError } from "./error/ClientAuthError";
-import { ServerError } from './error/ServerError';
+import { ServerError } from "./error/ServerError";
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -94,7 +94,7 @@ export type tokenReceivedCallback = (token: string, tokenType: string, userState
  * A type alias for a errorReceivedCallback function.
  * @param errorReceivedCallback.errorDesc error object created by library containing error string returned from the STS if API call fails.
  */
-export type errorReceivedCallback = (authError: AuthError) => void;
+export type errorReceivedCallback = (authError: AuthError, userState: string) => void;
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -314,7 +314,7 @@ export class UserAgentApplication {
     this._postLogoutredirectUri = postLogoutRedirectUri;
     this._logger = logger;
     this.storeAuthStateInCookie = storeAuthStateInCookie;
-    
+
     // Track redirect callbacks
     this._redirectCallbacksSet = false;
 
@@ -400,7 +400,8 @@ export class UserAgentApplication {
     }
 
     if (this._loginInProgress) {
-      throw ClientAuthError.createLoginInProgressError();
+      this._errorReceivedCallback(ClientAuthError.createLoginInProgressError(), this.getUserState(this._silentAuthenticationState));
+      return;
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
@@ -512,7 +513,8 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this._acquireTokenInProgress) {
-      throw ClientAuthError.createAcquireTokenInProgressError();
+      this._errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), this.getUserState(this._silentAuthenticationState));
+      return;
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
@@ -531,7 +533,8 @@ export class UserAgentApplication {
     const scope = scopes.join(" ").toLowerCase();
     if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
       this._logger.info("User login is required");
-      throw ClientAuthError.createUserLoginRequiredError();
+      this._errorReceivedCallback(ClientAuthError.createUserLoginRequiredError(), this.getUserState(this._silentAuthenticationState));
+      return;
     }
 
     // Track the acquireToken progress
@@ -1408,16 +1411,17 @@ export class UserAgentApplication {
     try {
       // Clear the cookie in the hash
       this._cacheStorage.clearCookie();
+      const userState = this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie));
       if (error || errorDesc) {
         if (this._errorReceivedCallback) {
-          this._errorReceivedCallback(new ServerError(error, errorDesc));
+          this._errorReceivedCallback(new ServerError(error, errorDesc), userState);
         }
       }
       if (token) {
         if (this._tokenReceivedCallback) {
           // Trigger callback
           // TODO: Refactor to new callback pattern
-          this._tokenReceivedCallback.call(this, token, tokenType,  this.getUserState(this._cacheStorage.getItem(Constants.stateLogin, this.storeAuthStateInCookie)));
+          this._tokenReceivedCallback.call(this, token, tokenType, userState);
         }
       }
     } catch (err) {
@@ -1526,7 +1530,7 @@ export class UserAgentApplication {
       } else {
         // Redirect cases
         if (error || errorDesc) {
-          self._errorReceivedCallback.call(new ServerError(error, errorDesc));
+          self._errorReceivedCallback.call(new ServerError(error, errorDesc), state);
         } else if (token) {
           self._tokenReceivedCallback.call(token, tokenType, state);
         }
