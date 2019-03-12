@@ -20,7 +20,7 @@
     "oauth"
   ],
   "main": "./lib-commonjs/index.js",
-  "typings": "./lib-commonjs/index.d.ts",
+  "types": "./lib-commonjs/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },

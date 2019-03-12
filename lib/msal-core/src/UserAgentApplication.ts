@@ -463,7 +463,8 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+      // Cache authorityKey
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
 
       // build URL to navigate to proceed with the login
@@ -492,9 +493,8 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
     // If already in progress, do not proceed
-    // TODO: Should we throw or return an error here?
     if (this._acquireTokenInProgress) {
-      return;
+      throw ClientAuthError.createAcquireTokenInProgressError();
     }
 
     // Throw error if callbacks are not set before redirect
@@ -544,16 +544,12 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
 
       // Cache acquireTokenUserKey
-      var acquireTokenUserKey;
-      if (userObject) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-      } else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-      }
+      const userId = userObject ? userObject.userIdentifier : Constants.no_user;
+      const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
       this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
       // Cache authorityKey
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
 
       // Set extraQueryParameters to be sent to the server
@@ -562,7 +558,7 @@ export class UserAgentApplication {
       }
 
       // Construct urlNavigate
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes)   + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
 
       // set state in cache and redirect to urlNavigate
@@ -612,14 +608,14 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this._loginInProgress) {
-        throw ClientAuthError.createLoginInProgressError();
+        reject(ClientAuthError.createLoginInProgressError());
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
       try {
         this.validateInputScope(scopes, false);
       } catch (e) {
         // Rethrow for better error tracking
-        throw e;
+        reject(e);
       }
       scopes = this.filterScopes(scopes);
 
@@ -662,16 +658,15 @@ export class UserAgentApplication {
    * @param extraQueryParameters
    */
   private loginPopupHelper( resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string) {
-    // TODO: why this is needed only for loginpopup
     if (!scopes) {
       scopes = [this.clientId];
     }
     const scope = scopes.join(" ").toLowerCase();
 
     // Generate a popup window
-    // TODO: Refactor this so that openWindow throws an error, loginPopupHelper rejects or resolves based on that action
     var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
     if (!popUpWindow) {
+      // We pass reject in openWindow, we reject there during an error
       return;
     }
 
@@ -694,11 +689,12 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
-      const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+      // cache authorityKey
+      const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
 
       // Build the URL to navigate to in the popup window
-      const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
       window.renewStates.push(authenticationRequest.state);
       window.requestType = Constants.login;
 
@@ -756,8 +752,7 @@ export class UserAgentApplication {
       try {
         this.validateInputScope(scopes, true);
       } catch (e) {
-        // Rethrow for better error tracking
-        throw e;
+        reject(e);
       }
       scopes = this.filterScopes(scopes);
 
@@ -768,13 +763,13 @@ export class UserAgentApplication {
 
       // If already in progress, throw an error and reject the request
       if (this._acquireTokenInProgress) {
-        throw ClientAuthError.createAcquireTokenInProgressError();
+        reject(ClientAuthError.createAcquireTokenInProgressError());
       }
 
       //if user is not currently logged in and no login_hint is passed
       if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
         this._logger.info("User login is required");
-        throw ClientAuthError.createUserLoginRequiredError();
+        return reject(ClientAuthError.createUserLoginRequiredError());
       }
 
       // track the acquireToken progress
@@ -786,7 +781,7 @@ export class UserAgentApplication {
       // Open the popup window
       var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
-        // TODO: we should be rejecting with an error here
+        // We pass reject to openWindow, so we are rejecting there.
         return;
       }
 
@@ -809,17 +804,13 @@ export class UserAgentApplication {
         authenticationRequest.state = authenticationRequest.state;
 
         // Cache acquireTokenUserKey
-        var acquireTokenUserKey;
-        if (userObject) {
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userObject.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-        }
-        else {
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-        }
+        const userId = userObject ? userObject.userIdentifier : Constants.no_user;
+        const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
+
         this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
 
         // Cache authorityKey
-        const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+        const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
         this._cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.storeAuthStateInCookie);
 
         // Set the extraQueryParameters
@@ -883,7 +874,6 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(Constants.msalError, ErrorCodes.popUpWindowError);
       this._cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.popUpWindowError);
       if (reject) {
-        // TODO: We should throw here instead of passing to reject
         reject(ClientAuthError.createPopupWindowError());
       }
       return null;
@@ -896,12 +886,11 @@ export class UserAgentApplication {
       // If popup closed or login in progress, cancel login
       if (popupWindow && popupWindow.closed && instance._loginInProgress) {
         if (reject) {
-          // TODO: We should throw here instead of passing to reject
           reject(ClientAuthError.createUserCancelledError());
         }
         window.clearInterval(pollTimer);
         if (this._isAngular) {
-            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimeter + ErrorDescription.userCancelledError);
+            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
             return;
         }
         instance._loginInProgress = false;
@@ -965,7 +954,7 @@ export class UserAgentApplication {
 
       // open the window
       const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
-      if (!popupWindow || popupWindow == null) {
+      if (!popupWindow) {
         throw ClientAuthError.createPopupWindowError();
       }
       if (popupWindow.focus) {
@@ -974,7 +963,6 @@ export class UserAgentApplication {
 
       return popupWindow;
     } catch (e) {
-      // TODO: Throw a custom error if opening popup fails
       this._logger.error("error opening popup " + e.message);
       this._loginInProgress = false;
       this._acquireTokenInProgress = false;
@@ -1007,8 +995,7 @@ export class UserAgentApplication {
       try {
         this.validateInputScope(scopes, true);
       } catch (e) {
-        // Rethrow for better error tracking
-        throw e;
+        reject(e);
       }
       scopes = this.filterScopes(scopes);
 
@@ -1018,7 +1005,7 @@ export class UserAgentApplication {
       //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
       if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
         this._logger.info("User login is required");
-        throw ClientAuthError.createUserLoginRequiredError();
+        reject(ClientAuthError.createUserLoginRequiredError());
       }
       //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
       else if (!userObject && !Utils.isEmpty(adalIdToken)) {
@@ -1054,7 +1041,7 @@ export class UserAgentApplication {
         }
         else if (cacheResult.errorDesc || cacheResult.error) {
           this._logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-          reject(cacheResult.errorDesc + Constants.resourceDelimeter + cacheResult.error);
+          reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
           return null;
         }
       }
@@ -1092,7 +1079,7 @@ export class UserAgentApplication {
         }
       }).catch((err) => {
         this._logger.warning("could not resolve endpoints");
-        reject(err);
+        reject(ClientAuthError.createEndpointResolutionError(err.toString()));
         return null;
       });
     });
@@ -1302,7 +1289,7 @@ export class UserAgentApplication {
         for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimeter + error);
+                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimiter + error);
             }
             else if (token) {
                 window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
@@ -1421,7 +1408,6 @@ export class UserAgentApplication {
         }
       }
     } catch (err) {
-      // TODO: Check if we should be throwing an error here
       this._logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
     }
@@ -1533,7 +1519,6 @@ export class UserAgentApplication {
         }
       }
     } catch (err) {
-      // TODO: Should we throw an error here?
       self._logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
     }
@@ -1775,17 +1760,13 @@ export class UserAgentApplication {
     }
 
     // Cache acquireTokenUserKey
-    var acquireTokenUserKey;
-    if (user) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter  + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-    }
+    const userId = user ? user.userIdentifier : Constants.no_user;
+    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
+
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
 
     // Cache authorityKey
-    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+    const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
     this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
 
     // renew happens in iframe, so it keeps javascript context
@@ -1819,18 +1800,14 @@ export class UserAgentApplication {
       authenticationRequest.extraQueryParameters = extraQueryParameters;
     }
 
-    // Cacher acquireTokenUserKey
-    var acquireTokenUserKey;
-    if (user) {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + authenticationRequest.state;
-    }
-    else {
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + authenticationRequest.state;
-    }
+    // Cache acquireTokenUserKey
+    const userId = user ? user.userIdentifier : Constants.no_user;
+    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, authenticationRequest.state);
+
     this._cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
 
     // Cache authorityKey
-    const authorityKey = Constants.authority + Constants.resourceDelimeter + authenticationRequest.state;
+    const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
     this._cacheStorage.setItem(authorityKey, authenticationRequest.authority);
 
     // Cache nonce
@@ -1936,15 +1913,15 @@ export class UserAgentApplication {
       if (tokenResponse.requestType === Constants.login) {
         this._loginInProgress = false;
         this._cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
-        authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
       }
 
       // acquireToken
       if (tokenResponse.requestType === Constants.renewToken) {
         this._acquireTokenInProgress = false;
-        authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
         var userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
-        acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + userKey + Constants.resourceDelimeter + tokenResponse.stateResponse;
+        acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, tokenResponse.stateResponse);
       }
     }
     // If the server returns "Success"
@@ -1973,7 +1950,7 @@ export class UserAgentApplication {
           }
 
           // retrieve the authority from cache and replace with tenantID
-          authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
           let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
           if (!Utils.isEmpty(authority)) {
             authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -1988,8 +1965,9 @@ export class UserAgentApplication {
             user = User.createUser(idToken, new ClientInfo(clientInfo));
           }
 
-          acquireTokenUserKey = Constants.acquireTokenUser + Constants.resourceDelimeter + user.userIdentifier + Constants.resourceDelimeter + tokenResponse.stateResponse;
-          var acquireTokenUserKey_nouser = Constants.acquireTokenUser + Constants.resourceDelimeter + Constants.no_user + Constants.resourceDelimeter + tokenResponse.stateResponse;
+          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(user.userIdentifier, tokenResponse.stateResponse);
+          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, tokenResponse.stateResponse);
+
           let cachedUser: string = this._cacheStorage.getItem(acquireTokenUserKey);
           let acquireTokenUser: User;
 
@@ -2020,7 +1998,7 @@ export class UserAgentApplication {
               this._logger.warning("ClientInfo not received in the response from AAD");
             }
 
-            authorityKey = Constants.authority + Constants.resourceDelimeter + tokenResponse.stateResponse;
+            authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
             let authority: string = this._cacheStorage.getItem(authorityKey, this.storeAuthStateInCookie);
             if (!Utils.isEmpty(authority)) {
               authority = Utils.replaceFirstPath(authority, idToken.tenantId);
@@ -2104,9 +2082,8 @@ export class UserAgentApplication {
       this._user = User.createUser(idToken, clientInfo);
       return this._user;
     }
-
-    // if login not yet done, throw error
-    throw ClientAuthError.createUserDoesNotExistError();
+    // if login not yet done, return null
+    return null;
   }
 
   /**
@@ -2180,7 +2157,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Check if this can be combined with filterScopes()
   private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
     if (!scopes) {
       if (scopesRequired) {
@@ -2212,7 +2188,6 @@ export class UserAgentApplication {
   * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
   * @hidden
   */
-  // TODO: Check if this can be combined with validateInputScope()
   private filterScopes(scopes: Array<string>): Array<string> {
     if (scopes) {
       scopes = scopes.filter(function (element) {
