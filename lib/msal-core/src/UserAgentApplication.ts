@@ -381,13 +381,14 @@ export class UserAgentApplication {
     2. saves value in cache
     3. redirect user to AAD
      */
-    if (this._loginInProgress) {
-      throw ClientAuthError.createLoginInProgressError();
-    }
 
     // Throw error if callbacks are not set before redirect
     if (!this._redirectCallbacksSet) {
       throw ClientConfigurationError.createRedirectCallbacksNotSetError();
+    }
+
+    if (this._loginInProgress) {
+      throw ClientAuthError.createLoginInProgressError();
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
@@ -492,16 +493,16 @@ export class UserAgentApplication {
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
   acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
   acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
+    // Throw error if callbacks are not set before redirect
+    if (!this._redirectCallbacksSet) {
+      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
+    }
+
     // If already in progress, do not proceed
     if (this._acquireTokenInProgress) {
       throw ClientAuthError.createAcquireTokenInProgressError();
     }
 
-    // Throw error if callbacks are not set before redirect
-    if (!this._redirectCallbacksSet) {
-      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
-    }
-    
     // Validate and filter scopes (the validate function will throw if validation fails)
     try {
       this.validateInputScope(scopes, true);
