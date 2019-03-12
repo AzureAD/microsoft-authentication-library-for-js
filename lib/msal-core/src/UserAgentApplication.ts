@@ -356,12 +356,24 @@ export class UserAgentApplication {
 
   //#region Redirect Callbacks
   /**
-   * 
+   * Sets the callback functions for the redirect flow to send back the success or error object.
+   * @param {tokenReceivedCallback} successCallback - Callback which contains the AuthResponse object, containing data from the server.
+   * @param {errorReceivedCallback} errorCallback - Callback which contains a AuthError object, containing error data from either the server
+   * or the library, depending on the origin of the error.
    */
-  handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
+  setRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
+    if (!successCallback) {
+      this._redirectCallbacksSet = false;
+      throw ClientConfigurationError.createInvalidCallbackObjectError("successCallback", successCallback);
+    } else if (!errorCallback) {
+      this._redirectCallbacksSet = false;
+      throw ClientConfigurationError.createInvalidCallbackObjectError("errorCallback", errorCallback);
+    }
+
     // Set callbacks
     this._tokenReceivedCallback = successCallback;
     this._errorReceivedCallback = errorCallback;
+
     this._redirectCallbacksSet = true;
   }
 
