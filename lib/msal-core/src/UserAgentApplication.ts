@@ -569,12 +569,7 @@ export class UserAgentApplication {
         return reject(ClientAuthError.createLoginInProgressError());
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
-      try {
-        this.validateInputScope(scopes, false);
-      } catch (e) {
-        // Rethrow for better error tracking
-        return reject(e);
-      }
+      this.validateInputScope(scopes, false);
       scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
@@ -707,7 +702,6 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
-
       this.validateInputScope(scopes, true);
       scopes = this.filterScopes(scopes);
 
@@ -947,11 +941,7 @@ export class UserAgentApplication {
   acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
-      try {
-        this.validateInputScope(scopes, true);
-      } catch (e) {
-        return reject(e);
-      }
+      this.validateInputScope(scopes, true);
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
