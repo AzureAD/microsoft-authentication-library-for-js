@@ -405,12 +405,7 @@ export class UserAgentApplication {
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
-    try {
-      this.validateInputScope(scopes, false);
-    } catch (e) {
-      // Rethrow for better error tracking
-      throw e;
-    }
+    this.validateInputScope(scopes, false);
     scopes = this.filterScopes(scopes);
 
     // extract ADAL id_token if exists
@@ -518,12 +513,7 @@ export class UserAgentApplication {
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
-    try {
-      this.validateInputScope(scopes, true);
-    } catch (e) {
-      // Rethrow for better error tracking
-      throw e;
-    }
+    this.validateInputScope(scopes, true);
     scopes = this.filterScopes(scopes);
 
     // Get the user object if a session exists
@@ -624,15 +614,10 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this._loginInProgress) {
-        reject(ClientAuthError.createLoginInProgressError());
+        return reject(ClientAuthError.createLoginInProgressError());
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
-      try {
-        this.validateInputScope(scopes, false);
-      } catch (e) {
-        // Rethrow for better error tracking
-        reject(e);
-      }
+      this.validateInputScope(scopes, false);
       scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
@@ -765,11 +750,7 @@ export class UserAgentApplication {
   acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
-      try {
-        this.validateInputScope(scopes, true);
-      } catch (e) {
-        reject(e);
-      }
+      this.validateInputScope(scopes, true);
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
@@ -779,7 +760,7 @@ export class UserAgentApplication {
 
       // If already in progress, throw an error and reject the request
       if (this._acquireTokenInProgress) {
-        reject(ClientAuthError.createAcquireTokenInProgressError());
+        return reject(ClientAuthError.createAcquireTokenInProgressError());
       }
 
       //if user is not currently logged in and no login_hint is passed
@@ -1008,11 +989,7 @@ export class UserAgentApplication {
   acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
-      try {
-        this.validateInputScope(scopes, true);
-      } catch (e) {
-        reject(e);
-      }
+      this.validateInputScope(scopes, true);
       scopes = this.filterScopes(scopes);
 
       const scope = scopes.join(" ").toLowerCase();
@@ -1021,7 +998,7 @@ export class UserAgentApplication {
       //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
       if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
         this._logger.info("User login is required");
-        reject(ClientAuthError.createUserLoginRequiredError());
+        return reject(ClientAuthError.createUserLoginRequiredError());
       }
       //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
       else if (!userObject && !Utils.isEmpty(adalIdToken)) {
