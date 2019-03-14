@@ -739,7 +739,7 @@ export class Utils {
       extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
     }
     else {
-      extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+      extraQueryParameters += "&" + Constants.prompt + "=" + prompt;
     }
 
     return extraQueryParameters;

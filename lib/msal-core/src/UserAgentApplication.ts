@@ -240,7 +240,13 @@ export class UserAgentApplication {
     }
 
     // if extraScopesToConsent is passed, append them to the login request
-    let scopes = [...request.scopes, ...request.extraScopesToConsent];
+    let scopes: Array<string>;
+    if (request.extraScopesToConsent) {
+        scopes = [...request.scopes, ...request.extraScopesToConsent];
+    }
+    else {
+        scopes = request.scopes;
+    }
 
     // TODO: Replace with new validation pattern - This will come with Error
     if (scopes) {
@@ -493,7 +499,13 @@ export class UserAgentApplication {
       }
 
       // if extraScopesToConsent is passed, append them to the login request
-      let scopes = [...request.scopes, ...request.extraScopesToConsent];
+      let scopes: Array<string>;
+      if (request.extraScopesToConsent) {
+        let scopes = [...request.scopes, ...request.extraScopesToConsent];
+      }
+      else {
+          scopes = request.scopes;
+      }
 
       // Validate scopes
       // TODO: Replace with new validation pattern
