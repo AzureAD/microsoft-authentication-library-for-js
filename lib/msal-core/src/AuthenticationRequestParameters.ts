@@ -26,85 +26,129 @@ import { Utils } from "./Utils";
 import { Constants } from "./Constants";
 
 /**
+ * TODO: Change this to ServerRequestParameters soon after Request changes are in.
+ *
+ * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+ * State: OAuth Spec: https://tools.ietf.org/html/rfc6749#section-10.12
  * @hidden
  */
 export class AuthenticationRequestParameters {
+
   authorityInstance: Authority;
   clientId: string;
+  scopes: Array<string>;
+
   nonce: string;
   state: string;
-  correlationId: string;
+
+  // telemetry information
   xClientVer: string;
   xClientSku: string;
-  scopes: Array<string>;
+  correlationId: string;
+
   responseType: string;
+  redirectUri: string;
+
+  // TODO: The below are not used - check and delete with the rename PR
   promptValue: string;
   extraQueryParameters: string;
   loginHint: string;
   domainHint: string;
-  redirectUri: string;
-    public get authority(): string {
-        return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
+
+
+  public get authority(): string {
+    return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
   }
 
-  constructor(authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string ) {
+  /**
+   * Constructor
+   * @param authority
+   * @param clientId
+   * @param scope
+   * @param responseType
+   * @param redirectUri
+   * @param state
+   */
+  constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string ) {
     this.authorityInstance = authority;
     this.clientId = clientId;
     this.scopes = scope;
-    this.responseType = responseType;
-    this.redirectUri = redirectUri;
-    // randomly generated values
-    this.correlationId = Utils.createNewGuid();
-    this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
+
     this.nonce = Utils.createNewGuid();
+    this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
+
+    // TODO: Change this to user passed vs generated with the new PR
+    this.correlationId = Utils.createNewGuid();
+
     // telemetry information
     this.xClientSku = "MSAL.JS";
     this.xClientVer = Utils.getLibraryVersion();
+
+    this.responseType = responseType;
+    this.redirectUri = redirectUri;
+
   }
 
-    createNavigateUrl(scopes: Array<string>): string {
-        const str = this.createNavigationUrlString(scopes);
-        let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
-        // if the endpoint already has queryparams, lets add to it, otherwise add the first one
-        if (authEndpoint.indexOf("?") < 0) {
-            authEndpoint += "?";
-        } else {
-            authEndpoint += "&";
-        }
-        const requestUrl: string = `${authEndpoint}${str.join("&")}`;
-        return requestUrl;
+  /**
+   * generates the URL with QueryString Parameters
+   * @param scopes
+   */
+  createNavigateUrl(scopes: Array<string>): string {
+    const str = this.createNavigationUrlString(scopes);
+    let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
+
+    // if the endpoint already has queryparams, lets add to it, otherwise add the first one
+    if (authEndpoint.indexOf("?") < 0) {
+      authEndpoint += "?";
+    } else {
+      authEndpoint += "&";
     }
 
-    createNavigationUrlString(scopes: Array<string>): Array<string> {
-        if (!scopes) {
-            scopes = [this.clientId];
-        }
+    const requestUrl: string = `${authEndpoint}${str.join("&")}`;
+    return requestUrl;
+  }
 
-        if (scopes.indexOf(this.clientId) === -1) {
-            scopes.push(this.clientId);
-        }
-
-        const str: Array<string> = [];
-        str.push("response_type=" + this.responseType);
-        this.translateclientIdUsedInScope(scopes);
-        str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
-        str.push("client_id=" + encodeURIComponent(this.clientId));
-        str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
-        str.push("state=" + encodeURIComponent(this.state));
-        str.push("nonce=" + encodeURIComponent(this.nonce));
-        str.push("client_info=1");
-        str.push(`x-client-SKU=${this.xClientSku}`);
-        str.push(`x-client-Ver=${this.xClientVer}`);
-
-        if (this.extraQueryParameters) {
-            str.push(this.extraQueryParameters);
-        }
-
-        str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-
-        return str;
+  /**
+   * Generate the array of all QueryStringParams to be sent to the server
+   * @param scopes
+   */
+  createNavigationUrlString(scopes: Array<string>): Array<string> {
+    if (!scopes) {
+      scopes = [this.clientId];
     }
 
+    if (scopes.indexOf(this.clientId) === -1) {
+      scopes.push(this.clientId);
+    }
+
+    const str: Array<string> = [];
+    str.push("response_type=" + this.responseType);
+
+    this.translateclientIdUsedInScope(scopes);
+    str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
+    str.push("client_id=" + encodeURIComponent(this.clientId));
+    str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
+
+    str.push("state=" + encodeURIComponent(this.state));
+    str.push("nonce=" + encodeURIComponent(this.nonce));
+
+    str.push("client_info=1");
+    str.push(`x-client-SKU=${this.xClientSku}`);
+    str.push(`x-client-Ver=${this.xClientVer}`);
+
+    if (this.extraQueryParameters) {
+      str.push(this.extraQueryParameters);
+    }
+
+    str.push("client-request-id=" + encodeURIComponent(this.correlationId));
+
+    return str;
+  }
+
+  /**
+   * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+   * @param scopes
+   */
   translateclientIdUsedInScope(scopes: Array<string>): void {
     const clientIdIndex: number = scopes.indexOf(this.clientId);
     if (clientIdIndex >= 0) {
@@ -118,6 +162,10 @@ export class AuthenticationRequestParameters {
     }
   }
 
+  /**
+   * Parse the scopes into a formatted scopeList
+   * @param scopes
+   */
   parseScope(scopes: Array<string>): string {
     let scopeList: string = "";
     if (scopes) {
@@ -128,4 +176,5 @@ export class AuthenticationRequestParameters {
 
     return scopeList;
   }
+
 }

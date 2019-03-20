@@ -280,7 +280,7 @@ export class UserAgentApplication {
       // silent login if ADAL id_token is retrieved successfully - SSO
       if (idTokenObject && !scopes) {
         this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-        let tokenRequest: AuthenticationParameters = this.getTokenRequest(extraQueryParameters);
+        let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(extraQueryParameters);
 
         this.silentLogin = true;
         this.acquireTokenSilent(tokenRequest).then((idToken) => {
@@ -540,7 +540,7 @@ export class UserAgentApplication {
         // silent login if ADAL id_token is retrieved successfully - SSO
         if (idTokenObject && !scopes) {
           this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          let tokenRequest: AuthenticationParameters = this.getTokenRequest(extraQueryParameters);
+          let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(extraQueryParameters);
 
           this.silentLogin = true;
           this.acquireTokenSilent(tokenRequest)
@@ -2401,7 +2401,7 @@ export class UserAgentApplication {
    * Construct 'tokenRequest' from the available data in adalIdToken
    * @param extraQueryParameters
    */
-  private getTokenRequest(extraQueryParameters: string): AuthenticationParameters {
+  private buildIDTokenRequest(extraQueryParameters: string): AuthenticationParameters {
     // TODO: This is not to be called here because acquireTokenSilent makes this call again
     // extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
 
