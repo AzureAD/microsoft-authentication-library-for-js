@@ -80,6 +80,10 @@ export class Constants {
   static get angularLoginRequest(): string { return "msal.angular.login.request"; }
   static get userIdentifier(): string { return "userIdentifier"; }
   static get common(): string { return "common"; }
+  static get cacheLocationLocal(): string { return "localStorage"; }
+  static get cacheLocationSession(): string { return "sessionStorage"; }
+  static get openidScope(): string { return "openid"; }
+  static get profileScope(): string { return "profile"; }
 }
 
 /**
