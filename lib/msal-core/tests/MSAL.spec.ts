@@ -464,7 +464,7 @@ describe('Msal', function (): any {
     });
 
     it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
-        msal._loginInProgress = true;
+        msal.userLoginInProgress = true;
         var authErr: AuthError;
         try {
             msal.loginRedirect();
@@ -472,7 +472,7 @@ describe('Msal', function (): any {
             authErr = e;
         }
         expect(authErr).toEqual(jasmine.any(ClientAuthError));
-        msal._loginInProgress = false;
+        msal.userLoginInProgress = false;
     });
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
