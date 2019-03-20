@@ -38,7 +38,7 @@ export const ServerErrorMessage = {
  */
 export class ServerError extends AuthError {
 
-    constructor(errorCode: string, errorMessage: string) {
+    constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ServerError";
 

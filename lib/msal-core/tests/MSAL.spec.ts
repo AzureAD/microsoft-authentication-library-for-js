@@ -3,7 +3,6 @@ import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
 import {Authority} from "../src/Authority";
 import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
 import {AuthorityFactory} from "../src/AuthorityFactory";
-import { IdToken } from '../src/IdToken';
 
 describe('Msal', function (): any {
     let window: any;
@@ -476,10 +475,6 @@ describe('Msal', function (): any {
             authErr = e;
         }
         expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
-        // expect(errDesc).toBe(ErrorDescription.inputScopesError);
-        // expect(err).toBe(ErrorCodes.inputScopesError);
-        // expect(token).toBe(null);
-        // expect(tokenType).toBe(Constants.idToken);
     });
 
     it('tests if loginRedirect fails with error if clientID is not passed as a single scope in the scopes array', function () {

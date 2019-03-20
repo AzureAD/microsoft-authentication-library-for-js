@@ -566,7 +566,7 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this._loginInProgress) {
-        reject(ClientAuthError.createLoginInProgressError());
+        return reject(ClientAuthError.createLoginInProgressError());
       }
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
@@ -611,17 +611,15 @@ export class UserAgentApplication {
    * @param extraQueryParameters
    */
   private loginPopupHelper( resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string) {
-    // TODO: why this is needed only for loginpopup
     if (!scopes) {
       scopes = [this.clientId];
     }
     const scope = scopes.join(" ").toLowerCase();
 
     // Generate a popup window
-    // TODO: Refactor this so that openWindow throws an error, loginPopupHelper rejects or resolves based on that action
-    var popUpWindow: Window;
-    popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+    var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
     if (!popUpWindow) {
+      // We pass reject in openWindow, we reject there during an error
       return;
     }
 
@@ -649,7 +647,7 @@ export class UserAgentApplication {
       this._cacheStorage.setItem(authorityKey, this.authority, this.storeAuthStateInCookie);
 
       // Build the URL to navigate to in the popup window
-      const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      const urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
       window.renewStates.push(authenticationRequest.state);
       window.requestType = Constants.login;
 
@@ -732,7 +730,7 @@ export class UserAgentApplication {
       // Open the popup window
       var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
-        // TODO: we should be rejecting with an error here
+        // We pass reject to openWindow, so we are rejecting there.
         return;
       }
 
@@ -2022,7 +2020,6 @@ export class UserAgentApplication {
       this._user = User.createUser(idToken, clientInfo);
       return this._user;
     }
-
     // if login not yet done, return null
     return null;
   }
@@ -2129,7 +2126,6 @@ export class UserAgentApplication {
   * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
   * @hidden
   */
-  // TODO: Check if this can be combined with validateInputScope()
   private filterScopes(scopes: Array<string>): Array<string> {
     if (scopes) {
       scopes = scopes.filter(function (element) {

@@ -11,71 +11,95 @@ describe("Error", () => {
     describe("AuthError", () => {
         it("can be created", () => {
             let authError = new AuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
-            var throwFunc = function () {
-                throw authError;
-            };
-            var err: AuthError;
+            let err: AuthError;
             try {
-                throwFunc();
+                throw authError;
             } catch(error) {
                 err = error;
             }
 
-            expect(authError).toEqual(jasmine.any(AuthError), "AuthError could not be created.");
-            expect(authError.errorCode).toBe(TEST_ERROR_CODE);
-            expect(authError.errorMessage).toBe(TEST_ERROR_MSG);
-            expect(authError.message).toBe(TEST_ERROR_MSG);
-            expect(authError.name).toBe("AuthError");
+            expect(err).toEqual(jasmine.any(AuthError), "AuthError could not be created.");
+            expect(err.errorCode).toBe(TEST_ERROR_CODE);
+            expect(err.errorMessage).toBe(TEST_ERROR_MSG);
+            expect(err.message).toBe(TEST_ERROR_MSG);
+            expect(err.name).toBe("AuthError");
+            expect(err.stack).toContain("error.spec.js");
         });
-
-        
     });
 
     describe("ClientAuthError", () => {
         it("can be created", () => {
             let clientAuthError = new ClientAuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
+            let err: AuthError;
+            try {
+                throw clientAuthError;
+            } catch(error) {
+                err = error;
+            }
 
-            expect(clientAuthError).toEqual(jasmine.any(ClientAuthError), "ClientAuthError could not be created.");
-            expect(clientAuthError.errorCode).toBe(TEST_ERROR_CODE);
-            expect(clientAuthError.errorMessage).toBe(TEST_ERROR_MSG);
-            expect(clientAuthError.message).toBe(TEST_ERROR_MSG);
-            expect(clientAuthError.name).toBe("ClientAuthError");
+            expect(err).toEqual(jasmine.any(ClientAuthError), "ClientAuthError could not be created.");
+            expect(err.errorCode).toBe(TEST_ERROR_CODE);
+            expect(err.errorMessage).toBe(TEST_ERROR_MSG);
+            expect(err.message).toBe(TEST_ERROR_MSG);
+            expect(err.name).toBe("ClientAuthError");
+            expect(err.stack).toContain("error.spec.js");
         });
     });
 
     describe("ServerError", () => {
         it("can be created", () => {
             let serverError = new ServerError("test", "This is a test error");
+            let err: AuthError;
+            try {
+                throw serverError;
+            } catch(error) {
+                err = error;
+            }
 
-            expect(serverError).toEqual(jasmine.any(ServerError), "ServerError could not be created.");
-            expect(serverError.errorCode).toBe(TEST_ERROR_CODE);
-            expect(serverError.errorMessage).toBe(TEST_ERROR_MSG);
-            expect(serverError.message).toBe(TEST_ERROR_MSG);
-            expect(serverError.name).toBe("ServerError");
+            expect(err).toEqual(jasmine.any(ServerError), "ServerError could not be created.");
+            expect(err.errorCode).toBe(TEST_ERROR_CODE);
+            expect(err.errorMessage).toBe(TEST_ERROR_MSG);
+            expect(err.message).toBe(TEST_ERROR_MSG);
+            expect(err.name).toBe("ServerError");
+            expect(err.stack).toContain("error.spec.js");
         });
     });
 
     describe("ClientConfigurationError", () => {
         it("can be created", () => {
             let clientConfigurationError = new ClientConfigurationError("test", "This is a test error");
+            let err: AuthError;
+            try {
+                throw clientConfigurationError;
+            } catch(error) {
+                err = error;
+            }
 
-            expect(clientConfigurationError).toEqual(jasmine.any(ClientConfigurationError), "ClientConfigurationError could not be created.");
-            expect(clientConfigurationError.errorCode).toBe(TEST_ERROR_CODE);
-            expect(clientConfigurationError.errorMessage).toBe(TEST_ERROR_MSG);
-            expect(clientConfigurationError.message).toBe(TEST_ERROR_MSG);
-            expect(clientConfigurationError.name).toBe("ClientConfigurationError");
+            expect(err).toEqual(jasmine.any(ClientConfigurationError), "ClientConfigurationError could not be created.");
+            expect(err.errorCode).toBe(TEST_ERROR_CODE);
+            expect(err.errorMessage).toBe(TEST_ERROR_MSG);
+            expect(err.message).toBe(TEST_ERROR_MSG);
+            expect(err.name).toBe("ClientConfigurationError");
+            expect(err.stack).toContain("error.spec.js");
         });
     });
 
     describe("InteractionRequiredError", () => {
         it("can be created", () => {
             let interactionReqError = new InteractionRequiredAuthError("test", "This is a test error");
+            let err: AuthError;
+            try {
+                throw interactionReqError;
+            } catch(error) {
+                err = error;
+            }
 
-            expect(interactionReqError).toEqual(jasmine.any(InteractionRequiredAuthError), "InteractionRequiredAuthError could not be created.");
-            expect(interactionReqError.errorCode).toBe(TEST_ERROR_CODE);
-            expect(interactionReqError.errorMessage).toBe(TEST_ERROR_MSG);
-            expect(interactionReqError.message).toBe(TEST_ERROR_MSG);
-            expect(interactionReqError.name).toBe("InteractionRequiredAuthError");
+            expect(err).toEqual(jasmine.any(InteractionRequiredAuthError), "InteractionRequiredAuthError could not be created.");
+            expect(err.errorCode).toBe(TEST_ERROR_CODE);
+            expect(err.errorMessage).toBe(TEST_ERROR_MSG);
+            expect(err.message).toBe(TEST_ERROR_MSG);
+            expect(err.name).toBe("InteractionRequiredAuthError");
+            expect(err.stack).toContain("error.spec.js");
         });
     });
 });
