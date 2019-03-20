@@ -457,6 +457,10 @@ export class Utils {
 
   //#region URL Processing (Extract to UrlProcessing.ts?)
 
+  static getDefaultRedirectUri(): string {
+      return window.location.href.split("?")[0].split("#")[0];
+  }
+
   /**
    * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
    * @param href The url

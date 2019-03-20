@@ -133,7 +133,7 @@ export abstract class Authority {
    * Calls the OIDC endpoint and returns the response
    */
   private DiscoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-    let client = new XhrClient();
+    const client = new XhrClient();
     return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
         .then((response: any) => {
             return <ITenantDiscoveryResponse>{

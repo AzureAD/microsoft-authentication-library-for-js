@@ -63,7 +63,7 @@ export class AuthenticationRequestParameters {
   }
 
     createNavigateUrl(scopes: Array<string>): string {
-        var str = this.createNavigationUrlString(scopes);
+        const str = this.createNavigationUrlString(scopes);
         let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
         if (authEndpoint.indexOf("?") < 0) {
@@ -71,7 +71,7 @@ export class AuthenticationRequestParameters {
         } else {
             authEndpoint += "&";
         }
-        let requestUrl: string = `${authEndpoint}${str.join("&")}`;
+        const requestUrl: string = `${authEndpoint}${str.join("&")}`;
         return requestUrl;
     }
 
