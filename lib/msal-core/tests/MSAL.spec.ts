@@ -4,6 +4,7 @@ import { Authority } from "../src/Authority";
 import { AuthenticationRequestParameters } from "../src/AuthenticationRequestParameters";
 import { AuthorityFactory } from "../src/AuthorityFactory";
 import { buildConfiguration } from "../src/Configuration";
+import { AuthenticationParameters } from "../src/Request";
 
 describe('Msal', function (): any {
     let window: any;
@@ -203,7 +204,8 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect();
+        let request: AuthenticationParameters = {scopes: msal.clientID};
+        msal.loginRedirect(request);
 
     });
 
@@ -220,7 +222,8 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect(null, Constants.prompt_select_account);
+        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "select_account"};
+        msal.loginRedirect(request);
     });
 
     it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
@@ -236,7 +239,8 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect(null, Constants.prompt_none);
+        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "none"};
+        msal.loginRedirect(request);
     });
 
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
@@ -256,7 +260,8 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect();
+        let request: AuthenticationParameters = {scopes: msal.clientID};
+        msal.loginRedirect(request);
     });
 
     it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
@@ -265,7 +270,9 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
             done();
         };
-        msal.loginRedirect();
+
+        let request: AuthenticationParameters = {scopes: msal.clientID};
+        msal.loginRedirect(request);
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -482,7 +489,8 @@ describe('Msal', function (): any {
             tokenType = valTokenType;
         };
         msal.tokenReceivedCallback = callback;
-        msal.loginRedirect([]);
+        let request: AuthenticationParameters = {scopes: []};
+        msal.loginRedirect(request);
         expect(errDesc).toBe(ErrorDescription.inputScopesError);
         expect(err).toBe(ErrorCodes.inputScopesError);
         expect(token).toBe(null);
@@ -498,7 +506,8 @@ describe('Msal', function (): any {
             tokenType = valTokenType;
         };
         msal.tokenReceivedCallback = callback;
-        msal.loginRedirect([msal.clientId,'123']);
+        let request: AuthenticationParameters = {scopes: [msal.clientId,'123']};
+        msal.loginRedirect(request);
         expect(errDesc).toBe(ErrorDescription.inputScopesError);
         expect(err).toBe(ErrorCodes.inputScopesError);
         expect(token).toBe(null);
@@ -691,7 +700,9 @@ describe('Msal', function (): any {
             msal = msalInstance;
             done();
         }
-        msal.loginRedirect();
+
+        let request: AuthenticationParameters = { scopes: [msal.clientID]};
+        msal.loginRedirect(request);
     });
 
     it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {
@@ -753,7 +764,8 @@ describe('acquireTokenPopup functionality', function () {
         msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {return; });
 
         spyOn(msal, 'acquireTokenPopup').and.callThrough();
-        acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
+        let request: AuthenticationParameters = {scopes: [msal.clientId]};
+        acquireTokenPopupPromise = msal.acquireTokenPopup(request);
         acquireTokenPopupPromise.then(function(accessToken) { return;
         }, function(error) { return;
         });
@@ -774,7 +786,8 @@ describe('acquireTokenSilent functionality', function () {
 
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
         spyOn(msal, 'loadIframeTimeout').and.callThrough();
-        acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
+        let request: AuthenticationParameters = {scopes: [msal.clientId]};
+        acquireTokenSilentPromise = msal.acquireTokenSilent(request);
         acquireTokenSilentPromise.then(function(accessToken) { return;
         }, function(error) { return;
         });

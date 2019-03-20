@@ -27,7 +27,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { AuthenticationRequestParameters } from "./AuthenticationRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
+import { Constants, ErrorCodes, ErrorDescription, SSOTypes, PromptState } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -35,7 +35,8 @@ import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { Configuration, buildConfiguration } from "./Configuration";
+import { Configuration } from "./Configuration";
+import { AuthenticationParameters } from "./Request";
 
 // default authority
 /**
@@ -169,7 +170,6 @@ export class UserAgentApplication {
    * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
    * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
    */
-  // TODO: Update constructor to accept configuration object, success callback and error callback
   constructor(configuration: Configuration, callback: tokenReceivedCallback) {
 
     // Set the Configuration
@@ -177,7 +177,6 @@ export class UserAgentApplication {
 
     // Set the callback
     this.tokenReceivedCallback = callback;
-
 
     this.logger = this.config.system.logger;
     this.clientId = this.config.auth.clientId;
@@ -229,13 +228,8 @@ export class UserAgentApplication {
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
    */
-  // TODO: params to accept AuthRequest object instead
-  loginRedirect(scopes?: Array<string>, extraQueryParameters?: string): void {
-    /*
-    1. Create navigate url
-    2. saves value in cache
-    3. redirect user to AAD
-     */
+  loginRedirect(request: AuthenticationParameters): void {
+    // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.userLoginInProgress) {
       // TODO: use error callback here
       if (this.tokenReceivedCallback) {
@@ -243,6 +237,15 @@ export class UserAgentApplication {
         return;
       }
       // TODO: Should we throw noCallback error here?
+    }
+
+    // if extraScopesToConsent is passed, append them to the login request
+    let scopes: Array<string>;
+    if (request.extraScopesToConsent) {
+        scopes = [...request.scopes, ...request.extraScopesToConsent];
+    }
+    else {
+        scopes = request.scopes;
     }
 
     // TODO: Replace with new validation pattern - This will come with Error
@@ -257,31 +260,47 @@ export class UserAgentApplication {
       scopes = this.filterScopes(scopes);
     }
 
-    // extract ADAL id_token if exists
-    let idTokenObject = this.extractADALIdToken();
+    // construct extraQueryParams string from the request
+    let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+    extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+    let user = this.getUser();
 
-    // silent login if ADAL id_token is retrieved successfully - SSO
-    if (idTokenObject && !scopes) {
-      this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
-      this.silentLogin = true;
-      this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
-      .then((idToken) => {
-        this.silentLogin = false;
-        this.logger.info("Unified cache call is successful");
-        // TODO: Change callback to return AuthRespkjoonse
-        if (this.tokenReceivedCallback) {
-          this.tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this.silentAuthenticationState));
-        }
-      }, (error) => {
-        this.silentLogin = false;
-        this.logger.error("Error occurred during unified cache ATS");
-        this.loginRedirectHelper(scopes, extraQueryParameters);
-      });
+    if (request.account || request.sid || request.loginHint) {
+      // if the developer provides one of these, give preference to developer choice
+      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+
+      // if user is not provided, we pass null
+      this.loginRedirectHelper(user, scopes, extraQueryParameters);
     }
-    // else proceed to login
+    // else handle the library data
     else {
-      this.loginRedirectHelper(scopes, extraQueryParameters);
+      // extract ADAL id_token if exists
+      let idTokenObject = this.extractADALIdToken();
+
+      // silent login if ADAL id_token is retrieved successfully - SSO
+      if (idTokenObject && !scopes) {
+        this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+        let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(extraQueryParameters);
+
+        this.silentLogin = true;
+        this.acquireTokenSilent(tokenRequest).then((idToken) => {
+          this.silentLogin = false;
+          this.logger.info("Unified cache call is successful");
+
+          // TODO: Change callback to return AuthResponse
+          if (this.tokenReceivedCallback) {
+            this.tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this.silentAuthenticationState));
+          }
+        }, (error) => {
+          this.silentLogin = false;
+          this.logger.error("Error occurred during unified cache ATS");
+          this.loginRedirectHelper(null, scopes, extraQueryParameters);
+        });
+      }
+      // else proceed to login
+      else {
+        this.loginRedirectHelper(null, scopes, extraQueryParameters);
+      }
     }
   }
 
@@ -292,7 +311,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param extraQueryParameters
    */
-  private loginRedirectHelper(scopes?: Array<string>, extraQueryParameters?: string) {
+  private loginRedirectHelper(user: User, scopes?: Array<string>, extraQueryParameters?: string) {
     // Track login in progress
     this.userLoginInProgress = true;
 
@@ -327,7 +346,9 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
 
       // build URL to navigate to proceed with the login
-      const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      // TODO: check if this is needed, if yes, why is it not there before?
+      urlNavigate = this.addHintParameters(urlNavigate, user);
 
       // Redirect user to login URL
       this.promptUser(urlNavigate);
@@ -346,28 +367,23 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    */
   // TODO: params to accept AuthRequest object instead
-  acquireTokenRedirect(scopes: Array<string>): void;
-  acquireTokenRedirect(scopes: Array<string>, authority: string): void;
-  acquireTokenRedirect(scopes: Array<string>, authority: string, user: User): void;
-  acquireTokenRedirect(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): void;
-  acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): void {
+  acquireTokenRedirect(request: AuthenticationParameters): void {
     // Validate scopes
     // TODO: Change to new validation pattern
     // TODO: is this always access token?
-    const isValidScope = this.validateInputScope(scopes);
+    const isValidScope = this.validateInputScope(request.scopes);
     if (isValidScope && !Utils.isEmpty(isValidScope)) {
         if (this.tokenReceivedCallback) {
             this.tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.accessToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
         return;
       }
     }
-
-    if (scopes) {
-      scopes = this.filterScopes(scopes);
+    if (request.scopes) {
+      request.scopes = this.filterScopes(request.scopes);
     }
 
     // Get the user object if a session exists
-    const userObject = user ? user : this.getUser();
+    const userObject = request.account ? request.account : this.getUser();
 
     // If already in progress, do not proceed
     // TODO: Should we throw or return an error here?
@@ -376,7 +392,7 @@ export class UserAgentApplication {
     }
 
     // If no session exists, prompt the user to login.
-    if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
+    if (!userObject && !(request.sid  || request.loginHint)) {
     // TODO: This should be replaced with error callback
     // TODO: Is this always accessToken?
       if (this.tokenReceivedCallback) {
@@ -386,20 +402,29 @@ export class UserAgentApplication {
       }
     }
 
+    // construct extraQueryParams string from the request
+    let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+    extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+
+    // if the developer provides one of these, give preference to developer choice
+    if (request.account || request.sid || request.loginHint) {
+      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+    }
+
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
 
     let authenticationRequest: AuthenticationRequestParameters;
-    const acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.config.auth.validateAuthority) : this.authorityInstance;
+    const acquireTokenAuthority = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
     // TODO: Set response type here
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       // On Fulfillment
-      const responseType = this.getTokenType(userObject, scopes, false);
+      const responseType = this.getTokenType(userObject, request.scopes, false);
       authenticationRequest = new AuthenticationRequestParameters(
         acquireTokenAuthority,
         this.clientId,
-        scopes,
+        request.scopes,
         responseType,
         this.getRedirectUri(),
         this.config.auth.state
@@ -423,7 +448,7 @@ export class UserAgentApplication {
       }
 
       // Construct urlNavigate
-      let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
       urlNavigate = this.addHintParameters(urlNavigate, userObject);
 
       // set state in cache and redirect to urlNavigate
@@ -463,19 +488,23 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  // TODO: params to accept AuthRequest object instead
-  loginPopup(scopes ?: Array<string>, extraQueryParameters?: string): Promise<string> {
-    /*
-    1. Create navigate url
-    2. saves value in cache
-    3. redirect user to AAD
-     */
+  loginPopup(request: AuthenticationParameters): Promise<string> {
+    // Creates navigate url; saves value in cache; redirect user to AAD
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this.userLoginInProgress) {
         // TODO: Return custom error object here in future
         reject(ErrorCodes.loginProgressError + Constants.resourceDelimiter + ErrorDescription.loginProgressError);
         return;
+      }
+
+      // if extraScopesToConsent is passed, append them to the login request
+      let scopes: Array<string>;
+      if (request.extraScopesToConsent) {
+        let scopes = [...request.scopes, ...request.extraScopesToConsent];
+      }
+      else {
+          scopes = request.scopes;
       }
 
       // Validate scopes
@@ -491,31 +520,47 @@ export class UserAgentApplication {
         scopes = this.filterScopes(scopes);
       }
 
-      // Extract ADAL id_token if it exists
-      let idTokenObject;
-      idTokenObject = this.extractADALIdToken();
+      // construct extraQueryParams string from the request
+      let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+      extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+      let user = this.getUser();
 
-      // silent login if ADAL id_token is retrieved successfully - SSO
-      if (idTokenObject && !scopes) {
-        this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
+      // if the developer provides one of these, give preference to developer choice
+      if (request.account || request.sid || request.loginHint) {
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
 
-        this.silentLogin = true;
-        this.acquireTokenSilent([this.clientId], this.authority, this.getUser(), extraQueryParameters)
-        .then((idToken) => {
-          this.silentLogin = false;
-          this.logger.info("Unified cache call is successful");
-          // TODO: Change resolve to return AuthResponse object
-          resolve(idToken);
-        }, (error) => {
-          this.silentLogin = false;
-          this.logger.error("Error occurred during unified cache ATS");
-          this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters);
-        });
+         // if user is not provided, we pass null
+         this.loginPopupHelper(user, resolve, reject, scopes, extraQueryParameters);
       }
-      // else proceed with login
+      // else handle the library data
       else {
-        this.loginPopupHelper(resolve, reject, scopes, extraQueryParameters );
+        // Extract ADAL id_token if it exists
+        let idTokenObject = this.extractADALIdToken();
+
+        // silent login if ADAL id_token is retrieved successfully - SSO
+        if (idTokenObject && !scopes) {
+          this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+          let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(extraQueryParameters);
+
+          this.silentLogin = true;
+          this.acquireTokenSilent(tokenRequest)
+              .then((idToken) => {
+            this.silentLogin = false;
+            this.logger.info("Unified cache call is successful");
+
+            // TODO: Change resolve to return AuthResponse object
+            resolve(idToken);
+          }, (error) => {
+
+            this.silentLogin = false;
+            this.logger.error("Error occurred during unified cache ATS");
+            this.loginPopupHelper(null, resolve, reject, scopes, extraQueryParameters);
+          });
+        }
+        // else proceed with login
+        else {
+          this.loginPopupHelper(null, resolve, reject, scopes, extraQueryParameters );
+        }
       }
     });
   }
@@ -529,7 +574,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param extraQueryParameters
    */
-  private loginPopupHelper( resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string) {
+  private loginPopupHelper(user: User, resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string) {
     // TODO: why this is needed only for loginpopup
     if (!scopes) {
       scopes = [this.clientId];
@@ -569,7 +614,11 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
 
       // Build the URL to navigate to in the popup window
-      const urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      let urlNavigate = authenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+
+      // TODO: Is this needed?
+      urlNavigate = this.addHintParameters(urlNavigate, user);
+
       window.renewStates.push(authenticationRequest.state);
       window.requestType = Constants.login;
 
@@ -617,29 +666,24 @@ export class UserAgentApplication {
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
   // TODO: params to accept AuthRequest object instead
-  acquireTokenPopup(scopes: Array<string>): Promise<string>;
-  acquireTokenPopup(scopes: Array<string>, authority: string): Promise<string>;
-  acquireTokenPopup(scopes: Array<string>, authority: string, user: User): Promise<string>;
-  acquireTokenPopup(scopes: Array<string>, authority: string, user: User, extraQueryParameters: string): Promise<string>;
-  acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
+  acquireTokenPopup(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate scopes
       // TODO: Replace with new validation pattern
-      const isValidScope = this.validateInputScope(scopes);
+      const isValidScope = this.validateInputScope(request.scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         // TODO: Should reject with custom error
         // TODO: Is this always accessToken?
         reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + isValidScope);
       }
 
-      if (scopes) {
-        scopes = this.filterScopes(scopes);
+      if (request.scopes) {
+        request.scopes = this.filterScopes(request.scopes);
       }
+      const scope = request.scopes.join(" ").toLowerCase();
 
-      const scope = scopes.join(" ").toLowerCase();
-
-      // Get the user object if session exists
-      const userObject = user ? user : this.getUser();
+      // Get the user object if a session exists
+      const userObject = request.account ? request.account : this.getUser();
 
       // If already in progress, reject the request
       if (this.acquireTokenInProgress) {
@@ -648,18 +692,27 @@ export class UserAgentApplication {
         return;
       }
 
-      //if user is not currently logged in and no login_hint is passed
-      if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1))) {
+      // If no session exists, prompt the user to login.
+      if (!userObject && !!(request.sid  || request.loginHint)) {
         this.logger.info("User login is required");
         reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
         return;
+      }
+
+      // construct extraQueryParams string from the request
+      let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+      extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+
+      // if the developer provides one of these, give preference to developer choice
+      if (request.account || request.sid || request.loginHint) {
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
       }
 
       // track the acquireToken progress
       this.acquireTokenInProgress = true;
 
       let authenticationRequest: AuthenticationRequestParameters;
-      const acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.config.auth.validateAuthority) : this.authorityInstance;
+      const acquireTokenAuthority = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
       // Open the popup window
       const popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
@@ -670,15 +723,15 @@ export class UserAgentApplication {
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
         // On fullfillment
-        const responseType = this.getTokenType(userObject, scopes, false);
+        const responseType = this.getTokenType(userObject, request.scopes, false);
         authenticationRequest = new AuthenticationRequestParameters(
           acquireTokenAuthority,
           this.clientId,
-          scopes,
+          request.scopes,
           responseType,
           this.getRedirectUri(),
           this.config.auth.state
-      );
+        );
 
         // Cache nonce
         // TODO: why is inCookie not passed here?
@@ -701,7 +754,7 @@ export class UserAgentApplication {
         }
 
         // Construct the urlNavigate
-        let urlNavigate = authenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
+        let urlNavigate = authenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
         urlNavigate = this.addHintParameters(urlNavigate, userObject);
         window.renewStates.push(authenticationRequest.state);
         window.requestType = Constants.renewToken;
@@ -875,50 +928,66 @@ export class UserAgentApplication {
    */
   // TODO: params to accept AuthRequest object instead
   @resolveTokenOnlyIfOutOfIframe
-  acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<string> {
+  acquireTokenSilent(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate scopes
       // TODO: Replace with new validation pattern
-      const isValidScope = this.validateInputScope(scopes);
+      const isValidScope = this.validateInputScope(request.scopes);
+
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
         // TODO: Reject with custom error here
         // TODO: Is this always accessToken?
         reject(ErrorCodes.inputScopesError + "|" + isValidScope);
         return null;
-      } else {
+      }
+      else {
         // TODO: Remove this from the else block, it is unnecessary
-        if (scopes) {
-          scopes = this.filterScopes(scopes);
+        if (request.scopes) {
+          request.scopes = this.filterScopes(request.scopes);
         }
+        const scope = request.scopes.join(" ").toLowerCase();
 
-        const scope = scopes.join(" ").toLowerCase();
-        const userObject = user ? user : this.getUser();
+        // if the developer passes a userObject give him the priority
+        const userObject = request.account ? request.account : this.getUser();
+
+        // extract if there is an adalIdToken stashed in the cache
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
-        //if user is not currently logged in and no login_hint/sid is passed as an extraQueryParamater
-        if (!userObject && Utils.checkSSO(extraQueryParameters) && Utils.isEmpty(adalIdToken) ) {
+
+        //if user is not currently logged in and no login_hint/sid is passed in the request
+        if (!userObject && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
           this.logger.info("User login is required");
           // TODO: Reject with custom error here
           reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
           return null;
         }
-        //if user didn't passes the login_hint and adal's idtoken is present and no userobject, use the login_hint from adal's idToken
+
+        // construct extraQueryParams string from the request
+        let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+        extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+
+        // if the developer provides one of these, give preference to developer choice
+        if (request.account || request.sid || request.loginHint) {
+            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+        }
+        //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
         else if (!userObject && !Utils.isEmpty(adalIdToken)) {
           const idTokenObject = Utils.extractIdToken(adalIdToken);
           console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
+          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, null, idTokenObject);
         }
 
-        const responseType = this.getTokenType(userObject, scopes, true);
+        const responseType = this.getTokenType(userObject, request.scopes, true);
         const authenticationRequest = new AuthenticationRequestParameters(
-          AuthorityFactory.CreateInstance(authority, this.config.auth.validateAuthority),
+          AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
           this.clientId,
-          scopes,
+          request.scopes,
           responseType,
           this.getRedirectUri(),
           this.config.auth.state
         );
 
         const cacheResult = this.getCachedToken(authenticationRequest, userObject);
+
         // resolve/reject based on cacheResult
         if (cacheResult) {
           if (cacheResult.token) {
@@ -939,13 +1008,13 @@ export class UserAgentApplication {
 
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         // TODO: Do we need to check if cache result is empty before calling this?
-        if (!authenticationRequest.authorityInstance) {//Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
-            authenticationRequest.authorityInstance = authority ? AuthorityFactory.CreateInstance(authority, this.config.auth.validateAuthority) : this.authorityInstance;
+        if (!authenticationRequest.authorityInstance) {
+            authenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
         }
         // cache miss
         return authenticationRequest.authorityInstance.ResolveEndpointsAsync()
         .then(() => {
-          // refresh attept with iframe
+          // refresh attempt with iframe
           // Already renewing for this scope, callback when we get the token.
           if (window.activeRenewals[scope]) {
             this.logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
@@ -953,15 +1022,15 @@ export class UserAgentApplication {
             this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
           }
           else {
-            if (scopes && scopes.indexOf(this.clientId) > -1 && scopes.length === 1) {
+            if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
               // App uses idToken to send to api endpoints
               // Default scope is tracked as clientId to store this token
               this.logger.verbose("renewing idToken");
-              this.renewIdToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+              this.renewIdToken(request.scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
             } else {
               // renew access token
               this.logger.verbose("renewing accesstoken");
-              this.renewToken(scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
+              this.renewToken(request.scopes, resolve, reject, userObject, authenticationRequest, extraQueryParameters);
             }
           }
         }).catch((err) => {
@@ -1077,6 +1146,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
+  // TODO: Optimize this
   private addHintParameters(urlNavigate: string, user: User): string {
     const userObject = user ? user : this.getUser();
     if (userObject) {
@@ -1085,38 +1155,38 @@ export class UserAgentApplication {
         const utid = Utils.base64DecodeStringUrlSafe(decodedClientInfo[1]);
 
         // sid - first preference to identify a session
-        if (userObject.sid  && urlNavigate.indexOf(Constants.prompt_none) !== -1) {
-            if (!this.urlContainsQueryStringParameter(Constants.sid, urlNavigate) && !this.urlContainsQueryStringParameter(Constants.login_hint, urlNavigate)) {
-                urlNavigate += "&" + Constants.sid + "=" + encodeURIComponent(userObject.sid);
+        if (userObject.sid  && urlNavigate.indexOf(PromptState.NONE) !== -1) {
+            if (!this.urlContainsQueryStringParameter(SSOTypes.SID, urlNavigate) && !this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate)) {
+                urlNavigate += Utils.generateSSOUrlParameter(userObject.sid, SSOTypes.SID);
             }
         }
         // check for login_hint if sid is not passed
         else {
-            if (!this.urlContainsQueryStringParameter(Constants.login_hint, urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-                urlNavigate += "&" + Constants.login_hint + "=" + encodeURIComponent(userObject.displayableId);
+            if (!this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
+                urlNavigate += Utils.generateSSOUrlParameter(userObject.displayableId, SSOTypes.LOGIN_HINT);
             }
         }
 
         // client_info.utid = domain_req and client_info.uid = login_req
         if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-            if (!this.urlContainsQueryStringParameter("domain_req", urlNavigate) && !Utils.isEmpty(utid)) {
-                urlNavigate += "&domain_req=" + encodeURIComponent(utid);
+            if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_REQ, urlNavigate) && !Utils.isEmpty(utid)) {
+                urlNavigate += Utils.generateSSOUrlParameter(utid, SSOTypes.DOMAIN_REQ);
             }
 
-            if (!this.urlContainsQueryStringParameter("login_req", urlNavigate) && !Utils.isEmpty(uid)) {
-                urlNavigate += "&login_req=" + encodeURIComponent(uid);
+            if (!this.urlContainsQueryStringParameter(SSOTypes.LOGIN_REQ, urlNavigate) && !Utils.isEmpty(uid)) {
+                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.LOGIN_REQ);
             }
         }
 
         // fill in the domain_hint
-        if (!this.urlContainsQueryStringParameter(Constants.domain_hint, urlNavigate) && !Utils.isEmpty(utid)) {
+        if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_HINT, urlNavigate) && !Utils.isEmpty(utid)) {
             if (utid === Constants.consumersUtid) {
-                urlNavigate += "&" +  Constants.domain_hint + "=" + encodeURIComponent(Constants.consumers);
-            } else {
-                urlNavigate += "&" + Constants.domain_hint + "=" + encodeURIComponent(Constants.organizations);
+                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.CONSUMERS);
+            }
+            else {
+                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.ORGANIZATIONS);
             }
         }
-
     }
 
     return urlNavigate;
@@ -1658,6 +1728,7 @@ export class UserAgentApplication {
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
     let urlNavigate = Utils.urlRemoveQueryStringParameter(authenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
     urlNavigate = this.addHintParameters(urlNavigate, user);
+
     window.renewStates.push(authenticationRequest.state);
     window.requestType = Constants.renewToken;
     this.registerCallback(authenticationRequest.state, scope, resolve, reject);
@@ -1671,7 +1742,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
+  private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters,          extraQueryParameters?: string): void {
 
     this.logger.info("renewidToken is called");
     const frameHandle = this.addAdalFrame("msalIdTokenFrame");
@@ -1830,7 +1901,7 @@ export class UserAgentApplication {
           const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
           if (!Utils.isEmpty(authority)) {
-            authority = Utils.replaceFirstPath(authority, idToken.tenantId);
+            authority = Utils.replaceTenantPath(authority, idToken.tenantId);
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
@@ -1878,7 +1949,7 @@ export class UserAgentApplication {
             authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceFirstPath(authority, idToken.tenantId);
+              authority = Utils.replaceTenantPath(authority, idToken.tenantId);
             }
 
             this.user = User.createUser(idToken, new ClientInfo(clientInfo));
@@ -2324,6 +2395,26 @@ export class UserAgentApplication {
       return tokenType;
     }
 
+  }
+
+  /**
+   * Construct 'tokenRequest' from the available data in adalIdToken
+   * @param extraQueryParameters
+   */
+  private buildIDTokenRequest(extraQueryParameters: string): AuthenticationParameters {
+    // TODO: This is not to be called here because acquireTokenSilent makes this call again
+    // extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
+
+    let reqExtraQueryParameters = Utils.destructExtraQueryParameterString(extraQueryParameters);
+
+    let tokenRequest: AuthenticationParameters = {
+      scopes: [this.clientId],
+      authority: this.authority,
+      account: this.getUser(),
+      extraQueryParameters: reqExtraQueryParameters
+    };
+
+    return tokenRequest;
   }
 
  //#endregion
