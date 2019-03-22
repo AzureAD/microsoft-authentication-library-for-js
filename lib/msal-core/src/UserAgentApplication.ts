@@ -2440,8 +2440,7 @@ export class UserAgentApplication {
       if (!Utils.compareObjects(userObject, this.getUser())) {
            tokenType = ResponseTypes.id_token_token;
       }
-
-      if (!tokenType) {
+      else {
         tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
       }
 
