@@ -23,7 +23,6 @@
 
 import { Authority } from "./Authority";
 import { Utils } from "./Utils";
-import { Constants } from "./Constants";
 
 /**
  * TODO: Change this to ServerRequestParameters soon after Request changes are in.
@@ -32,7 +31,7 @@ import { Constants } from "./Constants";
  * State: OAuth Spec: https://tools.ietf.org/html/rfc6749#section-10.12
  * @hidden
  */
-export class AuthenticationRequestParameters {
+export class ServerRequestParameters {
 
   authorityInstance: Authority;
   clientId: string;
@@ -176,5 +175,27 @@ export class AuthenticationRequestParameters {
 
     return scopeList;
   }
+
+  /**
+   * remove the exisiting SSOData from the extraQueryParameters
+   * @param sid
+   */
+//   static removeSSOParams(extraQueryParameters: string, type: string): string {
+
+//     let ssoType: string;
+//     if (type === SSOTypes.ID_TOKEN) {
+//         ssoType = SSOTypes.LOGIN_HINT;
+//     }
+//     else {
+//         ssoType = type;
+//     }
+
+//     extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, ssoType);
+//     if (type === SSOTypes.ID_TOKEN) {
+//         extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, SSOTypes.DOMAIN_HINT);
+//     }
+
+//     return extraQueryParameters;
+//   }
 
 }

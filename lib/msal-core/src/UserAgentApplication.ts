@@ -24,7 +24,7 @@
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
-import { AuthenticationRequestParameters } from "./AuthenticationRequestParameters";
+import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
 import { Constants, ErrorCodes, ErrorDescription, SSOTypes, PromptState } from "./Constants";
@@ -36,7 +36,7 @@ import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration } from "./Configuration";
-import { AuthenticationParameters } from "./Request";
+import { AuthenticationParameters, KeyValue } from "./AuthenticationParameters";
 
 // default authority
 /**
@@ -230,6 +230,7 @@ export class UserAgentApplication {
    */
   loginRedirect(request: AuthenticationParameters): void {
     // Creates navigate url; saves value in cache; redirect user to AAD
+
     if (this.userLoginInProgress) {
       // TODO: use error callback here
       if (this.tokenReceivedCallback) {
@@ -241,11 +242,14 @@ export class UserAgentApplication {
 
     // if extraScopesToConsent is passed, append them to the login request
     let scopes: Array<string>;
-    if (request.extraScopesToConsent) {
+
+    if (request) {
+      if (request.extraScopesToConsent) {
         scopes = [...request.scopes, ...request.extraScopesToConsent];
-    }
-    else {
+      }
+      else {
         scopes = request.scopes;
+      }
     }
 
     // TODO: Replace with new validation pattern - This will come with Error
@@ -253,21 +257,28 @@ export class UserAgentApplication {
       const isValidScope = this.validateInputScope(scopes);
       if (isValidScope && !Utils.isEmpty(isValidScope)) {
           if (this.tokenReceivedCallback) {
-              this.tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
+            this.tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
           return;
         }
       }
       scopes = this.filterScopes(scopes);
     }
 
-    // construct extraQueryParams string from the request
-    let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-    extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
     let user = this.getUser();
 
-    if (request.account || request.sid || request.loginHint) {
-      // if the developer provides one of these, give preference to developer choice
-      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+    let extraQueryParameters: KeyValue = null;
+    if (request && request.extraQueryParameters) {
+        extraQueryParameters = request.extraQueryParameters;
+    }
+
+    // add the prompt parameter to the 'extraQueryParameters' if passed
+    if (request && request.prompt) {
+        extraQueryParameters = Utils.addPromptParameter(request.prompt, extraQueryParameters);
+    }
+
+    // if the developer provides one of these, give preference to developer choice
+    if (request && (request.account || request.sid || request.loginHint)) {
+      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(request, null, extraQueryParameters);
 
       // if user is not provided, we pass null
       this.loginRedirectHelper(user, scopes, extraQueryParameters);
@@ -311,17 +322,24 @@ export class UserAgentApplication {
    * @param scopes
    * @param extraQueryParameters
    */
-  private loginRedirectHelper(user: User, scopes?: Array<string>, extraQueryParameters?: string) {
+  private loginRedirectHelper(user: User, scopes?: Array<string>, extraQueryParameters?: KeyValue) {
     // Track login in progress
     this.userLoginInProgress = true;
 
     // TODO: Make this more readable - is authorityInstance changed, what is happening with the return for AuthorityKey?
-    this.authorityInstance.ResolveEndpointsAsync()
-    .then(() => {
-      const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
-      if (extraQueryParameters) {
-        authenticationRequest.extraQueryParameters = extraQueryParameters;
-      }
+    this.authorityInstance.ResolveEndpointsAsync().then(() => {
+
+      // create the Request to be sent to the Server
+      const authenticationRequest = new ServerRequestParameters(
+        this.authorityInstance,
+        this.clientId, scopes,
+        ResponseTypes.id_token,
+        this.getRedirectUri(),
+        this.config.auth.state
+      );
+
+      // Populate the extraQueryParameters to be sent to the server
+      authenticationRequest.extraQueryParameters = this.buildServerRequestExtraQueryParameters(extraQueryParameters);
 
       // if the user sets the login start page - angular only??
       let loginStartPage = this.cacheStorage.getItem(Constants.angularLoginRequest);
@@ -378,7 +396,7 @@ export class UserAgentApplication {
         return;
       }
     }
-    if (request.scopes) {
+    if (request && request.scopes) {
       request.scopes = this.filterScopes(request.scopes);
     }
 
@@ -402,26 +420,32 @@ export class UserAgentApplication {
       }
     }
 
-    // construct extraQueryParams string from the request
-    let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-    extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+    let extraQueryParameters: KeyValue = null;
+    if (request && request.extraQueryParameters) {
+        extraQueryParameters = request.extraQueryParameters;
+    }
+
+    // add the prompt parameter to the 'extraQueryParameters' if passed
+    if (request && request.prompt) {
+        extraQueryParameters = Utils.addPromptParameter(request.prompt, extraQueryParameters);
+    }
 
     // if the developer provides one of these, give preference to developer choice
-    if (request.account || request.sid || request.loginHint) {
-      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+    if (request && (request.account || request.sid || request.loginHint)) {
+      extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(request, null, extraQueryParameters);
     }
 
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
 
-    let authenticationRequest: AuthenticationRequestParameters;
+    let authenticationRequest: ServerRequestParameters;
     const acquireTokenAuthority = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
     // TODO: Set response type here
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       // On Fulfillment
       const responseType = this.getTokenType(userObject, request.scopes, false);
-      authenticationRequest = new AuthenticationRequestParameters(
+      authenticationRequest = new ServerRequestParameters(
         acquireTokenAuthority,
         this.clientId,
         request.scopes,
@@ -442,10 +466,8 @@ export class UserAgentApplication {
       const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
       this.cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.inCookie);
 
-      // Set extraQueryParameters to be sent to the server
-      if (extraQueryParameters) {
-        authenticationRequest.extraQueryParameters = extraQueryParameters;
-      }
+      // Populate the extraQueryParameters to be sent to the server
+      authenticationRequest.extraQueryParameters = this.buildServerRequestExtraQueryParameters(extraQueryParameters);
 
       // Construct urlNavigate
       let urlNavigate = authenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
@@ -500,11 +522,13 @@ export class UserAgentApplication {
 
       // if extraScopesToConsent is passed, append them to the login request
       let scopes: Array<string>;
-      if (request.extraScopesToConsent) {
-        let scopes = [...request.scopes, ...request.extraScopesToConsent];
-      }
-      else {
+      if (request) {
+        if (request.extraScopesToConsent) {
+          scopes = [...request.scopes, ...request.extraScopesToConsent];
+        }
+        else {
           scopes = request.scopes;
+        }
       }
 
       // Validate scopes
@@ -520,14 +544,21 @@ export class UserAgentApplication {
         scopes = this.filterScopes(scopes);
       }
 
-      // construct extraQueryParams string from the request
-      let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-      extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
       let user = this.getUser();
 
+      let extraQueryParameters: KeyValue = null;
+      if (request && request.extraQueryParameters) {
+        extraQueryParameters = request.extraQueryParameters;
+      }
+
+      // add the prompt parameter to the 'extraQueryParameters' if passed
+      if (request && request.prompt) {
+        extraQueryParameters = Utils.addPromptParameter(request.prompt, extraQueryParameters);
+      }
+
       // if the developer provides one of these, give preference to developer choice
-      if (request.account || request.sid || request.loginHint) {
-        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+      if (request && (request.account || request.sid || request.loginHint)) {
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(request, null, extraQueryParameters);
 
          // if user is not provided, we pass null
          this.loginPopupHelper(user, resolve, reject, scopes, extraQueryParameters);
@@ -574,7 +605,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param extraQueryParameters
    */
-  private loginPopupHelper(user: User, resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: string) {
+  private loginPopupHelper(user: User, resolve: any , reject: any, scopes: Array<string>, extraQueryParameters?: KeyValue) {
     // TODO: why this is needed only for loginpopup
     if (!scopes) {
       scopes = [this.clientId];
@@ -593,12 +624,10 @@ export class UserAgentApplication {
 
     // Resolve endpoint
     this.authorityInstance.ResolveEndpointsAsync().then(() => {
-      const authenticationRequest = new AuthenticationRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
+      const authenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
 
-      // set extraQueryParameters
-      if (extraQueryParameters) {
-        authenticationRequest.extraQueryParameters = extraQueryParameters;
-      }
+      // Populate the extraQueryParameters to be sent to the server
+      authenticationRequest.extraQueryParameters = this.buildServerRequestExtraQueryParameters(extraQueryParameters);
 
       // Cache the state, nonce, and login request data
       this.cacheStorage.setItem(Constants.loginRequest, window.location.href, this.inCookie);
@@ -699,19 +728,25 @@ export class UserAgentApplication {
         return;
       }
 
-      // construct extraQueryParams string from the request
-      let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-      extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+      let extraQueryParameters: KeyValue = null;
+      if (request && request.extraQueryParameters) {
+        extraQueryParameters = request.extraQueryParameters;
+      }
+
+      // add the prompt parameter to the 'extraQueryParameters' if passed
+      if (request && request.prompt) {
+        extraQueryParameters = Utils.addPromptParameter(request.prompt, extraQueryParameters);
+      }
 
       // if the developer provides one of these, give preference to developer choice
       if (request.account || request.sid || request.loginHint) {
-        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+        extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(request, null, extraQueryParameters);
       }
 
       // track the acquireToken progress
       this.acquireTokenInProgress = true;
 
-      let authenticationRequest: AuthenticationRequestParameters;
+      let authenticationRequest: ServerRequestParameters;
       const acquireTokenAuthority = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
       // Open the popup window
@@ -724,7 +759,7 @@ export class UserAgentApplication {
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
         // On fullfillment
         const responseType = this.getTokenType(userObject, request.scopes, false);
-        authenticationRequest = new AuthenticationRequestParameters(
+        authenticationRequest = new ServerRequestParameters(
           acquireTokenAuthority,
           this.clientId,
           request.scopes,
@@ -748,10 +783,8 @@ export class UserAgentApplication {
         const authorityKey = Storage.generateAuthorityKey(authenticationRequest.state);
         this.cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.inCookie);
 
-        // Set the extraQueryParameters
-        if (extraQueryParameters) {
-          authenticationRequest.extraQueryParameters = extraQueryParameters;
-        }
+        // Populate the extraQueryParameters to be sent to the server
+        authenticationRequest.extraQueryParameters = this.buildServerRequestExtraQueryParameters(extraQueryParameters);
 
         // Construct the urlNavigate
         let urlNavigate = authenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
@@ -961,23 +994,29 @@ export class UserAgentApplication {
           return null;
         }
 
-        // construct extraQueryParams string from the request
-        let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-        extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+        let extraQueryParameters: KeyValue = null;
+        if (request && request.extraQueryParameters) {
+          extraQueryParameters = request.extraQueryParameters;
+        }
+
+        // add the prompt parameter to the 'extraQueryParameters' if passed
+        if (request && request.prompt) {
+          extraQueryParameters = Utils.addPromptParameter(request.prompt, extraQueryParameters);
+        }
 
         // if the developer provides one of these, give preference to developer choice
         if (request.account || request.sid || request.loginHint) {
-            extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
+          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(request, null, extraQueryParameters);
         }
         //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
         else if (!userObject && !Utils.isEmpty(adalIdToken)) {
           const idTokenObject = Utils.extractIdToken(adalIdToken);
           console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, null, idTokenObject);
+          extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(null, idTokenObject, request.extraQueryParameters);
         }
 
         const responseType = this.getTokenType(userObject, request.scopes, true);
-        const authenticationRequest = new AuthenticationRequestParameters(
+        const authenticationRequest = new ServerRequestParameters(
           AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
           this.clientId,
           request.scopes,
@@ -1157,34 +1196,34 @@ export class UserAgentApplication {
         // sid - first preference to identify a session
         if (userObject.sid  && urlNavigate.indexOf(PromptState.NONE) !== -1) {
             if (!this.urlContainsQueryStringParameter(SSOTypes.SID, urlNavigate) && !this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate)) {
-                urlNavigate += Utils.generateSSOUrlParameter(userObject.sid, SSOTypes.SID);
+                urlNavigate += `&${SSOTypes.SID}=${encodeURIComponent(userObject.sid)}`;
             }
         }
         // check for login_hint if sid is not passed
         else {
             if (!this.urlContainsQueryStringParameter(SSOTypes.LOGIN_HINT, urlNavigate) && userObject.displayableId && !Utils.isEmpty(userObject.displayableId)) {
-                urlNavigate += Utils.generateSSOUrlParameter(userObject.displayableId, SSOTypes.LOGIN_HINT);
+                urlNavigate += `&${SSOTypes.LOGIN_HINT}=${encodeURIComponent(userObject.displayableId)}`;
             }
         }
 
         // client_info.utid = domain_req and client_info.uid = login_req
         if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
             if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_REQ, urlNavigate) && !Utils.isEmpty(utid)) {
-                urlNavigate += Utils.generateSSOUrlParameter(utid, SSOTypes.DOMAIN_REQ);
+                urlNavigate += `&${SSOTypes.DOMAIN_REQ}=${encodeURIComponent(utid)}`;
             }
 
             if (!this.urlContainsQueryStringParameter(SSOTypes.LOGIN_REQ, urlNavigate) && !Utils.isEmpty(uid)) {
-                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.LOGIN_REQ);
+                urlNavigate += `&${SSOTypes.LOGIN_REQ}=${encodeURIComponent(uid)}`;
             }
         }
 
         // fill in the domain_hint
         if (!this.urlContainsQueryStringParameter(SSOTypes.DOMAIN_HINT, urlNavigate) && !Utils.isEmpty(utid)) {
             if (utid === Constants.consumersUtid) {
-                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.CONSUMERS);
+                urlNavigate += `&${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(SSOTypes.CONSUMERS)}`;
             }
             else {
-                urlNavigate += Utils.generateSSOUrlParameter(uid, SSOTypes.ORGANIZATIONS);
+                urlNavigate += `&${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(SSOTypes.ORGANIZATIONS)}`;
             }
         }
     }
@@ -1561,7 +1600,7 @@ export class UserAgentApplication {
    */
   // TODO: There is a lot of duplication code in this function, rework this sooner than later, may be as a part of Error??
   // TODO: Only used in ATS - we should separate this
-  private getCachedToken(authenticationRequest: AuthenticationRequestParameters, user: User): CacheResult {
+  private getCachedToken(authenticationRequest: ServerRequestParameters, user: User): CacheResult {
     let accessTokenCacheItem: AccessTokenCacheItem = null;
     const scopes = authenticationRequest.scopes;
 
@@ -1703,13 +1742,13 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
+  private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: ServerRequestParameters, extraQueryParameters?: KeyValue): void {
     const scope = scopes.join(" ").toLowerCase();
     this.logger.verbose("renewToken is called for scope:" + scope);
     const frameHandle = this.addAdalFrame("msalRenewFrame" + scope);
-    if (extraQueryParameters) {
-      authenticationRequest.extraQueryParameters = extraQueryParameters;
-    }
+
+    // Populate the extraQueryParameters to be sent to the server
+    authenticationRequest.extraQueryParameters = this.buildServerRequestExtraQueryParameters(extraQueryParameters);
 
     // Cache acquireTokenUserKey
     const userId = user ? user.userIdentifier : Constants.no_user;
@@ -1742,15 +1781,13 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters,          extraQueryParameters?: string): void {
+  private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: ServerRequestParameters, extraQueryParameters?: KeyValue): void {
 
     this.logger.info("renewidToken is called");
     const frameHandle = this.addAdalFrame("msalIdTokenFrame");
 
-    // Populate extraQueryParameters in the request sent to the server
-    if (extraQueryParameters) {
-      authenticationRequest.extraQueryParameters = extraQueryParameters;
-    }
+    // Populate the extraQueryParameters to be sent to the server
+    authenticationRequest.extraQueryParameters = this.buildServerRequestExtraQueryParameters(extraQueryParameters);
 
     // Cache acquireTokenUserKey
     const userId = user ? user.userIdentifier : Constants.no_user;
@@ -2194,7 +2231,7 @@ export class UserAgentApplication {
     // Construct AuthenticationRequest based on response type
     const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
     const responseType = this.getTokenType(userObject, scopes, true);
-    const authenticationRequest = new AuthenticationRequestParameters(
+    const authenticationRequest = new ServerRequestParameters(
       newAuthority,
       this.clientId,
       scopes,
@@ -2401,11 +2438,7 @@ export class UserAgentApplication {
    * Construct 'tokenRequest' from the available data in adalIdToken
    * @param extraQueryParameters
    */
-  private buildIDTokenRequest(extraQueryParameters: string): AuthenticationParameters {
-    // TODO: This is not to be called here because acquireTokenSilent makes this call again
-    // extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
-
-    let reqExtraQueryParameters = Utils.destructExtraQueryParameterString(extraQueryParameters);
+  private buildIDTokenRequest(reqExtraQueryParameters: KeyValue): AuthenticationParameters {
 
     let tokenRequest: AuthenticationParameters = {
       scopes: [this.clientId],
@@ -2415,6 +2448,20 @@ export class UserAgentApplication {
     };
 
     return tokenRequest;
+  }
+
+  /**
+   * Set extraQueryParameters to be sent to the server
+   * @param extraQueryParameters
+   * @param authenticationRequest
+   */
+  private buildServerRequestExtraQueryParameters(extraQueryParameters: KeyValue): string {
+    if (extraQueryParameters) {
+      const paramsStr: string = Utils.generateExtraQueryParameters(extraQueryParameters);
+      return paramsStr;
+    }
+
+    return null;
   }
 
  //#endregion

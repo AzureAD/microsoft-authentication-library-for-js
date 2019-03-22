@@ -16,14 +16,13 @@ import { User } from "./User";
  * THIS NOTE IS TEMPORARY FOR TRACTION
  */
 
-/**
- *
- */
+export type KeyValue = {[key: string]: string};
+
 export type AuthenticationParameters = {
     scopes?: Array<string>;
     extraScopesToConsent?: Array<string>;
     prompt?: string;
-    extraQueryParameters?: {[header: string]: string};
+    extraQueryParameters?: KeyValue;
     claimsRequest?: null;
     authority?: string;
     correlationId?: string;

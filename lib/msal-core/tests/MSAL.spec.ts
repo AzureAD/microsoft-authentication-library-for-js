@@ -1,10 +1,10 @@
 import { UserAgentApplication } from "../src/index";
 import { Constants, ErrorCodes, ErrorDescription } from "../src/Constants";
 import { Authority } from "../src/Authority";
-import { AuthenticationRequestParameters } from "../src/AuthenticationRequestParameters";
+import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { AuthorityFactory } from "../src/AuthorityFactory";
 import { buildConfiguration } from "../src/Configuration";
-import { AuthenticationParameters } from "../src/Request";
+import { AuthenticationParameters } from "../src/AuthenticationParameters";
 
 describe('Msal', function (): any {
     let window: any;
@@ -204,8 +204,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
 
     });
 
@@ -222,7 +221,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "select_account"};
+        let request: AuthenticationParameters = {prompt: "select_account"};
         msal.loginRedirect(request);
     });
 
@@ -239,7 +238,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "none"};
+        let request: AuthenticationParameters = {prompt: "none"};
         msal.loginRedirect(request);
     });
 
@@ -260,8 +259,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
     });
 
     it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
@@ -271,8 +269,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -609,20 +606,20 @@ describe('Msal', function (): any {
     });
 
     it('test if authenticateRequestParameter generates state correctly, if state is a number', function () {
-        let authenticationRequestParameters: AuthenticationRequestParameters;
+        let authenticationRequestParameters: ServerRequestParameters;
         let authority: Authority;
         authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
+        authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
         var result;
         result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
         expect(decodeURIComponent(result[4])).toContain("12345");
     });
 
     it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
-        let authenticationRequestParameters: AuthenticationRequestParameters;
+        let authenticationRequestParameters: ServerRequestParameters;
         let authority: Authority;
         authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         var result;
         result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
         expect(decodeURIComponent(result[4])).toContain("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
@@ -701,8 +698,7 @@ describe('Msal', function (): any {
             done();
         }
 
-        let request: AuthenticationParameters = { scopes: [msal.clientID]};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
     });
 
     it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {

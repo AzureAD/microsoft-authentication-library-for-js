@@ -7,5 +7,5 @@ export { TokenResponse} from "./RequestInfo";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, buildConfiguration } from "./Configuration";
-export { AuthenticationParameters } from "./Request";
+export { AuthenticationParameters } from "./AuthenticationParameters";
 
