@@ -32,9 +32,9 @@ import { Utils } from "./Utils";
 export class B2cAuthority extends AadAuthority {
   public constructor(authority: string, validateAuthority: boolean) {
     super(authority, validateAuthority);
-    let urlComponents = Utils.GetUrlComponents(authority);
+    const urlComponents = Utils.GetUrlComponents(authority);
 
-    let pathSegments = urlComponents.PathSegments;
+    const pathSegments = urlComponents.PathSegments;
     if (pathSegments.length < 3) {
         throw ErrorMessage.b2cAuthorityUriInvalidPath;
     }
@@ -50,7 +50,7 @@ export class B2cAuthority extends AadAuthority {
    * Returns a promise with the TenantDiscoveryEndpoint
    */
   public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
-    var resultPromise = new Promise<string>((resolve, reject) =>
+    const resultPromise = new Promise<string>((resolve, reject) =>
       resolve(this.DefaultOpenIdConfigurationEndpoint));
 
     if (!this.IsValidationEnabled) {
