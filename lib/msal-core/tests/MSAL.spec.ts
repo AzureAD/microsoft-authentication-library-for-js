@@ -1,8 +1,10 @@
-import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from '../src/index';
-import { Constants, ErrorCodes, ErrorDescription} from '../src/Constants';
-import {Authority} from "../src/Authority";
-import {AuthenticationRequestParameters} from "../src/AuthenticationRequestParameters";
-import {AuthorityFactory} from "../src/AuthorityFactory";
+import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from "../src/index";
+import { Constants, ErrorCodes, ErrorDescription } from "../src/Constants";
+import { Authority } from "../src/Authority";
+import { AuthenticationRequestParameters } from "../src/AuthenticationRequestParameters";
+import { AuthorityFactory } from "../src/AuthorityFactory";
+import { buildConfiguration } from "../src/Configuration";
+import { AuthenticationParameters } from "../src/Request";
 
 describe('Msal', function (): any {
     let window: any;
@@ -148,7 +150,7 @@ describe('Msal', function (): any {
                 hash: '#hash',
                 href: 'href',
                 replace: function (val: any) {
-                }
+                return; }
             },
             localStorage: {},
             sessionStorage: {},
@@ -166,11 +168,12 @@ describe('Msal', function (): any {
         global.document = documentMock;
         global.Math = mathMock;
 
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null);
-        msal._user = null;
-        msal._renewStates = [];
-        msal._activeRenewals = {};
-        msal._cacheStorage = storageFake;
+        let config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201" }, {}, {}, {});
+        msal = new UserAgentApplication(config, function (errorDes, token, error, tokenType) { return; });
+        msal.user = null;
+        msal.renewStates = [];
+        msal.activeRenewals = {};
+        msal.cacheStorage = storageFake;
 
         jasmine.Ajax.install();
 
@@ -227,7 +230,8 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect();
+        let request: AuthenticationParameters = {scopes: msal.clientID};
+        msal.loginRedirect(request);
 
     });
 
@@ -245,7 +249,8 @@ describe('Msal', function (): any {
             done();
         };
 
-        msal.loginRedirect(null, Constants.prompt_select_account);
+        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "select_account"};
+        msal.loginRedirect(request);
     });
 
     it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
@@ -259,13 +264,14 @@ describe('Msal', function (): any {
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(args).toContain('&client_id=' + msal.clientId);
-            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal._redirectUri));
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
             done();
         };
 
-        msal.loginRedirect();
+        let request: AuthenticationParameters = {scopes: msal.clientID};
+        msal.loginRedirect(request);
     });
 
     it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
@@ -275,7 +281,9 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
             done();
         };
-        msal.loginRedirect();
+
+        let request: AuthenticationParameters = {scopes: msal.clientID};
+        msal.loginRedirect(request);
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -455,18 +463,18 @@ describe('Msal', function (): any {
             requestType: 'unknown'
         };
 
-        var _cacheStorage = msal._cacheStorage.removeAcquireTokenEntries;
-        msal._cacheStorage.removeAcquireTokenEntries = function () {
+        var cacheStorage = msal.cacheStorage.removeAcquireTokenEntries;
+        msal.cacheStorage.removeAcquireTokenEntries = function () {
             return;
         }
         msal.saveTokenFromHash(requestInfo);
-        msal._cacheStorage.removeAcquireTokenEntries = _cacheStorage;
+        msal.cacheStorage.removeAcquireTokenEntries = cacheStorage;
         expect(storageFake.getItem(Constants.msalError)).toBe('invalid');
         expect(storageFake.getItem(Constants.msalErrorDescription)).toBe('error description');
     });
 
     it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
-        msal._loginInProgress = true;
+        msal.userLoginInProgress = true;
         var authErr: AuthError;
         try {
             msal.loginRedirect();
@@ -474,13 +482,14 @@ describe('Msal', function (): any {
             authErr = e;
         }
         expect(authErr).toEqual(jasmine.any(ClientAuthError));
-        msal._loginInProgress = false;
+        msal.userLoginInProgress = false;
     });
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
         var authErr: AuthError;
+        const request: AuthenticationParameters = {scopes: []};
         try {
-            msal.loginRedirect([]);
+            msal.loginRedirect(request);
         } catch (e) {
             authErr = e;
         }
@@ -497,8 +506,9 @@ describe('Msal', function (): any {
         };
         var authErr = AuthError;
         msal._tokenReceivedCallback = callback;
+        let request: AuthenticationParameters = {scopes: [msal.clientId,'123']};
         try {
-            msal.loginRedirect([msal.clientId,'123']);
+            msal.loginRedirect(request);
         } catch (e) {
             authErr = e;
         }
@@ -603,28 +613,28 @@ describe('Msal', function (): any {
         expect(msal.promptUser).toHaveBeenCalled();
     });
 
-    it('checks if postLogoutRedirectUri is added to logout url if provided in the config ', function () {
-        var _clearCache = msal.clearCache;
+    it('checks if postLogoutRedirectUri is added to logout url if provided in the config', function () {
+        var clearCache = msal.clearCache;
         msal.clearCache = function () {
             return;
         }
-        msal._postLogoutredirectUri = 'https://contoso.com/logout';
+        msal.config.auth.postLogoutRedirectUri = () => 'https://contoso.com/logout';
         spyOn(msal, 'promptUser');
         msal.logout();
         expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogout');
-        msal.clearCache = _clearCache;
+        msal.clearCache = clearCache;
     });
 
     it('checks if postLogoutRedirectUri is added to logout url if provided in the config as a function', function () {
-        var _clearCache = msal.clearCache;
+        var clearCache = msal.clearCache;
         msal.clearCache = function () {
             return;
         }
-        msal._postLogoutredirectUri = () => 'https://contoso.com/logoutfn';
+        msal.config.auth.postLogoutRedirectUri = () => 'https://contoso.com/logoutfn';
         spyOn(msal, 'promptUser');
         msal.logout();
         expect(msal.promptUser).toHaveBeenCalledWith(msal.authority + '/oauth2/v2.0/logout?post_logout_redirect_uri=https%3A%2F%2Fcontoso.com%2Flogoutfn');
-        msal.clearCache = _clearCache;
+        msal.clearCache = clearCache;
     });
 
     it('is callback if has error or access_token or id_token', function () {
@@ -761,7 +771,9 @@ describe('Msal', function (): any {
             msal = msalInstance;
             done();
         }
-        msal.loginRedirect();
+
+        let request: AuthenticationParameters = { scopes: [msal.clientID]};
+        msal.loginRedirect(request);
     });
 
     it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {
@@ -775,43 +787,33 @@ describe('Msal', function (): any {
             expect(tokenType).toBe(Constants.idToken);
         }, function (error) {});
 
-         expect(msal._cacheLocation).toBe('localStorage');
+         expect(msal.config.cache.cacheLocation).toBe('localStorage');
     });
 
     it('tests cacheLocation functionality defaults to sessionStorage', function () {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
 
-         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null);
-         msal.setRedirectCallbacks(function(token, tokenType, state) {
-            expect(document.cookie).toBe('');
-            expect(token).toBe(mockIdToken);
-            expect(tokenType).toBe(Constants.idToken);
-        }, function (error) {});
+        var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {storeAuthStateInCookie: true}, {}, {});
 
-         expect(msal._cacheLocation).toBe('sessionStorage');
-    });
-    /**
-    it('tests cacheLocation functionality malformed strings throw error', function () {
-         var msalInstance = msal;
-         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-         msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDesc, token, error, tokenType) {
+         msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {
              expect(document.cookie).toBe('');
-             expect(errorDesc).toBe("Cache Location is not valid.");
+             expect(errorDesc).toBeUndefined();
+             expect(error).toBeUndefined();
              expect(token).toBe(mockIdToken);
              expect(tokenType).toBe(Constants.idToken);
-         }, { cacheLocation: 'lclStrge' });
+         });
+         expect(msal.config.cache.cacheLocation).toBe('sessionStorage');
     });
-    **/
-
 });
 
 describe('loginPopup functionality', function () {
     var loginPopupPromise:Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-        });
+        var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
+        msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {return; });
+
         spyOn(msal, 'loginPopup').and.callThrough();
         loginPopupPromise = msal.loginPopup([msal.clientId]);
     });
@@ -825,12 +827,14 @@ describe('acquireTokenPopup functionality', function () {
     var acquireTokenPopupPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-        });
+        let  config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
+        msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {return; });
+
         spyOn(msal, 'acquireTokenPopup').and.callThrough();
-        acquireTokenPopupPromise = msal.acquireTokenPopup([msal.clientId]);
-        acquireTokenPopupPromise.then(function(accessToken) {
-        }, function(error) {
+        let request: AuthenticationParameters = {scopes: [msal.clientId]};
+        acquireTokenPopupPromise = msal.acquireTokenPopup(request);
+        acquireTokenPopupPromise.then(function(accessToken) { return;
+        }, function(error) { return;
         });
     });
 
@@ -844,13 +848,15 @@ describe('acquireTokenSilent functionality', function () {
     var acquireTokenSilentPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, function (errorDes, token, error) {
-        });
+        let  config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
+        msal = new UserAgentApplication(config, function (errorDesc, token, error, tokenType) {return; });
+
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
         spyOn(msal, 'loadIframeTimeout').and.callThrough();
-        acquireTokenSilentPromise = msal.acquireTokenSilent([msal.clientId]);
-        acquireTokenSilentPromise.then(function(accessToken) {
-        }, function(error) {
+        let request: AuthenticationParameters = {scopes: [msal.clientId]};
+        acquireTokenSilentPromise = msal.acquireTokenSilent(request);
+        acquireTokenSilentPromise.then(function(accessToken) { return;
+        }, function(error) { return;
         });
     });
 

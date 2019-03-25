@@ -23,7 +23,8 @@
 
 import { IUri } from "./IUri";
 import { User } from "./User";
-import {Constants} from "./Constants";
+import {Constants, SSOTypes, PromptState} from "./Constants";
+import { AuthenticationParameters } from "./Request";
 
 /**
  * @hidden
@@ -457,18 +458,22 @@ export class Utils {
 
   //#region URL Processing (Extract to UrlProcessing.ts?)
 
+  static getDefaultRedirectUri(): string {
+      return window.location.href.split("?")[0].split("#")[0];
+  }
+
   /**
    * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
    * @param href The url
    * @param tenantId The tenant id to replace
    */
-  static replaceFirstPath(url: string, tenantId: string): string {
+  static replaceTenantPath(url: string, tenantId: string): string {
       if (!tenantId) {
           return url;
       }
       var urlObject = this.GetUrlComponents(url);
       var pathArray = urlObject.PathSegments;
-      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
+      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
           pathArray[0] = tenantId;
           url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
       }
@@ -563,46 +568,218 @@ export class Utils {
   //#region ExtraQueryParameters Processing (Extract?)
 
   /**
-   *
-   * @param extraQueryParameters
-   */
-  static checkSSO(extraQueryParameters: string) {
-    return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
-  }
-
-   /**
    * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
    * in any login() or acquireToken() calls
-   *
    * @param idTokenObject
-   * @param login_hint
    * @param extraQueryParameters
+   * @param sid
+   * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  //TODO: Test all paths thoroughly
-  static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
-    if (idTokenObject) {
+  static constructUnifiedCacheExtraQueryParameter(extraQueryParameters: string, request: AuthenticationParameters, idTokenObject: any): string {
+
+    // preference order: account > sid > login_hint
+
+
+    let ssoType;
+    let ssoData;
+
+    // if account info is passed, account.sid > account.login_hint
+    if (request && request.account) {
+      const user: User = request.account;
+      if (user.sid) {
+        ssoType = SSOTypes.SID;
+        ssoData = user.sid;
+      }
+      else if (user.displayableId) {
+        ssoType = SSOTypes.LOGIN_HINT;
+        ssoData = user.displayableId;
+      }
+    }
+    // sid from request
+    else if (request.sid) {
+      ssoData = request.sid;
+      ssoType = SSOTypes.SID;
+    }
+    // loginHint from request
+    else if (request.loginHint) {
+      ssoData = request.loginHint;
+      ssoType = SSOTypes.LOGIN_HINT;
+    }
+    // adalIdToken retrieved from cache
+    else if (idTokenObject) {
       if (idTokenObject.hasOwnProperty(Constants.upn)) {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-        if (extraQueryParameters) {
-          return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
-        else {
-          return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
+        ssoData = idTokenObject.upn;
+        ssoType = SSOTypes.ID_TOKEN;
       }
       else {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-        if (extraQueryParameters) {
-          return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
+        ssoData = null;
+        ssoType = SSOTypes.ORGANIZATIONS;
+      }
+    }
+
+    extraQueryParameters = this.processExtraQueryParameters(extraQueryParameters, ssoData, ssoType);
+    return extraQueryParameters;
+  }
+
+  /**
+   * Remove the SSO data from extraQueryParams if passed and
+   * construct the string "extraQueryParameters" needed to be sent to the server
+   * @param extraQueryParameters
+   * @param ssoData
+   * @param ssoType
+   */
+  static processExtraQueryParameters(extraQueryParameters: string, ssoData: string, ssoType: string): string {
+    extraQueryParameters = this.removeSSOParams(extraQueryParameters, ssoType);
+
+    if (extraQueryParameters) {
+        extraQueryParameters += this.generateSSOUrlParameter(ssoData, ssoType);
+    }
+    else {
+        extraQueryParameters = this.generateSSOUrlParameter(ssoData, ssoType);
+    }
+
+    return extraQueryParameters;
+  }
+
+  /**
+   * remove the exisiting SSOData from the extraQueryParameters
+   * @param sid
+   */
+  static removeSSOParams(extraQueryParameters: string, type: string): string {
+
+    let ssoType: string;
+    if (type === SSOTypes.ID_TOKEN) {
+        ssoType = SSOTypes.LOGIN_HINT;
+    }
+    else {
+        ssoType = type;
+    }
+
+    extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, ssoType);
+    if (type === SSOTypes.ID_TOKEN) {
+        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, SSOTypes.DOMAIN_HINT);
+    }
+
+    return extraQueryParameters;
+  }
+
+  /**
+   * Add SID to extraQueryParameters
+   * @param sid
+   */
+  static generateSSOUrlParameter(ssoData: string, ssoType: string): string {
+
+    switch (ssoType) {
+      case SSOTypes.SID: {
+        return "&" + SSOTypes.SID + "=" + encodeURIComponent(ssoData);
+      }
+      case SSOTypes.ID_TOKEN: {
+        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData) + "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.ORGANIZATIONS;
+      }
+      case SSOTypes.LOGIN_HINT: {
+        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData);
+      }
+      case SSOTypes.ORGANIZATIONS: {
+        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.ORGANIZATIONS;
+      }
+      case SSOTypes.CONSUMERS: {
+        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.CONSUMERS;
+      }
+      case SSOTypes.LOGIN_REQ: {
+        return "&" + SSOTypes.LOGIN_REQ + "=" + encodeURIComponent(ssoData);
+      }
+      case SSOTypes.DOMAIN_REQ: {
+        return "&" + SSOTypes.DOMAIN_REQ + "=" + encodeURIComponent(ssoData);
+      }
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Construct extraQueryParameters from the request
+   * @param reqExtraQueryParameters
+   */
+  static constructExtraQueryParametersString (reqExtraQueryParameters: {[header: string]: string}): string {
+
+    let extraQueryParameters: string = null;
+    let value: string;
+
+    for (var key in reqExtraQueryParameters) {
+
+      if (key !== undefined) {
+        value = reqExtraQueryParameters[key];
+
+        if (extraQueryParameters == null) {
+          extraQueryParameters = "&" + key + "=" + value;
         }
         else {
-          return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
+          extraQueryParameters += "&" + key + "=" + value;
         }
       }
     }
+
     return extraQueryParameters;
+  }
+
+  /**
+   * Utils to add prompt parameter passed by the user to extraQueryParameters
+   * We considered making this "enum" in the request instead of string, however it looks like the allowed
+   * list of prompt values kept changing over past couple of years. There are some undocumented prompt values
+   * for some internal partners too, hence the choice of generic "string" type instead of the "enum".
+   * @param extraQueryParameters
+   * @param prompt
+   */
+  static addPromptParameter (extraQueryParameters: string, prompt: string): string {
+    this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
+
+    if (extraQueryParameters == null) {
+      extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
+    }
+    else {
+      extraQueryParameters += "&" + Constants.prompt + "=" + prompt;
+    }
+
+    return extraQueryParameters;
+  }
+
+  /*
+  static validateRequestParameters (request: AuthenticationParameters) {
+    // check that prompt is an acceptable value
+    try {
+      if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)
+    }
+     } catch (e) {
+      // TODO: Add appropriate error during Error PR Merge
+      console.log("Invalid Prompt Value");
+    }
+  }
+  */
+
+  /**
+   * Convert the extraQueryParameters String to Key-Value pair list
+   * @param reqExtraQueryParameters
+   */
+  static destructExtraQueryParameterString (reqExtraQueryParameters: string): {[header: string]: string} {
+    let result: {[header: string]: string};
+    let pair;
+
+    reqExtraQueryParameters.split("&").forEach(function(elem) {
+      if (elem !== "") {
+        var item = elem.split("=");
+        pair = {[item[0]]: item[1]};
+        if (!result) {
+          result = pair;
+        }
+        else {
+          Object.assign(result, pair);
+        }
+      }
+    });
+
+    return result;
   }
 
   //#endregion

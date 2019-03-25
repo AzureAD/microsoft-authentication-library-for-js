@@ -23,6 +23,7 @@
 
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { CacheLocation } from "./Configuration";
 import { CacheKeys } from "./Constants";
 
 /**
@@ -33,9 +34,9 @@ export class Storage {// Singleton
   private static instance: Storage;
   private localStorageSupported: boolean;
   private sessionStorageSupported: boolean;
-  private cacheLocation: string;
+  private cacheLocation: CacheLocation;
 
-  constructor(cacheLocation: string) {
+  constructor(cacheLocation: CacheLocation) {
     if (Storage.instance) {
       return Storage.instance;
     }
