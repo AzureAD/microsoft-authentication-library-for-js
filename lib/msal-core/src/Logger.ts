@@ -39,27 +39,28 @@ export class Logger {// Singleton Class
   /**
    * @hidden
    */
-  private static _instance: Logger;
+  // TODO: This does not seem to be a singleton!! Change or Delete.
+  private static instance: Logger;
 
   /**
    * @hidden
    */
-  private _correlationId: string;
+  private correlationId: string;
 
   /**
    * @hidden
    */
-  private _level: LogLevel = LogLevel.Info;
+  private level: LogLevel = LogLevel.Info;
 
   /**
    * @hidden
    */
-  private _piiLoggingEnabled: boolean;
+  private piiLoggingEnabled: boolean;
 
   /**
    * @hidden
    */
-  private _localCallback: ILoggerCallback;
+  private localCallback: ILoggerCallback;
 
   constructor(localCallback: ILoggerCallback,
       options:
@@ -74,23 +75,23 @@ export class Logger {// Singleton Class
           piiLoggingEnabled = false
       } = options;
 
-      this._localCallback = localCallback;
-      this._correlationId = correlationId;
-      this._level = level;
-      this._piiLoggingEnabled = piiLoggingEnabled;
+      this.localCallback = localCallback;
+      this.correlationId = correlationId;
+      this.level = level;
+      this.piiLoggingEnabled = piiLoggingEnabled;
   }
 
   /**
    * @hidden
    */
   private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
-    if ((logLevel > this._level) || (!this._piiLoggingEnabled && containsPii)) {
+    if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
       return;
     }
-    var timestamp = new Date().toUTCString();
-    var log: string;
-    if (!Utils.isEmpty(this._correlationId)) {
-      log = timestamp + ":" + this._correlationId + "-" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+    const timestamp = new Date().toUTCString();
+    let log: string;
+    if (!Utils.isEmpty(this.correlationId)) {
+      log = timestamp + ":" + this.correlationId + "-" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
     }
     else {
       log = timestamp + ":" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
@@ -102,8 +103,8 @@ export class Logger {// Singleton Class
    * @hidden
    */
   executeCallback(level: LogLevel, message: string, containsPii: boolean) {
-    if (this._localCallback) {
-      this._localCallback(level, message, containsPii);
+    if (this.localCallback) {
+      this.localCallback(level, message, containsPii);
     }
   }
 

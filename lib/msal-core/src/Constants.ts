@@ -52,12 +52,7 @@ export class Constants {
   static get renewStatus(): string { return "msal.token.renew.status"; }
   static get msal(): string { return "msal"; }
   static get no_user(): string { return "NO_USER"; }
-  static get login_hint(): string { return "login_hint"; }
-  static get domain_hint(): string { return "domain_hint"; }
-  static get organizations(): string { return "organizations"; }
-  static get consumers(): string { return "consumers"; }
   static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
-  static get sid(): string { return "sid"; }
   static get upn(): string { return "upn"; }
   static get adalIdToken(): string { return "adal.idtoken"; }
   static get prompt_select_account(): string { return "&prompt=select_account"; }
@@ -124,3 +119,33 @@ export const CacheKeys = {
     AUTHORITY: "msal_authority",
     ACQUIRE_TOKEN_USER: "msal.acquireTokenUser"
 };
+
+/**
+ * @hidden
+ */
+export const SSOTypes = {
+    ACCOUNT: "account",
+    SID: "sid",
+    LOGIN_HINT: "login_hint",
+    ID_TOKEN: "id_token",
+    DOMAIN_HINT: "domain_hint",
+    ORGANIZATIONS: "organizations",
+    CONSUMERS: "consumers",
+    LOGIN_REQ: "login_req",
+    DOMAIN_REQ: "domain_req"
+};
+
+/**
+ * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
+ * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
+ * internal partners too, hence the choice of generic "string" type instead of the "enum"
+ * @hidden
+ */
+export const PromptState = {
+	LOGIN: "login",
+	SELECT_ACCOUNT: "select_account",
+	CONSENT: "consent",
+	NONE: "none",
+};
+
+
