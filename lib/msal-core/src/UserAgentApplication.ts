@@ -1443,7 +1443,7 @@ export class UserAgentApplication {
     let token: string = null;
     let tokenResponseCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
     let tokenType: string;
-    
+
     self._logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window
     if (window.parent !== window && window.parent.msal) {
