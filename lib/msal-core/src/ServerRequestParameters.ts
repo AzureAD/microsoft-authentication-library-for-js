@@ -50,9 +50,13 @@ export class ServerRequestParameters {
 
   // TODO: The below are not used - check and delete with the rename PR
   promptValue: string;
-  extraQueryParameters: string;
+  sid: string;
   loginHint: string;
   domainHint: string;
+  loginReq: string;
+  domainReq: string;
+  queryParameters: string;
+  extraQueryParameters: string;
 
 
   public get authority(): string {
@@ -134,6 +138,12 @@ export class ServerRequestParameters {
     str.push("client_info=1");
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
+
+    str.push("prompt=" + encodeURI(this.promptValue));
+
+    if (this.queryParameters) {
+        str.push(this.queryParameters);
+    }
 
     if (this.extraQueryParameters) {
       str.push(this.extraQueryParameters);

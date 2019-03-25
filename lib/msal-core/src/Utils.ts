@@ -24,7 +24,8 @@
 import { IUri } from "./IUri";
 import { User } from "./User";
 import {Constants, SSOTypes, PromptState} from "./Constants";
-import { AuthenticationParameters, KeyValue } from "./AuthenticationParameters";
+import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { ServerRequestParameters } from "./ServerRequestParameters";
 
 /**
  * @hidden
@@ -576,11 +577,12 @@ export class Utils {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  static constructUnifiedCacheExtraQueryParameter(request: AuthenticationParameters, idTokenObject: any, extraQueryParameters: KeyValue ): KeyValue {
+  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): QPDict {
 
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
+    let ssoParam: QPDict = {};
 
     // if account info is passed, account.sid > account.login_hint
     if (request && request.account) {
@@ -616,8 +618,8 @@ export class Utils {
       }
     }
 
-    extraQueryParameters = this.addSSOParameter(ssoType, ssoData, extraQueryParameters);
-    return extraQueryParameters;
+    let serverReqParam: QPDict = this.addSSOParameter(ssoType, ssoData, ssoParam);
+    return serverReqParam;
   }
 
 
@@ -626,93 +628,55 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static addSSOParameter(ssoType: string, ssoData: string, extraQueryParameters: KeyValue): KeyValue {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam: QPDict): QPDict {
 
     switch (ssoType) {
       case SSOTypes.SID: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.SID, ssoData, extraQueryParameters);
+        ssoParam[SSOTypes.SID] = ssoData;
         break;
       }
       case SSOTypes.ID_TOKEN: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.LOGIN_HINT, ssoData, extraQueryParameters);
-        extraQueryParameters[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
         break;
       }
       case SSOTypes.LOGIN_HINT: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.LOGIN_HINT, ssoData, extraQueryParameters);
+        ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
         break;
       }
       case SSOTypes.ORGANIZATIONS: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.DOMAIN_HINT, SSOTypes.ORGANIZATIONS, extraQueryParameters);
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
         break;
       }
       case SSOTypes.CONSUMERS: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.DOMAIN_HINT, SSOTypes.CONSUMERS, extraQueryParameters);
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
         break;
       }
       case SSOTypes.LOGIN_REQ: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.LOGIN_REQ, ssoData, extraQueryParameters);
+        ssoParam[SSOTypes.LOGIN_REQ] = ssoData;
         break;
       }
       case SSOTypes.DOMAIN_REQ: {
-        extraQueryParameters = this.populateExtraQueryParams(SSOTypes.DOMAIN_REQ, ssoData, extraQueryParameters);
+        ssoParam[SSOTypes.DOMAIN_REQ] = ssoData;
         break;
       }
     }
 
-    return extraQueryParameters;
-  }
-
-  /**
-   * If extraQueryParameters are null, create the data type; if not add to the key value mapping
-   * @param type
-   * @param data
-   * @param extraQueryParameters
-   */
-  static populateExtraQueryParams(type: string, data: string, extraQueryParameters: KeyValue): KeyValue {
-
-    if (!extraQueryParameters) {
-      extraQueryParameters[type] = data;
-    }
-    else {
-      extraQueryParameters = {[type]: data};
-    }
-
-    return extraQueryParameters;
-  }
-
-  /**
-   * Utils to add prompt parameter passed by the user to extraQueryParameters
-   * We considered making this "enum" in the request instead of string, however it looks like the allowed
-   * list of prompt values kept changing over past couple of years. There are some undocumented prompt values
-   * for some internal partners too, hence the choice of generic "string" type instead of the "enum".
-   * @param extraQueryParameters
-   * @param prompt
-   */
-  static addPromptParameter (prompt: string, extraQueryParameters: KeyValue ): KeyValue {
-
-    if (extraQueryParameters) {
-      extraQueryParameters[Constants.prompt] = prompt;
-    }
-    else {
-      extraQueryParameters = {[Constants.prompt]: prompt};
-    }
-
-    return extraQueryParameters;
+    return ssoParam;
   }
 
   /**
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  static generateExtraQueryParameters(extraQueryParameters: KeyValue): string {
+  static generateQueryParameters(queryParameters: QPDict): string {
     let paramsString: string = null;
-    Object.keys(extraQueryParameters).forEach((key: string) => {
+    Object.keys(queryParameters).forEach((key: string) => {
       if (paramsString == null) {
-        paramsString = `${key}=${encodeURIComponent(extraQueryParameters[key])}`;
+        paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
       }
       else {
-        paramsString += `&${key}=${encodeURIComponent(extraQueryParameters[key])}`;
+        paramsString += `&${key}=${encodeURIComponent(queryParameters[key])}`;
       }
     });
 
