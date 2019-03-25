@@ -65,7 +65,7 @@ declare global {
  *
  * @hidden
  */
-let ResponseTypes = {
+const ResponseTypes = {
   id_token: "id_token",
   token: "token",
   id_token_token: "id_token token"
@@ -303,6 +303,7 @@ export class UserAgentApplication {
     this.loadFrameTimeout = loadFrameTimeout;
     this.clientId = clientId;
     this.validateAuthority = validateAuthority;
+
     // TODO: Replace string with constant
     this.authority = authority || "https://login.microsoftonline.com/common";
     this._navigateToLoginRequestUrl = navigateToLoginRequestUrl;
@@ -337,8 +338,8 @@ export class UserAgentApplication {
     window.callBackMappedToRenewStates = { };
     window.callBacksMappedToRenewStates = { };
     window.msal = this;
-    var urlHash = window.location.hash;
-    var isCallback = this.isCallback(urlHash);
+    const urlHash = window.location.hash;
+    const isCallback = this.isCallback(urlHash);
 
     // On the server 302 - Redirect, handle this
     if (!this._isAngular) {
@@ -346,7 +347,7 @@ export class UserAgentApplication {
             this.handleAuthenticationResponse.call(this, urlHash);
         }
         else {
-            var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+            const pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
             if (pendingCallback) {
                 this.processCallBack(pendingCallback);
             }
@@ -409,8 +410,7 @@ export class UserAgentApplication {
     scopes = this.filterScopes(scopes);
 
     // extract ADAL id_token if exists
-    var idTokenObject;
-    idTokenObject = this.extractADALIdToken();
+    let idTokenObject = this.extractADALIdToken();
 
     // silent login if ADAL id_token is retrieved successfully - SSO
     if (idTokenObject && !scopes) {
@@ -457,7 +457,7 @@ export class UserAgentApplication {
       }
 
       // if the user sets the login start page - angular only??
-      var loginStartPage = this._cacheStorage.getItem(Constants.angularLoginRequest);
+      let loginStartPage = this._cacheStorage.getItem(Constants.angularLoginRequest);
       if (!loginStartPage || loginStartPage === "") {
         loginStartPage = window.location.href;
       } else {
@@ -467,8 +467,10 @@ export class UserAgentApplication {
       // Cache the state, nonce, and login request data
       this._cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.storeAuthStateInCookie);
       this._cacheStorage.setItem(Constants.loginError, "");
+
       this._cacheStorage.setItem(Constants.stateLogin, authenticationRequest.state, this.storeAuthStateInCookie);
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
+
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
@@ -520,7 +522,6 @@ export class UserAgentApplication {
     const userObject = user ? user : this.getUser();
 
     // If no session exists, prompt the user to login.
-    const scope = scopes.join(" ").toLowerCase();
     if (!userObject && !(extraQueryParameters && (extraQueryParameters.indexOf(Constants.login_hint) !== -1 ))) {
       this._logger.info("User login is required");
       this._errorReceivedCallback(ClientAuthError.createUserLoginRequiredError(), this.getUserState(this._silentAuthenticationState));
@@ -531,20 +532,20 @@ export class UserAgentApplication {
     this._acquireTokenInProgress = true;
 
     let authenticationRequest: AuthenticationRequestParameters;
-    let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+    const acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
     // TODO: Set response type here
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       // On Fulfillment
-      if (Utils.compareObjects(userObject, this.getUser())) {
-        if (scopes.indexOf(this.clientId) > -1) {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-        } else {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-        }
-      } else {
-        authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-      }
+      const responseType = this.getTokenType(userObject, scopes, false);
+      authenticationRequest = new AuthenticationRequestParameters(
+        acquireTokenAuthority,
+        this.clientId,
+        scopes,
+        responseType,
+        this.getRedirectUri(),
+        this._state
+      );
 
       // Cache nonce
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
@@ -621,7 +622,7 @@ export class UserAgentApplication {
       scopes = this.filterScopes(scopes);
 
       // Extract ADAL id_token if it exists
-      var idTokenObject;
+      let idTokenObject;
       idTokenObject = this.extractADALIdToken();
 
       // silent login if ADAL id_token is retrieved successfully - SSO
@@ -665,7 +666,8 @@ export class UserAgentApplication {
     const scope = scopes.join(" ").toLowerCase();
 
     // Generate a popup window
-    var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+    // TODO: Refactor this so that openWindow throws an error, loginPopupHelper rejects or resolves based on that action
+    const popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
     if (!popUpWindow) {
       // We pass reject in openWindow, we reject there during an error
       return;
@@ -686,7 +688,9 @@ export class UserAgentApplication {
       // Cache the state, nonce, and login request data
       this._cacheStorage.setItem(Constants.loginRequest, window.location.href, this.storeAuthStateInCookie);
       this._cacheStorage.setItem(Constants.loginError, "");
+
       this._cacheStorage.setItem(Constants.nonceIdToken, authenticationRequest.nonce, this.storeAuthStateInCookie);
+
       this._cacheStorage.setItem(Constants.msalError, "");
       this._cacheStorage.setItem(Constants.msalErrorDescription, "");
 
@@ -773,10 +777,10 @@ export class UserAgentApplication {
       this._acquireTokenInProgress = true;
 
       let authenticationRequest: AuthenticationRequestParameters;
-      let acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
+      const acquireTokenAuthority = authority ? AuthorityFactory.CreateInstance(authority, this.validateAuthority) : this.authorityInstance;
 
       // Open the popup window
-      var popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+      const popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
         // We pass reject to openWindow, so we are rejecting there.
         return;
@@ -784,16 +788,15 @@ export class UserAgentApplication {
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
         // On fullfillment
-        if (Utils.compareObjects(userObject, this.getUser())) {
-          if (scopes.indexOf(this.clientId) > -1) {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-          }
-          else {
-            authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-          }
-        } else {
-          authenticationRequest = new AuthenticationRequestParameters(acquireTokenAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-        }
+        const responseType = this.getTokenType(userObject, scopes, false);
+        authenticationRequest = new AuthenticationRequestParameters(
+          acquireTokenAuthority,
+          this.clientId,
+          scopes,
+          responseType,
+          this.getRedirectUri(),
+          this._state
+      );
 
         // Cache nonce
         // TODO: why is storeAuthStateInCookie not passed here?
@@ -879,7 +882,7 @@ export class UserAgentApplication {
     // Push popup window handle onto stack for tracking
     window.openedWindows.push(popupWindow);
 
-    var pollTimer = window.setInterval(() => {
+    const pollTimer = window.setInterval(() => {
       // If popup closed or login in progress, cancel login
       if (popupWindow && popupWindow.closed && instance._loginInProgress) {
         if (reject) {
@@ -895,7 +898,7 @@ export class UserAgentApplication {
       }
 
       try {
-        var popUpWindowLocation = popupWindow.location;
+        const popUpWindowLocation = popupWindow.location;
 
         // If the popup hash changes, close the popup window
         if (popUpWindowLocation.href.indexOf(this.getRedirectUri()) !== -1) {
@@ -906,7 +909,7 @@ export class UserAgentApplication {
           // TODO: Why are we only closing for angular?
           if (this._isAngular) {
               this.broadcast("msal:popUpHashChanged", popUpWindowLocation.hash);
-              for (var i = 0; i < window.openedWindows.length; i++) {
+              for (let i = 0; i < window.openedWindows.length; i++) {
                   window.openedWindows[i].close();
               }
           }
@@ -1007,22 +1010,15 @@ export class UserAgentApplication {
         extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(idTokenObject, extraQueryParameters);
       }
 
-      let authenticationRequest: AuthenticationRequestParameters;
-      if (Utils.compareObjects(userObject, this.getUser())) {
-        if (scopes.indexOf(this.clientId) > -1) {
-          authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-        }
-        else {
-            authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-        }
-      } else {
-          if (scopes.indexOf(this.clientId) > -1) {
-              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-          }
-          else {
-              authenticationRequest = new AuthenticationRequestParameters(AuthorityFactory.CreateInstance(authority, this.validateAuthority), this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-          }
-      }
+      const responseType = this.getTokenType(userObject, scopes, true);
+      const authenticationRequest = new AuthenticationRequestParameters(
+        AuthorityFactory.CreateInstance(authority, this.validateAuthority),
+        this.clientId,
+        scopes,
+        responseType,
+        this.getRedirectUri(),
+        this._state
+      );
 
       const cacheResult = this.getCachedToken(authenticationRequest, userObject);
       // resolve/reject based on cacheResult
@@ -1123,11 +1119,11 @@ export class UserAgentApplication {
     // This trick overcomes iframe navigation in IE
     // IE does not load the page consistently in iframe
     this._logger.info("LoadFrame: " + frameName);
-    var frameCheck = frameName;
+    const frameCheck = frameName;
 
     // TODO: VSTS AI, work on either removing the 500ms timeout or making it optional for IE??
     setTimeout(() => {
-      var frameHandle = this.addAdalFrame(frameCheck);
+      const frameHandle = this.addAdalFrame(frameCheck);
       if (frameHandle.src === "" || frameHandle.src === "about:blank") {
         frameHandle.src = urlNavigate;
         this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
@@ -1343,8 +1339,8 @@ export class UserAgentApplication {
   // TODO: Consider moving this to Storage.ts
   protected clearCacheForScope(accessToken: string) {
     const accessTokenItems = this._cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
-    for (var i = 0; i < accessTokenItems.length; i++) {
-        var token = accessTokenItems[i];
+    for (let i = 0; i < accessTokenItems.length; i++) {
+        let token = accessTokenItems[i];
         if (token.value.accessToken === accessToken) {
             this._cacheStorage.removeItem(JSON.stringify(token.key));
         }
@@ -1374,7 +1370,7 @@ export class UserAgentApplication {
     const errorDesc = requestInfo.parameters[Constants.errorDescription];
     const error = requestInfo.parameters[Constants.error];
 
-    var tokenType: string;
+    let tokenType: string;
     if (requestInfo.parameters[Constants.accessToken]) {
       tokenType = Constants.accessToken;
     }
@@ -1419,9 +1415,9 @@ export class UserAgentApplication {
       hash = window.location.hash;
     }
 
-    var self = null;
-    var isPopup: boolean = false;
-    var isWindowOpenerMsal = false;
+    let self = null;
+    let isPopup: boolean = false;
+    let isWindowOpenerMsal = false;
 
     // Check if the current window opened the iFrame/popup
     try {
@@ -1444,7 +1440,10 @@ export class UserAgentApplication {
     // TODO: Refactor so that this or saveTokenFromHash function returns a response object
     const requestInfo = self.getRequestInfo(hash);
 
-    let token: string = null, tokenResponseCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null, tokenType: string, saveToken: boolean = true;
+    let token: string = null;
+    let tokenResponseCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
+    let tokenType: string;
+    
     self._logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window
     if (window.parent !== window && window.parent.msal) {
@@ -1460,7 +1459,6 @@ export class UserAgentApplication {
       // if set to navigate to loginRequest page post login
       if (self._navigateToLoginRequestUrl) {
         self._cacheStorage.setItem(Constants.urlHash, hash);
-        saveToken = false;
         if (window.parent === window && !isPopup) {
           window.location.href = self._cacheStorage.getItem(Constants.loginRequest, this.storeAuthStateInCookie);
         }
@@ -1494,8 +1492,8 @@ export class UserAgentApplication {
       tokenType = Constants.idToken;
     }
 
-    var errorDesc = requestInfo.parameters[Constants.errorDescription];
-    var error = requestInfo.parameters[Constants.error];
+    const errorDesc = requestInfo.parameters[Constants.errorDescription];
+    const error = requestInfo.parameters[Constants.error];
 
     try {
        // We should only send the state back to the developer if it matches with what we received from the server
@@ -1519,7 +1517,7 @@ export class UserAgentApplication {
 
     // If current window is opener, close all windows
     if (isWindowOpenerMsal) {
-      for (var i = 0; i < window.opener.openedWindows.length; i++) {
+      for (let i = 0; i < window.opener.openedWindows.length; i++) {
         window.opener.openedWindows[i].close();
       }
     }
@@ -1784,8 +1782,7 @@ export class UserAgentApplication {
    * @hidden
    */
   private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: User, authenticationRequest: AuthenticationRequestParameters, extraQueryParameters?: string): void {
-    // TODO: Do we need this const? Never used.
-    const scope = scopes.join(" ").toLowerCase();
+
     this._logger.info("renewidToken is called");
     const frameHandle = this.addAdalFrame("msalIdTokenFrame");
 
@@ -1839,9 +1836,10 @@ export class UserAgentApplication {
    * @hidden
    */
   /* tslint:disable:no-string-literal */
+  //TODO: Break this function - too long
   private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
     let scope: string;
-    let clientObj: ClientInfo = new ClientInfo(clientInfo);
+    const clientObj: ClientInfo = new ClientInfo(clientInfo);
     // if the response contains "scope"
     if (tokenResponse.parameters.hasOwnProperty("scope")) {
       // read the scopes
@@ -1883,19 +1881,13 @@ export class UserAgentApplication {
    */
   // TODO: Break this function up - either into utils or token specific --- too long to be readable
   protected saveTokenFromHash(tokenResponse: TokenResponse): void {
+
     this._logger.info("State status:" + tokenResponse.stateMatch + "; Request type:" + tokenResponse.requestType);
     this._cacheStorage.setItem(Constants.msalError, "");
     this._cacheStorage.setItem(Constants.msalErrorDescription, "");
-    var scope: string = "";
-    var authorityKey: string = "";
-    var acquireTokenUserKey: string = "";
-    // if response has "scope" set it, else set the scope to client_id
-    if (tokenResponse.parameters.hasOwnProperty("scope")) {
-      scope = tokenResponse.parameters["scope"].toLowerCase();
-    }
-    else {
-      scope = this.clientId;
-    }
+
+    let authorityKey: string = "";
+    let acquireTokenUserKey: string = "";
 
     // If server returns an error
     if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
@@ -1926,8 +1918,9 @@ export class UserAgentApplication {
         if (tokenResponse.parameters.hasOwnProperty(Constants.sessionState)) {
             this._cacheStorage.setItem(Constants.msalSessionState, tokenResponse.parameters[Constants.sessionState]);
         }
-        var idToken: IdToken;
-        var clientInfo: string = "";
+
+        let idToken: IdToken;
+        let clientInfo: string = "";
 
         // Process access_token
         if (tokenResponse.parameters.hasOwnProperty(Constants.accessToken)) {
@@ -2225,7 +2218,7 @@ export class UserAgentApplication {
   */
   // TODO: Is there a better way to do this? At the least, sandbox this to the wrapper listening in to the core after the handshake
   private broadcast(eventName: string, data: string) {
-    var evt = new CustomEvent(eventName, { detail: data });
+    const evt = new CustomEvent(eventName, { detail: data });
     window.dispatchEvent(evt);
   }
 
@@ -2242,20 +2235,18 @@ export class UserAgentApplication {
     if (!userObject) {
         return null;
     }
-    let authenticationRequest: AuthenticationRequestParameters;
-    let newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
 
     // Construct AuthenticationRequest based on response type
-    if (Utils.compareObjects(userObject, this.getUser())) {
-      if (scopes.indexOf(this.clientId) > -1) {
-        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this._state);
-      }
-      else {
-        authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.token, this.getRedirectUri(), this._state);
-      }
-    } else {
-      authenticationRequest = new AuthenticationRequestParameters(newAuthority, this.clientId, scopes, ResponseTypes.id_token_token, this.getRedirectUri(), this._state);
-    }
+    const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.validateAuthority);
+    const responseType = this.getTokenType(userObject, scopes, true);
+    const authenticationRequest = new AuthenticationRequestParameters(
+      newAuthority,
+      this.clientId,
+      scopes,
+      responseType,
+      this.getRedirectUri(),
+      this._state
+    );
 
     // get cached token
     return this.getCachedToken(authenticationRequest, user);
@@ -2269,7 +2260,7 @@ export class UserAgentApplication {
   protected getScopesForEndpoint(endpoint: string) : Array<string> {
     // if user specified list of unprotectedResources, no need to send token to these endpoints, return null.
     if (this._unprotectedResources.length > 0) {
-        for (var i = 0; i < this._unprotectedResources.length; i++) {
+        for (let i = 0; i < this._unprotectedResources.length; i++) {
             if (endpoint.indexOf(this._unprotectedResources[i]) > -1) {
                 return null;
             }
@@ -2307,7 +2298,7 @@ export class UserAgentApplication {
    * tracks if login is in progress
    */
   loginInProgress(): boolean {
-    var pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
+    const pendingCallback = this._cacheStorage.getItem(Constants.urlHash);
     if (pendingCallback) {
         return true;
     }
@@ -2409,9 +2400,47 @@ export class UserAgentApplication {
    */
   private getHostFromUri(uri: string): string {
     // remove http:// or https:// from uri
-    var extractedUri = String(uri).replace(/^(https?:)\/\//, "");
+    // TODO: Test this:: return  extractedUri = String(uri).replace(/^(https?:)\/\//, "").split("/")[0];
+    let extractedUri = String(uri).replace(/^(https?:)\/\//, "");
     extractedUri = extractedUri.split("/")[0];
     return extractedUri;
+  }
+
+  /**
+   * Utils function to create the Authentication
+   * @param userObject
+   * @param scopes
+   * @param silentCall
+   */
+  private getTokenType(userObject: User, scopes: string[], silentCall: boolean): string {
+
+    // if user is passed and matches the user object/or set to getUser() from cache
+    // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
+    let tokenType: string;
+
+    // acquireTokenSilent
+    if (silentCall) {
+      if (Utils.compareObjects(userObject, this.getUser())) {
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+      }
+      else {
+        tokenType  = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
+      }
+
+      return tokenType;
+    }
+    // all other cases
+    else {
+      if (!Utils.compareObjects(userObject, this.getUser())) {
+           tokenType = ResponseTypes.id_token_token;
+      }
+      else {
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+      }
+
+      return tokenType;
+    }
+
   }
 
  //#endregion

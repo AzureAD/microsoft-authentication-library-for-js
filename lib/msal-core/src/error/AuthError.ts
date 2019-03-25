@@ -38,8 +38,6 @@ export class AuthError extends Error {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorMessage);
-        console.log(this);
-        console.log(this.constructor);
         Object.setPrototypeOf(this, AuthError.prototype);
 
         this.errorCode = errorCode;
