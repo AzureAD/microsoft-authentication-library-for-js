@@ -217,15 +217,15 @@ export class UserAgentApplication {
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
-        if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
+      if (isCallback) {
+        this.handleAuthenticationResponse(urlHash);
+      }
+      else {
+        const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
+        if (pendingCallback) {
+          this.processCallBack(pendingCallback);
         }
-        else {
-            const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-            if (pendingCallback) {
-                this.processCallBack(pendingCallback);
-            }
-        }
+      }
     }
   }
 
@@ -238,18 +238,18 @@ export class UserAgentApplication {
    */
   setRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
     if (!successCallback) {
-      this._redirectCallbacksSet = false;
+      this.redirectCallbacksSet = false;
       throw ClientConfigurationError.createInvalidCallbackObjectError("successCallback", successCallback);
     } else if (!errorCallback) {
-      this._redirectCallbacksSet = false;
+      this.redirectCallbacksSet = false;
       throw ClientConfigurationError.createInvalidCallbackObjectError("errorCallback", errorCallback);
     }
 
     // Set callbacks
-    this._tokenReceivedCallback = successCallback;
-    this._errorReceivedCallback = errorCallback;
+    this.tokenReceivedCallback = successCallback;
+    this.errorReceivedCallback = errorCallback;
 
-    this._redirectCallbacksSet = true;
+    this.redirectCallbacksSet = true;
   }
 
   //#endregion
@@ -269,21 +269,21 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.userLoginInProgress) {
-        throw ClientAuthError.createLoginInProgressError();
+      this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), this.getUserState(this.silentAuthenticationState));
+      return;
     }
 
     // if extraScopesToConsent is passed, append them to the login request
     let scopes: Array<string>;
     if (request.extraScopesToConsent) {
-        scopes = [...request.scopes, ...request.extraScopesToConsent];
+      scopes = [...request.scopes, ...request.extraScopesToConsent];
     }
     else {
-        scopes = request.scopes;
+      scopes = request.scopes;
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
-    scopes = this.filterScopes(scopes);
 
     // construct extraQueryParams string from the request
     let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
@@ -400,14 +400,14 @@ export class UserAgentApplication {
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(request.scopes, true);
-    request.scopes = this.filterScopes(request.scopes);
 
     // Get the user object if a session exists
     const userObject = request.account ? request.account : this.getUser();
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      throw ClientAuthError.createAcquireTokenInProgressError();
+      this.errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), this.getUserState(this.silentAuthenticationState));
+      return;
     }
 
     // If no session exists, prompt the user to login.
@@ -522,7 +522,6 @@ export class UserAgentApplication {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
-      scopes = this.filterScopes(scopes);
 
       // construct extraQueryParams string from the request
       let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
@@ -669,12 +668,10 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  // TODO: params to accept AuthRequest object instead
   acquireTokenPopup(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
-      request.scopes = this.filterScopes(request.scopes);
 
       const scope = request.scopes.join(" ").toLowerCase();
 
@@ -916,14 +913,12 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
    */
-  // TODO: params to accept AuthRequest object instead
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
-      request.scopes = this.filterScopes(request.scopes);
 
       const scope = request.scopes.join(" ").toLowerCase();
 
@@ -1219,7 +1214,6 @@ export class UserAgentApplication {
         window.activeRenewals[scope] = null;
 
         // for all callBacksMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
-        // TODO: understand where the error, token are coming from
         for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (errorDesc || error) {
@@ -1338,7 +1332,6 @@ export class UserAgentApplication {
       if (token) {
         if (this.tokenReceivedCallback) {
           // Trigger callback
-          // TODO: Refactor to new callback pattern
           this.tokenReceivedCallback.call(this, token, tokenType, userState);
         }
       }
@@ -1390,11 +1383,11 @@ export class UserAgentApplication {
     let tokenType: string;
 
     self.logger.info("Returned from redirect url");
-    // If parent window is the msal instance which opened the current window
+    // If parent window is the msal instance which opened the current window (iframe)
     if (window.parent !== window && window.parent.msal) {
         tokenResponseCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
-    // Current window is window opener
+    // Current window is window opener (popup)
     else if (isWindowOpenerMsal) {
         tokenResponseCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
     }
@@ -1402,10 +1395,10 @@ export class UserAgentApplication {
     else {
       tokenResponseCallback = null;
       // if set to navigate to loginRequest page post login
-      if (self._navigateToLoginRequestUrl) {
-        self._cacheStorage.setItem(Constants.urlHash, hash);
+      if (self.navigateToLoginRequestUrl) {
+        self.cacheStorage.setItem(Constants.urlHash, hash);
         if (window.parent === window && !isPopup) {
-          window.location.href = self._cacheStorage.getItem(Constants.loginRequest, this.inCookie);
+          window.location.href = self.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
         }
         return;
       }
@@ -1450,9 +1443,9 @@ export class UserAgentApplication {
       } else {
         // Redirect cases
         if (error || errorDesc) {
-          self._errorReceivedCallback.call(new ServerError(error, errorDesc), state);
+          self.errorReceivedCallback.call(new ServerError(error, errorDesc), state);
         } else if (token) {
-          self._tokenReceivedCallback.call(token, tokenType, state);
+          self.tokenReceivedCallback.call(token, tokenType, state);
         }
       }
     } catch (err) {
@@ -2114,24 +2107,6 @@ export class UserAgentApplication {
         throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
       }
     }
-  }
-
-  /**
-  * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
-  * @hidden
-  */
-  private filterScopes(scopes: Array<string>): Array<string> {
-    if (scopes) {
-      scopes = scopes.filter(function (element) {
-        return element !== Constants.openidScope;
-      });
-
-      scopes = scopes.filter(function (element) {
-        return element !== Constants.profileScope;
-      });
-    }
-
-    return scopes;
   }
 
   /**
