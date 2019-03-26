@@ -1,5 +1,4 @@
-import { User } from "./User";
-
+import { Account } from "./Account";
 
 /**
  * TODO:
@@ -26,7 +25,7 @@ export type AuthenticationParameters = {
     claimsRequest?: null;
     authority?: string;
     correlationId?: string;
-    account?: User;
+    account?: Account;
     sid?: string;
     loginHint?: string;
 };

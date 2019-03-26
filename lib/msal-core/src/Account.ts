@@ -25,31 +25,50 @@ import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { Utils } from "./Utils";
 
-export class User {
+/**
+ * accountIdentifier       combination of idToken.uid and idToken.utid
+ * homeAccountIdentifier   combination of clientInfo.uid and clientInfo.utid
+ * userName                idToken.preferred_username
+ * name                    idToken.name
+ * idToken                 idToken
+ * sid                     idToken.sid - session identifier
+ * environment             idtoken.issuer (the authority that issues the token)
+ */
+export class Account {
 
-    displayableId: string;
+    accountIdentifier: string;
+    homeAccountIdentifier: string;
+    userName: string;
     name: string;
-    identityProvider: string;
-    userIdentifier: string;
     idToken: Object;
     sid: string;
+    environment: string;
 
     /**
-     * @hidden
+     * Creates an Account Object
+     * @param homeAccountIdentifier
+     * @param userName
+     * @param name
+     * @param idToken
+     * @param sid
+     * @param environment
      */
-    constructor(displayableId: string, name: string, identityProvider: string, userIdentifier: string, idToken: Object, sid: string) {
-        this.displayableId = displayableId;
-        this.name = name;
-        this.identityProvider = identityProvider;
-        this.userIdentifier = userIdentifier;
-        this.idToken = idToken;
-        this.sid = sid;
+    constructor(homeAccountIdentifier: string, userName: string, name: string, idToken: Object, sid: string,  environment: string) {
+      // this.accountIdentifier
+      this.homeAccountIdentifier = homeAccountIdentifier;
+      this.userName = userName;
+      this.name = name;
+      this.idToken = idToken;
+      this.sid = sid;
+      this.environment = environment;
     }
 
     /**
      * @hidden
+     * @param idToken
+     * @param clientInfo
      */
-    static createUser(idToken: IdToken, clientInfo: ClientInfo): User {
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
         let uid: string;
         let utid: string;
         if (!clientInfo) {
@@ -61,7 +80,7 @@ export class User {
             utid = clientInfo.utid;
         }
 
-        const userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier, idToken.decodedIdToken, idToken.sid);
+        const homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
+        return new Account(homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.decodedIdToken, idToken.sid, idToken.issuer);
     }
 }

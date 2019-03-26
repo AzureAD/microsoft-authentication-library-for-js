@@ -22,7 +22,7 @@
  */
 
 import { IUri } from "./IUri";
-import { User } from "./User";
+import { Account } from "./Account";
 import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { ServerRequestParameters } from "./ServerRequestParameters";
@@ -35,18 +35,17 @@ export class Utils {
   //#region General Util
 
   /**
-   * Utils function to compare two User objects - used to check if the same user is logged in
+   * Utils function to compare two Account objects - used to check if the same user/account is logged in
    *
-   * @param u1: User object
-   * @param u2: User object
+   * @param a1: Account object
+   * @param a2: Account object
    */
-  // TODO: Change the name of this to compareUsers or compareAccounts
-  static compareObjects(u1: User, u2: User): boolean {
-   if (!u1 || !u2) {
+  static compareAccounts(a1: Account, a2: Account): boolean {
+   if (!a1 || !a2) {
           return false;
       }
-    if (u1.userIdentifier && u2.userIdentifier) {
-      if (u1.userIdentifier === u2.userIdentifier) {
+    if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
+      if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
         return true;
       }
     }
@@ -588,14 +587,14 @@ export class Utils {
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
-        const user: User = request.account;
-        if (user.sid) {
+        const account: Account = request.account;
+        if (account.sid) {
           ssoType = SSOTypes.SID;
-          ssoData = user.sid;
+          ssoData = account.sid;
         }
-        else if (user.displayableId) {
+        else if (account.userName) {
           ssoType = SSOTypes.LOGIN_HINT;
-          ssoData = user.displayableId;
+          ssoData = account.userName;
         }
       }
       // sid from request
@@ -624,9 +623,9 @@ export class Utils {
     serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
 
     // add the HomeAccountIdentifier info/ domain_hint
-    if (request && request.account && request.account.userIdentifier) {
-        console.log("userIdentifier: " + request.account.userIdentifier);
-        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.userIdentifier, ssoParam);
+    if (request && request.account && request.account.homeAccountIdentifier) {
+        console.log("userIdentifier: " + request.account.homeAccountIdentifier);
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
     }
 
     return serverReqParam;
