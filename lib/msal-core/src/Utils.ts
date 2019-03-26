@@ -583,28 +583,31 @@ export class Utils {
     let ssoType;
     let ssoData;
     let ssoParam: QPDict = {};
+    let serverReqParam: QPDict = {};
 
     // if account info is passed, account.sid > account.login_hint
-    if (request && request.account) {
-      const user: User = request.account;
-      if (user.sid) {
+    if (request) {
+      if (request.account) {
+        const user: User = request.account;
+        if (user.sid) {
+          ssoType = SSOTypes.SID;
+          ssoData = user.sid;
+        }
+        else if (user.displayableId) {
+          ssoType = SSOTypes.LOGIN_HINT;
+          ssoData = user.displayableId;
+        }
+      }
+      // sid from request
+      else if (request.sid) {
         ssoType = SSOTypes.SID;
-        ssoData = user.sid;
+        ssoData = request.sid;
       }
-      else if (user.displayableId) {
+      // loginHint from request
+      else if (request.loginHint) {
         ssoType = SSOTypes.LOGIN_HINT;
-        ssoData = user.displayableId;
+        ssoData = request.loginHint;
       }
-    }
-    // sid from request
-    else if (request.sid) {
-      ssoType = SSOTypes.SID;
-      ssoData = request.sid;
-    }
-    // loginHint from request
-    else if (request.loginHint) {
-      ssoType = SSOTypes.LOGIN_HINT;
-      ssoData = request.loginHint;
     }
     // adalIdToken retrieved from cache
     else if (idTokenObject) {
@@ -618,10 +621,16 @@ export class Utils {
       }
     }
 
-    let serverReqParam: QPDict = this.addSSOParameter(ssoType, ssoData, ssoParam);
+    serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
+
+    // add the HomeAccountIdentifier info/ domain_hint
+    if (request && request.account && request.account.userIdentifier) {
+        console.log("userIdentifier: " + request.account.userIdentifier);
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.userIdentifier, ssoParam);
+    }
+
     return serverReqParam;
   }
-
 
 
   /**
@@ -652,6 +661,23 @@ export class Utils {
         ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
         break;
       }
+      case SSOTypes.HOMEACCOUNT_ID: {
+        // TODO: figure out how this code will change with "account" addition
+        let homeAccountId = ssoData.split(".");
+        const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
+        const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
+
+        ssoParam[SSOTypes.LOGIN_REQ] = uid;
+        ssoParam[SSOTypes.DOMAIN_REQ] = utid;
+
+        if (utid === Constants.consumersUtid) {
+            ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
+        }
+        else {
+            ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        }
+        break;
+      }
       case SSOTypes.LOGIN_REQ: {
         ssoParam[SSOTypes.LOGIN_REQ] = ssoData;
         break;
@@ -669,16 +695,19 @@ export class Utils {
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  static generateQueryParameters(queryParameters: QPDict): string {
+  static generateQueryParametersString(queryParameters: QPDict): string {
     let paramsString: string = null;
-    Object.keys(queryParameters).forEach((key: string) => {
-      if (paramsString == null) {
-        paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
-      }
-      else {
-        paramsString += `&${key}=${encodeURIComponent(queryParameters[key])}`;
-      }
-    });
+
+    if (queryParameters) {
+      Object.keys(queryParameters).forEach((key: string) => {
+        if (paramsString == null) {
+          paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
+        }
+        else {
+          paramsString += `&${key}=${encodeURIComponent(queryParameters[key])}`;
+        }
+     });
+    }
 
     return paramsString;
   }

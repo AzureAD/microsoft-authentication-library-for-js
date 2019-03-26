@@ -518,16 +518,34 @@ describe('Msal', function (): any {
     });
 
     it('tests if hint parameters get added when user object is passed to the function', function () {
-        var user = {
+
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).toContain("&login_hint=" + 'some_id');
+            expect(args).toContain("&login_req=5678");
+            expect(args).toContain("&domain_req=1234");
+            expect(args).toContain("&domain_hint");
+            expect(args).toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(Constants.prompt_none);
+            done();
+        };
+
+        let user: User =  {
+            idToken: null,
+            name: null,
+            sid: null,
+            identityProvider: null,
             userIdentifier: '1234.5678',
             displayableId:'some_id'
-        }
-        var urlNavigate = '';
-        urlNavigate = msal.addHintParameters(urlNavigate, user);
-        expect(urlNavigate).toContain("login_hint");
-        expect(urlNavigate).toContain("login_req");
-        expect(urlNavigate).toContain("domain_req");
-        expect(urlNavigate).toContain("domain_hint");
+        };
+
+        let request: AuthenticationParameters = {prompt: "select_account", account: user};
+        msal.loginRedirect(request);
     });
 
     it('tests urlContainsQueryStringParameter functionality', function () {

@@ -25,8 +25,6 @@ import { Authority } from "./Authority";
 import { Utils } from "./Utils";
 
 /**
- * TODO: Change this to ServerRequestParameters soon after Request changes are in.
- *
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
  * State: OAuth Spec: https://tools.ietf.org/html/rfc6749#section-10.12
  * @hidden
@@ -185,27 +183,4 @@ export class ServerRequestParameters {
 
     return scopeList;
   }
-
-  /**
-   * remove the exisiting SSOData from the extraQueryParameters
-   * @param sid
-   */
-//   static removeSSOParams(extraQueryParameters: string, type: string): string {
-
-//     let ssoType: string;
-//     if (type === SSOTypes.ID_TOKEN) {
-//         ssoType = SSOTypes.LOGIN_HINT;
-//     }
-//     else {
-//         ssoType = type;
-//     }
-
-//     extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, ssoType);
-//     if (type === SSOTypes.ID_TOKEN) {
-//         extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, SSOTypes.DOMAIN_HINT);
-//     }
-
-//     return extraQueryParameters;
-//   }
-
 }
