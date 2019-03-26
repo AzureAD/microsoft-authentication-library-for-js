@@ -131,6 +131,8 @@ export const SSOTypes = {
     DOMAIN_HINT: "domain_hint",
     ORGANIZATIONS: "organizations",
     CONSUMERS: "consumers",
+    ACCOUNT_ID: "account_id",
+    HOMEACCOUNT_ID: "homeaccount_id",
     LOGIN_REQ: "login_req",
     DOMAIN_REQ: "domain_req"
 };
