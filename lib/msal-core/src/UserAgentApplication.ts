@@ -41,6 +41,7 @@ import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
+import { AuthResponse } from './AuthResponse';
 
 // default authority
 /**
@@ -62,8 +63,8 @@ declare global {
         Event: Event;
         activeRenewals: {};
         renewStates: Array<string>;
-        callBackMappedToRenewStates : {};
-        callBacksMappedToRenewStates: {};
+        primaryMsalCallbackMappedToRenewStates : {};
+        promiseMappedToRenewStates: {};
         openedWindows: Array<Window>;
         requestType: string;
     }
@@ -208,8 +209,8 @@ export class UserAgentApplication {
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
-    window.callBackMappedToRenewStates = { };
-    window.callBacksMappedToRenewStates = { };
+    window.primaryMsalCallbackMappedToRenewStates = { };
+    window.promiseMappedToRenewStates = { };
     window.msal = this;
 
     const urlHash = window.location.hash;
@@ -514,10 +515,10 @@ export class UserAgentApplication {
       // if extraScopesToConsent is passed, append them to the login request
       let scopes: Array<string>;
       if (request.extraScopesToConsent) {
-        let scopes = [...request.scopes, ...request.extraScopesToConsent];
+        scopes = [...request.scopes, ...request.extraScopesToConsent];
       }
       else {
-          scopes = request.scopes;
+        scopes = request.scopes;
       }
 
       // Validate and filter scopes (the validate function will throw if validation fails)
@@ -532,8 +533,8 @@ export class UserAgentApplication {
       if (request.account || request.sid || request.loginHint) {
         extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
 
-         // if user is not provided, we pass null
-         this.loginPopupHelper(user, resolve, reject, scopes, extraQueryParameters);
+        // if user is not provided, we pass null
+        this.loginPopupHelper(user, resolve, reject, scopes, extraQueryParameters);
       }
       // else handle the library data
       else {
@@ -1042,8 +1043,8 @@ export class UserAgentApplication {
         // fail the iframe session if it"s in pending state
         this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
         // Error after timeout
-        if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-          window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
+        if (expectedState && window.primaryMsalCallbackMappedToRenewStates[expectedState]) {
+          window.primaryMsalCallbackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
         }
 
         this.cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
@@ -1200,27 +1201,28 @@ export class UserAgentApplication {
     window.activeRenewals[scope] = expectedState;
 
     // initialize callbacks mapped array
-    if (!window.callBacksMappedToRenewStates[expectedState]) {
-        window.callBacksMappedToRenewStates[expectedState] = [];
+    if (!window.promiseMappedToRenewStates[expectedState]) {
+        window.promiseMappedToRenewStates[expectedState] = [];
     }
     // indexing on the current state, push the callback params to callbacks mapped
-    window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
+    window.promiseMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
 
     // Store the server esponse in the current window??
-    if (!window.callBackMappedToRenewStates[expectedState]) {
-      window.callBackMappedToRenewStates[expectedState] =
-      (errorDesc: string, token: string, error: string, tokenType: string) => {
+    if (!window.primaryMsalCallbackMappedToRenewStates[expectedState]) {
+      window.primaryMsalCallbackMappedToRenewStates[expectedState] =
+      (response: AuthResponse, error: AuthError) => {
         // reset active renewals
         window.activeRenewals[scope] = null;
 
         // for all callBacksMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
-        for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
+        for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
           try {
-            if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimiter + error);
-            }
-            else if (token) {
-                window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+            if (error) {
+                window.promiseMappedToRenewStates[expectedState][i].reject(error);
+            } else if (response) {
+                window.promiseMappedToRenewStates[expectedState][i].resolve(response);
+            } else {
+              throw AuthError.createUnexpectedError("Error and response are both null");
             }
           } catch (e) {
             this.logger.warning(e);
@@ -1228,8 +1230,8 @@ export class UserAgentApplication {
         }
 
         // reset
-        window.callBacksMappedToRenewStates[expectedState] = null;
-        window.callBackMappedToRenewStates[expectedState] = null;
+        window.promiseMappedToRenewStates[expectedState] = null;
+        window.primaryMsalCallbackMappedToRenewStates[expectedState] = null;
       };
     }
   }
@@ -1332,7 +1334,7 @@ export class UserAgentApplication {
       if (token) {
         if (this.tokenReceivedCallback) {
           // Trigger callback
-          this.tokenReceivedCallback.call(this, token, tokenType, userState);
+          this.tokenReceivedCallback(token, tokenType, userState);
         }
       }
     } catch (err) {
@@ -1385,7 +1387,7 @@ export class UserAgentApplication {
     self.logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window (iframe)
     if (window.parent !== window && window.parent.msal) {
-        tokenResponseCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+        tokenResponseCallback = window.parent.primaryMsalCallbackMappedToRenewStates[requestInfo.stateResponse];
     }
     // Current window is window opener (popup)
     else if (isWindowOpenerMsal) {
@@ -1402,7 +1404,6 @@ export class UserAgentApplication {
         }
         return;
       }
-      // Close current window??
       else {
         window.location.hash = "";
       }
