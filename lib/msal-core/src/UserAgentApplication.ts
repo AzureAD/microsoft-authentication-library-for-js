@@ -874,44 +874,50 @@ export class UserAgentApplication {
 
       const scope = request.scopes.join(" ").toLowerCase();
 
-        //if user is not currently logged in and no login_hint/sid is passed in the request
-        if (!userObject && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken)) {
-          this.logger.info("User login is required");
-          return reject(ClientAuthError.createUserLoginRequiredError());
-        }
+      // if the developer passes a userObject give him the priority
+      const userObject = request.account ? request.account : this.getUser();
 
-        const responseType = this.getTokenType(userObject, request.scopes, true);
-        let serverAuthenticationRequest = new ServerRequestParameters(
-          AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
-          this.clientId,
-          request.scopes,
-          responseType,
-          this.getRedirectUri(),
-          this.config.auth.state
-        );
+      // extract if there is an adalIdToken stashed in the cache
+      const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
-        // if the developer provides one of these, give preference to developer choice
-        let queryParameters: QPDict = {};
+      //if user is not currently logged in and no login_hint/sid is passed in the request
+      if (!userObject && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
+        this.logger.info("User login is required");
+        return reject(ClientAuthError.createUserLoginRequiredError());
+      }
 
-        // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-        if (request) {
-          serverAuthenticationRequest = this.populateQueryParams(userObject, request, serverAuthenticationRequest);
-        }
-        //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
-        else if (!userObject && !Utils.isEmpty(adalIdToken)) {
-          // if adalIdToken exists, extract the SSO info from the same
-          const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
-          console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+      const responseType = this.getTokenType(userObject, request.scopes, true);
+      let serverAuthenticationRequest = new ServerRequestParameters(
+        AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
+        this.clientId,
+        request.scopes,
+        responseType,
+        this.getRedirectUri(),
+        this.config.auth.state
+      );
 
-          queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
+      // if the developer provides one of these, give preference to developer choice
+      let queryParameters: QPDict = {};
 
-          // add the extracted params to Server Request
-          serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
-          serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
-        }
+      // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+      if (request) {
+        serverAuthenticationRequest = this.populateQueryParams(userObject, request, serverAuthenticationRequest);
+      }
+      //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
+      else if (!userObject && !Utils.isEmpty(adalIdToken)) {
+        // if adalIdToken exists, extract the SSO info from the same
+        const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
+        console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
 
-        const cacheResult = this.getCachedToken(serverAuthenticationRequest, userObject);
-      
+        queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
+
+        // add the extracted params to Server Request
+        serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
+        serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
+      }
+
+      const cacheResult = this.getCachedToken(serverAuthenticationRequest, userObject);
+
       // resolve/reject based on cacheResult
       if (cacheResult) {
         if (cacheResult.token) {
