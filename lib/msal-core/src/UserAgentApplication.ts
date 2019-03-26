@@ -37,6 +37,9 @@ import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration } from "./Configuration";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
+import { AuthError } from "./error/AuthError";
+import { ClientAuthError } from "./error/ClientAuthError";
 
 // default authority
 /**
@@ -232,12 +235,7 @@ export class UserAgentApplication {
     // Creates navigate url; saves value in cache; redirect user to AAD
 
     if (this.userLoginInProgress) {
-      // TODO: use error callback here
-      if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback(ErrorDescription.loginProgressError, null, ErrorCodes.loginProgressError, Constants.idToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
-        return;
-      }
-      // TODO: Should we throw noCallback error here?
+        throw ClientAuthError.createLoginInProgressError();
     }
 
     // if extraScopesToConsent is passed, append them to the login request
@@ -252,17 +250,9 @@ export class UserAgentApplication {
       }
     }
 
-    // TODO: Replace with new validation pattern - This will come with Error
-    if (scopes) {
-      const isValidScope = this.validateInputScope(scopes);
-      if (isValidScope && !Utils.isEmpty(isValidScope)) {
-          if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.idToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
-          return;
-        }
-      }
-      scopes = this.filterScopes(scopes);
-    }
+    // Validate and filter scopes (the validate function will throw if validation fails)
+    this.validateInputScope(scopes, false);
+    scopes = this.filterScopes(scopes);
 
     const user = this.getUser();
 
@@ -379,38 +369,23 @@ export class UserAgentApplication {
    */
   // TODO: params to accept AuthRequest object instead
   acquireTokenRedirect(request: AuthenticationParameters): void {
-    // Validate scopes
-    // TODO: Change to new validation pattern
-    // TODO: is this always access token?
-    const isValidScope = this.validateInputScope(request.scopes);
-    if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback(ErrorDescription.inputScopesError, null, ErrorCodes.inputScopesError, Constants.accessToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
-        return;
-      }
-    }
-    if (request && request.scopes) {
-      request.scopes = this.filterScopes(request.scopes);
-    }
+    // Validate and filter scopes (the validate function will throw if validation fails)
+    this.validateInputScope(request.scopes, true);
+    request.scopes = this.filterScopes(request.scopes);
 
     // Get the user object if a session exists
     const userObject = request.account ? request.account : this.getUser();
 
     // If already in progress, do not proceed
-    // TODO: Should we throw or return an error here?
     if (this.acquireTokenInProgress) {
-      return;
+      throw ClientAuthError.createAcquireTokenInProgressError();
     }
 
     // If no session exists, prompt the user to login.
+    const scope = request.scopes.join(" ").toLowerCase();
     if (!userObject && !(request.sid  || request.loginHint)) {
-    // TODO: This should be replaced with error callback
-    // TODO: Is this always accessToken?
-      if (this.tokenReceivedCallback) {
-        this.logger.info("User login is required");
-        this.tokenReceivedCallback(ErrorDescription.userLoginError, null, ErrorCodes.userLoginError, Constants.accessToken, this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
-        return;
-      }
+      this.logger.info("User login is required");
+      throw ClientAuthError.createUserLoginRequiredError();
     }
 
     let serverAuthenticationRequest: ServerRequestParameters;
@@ -494,9 +469,7 @@ export class UserAgentApplication {
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
       if (this.userLoginInProgress) {
-        // TODO: Return custom error object here in future
-        reject(ErrorCodes.loginProgressError + Constants.resourceDelimiter + ErrorDescription.loginProgressError);
-        return;
+        return reject(ClientAuthError.createLoginInProgressError());
       }
 
       // if extraScopesToConsent is passed, append them to the login request
@@ -510,18 +483,9 @@ export class UserAgentApplication {
         }
       }
 
-      // Validate scopes
-      // TODO: Replace with new validation pattern
-      if (scopes) {
-        const isValidScope = this.validateInputScope(scopes);
-        if (isValidScope && !Utils.isEmpty(isValidScope)) {
-          // TODO: Return custom error object here in future
-          reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + ErrorDescription.inputScopesError);
-          return;
-        }
-
-        scopes = this.filterScopes(scopes);
-      }
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(scopes, false);
+      scopes = this.filterScopes(scopes);
 
       let user = this.getUser();
 
@@ -580,9 +544,9 @@ export class UserAgentApplication {
     const scope = scopes.join(" ").toLowerCase();
 
     // Generate a popup window
-    // TODO: Refactor this so that openWindow throws an error, loginPopupHelper rejects or resolves based on that action
     const popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
     if (!popUpWindow) {
+      // We pass reject in openWindow, we reject there during an error
       return;
     }
 
@@ -634,7 +598,7 @@ export class UserAgentApplication {
 
       // What is this? Is this the reject that is passed in?? -- REDO this in the subsequent refactor, passing reject is confusing
       if (reject) {
-        reject(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
+        reject(ClientAuthError.createEndpointResolutionError());
       }
 
       // Close the popup window
@@ -644,7 +608,7 @@ export class UserAgentApplication {
     }).catch((err) => {
       // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
-      reject(err);
+      reject(ClientAuthError.createEndpointResolutionError(err.toString));
     });
   }
 
@@ -663,35 +627,24 @@ export class UserAgentApplication {
   // TODO: params to accept AuthRequest object instead
   acquireTokenPopup(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // Validate scopes
-      // TODO: Replace with new validation pattern
-      const isValidScope = this.validateInputScope(request.scopes);
-      if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        // TODO: Should reject with custom error
-        // TODO: Is this always accessToken?
-        reject(ErrorCodes.inputScopesError + Constants.resourceDelimiter + isValidScope);
-      }
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(request.scopes, true);
+      request.scopes = this.filterScopes(request.scopes);
 
-      if (request.scopes) {
-        request.scopes = this.filterScopes(request.scopes);
-      }
       const scope = request.scopes.join(" ").toLowerCase();
 
       // Get the user object if a session exists
       const userObject = request.account ? request.account : this.getUser();
 
-      // If already in progress, reject the request
+      // If already in progress, throw an error and reject the request
       if (this.acquireTokenInProgress) {
-        // TODO: Should reject with custom error
-        reject(ErrorCodes.acquireTokenProgressError + Constants.resourceDelimiter + ErrorDescription.acquireTokenProgressError);
-        return;
+        return reject(ClientAuthError.createAcquireTokenInProgressError());
       }
 
       // If no session exists, prompt the user to login.
       if (!userObject && !!(request.sid  || request.loginHint)) {
         this.logger.info("User login is required");
-        reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
-        return;
+        return reject(ClientAuthError.createUserLoginRequiredError());
       }
 
       // track the acquireToken progress
@@ -703,7 +656,7 @@ export class UserAgentApplication {
       // Open the popup window
       const popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
       if (!popUpWindow) {
-        // TODO: we should be rejecting with an error here
+        // We pass reject to openWindow, so we are rejecting there.
         return;
       }
 
@@ -754,21 +707,19 @@ export class UserAgentApplication {
 
       }, () => {
         // On rejection
-        // TODO: Is this always accessToken?
         this.logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
         this.cacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
         this.cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
-        // TODO: Should reject with custom error here
+
         if (reject) {
-          reject(ErrorCodes.endpointResolutionError + Constants.resourceDelimiter + ErrorDescription.endpointResolutionError);
+          reject(ClientAuthError.createEndpointResolutionError());
         }
         if (popUpWindow) {
             popUpWindow.close();
         }
       }).catch((err) => {
-        // TODO: Should reject with custom error here
         this.logger.warning("could not resolve endpoints");
-        reject(err);
+        reject(ClientAuthError.createEndpointResolutionError(err.toString()));
       });
     });
   }
@@ -788,19 +739,18 @@ export class UserAgentApplication {
    */
   private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): Window {
     // Generate a popup window
-    const popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
-
-    // if popupWindow is not valid, throw error
-    if (popupWindow == null) {
+    var popupWindow: Window;
+    try {
+      popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
+    } catch (e) {
       instance.userLoginInProgress = false;
       instance.acquireTokenInProgress = false;
+
       this.logger.info(ErrorCodes.popUpWindowError + ":" + ErrorDescription.popUpWindowError);
       this.cacheStorage.setItem(Constants.msalError, ErrorCodes.popUpWindowError);
       this.cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.popUpWindowError);
       if (reject) {
-        // TODO: Throw custom error here
-        // TODO: Figure out some way to pass tokenType
-        reject(ErrorCodes.popUpWindowError + Constants.resourceDelimiter + ErrorDescription.popUpWindowError);
+        reject(ClientAuthError.createPopupWindowError());
       }
       return null;
     }
@@ -812,9 +762,7 @@ export class UserAgentApplication {
       // If popup closed or login in progress, cancel login
       if (popupWindow && popupWindow.closed && instance.userLoginInProgress) {
         if (reject) {
-          // TODO: Reject with custom error here
-          // TODO: Figure out some way to pass tokenType
-          reject(ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
+          reject(ClientAuthError.createUserCancelledError());
         }
         window.clearInterval(pollTimer);
         if (this.config.framework.isAngular) {
@@ -848,7 +796,7 @@ export class UserAgentApplication {
         // No need to log or throw this error as it will create unnecessary traffic.
       }
     },
-      interval);
+    interval);
 
     return popupWindow;
   }
@@ -882,17 +830,19 @@ export class UserAgentApplication {
 
       // open the window
       const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
+      if (!popupWindow) {
+        throw ClientAuthError.createPopupWindowError();
+      }
       if (popupWindow.focus) {
         popupWindow.focus();
       }
 
       return popupWindow;
     } catch (e) {
-      // TODO: Throw a custom error if opening popup fails
       this.logger.error("error opening popup " + e.message);
       this.userLoginInProgress = false;
       this.acquireTokenInProgress = false;
-      return null;
+      throw ClientAuthError.createPopupWindowError(e.toString());
     }
   }
 
@@ -917,35 +867,17 @@ export class UserAgentApplication {
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      // Validate scopes
-      // TODO: Replace with new validation pattern
-      const isValidScope = this.validateInputScope(request.scopes);
 
-      if (isValidScope && !Utils.isEmpty(isValidScope)) {
-        // TODO: Reject with custom error here
-        // TODO: Is this always accessToken?
-        reject(ErrorCodes.inputScopesError + "|" + isValidScope);
-        return null;
-      }
-      else {
-        // TODO: Remove this from the else block, it is unnecessary
-        if (request.scopes) {
-          request.scopes = this.filterScopes(request.scopes);
-        }
-        const scope = request.scopes.join(" ").toLowerCase();
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(request.scopes, true);
+      request.scopes = this.filterScopes(request.scopes);
 
-        // if the developer passes a userObject give him the priority
-        const userObject = request.account ? request.account : this.getUser();
-
-        // extract if there is an adalIdToken stashed in the cache
-        const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
+      const scope = request.scopes.join(" ").toLowerCase();
 
         //if user is not currently logged in and no login_hint/sid is passed in the request
         if (!userObject && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken)) {
           this.logger.info("User login is required");
-          // TODO: Reject with custom error here
-          reject(ErrorCodes.userLoginError + Constants.resourceDelimiter + ErrorDescription.userLoginError);
-          return null;
+          return reject(ClientAuthError.createUserLoginRequiredError());
         }
 
         const responseType = this.getTokenType(userObject, request.scopes, true);
@@ -979,24 +911,23 @@ export class UserAgentApplication {
         }
 
         const cacheResult = this.getCachedToken(serverAuthenticationRequest, userObject);
-
-        // resolve/reject based on cacheResult
-        if (cacheResult) {
-          if (cacheResult.token) {
-            this.logger.info("Token is already in cache for scope:" + scope);
-            resolve(cacheResult.token);
-            return null;
-          }
-          else if (cacheResult.errorDesc || cacheResult.error) {
-            this.logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-            reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
-            return null;
-          }
+      
+      // resolve/reject based on cacheResult
+      if (cacheResult) {
+        if (cacheResult.token) {
+          this.logger.info("Token is already in cache for scope:" + scope);
+          resolve(cacheResult.token);
+          return null;
         }
-        // else proceed with login
-        else {
-          this.logger.verbose("Token is not in cache for scope:" + scope);
+        else if (cacheResult.errorDesc || cacheResult.error) {
+          this.logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
+          reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
+          return null;
         }
+      }
+      // else proceed with login
+      else {
+        this.logger.verbose("Token is not in cache for scope:" + scope);
 
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         // TODO: Do we need to check if cache result is empty before calling this?
@@ -1027,7 +958,7 @@ export class UserAgentApplication {
           }
         }).catch((err) => {
           this.logger.warning("could not resolve endpoints");
-          reject(err);
+          reject(ClientAuthError.createEndpointResolutionError(err.toString()));
           return null;
         });
       }
@@ -1128,6 +1059,10 @@ export class UserAgentApplication {
     return adalFrame;
   }
 
+  //#endregion
+
+  //#region General Helpers
+
   /**
    * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
    * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
@@ -1171,10 +1106,6 @@ export class UserAgentApplication {
     return qParams;
   }
 
-  //#endregion
-
-  //#region General Helpers
-
   /**
    * Used to redirect the browser to the STS authorization endpoint
    * @param {string} urlNavigate - URL of the authorization endpoint
@@ -1186,10 +1117,9 @@ export class UserAgentApplication {
       this.logger.infoPii("Navigate to:" + urlNavigate);
       window.location.replace(urlNavigate);
     }
-
-    // TODO: Log error on failure - we should be erroring out, unexpected library error
     else {
       this.logger.info("Navigate url is empty");
+      throw AuthError.createUnexpectedError("Navigate url is empty");
     }
   }
 
@@ -1294,7 +1224,7 @@ export class UserAgentApplication {
     }
   }
 
-//#endregion
+  //#endregion
 
   //#region Response
 
@@ -1339,8 +1269,8 @@ export class UserAgentApplication {
         }
 
     } catch (err) {
-      // TODO: Check if we should be throwing an error here
       this.logger.error("Error occurred in token received callback function: " + err);
+      throw ClientAuthError.createErrorInCallbackFunction(err.toString());
     }
   }
 
@@ -1450,8 +1380,8 @@ export class UserAgentApplication {
         }
       }
     } catch (err) {
-      // TODO: Should we throw an error here?
       self.logger.error("Error occurred in token received callback function: " + err);
+      throw ClientAuthError.createErrorInCallbackFunction(err.toString());
     }
 
     // If current window is opener, close all windows
@@ -2000,10 +1930,7 @@ export class UserAgentApplication {
       this.user = User.createUser(idToken, clientInfo);
       return this.user;
     }
-
     // if login not yet done, return null
-    // TODO: DEFER: Should we throw error instead of returning null? This is where folks not using the pattern keep looping!!
-    // we need more clarity to make this change
     return null;
   }
 
@@ -2073,43 +2000,51 @@ export class UserAgentApplication {
   /**
    * Used to validate the scopes input parameter requested  by the developer.
    * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+   * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
    * @ignore
    * @hidden
    */
-  // TODO: Check if this can be combined with filterScopes()
-  private validateInputScope(scopes: Array<string>): string {
-    // Check that scopes is not an empty array
-    if (!scopes || scopes.length < 1) {
-      return "Scopes cannot be passed as an empty array";
+  private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
+    if (!scopes) {
+      if (scopesRequired) {
+        throw ClientConfigurationError.createScopesRequiredError(scopes);
+      } else {
+        return;
+      }
     }
 
-    // Check that scopes is an array object
+    // Check that scopes is an array object (also throws error if scopes == null)
     if (!Array.isArray(scopes)) {
-      throw new Error("API does not accept non-array scopes");
+      throw ClientConfigurationError.createScopesNonArrayError(scopes);
+    }
+
+    // Check that scopes is not an empty array
+    if (scopes.length < 1) {
+      throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
     }
 
     // Check that clientId is passed as single scope
     if (scopes.indexOf(this.clientId) > -1) {
       if (scopes.length > 1) {
-        return "ClientId can only be provided as a single scope";
+        throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
       }
     }
-    return "";
   }
 
   /**
   * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
   * @hidden
   */
-  // TODO: Check if this can be combined with validateInputScope()
   private filterScopes(scopes: Array<string>): Array<string> {
-    scopes = scopes.filter(function (element) {
-      return element !== "openid";
-    });
+    if (scopes) {
+      scopes = scopes.filter(function (element) {
+        return element !== Constants.openidScope;
+      });
 
-    scopes = scopes.filter(function (element) {
-      return element !== "profile";
-    });
+      scopes = scopes.filter(function (element) {
+        return element !== Constants.profileScope;
+      });
+    }
 
     return scopes;
   }
@@ -2356,10 +2291,11 @@ export class UserAgentApplication {
     }
     // all other cases
     else {
-      tokenType = Utils.compareObjects(userObject, this.getUser()) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-
-      if (tokenType === ResponseTypes.id_token) {
-        tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+      if (!Utils.compareObjects(userObject, this.getUser())) {
+           tokenType = ResponseTypes.id_token_token;
+      }
+      else {
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
       }
 
       return tokenType;

@@ -9,3 +9,9 @@ export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, buildConfiguration } from "./Configuration";
 export { AuthenticationParameters } from "./AuthenticationParameters";
 
+// Errors
+export { AuthError } from "./error/AuthError";
+export { ClientAuthError } from "./error/ClientAuthError";
+export { ServerError } from "./error/ServerError";
+export { ClientConfigurationError } from "./error/ClientConfigurationError";
+export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
