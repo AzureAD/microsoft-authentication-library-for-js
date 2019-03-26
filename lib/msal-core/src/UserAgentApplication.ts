@@ -2328,10 +2328,11 @@ export class UserAgentApplication {
     }
     // all other cases
     else {
-      tokenType = Utils.compareObjects(userObject, this.getUser()) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-
-      if (tokenType === ResponseTypes.id_token) {
-        tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+      if (!Utils.compareObjects(userObject, this.getUser())) {
+           tokenType = ResponseTypes.id_token_token;
+      }
+      else {
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
       }
 
       return tokenType;
