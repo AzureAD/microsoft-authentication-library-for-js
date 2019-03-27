@@ -34,7 +34,7 @@
     "build:webpack": "webpack"
   },
   "dependencies": {
-    "tslib": "1.7.1"
+    "tslib": "^1.7.1"
   },
   "devDependencies": {
     "@types/handlebars": "4.0.33",
