@@ -144,7 +144,7 @@ export class UserAgentApplication {
   private user: Account;
 
   // state variables
-  private userLoginInProgress: boolean;
+  private loginInProgress: boolean;
   private acquireTokenInProgress: boolean;
   private silentAuthenticationState: string;
   private silentLogin: boolean;
@@ -189,7 +189,7 @@ export class UserAgentApplication {
     this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
 
     // track login and acquireToken in progress
-    this.userLoginInProgress = false;
+    this.loginInProgress = false;
     this.acquireTokenInProgress = false;
 
     // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
@@ -231,10 +231,10 @@ export class UserAgentApplication {
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
    */
-  loginRedirect(request: AuthenticationParameters): void {
+  loginRedirect(request?: AuthenticationParameters): void {
     // Creates navigate url; saves value in cache; redirect user to AAD
 
-    if (this.userLoginInProgress) {
+    if (this.loginInProgress) {
         throw ClientAuthError.createLoginInProgressError();
     }
 
@@ -306,8 +306,7 @@ export class UserAgentApplication {
    */
   private loginRedirectHelper(user: Account, request: AuthenticationParameters, scopes?: Array<string>) {
     // Track login in progress
-    this.userLoginInProgress = true;
-
+    this.loginInProgress = true;
 
     // TODO: Make this more readable - is authorityInstance changed, what is happening with the return for AuthorityKey?
     this.authorityInstance.ResolveEndpointsAsync().then(() => {
@@ -367,7 +366,6 @@ export class UserAgentApplication {
    * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    */
-  // TODO: params to accept AuthRequest object instead
   acquireTokenRedirect(request: AuthenticationParameters): void {
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(request.scopes, true);
@@ -394,7 +392,6 @@ export class UserAgentApplication {
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
 
-    // TODO: Set response type here
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       // On Fulfillment
       const responseType = this.getTokenType(userObject, request.scopes, false);
@@ -464,11 +461,11 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  loginPopup(request: AuthenticationParameters): Promise<string> {
+  loginPopup(request?: AuthenticationParameters): Promise<string> {
     // Creates navigate url; saves value in cache; redirect user to AAD
     return new Promise<string>((resolve, reject) => {
       // Fail if login is already in progress
-      if (this.userLoginInProgress) {
+      if (this.loginInProgress) {
         return reject(ClientAuthError.createLoginInProgressError());
       }
 
@@ -537,7 +534,6 @@ export class UserAgentApplication {
    * @param extraQueryParameters
    */
   private loginPopupHelper(user: Account, request: AuthenticationParameters, resolve: any, reject: any, scopes?: Array<string>) {
-    // TODO: why this is needed only for loginpopup
     if (!scopes) {
       scopes = [this.clientId];
     }
@@ -551,7 +547,7 @@ export class UserAgentApplication {
     }
 
     // Track login progress
-    this.userLoginInProgress = true;
+    this.loginInProgress = true;
 
     // Resolve endpoint
     this.authorityInstance.ResolveEndpointsAsync().then(() => {
@@ -624,7 +620,6 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  // TODO: params to accept AuthRequest object instead
   acquireTokenPopup(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
@@ -743,7 +738,7 @@ export class UserAgentApplication {
     try {
       popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
     } catch (e) {
-      instance.userLoginInProgress = false;
+      instance.loginInProgress = false;
       instance.acquireTokenInProgress = false;
 
       this.logger.info(ErrorCodes.popUpWindowError + ":" + ErrorDescription.popUpWindowError);
@@ -760,7 +755,7 @@ export class UserAgentApplication {
 
     const pollTimer = window.setInterval(() => {
       // If popup closed or login in progress, cancel login
-      if (popupWindow && popupWindow.closed && instance.userLoginInProgress) {
+      if (popupWindow && popupWindow.closed && instance.loginInProgress) {
         if (reject) {
           reject(ClientAuthError.createUserCancelledError());
         }
@@ -769,7 +764,7 @@ export class UserAgentApplication {
             this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
             return;
         }
-        instance.userLoginInProgress = false;
+        instance.loginInProgress = false;
         instance.acquireTokenInProgress = false;
       }
 
@@ -779,7 +774,7 @@ export class UserAgentApplication {
         // If the popup hash changes, close the popup window
         if (popUpWindowLocation.href.indexOf(this.getRedirectUri()) !== -1) {
           window.clearInterval(pollTimer);
-          instance.userLoginInProgress = false;
+          instance.loginInProgress = false;
           instance.acquireTokenInProgress = false;
           this.logger.info("Closing popup window");
           // TODO: Why are we only closing for angular?
@@ -840,7 +835,7 @@ export class UserAgentApplication {
       return popupWindow;
     } catch (e) {
       this.logger.error("error opening popup " + e.message);
-      this.userLoginInProgress = false;
+      this.loginInProgress = false;
       this.acquireTokenInProgress = false;
       throw ClientAuthError.createPopupWindowError(e.toString());
     }
@@ -863,7 +858,6 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
    */
-  // TODO: params to accept AuthRequest object instead
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -936,7 +930,6 @@ export class UserAgentApplication {
         this.logger.verbose("Token is not in cache for scope:" + scope);
 
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
-        // TODO: Do we need to check if cache result is empty before calling this?
         if (!serverAuthenticationRequest.authorityInstance) {
             serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
         }
@@ -976,7 +969,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs. Will there be a performance issue for fn calls?
+  // TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs.
   private isInIframe() {
       return window.parent !== window;
   }
@@ -1020,7 +1013,7 @@ export class UserAgentApplication {
 
     // TODO: VSTS AI, work on either removing the 500ms timeout or making it optional for IE??
     setTimeout(() => {
-      const frameHandle = this.addAdalFrame(frameCheck);
+      const frameHandle = this.addHiddenIFrame(frameCheck);
       if (frameHandle.src === "" || frameHandle.src === "about:blank") {
         frameHandle.src = urlNavigate;
         this.logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
@@ -1034,8 +1027,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Should we rename this function as addHiddenIFrame??
-  private addAdalFrame(iframeId: string): HTMLIFrameElement {
+  private addHiddenIFrame(iframeId: string): HTMLIFrameElement {
     if (typeof iframeId === "undefined") {
       return null;
     }
@@ -1096,7 +1088,7 @@ export class UserAgentApplication {
       }
       // login_hint
       else {
-        // login_hint is account.displayableId TODO: This will change to account.username in the account PR
+        // login_hint is account.username
         if (!qParams[SSOTypes.LOGIN_HINT]  && user.userName && !Utils.isEmpty(user.userName)) {
           qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, user.userName, qParams);
         }
@@ -1621,7 +1613,7 @@ export class UserAgentApplication {
   private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: Account, serverAuthenticationRequest: ServerRequestParameters): void {
     const scope = scopes.join(" ").toLowerCase();
     this.logger.verbose("renewToken is called for scope:" + scope);
-    const frameHandle = this.addAdalFrame("msalRenewFrame" + scope);
+    const frameHandle = this.addHiddenIFrame("msalRenewFrame" + scope);
 
     // Cache acquireTokenUserKey
     const userId = user ? user.homeAccountIdentifier : Constants.no_user;
@@ -1656,7 +1648,7 @@ export class UserAgentApplication {
   private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: Account, serverAuthenticationRequest: ServerRequestParameters): void {
 
     this.logger.info("renewidToken is called");
-    const frameHandle = this.addAdalFrame("msalIdTokenFrame");
+    const frameHandle = this.addHiddenIFrame("msalIdTokenFrame");
 
     // Cache acquireTokenUserKey
     const userId = user ? user.homeAccountIdentifier : Constants.no_user;
@@ -1764,7 +1756,7 @@ export class UserAgentApplication {
 
       // login
       if (tokenResponse.requestType === Constants.login) {
-        this.userLoginInProgress = false;
+        this.loginInProgress = false;
         this.cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
         authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
       }
@@ -1844,7 +1836,7 @@ export class UserAgentApplication {
         if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
             this.logger.info("Fragment has id token");
             // login no longer in progress
-            this.userLoginInProgress = false;
+            this.loginInProgress = false;
             idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
             if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = tokenResponse.parameters[Constants.clientInfo];
@@ -2082,13 +2074,11 @@ export class UserAgentApplication {
   * @param eventName
   * @param data
   */
-  // TODO: Is there a better way to do this? At the least, sandbox this to the wrapper listening in to the core after the handshake
   private broadcast(eventName: string, data: string) {
     const evt = new CustomEvent(eventName, { detail: data });
     window.dispatchEvent(evt);
   }
 
-  // TODO: All the below fns are used in msal-angular ONLY, refactor this, implement the bulk in angular if possible?
   /**
    * Helper function to retrieve the cached token
    *
@@ -2163,19 +2153,19 @@ export class UserAgentApplication {
   /**
    * tracks if login is in progress
    */
-  loginInProgress(): boolean {
+  getLoginInProgress(): boolean {
     const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
     if (pendingCallback) {
         return true;
     }
-    return this.userLoginInProgress;
+    return this.loginInProgress;
   }
 
   /**
-   * @param userLoginInProgress
+   * @param loginInProgress
    */
-  protected setuserLoginInProgress(userLoginInProgress : boolean) {
-    this.userLoginInProgress = userLoginInProgress;
+  protected setloginInProgress(loginInProgress : boolean) {
+    this.loginInProgress = loginInProgress;
   }
 
   /**
