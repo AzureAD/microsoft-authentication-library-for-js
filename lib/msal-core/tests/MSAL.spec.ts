@@ -1,10 +1,10 @@
 import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from "../src/index";
 import { Constants, ErrorCodes, ErrorDescription } from "../src/Constants";
 import { Authority } from "../src/Authority";
-import { AuthenticationRequestParameters } from "../src/AuthenticationRequestParameters";
+import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { AuthorityFactory } from "../src/AuthorityFactory";
 import { buildConfiguration } from "../src/Configuration";
-import { AuthenticationParameters } from "../src/Request";
+import { AuthenticationParameters } from "../src/AuthenticationParameters";
 
 describe('Msal', function (): any {
     let window: any;
@@ -241,12 +241,11 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
 
     });
 
-    it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
+    it('navigates user to login and prompt=select_account parameter is passed as extraQueryParameter', (done) => {
         msal.setRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
@@ -260,7 +259,24 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID, prompt: "select_account"};
+        let request: AuthenticationParameters = {prompt: "select_account"};
+        msal.loginRedirect(request);
+    });
+
+    it('navigates user to login and prompt=none parameter is passed as extraQueryParameter', (done) => {
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).toContain(Constants.prompt_none);
+            done();
+        };
+
+        let request: AuthenticationParameters = {prompt: "none"};
         msal.loginRedirect(request);
     });
 
@@ -282,8 +298,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
     });
 
     it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
@@ -294,8 +309,7 @@ describe('Msal', function (): any {
             done();
         };
 
-        let request: AuthenticationParameters = {scopes: msal.clientID};
-        msal.loginRedirect(request);
+        msal.loginRedirect();
     });
 
     it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
@@ -599,16 +613,34 @@ describe('Msal', function (): any {
     });
 
     it('tests if hint parameters get added when user object is passed to the function', function () {
-        var user = {
+
+        expect(msal.getRedirectUri()).toBe(global.window.location.href);
+        msal.promptUser = function (args: string) {
+            expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(args).toContain('&client_id=' + msal.clientId);
+            expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(args).toContain('&state');
+            expect(args).toContain('&client_info=1');
+            expect(args).toContain("&login_hint=" + 'some_id');
+            expect(args).toContain("&login_req=5678");
+            expect(args).toContain("&domain_req=1234");
+            expect(args).toContain("&domain_hint");
+            expect(args).toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(Constants.prompt_none);
+            done();
+        };
+
+        let user: User =  {
+            idToken: null,
+            name: null,
+            sid: null,
+            identityProvider: null,
             userIdentifier: '1234.5678',
             displayableId:'some_id'
-        }
-        var urlNavigate = '';
-        urlNavigate = msal.addHintParameters(urlNavigate, user);
-        expect(urlNavigate).toContain("login_hint");
-        expect(urlNavigate).toContain("login_req");
-        expect(urlNavigate).toContain("domain_req");
-        expect(urlNavigate).toContain("domain_hint");
+        };
+
+        let request: AuthenticationParameters = {prompt: "select_account", account: user};
+        msal.loginRedirect(request);
     });
 
     it('tests urlContainsQueryStringParameter functionality', function () {
@@ -688,20 +720,20 @@ describe('Msal', function (): any {
     });
 
     it('test if authenticateRequestParameter generates state correctly, if state is a number', function () {
-        let authenticationRequestParameters: AuthenticationRequestParameters;
+        let authenticationRequestParameters: ServerRequestParameters;
         let authority: Authority;
         authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
+        authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
         var result;
         result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
         expect(decodeURIComponent(result[4])).toContain("12345");
     });
 
     it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
-        let authenticationRequestParameters: AuthenticationRequestParameters;
+        let authenticationRequestParameters: ServerRequestParameters;
         let authority: Authority;
         authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-        authenticationRequestParameters = new AuthenticationRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         var result;
         result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
         expect(decodeURIComponent(result[4])).toContain("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");

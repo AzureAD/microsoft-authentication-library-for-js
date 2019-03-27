@@ -23,16 +23,13 @@
 
 import { Authority } from "./Authority";
 import { Utils } from "./Utils";
-import { Constants } from "./Constants";
 
 /**
- * TODO: Change this to ServerRequestParameters soon after Request changes are in.
- *
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
  * State: OAuth Spec: https://tools.ietf.org/html/rfc6749#section-10.12
  * @hidden
  */
-export class AuthenticationRequestParameters {
+export class ServerRequestParameters {
 
   authorityInstance: Authority;
   clientId: string;
@@ -51,9 +48,13 @@ export class AuthenticationRequestParameters {
 
   // TODO: The below are not used - check and delete with the rename PR
   promptValue: string;
-  extraQueryParameters: string;
+  sid: string;
   loginHint: string;
   domainHint: string;
+  loginReq: string;
+  domainReq: string;
+  queryParameters: string;
+  extraQueryParameters: string;
 
 
   public get authority(): string {
@@ -136,6 +137,12 @@ export class AuthenticationRequestParameters {
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
 
+    str.push("prompt=" + encodeURI(this.promptValue));
+
+    if (this.queryParameters) {
+        str.push(this.queryParameters);
+    }
+
     if (this.extraQueryParameters) {
       str.push(this.extraQueryParameters);
     }
@@ -176,5 +183,4 @@ export class AuthenticationRequestParameters {
 
     return scopeList;
   }
-
 }

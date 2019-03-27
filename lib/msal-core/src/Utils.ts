@@ -24,7 +24,8 @@
 import { IUri } from "./IUri";
 import { User } from "./User";
 import {Constants, SSOTypes, PromptState} from "./Constants";
-import { AuthenticationParameters } from "./Request";
+import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { ServerRequestParameters } from "./ServerRequestParameters";
 
 /**
  * @hidden
@@ -576,210 +577,149 @@ export class Utils {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  static constructUnifiedCacheExtraQueryParameter(extraQueryParameters: string, request: AuthenticationParameters, idTokenObject: any): string {
+  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): QPDict {
 
     // preference order: account > sid > login_hint
-
-
     let ssoType;
     let ssoData;
+    let ssoParam: QPDict = {};
+    let serverReqParam: QPDict = {};
 
     // if account info is passed, account.sid > account.login_hint
-    if (request && request.account) {
-      const user: User = request.account;
-      if (user.sid) {
+    if (request) {
+      if (request.account) {
+        const user: User = request.account;
+        if (user.sid) {
+          ssoType = SSOTypes.SID;
+          ssoData = user.sid;
+        }
+        else if (user.displayableId) {
+          ssoType = SSOTypes.LOGIN_HINT;
+          ssoData = user.displayableId;
+        }
+      }
+      // sid from request
+      else if (request.sid) {
         ssoType = SSOTypes.SID;
-        ssoData = user.sid;
+        ssoData = request.sid;
       }
-      else if (user.displayableId) {
+      // loginHint from request
+      else if (request.loginHint) {
         ssoType = SSOTypes.LOGIN_HINT;
-        ssoData = user.displayableId;
+        ssoData = request.loginHint;
       }
-    }
-    // sid from request
-    else if (request.sid) {
-      ssoData = request.sid;
-      ssoType = SSOTypes.SID;
-    }
-    // loginHint from request
-    else if (request.loginHint) {
-      ssoData = request.loginHint;
-      ssoType = SSOTypes.LOGIN_HINT;
     }
     // adalIdToken retrieved from cache
     else if (idTokenObject) {
       if (idTokenObject.hasOwnProperty(Constants.upn)) {
-        ssoData = idTokenObject.upn;
         ssoType = SSOTypes.ID_TOKEN;
+        ssoData = idTokenObject.upn;
       }
       else {
-        ssoData = null;
         ssoType = SSOTypes.ORGANIZATIONS;
+        ssoData = null;
       }
     }
 
-    extraQueryParameters = this.processExtraQueryParameters(extraQueryParameters, ssoData, ssoType);
-    return extraQueryParameters;
+    serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
+
+    // add the HomeAccountIdentifier info/ domain_hint
+    if (request && request.account && request.account.userIdentifier) {
+        console.log("userIdentifier: " + request.account.userIdentifier);
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.userIdentifier, ssoParam);
+    }
+
+    return serverReqParam;
   }
 
-  /**
-   * Remove the SSO data from extraQueryParams if passed and
-   * construct the string "extraQueryParameters" needed to be sent to the server
-   * @param extraQueryParameters
-   * @param ssoData
-   * @param ssoType
-   */
-  static processExtraQueryParameters(extraQueryParameters: string, ssoData: string, ssoType: string): string {
-    extraQueryParameters = this.removeSSOParams(extraQueryParameters, ssoType);
-
-    if (extraQueryParameters) {
-        extraQueryParameters += this.generateSSOUrlParameter(ssoData, ssoType);
-    }
-    else {
-        extraQueryParameters = this.generateSSOUrlParameter(ssoData, ssoType);
-    }
-
-    return extraQueryParameters;
-  }
-
-  /**
-   * remove the exisiting SSOData from the extraQueryParameters
-   * @param sid
-   */
-  static removeSSOParams(extraQueryParameters: string, type: string): string {
-
-    let ssoType: string;
-    if (type === SSOTypes.ID_TOKEN) {
-        ssoType = SSOTypes.LOGIN_HINT;
-    }
-    else {
-        ssoType = type;
-    }
-
-    extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, ssoType);
-    if (type === SSOTypes.ID_TOKEN) {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, SSOTypes.DOMAIN_HINT);
-    }
-
-    return extraQueryParameters;
-  }
 
   /**
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static generateSSOUrlParameter(ssoData: string, ssoType: string): string {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam: QPDict): QPDict {
 
     switch (ssoType) {
       case SSOTypes.SID: {
-        return "&" + SSOTypes.SID + "=" + encodeURIComponent(ssoData);
+        ssoParam[SSOTypes.SID] = ssoData;
+        break;
       }
       case SSOTypes.ID_TOKEN: {
-        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData) + "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.ORGANIZATIONS;
+        ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        break;
       }
       case SSOTypes.LOGIN_HINT: {
-        return "&" + SSOTypes.LOGIN_HINT + "=" + encodeURIComponent(ssoData);
+        ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
+        break;
       }
       case SSOTypes.ORGANIZATIONS: {
-        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.ORGANIZATIONS;
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        break;
       }
       case SSOTypes.CONSUMERS: {
-        return "&" + SSOTypes.DOMAIN_HINT + "=" + SSOTypes.CONSUMERS;
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
+        break;
+      }
+      case SSOTypes.HOMEACCOUNT_ID: {
+        // TODO: figure out how this code will change with "account" addition
+        let homeAccountId = ssoData.split(".");
+        const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
+        const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
+
+        ssoParam[SSOTypes.LOGIN_REQ] = uid;
+        ssoParam[SSOTypes.DOMAIN_REQ] = utid;
+
+        if (utid === Constants.consumersUtid) {
+            ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
+        }
+        else {
+            ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        }
+        break;
       }
       case SSOTypes.LOGIN_REQ: {
-        return "&" + SSOTypes.LOGIN_REQ + "=" + encodeURIComponent(ssoData);
+        ssoParam[SSOTypes.LOGIN_REQ] = ssoData;
+        break;
       }
       case SSOTypes.DOMAIN_REQ: {
-        return "&" + SSOTypes.DOMAIN_REQ + "=" + encodeURIComponent(ssoData);
+        ssoParam[SSOTypes.DOMAIN_REQ] = ssoData;
+        break;
       }
     }
 
-    return null;
+    return ssoParam;
   }
 
-
   /**
-   * Construct extraQueryParameters from the request
-   * @param reqExtraQueryParameters
+   * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
+   * @param extraQueryParameters
    */
-  static constructExtraQueryParametersString (reqExtraQueryParameters: {[header: string]: string}): string {
+  static generateQueryParametersString(queryParameters: QPDict): string {
+    let paramsString: string = null;
 
-    let extraQueryParameters: string = null;
-    let value: string;
-
-    for (var key in reqExtraQueryParameters) {
-
-      if (key !== undefined) {
-        value = reqExtraQueryParameters[key];
-
-        if (extraQueryParameters == null) {
-          extraQueryParameters = "&" + key + "=" + value;
+    if (queryParameters) {
+      Object.keys(queryParameters).forEach((key: string) => {
+        if (paramsString == null) {
+          paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
         }
         else {
-          extraQueryParameters += "&" + key + "=" + value;
+          paramsString += `&${key}=${encodeURIComponent(queryParameters[key])}`;
         }
-      }
+     });
     }
 
-    return extraQueryParameters;
+    return paramsString;
   }
 
   /**
-   * Utils to add prompt parameter passed by the user to extraQueryParameters
-   * We considered making this "enum" in the request instead of string, however it looks like the allowed
-   * list of prompt values kept changing over past couple of years. There are some undocumented prompt values
-   * for some internal partners too, hence the choice of generic "string" type instead of the "enum".
-   * @param extraQueryParameters
-   * @param prompt
+   * Utility to test if valid prompt value is passed in the request
+   * @param request
    */
-  static addPromptParameter (extraQueryParameters: string, prompt: string): string {
-    this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.prompt);
-
-    if (extraQueryParameters == null) {
-      extraQueryParameters = "&" + Constants.prompt + "=" + prompt;
-    }
-    else {
-      extraQueryParameters += "&" + Constants.prompt + "=" + prompt;
-    }
-
-    return extraQueryParameters;
-  }
-
-  /*
   static validateRequestParameters (request: AuthenticationParameters) {
-    // check that prompt is an acceptable value
-    try {
-      if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)
-    }
-     } catch (e) {
-      // TODO: Add appropriate error during Error PR Merge
+    if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(request.prompt) >= 0)) {
       console.log("Invalid Prompt Value");
     }
-  }
-  */
-
-  /**
-   * Convert the extraQueryParameters String to Key-Value pair list
-   * @param reqExtraQueryParameters
-   */
-  static destructExtraQueryParameterString (reqExtraQueryParameters: string): {[header: string]: string} {
-    let result: {[header: string]: string};
-    let pair;
-
-    reqExtraQueryParameters.split("&").forEach(function(elem) {
-      if (elem !== "") {
-        var item = elem.split("=");
-        pair = {[item[0]]: item[1]};
-        if (!result) {
-          result = pair;
-        }
-        else {
-          Object.assign(result, pair);
-        }
-      }
-    });
-
-    return result;
   }
 
   //#endregion
