@@ -25,7 +25,7 @@ import { IUri } from "./IUri";
 import { User } from "./User";
 import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
-import { ServerRequestParameters } from "./ServerRequestParameters";
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -713,12 +713,21 @@ export class Utils {
   }
 
   /**
+   * Check to see if there are SSO params set in the Request
+   * @param request
+   */
+  static isSSOParam(request: AuthenticationParameters) {
+      return request && (request.account || request.sid || request.loginHint);
+  }
+
+  /**
    * Utility to test if valid prompt value is passed in the request
    * @param request
    */
-  static validateRequestParameters (request: AuthenticationParameters) {
-    if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(request.prompt) >= 0)) {
-      console.log("Invalid Prompt Value");
+  static validatePromptParameter (prompt: string) {
+    if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
+        // throw ClientConfigurationError.createInvalidPromptError(prompt);
+        console.log("Invalid prompt");
     }
   }
 

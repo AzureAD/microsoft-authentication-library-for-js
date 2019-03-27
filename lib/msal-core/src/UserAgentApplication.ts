@@ -231,7 +231,7 @@ export class UserAgentApplication {
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
    */
-  loginRedirect(request: AuthenticationParameters): void {
+  loginRedirect(request?: AuthenticationParameters): void {
     // Creates navigate url; saves value in cache; redirect user to AAD
 
     if (this.userLoginInProgress) {
@@ -240,24 +240,17 @@ export class UserAgentApplication {
 
     // if extraScopesToConsent is passed, append them to the login request
     let scopes: Array<string>;
-
-    if (request) {
-      if (request.extraScopesToConsent) {
-        scopes = [...request.scopes, ...request.extraScopesToConsent];
-      }
-      else {
-        scopes = request.scopes;
-      }
-    }
+    scopes = this.appendScopes(request);
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
     scopes = this.filterScopes(scopes);
 
+    // if session does not exist, we pass null for user
     const user = this.getUser();
 
     // defer queryParameters generation to Helper if developer passes account/sid/login_hint
-    if (request && (request.account || request.sid || request.loginHint)) {
+    if (Utils.isSSOParam(request)) {
        // if user is not provided, we pass null
        this.loginRedirectHelper(user, request, scopes);
     }
@@ -307,7 +300,6 @@ export class UserAgentApplication {
   private loginRedirectHelper(user: User, request: AuthenticationParameters, scopes?: Array<string>) {
     // Track login in progress
     this.userLoginInProgress = true;
-
 
     // TODO: Make this more readable - is authorityInstance changed, what is happening with the return for AuthorityKey?
     this.authorityInstance.ResolveEndpointsAsync().then(() => {
@@ -474,23 +466,17 @@ export class UserAgentApplication {
 
       // if extraScopesToConsent is passed, append them to the login request
       let scopes: Array<string>;
-      if (request) {
-        if (request.extraScopesToConsent) {
-          scopes = [...request.scopes, ...request.extraScopesToConsent];
-        }
-        else {
-          scopes = request.scopes;
-        }
-      }
+      scopes = this.appendScopes(request);
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
       scopes = this.filterScopes(scopes);
 
+      // if session does not exist, we pass null for user
       let user = this.getUser();
 
       // add the prompt parameter to the 'extraQueryParameters' if passed
-      if (request && (request.account || request.sid || request.loginHint)) {
+      if (Utils.isSSOParam(request)) {
          // if user is not provided, we pass null
          this.loginPopupHelper(user, request, resolve, reject, scopes);
       }
@@ -900,7 +886,7 @@ export class UserAgentApplication {
       let queryParameters: QPDict = {};
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (request) {
+      if (Utils.isSSOParam(request)) {
         serverAuthenticationRequest = this.populateQueryParams(userObject, request, serverAuthenticationRequest);
       }
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
@@ -911,7 +897,12 @@ export class UserAgentApplication {
 
         queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
 
-        // add the extracted params to Server Request
+        // add the prompt to Server Request
+        if (request && request.prompt) {
+            Utils.validatePromptParameter(request.prompt);
+            serverAuthenticationRequest.promptValue = request.prompt;
+        }
+
         serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
         serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
       }
@@ -2072,6 +2063,26 @@ export class UserAgentApplication {
     return "";
   }
 
+  /**
+   * Appends extraScopesToConsent if passed
+   * @param request
+   */
+  private appendScopes(request: AuthenticationParameters): Array<string> {
+
+    let scopes: Array<string>;
+
+    if (request && request.scopes) {
+        if (request.extraScopesToConsent) {
+            scopes = [...request.scopes, ...request.extraScopesToConsent];
+        }
+        else {
+        scopes = request.scopes;
+        }
+    }
+
+    return scopes;
+  }
+
   //#endregion
 
   //#region Angular
@@ -2336,18 +2347,18 @@ export class UserAgentApplication {
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
-      if (request && request.prompt) {
+      if (request.prompt) {
+        Utils.validatePromptParameter(request.prompt);
         serverAuthenticationRequest.promptValue = request.prompt;
       }
 
       // if the developer provides one of these, give preference to developer choice
-      if (request && (request.account || request.sid || request.loginHint)) {
+      if (Utils.isSSOParam(request)) {
         queryParameters = Utils.constructUnifiedCacheQueryParameter(request, null);
       }
     }
 
     // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
-
     queryParameters = this.addHintParameters(user, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
