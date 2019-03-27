@@ -281,25 +281,29 @@ export class UserAgentApplication {
       this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), this.getUserState(this.silentAuthenticationState));
       return;
     }
-
-    // if extraScopesToConsent is passed, append them to the login request
     let scopes: Array<string>;
-    if (request.extraScopesToConsent) {
-      scopes = [...request.scopes, ...request.extraScopesToConsent];
-    }
-    else {
-      scopes = request.scopes;
+    // if extraScopesToConsent is passed, append them to the login request
+    if (request) {
+      if (request.extraScopesToConsent) {
+        scopes = [...request.scopes, ...request.extraScopesToConsent];
+      }
+      else {
+        scopes = request.scopes;
+      }
     }
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
 
     // construct extraQueryParams string from the request
-    let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-    extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+    let extraQueryParameters: string;
+    if (request) {
+      extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+      extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+    }
     let user = this.getUser();
 
-    if (request.account || request.sid || request.loginHint) {
+    if (request && (request.account || request.sid || request.loginHint)) {
       // if the developer provides one of these, give preference to developer choice
       extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
 
@@ -522,23 +526,27 @@ export class UserAgentApplication {
 
       // if extraScopesToConsent is passed, append them to the login request
       let scopes: Array<string>;
-      if (request.extraScopesToConsent) {
-        scopes = [...request.scopes, ...request.extraScopesToConsent];
-      }
-      else {
-        scopes = request.scopes;
+      if (request) {
+        if (request.extraScopesToConsent) {
+          scopes = [...request.scopes, ...request.extraScopesToConsent];
+        }
+        else {
+          scopes = request.scopes;
+        }
       }
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
-
+      let extraQueryParameters: string;
       // construct extraQueryParams string from the request
-      let extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
-      extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+      if (request) {
+        extraQueryParameters = Utils.constructExtraQueryParametersString(request.extraQueryParameters);
+        extraQueryParameters = Utils.addPromptParameter(extraQueryParameters, request.prompt);
+      }
       let user = this.getUser();
 
       // if the developer provides one of these, give preference to developer choice
-      if (request.account || request.sid || request.loginHint) {
+      if (request && (request.account || request.sid || request.loginHint)) {
         extraQueryParameters = Utils.constructUnifiedCacheExtraQueryParameter(extraQueryParameters, request, null);
 
         // if user is not provided, we pass null
@@ -1450,7 +1458,11 @@ export class UserAgentApplication {
       throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
     }
     if (parameters.hasOwnProperty("state")) {
-      stateResponse.state = parameters.state;
+      stateResponse = {
+        requestType: Constants.unknown,
+        state: parameters.state,
+        stateMatch: false
+      }
     } else {
       throw AuthError.createUnexpectedError("Hash does not contain state.");
     }
