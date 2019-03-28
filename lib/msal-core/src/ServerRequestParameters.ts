@@ -137,10 +137,12 @@ export class ServerRequestParameters {
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
 
-    str.push("prompt=" + encodeURI(this.promptValue));
+    if (this.promptValue) {
+      str.push("prompt=" + encodeURI(this.promptValue));
+    }
 
     if (this.queryParameters) {
-        str.push(this.queryParameters);
+      str.push(this.queryParameters);
     }
 
     if (this.extraQueryParameters) {

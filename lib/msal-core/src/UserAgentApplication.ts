@@ -229,12 +229,6 @@ export class UserAgentApplication {
       if (isCallback) {
         this.handleAuthenticationResponse(urlHash);
       }
-      else {
-        const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-        if (pendingCallback) {
-          this.processCallBack(pendingCallback, null);
-        }
-      }
     }
   }
 
@@ -245,7 +239,7 @@ export class UserAgentApplication {
    * @param {errorReceivedCallback} errorCallback - Callback which contains a AuthError object, containing error data from either the server
    * or the library, depending on the origin of the error.
    */
-  setRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
+  handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
     if (!successCallback) {
       this.redirectCallbacksSet = false;
       throw ClientConfigurationError.createInvalidCallbackObjectError("successCallback", successCallback);
@@ -259,6 +253,22 @@ export class UserAgentApplication {
     this.errorReceivedCallback = errorCallback;
 
     this.redirectCallbacksSet = true;
+
+    const urlHash = window.location.hash;
+    const isCallback = this.isCallback(urlHash);
+
+    // On the server 302 - Redirect, handle this
+    if (!this.config.framework.isAngular) {
+      if (isCallback) {
+        this.handleAuthenticationResponse(urlHash);
+      }
+      else {
+        const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
+        if (pendingCallback) {
+          this.processCallBack(pendingCallback, null);
+        }
+      }
+    }
   }
 
   //#endregion
@@ -1297,18 +1307,6 @@ export class UserAgentApplication {
       authErr = err;
     }
 
-    if ((stateInfo.requestType === Constants.renewToken) && response.accessToken) {
-      if (window.parent !== window) {
-        this.logger.verbose("Window is in iframe, acquiring token silently");
-      } else {
-        this.logger.verbose("acquiring token interactive in progress");
-      }
-      response.tokenType = Constants.accessToken;
-    }
-    else {
-      response.tokenType = Constants.idToken;
-    }
-
     // remove hash from the cache
     this.cacheStorage.removeItem(Constants.urlHash);
 
@@ -1322,6 +1320,17 @@ export class UserAgentApplication {
         if (authErr) {
           this.errorReceivedCallback(authErr, userState);
         } else if (response) {
+          if ((stateInfo.requestType === Constants.renewToken) && response.getAccessToken()) {
+            if (window.parent !== window) {
+              this.logger.verbose("Window is in iframe, acquiring token silently");
+            } else {
+              this.logger.verbose("acquiring token interactive in progress");
+            }
+            response.setTokenType(Constants.accessToken);
+          }
+          else {
+            response.setTokenType(Constants.idToken);
+          }
           this.tokenReceivedCallback(response);
         }
       }
@@ -1381,7 +1390,7 @@ export class UserAgentApplication {
     else {
       tokenResponseCallback = null;
       // if set to navigate to loginRequest page post login
-      if (self.navigateToLoginRequestUrl) {
+      if (self.config.auth.navigateToLoginRequestUrl) {
         self.cacheStorage.setItem(Constants.urlHash, hash);
         if (window.parent === window && !isPopup) {
           window.location.href = self.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
@@ -1390,6 +1399,10 @@ export class UserAgentApplication {
       }
       else {
         window.location.hash = "";
+      }
+      if (!this.redirectCallbacksSet) {
+        // We reached this point too early, return and come back later
+        return;
       }
     }
 
@@ -1430,7 +1443,7 @@ export class UserAgentApplication {
         requestType: Constants.unknown,
         state: parameters.state,
         stateMatch: false
-      }
+      };
     } else {
       throw AuthError.createUnexpectedError("Hash does not contain state.");
     }
@@ -1704,7 +1717,6 @@ export class UserAgentApplication {
    * @hidden
    */
   /* tslint:disable:no-string-literal */
-  //TODO: Break this function - too long
   private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string): AuthResponse {
     let scope: string;
     let newResponse = response;
@@ -1718,7 +1730,7 @@ export class UserAgentApplication {
       const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
       for (let i = 0; i < accessTokenCacheItems.length; i++) {
         const accessTokenCacheItem = accessTokenCacheItems[i];
-        if (accessTokenCacheItem.key.userIdentifier === response.account.userIdentifier) {
+        if (accessTokenCacheItem.key.userIdentifier === response.getAccount().userIdentifier) {
           const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
           if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
@@ -1728,11 +1740,11 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.getIdToken().rawIdToken, expiresIn, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-      newResponse.accessToken = parameters[Constants.accessToken];
-      newResponse.expiresIn = expiresIn;
-      newResponse.scopes = consentedScopes;
+      newResponse.setAccessToken(parameters[Constants.accessToken]);
+      newResponse.setExpiresIn(expiresIn);
+      newResponse.setScopes(consentedScopes);
     }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
@@ -1741,11 +1753,11 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
       // TODO: since there is no access_token, this is also set to id_token?
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.getIdToken().expiration, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-      newResponse.scopes = [scope];
-      newResponse.accessToken = parameters[Constants.idToken];
-      newResponse.expiresIn = response.idToken.expiration;
+      newResponse.setScopes([scope]);
+      newResponse.setAccessToken(parameters[Constants.idToken]);
+      newResponse.setExpiresIn(response.getIdToken().expiration);
     }
     return newResponse;
   }
@@ -1792,13 +1804,14 @@ export class UserAgentApplication {
     }
     // If the server returns "Success"
     else {
+      response = new AuthResponse();
       // Verify the state from redirect and record tokens to storage if exists
       if (stateInfo.stateMatch) {
         this.logger.info("State is right");
         if (parameters.hasOwnProperty(Constants.sessionState)) {
             this.cacheStorage.setItem(Constants.msalSessionState, parameters[Constants.sessionState]);
         }
-        response.userState = stateInfo.state;
+        response.setUserState(stateInfo.state);
 
         let clientInfo: string = "";
 
@@ -1809,34 +1822,34 @@ export class UserAgentApplication {
 
           // retrieve the id_token from response if present :
           if (parameters.hasOwnProperty(Constants.idToken)) {
-            response.idToken = new IdToken(parameters[Constants.idToken]);
+            response.setIdToken(new IdToken(parameters[Constants.idToken]));
           } else {
-            response.idToken = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));
+            response.setIdToken(new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
-          if (response.idToken.objectId) {
-            response.uniqueId = response.idToken.objectId;
+          if (response.getIdToken().objectId) {
+            response.setUniqueId(response.getIdToken().objectId);
           } else {
-            response.uniqueId = response.idToken.subject;
+            response.setUniqueId(response.getIdToken().subject);
           }
-          response.tenantId = response.idToken.tenantId;
+          response.setTenantId(response.getIdToken().tenantId);
 
           // retrieve the authority from cache and replace with tenantID
           const authorityKey = Storage.generateAuthorityKey(stateInfo.state);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
           if (!Utils.isEmpty(authority)) {
-            authority = Utils.replaceTenantPath(authority, response.tenantId);
+            authority = Utils.replaceTenantPath(authority, response.getTenantId());
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
           if (parameters.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = parameters[Constants.clientInfo];
-            response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
+            response.setAccount(User.createUser(response.getIdToken(), new ClientInfo(clientInfo)));
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
-            response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
+            response.setAccount(User.createUser(response.getIdToken(), new ClientInfo(clientInfo)));
           }
 
-          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(response.account.userIdentifier, stateInfo.state);
+          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(response.getAccount().userIdentifier, stateInfo.state);
           const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, stateInfo.state);
 
           let cachedUser: string = this.cacheStorage.getItem(acquireTokenUserKey);
@@ -1845,7 +1858,7 @@ export class UserAgentApplication {
           // Check with the user in the Cache
           if (!Utils.isEmpty(cachedUser)) {
             acquireTokenUser = JSON.parse(cachedUser);
-            if (response.account && acquireTokenUser && Utils.compareObjects(response.account, acquireTokenUser)) {
+            if (response.getAccount() && acquireTokenUser && Utils.compareObjects(response.getAccount(), acquireTokenUser)) {
               response = this.saveAccessToken(response, authority, parameters, clientInfo);
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             } else {
@@ -1862,7 +1875,7 @@ export class UserAgentApplication {
             this.logger.info("Fragment has id token");
             // login no longer in progress
             this.userLoginInProgress = false;
-            response.idToken = new IdToken(parameters[Constants.idToken]);
+            response.setIdToken(new IdToken(parameters[Constants.idToken]));
             if (parameters.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = parameters[Constants.clientInfo];
             } else {
@@ -1872,25 +1885,26 @@ export class UserAgentApplication {
             authorityKey = Storage.generateAuthorityKey(stateInfo.state);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceTenantPath(authority, response.idToken.tenantId);
+              authority = Utils.replaceTenantPath(authority, response.getIdToken().tenantId);
             }
-            if (response.idToken.objectId) {
-              response.uniqueId = response.idToken.objectId;
+            if (response.getIdToken().objectId) {
+              response.setUniqueId(response.getIdToken().objectId);
             } else {
-              response.uniqueId = response.idToken.subject;
+              response.setUniqueId(response.getIdToken().subject);
             }
-            response.tenantId = response.idToken.tenantId;
+            response.setTenantId(response.getIdToken().tenantId);
 
-            this.user = response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
+            this.user = User.createUser(response.getIdToken(), new ClientInfo(clientInfo));
+            response.setAccount(this.user);
 
-            if (response.idToken && response.idToken.nonce) {
+            if (response.getIdToken() && response.getIdToken().nonce) {
               // check nonce integrity if idToken has nonce - throw an error if not matched
-              if (response.idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
-                this.user = response.account = null;
+              if (response.getIdToken().nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
+                this.user = null;
                 // TODO: optimize this - may be combine if it is a string in both cases
-                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
-                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
-                error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.idToken.nonce);
+                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.getIdToken().nonce);
+                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.getIdToken().nonce);
+                error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.getIdToken().nonce);
               }
               // Save the token
               else {
@@ -1909,7 +1923,7 @@ export class UserAgentApplication {
               parameters["error_description"] = "Invalid idToken. idToken: " + parameters[Constants.idToken];
               this.cacheStorage.setItem(Constants.msalError, "invalid idToken");
               this.cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + parameters[Constants.idToken]);
-              error = ClientAuthError.createInvalidIdTokenError(response.idToken);
+              error = ClientAuthError.createInvalidIdTokenError(response.getIdToken());
             }
         }
       }
