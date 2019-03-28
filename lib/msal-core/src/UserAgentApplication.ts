@@ -1026,6 +1026,13 @@ export class UserAgentApplication {
   }
 
   /**
+   * Returns whether parent window exists and has msal
+   */
+  private parentIsMsal() {
+    return window.parent !== window && window.parent.msal;
+  }
+
+  /**
    * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
    * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
    * @ignore
@@ -1372,7 +1379,7 @@ export class UserAgentApplication {
 
     self.logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window (iframe)
-    if (window.parent !== window && window.parent.msal) {
+    if (this.parentIsMsal()) {
         tokenResponseCallback = window.parent.primaryMsalCallbackMappedToRenewStates[stateInfo.state];
     }
     // Current window is window opener (popup)

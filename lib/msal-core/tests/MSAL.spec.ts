@@ -264,6 +264,7 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to login and prompt=none parameter is passed as extraQueryParameter', (done) => {
+        msal.setRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -613,7 +614,7 @@ describe('Msal', function (): any {
     });
 
     it('tests if hint parameters get added when user object is passed to the function', function () {
-
+        msal.setRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
             expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');

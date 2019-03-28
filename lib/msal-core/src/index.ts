@@ -6,7 +6,7 @@ export { Constants } from "./Constants";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, buildConfiguration } from "./Configuration";
-export { AuthenticationParameters } from "./Request";
+export { AuthenticationParameters } from "./AuthenticationParameters";
 export { AuthResponse } from "./AuthResponse";
 
 // Errors
