@@ -1713,68 +1713,12 @@ export class UserAgentApplication {
   }
 
   /**
-   * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-   * @param {string} authority authority received in the redirect response from AAD.
-   * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-   * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
-   * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
-   * @param {IdToken} idToken idToken received as part of the response.
-   * @ignore
-   * @private
-   * @hidden
-   */
-  /* tslint:disable:no-string-literal */
-  private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string): AuthResponse {
-    let scope: string;
-    let newResponse = response;
-    const clientObj: ClientInfo = new ClientInfo(clientInfo);
-    // if the response contains "scope"
-    if (parameters.hasOwnProperty("scope")) {
-      // read the scopes
-      scope = parameters["scope"];
-      const consentedScopes = scope.split(" ");
-      // retrieve all access tokens from the cache, remove the dup scores
-      const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
-      for (let i = 0; i < accessTokenCacheItems.length; i++) {
-        const accessTokenCacheItem = accessTokenCacheItems[i];
-        if (accessTokenCacheItem.key.userIdentifier === response.getAccount().userIdentifier) {
-          const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
-          if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
-            this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
-          }
-        }
-      }
-      // Generate and cache accessTokenKey and accessTokenValue
-      const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
-      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.getIdToken().rawIdToken, expiresIn, clientInfo);
-      this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-      newResponse.setAccessToken(parameters[Constants.accessToken]);
-      newResponse.setExpiresIn(expiresIn);
-      newResponse.setScopes(consentedScopes);
-    }
-    // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
-    else {
-      scope = this.clientId;
-
-      // Generate and cache accessTokenKey and accessTokenValue
-      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      // TODO: since there is no access_token, this is also set to id_token?
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.getIdToken().expiration, clientInfo);
-      this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-      newResponse.setScopes([scope]);
-      newResponse.setAccessToken(parameters[Constants.idToken]);
-      newResponse.setExpiresIn(response.getIdToken().expiration);
-    }
-    return newResponse;
-  }
-
-  /**
    * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the user object.
    * @ignore
    * @hidden
    */
-  // TODO: Break this function up - either into utils or token specific --- too long to be readable
+  // TODO: Break this function up - either into utils or token specific --- too long to be readable\
+  /* tslint:disable:no-string-literal */
   protected saveTokenFromHash(hash: string, stateInfo: StateResponse): AuthResponse {
     this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
     this.cacheStorage.setItem(Constants.msalError, "");
@@ -1959,6 +1903,62 @@ export class UserAgentApplication {
       throw error;
     }
     return response;
+  }
+
+  /**
+   * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
+   * @param {string} authority authority received in the redirect response from AAD.
+   * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
+   * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
+   * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
+   * @param {IdToken} idToken idToken received as part of the response.
+   * @ignore
+   * @private
+   * @hidden
+   */
+  private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string): AuthResponse {
+    let scope: string;
+    let newResponse = response;
+    const clientObj: ClientInfo = new ClientInfo(clientInfo);
+    // if the response contains "scope"
+    if (parameters.hasOwnProperty("scope")) {
+      // read the scopes
+      scope = parameters["scope"];
+      const consentedScopes = scope.split(" ");
+      // retrieve all access tokens from the cache, remove the dup scores
+      const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
+      for (let i = 0; i < accessTokenCacheItems.length; i++) {
+        const accessTokenCacheItem = accessTokenCacheItems[i];
+        if (accessTokenCacheItem.key.userIdentifier === response.getAccount().userIdentifier) {
+          const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
+          if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
+            this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
+          }
+        }
+      }
+      // Generate and cache accessTokenKey and accessTokenValue
+      const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
+      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.getIdToken().rawIdToken, expiresIn, clientInfo);
+      this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+      newResponse.setAccessToken(parameters[Constants.accessToken]);
+      newResponse.setExpiresIn(expiresIn);
+      newResponse.setScopes(consentedScopes);
+    }
+    // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
+    else {
+      scope = this.clientId;
+
+      // Generate and cache accessTokenKey and accessTokenValue
+      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      // TODO: since there is no access_token, this is also set to id_token?
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.getIdToken().expiration, clientInfo);
+      this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+      newResponse.setScopes([scope]);
+      newResponse.setAccessToken(parameters[Constants.idToken]);
+      newResponse.setExpiresIn(response.getIdToken().expiration);
+    }
+    return newResponse;
   }
   /* tslint:enable:no-string-literal */
 
