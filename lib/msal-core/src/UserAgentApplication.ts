@@ -62,7 +62,7 @@ declare global {
         Event: Event;
         activeRenewals: {};
         renewStates: Array<string>;
-        primaryMsalCallbackMappedToRenewStates : {};
+        callbackMappedToRenewStates : {};
         promiseMappedToRenewStates: {};
         openedWindows: Array<Window>;
         requestType: string;
@@ -95,7 +95,7 @@ export interface CacheResult {
 /**
  * Data type to hold information about state returned from the server
  */
-export type StateResponse = {
+export type ResponseStateInfo = {
   state: string;
   stateMatch: boolean;
   requestType: string;
@@ -217,7 +217,7 @@ export class UserAgentApplication {
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
-    window.primaryMsalCallbackMappedToRenewStates = { };
+    window.callbackMappedToRenewStates = { };
     window.promiseMappedToRenewStates = { };
     window.msal = this;
 
@@ -1049,8 +1049,8 @@ export class UserAgentApplication {
         // fail the iframe session if it"s in pending state
         this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
         // Error after timeout
-        if (expectedState && window.primaryMsalCallbackMappedToRenewStates[expectedState]) {
-          window.primaryMsalCallbackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
+        if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
+          window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
         }
 
         this.cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
@@ -1201,13 +1201,13 @@ export class UserAgentApplication {
     window.promiseMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
 
     // Store the server esponse in the current window??
-    if (!window.primaryMsalCallbackMappedToRenewStates[expectedState]) {
-      window.primaryMsalCallbackMappedToRenewStates[expectedState] =
+    if (!window.callbackMappedToRenewStates[expectedState]) {
+      window.callbackMappedToRenewStates[expectedState] =
       (response: AuthResponse, error: AuthError) => {
         // reset active renewals
         window.activeRenewals[scope] = null;
 
-        // for all callBacksMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
+        // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
         for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (error) {
@@ -1224,7 +1224,7 @@ export class UserAgentApplication {
 
         // reset
         window.promiseMappedToRenewStates[expectedState] = null;
-        window.primaryMsalCallbackMappedToRenewStates[expectedState] = null;
+        window.callbackMappedToRenewStates[expectedState] = null;
       };
     }
   }
@@ -1290,7 +1290,7 @@ export class UserAgentApplication {
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
    * @hidden
    */
-  private processCallBack(hash: string, stateInfo: StateResponse, alternateCallback?: Function): void {
+  private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
     this.logger.info("Processing the callback from redirect response");
     // get the state info from the hash
     if (!stateInfo) {
@@ -1306,16 +1306,16 @@ export class UserAgentApplication {
       authErr = err;
     }
 
-    if ((stateInfo.requestType === Constants.renewToken) && response.accessToken) {
+    if ((stateInfo.requestType === Constants.renewToken) && response.getAccessToken()) {
       if (window.parent !== window) {
         this.logger.verbose("Window is in iframe, acquiring token silently");
       } else {
         this.logger.verbose("acquiring token interactive in progress");
       }
-      response.tokenType = Constants.accessToken;
+      response.setTokenType(Constants.accessToken);
     }
     else {
-      response.tokenType = Constants.idToken;
+      response.setTokenType(Constants.idToken);
     }
 
     // remove hash from the cache
@@ -1325,8 +1325,8 @@ export class UserAgentApplication {
       // Clear the cookie in the hash
       this.cacheStorage.clearCookie();
       const userState = this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
-      if (alternateCallback) {
-        alternateCallback(response, authErr);
+      if (parentCallback) {
+        parentCallback(response, authErr);
       } else {
         if (authErr) {
           this.errorReceivedCallback(authErr, userState);
@@ -1380,7 +1380,7 @@ export class UserAgentApplication {
     self.logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window (iframe)
     if (this.parentIsMsal()) {
-        tokenResponseCallback = window.parent.primaryMsalCallbackMappedToRenewStates[stateInfo.state];
+        tokenResponseCallback = window.parent.callbackMappedToRenewStates[stateInfo.state];
     }
     // Current window is window opener (popup)
     else if (isWindowOpenerMsal) {
@@ -1428,9 +1428,9 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  protected getResponseState(hash: string): StateResponse {
+  protected getResponseState(hash: string): ResponseStateInfo {
     const parameters = this.stringifyHash(hash);
-    let stateResponse: StateResponse;
+    let stateResponse: ResponseStateInfo;
     if (!parameters) {
       throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
     }
@@ -1761,7 +1761,7 @@ export class UserAgentApplication {
    * @hidden
    */
   // TODO: Break this function up - either into utils or token specific --- too long to be readable
-  protected saveTokenFromHash(hash: string, stateInfo: StateResponse): AuthResponse {
+  protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
     this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
     this.cacheStorage.setItem(Constants.msalError, "");
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
