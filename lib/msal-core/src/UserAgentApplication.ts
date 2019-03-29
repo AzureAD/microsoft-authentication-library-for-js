@@ -239,8 +239,7 @@ export class UserAgentApplication {
     }
 
     // if extraScopesToConsent is passed, append them to the login request
-    let scopes: Array<string>;
-    scopes = this.appendScopes(request);
+    let scopes: Array<string> = this.appendScopes(request);
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
@@ -465,8 +464,7 @@ export class UserAgentApplication {
       }
 
       // if extraScopesToConsent is passed, append them to the login request
-      let scopes: Array<string>;
-      scopes = this.appendScopes(request);
+      let scopes: Array<string> = this.appendScopes(request);
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
