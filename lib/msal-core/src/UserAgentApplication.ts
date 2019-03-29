@@ -222,6 +222,11 @@ export class UserAgentApplication {
   private _silentLogin: boolean;
 
   /**
+   * Number of retry for the iFrame onload handler
+   */
+  private IFRAME_HANDLE_RETRY_COUNT = 5;
+
+  /**
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
    * @param {string} clientId - The clientID of your application, you should get this from the application registration portal.
@@ -1124,7 +1129,7 @@ export class UserAgentApplication {
     // Check hash on iframe
     // 100ms delay each check for 5 times. 500ms total delay before function times out.
     frameHandle.onload = () => {
-      this.recursiveDelayCheckFrameHash(frameHandle, 5);
+      this.recursiveDelayCheckFrameHash(frameHandle, this.IFRAME_HANDLE_RETRY_COUNT);
     };
 
     // TODO: VSTS AI, work on either removing the 500ms timeout or making it optional for IE??
@@ -1144,7 +1149,7 @@ export class UserAgentApplication {
    */
   private recursiveDelayCheckFrameHash(
     frameHandle: HTMLIFrameElement,
-    executionsNumber: number
+    numberOfExecutionLeft: number
   ): void {
     const timeout = setTimeout(() => {
       const urlHash =
@@ -1167,8 +1172,8 @@ export class UserAgentApplication {
 
         this.handleAuthenticationResponse(urlHash);
       } else {
-        if (executionsNumber) {
-          this.recursiveDelayCheckFrameHash(frameHandle, executionsNumber - 1);
+        if (numberOfExecutionLeft) {
+          this.recursiveDelayCheckFrameHash(frameHandle, numberOfExecutionLeft - 1);
         }
       }
     }, 100);
