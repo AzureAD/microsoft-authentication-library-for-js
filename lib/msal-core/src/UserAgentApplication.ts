@@ -6,16 +6,15 @@ import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 import { AuthenticationRequestParameters } from "./AuthenticationRequestParameters";
 import { Authority } from "./Authority";
+import { AuthorityFactory } from "./AuthorityFactory";
 import { ClientInfo } from "./ClientInfo";
 import { Constants, ErrorCodes, ErrorDescription } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
-import { Storage } from "./Storage";
 import { TokenResponse } from "./RequestInfo";
+import { Storage } from "./Storage";
 import { User } from "./User";
 import { Utils } from "./Utils";
-import { AuthorityFactory } from "./AuthorityFactory";
-
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -1096,7 +1095,7 @@ export class UserAgentApplication {
     const expectedState = window.activeRenewals[scope];
     this._logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
     this._cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusInProgress);
-    this.loadFrame(urlNavigate, frameName);
+    this.loadAndRemoveFrame(urlNavigate, frameName);
     setTimeout(() => {
       if (this._cacheStorage.getItem(Constants.renewStatus + expectedState) === Constants.tokenRenewStatusInProgress) {
         // fail the iframe session if it"s in pending state
@@ -1116,21 +1115,63 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private loadFrame(urlNavigate: string, frameName: string): void {
+  private loadAndRemoveFrame(urlNavigate: string, frameName: string): void {
     // This trick overcomes iframe navigation in IE
     // IE does not load the page consistently in iframe
     this._logger.info("LoadFrame: " + frameName);
     const frameCheck = frameName;
+    const frameHandle = this.addAdalFrame(frameCheck);
+    // Check hash on iframe
+    // 100ms delay each check for 5 times. 500ms total delay before function times out.
+    frameHandle.onload = () => {
+      this.recursiveDelayCheckFrameHash(frameHandle, 5);
+    };
 
     // TODO: VSTS AI, work on either removing the 500ms timeout or making it optional for IE??
-    setTimeout(() => {
-      const frameHandle = this.addAdalFrame(frameCheck);
-      if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-        frameHandle.src = urlNavigate;
-        this._logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
+    if (frameHandle.src === "" || frameHandle.src === "about:blank") {
+      frameHandle.src = urlNavigate;
+      this._logger.infoPii(
+        "Frame Name : " + frameName + " Navigated to: " + urlNavigate
+      );
+    }
+  }
+
+  /**
+   * Recursively check if iFrame has been redirected with hash
+   * Each check has 100ms delay
+   * @ignore
+   * @hidden
+   */
+  private recursiveDelayCheckFrameHash(
+    frameHandle: HTMLIFrameElement,
+    executionsNumber: number
+  ): void {
+    const timeout = setTimeout(() => {
+      const urlHash =
+        frameHandle.contentWindow &&
+        frameHandle.contentWindow.location &&
+        frameHandle.contentWindow.location.hash;
+      const isCallback = this.isCallback(urlHash);
+
+      // If redirect is successfully and we have the hash
+      if (isCallback) {
+        // clear timeout and proceed
+        clearTimeout(timeout);
+
+        // clear iframe so we are not loading any scripts
+        const frameDoc =
+          frameHandle.contentDocument || frameHandle.contentWindow.document;
+        frameDoc.documentElement.innerHTML = "";
+        this._logger.info("Remove frame");
+        frameHandle.parentNode.removeChild(frameHandle);
+
+        this.handleAuthenticationResponse(urlHash);
+      } else {
+        if (executionsNumber) {
+          this.recursiveDelayCheckFrameHash(frameHandle, executionsNumber - 1);
+        }
       }
-    },
-    500);
+    }, 100);
   }
 
   /**
@@ -1152,11 +1193,12 @@ export class UserAgentApplication {
         (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
         const ifr = document.createElement("iframe");
         ifr.setAttribute("id", iframeId);
+        ifr.setAttribute("sandbox", "allow-same-origin allow-scripts"); // add additional security to sandbox iFrame
         ifr.style.visibility = "hidden";
         ifr.style.position = "absolute";
         ifr.style.width = ifr.style.height = "0";
         ifr.style.border = "0";
-        adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
+        document.getElementsByTagName("body")[0].appendChild(ifr);
       } else if (document.body && document.body.insertAdjacentHTML) {
           document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
       }
