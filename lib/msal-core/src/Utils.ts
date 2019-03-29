@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+import { Constants } from "./Constants";
 import { IUri } from "./IUri";
 import { User } from "./User";
-import {Constants} from "./Constants";
 
 /**
  * @hidden
@@ -588,3 +588,5 @@ export class Utils {
   //#endregion
 
 }
+
+export const getUrlHashFromFrame = (frame: HTMLIFrameElement): string =>  frame.contentWindow && frame.contentWindow.location && frame.contentWindow.location.hash;

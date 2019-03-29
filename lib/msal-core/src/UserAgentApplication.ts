@@ -14,7 +14,7 @@ import { Logger } from "./Logger";
 import { TokenResponse } from "./RequestInfo";
 import { Storage } from "./Storage";
 import { User } from "./User";
-import { Utils } from "./Utils";
+import { getUrlHashFromFrame, Utils } from "./Utils";
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -1152,10 +1152,7 @@ export class UserAgentApplication {
     numberOfExecutionLeft: number
   ): void {
     const timeout = setTimeout(() => {
-      const urlHash =
-        frameHandle.contentWindow &&
-        frameHandle.contentWindow.location &&
-        frameHandle.contentWindow.location.hash;
+      const urlHash = getUrlHashFromFrame(frameHandle);
       const isCallback = this.isCallback(urlHash);
 
       // If redirect is successfully and we have the hash
