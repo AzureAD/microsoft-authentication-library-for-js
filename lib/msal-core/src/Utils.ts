@@ -35,7 +35,7 @@ export class Utils {
   //#region General Util
 
   /**
-   * Utils function to compare two Account objects - used to check if the same user/account is logged in
+   * Utils function to compare two Account objects - used to check if the same user account is logged in
    *
    * @param a1: Account object
    * @param a2: Account object
@@ -624,7 +624,7 @@ export class Utils {
 
     // add the HomeAccountIdentifier info/ domain_hint
     if (request && request.account && request.account.homeAccountIdentifier) {
-        console.log("userIdentifier: " + request.account.homeAccountIdentifier);
+        console.log("homeAccountIdentifier: " + request.account.homeAccountIdentifier);
         serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
     }
 

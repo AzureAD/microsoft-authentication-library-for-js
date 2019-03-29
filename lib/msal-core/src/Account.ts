@@ -36,7 +36,7 @@ import { Utils } from "./Utils";
  */
 export class Account {
 
-    accountIdentifier: string;
+    // accountIdentifier: string;
     homeAccountIdentifier: string;
     userName: string;
     name: string;
@@ -46,6 +46,7 @@ export class Account {
 
     /**
      * Creates an Account Object
+     * @praram accountIdentifier
      * @param homeAccountIdentifier
      * @param userName
      * @param name
@@ -71,6 +72,7 @@ export class Account {
     static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
         let uid: string;
         let utid: string;
+
         if (!clientInfo) {
             uid = "";
             utid = "";

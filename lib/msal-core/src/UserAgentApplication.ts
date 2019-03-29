@@ -99,7 +99,7 @@ export interface CacheResult {
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
 // TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
-export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
+export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, accountState: string ) => void;
 
 // TODO: Add second callback for error cases
 
@@ -141,7 +141,7 @@ export class UserAgentApplication {
 
   // Cache and Account info referred across token grant flow
   protected cacheStorage: Storage;
-  private user: Account;
+  private account: Account;
 
   // state variables
   private loginInProgress: boolean;
@@ -254,12 +254,12 @@ export class UserAgentApplication {
     this.validateInputScope(scopes, false);
     scopes = this.filterScopes(scopes);
 
-    const user = this.getUser();
+    const account = this.getAccount();
 
     // defer queryParameters generation to Helper if developer passes account/sid/login_hint
     if (request && (request.account || request.sid || request.loginHint)) {
-       // if user is not provided, we pass null
-       this.loginRedirectHelper(user, request, scopes);
+       // if account is not provided, we pass null
+       this.loginRedirectHelper(account, request, scopes);
     }
     // else handle the library data
     else {
@@ -278,19 +278,19 @@ export class UserAgentApplication {
 
           // TODO: Change callback to return AuthResponse
           if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getUserState(this.silentAuthenticationState));
+            this.tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getAccountState(this.silentAuthenticationState));
           }
         }, (error) => {
           this.silentLogin = false;
           this.logger.error("Error occurred during unified cache ATS");
 
-          // call the loginRedirectHelper later with no user context
+          // call the loginRedirectHelper later with no user account context
           this.loginRedirectHelper(null, request, scopes);
         });
       }
       // else proceed to login
       else {
-        // call the loginRedirectHelper later with no user context
+        // call the loginRedirectHelper later with no user account context
         this.loginRedirectHelper(null, request, scopes);
       }
     }
@@ -304,7 +304,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param extraQueryParameters
    */
-  private loginRedirectHelper(user: Account, request: AuthenticationParameters, scopes?: Array<string>) {
+  private loginRedirectHelper(account: Account, request: AuthenticationParameters, scopes?: Array<string>) {
     // Track login in progress
     this.loginInProgress = true;
 
@@ -322,7 +322,7 @@ export class UserAgentApplication {
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(user, request, serverAuthenticationRequest);
+        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
       }
 
       // if the user sets the login start page - angular only??
@@ -344,8 +344,7 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
       // Cache authorityKey
-      const authorityKey = Storage.generateAuthorityKey(serverAuthenticationRequest.state);
-      this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
+      this.setAuthorityCache(serverAuthenticationRequest.state, this.authority);
 
       // build URL to navigate to proceed with the login
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
@@ -363,7 +362,7 @@ export class UserAgentApplication {
    * - In Azure AD, it is of the form https://{instance}/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://{instance}/tfp/&lt;tenant&gt;/<policyName>
    * - Default value is: "https://login.microsoftonline.com/common"
-   * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
+   * @param {Account} account - The account for which the scopes are requested.The default account is the logged in account.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    */
   acquireTokenRedirect(request: AuthenticationParameters): void {
@@ -371,8 +370,8 @@ export class UserAgentApplication {
     this.validateInputScope(request.scopes, true);
     request.scopes = this.filterScopes(request.scopes);
 
-    // Get the user object if a session exists
-    const userObject = request.account ? request.account : this.getUser();
+    // Get the account object if a session exists
+    const account = request.account ? request.account : this.getAccount();
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
@@ -381,7 +380,7 @@ export class UserAgentApplication {
 
     // If no session exists, prompt the user to login.
     const scope = request.scopes.join(" ").toLowerCase();
-    if (!userObject && !(request.sid  || request.loginHint)) {
+    if (!account && !(request.sid  || request.loginHint)) {
       this.logger.info("User login is required");
       throw ClientAuthError.createUserLoginRequiredError();
     }
@@ -394,7 +393,7 @@ export class UserAgentApplication {
 
     acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
       // On Fulfillment
-      const responseType = this.getTokenType(userObject, request.scopes, false);
+      const responseType = this.getTokenType(account, request.scopes, false);
       serverAuthenticationRequest = new ServerRequestParameters(
         acquireTokenAuthority,
         this.clientId,
@@ -407,18 +406,13 @@ export class UserAgentApplication {
       // Cache nonce
       this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
 
-      // Cache acquireTokenUserKey
-      const userId = userObject ? userObject.homeAccountIdentifier : Constants.no_user;
-      const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, serverAuthenticationRequest.state);
-      this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-
-      // Cache authorityKey
-      const authorityKey = Storage.generateAuthorityKey(serverAuthenticationRequest.state);
-      this.cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.inCookie);
+      // Cache account and authority
+      this.setAccountCache(account, serverAuthenticationRequest.state);
+      this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(userObject, request, serverAuthenticationRequest);
+        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
       }
 
       // Construct urlNavigate
@@ -484,12 +478,12 @@ export class UserAgentApplication {
       this.validateInputScope(scopes, false);
       scopes = this.filterScopes(scopes);
 
-      let user = this.getUser();
+      let account = this.getAccount();
 
       // add the prompt parameter to the 'extraQueryParameters' if passed
       if (request && (request.account || request.sid || request.loginHint)) {
-         // if user is not provided, we pass null
-         this.loginPopupHelper(user, request, resolve, reject, scopes);
+         // if account is not provided, we pass null
+         this.loginPopupHelper(account, request, resolve, reject, scopes);
       }
       // else handle the library data
       else {
@@ -533,7 +527,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param extraQueryParameters
    */
-  private loginPopupHelper(user: Account, request: AuthenticationParameters, resolve: any, reject: any, scopes?: Array<string>) {
+  private loginPopupHelper(account: Account, request: AuthenticationParameters, resolve: any, reject: any, scopes?: Array<string>) {
     if (!scopes) {
       scopes = [this.clientId];
     }
@@ -555,7 +549,7 @@ export class UserAgentApplication {
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(user, request, serverAuthenticationRequest);
+        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
       }
 
       // Cache the state, nonce, and login request data
@@ -568,8 +562,7 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
       // cache authorityKey
-      const authorityKey = Storage.generateAuthorityKey(serverAuthenticationRequest.state);
-      this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
+      this.setAuthorityCache(serverAuthenticationRequest.state, this.authority);
 
       // Build the URL to navigate to in the popup window
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
@@ -616,7 +609,7 @@ export class UserAgentApplication {
    * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
    * - Default value is: "https://login.microsoftonline.com/common".
-   * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
+   * @param {Account} account - The account for which the scopes are requested.The default account is the logged in account.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
@@ -628,8 +621,8 @@ export class UserAgentApplication {
 
       const scope = request.scopes.join(" ").toLowerCase();
 
-      // Get the user object if a session exists
-      const userObject = request.account ? request.account : this.getUser();
+      // Get the account object if a session exists
+      const account = request.account ? request.account : this.getAccount();
 
       // If already in progress, throw an error and reject the request
       if (this.acquireTokenInProgress) {
@@ -637,7 +630,7 @@ export class UserAgentApplication {
       }
 
       // If no session exists, prompt the user to login.
-      if (!userObject && !!(request.sid  || request.loginHint)) {
+      if (!account && !!(request.sid  || request.loginHint)) {
         this.logger.info("User login is required");
         return reject(ClientAuthError.createUserLoginRequiredError());
       }
@@ -657,7 +650,7 @@ export class UserAgentApplication {
 
       acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
         // On fullfillment
-        const responseType = this.getTokenType(userObject, request.scopes, false);
+        const responseType = this.getTokenType(account, request.scopes, false);
         serverAuthenticationRequest = new ServerRequestParameters(
           acquireTokenAuthority,
           this.clientId,
@@ -669,7 +662,7 @@ export class UserAgentApplication {
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
         if (request) {
-          serverAuthenticationRequest = this.populateQueryParams(userObject, request, serverAuthenticationRequest);
+          serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
         }
 
         // Cache nonce
@@ -677,18 +670,11 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
         serverAuthenticationRequest.state = serverAuthenticationRequest.state;
 
-        // Cache acquireTokenUserKey
-        const userId = userObject ? userObject.homeAccountIdentifier : Constants.no_user;
-        const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, serverAuthenticationRequest.state);
-
-        this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(userObject));
-
-        // Cache authorityKey
-        const authorityKey = Storage.generateAuthorityKey(serverAuthenticationRequest.state);
-        this.cacheStorage.setItem(authorityKey, acquireTokenAuthority.CanonicalAuthority, this.inCookie);
+        // Cache account and authority
+        this.setAccountCache(account, serverAuthenticationRequest.state);
+        this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
 
         // Construct the urlNavigate
-
         let urlNavigate = serverAuthenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
 
         window.renewStates.push(serverAuthenticationRequest.state);
@@ -854,7 +840,7 @@ export class UserAgentApplication {
    * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
    * - Default value is: "https://login.microsoftonline.com/common"
-   * @param {User} user - The user for which the scopes are requested.The default user is the logged in user.
+   * @param {Account} account - The user for which the scopes are requested.The default account is the logged in account.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
    */
@@ -868,19 +854,19 @@ export class UserAgentApplication {
 
       const scope = request.scopes.join(" ").toLowerCase();
 
-      // if the developer passes a userObject give him the priority
-      const userObject = request.account ? request.account : this.getUser();
+      // if the developer passes an account give him the priority
+      const account = request.account ? request.account : this.getAccount();
 
       // extract if there is an adalIdToken stashed in the cache
       const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
-      //if user is not currently logged in and no login_hint/sid is passed in the request
-      if (!userObject && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
+      //if there is no account logged in and no login_hint/sid is passed in the request
+      if (!account && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
         this.logger.info("User login is required");
         return reject(ClientAuthError.createUserLoginRequiredError());
       }
 
-      const responseType = this.getTokenType(userObject, request.scopes, true);
+      const responseType = this.getTokenType(account, request.scopes, true);
       let serverAuthenticationRequest = new ServerRequestParameters(
         AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
         this.clientId,
@@ -895,10 +881,10 @@ export class UserAgentApplication {
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(userObject, request, serverAuthenticationRequest);
+        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
       }
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
-      else if (!userObject && !Utils.isEmpty(adalIdToken)) {
+      else if (!account && !Utils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
         const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
         console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
@@ -910,7 +896,7 @@ export class UserAgentApplication {
         serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
       }
 
-      const cacheResult = this.getCachedToken(serverAuthenticationRequest, userObject);
+      const cacheResult = this.getCachedToken(serverAuthenticationRequest, account);
 
       // resolve/reject based on cacheResult
       if (cacheResult) {
@@ -948,11 +934,11 @@ export class UserAgentApplication {
               // App uses idToken to send to api endpoints
               // Default scope is tracked as clientId to store this token
               this.logger.verbose("renewing idToken");
-              this.renewIdToken(request.scopes, resolve, reject, userObject, serverAuthenticationRequest);
+              this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
             } else {
               // renew access token
               this.logger.verbose("renewing accesstoken");
-              this.renewToken(request.scopes, resolve, reject, userObject, serverAuthenticationRequest);
+              this.renewToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
             }
           }
         }).catch((err) => {
@@ -1069,35 +1055,35 @@ export class UserAgentApplication {
    * Also does a sanity check for extraQueryParamters passed by the user to ensure no repeat queryParameters
    *
    * @param {string} urlNavigate - Authentication request url
-   * @param {User} user - User for which the token is requested
+   * @param {Account} account - Account for which the token is requested
    * @ignore
    * @hidden
    */
-  private addHintParameters(userObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
+  private addHintParameters(accontObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
 
-    const user = userObj ? userObj : this.getUser();
+    const account = accontObj ? accontObj : this.getAccount();
 
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
     // sid cannot be passed along with login_hint, hence we check both are not populated yet in queryParameters so far
-    if (user) {
+    if (account) {
       // sid
-      if (user.sid && serverReqParams.promptValue !== PromptState.NONE) {
+      if (account.sid && serverReqParams.promptValue !== PromptState.NONE) {
         if (!qParams[SSOTypes.SID]  && !qParams[SSOTypes.LOGIN_HINT]) {
-          qParams = Utils.addSSOParameter(SSOTypes.SID, user.sid, qParams);
+          qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
         }
       }
       // login_hint
       else {
         // login_hint is account.username
-        if (!qParams[SSOTypes.LOGIN_HINT]  && user.userName && !Utils.isEmpty(user.userName)) {
-          qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, user.userName, qParams);
+        if (!qParams[SSOTypes.LOGIN_HINT]  && account.userName && !Utils.isEmpty(account.userName)) {
+          qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
         }
       }
 
       // TODO: when accountIdentifier and homeAccountIdentifier (userIdentifier renamed and is === client_info) are available, this will change
       // client_info.utid = domain_req and client_info.uid = login_req; check utid and add domain_hint
       if (!qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ] ) {
-        qParams = Utils.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, user.homeAccountIdentifier, qParams);
+        qParams = Utils.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, account.homeAccountIdentifier, qParams);
       }
     }
 
@@ -1180,7 +1166,7 @@ export class UserAgentApplication {
    */
   logout(): void {
     this.clearCache();
-    this.user = null;
+    this.account = null;
     let logout = "";
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
@@ -1198,7 +1184,7 @@ export class UserAgentApplication {
   // TODO: Consider moving this to Storage.ts
   protected clearCache(): void {
     window.renewStates = [];
-    const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
+    const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
     for (let i = 0; i < accessTokenItems.length; i++) {
       this.cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
     }
@@ -1213,7 +1199,7 @@ export class UserAgentApplication {
    */
   // TODO: Consider moving this to Storage.ts
   protected clearCacheForScope(accessToken: string) {
-    const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
+    const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
     for (let i = 0; i < accessTokenItems.length; i++) {
         let token = accessTokenItems[i];
         if (token.value.accessToken === accessToken) {
@@ -1263,7 +1249,7 @@ export class UserAgentApplication {
 
           // Trigger callback
           // TODO: Refactor to new callback pattern
-          this.tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
+          this.tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
         }
 
     } catch (err) {
@@ -1371,7 +1357,7 @@ export class UserAgentApplication {
       if (tokenReceivedCallback) {
         //We should only send the stae back to the developer if it matches with what we received from the server
         if (requestInfo.stateMatch) {
-          tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, this.getUserState(requestInfo.stateResponse));
+          tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, this.getAccountState(requestInfo.stateResponse));
         }
         else {
           tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, null);
@@ -1463,17 +1449,17 @@ export class UserAgentApplication {
   /**
    * Used to get token for the specified set of scopes from the cache
    * @param {AuthenticationRequestParameters} authenticationRequest - Request sent to the STS to obtain an id_token/access_token
-   * @param {User} user - User for which the scopes were requested
+   * @param {Account} account - Account for which the scopes were requested
    * @hidden
    */
   // TODO: There is a lot of duplication code in this function, rework this sooner than later, may be as a part of Error??
   // TODO: Only used in ATS - we should separate this
-  private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, user: Account): CacheResult {
+  private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): CacheResult {
     let accessTokenCacheItem: AccessTokenCacheItem = null;
     const scopes = serverAuthenticationRequest.scopes;
 
-    // filter by clientId and user
-    const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, user ? user.homeAccountIdentifier : null);
+    // filter by clientId and account
+    const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
 
     // No match found after initial filtering
     if (tokenCacheItems.length === 0) {
@@ -1610,20 +1596,14 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private renewToken(scopes: Array<string>, resolve: Function, reject: Function, user: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+  private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
     const scope = scopes.join(" ").toLowerCase();
     this.logger.verbose("renewToken is called for scope:" + scope);
     const frameHandle = this.addHiddenIFrame("msalRenewFrame" + scope);
 
-    // Cache acquireTokenUserKey
-    const userId = user ? user.homeAccountIdentifier : Constants.no_user;
-    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, serverAuthenticationRequest.state);
-
-    this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
-
-    // Cache authorityKey
-    const authorityKey = Storage.generateAuthorityKey(serverAuthenticationRequest.state);
-    this.cacheStorage.setItem(authorityKey, serverAuthenticationRequest.authority);
+    // Cache account and authority
+    this.setAccountCache(account, serverAuthenticationRequest.state);
+    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
 
     // renew happens in iframe, so it keeps javascript context
     this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
@@ -1645,20 +1625,14 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, user: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+  private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
 
     this.logger.info("renewidToken is called");
     const frameHandle = this.addHiddenIFrame("msalIdTokenFrame");
 
-    // Cache acquireTokenUserKey
-    const userId = user ? user.homeAccountIdentifier : Constants.no_user;
-    const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userId, serverAuthenticationRequest.state);
-
-    this.cacheStorage.setItem(acquireTokenUserKey, JSON.stringify(user));
-
-    // Cache authorityKey
-    const authorityKey = Storage.generateAuthorityKey(serverAuthenticationRequest.state);
-    this.cacheStorage.setItem(authorityKey, serverAuthenticationRequest.authority);
+    // Cache account and authority
+    this.setAccountCache(account, serverAuthenticationRequest.state);
+    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
 
     // Cache nonce
     this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
@@ -1687,7 +1661,7 @@ export class UserAgentApplication {
    * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
    * @param {string} authority authority received in the redirect response from AAD.
    * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-   * @param {User} user user object for which scopes are consented for. The default user is the logged in user.
+   * @param {Account} account account object for which scopes are consented for. The default account is the logged in account.
    * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
    * @param {IdToken} idToken idToken received as part of the response.
    * @ignore
@@ -1696,19 +1670,22 @@ export class UserAgentApplication {
    */
   /* tslint:disable:no-string-literal */
   //TODO: Break this function - too long
-  private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: Account, clientInfo: string, idToken: IdToken): void {
+  private saveAccessToken(authority: string, tokenResponse: TokenResponse, account: Account, clientInfo: string, idToken: IdToken): void {
     let scope: string;
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
     // if the response contains "scope"
     if (tokenResponse.parameters.hasOwnProperty("scope")) {
-      // read the scopes
+
       scope = tokenResponse.parameters["scope"];
       const consentedScopes = scope.split(" ");
+
       // retrieve all access tokens from the cache, remove the dup scores
       const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
       for (let i = 0; i < accessTokenCacheItems.length; i++) {
         const accessTokenCacheItem = accessTokenCacheItems[i];
-        if (accessTokenCacheItem.key.userIdentifier === user.homeAccountIdentifier) {
+
+        // TODO: Figure out where to change this
+        if (accessTokenCacheItem.key.homeAccountIdentifier === account.homeAccountIdentifier) {
           const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
           if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
@@ -1734,7 +1711,7 @@ export class UserAgentApplication {
   }
 
   /**
-   * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the user object.
+   * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the account object.
    * @ignore
    * @hidden
    */
@@ -1746,7 +1723,7 @@ export class UserAgentApplication {
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
     let authorityKey: string = "";
-    let acquireTokenUserKey: string = "";
+    let acquireTokenAccountKey: string = "";
 
     // If server returns an error
     if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
@@ -1765,8 +1742,8 @@ export class UserAgentApplication {
       if (tokenResponse.requestType === Constants.renewToken) {
         this.acquireTokenInProgress = false;
         authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
-        const userKey = this.getUser() !== null ? this.getUser().homeAccountIdentifier : "";
-        acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, tokenResponse.stateResponse);
+        const accountId = this.getAccount() !== null ? this.getAccount().homeAccountIdentifier : "";
+        acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, tokenResponse.stateResponse);
       }
     }
     // If the server returns "Success"
@@ -1785,7 +1762,7 @@ export class UserAgentApplication {
         if (tokenResponse.parameters.hasOwnProperty(Constants.accessToken)) {
           this.logger.info("Fragment has access token");
           this.acquireTokenInProgress = false;
-          let user: Account;
+          let account: Account;
 
           // retrieve the id_token from response if present :
           // TODO: Is this the case of id_token_token??
@@ -1798,6 +1775,7 @@ export class UserAgentApplication {
           // retrieve the authority from cache and replace with tenantID
           const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
+
           if (!Utils.isEmpty(authority)) {
             authority = Utils.replaceTenantPath(authority, idToken.tenantId);
           }
@@ -1805,30 +1783,30 @@ export class UserAgentApplication {
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
           if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = tokenResponse.parameters[Constants.clientInfo];
-            user = Account.createAccount(idToken, new ClientInfo(clientInfo));
+            account = Account.createAccount(idToken, new ClientInfo(clientInfo));
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
-            user = Account.createAccount(idToken, new ClientInfo(clientInfo));
+            account = Account.createAccount(idToken, new ClientInfo(clientInfo));
           }
 
-          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(user.homeAccountIdentifier, tokenResponse.stateResponse);
-          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, tokenResponse.stateResponse);
+          acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, tokenResponse.stateResponse);
+          const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, tokenResponse.stateResponse);
 
-          let cachedUser: string = this.cacheStorage.getItem(acquireTokenUserKey);
-          let acquireTokenUser: Account;
+          let cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
+          let acquireTokenAccount: Account;
 
-          // Check with the user in the Cache
-          if (!Utils.isEmpty(cachedUser)) {
-            acquireTokenUser = JSON.parse(cachedUser);
-            if (user && acquireTokenUser && Utils.compareAccounts(user, acquireTokenUser)) {
-              this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
-              this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
+          // Check with the account in the Cache
+          if (!Utils.isEmpty(cachedAccount)) {
+            acquireTokenAccount = JSON.parse(cachedAccount);
+            if (account && acquireTokenAccount && Utils.compareAccounts(account, acquireTokenAccount)) {
+              this.saveAccessToken(authority, tokenResponse, account, clientInfo, idToken);
+              this.logger.info("The account object received in the response is the same as the one passed in the acquireToken request");
             } else {
               this.logger.warning(
-                "The user object created from the response is not the same as the one passed in the acquireToken request");
+                "The account object created from the response is not the same as the one passed in the acquireToken request");
             }
-          } else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenUserKey_nouser))) {
-            this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
+          } else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
+            this.saveAccessToken(authority, tokenResponse, account, clientInfo, idToken);
           }
         }
 
@@ -1846,16 +1824,17 @@ export class UserAgentApplication {
 
             authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
+
             if (!Utils.isEmpty(authority)) {
               authority = Utils.replaceTenantPath(authority, idToken.tenantId);
             }
 
-            this.user = Account.createAccount(idToken, new ClientInfo(clientInfo));
+            this.account = Account.createAccount(idToken, new ClientInfo(clientInfo));
 
             if (idToken && idToken.nonce) {
               // check nonce integrity if idToken has nonce - throw an error if not matched
               if (idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
-                this.user = null;
+                this.account = null;
                 // TODO: optimize this - may be combine if it is a string in both cases
                 this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + idToken.nonce);
                 this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + idToken.nonce);
@@ -1866,12 +1845,13 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
 
                 // Save idToken as access token for app itself
-                this.saveAccessToken(authority, tokenResponse, this.user, clientInfo, idToken);
+                this.saveAccessToken(authority, tokenResponse, this.account, clientInfo, idToken);
               }
             } else {
               // TODO: avoid repeated strings - will this be optimized with error handling?
               authorityKey = tokenResponse.stateResponse;
-              acquireTokenUserKey = tokenResponse.stateResponse;
+              acquireTokenAccountKey = tokenResponse.stateResponse;
+
               this.logger.error("Invalid id_token received in the response");
               tokenResponse.parameters["error"] = "invalid idToken";
               tokenResponse.parameters["error_description"] = "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken];
@@ -1883,7 +1863,7 @@ export class UserAgentApplication {
       // State mismatch - unexpected/invalid state
       else {
         authorityKey = tokenResponse.stateResponse;
-        acquireTokenUserKey = tokenResponse.stateResponse;
+        acquireTokenAccountKey = tokenResponse.stateResponse;
         this.logger.error("State Mismatch.Expected State: " + this.cacheStorage.getItem(Constants.stateLogin, this.inCookie) + "," + "Actual State: " + tokenResponse.stateResponse);
         // TODO: avoid repeated strings - will this be optimized with error handling?
         tokenResponse.parameters["error"] = "Invalid_state";
@@ -1892,8 +1872,9 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
       }
     }
+
     this.cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
-    this.cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
+    this.cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenAccountKey);
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);
@@ -1906,39 +1887,37 @@ export class UserAgentApplication {
 
   //#region Account
 
-  // TODO: Change User to Account
-
   /**
-   * Returns the signed in user (received from a user object created at the time of login) or null.
+   * Returns the signed in account (received from an account object created at the time of login) or null.
    */
   // TODO: Should there be a public function modifier here?
-  getUser(): Account {
-    // if a session already exists, get the user from the session
-    if (this.user) {
-      return this.user;
+  getAccount(): Account {
+    // if a session already exists, get the account from the session
+    if (this.account) {
+      return this.account;
     }
 
-    // frame is used to get idToken and populate the user for the given session
+    // frame is used to get idToken and populate the account for the given session
     const rawIdToken = this.cacheStorage.getItem(Constants.idTokenKey);
     const rawClientInfo = this.cacheStorage.getItem(Constants.msalClientInfo);
 
     if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
       const idToken = new IdToken(rawIdToken);
       const clientInfo = new ClientInfo(rawClientInfo);
-      this.user = Account.createAccount(idToken, clientInfo);
-      return this.user;
+      this.account = Account.createAccount(idToken, clientInfo);
+      return this.account;
     }
     // if login not yet done, return null
     return null;
   }
 
   /**
-   * Extracts state value from the userState sent with the authentication request.
+   * Extracts state value from the accountState sent with the authentication request.
    * @returns {string} scope.
    * @ignore
    * @hidden
    */
-  getUserState (state: string) {
+  getAccountState (state: string) {
     if (state) {
       const splitIndex = state.indexOf("|");
       if (splitIndex > -1 && splitIndex + 1 < state.length) {
@@ -1949,43 +1928,44 @@ export class UserAgentApplication {
   }
 
   /**
-   * Used to filter all cached items and return a list of unique users based on userIdentifier.
-   * @param {Array<User>} Users - users saved in the cache.
+   * Used to filter all cached items and return a list of unique accounts based on homeAccountIdentifier.
+   * @param {Array<Account>} Accounts - accounts saved in the cache.
    */
-  getAllUsers(): Array<Account> {
-    const users: Array<Account> = [];
-    const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.userIdentifier);
+  getAllAccounts(): Array<Account> {
+    const accounts: Array<Account> = [];
+    const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
+
     for (let i = 0; i < accessTokenCacheItems.length; i++) {
       const idToken = new IdToken(accessTokenCacheItems[i].value.idToken);
       const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.clientInfo);
-      const user = Account.createAccount(idToken, clientInfo);
-      users.push(user);
+      const account = Account.createAccount(idToken, clientInfo);
+      accounts.push(account);
     }
 
-    return this.getUniqueUsers(users);
+    return this.getUniqueAccounts(accounts);
   }
 
   /**
-   * Used to filter users based on userIdentifier
-   * @param {Array<User>}  Users - users saved in the cache
+   * Used to filter accounts based on homeAccountIdentifier
+   * @param {Array<Account>}  Accounts - accounts saved in the cache
    * @ignore
    * @hidden
    */
-  private getUniqueUsers(users: Array<Account>): Array<Account> {
-    if (!users || users.length <= 1) {
-      return users;
+  private getUniqueAccounts(accounts: Array<Account>): Array<Account> {
+    if (!accounts || accounts.length <= 1) {
+      return accounts;
     }
 
     const flags: Array<string> = [];
-    const uniqueUsers: Array<Account> = [];
-    for (let index = 0; index < users.length; ++index) {
-      if (users[index].homeAccountIdentifier && flags.indexOf(users[index].homeAccountIdentifier) === -1) {
-        flags.push(users[index].homeAccountIdentifier);
-        uniqueUsers.push(users[index]);
+    const uniqueAccounts: Array<Account> = [];
+    for (let index = 0; index < accounts.length; ++index) {
+      if (accounts[index].homeAccountIdentifier && flags.indexOf(accounts[index].homeAccountIdentifier) === -1) {
+        flags.push(accounts[index].homeAccountIdentifier);
+        uniqueAccounts.push(accounts[index]);
       }
     }
 
-    return uniqueUsers;
+    return uniqueAccounts;
   }
 
   //#endregion
@@ -2069,8 +2049,7 @@ export class UserAgentApplication {
   //#region Angular
 
   /**
-  * Broadcast messages - Used only for Angular?
-  *
+  * Broadcast messages - Used only for Angular?  *
   * @param eventName
   * @param data
   */
@@ -2085,16 +2064,16 @@ export class UserAgentApplication {
    * @param scopes
    * @param user
    */
-  protected getCachedTokenInternal(scopes : Array<string> , user: Account): CacheResult {
+  protected getCachedTokenInternal(scopes : Array<string> , account: Account): CacheResult {
     // Get the current session's user object
-    const userObject = user ? user : this.getUser();
-    if (!userObject) {
+    const accountObject = account ? account : this.getAccount();
+    if (!accountObject) {
         return null;
     }
 
     // Construct AuthenticationRequest based on response type
     const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
-    const responseType = this.getTokenType(userObject, scopes, true);
+    const responseType = this.getTokenType(accountObject, scopes, true);
     const serverAuthenticationRequest = new ServerRequestParameters(
       newAuthority,
       this.clientId,
@@ -2105,7 +2084,7 @@ export class UserAgentApplication {
     );
 
     // get cached token
-    return this.getCachedToken(serverAuthenticationRequest, user);
+    return this.getCachedToken(serverAuthenticationRequest, account);
   }
 
   /**
@@ -2268,15 +2247,15 @@ export class UserAgentApplication {
    * @param scopes
    * @param silentCall
    */
-  private getTokenType(userObject: Account, scopes: string[], silentCall: boolean): string {
+  private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
 
-    // if user is passed and matches the user object/or set to getUser() from cache
+    // if account is passed and matches the account object/or set to getAccount() from cache
     // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
     let tokenType: string;
 
     // acquireTokenSilent
     if (silentCall) {
-      if (Utils.compareAccounts(userObject, this.getUser())) {
+      if (Utils.compareAccounts(accountObject, this.getAccount())) {
         tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
       }
       else {
@@ -2287,7 +2266,7 @@ export class UserAgentApplication {
     }
     // all other cases
     else {
-      if (!Utils.compareAccounts(userObject, this.getUser())) {
+      if (!Utils.compareAccounts(accountObject, this.getAccount())) {
            tokenType = ResponseTypes.id_token_token;
       }
       else {
@@ -2300,6 +2279,29 @@ export class UserAgentApplication {
   }
 
   /**
+   * Sets the cachekeys for and stores the account information in cache
+   * @param account
+   * @param state
+   */
+  private setAccountCache(account: Account, state: string) {
+    // Cache acquireTokenAccountKey
+    const accountId = account ? account.homeAccountIdentifier : Constants.no_account;
+    const acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, state);
+    this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
+  }
+
+  /**
+   * Sets the cacheKey for and stores the authority information in cache
+   * @param state
+   * @param authority
+   */
+  private setAuthorityCache(state: string, authority: string) {
+    // Cache authorityKey
+    const authorityKey = Storage.generateAuthorityKey(state);
+    this.cacheStorage.setItem(authorityKey, authority, this.inCookie);
+  }
+
+  /**
    * Construct 'tokenRequest' from the available data in adalIdToken
    * @param extraQueryParameters
    */
@@ -2308,7 +2310,7 @@ export class UserAgentApplication {
     let tokenRequest: AuthenticationParameters = {
       scopes: [this.clientId],
       authority: this.authority,
-      account: this.getUser(),
+      account: this.getAccount(),
       extraQueryParameters: request.extraQueryParameters
     };
 
@@ -2320,7 +2322,7 @@ export class UserAgentApplication {
    * @param request
    * @param serverAuthenticationRequest
    */
-  private populateQueryParams(user: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters): ServerRequestParameters {
+  private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters): ServerRequestParameters {
 
     let queryParameters: QPDict = {};
 
@@ -2338,7 +2340,7 @@ export class UserAgentApplication {
 
     // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
 
-    queryParameters = this.addHintParameters(user, queryParameters, serverAuthenticationRequest);
+    queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
     const eQParams = this.removeSSOParamsFromEQParams(request.extraQueryParameters);
