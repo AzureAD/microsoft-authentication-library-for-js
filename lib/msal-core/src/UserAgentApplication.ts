@@ -1126,10 +1126,17 @@ export class UserAgentApplication {
     this._logger.info("LoadFrame: " + frameName);
     const frameCheck = frameName;
     const frameHandle = this.addAdalFrame(frameCheck);
-    // Check hash on iframe
-    // 100ms delay each check for 5 times. 500ms total delay before function times out.
+
     frameHandle.onload = () => {
-      this.recursiveDelayCheckFrameHash(frameHandle, this.IFRAME_HANDLE_RETRY_COUNT);
+        // clear iframe document
+        const frameDoc =
+        frameHandle.contentDocument || frameHandle.contentWindow.document;
+        frameDoc.documentElement.innerHTML = "";
+        this._logger.info("Remove frame");
+        
+        // Check hash on iframe
+        // 100ms delay each check for 5 times. 500ms total delay before function times out.
+        this.recursiveDelayCheckFrameHash(frameHandle, 5);
     };
 
     // TODO: VSTS AI, work on either removing the 500ms timeout or making it optional for IE??
@@ -1151,27 +1158,22 @@ export class UserAgentApplication {
     frameHandle: HTMLIFrameElement,
     numberOfExecutionLeft: number
   ): void {
-    const timeout = setTimeout(() => {
-      const urlHash = getUrlHashFromFrame(frameHandle);
-      const isCallback = this.isCallback(urlHash);
+    const urlHash = getUrlHashFromFrame(frameHandle);
+    const isCallback = this.isCallback(urlHash);
+  
+    // If redirect is successfully and we have the hash
+    if (isCallback) {
+      this.handleAuthenticationResponse(urlHash);
+      return;
+    }
 
-      // If redirect is successfully and we have the hash
-      if (isCallback) {
+    const timeout = setTimeout(() => {
+      if (numberOfExecutionLeft) {
+        this.recursiveDelayCheckFrameHash(frameHandle, numberOfExecutionLeft - 1);
+      } else {
         // clear timeout and proceed
         clearTimeout(timeout);
-
-        // clear iframe so we are not loading any scripts
-        const frameDoc =
-          frameHandle.contentDocument || frameHandle.contentWindow.document;
-        frameDoc.documentElement.innerHTML = "";
-        this._logger.info("Remove frame");
         frameHandle.parentNode.removeChild(frameHandle);
-
-        this.handleAuthenticationResponse(urlHash);
-      } else {
-        if (numberOfExecutionLeft) {
-          this.recursiveDelayCheckFrameHash(frameHandle, numberOfExecutionLeft - 1);
-        }
       }
     }, 100);
   }
@@ -1195,7 +1197,8 @@ export class UserAgentApplication {
         (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
         const ifr = document.createElement("iframe");
         ifr.setAttribute("id", iframeId);
-        ifr.setAttribute("sandbox", "allow-same-origin allow-scripts"); // add additional security to sandbox iFrame
+        // Add additional security to sandbox iFrame (also prevent iFrame executing external scripts)
+        ifr.setAttribute("sandbox", "allow-same-origin");
         ifr.style.visibility = "hidden";
         ifr.style.position = "absolute";
         ifr.style.width = ifr.style.height = "0";
