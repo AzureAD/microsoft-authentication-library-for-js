@@ -47,6 +47,17 @@ and start hacking:
 $ git checkout -b my-feature-branch
 ```
 
+### PRE COMMIT
+
+We automatically run lint as our pre-commit command.
+
+```
+$ npm run lint
+```
+
+This will ensure any changes are consistent with the current code style. We uses tslint and you can find a list of linting rules in the tslint.json.
+
+
 ### COMMIT
 
 Make sure git knows your name and email address:

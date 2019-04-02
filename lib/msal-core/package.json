@@ -33,11 +33,6 @@
     "lint": "tslint -c tslint.json src/**/*.ts",
     "build:webpack": "webpack"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
-  },
   "dependencies": {
     "tslib": "^1.7.1"
   },
