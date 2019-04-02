@@ -1133,7 +1133,7 @@ export class UserAgentApplication {
         frameHandle.contentDocument || frameHandle.contentWindow.document;
         frameDoc.documentElement.innerHTML = "";
         this._logger.info("Remove frame");
-        
+
         // Check hash on iframe
         // 100ms delay each check for 5 times. 500ms total delay before function times out.
         this.recursiveDelayCheckFrameHash(frameHandle, 5);
@@ -1160,7 +1160,7 @@ export class UserAgentApplication {
   ): void {
     const urlHash = getUrlHashFromFrame(frameHandle);
     const isCallback = this.isCallback(urlHash);
-  
+
     // If redirect is successfully and we have the hash
     if (isCallback) {
       this.handleAuthenticationResponse(urlHash);
