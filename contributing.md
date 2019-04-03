@@ -49,13 +49,19 @@ $ git checkout -b my-feature-branch
 
 ### PRE COMMIT
 
-We automatically run lint as our pre-commit command.
+We will automatically run lint as our pre-commit command. Failing to pass linting will prevent you from pushing up code which will break the build.
 
 ```
 $ npm run lint
 ```
 
 This will ensure any changes are consistent with the current code style. We uses tslint and you can find a list of linting rules in the tslint.json.
+
+If for some reason you still want to push without fixing the linting errors. You can add the follow option to your commit command to [bypass the pre-commit][]:
+
+```
+--no-verify
+```
 
 
 ### COMMIT
@@ -135,3 +141,4 @@ not send out notifications when you add commits.
 
 [on GitHub]: https://github.com/AzureAD/microsoft-authentication-library-for-js
 [issue tracker]: https://github.com/AzureAD/microsoft-authentication-library-for-js/issues
+[bypass the pre-commit]: https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---no-verify
