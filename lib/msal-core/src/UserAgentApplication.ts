@@ -1835,11 +1835,10 @@ export class UserAgentApplication {
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
           if (hashParams.hasOwnProperty(Constants.clientInfo)) {
             clientInfo = hashParams[Constants.clientInfo];
-            response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
-            response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
           }
+          response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
 
           const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(response.account.userIdentifier, stateInfo.state);
           const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, stateInfo.state);
