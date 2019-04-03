@@ -38,7 +38,7 @@ import { Configuration } from "./Configuration";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
-import { ClientAuthError } from "./error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 import { AuthResponse } from "./AuthResponse";
@@ -63,7 +63,7 @@ declare global {
         Event: Event;
         activeRenewals: {};
         renewStates: Array<string>;
-        primaryMsalCallbackMappedToRenewStates : {};
+        callbackMappedToRenewStates : {};
         promiseMappedToRenewStates: {};
         openedWindows: Array<Window>;
         requestType: string;
@@ -96,7 +96,7 @@ export interface CacheResult {
 /**
  * Data type to hold information about state returned from the server
  */
-export type StateResponse = {
+export type ResponseStateInfo = {
   state: string;
   stateMatch: boolean;
   requestType: string;
@@ -218,7 +218,7 @@ export class UserAgentApplication {
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
-    window.primaryMsalCallbackMappedToRenewStates = { };
+    window.callbackMappedToRenewStates = { };
     window.promiseMappedToRenewStates = { };
     window.msal = this;
 
@@ -1067,8 +1067,8 @@ export class UserAgentApplication {
         // fail the iframe session if it"s in pending state
         this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
         // Error after timeout
-        if (expectedState && window.primaryMsalCallbackMappedToRenewStates[expectedState]) {
-          window.primaryMsalCallbackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
+        if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
+          window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
         }
 
         this.cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
@@ -1219,13 +1219,13 @@ export class UserAgentApplication {
     window.promiseMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
 
     // Store the server esponse in the current window??
-    if (!window.primaryMsalCallbackMappedToRenewStates[expectedState]) {
-      window.primaryMsalCallbackMappedToRenewStates[expectedState] =
+    if (!window.callbackMappedToRenewStates[expectedState]) {
+      window.callbackMappedToRenewStates[expectedState] =
       (response: AuthResponse, error: AuthError) => {
         // reset active renewals
         window.activeRenewals[scope] = null;
 
-        // for all callBacksMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
+        // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
         for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
           try {
             if (error) {
@@ -1242,7 +1242,7 @@ export class UserAgentApplication {
 
         // reset
         window.promiseMappedToRenewStates[expectedState] = null;
-        window.primaryMsalCallbackMappedToRenewStates[expectedState] = null;
+        window.callbackMappedToRenewStates[expectedState] = null;
       };
     }
   }
@@ -1308,7 +1308,7 @@ export class UserAgentApplication {
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
    * @hidden
    */
-  private processCallBack(hash: string, stateInfo: StateResponse, alternateCallback?: Function): void {
+  private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
     this.logger.info("Processing the callback from redirect response");
     // get the state info from the hash
     if (!stateInfo) {
@@ -1331,13 +1331,13 @@ export class UserAgentApplication {
       // Clear the cookie in the hash
       this.cacheStorage.clearCookie();
       const userState = this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
-      if (alternateCallback) {
-        alternateCallback(response, authErr);
+      if (parentCallback) {
+        parentCallback(response, authErr);
       } else {
         if (authErr) {
           this.errorReceivedCallback(authErr, userState);
         } else if (response) {
-          if ((stateInfo.requestType === Constants.renewToken) && response.accessToken) {
+          if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
             if (window.parent !== window) {
               this.logger.verbose("Window is in iframe, acquiring token silently");
             } else {
@@ -1345,7 +1345,7 @@ export class UserAgentApplication {
             }
             response.tokenType = Constants.accessToken;
           }
-          else {
+          else if (stateInfo.requestType === Constants.login) {
             response.tokenType = Constants.idToken;
           }
           this.tokenReceivedCallback(response);
@@ -1397,7 +1397,7 @@ export class UserAgentApplication {
     self.logger.info("Returned from redirect url");
     // If parent window is the msal instance which opened the current window (iframe)
     if (this.parentIsMsal()) {
-        tokenResponseCallback = window.parent.primaryMsalCallbackMappedToRenewStates[stateInfo.state];
+        tokenResponseCallback = window.parent.callbackMappedToRenewStates[stateInfo.state];
     }
     // Current window is window opener (popup)
     else if (isWindowOpenerMsal) {
@@ -1437,7 +1437,7 @@ export class UserAgentApplication {
    * Returns deserialized portion of URL hash
    * @param hash
    */
-  private stringifyHash(hash: string) {
+  private deserializeHash(hash: string) {
     hash = this.getHash(hash);
     return Utils.deserialize(hash);
   }
@@ -1449,9 +1449,9 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  protected getResponseState(hash: string): StateResponse {
-    const parameters = this.stringifyHash(hash);
-    let stateResponse: StateResponse;
+  protected getResponseState(hash: string): ResponseStateInfo {
+    const parameters = this.deserializeHash(hash);
+    let stateResponse: ResponseStateInfo;
     if (!parameters) {
       throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
     }
@@ -1727,29 +1727,28 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Break this function up - either into utils or token specific --- too long to be readable\
-  /* tslint:disable:no-string-literal */
-  protected saveTokenFromHash(hash: string, stateInfo: StateResponse): AuthResponse {
+  // TODO: Break this function up - either into utils or token specific --- too long to be readable
+  protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
     this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
     this.cacheStorage.setItem(Constants.msalError, "");
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
     let response : AuthResponse;
     let error: AuthError;
-    const parameters = this.stringifyHash(hash);
+    const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
     let acquireTokenUserKey: string = "";
 
     // If server returns an error
-    if (parameters.hasOwnProperty(Constants.errorDescription) || parameters.hasOwnProperty(Constants.error)) {
-      this.logger.infoPii("Error :" + parameters[Constants.error] + "; Error description:" + parameters[Constants.errorDescription]);
-      this.cacheStorage.setItem(Constants.msalError, parameters[Constants.error]);
-      this.cacheStorage.setItem(Constants.msalErrorDescription, parameters[Constants.errorDescription]);
+    if (hashParams.hasOwnProperty(Constants.errorDescription) || hashParams.hasOwnProperty(Constants.error)) {
+      this.logger.infoPii("Error :" + hashParams[Constants.error] + "; Error description:" + hashParams[Constants.errorDescription]);
+      this.cacheStorage.setItem(Constants.msalError, hashParams[Constants.error]);
+      this.cacheStorage.setItem(Constants.msalErrorDescription, hashParams[Constants.errorDescription]);
 
       // login
       if (stateInfo.requestType === Constants.login) {
         this.userLoginInProgress = false;
-        this.cacheStorage.setItem(Constants.loginError, parameters[Constants.errorDescription] + ":" + parameters[Constants.error]);
+        this.cacheStorage.setItem(Constants.loginError, hashParams[Constants.errorDescription] + ":" + hashParams[Constants.error]);
         authorityKey = Storage.generateAuthorityKey(stateInfo.state);
       }
 
@@ -1761,10 +1760,10 @@ export class UserAgentApplication {
         acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, stateInfo.state);
       }
 
-      if (this.isInteractionRequired(parameters[Constants.errorDescription])) {
-        error = new InteractionRequiredAuthError(parameters[Constants.error], parameters[Constants.errorDescription]);
+      if (this.isInteractionRequired(hashParams[Constants.errorDescription])) {
+        error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       } else {
-        error = new ServerError(parameters[Constants.error], parameters[Constants.errorDescription]);
+        error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       }
     }
     // If the server returns "Success"
@@ -1772,21 +1771,21 @@ export class UserAgentApplication {
       // Verify the state from redirect and record tokens to storage if exists
       if (stateInfo.stateMatch) {
         this.logger.info("State is right");
-        if (parameters.hasOwnProperty(Constants.sessionState)) {
-            this.cacheStorage.setItem(Constants.msalSessionState, parameters[Constants.sessionState]);
+        if (hashParams.hasOwnProperty(Constants.sessionState)) {
+            this.cacheStorage.setItem(Constants.msalSessionState, hashParams[Constants.sessionState]);
         }
         response.userState = stateInfo.state;
 
         let clientInfo: string = "";
 
         // Process access_token
-        if (parameters.hasOwnProperty(Constants.accessToken)) {
+        if (hashParams.hasOwnProperty(Constants.accessToken)) {
           this.logger.info("Fragment has access token");
           this.acquireTokenInProgress = false;
 
           // retrieve the id_token from response if present :
-          if (parameters.hasOwnProperty(Constants.idToken)) {
-            response = Utils.responseWithIdToken(response, new IdToken(parameters[Constants.idToken]));
+          if (hashParams.hasOwnProperty(Constants.idToken)) {
+            response.idToken = new IdToken(hashParams[Constants.idToken]);
           } else {
             response = Utils.responseWithIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
@@ -1799,13 +1798,12 @@ export class UserAgentApplication {
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
-          if (parameters.hasOwnProperty(Constants.clientInfo)) {
-            clientInfo = parameters[Constants.clientInfo];
-            response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
+          if (hashParams.hasOwnProperty(Constants.clientInfo)) {
+            clientInfo = hashParams[Constants.clientInfo];
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
-            response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
           }
+          response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
 
           const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(response.account.userIdentifier, stateInfo.state);
           const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, stateInfo.state);
@@ -1817,25 +1815,25 @@ export class UserAgentApplication {
           if (!Utils.isEmpty(cachedUser)) {
             acquireTokenUser = JSON.parse(cachedUser);
             if (response.account && acquireTokenUser && Utils.compareObjects(response.account, acquireTokenUser)) {
-              response = this.saveAccessToken(response, authority, parameters, clientInfo);
+              response = this.saveAccessToken(response, authority, hashParams, clientInfo);
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             } else {
               this.logger.warning(
                 "The user object created from the response is not the same as the one passed in the acquireToken request");
             }
           } else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenUserKey_nouser))) {
-            response = this.saveAccessToken(response, authority, parameters, clientInfo);
+            response = this.saveAccessToken(response, authority, hashParams, clientInfo);
           }
         }
 
         // Process id_token
-        if (parameters.hasOwnProperty(Constants.idToken)) {
+        if (hashParams.hasOwnProperty(Constants.idToken)) {
             this.logger.info("Fragment has id token");
             // login no longer in progress
             this.userLoginInProgress = false;
-            response = Utils.responseWithIdToken(response, new IdToken(parameters[Constants.idToken]));
-            if (parameters.hasOwnProperty(Constants.clientInfo)) {
-              clientInfo = parameters[Constants.clientInfo];
+            response = Utils.responseWithIdToken(response, new IdToken(hashParams[Constants.idToken]));
+            if (hashParams.hasOwnProperty(Constants.clientInfo)) {
+              clientInfo = hashParams[Constants.clientInfo];
             } else {
               this.logger.warning("ClientInfo not received in the response from AAD");
             }
@@ -1860,22 +1858,19 @@ export class UserAgentApplication {
               }
               // Save the token
               else {
-                this.cacheStorage.setItem(Constants.idTokenKey, parameters[Constants.idToken]);
+                this.cacheStorage.setItem(Constants.idTokenKey, hashParams[Constants.idToken]);
                 this.cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
 
                 // Save idToken as access token for app itself
-                this.saveAccessToken(response, authority, parameters, clientInfo);
+                this.saveAccessToken(response, authority, hashParams, clientInfo);
               }
             } else {
-              // TODO: avoid repeated strings - will this be optimized with error handling?
               authorityKey = stateInfo.state;
               acquireTokenUserKey = stateInfo.state;
               this.logger.error("Invalid id_token received in the response");
-              parameters["error"] = "invalid idToken";
-              parameters["error_description"] = "Invalid idToken. idToken: " + parameters[Constants.idToken];
-              this.cacheStorage.setItem(Constants.msalError, "invalid idToken");
-              this.cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + parameters[Constants.idToken]);
               error = ClientAuthError.createInvalidIdTokenError(response.idToken);
+              this.cacheStorage.setItem(Constants.msalError, error.errorCode);
+              this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
             }
         }
       }
@@ -1885,12 +1880,9 @@ export class UserAgentApplication {
         acquireTokenUserKey = stateInfo.state;
         const expectedState = this.cacheStorage.getItem(Constants.stateLogin, this.inCookie);
         this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + stateInfo.state);
-        // TODO: avoid repeated strings - will this be optimized with error handling?
-        parameters["error"] = "Invalid_state";
-        parameters["error_description"] = "Invalid_state. state: " + stateInfo.state;
-        this.cacheStorage.setItem(Constants.msalError, "Invalid_state");
-        this.cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + stateInfo.state);
         error = ClientAuthError.createInvalidStateError(stateInfo.state, expectedState);
+        this.cacheStorage.setItem(Constants.msalError, error.errorCode);
+        this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
       }
     }
     this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
