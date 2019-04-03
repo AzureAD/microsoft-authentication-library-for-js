@@ -1786,9 +1786,9 @@ export class UserAgentApplication {
 
           // retrieve the id_token from response if present :
           if (parameters.hasOwnProperty(Constants.idToken)) {
-            Utils.setResponseIdToken(response, new IdToken(parameters[Constants.idToken]));
+            response = Utils.responseWithIdToken(response, new IdToken(parameters[Constants.idToken]));
           } else {
-            Utils.setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
+            response = Utils.responseWithIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
 
           // retrieve the authority from cache and replace with tenantID
@@ -1833,7 +1833,7 @@ export class UserAgentApplication {
             this.logger.info("Fragment has id token");
             // login no longer in progress
             this.userLoginInProgress = false;
-            Utils.setResponseIdToken(response, new IdToken(parameters[Constants.idToken]));
+            response = Utils.responseWithIdToken(response, new IdToken(parameters[Constants.idToken]));
             if (parameters.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = parameters[Constants.clientInfo];
             } else {
@@ -1919,7 +1919,7 @@ export class UserAgentApplication {
    */
   private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string): AuthResponse {
     let scope: string;
-    let accessTokenResponse = response;
+    let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
     // if the response contains "scope"
     if (parameters.hasOwnProperty("scope")) {
