@@ -1401,7 +1401,7 @@ export class UserAgentApplication {
     }
     // Current window is window opener (popup)
     else if (isWindowOpenerMsal) {
-        tokenResponseCallback = window.opener.callBackMappedToRenewStates[stateInfo.state];
+        tokenResponseCallback = window.opener.callbackMappedToRenewStates[stateInfo.state];
     }
     // Redirect cases
     else {
