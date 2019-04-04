@@ -5,13 +5,13 @@ import { IdToken } from "./IdToken";
 // Licensed under the MIT License.
 
 export type AuthResponse = {
-    uniqueId: string,
-    tenantId: string,
-    tokenType: string,
-    idToken: IdToken,
-    accessToken: object,
-    scopes: Array<string>,
-    expiresIn: string,
-    account: User,
-    userState: string
+    uniqueId: string;
+    tenantId: string;
+    tokenType: string;
+    idToken: IdToken;
+    accessToken: object;
+    scopes: Array<string>;
+    expiresIn: string;
+    account: User;
+    userState: string;
 };
