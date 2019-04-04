@@ -1844,7 +1844,7 @@ export class UserAgentApplication {
           if (hashParams.hasOwnProperty(Constants.idToken)) {
             response.idToken = new IdToken(hashParams[Constants.idToken]);
           } else {
-            response = Utils.responseWithIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
+            response = Utils.setResponseWithIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
 
           // retrieve the authority from cache and replace with tenantID
@@ -1888,7 +1888,7 @@ export class UserAgentApplication {
             this.logger.info("Fragment has id token");
             // login no longer in progress
             this.userLoginInProgress = false;
-            response = Utils.responseWithIdToken(response, new IdToken(hashParams[Constants.idToken]));
+            response = Utils.setResponseWithIdToken(response, new IdToken(hashParams[Constants.idToken]));
             if (hashParams.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = hashParams[Constants.clientInfo];
             } else {
