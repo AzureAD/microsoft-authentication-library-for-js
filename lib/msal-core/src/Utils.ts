@@ -728,7 +728,7 @@ export class Utils {
 
   //#region Response Helpers
 
-  static setResponseWithIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
+  static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
     var response = { ...originalResponse };
     response.idToken = idToken;
     if (response.idToken.objectId) {
