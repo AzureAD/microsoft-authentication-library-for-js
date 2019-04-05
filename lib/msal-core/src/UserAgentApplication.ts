@@ -897,7 +897,7 @@ export class UserAgentApplication {
 
         // add the prompt to Server Request
         if (request && request.prompt) {
-            Utils.validatePromptParameter(request.prompt);
+            this.validatePromptParameter(request.prompt);
             serverAuthenticationRequest.promptValue = request.prompt;
         }
 
@@ -2346,7 +2346,7 @@ export class UserAgentApplication {
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
       if (request.prompt) {
-        Utils.validatePromptParameter(request.prompt);
+        this.validatePromptParameter(request.prompt);
         serverAuthenticationRequest.promptValue = request.prompt;
       }
 
@@ -2367,6 +2367,17 @@ export class UserAgentApplication {
     serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(eQParams);
 
     return serverAuthenticationRequest;
+  }
+
+  /**
+   * Utility to test if valid prompt value is passed in the request
+   * @param request
+   */
+  private validatePromptParameter (prompt: string) {
+    console.log("I am here: " + prompt);
+    if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
+        throw ClientConfigurationError.createInvalidPromptError(prompt);
+    }
   }
 
   /**
