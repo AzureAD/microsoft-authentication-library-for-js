@@ -2404,7 +2404,6 @@ export class UserAgentApplication {
    * @param request
    */
   private validatePromptParameter (prompt: string) {
-    console.log("I am here: " + prompt);
     if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
         throw ClientConfigurationError.createInvalidPromptError(prompt);
     }
