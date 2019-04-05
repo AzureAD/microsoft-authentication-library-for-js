@@ -25,6 +25,8 @@ import { IUri } from "./IUri";
 import { User } from "./User";
 import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthResponse } from "./AuthResponse";
+import { IdToken } from "./IdToken";
 
 /**
  * @hidden
@@ -717,6 +719,22 @@ export class Utils {
    */
   static isSSOParam(request: AuthenticationParameters) {
       return request && (request.account || request.sid || request.loginHint);
+  }
+
+  //#endregion
+
+  //#region Response Helpers
+
+  static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
+    var response = { ...originalResponse };
+    response.idToken = idToken;
+    if (response.idToken.objectId) {
+      response.uniqueId = response.idToken.objectId;
+    } else {
+      response.uniqueId = response.idToken.subject;
+    }
+    response.tenantId = response.idToken.tenantId;
+    return response;
   }
 
   //#endregion
