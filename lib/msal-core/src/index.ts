@@ -3,11 +3,11 @@ export { Logger } from "./Logger";
 export { LogLevel } from "./Logger";
 export { Account } from "./Account";
 export { Constants } from "./Constants";
-export { TokenResponse} from "./RequestInfo";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, buildConfiguration } from "./Configuration";
 export { AuthenticationParameters } from "./AuthenticationParameters";
+export { AuthResponse } from "./AuthResponse";
 
 // Errors
 export { AuthError } from "./error/AuthError";
