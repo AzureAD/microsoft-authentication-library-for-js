@@ -36,7 +36,7 @@ import { Utils } from "./Utils";
  */
 export class Account {
 
-    // accountIdentifier: string;
+    accountIdentifier: string;
     homeAccountIdentifier: string;
     userName: string;
     name: string;
@@ -54,8 +54,8 @@ export class Account {
      * @param sid
      * @param environment
      */
-    constructor(homeAccountIdentifier: string, userName: string, name: string, idToken: Object, sid: string,  environment: string) {
-      // this.accountIdentifier
+    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idToken: Object, sid: string,  environment: string) {
+      this.accountIdentifier = accountIdentifier;
       this.homeAccountIdentifier = homeAccountIdentifier;
       this.userName = userName;
       this.name = name;
@@ -70,6 +70,19 @@ export class Account {
      * @param clientInfo
      */
     static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
+
+        // create accountIdentifier
+        // TODO: should we advocate idToken.oid+idToken.tid for all MSALs??
+        let accountIdentifier: string;
+
+        if (idToken.objectId) {
+          accountIdentifier = idToken.objectId;
+        }
+        else {
+          accountIdentifier = idToken.subject;
+        }
+
+        // create homeAccountIdentifier
         let uid: string;
         let utid: string;
 
@@ -83,6 +96,6 @@ export class Account {
         }
 
         const homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
-        return new Account(homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.decodedIdToken, idToken.sid, idToken.issuer);
+        return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.decodedIdToken, idToken.sid, idToken.issuer);
     }
 }

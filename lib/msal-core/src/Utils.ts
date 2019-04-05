@@ -663,11 +663,11 @@ export class Utils {
         break;
       }
       case SSOTypes.HOMEACCOUNT_ID: {
-        // TODO: figure out how this code will change with "account" addition
         let homeAccountId = ssoData.split(".");
         const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
         const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
 
+        // TODO: domain_req and login_req are not needed according to eSTS team
         ssoParam[SSOTypes.LOGIN_REQ] = uid;
         ssoParam[SSOTypes.DOMAIN_REQ] = utid;
 

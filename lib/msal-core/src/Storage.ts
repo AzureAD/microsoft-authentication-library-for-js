@@ -109,13 +109,13 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
+    removeAcquireTokenEntries(authorityKey: string, acquireTokenAccountKey: string): void {
         const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey !== "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenAccountKey !== "" && key.indexOf(acquireTokenAccountKey) > -1)) {
                         this.removeItem(key);
                     }
                 }

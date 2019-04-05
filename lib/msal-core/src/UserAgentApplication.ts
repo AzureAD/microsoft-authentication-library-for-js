@@ -114,7 +114,7 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
  * A type alias for a errorReceivedCallback function.
  * @param errorReceivedCallback.errorDesc error object created by library containing error string returned from the STS if API call fails.
  */
-export type errorReceivedCallback = (authError: AuthError, userState: string) => void;
+export type errorReceivedCallback = (authError: AuthError, accountState: string) => void;
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -141,7 +141,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
  */
 export class UserAgentApplication {
 
-  // input Configuration by the user
+  // input Configuration by the developer/user
   private config: Configuration;
 
   // TODO: This will be extracted with Response Changes
@@ -896,7 +896,7 @@ export class UserAgentApplication {
    * - In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
    * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
    * - Default value is: "https://login.microsoftonline.com/common"
-   * @param {Account} account - The user for which the scopes are requested.The default account is the logged in account.
+   * @param {Account} account - The user account for which the scopes are requested.The default account is the logged in account.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
    */
@@ -1145,14 +1145,12 @@ export class UserAgentApplication {
       }
       // login_hint
       else {
-        // login_hint is account.username
+        // login_hint is account.userName
         if (!qParams[SSOTypes.LOGIN_HINT]  && account.userName && !Utils.isEmpty(account.userName)) {
           qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
         }
       }
 
-      // TODO: when accountIdentifier and homeAccountIdentifier (userIdentifier renamed and is === client_info) are available, this will change
-      // client_info.utid = domain_req and client_info.uid = login_req; check utid and add domain_hint
       if (!qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ] ) {
         qParams = Utils.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, account.homeAccountIdentifier, qParams);
       }
@@ -1708,6 +1706,8 @@ export class UserAgentApplication {
     let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
 
+    const uniqueId = response.idToken.objectId ? response.idToken.objectId : response.idToken.subject;
+
     // if the response contains "scope"
     if (parameters.hasOwnProperty("scope")) {
       // read the scopes
@@ -1720,7 +1720,7 @@ export class UserAgentApplication {
       for (let i = 0; i < accessTokenCacheItems.length; i++) {
         const accessTokenCacheItem = accessTokenCacheItems[i];
 
-        if (accessTokenCacheItem.key.homeAccountIdentifier === response.account.userIdentifier) {
+        if (accessTokenCacheItem.key.homeAccountIdentifier === response.account.homeAccountIdentifier) {
           const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
           if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
@@ -1730,8 +1730,8 @@ export class UserAgentApplication {
 
       // Generate and cache accessTokenKey and accessTokenValue
       const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
-      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
+      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, uniqueId, clientObj.uid, clientObj.utid);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, uniqueId, clientInfo);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1744,10 +1744,10 @@ export class UserAgentApplication {
       scope = this.clientId;
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, uniqueId, clientObj.uid, clientObj.utid);
 
       // TODO: since there is no access_token, this is also set to id_token?
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, uniqueId, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
@@ -1790,8 +1790,18 @@ export class UserAgentApplication {
       if (stateInfo.requestType === Constants.renewToken) {
         this.acquireTokenInProgress = false;
         authorityKey = Storage.generateAuthorityKey(stateInfo.state);
-        const accountKey = this.getAccount() !== null ? this.getAccount().homeAccountIdentifier : "";
-        acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
+
+        let accountId;
+        const account = this.getAccount();
+
+        if (account) {
+            accountId = this.getAccountId(account);
+        }
+        else {
+            accountId = "";
+        }
+
+        acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
 
       if (this.isInteractionRequired(hashParams[Constants.errorDescription])) {
@@ -1808,7 +1818,7 @@ export class UserAgentApplication {
         if (hashParams.hasOwnProperty(Constants.sessionState)) {
             this.cacheStorage.setItem(Constants.msalSessionState, hashParams[Constants.sessionState]);
         }
-        response.userState = stateInfo.state;
+        response.accountState = stateInfo.state;
 
         let clientInfo: string = "";
 
@@ -1816,7 +1826,6 @@ export class UserAgentApplication {
         if (hashParams.hasOwnProperty(Constants.accessToken)) {
           this.logger.info("Fragment has access token");
           this.acquireTokenInProgress = false;
-          let account: Account;
 
           // retrieve the id_token from response if present :
           if (hashParams.hasOwnProperty(Constants.idToken)) {
@@ -1839,15 +1848,17 @@ export class UserAgentApplication {
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
           }
-          response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
 
-          const acquireTokenUserKey = Storage.generateAcquireTokenAccountKey(response.account.userIdentifier, stateInfo.state);
-          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
+          response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
+          const accountKey = this.getAccountId(response.account);
+
+          acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
+          const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
 
           let cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
           let acquireTokenAccount: Account;
 
-          // Check with the user in the Cache
+          // Check with the account in the Cache
           if (!Utils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
             if (response.account && acquireTokenAccount && Utils.compareAccounts(response.account, acquireTokenAccount)) {
@@ -1859,7 +1870,7 @@ export class UserAgentApplication {
                 "The account object created from the response is not the same as the one passed in the acquireToken request");
             }
           }
-          else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenUserKey_nouser))) {
+          else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
             response = this.saveAccessToken(response, authority, hashParams, clientInfo);
           }
         }
@@ -1994,7 +2005,7 @@ export class UserAgentApplication {
 
     for (let i = 0; i < accessTokenCacheItems.length; i++) {
       const idToken = new IdToken(accessTokenCacheItems[i].value.idToken);
-      const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.clientInfo);
+      const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.homeAccountIdentifier);
       const account = Account.createAccount(idToken, clientInfo);
       accounts.push(account);
     }
@@ -2101,10 +2112,10 @@ export class UserAgentApplication {
    * Helper function to retrieve the cached token
    *
    * @param scopes
-   * @param user
+   * @param account
    */
   protected getCachedTokenInternal(scopes : Array<string> , account: Account): CacheResult {
-    // Get the current session's user object
+    // Get the current session's account object
     const accountObject = account ? account : this.getAccount();
     if (!accountObject) {
         return null;
@@ -2324,7 +2335,8 @@ export class UserAgentApplication {
    */
   private setAccountCache(account: Account, state: string) {
     // Cache acquireTokenAccountKey
-    const accountId = account ? account.homeAccountIdentifier : Constants.no_account;
+    let accountId = account ? this.getAccountId(account) : Constants.no_account;
+
     const acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, state);
     this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
   }
@@ -2338,6 +2350,14 @@ export class UserAgentApplication {
     // Cache authorityKey
     const authorityKey = Storage.generateAuthorityKey(state);
     this.cacheStorage.setItem(authorityKey, authority, this.inCookie);
+  }
+
+  /**
+   * Returns the unique identifier for the logged in account
+   * @param account
+   */
+  private getAccountId(account: Account): string {
+    return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
   }
 
   /**

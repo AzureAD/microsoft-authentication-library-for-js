@@ -1,5 +1,5 @@
 import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from "../src/index";
-import { Constants, ErrorCodes, ErrorDescription } from "../src/Constants";
+import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../src/Constants";
 import { Authority } from "../src/Authority";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { AuthorityFactory } from "../src/AuthorityFactory";
@@ -62,7 +62,7 @@ describe('Msal', function (): any {
                 return store[key];
             },
             setItem: function (key: any, value: any, storeAuthStateInCookie?: boolean) {
-                if (typeof value != 'undefined') {
+                if (typeof value !== 'undefined') {
                     store[key] = value;
                 }
                 if (storeAuthStateInCookie) {
@@ -71,7 +71,7 @@ describe('Msal', function (): any {
 
             },
             removeItem: function (key: any) {
-                if (typeof store[key] != 'undefined') {
+                if (typeof store[key] !== 'undefined') {
                     delete store[key];
                 }
             },
@@ -170,8 +170,10 @@ describe('Msal', function (): any {
             innerWidth: 100,
             innerHeight: 100,
         };
+
         $window.localStorage = storageFake;
         $window.sessionStorage = storageFake;
+
         // Init
         let global = <any>{};
         global.window = $window;
@@ -237,7 +239,7 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
-            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(PromptState.prompt_select_account);
             expect(args).not.toContain(Constants.prompt_none);
             done();
         };
@@ -742,7 +744,7 @@ describe('Msal', function (): any {
     });
 
     it('tests if you get the state back in errorReceived callback, if state is a number', function () {
-        spyOn(msal, 'getUserState').and.returnValue("1234");
+        spyOn(msal, 'getAccountState').and.returnValue("1234");
         var err: AuthError;
         var token = "";
         var tokenType = "";
@@ -757,7 +759,7 @@ describe('Msal', function (): any {
             // state= valState;
         };
         msal.handleRedirectCallbacks(tokenCallback, errorCallback);
-        msal.userLoginInProgress = true;
+        msal.loginInProgress = true;
 
         msal.loginRedirect();
         console.log(err);
@@ -766,11 +768,11 @@ describe('Msal', function (): any {
         expect(token).toBe("");
         expect(tokenType).toBe("");
         // expect(state).toBe('1234');
-        msal.userLoginInProgress = false;
+        msal.loginInProgress = false;
     });
 
     it('tests if you get the state back in errorReceived callback, if state is a url', function () {
-        spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        spyOn(msal, 'getAccountState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         console.log("MSAL: " + msal);
         var err: AuthError;
         var token = "";
@@ -786,15 +788,15 @@ describe('Msal', function (): any {
             state= valState;
         };
         msal.handleRedirectCallbacks(tokenCallback, errorCallback);
-        console.log(msal.userLoginInProgress);
-        msal.userLoginInProgress = true;
+        console.log(msal.loginInProgress);
+        msal.loginInProgress = true;
 
         msal.loginRedirect();
         expect(err).toEqual(jasmine.any(ClientAuthError));
         expect(token).toBe("");
         expect(tokenType).toBe("");
         expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
-        msal.userLoginInProgress = false;
+        msal.loginInProgress = false;
     });
 
     it('tests that loginStartPage, nonce and state are saved in cookies if enableCookieStorage flag is enables through the msal optional params', function (done) {
