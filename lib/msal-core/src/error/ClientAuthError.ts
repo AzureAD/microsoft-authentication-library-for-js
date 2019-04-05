@@ -23,6 +23,7 @@
 
 import { AuthError } from "./AuthError";
 import { Utils } from "../Utils";
+import { IdToken } from "../IdToken";
 
 export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
@@ -45,6 +46,10 @@ export const ClientAuthErrorMessage = {
     tokenRenewalError: {
         code: "token_renewal_error",
         desc: "Token renewal operation failed due to timeout."
+    },
+    invalidIdToken: {
+        code: "invalid_id_token",
+        desc: "Invalid ID token."
     },
     invalidStateError: {
         code: "invalid_state_error",
@@ -121,6 +126,10 @@ export class ClientAuthError extends AuthError {
     static createTokenRenewalTimeoutError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenRenewalError.code,
             ClientAuthErrorMessage.tokenRenewalError.desc);
+    }
+
+    static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code, `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${idToken}`);
     }
 
     static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {

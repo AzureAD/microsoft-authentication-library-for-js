@@ -31,7 +31,6 @@ import { Constants, ErrorCodes, ErrorDescription, SSOTypes, PromptState } from "
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
-import { TokenResponse } from "./RequestInfo";
 import { User } from "./User";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
@@ -39,7 +38,10 @@ import { Configuration } from "./Configuration";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
-import { ClientAuthError } from "./error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
+import { ServerError } from "./error/ServerError";
+import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
+import { AuthResponse } from "./AuthResponse";
 
 // default authority
 /**
@@ -61,8 +63,8 @@ declare global {
         Event: Event;
         activeRenewals: {};
         renewStates: Array<string>;
-        callBackMappedToRenewStates : {};
-        callBacksMappedToRenewStates: {};
+        callbackMappedToRenewStates : {};
+        promiseMappedToRenewStates: {};
         openedWindows: Array<Window>;
         requestType: string;
     }
@@ -92,16 +94,27 @@ export interface CacheResult {
 }
 
 /**
- * A type alias of for a tokenReceivedCallback function.
- * @param tokenReceivedCallback.errorDesc error description returned from the STS if API call fails.
+ * Data type to hold information about state returned from the server
+ */
+export type ResponseStateInfo = {
+  state: string;
+  stateMatch: boolean;
+  requestType: string;
+};
+
+/**
+ * A type alias for a tokenReceivedCallback function.
  * @param tokenReceivedCallback.token token returned from STS if token request is successful.
- * @param tokenReceivedCallback.error error code returned from the STS if API call fails.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
 // TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
-export type tokenReceivedCallback = (errorDesc: string, token: string, error: string, tokenType: string, userState: string ) => void;
+export type tokenReceivedCallback = (response: AuthResponse) => void;
 
-// TODO: Add second callback for error cases
+/**
+ * A type alias for a errorReceivedCallback function.
+ * @param errorReceivedCallback.errorDesc error object created by library containing error string returned from the STS if API call fails.
+ */
+export type errorReceivedCallback = (authError: AuthError, userState: string) => void;
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -133,6 +146,7 @@ export class UserAgentApplication {
 
   // TODO: This will be extracted with Response Changes
   private tokenReceivedCallback: tokenReceivedCallback = null;
+  private errorReceivedCallback: errorReceivedCallback = null;
 
   // Added for readability as these params are very frequently used
   private logger: Logger;
@@ -148,6 +162,7 @@ export class UserAgentApplication {
   private acquireTokenInProgress: boolean;
   private silentAuthenticationState: string;
   private silentLogin: boolean;
+  private redirectCallbacksSet: boolean;
 
   // Authority Functionality
   protected authorityInstance: Authority;
@@ -173,13 +188,13 @@ export class UserAgentApplication {
    * @param _tokenReceivedCallback -  The function that will get the call back once this API is completed (either successfully or with a failure).
    * @param {boolean} validateAuthority -  boolean to turn authority validation on/off.
    */
-  constructor(configuration: Configuration, callback: tokenReceivedCallback) {
+  constructor(configuration: Configuration) {
 
     // Set the Configuration
     this.config = configuration;
 
-    // Set the callback
-    this.tokenReceivedCallback = callback;
+    // Set the callback boolean
+    this.redirectCallbacksSet = false;
 
     this.logger = this.config.system.logger;
     this.clientId = this.config.auth.clientId;
@@ -203,8 +218,8 @@ export class UserAgentApplication {
     window.openedWindows = [];
     window.activeRenewals = {};
     window.renewStates = [];
-    window.callBackMappedToRenewStates = { };
-    window.callBacksMappedToRenewStates = { };
+    window.callbackMappedToRenewStates = { };
+    window.promiseMappedToRenewStates = { };
     window.msal = this;
 
     const urlHash = window.location.hash;
@@ -212,17 +227,52 @@ export class UserAgentApplication {
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
-        if (isCallback) {
-            this.handleAuthenticationResponse.call(this, urlHash);
-        }
-        else {
-            const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-            if (pendingCallback) {
-                this.processCallBack(pendingCallback);
-            }
-        }
+      if (isCallback) {
+        this.handleAuthenticationResponse(urlHash);
+      }
     }
   }
+
+  //#region Redirect Callbacks
+  /**
+   * Sets the callback functions for the redirect flow to send back the success or error object.
+   * @param {tokenReceivedCallback} successCallback - Callback which contains the AuthResponse object, containing data from the server.
+   * @param {errorReceivedCallback} errorCallback - Callback which contains a AuthError object, containing error data from either the server
+   * or the library, depending on the origin of the error.
+   */
+  handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
+    if (!successCallback) {
+      this.redirectCallbacksSet = false;
+      throw ClientConfigurationError.createInvalidCallbackObjectError("successCallback", successCallback);
+    } else if (!errorCallback) {
+      this.redirectCallbacksSet = false;
+      throw ClientConfigurationError.createInvalidCallbackObjectError("errorCallback", errorCallback);
+    }
+
+    // Set callbacks
+    this.tokenReceivedCallback = successCallback;
+    this.errorReceivedCallback = errorCallback;
+
+    this.redirectCallbacksSet = true;
+
+    const urlHash = window.location.hash;
+    const isCallback = this.isCallback(urlHash);
+
+    // On the server 302 - Redirect, handle this
+    if (!this.config.framework.isAngular) {
+      if (isCallback) {
+        this.handleAuthenticationResponse(urlHash);
+      }
+      else {
+        const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
+        if (pendingCallback) {
+          this.processCallBack(pendingCallback, null);
+        }
+      }
+    }
+  }
+
+  //#endregion
 
   //#region Redirect Flow
 
@@ -232,15 +282,19 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
    */
   loginRedirect(request: AuthenticationParameters): void {
+    // Throw error if callbacks are not set before redirect
+    if (!this.redirectCallbacksSet) {
+      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
+    }
+
     // Creates navigate url; saves value in cache; redirect user to AAD
 
     if (this.userLoginInProgress) {
-        throw ClientAuthError.createLoginInProgressError();
+      this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), this.getUserState(this.silentAuthenticationState));
+      return;
     }
-
-    // if extraScopesToConsent is passed, append them to the login request
     let scopes: Array<string>;
-
+    // if extraScopesToConsent is passed, append them to the login request
     if (request) {
       if (request.extraScopesToConsent) {
         scopes = [...request.scopes, ...request.extraScopesToConsent];
@@ -252,7 +306,6 @@ export class UserAgentApplication {
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
-    scopes = this.filterScopes(scopes);
 
     const user = this.getUser();
 
@@ -369,16 +422,21 @@ export class UserAgentApplication {
    */
   // TODO: params to accept AuthRequest object instead
   acquireTokenRedirect(request: AuthenticationParameters): void {
+    // Throw error if callbacks are not set before redirect
+    if (!this.redirectCallbacksSet) {
+      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
+    }
+
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(request.scopes, true);
-    request.scopes = this.filterScopes(request.scopes);
 
     // Get the user object if a session exists
     const userObject = request.account ? request.account : this.getUser();
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      throw ClientAuthError.createAcquireTokenInProgressError();
+      this.errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), this.getUserState(this.silentAuthenticationState));
+      return;
     }
 
     // If no session exists, prompt the user to login.
@@ -485,7 +543,6 @@ export class UserAgentApplication {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(scopes, false);
-      scopes = this.filterScopes(scopes);
 
       let user = this.getUser();
 
@@ -624,12 +681,10 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  // TODO: params to accept AuthRequest object instead
   acquireTokenPopup(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
-      request.scopes = this.filterScopes(request.scopes);
 
       const scope = request.scopes.join(" ").toLowerCase();
 
@@ -863,14 +918,12 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
    */
-  // TODO: params to accept AuthRequest object instead
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<string> {
     return new Promise<string>((resolve, reject) => {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
-      request.scopes = this.filterScopes(request.scopes);
 
       const scope = request.scopes.join(" ").toLowerCase();
 
@@ -982,6 +1035,22 @@ export class UserAgentApplication {
   }
 
   /**
+   * Returns whether parent window exists and has msal
+   */
+  private parentIsMsal() {
+    return window.parent !== window && window.parent.msal;
+  }
+
+  private isInteractionRequired(errorString: string) : boolean {
+    if (errorString.indexOf("interaction_required") !== -1 ||
+    errorString.indexOf("consent_required") !== -1 ||
+    errorString.indexOf("login_required") !== -1) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
    * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
    * @ignore
@@ -998,8 +1067,8 @@ export class UserAgentApplication {
         // fail the iframe session if it"s in pending state
         this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
         // Error after timeout
-        if (expectedState && window.callBackMappedToRenewStates[expectedState]) {
-          window.callBackMappedToRenewStates[expectedState]("Token renewal operation failed due to timeout", null, "Token Renewal Failed", Constants.accessToken);
+        if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
+          window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
         }
 
         this.cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
@@ -1143,28 +1212,28 @@ export class UserAgentApplication {
     window.activeRenewals[scope] = expectedState;
 
     // initialize callbacks mapped array
-    if (!window.callBacksMappedToRenewStates[expectedState]) {
-        window.callBacksMappedToRenewStates[expectedState] = [];
+    if (!window.promiseMappedToRenewStates[expectedState]) {
+        window.promiseMappedToRenewStates[expectedState] = [];
     }
     // indexing on the current state, push the callback params to callbacks mapped
-    window.callBacksMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
+    window.promiseMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
 
     // Store the server esponse in the current window??
-    if (!window.callBackMappedToRenewStates[expectedState]) {
-      window.callBackMappedToRenewStates[expectedState] =
-      (errorDesc: string, token: string, error: string, tokenType: string) => {
+    if (!window.callbackMappedToRenewStates[expectedState]) {
+      window.callbackMappedToRenewStates[expectedState] =
+      (response: AuthResponse, error: AuthError) => {
         // reset active renewals
         window.activeRenewals[scope] = null;
 
-        // for all callBacksMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
-        // TODO: understand where the error, token are coming from
-        for (let i = 0; i < window.callBacksMappedToRenewStates[expectedState].length; ++i) {
+        // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
+        for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
           try {
-            if (errorDesc || error) {
-                window.callBacksMappedToRenewStates[expectedState][i].reject(errorDesc + Constants.resourceDelimiter + error);
-            }
-            else if (token) {
-                window.callBacksMappedToRenewStates[expectedState][i].resolve(token);
+            if (error) {
+                window.promiseMappedToRenewStates[expectedState][i].reject(error);
+            } else if (response) {
+                window.promiseMappedToRenewStates[expectedState][i].resolve(response);
+            } else {
+              throw AuthError.createUnexpectedError("Error and response are both null");
             }
           } catch (e) {
             this.logger.warning(e);
@@ -1172,8 +1241,8 @@ export class UserAgentApplication {
         }
 
         // reset
-        window.callBacksMappedToRenewStates[expectedState] = null;
-        window.callBackMappedToRenewStates[expectedState] = null;
+        window.promiseMappedToRenewStates[expectedState] = null;
+        window.callbackMappedToRenewStates[expectedState] = null;
       };
     }
   }
@@ -1239,41 +1308,49 @@ export class UserAgentApplication {
    * @param {string} [hash=window.location.hash] - Hash fragment of Url.
    * @hidden
    */
-  private processCallBack(hash: string): void {
+  private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
     this.logger.info("Processing the callback from redirect response");
-
-    // get the request Info from the hash
-    // TODO: Refactor this or saveTokenFromHash to return an AuthResponse object
-    const requestInfo = this.getRequestInfo(hash);
-
-    // Save the token info from the hash
-    this.saveTokenFromHash(requestInfo);
-
-    const token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
-    const errorDesc = requestInfo.parameters[Constants.errorDescription];
-    const error = requestInfo.parameters[Constants.error];
-
-    let tokenType: string;
-    if (requestInfo.parameters[Constants.accessToken]) {
-      tokenType = Constants.accessToken;
+    // get the state info from the hash
+    if (!stateInfo) {
+      stateInfo = this.getResponseState(hash);
     }
-    else {
-      tokenType = Constants.idToken;
+
+    let response : AuthResponse;
+    let authErr : AuthError;
+    // Save the token info from the hash
+    try {
+      response = this.saveTokenFromHash(hash, stateInfo);
+    } catch (err) {
+      authErr = err;
     }
 
     // remove hash from the cache
     this.cacheStorage.removeItem(Constants.urlHash);
 
     try {
-        if (this.tokenReceivedCallback) {
-          // Clear the cookie in the hash
-          this.cacheStorage.clearCookie();
-
-          // Trigger callback
-          // TODO: Refactor to new callback pattern
-          this.tokenReceivedCallback.call(this, errorDesc, token, error, tokenType,  this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie)));
+      // Clear the cookie in the hash
+      this.cacheStorage.clearCookie();
+      const userState = this.getUserState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
+      if (parentCallback) {
+        parentCallback(response, authErr);
+      } else {
+        if (authErr) {
+          this.errorReceivedCallback(authErr, userState);
+        } else if (response) {
+          if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
+            if (window.parent !== window) {
+              this.logger.verbose("Window is in iframe, acquiring token silently");
+            } else {
+              this.logger.verbose("acquiring token interactive in progress");
+            }
+            response.tokenType = Constants.accessToken;
+          }
+          else if (stateInfo.requestType === Constants.login) {
+            response.tokenType = Constants.idToken;
+          }
+          this.tokenReceivedCallback(response);
         }
-
+      }
     } catch (err) {
       this.logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
@@ -1308,87 +1385,45 @@ export class UserAgentApplication {
     if (isWindowOpenerMsal) {
       self = window.opener.msal;
       isPopup = true;
-    }
-    else if (window.parent && window.parent.msal) {
+    } else if (window.parent && window.parent.msal) {
       self = window.parent.msal;
     }
 
-    // if (window.parent !== window), by using self, window.parent becomes equal to window in getRequestInfo method specifically
-    // TODO: Refactor so that this or saveTokenFromHash function returns a response object
-    const requestInfo = self.getRequestInfo(hash);
+    // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
+    const stateInfo = self.getResponseState(hash);
 
-    let token: string = null;
-    let tokenReceivedCallback: (errorDesc: string, token: string, error: string, tokenType: string) => void = null;
-    let tokenType: string;
+    let tokenResponseCallback: (response: AuthResponse, error: AuthError) => void = null;
 
     self.logger.info("Returned from redirect url");
-    // If parent window is the msal instance which opened the current window
-    if (window.parent !== window && window.parent.msal) {
-        tokenReceivedCallback = window.parent.callBackMappedToRenewStates[requestInfo.stateResponse];
+    // If parent window is the msal instance which opened the current window (iframe)
+    if (this.parentIsMsal()) {
+        tokenResponseCallback = window.parent.callbackMappedToRenewStates[stateInfo.state];
     }
-    // Current window is window opener
+    // Current window is window opener (popup)
     else if (isWindowOpenerMsal) {
-        tokenReceivedCallback = window.opener.callBackMappedToRenewStates[requestInfo.stateResponse];
+        tokenResponseCallback = window.opener.callbackMappedToRenewStates[stateInfo.state];
     }
-    // Other cases
+    // Redirect cases
     else {
+      tokenResponseCallback = null;
       // if set to navigate to loginRequest page post login
-      if (self._navigateToLoginRequestUrl) {
-        tokenReceivedCallback = null;
-        self._cacheStorage.setItem(Constants.urlHash, hash);
+      if (self.config.auth.navigateToLoginRequestUrl) {
+        self.cacheStorage.setItem(Constants.urlHash, hash);
         if (window.parent === window && !isPopup) {
-          window.location.href = self._cacheStorage.getItem(Constants.loginRequest, this.inCookie);
+          window.location.href = self.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
         }
         return;
       }
-      // Close current window??
       else {
-        tokenReceivedCallback = self._tokenReceivedCallback;
         window.location.hash = "";
       }
-    }
-
-    // Save token from hash (TODO: Possibly refactor to return AuthResponse)
-    self.saveTokenFromHash(requestInfo);
-
-    // Acquire token request
-    if ((requestInfo.requestType === Constants.renewToken) && window.parent) {
-      // Log whether silent or interactive
-      if (window.parent !== window) {
-        self.logger.verbose("Window is in iframe, acquiring token silently");
-      } else {
-        self.logger.verbose("acquiring token interactive in progress");
+      if (!this.redirectCallbacksSet) {
+        // We reached this point too early, return and come back later
+        return;
       }
-
-      // retrieve id_token or access_token, in case of response_type = id_token_token, retrieve only access_token
-      token = requestInfo.parameters[Constants.accessToken] || requestInfo.parameters[Constants.idToken];
-      tokenType = Constants.accessToken;
-    }
-    // login request
-    else if (requestInfo.requestType === Constants.login) {
-      token = requestInfo.parameters[Constants.idToken];
-      tokenType = Constants.idToken;
     }
 
-    const errorDesc = requestInfo.parameters[Constants.errorDescription];
-    const error = requestInfo.parameters[Constants.error];
-
-    try {
-      // We should only send the state back to the developer if it matches with what we received from the server
-      // TODO: Change this so that it sends back response object or error object based on what is returned from getRequestInfo()
-      if (tokenReceivedCallback) {
-        //We should only send the stae back to the developer if it matches with what we received from the server
-        if (requestInfo.stateMatch) {
-          tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, this.getUserState(requestInfo.stateResponse));
-        }
-        else {
-          tokenReceivedCallback.call(self, errorDesc, token, error, tokenType, null);
-        }
-      }
-    } catch (err) {
-      self.logger.error("Error occurred in token received callback function: " + err);
-      throw ClientAuthError.createErrorInCallbackFunction(err.toString());
-    }
+    self.processCallBack(hash, stateInfo, tokenResponseCallback);
 
     // If current window is opener, close all windows
     if (isWindowOpenerMsal) {
@@ -1399,69 +1434,65 @@ export class UserAgentApplication {
   }
 
   /**
-   * Creates a requestInfo object from the URL fragment and returns it.
+   * Returns deserialized portion of URL hash
+   * @param hash
+   */
+  private deserializeHash(hash: string) {
+    hash = this.getHash(hash);
+    return Utils.deserialize(hash);
+  }
+
+  /**
+   * Creates a stateInfo object from the URL fragment and returns it.
    * @param {string} hash  -  Hash passed from redirect page
    * @returns {TokenResponse} an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
    * @ignore
    * @hidden
    */
-  // TODO: Change to return AuthResponse object, rename this, it is not request but response
-  protected getRequestInfo(hash: string): TokenResponse {
-    hash = this.getHash(hash);
-    const parameters = Utils.deserialize(hash);
-    const tokenResponse = new TokenResponse();
-
-    // If there is a hash with parameters in the redirect response
-    if (parameters) {
-      tokenResponse.parameters = parameters;
-
-      // Check for error or tokens
-      if (parameters.hasOwnProperty(Constants.errorDescription) ||
-        parameters.hasOwnProperty(Constants.error) ||
-        parameters.hasOwnProperty(Constants.accessToken) ||
-        parameters.hasOwnProperty(Constants.idToken)
-      ) {
-        tokenResponse.valid = true;
-
-        // Identify the callback based on the state
-        let stateResponse: string;
-        if (parameters.hasOwnProperty("state")) {
-          stateResponse = parameters.state;
-        } else {
-          return tokenResponse;
-        }
-
-        tokenResponse.stateResponse = stateResponse;
-        // async calls can fire iframe and login request at the same time if developer does not use the API as expected
-        // incoming callback needs to be looked up to find the request type
-
-        // loginRedirect
-        if (stateResponse === this.cacheStorage.getItem(Constants.stateLogin, this.inCookie) || stateResponse === this.silentAuthenticationState) { // loginRedirect
-          tokenResponse.requestType = Constants.login;
-          tokenResponse.stateMatch = true;
-          return tokenResponse;
-        }
-        // acquireTokenRedirect
-        else if (stateResponse === this.cacheStorage.getItem(Constants.stateAcquireToken, this.inCookie)) { //acquireTokenRedirect
-          tokenResponse.requestType = Constants.renewToken;
-          tokenResponse.stateMatch = true;
-          return tokenResponse;
-        }
-
-        // external api requests may have many renewtoken requests for different resource
-        if (!tokenResponse.stateMatch) {
-          tokenResponse.requestType = window.requestType;
-          const statesInParentContext = window.renewStates;
-          for (let i = 0; i < statesInParentContext.length; i++) {
-            if (statesInParentContext[i] === tokenResponse.stateResponse) {
-              tokenResponse.stateMatch = true;
-              break;
-            }
-          }
-        }
-      } // hash processing ends
+  protected getResponseState(hash: string): ResponseStateInfo {
+    const parameters = this.deserializeHash(hash);
+    let stateResponse: ResponseStateInfo;
+    if (!parameters) {
+      throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
     }
-    return tokenResponse;
+    if (parameters.hasOwnProperty("state")) {
+      stateResponse = {
+        requestType: Constants.unknown,
+        state: parameters.state,
+        stateMatch: false
+      };
+    } else {
+      throw AuthError.createUnexpectedError("Hash does not contain state.");
+    }
+    // async calls can fire iframe and login request at the same time if developer does not use the API as expected
+    // incoming callback needs to be looked up to find the request type
+
+    // loginRedirect
+    if (stateResponse.state === this.cacheStorage.getItem(Constants.stateLogin, this.inCookie) || stateResponse.state === this.silentAuthenticationState) { // loginRedirect
+      stateResponse.requestType = Constants.login;
+      stateResponse.stateMatch = true;
+      return stateResponse;
+    }
+    // acquireTokenRedirect
+    else if (stateResponse.state === this.cacheStorage.getItem(Constants.stateAcquireToken, this.inCookie)) { //acquireTokenRedirect
+      stateResponse.requestType = Constants.renewToken;
+      stateResponse.stateMatch = true;
+      return stateResponse;
+    }
+
+    // external api requests may have many renewtoken requests for different resource
+    if (!stateResponse.stateMatch) {
+      stateResponse.requestType = window.requestType;
+      const statesInParentContext = window.renewStates;
+      for (let i = 0; i < statesInParentContext.length; i++) {
+        if (statesInParentContext[i] === stateResponse.state) {
+          stateResponse.stateMatch = true;
+          break;
+        }
+      }
+    }
+
+    return stateResponse;
   }
 
   //#endregion
@@ -1703,31 +1734,34 @@ export class UserAgentApplication {
    * @hidden
    */
   /* tslint:disable:no-string-literal */
-  //TODO: Break this function - too long
-  private saveAccessToken(authority: string, tokenResponse: TokenResponse, user: User, clientInfo: string, idToken: IdToken): void {
+  private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string): AuthResponse {
     let scope: string;
+    let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
     // if the response contains "scope"
-    if (tokenResponse.parameters.hasOwnProperty("scope")) {
+    if (parameters.hasOwnProperty("scope")) {
       // read the scopes
-      scope = tokenResponse.parameters["scope"];
+      scope = parameters["scope"];
       const consentedScopes = scope.split(" ");
       // retrieve all access tokens from the cache, remove the dup scores
       const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
       for (let i = 0; i < accessTokenCacheItems.length; i++) {
         const accessTokenCacheItem = accessTokenCacheItems[i];
-        if (accessTokenCacheItem.key.userIdentifier === user.userIdentifier) {
+        if (accessTokenCacheItem.key.userIdentifier === response.account.userIdentifier) {
           const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
           if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
           }
         }
       }
-
       // Generate and cache accessTokenKey and accessTokenValue
+      const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(tokenResponse.parameters[Constants.accessToken], idToken.rawIdToken, Utils.expiresIn(tokenResponse.parameters[Constants.expiresIn]).toString(), clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+      accessTokenResponse.accessToken  = parameters[Constants.accessToken];
+      accessTokenResponse.expiresIn = expiresIn;
+      accessTokenResponse.scopes = consentedScopes;
     }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
@@ -1736,9 +1770,13 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
       // TODO: since there is no access_token, this is also set to id_token?
-      const accessTokenValue = new AccessTokenValue(tokenResponse.parameters[Constants.idToken], tokenResponse.parameters[Constants.idToken], idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+      accessTokenResponse.scopes = [scope];
+      accessTokenResponse.accessToken = parameters[Constants.idToken];
+      accessTokenResponse.expiresIn = response.idToken.expiration;
     }
+    return accessTokenResponse;
   }
 
   /**
@@ -1747,80 +1785,85 @@ export class UserAgentApplication {
    * @hidden
    */
   // TODO: Break this function up - either into utils or token specific --- too long to be readable
-  protected saveTokenFromHash(tokenResponse: TokenResponse): void {
-
-    this.logger.info("State status:" + tokenResponse.stateMatch + "; Request type:" + tokenResponse.requestType);
+  protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
+    this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
     this.cacheStorage.setItem(Constants.msalError, "");
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
+    let response : AuthResponse;
+    let error: AuthError;
+    const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
     let acquireTokenUserKey: string = "";
 
     // If server returns an error
-    if (tokenResponse.parameters.hasOwnProperty(Constants.errorDescription) || tokenResponse.parameters.hasOwnProperty(Constants.error)) {
-      this.logger.infoPii("Error :" + tokenResponse.parameters[Constants.error] + "; Error description:" + tokenResponse.parameters[Constants.errorDescription]);
-      this.cacheStorage.setItem(Constants.msalError, tokenResponse.parameters["error"]);
-      this.cacheStorage.setItem(Constants.msalErrorDescription, tokenResponse.parameters[Constants.errorDescription]);
+    if (hashParams.hasOwnProperty(Constants.errorDescription) || hashParams.hasOwnProperty(Constants.error)) {
+      this.logger.infoPii("Error :" + hashParams[Constants.error] + "; Error description:" + hashParams[Constants.errorDescription]);
+      this.cacheStorage.setItem(Constants.msalError, hashParams[Constants.error]);
+      this.cacheStorage.setItem(Constants.msalErrorDescription, hashParams[Constants.errorDescription]);
 
       // login
-      if (tokenResponse.requestType === Constants.login) {
+      if (stateInfo.requestType === Constants.login) {
         this.userLoginInProgress = false;
-        this.cacheStorage.setItem(Constants.loginError, tokenResponse.parameters[Constants.errorDescription] + ":" + tokenResponse.parameters[Constants.error]);
-        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
+        this.cacheStorage.setItem(Constants.loginError, hashParams[Constants.errorDescription] + ":" + hashParams[Constants.error]);
+        authorityKey = Storage.generateAuthorityKey(stateInfo.state);
       }
 
       // acquireToken
-      if (tokenResponse.requestType === Constants.renewToken) {
+      if (stateInfo.requestType === Constants.renewToken) {
         this.acquireTokenInProgress = false;
-        authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
+        authorityKey = Storage.generateAuthorityKey(stateInfo.state);
         const userKey = this.getUser() !== null ? this.getUser().userIdentifier : "";
-        acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, tokenResponse.stateResponse);
+        acquireTokenUserKey = Storage.generateAcquireTokenUserKey(userKey, stateInfo.state);
+      }
+
+      if (this.isInteractionRequired(hashParams[Constants.errorDescription])) {
+        error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
+      } else {
+        error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       }
     }
     // If the server returns "Success"
     else {
       // Verify the state from redirect and record tokens to storage if exists
-      if (tokenResponse.stateMatch) {
+      if (stateInfo.stateMatch) {
         this.logger.info("State is right");
-        if (tokenResponse.parameters.hasOwnProperty(Constants.sessionState)) {
-            this.cacheStorage.setItem(Constants.msalSessionState, tokenResponse.parameters[Constants.sessionState]);
+        if (hashParams.hasOwnProperty(Constants.sessionState)) {
+            this.cacheStorage.setItem(Constants.msalSessionState, hashParams[Constants.sessionState]);
         }
+        response.userState = stateInfo.state;
 
-        let idToken: IdToken;
         let clientInfo: string = "";
 
         // Process access_token
-        if (tokenResponse.parameters.hasOwnProperty(Constants.accessToken)) {
+        if (hashParams.hasOwnProperty(Constants.accessToken)) {
           this.logger.info("Fragment has access token");
           this.acquireTokenInProgress = false;
-          let user: User;
 
           // retrieve the id_token from response if present :
-          // TODO: Is this the case of id_token_token??
-          if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
-            idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
+          if (hashParams.hasOwnProperty(Constants.idToken)) {
+            response.idToken = new IdToken(hashParams[Constants.idToken]);
           } else {
-            idToken = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));
+            response = Utils.setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
 
           // retrieve the authority from cache and replace with tenantID
-          const authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
+          const authorityKey = Storage.generateAuthorityKey(stateInfo.state);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
           if (!Utils.isEmpty(authority)) {
-            authority = Utils.replaceTenantPath(authority, idToken.tenantId);
+            authority = Utils.replaceTenantPath(authority, response.tenantId);
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
-          if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
-            clientInfo = tokenResponse.parameters[Constants.clientInfo];
-            user = User.createUser(idToken, new ClientInfo(clientInfo));
+          if (hashParams.hasOwnProperty(Constants.clientInfo)) {
+            clientInfo = hashParams[Constants.clientInfo];
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
-            user = User.createUser(idToken, new ClientInfo(clientInfo));
           }
+          response.account = User.createUser(response.idToken, new ClientInfo(clientInfo));
 
-          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(user.userIdentifier, tokenResponse.stateResponse);
-          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, tokenResponse.stateResponse);
+          const acquireTokenUserKey = Storage.generateAcquireTokenUserKey(response.account.userIdentifier, stateInfo.state);
+          const acquireTokenUserKey_nouser = Storage.generateAcquireTokenUserKey(Constants.no_user, stateInfo.state);
 
           let cachedUser: string = this.cacheStorage.getItem(acquireTokenUserKey);
           let acquireTokenUser: User;
@@ -1828,85 +1871,88 @@ export class UserAgentApplication {
           // Check with the user in the Cache
           if (!Utils.isEmpty(cachedUser)) {
             acquireTokenUser = JSON.parse(cachedUser);
-            if (user && acquireTokenUser && Utils.compareObjects(user, acquireTokenUser)) {
-              this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
+            if (response.account && acquireTokenUser && Utils.compareObjects(response.account, acquireTokenUser)) {
+              response = this.saveAccessToken(response, authority, hashParams, clientInfo);
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             } else {
               this.logger.warning(
                 "The user object created from the response is not the same as the one passed in the acquireToken request");
             }
           } else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenUserKey_nouser))) {
-            this.saveAccessToken(authority, tokenResponse, user, clientInfo, idToken);
+            response = this.saveAccessToken(response, authority, hashParams, clientInfo);
           }
         }
 
         // Process id_token
-        if (tokenResponse.parameters.hasOwnProperty(Constants.idToken)) {
+        if (hashParams.hasOwnProperty(Constants.idToken)) {
             this.logger.info("Fragment has id token");
             // login no longer in progress
             this.userLoginInProgress = false;
-            idToken = new IdToken(tokenResponse.parameters[Constants.idToken]);
-            if (tokenResponse.parameters.hasOwnProperty(Constants.clientInfo)) {
-              clientInfo = tokenResponse.parameters[Constants.clientInfo];
+            response = Utils.setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
+            if (hashParams.hasOwnProperty(Constants.clientInfo)) {
+              clientInfo = hashParams[Constants.clientInfo];
             } else {
               this.logger.warning("ClientInfo not received in the response from AAD");
             }
 
-            authorityKey = Storage.generateAuthorityKey(tokenResponse.stateResponse);
+            authorityKey = Storage.generateAuthorityKey(stateInfo.state);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceTenantPath(authority, idToken.tenantId);
+              authority = Utils.replaceTenantPath(authority, response.idToken.tenantId);
             }
 
-            this.user = User.createUser(idToken, new ClientInfo(clientInfo));
+            this.user = User.createUser(response.idToken, new ClientInfo(clientInfo));
+            response.account = this.user;
 
-            if (idToken && idToken.nonce) {
+            if (response.idToken && response.idToken.nonce) {
               // check nonce integrity if idToken has nonce - throw an error if not matched
-              if (idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
+              if (response.idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
                 this.user = null;
                 // TODO: optimize this - may be combine if it is a string in both cases
-                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + idToken.nonce);
-                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + idToken.nonce);
+                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
+                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
+                error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.idToken.nonce);
               }
               // Save the token
               else {
-                this.cacheStorage.setItem(Constants.idTokenKey, tokenResponse.parameters[Constants.idToken]);
+                this.cacheStorage.setItem(Constants.idTokenKey, hashParams[Constants.idToken]);
                 this.cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
 
                 // Save idToken as access token for app itself
-                this.saveAccessToken(authority, tokenResponse, this.user, clientInfo, idToken);
+                this.saveAccessToken(response, authority, hashParams, clientInfo);
               }
             } else {
-              // TODO: avoid repeated strings - will this be optimized with error handling?
-              authorityKey = tokenResponse.stateResponse;
-              acquireTokenUserKey = tokenResponse.stateResponse;
+              authorityKey = stateInfo.state;
+              acquireTokenUserKey = stateInfo.state;
               this.logger.error("Invalid id_token received in the response");
-              tokenResponse.parameters["error"] = "invalid idToken";
-              tokenResponse.parameters["error_description"] = "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken];
-              this.cacheStorage.setItem(Constants.msalError, "invalid idToken");
-              this.cacheStorage.setItem(Constants.msalErrorDescription, "Invalid idToken. idToken: " + tokenResponse.parameters[Constants.idToken]);
+              error = ClientAuthError.createInvalidIdTokenError(response.idToken);
+              this.cacheStorage.setItem(Constants.msalError, error.errorCode);
+              this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
             }
         }
       }
       // State mismatch - unexpected/invalid state
       else {
-        authorityKey = tokenResponse.stateResponse;
-        acquireTokenUserKey = tokenResponse.stateResponse;
-        this.logger.error("State Mismatch.Expected State: " + this.cacheStorage.getItem(Constants.stateLogin, this.inCookie) + "," + "Actual State: " + tokenResponse.stateResponse);
-        // TODO: avoid repeated strings - will this be optimized with error handling?
-        tokenResponse.parameters["error"] = "Invalid_state";
-        tokenResponse.parameters["error_description"] = "Invalid_state. state: " + tokenResponse.stateResponse;
-        this.cacheStorage.setItem(Constants.msalError, "Invalid_state");
-        this.cacheStorage.setItem(Constants.msalErrorDescription, "Invalid_state. state: " + tokenResponse.stateResponse);
+        authorityKey = stateInfo.state;
+        acquireTokenUserKey = stateInfo.state;
+        const expectedState = this.cacheStorage.getItem(Constants.stateLogin, this.inCookie);
+        this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + stateInfo.state);
+        error = ClientAuthError.createInvalidStateError(stateInfo.state, expectedState);
+        this.cacheStorage.setItem(Constants.msalError, error.errorCode);
+        this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
       }
     }
-    this.cacheStorage.setItem(Constants.renewStatus + tokenResponse.stateResponse, Constants.tokenRenewStatusCompleted);
+    this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
     this.cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenUserKey);
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);
       this.cacheStorage.clearCookie();
     }
+    if (error) {
+      throw error;
+    }
+    return response;
   }
   /* tslint:enable:no-string-literal */
 
@@ -2035,24 +2081,6 @@ export class UserAgentApplication {
         throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
       }
     }
-  }
-
-  /**
-  * Used to remove openid and profile from the list of scopes passed by the developer.These scopes are added by default
-  * @hidden
-  */
-  private filterScopes(scopes: Array<string>): Array<string> {
-    if (scopes) {
-      scopes = scopes.filter(function (element) {
-        return element !== Constants.openidScope;
-      });
-
-      scopes = scopes.filter(function (element) {
-        return element !== Constants.profileScope;
-      });
-    }
-
-    return scopes;
   }
 
   /**
