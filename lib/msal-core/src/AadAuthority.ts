@@ -60,7 +60,7 @@ export class AadAuthority extends Authority {
    * Checks to see if the host is in a list of trusted hosts
    * @param {string} The host to look up
    */
-  public IsInTrustedHostList(host: string): boolean {
+  public static IsInTrustedHostList(host: string): boolean {
     return AadAuthority.TrustedHostList[host.toLowerCase()];
   }
 }
