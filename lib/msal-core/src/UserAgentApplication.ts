@@ -400,7 +400,7 @@ export class UserAgentApplication {
 
       // build URL to navigate to proceed with the login
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
-      console.log("URL NAVIGATE !!!!!!! : " + urlNavigate);
+
       // Redirect user to login URL
       this.promptUser(urlNavigate);
     });

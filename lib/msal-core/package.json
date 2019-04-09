@@ -32,7 +32,7 @@
     "jtest": "typings install && karma start && jasmine-node --nohelpers tests/MSALSpec.js",
     "lint": "tslint -c tslint.json src/**/*.ts",
     "build:webpack": "webpack",
-    "test": "karma start --single-run --browsers PhantomJS karma.conf.js tests/*"
+    "test": "karma start --single-run --browsers PhantomJS karma.conf.js"
   },
   "dependencies": {
     "tslib": "1.7.1"
@@ -42,6 +42,7 @@
     "@types/handlebars": "4.0.33",
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.11.5",
+    "@types/sinon": "^7.0.11",
     "ajv": "6.6.1",
     "atob": "~2.1.1",
     "awesome-typescript-loader": "^3.2.3",

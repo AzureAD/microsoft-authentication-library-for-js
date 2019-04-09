@@ -1,20 +1,20 @@
 import * as Mocha from "mocha";
 import * as chai from "chai";
-import { UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError, Authority } from '../../src/index';
+import { UserAgentApplication, ClientConfigurationError, Constants, AuthenticationParameters } from '../../src/index';
 import { buildConfiguration } from "../../src/Configuration";
 import sinon from "sinon";
-import { XhrClient } from "../../src/XHRClient";
 import { ITenantDiscoveryResponse } from "../../src/ITenantDiscoveryResponse";
 const expect = chai.expect;
 chai.config.includeStack = false;
 
 describe("Redirect Flow Unit Tests", function () {
-    var msal: UserAgentApplication;
+    let msal: UserAgentApplication;
 
-    var DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
-    var TEST_REDIR_URI = "https://localhost:8081/redirect.html"
-    var TENANT = 'common';
-    var validAuthority = DEFAULT_INSTANCE + TENANT;
+    const DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
+    const TEST_REDIR_URI = "https://localhost:8081/redirect.html"
+    const TENANT = 'common';
+    const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
+    const validAuthority = DEFAULT_INSTANCE + TENANT;
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -22,68 +22,98 @@ describe("Redirect Flow Unit Tests", function () {
         Issuer: `https://fakeIssuer`
     }
 
+    let successCallback = function(response) {
+        console.log("Response: " + response);
+    };
+
+    let errCallback = function (error, state) {
+        console.log("Error: " + error);
+        console.log("State: " + state);
+    };
+
     beforeEach(function() {
-        this.jsdom = require("jsdom-global")("", { url: TEST_REDIR_URI });
-
-        let config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201" }, {}, {}, {});
+        // Necessary for login redirect
+        let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
         msal = new UserAgentApplication(config);
-    });
-
-    it("throws error if loginRedirect is called without calling setRedirectCallbacks", function (done) {
-        expect(msal.getRedirectUri()).to.be.equal(window.location.href);
-        // expect(msal.loginRedirect.bind(msal)).to.throw(ClientConfigurationError);
-        done();
-    });
-
-    it('throws error if null or non-function argument is passed to either argument of setRedirectCallbacks', (done) => {
-        // expect(() => msal.setRedirectCallbacks(function(token, tokenType, state) {}, null)).to.throw(ClientConfigurationError);
-        // expect(() => msal.setRedirectCallbacks(null, function(err, state) {})).to.throw(ClientConfigurationError);
-        done();
-    });
-
-    it('navigates user to login and prompt parameter is not passed by default', (done) => {
-        let resolveEndptsStub = sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () {
-            console.log("stub1");
+        sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () {
             return new Promise((resolve, reject) => {
                 resolve(msal.authority);
             });
         });
-        let authorityAuthEndptStub = sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
-        let authorityEndSessionEndptStub = sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
-        let authorityIssuerStub = sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
-        msal.handleRedirectCallbacks(function(response) {}, function (error) {});
-        expect(msal.getRedirectUri()).to.be.equal(window.location.href);
-        // msal.promptUser = function (args: string) {
-        //     expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-        //     expect(args).toContain('&client_id=' + msal.clientId);
-        //     expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-        //     expect(args).toContain('&state');
-        //     expect(args).toContain('&client_info=1');
-        //     expect(args).not.toContain(Constants.prompt_select_account);
-        //     expect(args).not.toContain(Constants.prompt_none);
-        //     done();
-        // };
-        msal.loginRedirect({});
-        console.log(global.window.location);
+        sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
+        sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
+        sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
+    });
+
+    afterEach(function () {
+        sinon.restore();
+    });
+
+    it("throws error if loginRedirect is called without calling setRedirectCallbacks", function (done) {
+        expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+        expect(msal.loginRedirect.bind(msal)).to.throw(ClientConfigurationError);
         done();
     });
 
-    // it('navigates user to login and prompt parameter is passed as extraQueryParameter', (done) => {
-    //     msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
-    //     expect(msal.getRedirectUri()).toBe(global.window.location.href);
-    //     msal.promptUser = function (args: string) {
-    //         expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-    //         expect(args).toContain('&client_id=' + msal.clientId);
-    //         expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-    //         expect(args).toContain('&state');
-    //         expect(args).toContain('&client_info=1');
-    //         expect(args).toContain(Constants.prompt_select_account);
-    //         expect(args).not.toContain(Constants.prompt_none);
-    //         done();
-    //     };
+    it('throws error if null argument is passed to either argument of setRedirectCallbacks', (done) => {
+        expect(() => msal.handleRedirectCallbacks(successCallback, null)).to.throw(ClientConfigurationError);
+        expect(() => msal.handleRedirectCallbacks(null, errCallback)).to.throw(ClientConfigurationError);
+        done();
+    });
 
-    //     msal.loginRedirect(null, Constants.prompt_select_account);
-    // });
+    it('navigates user to login and prompt parameter is not passed by default', (done) => {
+        sinon.stub(window.location, "replace").callsFake(function (url) {
+            expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+            expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(url).to.include('&state');
+            expect(url).to.include('&client_info=1');
+            expect(url).not.to.include(Constants.prompt_select_account);
+            expect(url).not.to.include(Constants.prompt_none);
+        });
+        msal.handleRedirectCallbacks(successCallback, errCallback);
+        expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+        msal.loginRedirect({});
+        done();
+    });
+
+    it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
+        sinon.stub(window.location, "replace").callsFake(function (url) {
+            console.log("New url: " + url);
+            expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+            expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(url).to.include('&state');
+            expect(url).to.include('&client_info=1');
+            expect(url).to.include(Constants.prompt_select_account);
+            expect(url).not.to.include(Constants.prompt_none);
+        });
+        msal.handleRedirectCallbacks(successCallback, errCallback);
+        expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+
+        let request: AuthenticationParameters = { prompt: "select_account" };
+        msal.loginRedirect(request);
+        done();
+    });
+
+    it('navigates user to login and prompt=none parameter is passed in request', (done) => {
+        sinon.stub(window.location, "replace").callsFake(function (url) {
+            console.log("New url: " + url);
+            expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+            expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(url).to.include('&state');
+            expect(url).to.include('&client_info=1');
+            expect(url).not.to.include(Constants.prompt_select_account);
+            expect(url).to.include(Constants.prompt_none);
+        });
+        msal.handleRedirectCallbacks(successCallback, errCallback);
+        expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+
+        let request: AuthenticationParameters = { prompt: "none" };
+        msal.loginRedirect(request);
+        done();
+    });
 
     // it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
     //     msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, { redirectUri: TEST_REDIR_URI });
