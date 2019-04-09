@@ -248,7 +248,7 @@ describe('Msal', function (): any {
 
     });
 
-    it('navigates user to login and prompt=select_account parameter is passed as extraQueryParameter', (done) => {
+    it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
         msal.handleRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
@@ -266,7 +266,7 @@ describe('Msal', function (): any {
         msal.loginRedirect(request);
     });
 
-    it('navigates user to login and prompt=none parameter is passed as extraQueryParameter', (done) => {
+    it('navigates user to login and prompt=none parameter is passed in request', (done) => {
         msal.handleRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).toBe(global.window.location.href);
         msal.promptUser = function (args: string) {
@@ -284,7 +284,7 @@ describe('Msal', function (): any {
         msal.loginRedirect(request);
     });
 
-    it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
+    it('navigates user to redirectURI passed in request', (done) => {
         var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201", redirectUri: TEST_REDIR_URI}, {}, {}, {});
         msal = new UserAgentApplication(config);
         msal.handleRedirectCallbacks(successCallback, errCallback);
@@ -515,6 +515,19 @@ describe('Msal', function (): any {
         expect(authErr).toEqual(jasmine.any(ClientAuthError));
         msal.loginInProgress = false;
     });
+
+
+    it('tests if request fails if passed invalid prompt', function () {
+        var authErr: AuthError;
+        try {
+            msal.validatePromptParameter("random");
+        } catch (e) {
+            authErr = e;
+        }
+
+        expect(authErr).toEqual(jasmine.any(ClientConfigurationError));
+    });
+
 
     it('tests if loginRedirect fails with error if scopes is passed as an empty array', function () {
         var authErr: AuthError;
