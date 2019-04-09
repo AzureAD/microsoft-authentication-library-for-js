@@ -72,28 +72,11 @@ export class Account {
     static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
 
         // create accountIdentifier
-        // TODO: should we advocate idToken.oid+idToken.tid for all MSALs??
-        let accountIdentifier: string;
-
-        if (idToken.objectId) {
-          accountIdentifier = idToken.objectId;
-        }
-        else {
-          accountIdentifier = idToken.subject;
-        }
+        const accountIdentifier: string = idToken.objectId ||  idToken.subject;
 
         // create homeAccountIdentifier
-        let uid: string;
-        let utid: string;
-
-        if (!clientInfo) {
-            uid = "";
-            utid = "";
-        }
-        else {
-            uid = clientInfo.uid;
-            utid = clientInfo.utid;
-        }
+        const uid: string = clientInfo ? clientInfo.uid : "";
+        const utid: string = clientInfo ? clientInfo.utid : "";
 
         const homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
         return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.decodedIdToken, idToken.sid, idToken.issuer);

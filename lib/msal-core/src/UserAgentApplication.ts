@@ -1779,15 +1779,8 @@ export class UserAgentApplication {
         this.acquireTokenInProgress = false;
         authorityKey = Storage.generateAuthorityKey(stateInfo.state);
 
-        let accountId;
         const account = this.getAccount();
-
-        if (account) {
-            accountId = this.getAccountId(account);
-        }
-        else {
-            accountId = "";
-        }
+        const accountId = account ? this.getAccountId(account) : "";
 
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
