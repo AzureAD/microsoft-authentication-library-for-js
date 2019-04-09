@@ -95,9 +95,10 @@ export class ServerRequestParameters {
    * @param scopes
    */
   createNavigateUrl(scopes: Array<string>): string {
+    console.log("createNavUrl");
     const str = this.createNavigationUrlString(scopes);
     let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
-
+    console.log("authEndpt: " + authEndpoint);
     // if the endpoint already has queryparams, lets add to it, otherwise add the first one
     if (authEndpoint.indexOf("?") < 0) {
       authEndpoint += "?";
@@ -114,6 +115,7 @@ export class ServerRequestParameters {
    * @param scopes
    */
   createNavigationUrlString(scopes: Array<string>): Array<string> {
+    console.log("createNavUrlString");
     if (!scopes) {
       scopes = [this.clientId];
     }
@@ -121,11 +123,12 @@ export class ServerRequestParameters {
     if (scopes.indexOf(this.clientId) === -1) {
       scopes.push(this.clientId);
     }
-
+    console.log("brk 1");
     const str: Array<string> = [];
     str.push("response_type=" + this.responseType);
 
     this.translateclientIdUsedInScope(scopes);
+    console.log("brk 2");
     str.push("scope=" + encodeURIComponent(this.parseScope(scopes)));
     str.push("client_id=" + encodeURIComponent(this.clientId));
     str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
@@ -136,7 +139,7 @@ export class ServerRequestParameters {
     str.push("client_info=1");
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
-
+    console.log("brk 3");
     if (this.promptValue) {
       str.push("prompt=" + encodeURI(this.promptValue));
     }
@@ -150,7 +153,8 @@ export class ServerRequestParameters {
     }
 
     str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-
+    console.log("brk 4");
+    console.log("URLstring: " + str);
     return str;
   }
 

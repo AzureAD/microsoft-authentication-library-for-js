@@ -177,6 +177,10 @@ export class UserAgentApplication {
     return this.authorityInstance.CanonicalAuthority;
   }
 
+  public getAuthorityInstance(): Authority {
+    return this.authorityInstance;
+  }
+
   /**
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -402,8 +406,8 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(authorityKey, this.authority, this.inCookie);
 
       // build URL to navigate to proceed with the login
-      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
-      console.log(urlNavigate);
+      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
+      console.log("URL NAVIGATE !!!!!!! : " + urlNavigate);
       // Redirect user to login URL
       this.promptUser(urlNavigate);
     });

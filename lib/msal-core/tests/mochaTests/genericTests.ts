@@ -42,21 +42,16 @@ describe("Redirect Flow Unit Tests", function () {
     });
 
     it('navigates user to login and prompt parameter is not passed by default', (done) => {
-        // let resolveEndptsStub = sinon.stub(msal.authorityObj, "resolveEndpointsAsync").callsFake(function () {
-        //     return new Promise((resolve, reject) => {
-        //         resolve(msal.authority);
-        //     });
-        // });
-        // let authorityAuthEndptStub = sinon.stub(msal.authorityObj, "AuthorizationEndpoint").callsFake( function () {
-        //     return validOpenIdConfigurationResponse.AuthorizationEndpoint;
-        // });
-        // let authorityEndSessionEndptStub = sinon.stub(msal.authorityObj, "EndSessionEndpoint").callsFake( function () {
-        //     return validOpenIdConfigurationResponse.EndSessionEndpoint;
-        // });;
-        // let authorityIssuerStub = sinon.stub(msal.authorityObj, "SelfSignedJwtAudience").callsFake( function () {
-        //     return validOpenIdConfigurationResponse.Issuer;
-        // });;
-        // msal.handleRedirectCallbacks(function(response) {}, function (error) {});
+        let resolveEndptsStub = sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () {
+            console.log("stub1");
+            return new Promise((resolve, reject) => {
+                resolve(msal.authority);
+            });
+        });
+        let authorityAuthEndptStub = sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
+        let authorityEndSessionEndptStub = sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
+        let authorityIssuerStub = sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
+        msal.handleRedirectCallbacks(function(response) {}, function (error) {});
         expect(msal.getRedirectUri()).to.be.equal(window.location.href);
         // msal.promptUser = function (args: string) {
         //     expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
@@ -68,8 +63,8 @@ describe("Redirect Flow Unit Tests", function () {
         //     expect(args).not.toContain(Constants.prompt_none);
         //     done();
         // };
-        // msal.loginRedirect({});
-        // console.log(global.window.location);
+        msal.loginRedirect({});
+        console.log(global.window.location);
         done();
     });
 

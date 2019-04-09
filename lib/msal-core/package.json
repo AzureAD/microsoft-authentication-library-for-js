@@ -32,7 +32,7 @@
     "test": "typings install && karma start && jasmine-node --nohelpers tests/MSALSpec.js",
     "lint": "tslint -c tslint.json src/**/*.ts",
     "build:webpack": "webpack",
-    "mochatest": "karma start --single-run --browsers ChromeHeadless,FirefoxHeadless karma.conf.js"
+    "mochatest": "karma start --single-run --browsers PhantomJS karma.conf.js"
   },
   "dependencies": {
     "tslib": "1.7.1"
