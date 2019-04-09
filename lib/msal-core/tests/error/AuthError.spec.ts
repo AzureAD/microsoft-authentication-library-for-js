@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import { AuthError, AuthErrorMessage } from "../../../src/error/AuthError";
+import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
 
 const expect = chai.expect;
 chai.config.includeStack = false;

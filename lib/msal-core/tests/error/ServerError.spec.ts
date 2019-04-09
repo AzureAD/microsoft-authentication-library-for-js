@@ -1,6 +1,6 @@
 import * as mocha from "mocha";
 import * as chai from "chai";
-import { ServerError, ServerErrorMessage } from "../../../src/error/ServerError";
+import { ServerError, ServerErrorMessage } from "../../src/error/ServerError";
 
 const expect = chai.expect;
 chai.config.includeStack = false;

@@ -1,6 +1,6 @@
 import * as chai from "chai";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
-import { IdToken } from "../../../src/IdToken";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { IdToken } from "../../src/IdToken";
 
 const expect = chai.expect;
 chai.config.includeStack = false;
