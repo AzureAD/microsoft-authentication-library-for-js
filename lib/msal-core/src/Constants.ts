@@ -7,16 +7,21 @@
 export class Constants {
   static get errorDescription(): string { return "error_description"; }
   static get error(): string { return "error"; }
+
   static get scope(): string { return "scope"; }
   static get clientInfo(): string { return "client_info"; }
   static get clientId(): string { return "clientId"; }
+
   static get idToken(): string { return "id_token"; }
+  static get adalIdToken(): string { return "adal.idtoken"; }
   static get accessToken(): string { return "access_token"; }
   static get expiresIn(): string { return "expires_in"; }
   static get sessionState(): string { return "session_state"; }
+
   static get msalClientInfo(): string { return "msal.client.info"; }
   static get msalError(): string { return "msal.error"; }
   static get msalErrorDescription(): string { return "msal.error.description"; }
+
   static get msalSessionState(): string { return "msal.session.state"; }
   static get tokenKeys(): string { return "msal.token.keys"; }
   static get accessTokenKey(): string { return "msal.access.token.key"; }
@@ -30,19 +35,25 @@ export class Constants {
   static get loginRequest(): string { return "msal.login.request"; }
   static get loginError(): string { return "msal.login.error"; }
   static get renewStatus(): string { return "msal.token.renew.status"; }
+  static get urlHash(): string { return "msal.urlHash"; }
+  static get angularLoginRequest(): string { return "msal.angular.login.request"; }
   static get msal(): string { return "msal"; }
-  static get no_user(): string { return "NO_USER"; }
+
+  static get no_account(): string { return "NO_ACCOUNT"; }
   static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
   static get upn(): string { return "upn"; }
-  static get adalIdToken(): string { return "adal.idtoken"; }
+
   static get prompt_select_account(): string { return "&prompt=select_account"; }
   static get prompt_none(): string { return "&prompt=none"; }
   static get prompt(): string { return "prompt"; }
+
   static get response_mode_fragment(): string { return "&response_mode=fragment"; }
   static get resourceDelimiter(): string { return "|"; }
+
   static get tokenRenewStatusCancelled(): string { return "Canceled"; }
   static get tokenRenewStatusCompleted(): string { return "Completed"; }
   static get tokenRenewStatusInProgress(): string { return "In Progress"; }
+
   private static _popUpWidth: number = 483;
   static get popUpWidth(): number { return this._popUpWidth; }
   static set popUpWidth(width: number) {
@@ -53,17 +64,21 @@ export class Constants {
   static set popUpHeight(height: number) {
     this._popUpHeight = height;
   }
+
   static get login(): string { return "LOGIN"; }
   static get renewToken(): string { return "RENEW_TOKEN"; }
   static get unknown(): string { return "UNKNOWN"; }
-  static get urlHash(): string { return "msal.urlHash"; }
-  static get angularLoginRequest(): string { return "msal.angular.login.request"; }
-  static get userIdentifier(): string { return "userIdentifier"; }
+
+  static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
+
   static get common(): string { return "common"; }
-  static get cacheLocationLocal(): string { return "localStorage"; }
-  static get cacheLocationSession(): string { return "sessionStorage"; }
   static get openidScope(): string { return "openid"; }
   static get profileScope(): string { return "profile"; }
+
+  static get cacheLocationLocal(): string { return "localStorage"; }
+  static get cacheLocationSession(): string { return "sessionStorage"; }
+
+
 }
 
 /**
@@ -111,8 +126,8 @@ export const SSOTypes = {
     DOMAIN_HINT: "domain_hint",
     ORGANIZATIONS: "organizations",
     CONSUMERS: "consumers",
-    ACCOUNT_ID: "account_id",
-    HOMEACCOUNT_ID: "homeaccount_id",
+    ACCOUNT_ID: "accountIdentifier",
+    HOMEACCOUNT_ID: "homeAccountIdentifier",
     LOGIN_REQ: "login_req",
     DOMAIN_REQ: "domain_req"
 };

@@ -9,12 +9,12 @@ export class AccessTokenValue {
   accessToken: string;
   idToken: string;
   expiresIn: string;
-  clientInfo: string;
+  homeAccountIdentifier: string;
 
-  constructor(accessToken: string, idToken: string, expiresIn: string, clientInfo: string) {
+  constructor(accessToken: string, idToken: string, expiresIn: string, homeAccountIdentifier: string) {
     this.accessToken = accessToken;
     this.idToken = idToken;
     this.expiresIn = expiresIn;
-    this.clientInfo = clientInfo;
+    this.homeAccountIdentifier = homeAccountIdentifier;
   }
 }

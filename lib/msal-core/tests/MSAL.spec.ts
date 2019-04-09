@@ -1,10 +1,11 @@
 import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from "../src/index";
-import { Constants, ErrorCodes, ErrorDescription } from "../src/Constants";
+import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../src/Constants";
 import { Authority } from "../src/Authority";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { AuthorityFactory } from "../src/AuthorityFactory";
 import { buildConfiguration } from "../src/Configuration";
 import { AuthenticationParameters } from "../src/AuthenticationParameters";
+import { Account } from "../src/Account";
 
 describe('Msal', function (): any {
     let window: any;
@@ -43,7 +44,7 @@ describe('Msal', function (): any {
                 authority: "",
                 clientId: "",
                 scopes: "",
-                userIdentifer: ""
+                homeAccountIdentifier: ""
             },
             value: {
                 accessToken: "",
@@ -51,7 +52,7 @@ describe('Msal', function (): any {
                 expiresIn: "",
                 clientInfo: ""
             }
-        }
+        };
 
         return {
             getItem: function (key: any, storeAuthStateInCookie?: boolean) {
@@ -61,7 +62,7 @@ describe('Msal', function (): any {
                 return store[key];
             },
             setItem: function (key: any, value: any, storeAuthStateInCookie?: boolean) {
-                if (typeof value != 'undefined') {
+                if (typeof value !== 'undefined') {
                     store[key] = value;
                 }
                 if (storeAuthStateInCookie) {
@@ -70,7 +71,7 @@ describe('Msal', function (): any {
 
             },
             removeItem: function (key: any) {
-                if (typeof store[key] != 'undefined') {
+                if (typeof store[key] !== 'undefined') {
                     delete store[key];
                 }
             },
@@ -80,11 +81,11 @@ describe('Msal', function (): any {
             storeVerify: function () {
                 return store;
             },
-            getAllAccessTokens: function (clientId: any, userIdentifier: any) {
+            getAllAccessTokens: function (clientId: any, homeAccountIdentifier: any) {
                 var results = [];
                 for (var key in store) {
                     if (store.hasOwnProperty(key)) {
-                        if (key.match(clientId) && key.match(userIdentifier)) {
+                        if (key.match(clientId) && key.match(homeAccountIdentifier)) {
                             let value = this.getItem(key);
                             if (value) {
                                 let accessTokenCacheItem = <any>{};
@@ -169,8 +170,10 @@ describe('Msal', function (): any {
             innerWidth: 100,
             innerHeight: 100,
         };
+
         $window.localStorage = storageFake;
         $window.sessionStorage = storageFake;
+
         // Init
         let global = <any>{};
         global.window = $window;
@@ -236,7 +239,7 @@ describe('Msal', function (): any {
             expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
             expect(args).toContain('&state');
             expect(args).toContain('&client_info=1');
-            expect(args).not.toContain(Constants.prompt_select_account);
+            expect(args).not.toContain(PromptState.prompt_select_account);
             expect(args).not.toContain(Constants.prompt_none);
             done();
         };
@@ -318,7 +321,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken",
@@ -327,8 +330,8 @@ describe('Msal', function (): any {
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S1'] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult = msal.getCachedToken({ scopes: ['S1'] }, account);
         expect(cacheResult.token).toBe('accessToken');
         expect(cacheResult.errorDesc).toBe(null);
         expect(cacheResult.error).toBe(null);
@@ -340,7 +343,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken",
@@ -352,8 +355,8 @@ describe('Msal', function (): any {
         accessTokenKey.scopes = "S1 S2";
         accessTokenKey.authority = "authority2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, account);
         expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority");
         expect(cacheResult.token).toBe(null);
         expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
@@ -365,7 +368,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken",
@@ -378,8 +381,8 @@ describe('Msal', function (): any {
         accessTokenKey.authority = 'authority2';
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
-        var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S3'] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult = msal.getCachedToken({ scopes: ['S3'] }, account);
         expect(cacheResult.errorDesc).toBe("Multiple authorities found in the cache. Pass authority in the API overload.");
         expect(cacheResult.token).toBe(null);
         expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
@@ -391,7 +394,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken",
@@ -400,8 +403,8 @@ describe('Msal', function (): any {
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ authority: "authority2", scopes: ['S1'] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult = msal.getCachedToken({ authority: "authority2", scopes: ['S1'] }, account);
         expect(cacheResult).toBe(null);
         storageFake.clear();
     });
@@ -411,7 +414,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken1",
@@ -423,12 +426,12 @@ describe('Msal', function (): any {
         accessTokenKey.authority = "authority2";
         accessTokenValue.accessToken = "accessToken2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        var user = { userIdentifier: "1234" };
-        let cacheResult1 = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult1 = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
         expect(cacheResult1.errorDesc).toBe(null);
         expect(cacheResult1.token).toBe('accessToken1');
         expect(cacheResult1.error).toBe(null);
-        let cacheResult2 = msal.getCachedToken({ authority: "authority2", scopes: ['S1'] }, user);
+        let cacheResult2 = msal.getCachedToken({ authority: "authority2", scopes: ['S1'] }, account);
         expect(cacheResult2.errorDesc).toBe(null);
         expect(cacheResult2.token).toBe('accessToken2');
         expect(cacheResult2.error).toBe(null);
@@ -440,7 +443,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken1",
@@ -452,8 +455,8 @@ describe('Msal', function (): any {
         accessTokenKey.authority = validAuthority;
         accessTokenKey.scopes = "S1 S2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
         expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority");
         expect(cacheResult.token).toBe(null);
         expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
@@ -465,7 +468,7 @@ describe('Msal', function (): any {
             authority: validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            userIdentifer: "1234"
+            homeAccountIdentifier: "1234"
         }
         var accessTokenValue = {
             accessToken: "accessToken1",
@@ -474,8 +477,8 @@ describe('Msal', function (): any {
             clientInfo: ""
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        var user = { userIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, user);
+        var account = { homeAccountIdentifier: "1234" };
+        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
         expect(cacheResult).toBe(null);
         expect(storageFake.getItem(JSON.stringify(accessTokenKey))).toBe(undefined);
         storageFake.clear();
@@ -502,7 +505,7 @@ describe('Msal', function (): any {
     });
 
     it('tests if login function exits with error if loginInProgress is true and callback is called with loginProgress error', function () {
-        msal.userLoginInProgress = true;
+        msal.loginInProgress = true;
         var authErr: AuthError;
         try {
             msal.loginRedirect();
@@ -510,7 +513,7 @@ describe('Msal', function (): any {
             authErr = e;
         }
         expect(authErr).toEqual(jasmine.any(ClientAuthError));
-        msal.userLoginInProgress = false;
+        msal.loginInProgress = false;
     });
 
 
@@ -644,16 +647,16 @@ describe('Msal', function (): any {
             done();
         };
 
-        let user: User =  {
-            idToken: null,
+        let accountObj: Account = {
+            homeAccountIdentifier: '1234.5678',
+            userName: 'some_id',
             name: null,
+            idToken: null,
             sid: null,
-            identityProvider: null,
-            userIdentifier: '1234.5678',
-            displayableId:'some_id'
+            environment: null
         };
 
-        let request: AuthenticationParameters = {prompt: "select_account", account: user};
+        let request: AuthenticationParameters = {prompt: "select_account", account: accountObj};
         msal.loginRedirect(request);
     });
 
@@ -718,18 +721,18 @@ describe('Msal', function (): any {
         // expect(requestInfo.stateMatch).toBe(false);
     });
 
-    it('test getUserState with a user passed state', function () {
-        var result =msal.getUserState("123465464565|91111");
+    it('test getAccountState with a user passed state', function () {
+        var result = msal.getAccountState("123465464565|91111");
         expect(result).toEqual("91111")
     });
 
-    it('test getUserState when there is no user state', function () {
-        var result =msal.getUserState("123465464565");
+    it('test getAccountState when there is no user state', function () {
+        var result = msal.getAccountState("123465464565");
         expect(result).toEqual("")
     });
 
-    it('test getUserState when there is no state', function () {
-        var result =msal.getUserState("");
+    it('test getAccountState when there is no state', function () {
+        var result =msal.getAccountState("");
         expect(result).toEqual("")
     });
 
@@ -754,7 +757,7 @@ describe('Msal', function (): any {
     });
 
     it('tests if you get the state back in errorReceived callback, if state is a number', function () {
-        spyOn(msal, 'getUserState').and.returnValue("1234");
+        spyOn(msal, 'getAccountState').and.returnValue("1234");
         var err: AuthError;
         var token = "";
         var tokenType = "";
@@ -769,7 +772,7 @@ describe('Msal', function (): any {
             // state= valState;
         };
         msal.handleRedirectCallbacks(tokenCallback, errorCallback);
-        msal.userLoginInProgress = true;
+        msal.loginInProgress = true;
 
         msal.loginRedirect();
         console.log(err);
@@ -778,11 +781,11 @@ describe('Msal', function (): any {
         expect(token).toBe("");
         expect(tokenType).toBe("");
         // expect(state).toBe('1234');
-        msal.userLoginInProgress = false;
+        msal.loginInProgress = false;
     });
 
     it('tests if you get the state back in errorReceived callback, if state is a url', function () {
-        spyOn(msal, 'getUserState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+        spyOn(msal, 'getAccountState').and.returnValue("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         console.log("MSAL: " + msal);
         var err: AuthError;
         var token = "";
@@ -798,15 +801,15 @@ describe('Msal', function (): any {
             state= valState;
         };
         msal.handleRedirectCallbacks(tokenCallback, errorCallback);
-        console.log(msal.userLoginInProgress);
-        msal.userLoginInProgress = true;
+        console.log(msal.loginInProgress);
+        msal.loginInProgress = true;
 
         msal.loginRedirect();
         expect(err).toEqual(jasmine.any(ClientAuthError));
         expect(token).toBe("");
         expect(tokenType).toBe("");
         expect(state).toBe('https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2');
-        msal.userLoginInProgress = false;
+        msal.loginInProgress = false;
     });
 
     it('tests that loginStartPage, nonce and state are saved in cookies if enableCookieStorage flag is enables through the msal optional params', function (done) {
