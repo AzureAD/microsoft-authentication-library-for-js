@@ -23,7 +23,6 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
-import { AuthError } from "./AuthError";
 
 export const ClientConfigurationErrorMessage = {
     invalidCacheLocation: {
@@ -56,6 +55,10 @@ export const ClientConfigurationErrorMessage = {
     clientScope: {
         code: "clientid_input_scopes_error",
         desc: "Client ID can only be provided as a single scope."
+    },
+    invalidPrompt: {
+        code: "invalid_prompt_value",
+        desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'",
     },
     invalidAuthorityType: {
         code: "invalid_authority_type",
@@ -122,5 +125,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createScopesRequiredError(scopesValue: any): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequired.code,
             `${ClientConfigurationErrorMessage.scopesRequired.desc} Given value: ${scopesValue}`);
+    }
+
+    static createInvalidPromptError(promptValue: any): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
+            `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
     }
 }

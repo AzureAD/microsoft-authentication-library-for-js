@@ -53,9 +53,9 @@ export class ServerRequestParameters {
   domainHint: string;
   loginReq: string;
   domainReq: string;
+
   queryParameters: string;
   extraQueryParameters: string;
-
 
   public get authority(): string {
     return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
