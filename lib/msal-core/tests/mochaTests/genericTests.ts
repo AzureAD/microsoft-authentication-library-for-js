@@ -31,10 +31,7 @@ describe("Redirect Flow Unit Tests", function () {
         console.log("State: " + state);
     };
 
-    beforeEach(function() {
-        // Necessary for login redirect
-        let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
-        msal = new UserAgentApplication(config);
+    let setAuthInstanceStubs = function () {
         sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () {
             return new Promise((resolve, reject) => {
                 resolve(msal.getAuthorityInstance());
@@ -43,6 +40,13 @@ describe("Redirect Flow Unit Tests", function () {
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
+    };
+
+    beforeEach(function() {
+        // Necessary for login redirect
+        let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
+        msal = new UserAgentApplication(config);
+        setAuthInstanceStubs();
     });
 
     afterEach(function () {
@@ -61,7 +65,7 @@ describe("Redirect Flow Unit Tests", function () {
         done();
     });
 
-    it('navigates user to login and prompt parameter is not passed by default', async () => {
+    it('navigates user to login and prompt parameter is not passed by default', (done) => {
         sinon.stub(window.location, "replace").callsFake(function (url) {
             expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
@@ -70,13 +74,14 @@ describe("Redirect Flow Unit Tests", function () {
             expect(url).to.include('&client_info=1');
             expect(url).not.to.include(Constants.prompt_select_account);
             expect(url).not.to.include(Constants.prompt_none);
+            done();
         });
         msal.handleRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-        await msal.loginRedirect({});
+        msal.loginRedirect({});
     });
 
-    it('navigates user to login and prompt=select_account parameter is passed in request', async () => {
+    it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
         sinon.stub(window.location, "replace").callsFake(function (url) {
             expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
@@ -85,15 +90,16 @@ describe("Redirect Flow Unit Tests", function () {
             expect(url).to.include('&client_info=1');
             expect(url).to.include(Constants.prompt_select_account);
             expect(url).not.to.include(Constants.prompt_none);
+            done();
         });
         msal.handleRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
         let request: AuthenticationParameters = { prompt: "select_account" };
-        await msal.loginRedirect(request);
+        msal.loginRedirect(request);
     });
 
-    it('navigates user to login and prompt=none parameter is passed in request', async () => {
+    it('navigates user to login and prompt=none parameter is passed in request', (done) => {
         sinon.stub(window.location, "replace").callsFake(function (url) {
             expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
@@ -102,42 +108,40 @@ describe("Redirect Flow Unit Tests", function () {
             expect(url).to.include('&client_info=1');
             expect(url).not.to.include(Constants.prompt_select_account);
             expect(url).to.include(Constants.prompt_none);
+            done();
         });
         msal.handleRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
         let request: AuthenticationParameters = { prompt: "none" };
-        await msal.loginRedirect(request);
+        msal.loginRedirect(request);
     });
 
-    // it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
-    //     msal = new UserAgentApplication("0813e1d1-ad72-46a9-8665-399bba48c201", null, { redirectUri: TEST_REDIR_URI });
-    //     msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
-    //     msal._user = null;
-    //     msal._renewStates = [];
-    //     msal._activeRenewals = {};
-    //     msal._cacheStorage = storageFake;
-    //     expect(msal._redirectUri).toBe(TEST_REDIR_URI);
-    //     msal.promptUser = function (args: string) {
-    //         expect(args).toContain(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-    //         expect(args).toContain('&client_id=' + msal.clientId);
-    //         expect(args).toContain('&redirect_uri=' + encodeURIComponent(msal._redirectUri));
-    //         expect(args).toContain('&state');
-    //         expect(args).toContain('&client_info=1');
-    //         done();
-    //     };
+    it('navigates user to redirectURI passed in request', (done) => {
+        sinon.stub(window.location, "replace").callsFake(function (url) {
+            expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+            expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+            expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+            expect(url).to.include('&state');
+            expect(url).to.include('&client_info=1');
+            done();
+        });
+        msal.handleRedirectCallbacks(successCallback, errCallback);
+        expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
-    //     msal.loginRedirect();
-    // });
+        msal.loginRedirect({});
+    });
 
-    // it('uses current location.href as returnUri by default, even if location changed after UserAgentApplication was instantiated', (done) => {
-    //     history.pushState(null, null, '/new_pushstate_uri');
-    //     msal.setRedirectCallbacks(function(token, tokenType, state) {}, function (error) {});
-    //     msal.promptUser = function (args: string) {
-    //         expect(args).toContain('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
-    //         done();
-    //     };
-    //     msal.loginRedirect();
-    // });
+    it('uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated', (done) => {
+        let config = buildConfiguration({ clientId: MSAL_CLIENT_ID }, {}, {}, {});
+        msal = new UserAgentApplication(config);
+        history.pushState(null, null, '/new_pushstate_uri');
+        sinon.stub(window.location, "replace").callsFake(function (url) {
+            expect(url).to.include('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
+            done();
+        });
+        msal.handleRedirectCallbacks(successCallback, errCallback);
+        msal.loginRedirect({});
+    });
 
 });
