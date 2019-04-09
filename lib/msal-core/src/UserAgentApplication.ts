@@ -1706,8 +1706,6 @@ export class UserAgentApplication {
     let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
 
-    const uniqueId = response.idToken.objectId ? response.idToken.objectId : response.idToken.subject;
-
     // if the response contains "scope"
     if (parameters.hasOwnProperty("scope")) {
       // read the scopes
@@ -1730,8 +1728,8 @@ export class UserAgentApplication {
 
       // Generate and cache accessTokenKey and accessTokenValue
       const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
-      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, uniqueId, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, uniqueId, clientInfo);
+      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1744,10 +1742,10 @@ export class UserAgentApplication {
       scope = this.clientId;
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, uniqueId, clientObj.uid, clientObj.utid);
+      const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
 
       // TODO: since there is no access_token, this is also set to id_token?
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, uniqueId, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
