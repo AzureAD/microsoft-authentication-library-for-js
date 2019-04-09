@@ -1,16 +1,10 @@
-import { User } from "./User";
-
+import { Account } from "./Account";
 
 /**
- * TODO:
- * prompt: We considered making this "enum" in the request instead of string, however it looks like the allowed
- * list of prompt values kept changing over past couple of years. There are some undocumented prompt values for some
- * internal partners too, hence the choice of generic "string" type instead of the "enum".
- *
- * claimsRequest: This will be a part of the feature "Conditional Access"
+ * Key-Value type to support queryParams and extraQueryParams
  */
-
 export type QPDict = {[key: string]: string};
+
 
 export type AuthenticationParameters = {
     scopes?: Array<string>;
@@ -20,7 +14,7 @@ export type AuthenticationParameters = {
     claimsRequest?: null;
     authority?: string;
     correlationId?: string;
-    account?: User;
+    account?: Account;
     sid?: string;
     loginHint?: string;
 };
