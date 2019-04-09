@@ -37,7 +37,7 @@ describe("Redirect Flow Unit Tests", function () {
         msal = new UserAgentApplication(config);
         sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () {
             return new Promise((resolve, reject) => {
-                resolve(msal.authority);
+                resolve(msal.getAuthorityInstance());
             });
         });
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
@@ -61,7 +61,7 @@ describe("Redirect Flow Unit Tests", function () {
         done();
     });
 
-    it('navigates user to login and prompt parameter is not passed by default', (done) => {
+    it('navigates user to login and prompt parameter is not passed by default', async () => {
         sinon.stub(window.location, "replace").callsFake(function (url) {
             expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
@@ -73,13 +73,11 @@ describe("Redirect Flow Unit Tests", function () {
         });
         msal.handleRedirectCallbacks(successCallback, errCallback);
         expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-        msal.loginRedirect({});
-        done();
+        await msal.loginRedirect({});
     });
 
-    it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
+    it('navigates user to login and prompt=select_account parameter is passed in request', async () => {
         sinon.stub(window.location, "replace").callsFake(function (url) {
-            console.log("New url: " + url);
             expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
             expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
@@ -92,13 +90,11 @@ describe("Redirect Flow Unit Tests", function () {
         expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
         let request: AuthenticationParameters = { prompt: "select_account" };
-        msal.loginRedirect(request);
-        done();
+        await msal.loginRedirect(request);
     });
 
-    it('navigates user to login and prompt=none parameter is passed in request', (done) => {
+    it('navigates user to login and prompt=none parameter is passed in request', async () => {
         sinon.stub(window.location, "replace").callsFake(function (url) {
-            console.log("New url: " + url);
             expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
             expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
             expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
@@ -111,8 +107,7 @@ describe("Redirect Flow Unit Tests", function () {
         expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
         let request: AuthenticationParameters = { prompt: "none" };
-        msal.loginRedirect(request);
-        done();
+        await msal.loginRedirect(request);
     });
 
     // it('navigates user to redirectURI passed as extraQueryParameter', (done) => {
