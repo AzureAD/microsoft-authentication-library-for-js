@@ -1735,7 +1735,17 @@ export class UserAgentApplication {
     this.cacheStorage.setItem(Constants.msalError, "");
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
-    let response : AuthResponse;
+    let response : AuthResponse = {
+      uniqueId: "",
+      tenantId: "",
+      tokenType: "",
+      idToken: null,
+      accessToken: null,
+      scopes: [],
+      expiresIn: "",
+      account: null,
+      accountState: "",
+    };
     let error: AuthError;
     const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
