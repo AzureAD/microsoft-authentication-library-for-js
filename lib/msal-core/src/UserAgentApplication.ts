@@ -235,9 +235,6 @@ export class UserAgentApplication {
 
     this.redirectCallbacksSet = true;
 
-    const urlHash = window.location.hash;
-    const isCallback = this.isCallback(urlHash);
-
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
       const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
