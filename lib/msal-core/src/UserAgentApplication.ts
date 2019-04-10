@@ -1292,6 +1292,7 @@ export class UserAgentApplication {
         this.errorReceivedCallback(authErr, accountState);
         return;
       }
+
       parentCallback(response, authErr);
     } catch (err) {
       this.logger.error("Error occurred in token received callback function: " + err);
