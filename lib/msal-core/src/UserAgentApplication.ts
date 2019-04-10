@@ -298,13 +298,12 @@ export class UserAgentApplication {
         let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
         this.silentLogin = true;
-        this.acquireTokenSilent(tokenRequest).then((idToken) => {
+        this.acquireTokenSilent(tokenRequest).then((response) => {
           this.silentLogin = false;
           this.logger.info("Unified cache call is successful");
 
-          // TODO: Change callback to return AuthResponse
           if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback.call(this, null, idToken, null, Constants.idToken, this.getAccountState(this.silentAuthenticationState));
+            this.tokenReceivedCallback(response);
           }
         }, (error) => {
           this.silentLogin = false;
@@ -519,12 +518,11 @@ export class UserAgentApplication {
 
           this.silentLogin = true;
           this.acquireTokenSilent(tokenRequest)
-              .then((idToken) => {
+              .then((response) => {
             this.silentLogin = false;
             this.logger.info("Unified cache call is successful");
 
-            // TODO: Change resolve to return AuthResponse object
-            resolve(idToken);
+            resolve(response);
           }, (error) => {
 
             this.silentLogin = false;
