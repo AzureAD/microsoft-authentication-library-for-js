@@ -920,21 +920,24 @@ export class UserAgentApplication {
         serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
         serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
       }
-
-      const cacheResult = this.getCachedToken(serverAuthenticationRequest, account);
+      let authErr: AuthError;
+      let cacheResultResponse;
+      try {
+        cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
+      } catch (e) {
+        authErr = e;
+      }
 
       // resolve/reject based on cacheResult
-      if (cacheResult) {
-        if (cacheResult.token) {
-          this.logger.info("Token is already in cache for scope:" + scope);
-          resolve(cacheResult.token);
-          return null;
-        }
-        else if (cacheResult.errorDesc || cacheResult.error) {
-          this.logger.infoPii(cacheResult.errorDesc + ":" + cacheResult.error);
-          reject(cacheResult.errorDesc + Constants.resourceDelimiter + cacheResult.error);
-          return null;
-        }
+      if (cacheResultResponse) {
+        this.logger.info("Token is already in cache for scope:" + scope);
+        resolve(cacheResultResponse);
+        return null;
+      }
+      else if (authErr) {
+        this.logger.infoPii(authErr.errorCode + ":" + authErr.errorMessage);
+        reject(authErr);
+        return null;
       }
       // else proceed with login
       else {
@@ -1456,7 +1459,7 @@ export class UserAgentApplication {
    */
   // TODO: There is a lot of duplication code in this function, rework this sooner than later, may be as a part of Error??
   // TODO: Only used in ATS - we should separate this
-  private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): CacheResult {
+  private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
     let accessTokenCacheItem: AccessTokenCacheItem = null;
     const scopes = serverAuthenticationRequest.scopes;
 
@@ -1489,22 +1492,12 @@ export class UserAgentApplication {
       // if more than one cached token is found
       else if (filteredItems.length > 1) {
         throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
-        // return {
-        //   errorDesc: "The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority",
-        //   token: null,
-        //   error: "multiple_matching_tokens_detected"
-        // };
       }
       // if no match found, check if there was a single authority used
       else {
         const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
         if (authorityList.length > 1) {
           throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
-          // return {
-          //   errorDesc: "Multiple authorities found in the cache. Pass authority in the API overload.",
-          //   token: null,
-          //   error: "multiple_matching_tokens_detected"
-          // };
         }
 
         serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
@@ -1532,37 +1525,35 @@ export class UserAgentApplication {
       else {
         // if more than cached token is found
         throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
-        // return {
-        //   errorDesc: "The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority",
-        //   token: null,
-        //   error: "multiple_matching_tokens_detected"
-        // };
       }
     }
 
     if (accessTokenCacheItem != null) {
-      const expired = Number(accessTokenCacheItem.value.expiresIn);
+      let expired = Number(accessTokenCacheItem.value.expiresIn);
       // If expiration is within offset, it will force renew
       const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
       if (expired && (expired > Utils.now() + offset)) {
-        let idToken = new IdToken(accessTokenCacheItem.value.idToken);
+        const idToken = new IdToken(accessTokenCacheItem.value.idToken);
+        if (!account) {
+          account = this.getAccount();
+          if (!account) {
+            throw AuthError.createUnexpectedError("Account should not be null here.");
+          }
+        }
+        const aState = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
         let response : AuthResponse = {
           uniqueId: "",
           tenantId: "",
-          tokenType: "",
+          tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? Constants.idToken : Constants.accessToken,
           idToken: idToken,
           accessToken: accessTokenCacheItem.value.accessToken,
           scopes: serverAuthenticationRequest.scopes,
-          expiresIn: "",
-          account: null,
-          accountState: "",
+          expiresIn: new Date(expired * 1000),
+          account: account,
+          accountState: aState,
         };
         Utils.setResponseIdToken(response, idToken);
-        return {
-          errorDesc: null,
-          token: accessTokenCacheItem.value.accessToken,
-          error: null
-        };
+        return response;
       } else {
         this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
         return null;
@@ -1714,8 +1705,13 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
       accessTokenResponse.accessToken  = parameters[Constants.accessToken];
-      accessTokenResponse.expiresIn = expiresIn;
       accessTokenResponse.scopes = consentedScopes;
+      let exp = Number(expiresIn);
+      if (exp) {
+        accessTokenResponse.expiresIn = new Date(Date.now() + (exp * 1000));
+      } else {
+        this.logger.error("Could not parse expiresIn parameter. Given value: " + expiresIn);
+      }
     }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
@@ -1724,12 +1720,16 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
 
-      // TODO: since there is no access_token, this is also set to id_token?
       const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
-      accessTokenResponse.expiresIn = response.idToken.expiration;
+      let exp = Number(response.idToken.expiration);
+      if (exp) {
+        accessTokenResponse.expiresIn = new Date(exp * 1000);
+      } else {
+        this.logger.error("Could not parse expiresIn parameter");
+      }
     }
     return accessTokenResponse;
   }
@@ -2105,7 +2105,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param account
    */
-  protected getCachedTokenInternal(scopes : Array<string> , account: Account): CacheResult {
+  protected getCachedTokenInternal(scopes : Array<string> , account: Account): AuthResponse {
     // Get the current session's account object
     const accountObject = account ? account : this.getAccount();
     if (!accountObject) {

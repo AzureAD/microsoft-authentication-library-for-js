@@ -1,4 +1,4 @@
-import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from "../src/index";
+import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError, AuthResponse} from "../src/index";
 import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../src/Constants";
 import { Authority } from "../src/Authority";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
@@ -6,6 +6,8 @@ import { AuthorityFactory } from "../src/AuthorityFactory";
 import { buildConfiguration } from "../src/Configuration";
 import { AuthenticationParameters } from "../src/AuthenticationParameters";
 import { Account } from "../src/Account";
+import { IdToken } from "../src/IdToken";
+import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 
 describe('Msal', function (): any {
     let window: any;
@@ -331,10 +333,13 @@ describe('Msal', function (): any {
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S1'] }, account);
-        expect(cacheResult.token).toBe('accessToken');
-        expect(cacheResult.errorDesc).toBe(null);
-        expect(cacheResult.error).toBe(null);
+        var scopes = ['S1'];
+        let cacheResult: AuthResponse = msal.getCachedToken({ scopes: scopes }, account);
+        expect(cacheResult.tokenType).toContain(Constants.accessToken);
+        expect(cacheResult.accessToken).toContain('accessToken');
+        expect(cacheResult.idToken.rawIdToken).toContain('idToken');
+        expect(cacheResult.scopes).toBe(scopes);
+        expect(cacheResult.account).toBe(account);
         storageFake.clear();
     });
 
@@ -356,10 +361,16 @@ describe('Msal', function (): any {
         accessTokenKey.authority = "authority2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, account);
-        expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        let authErr : AuthError = null;
+        try {
+            let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, account);
+        } catch (e) {
+            authErr = e;
+        }
+        
+        expect(authErr).toEqual(jasmine.any(ClientAuthError));
+        expect(authErr.errorCode).toContain(ClientAuthErrorMessage.multipleMatchingTokens.code);
+        expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
         storageFake.clear();
     });
 
@@ -382,10 +393,17 @@ describe('Msal', function (): any {
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S3'] }, account);
-        expect(cacheResult.errorDesc).toBe("Multiple authorities found in the cache. Pass authority in the API overload.");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        let authErr : AuthError = null;
+        try {
+            let cacheResult = msal.getCachedToken({ scopes: ["S3"] }, account);
+        } catch (e) {
+            authErr = e;
+        }
+
+        expect(authErr).toEqual(jasmine.any(ClientAuthError));
+        expect(authErr.errorCode).toContain(ClientAuthErrorMessage.multipleCacheAuthorities.code);
+        expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
+
         storageFake.clear();
     });
 
@@ -427,14 +445,19 @@ describe('Msal', function (): any {
         accessTokenValue.accessToken = "accessToken2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult1 = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
-        expect(cacheResult1.errorDesc).toBe(null);
-        expect(cacheResult1.token).toBe('accessToken1');
-        expect(cacheResult1.error).toBe(null);
-        let cacheResult2 = msal.getCachedToken({ authority: "authority2", scopes: ['S1'] }, account);
-        expect(cacheResult2.errorDesc).toBe(null);
-        expect(cacheResult2.token).toBe('accessToken2');
-        expect(cacheResult2.error).toBe(null);
+        let scopes = ['S1'];
+        let cacheResult1 : AuthResponse = msal.getCachedToken({ authority: validAuthority, scopes: scopes }, account);
+        expect(cacheResult1.tokenType).toContain(Constants.accessToken);
+        expect(cacheResult1.accessToken).toContain('accessToken1');
+        expect(cacheResult1.idToken.rawIdToken).toContain('idToken');
+        expect(cacheResult1.scopes).toBe(scopes);
+        expect(cacheResult1.account).toBe(account);
+        let cacheResult2 = msal.getCachedToken({ authority: "authority2", scopes: scopes }, account);
+        expect(cacheResult2.tokenType).toContain(Constants.accessToken);
+        expect(cacheResult2.accessToken).toContain('accessToken2');
+        expect(cacheResult2.idToken.rawIdToken).toContain('idToken');
+        expect(cacheResult2.scopes).toBe(scopes);
+        expect(cacheResult2.account).toBe(account);
         storageFake.clear();
     });
 
@@ -456,10 +479,16 @@ describe('Msal', function (): any {
         accessTokenKey.scopes = "S1 S2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
-        expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        let authErr : AuthError = null;
+        try {
+            let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
+        } catch (e) {
+            authErr = e;
+        }
+
+        expect(authErr).toEqual(jasmine.any(ClientAuthError));
+        expect(authErr.errorCode).toContain(ClientAuthErrorMessage.multipleMatchingTokens.code);
+        expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
         storageFake.clear();
     });
 
