@@ -1841,51 +1841,51 @@ export class UserAgentApplication {
 
         // Process id_token
         if (hashParams.hasOwnProperty(Constants.idToken)) {
-            this.logger.info("Fragment has id token");
-            // login no longer in progress
-            this.loginInProgress = false;
-            response = Utils.setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
-            if (hashParams.hasOwnProperty(Constants.clientInfo)) {
-              clientInfo = hashParams[Constants.clientInfo];
-            } else {
-              this.logger.warning("ClientInfo not received in the response from AAD");
+          this.logger.info("Fragment has id token");
+          // login no longer in progress
+          this.loginInProgress = false;
+          response = Utils.setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
+          if (hashParams.hasOwnProperty(Constants.clientInfo)) {
+            clientInfo = hashParams[Constants.clientInfo];
+          } else {
+            this.logger.warning("ClientInfo not received in the response from AAD");
+          }
+
+          authorityKey = Storage.generateAuthorityKey(stateInfo.state);
+          let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
+
+          if (!Utils.isEmpty(authority)) {
+            authority = Utils.replaceTenantPath(authority, response.idToken.tenantId);
+          }
+
+          this.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
+          response.account = this.account;
+
+          if (response.idToken && response.idToken.nonce) {
+            // check nonce integrity if idToken has nonce - throw an error if not matched
+            if (response.idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
+              this.account = null;
+              // TODO: optimize this - may be combine if it is a string in both cases
+              this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
+              this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
+              error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.idToken.nonce);
             }
+            // Save the token
+            else {
+              this.cacheStorage.setItem(Constants.idTokenKey, hashParams[Constants.idToken]);
+              this.cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
 
-            authorityKey = Storage.generateAuthorityKey(stateInfo.state);
-            let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
-
-            if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceTenantPath(authority, response.idToken.tenantId);
+              // Save idToken as access token for app itself
+              this.saveAccessToken(response, authority, hashParams, clientInfo);
             }
-
-            this.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
-            response.account = this.account;
-
-            if (response.idToken && response.idToken.nonce) {
-              // check nonce integrity if idToken has nonce - throw an error if not matched
-              if (response.idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
-                this.account = null;
-                // TODO: optimize this - may be combine if it is a string in both cases
-                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
-                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
-                error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.idToken.nonce);
-              }
-              // Save the token
-              else {
-                this.cacheStorage.setItem(Constants.idTokenKey, hashParams[Constants.idToken]);
-                this.cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
-
-                // Save idToken as access token for app itself
-                this.saveAccessToken(response, authority, hashParams, clientInfo);
-              }
-            } else {
-              authorityKey = stateInfo.state;
-              acquireTokenAccountKey = stateInfo.state;
-              this.logger.error("Invalid id_token received in the response");
-              error = ClientAuthError.createInvalidIdTokenError(response.idToken);
-              this.cacheStorage.setItem(Constants.msalError, error.errorCode);
-              this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
-            }
+          } else {
+            authorityKey = stateInfo.state;
+            acquireTokenAccountKey = stateInfo.state;
+            this.logger.error("Invalid id_token received in the response");
+            error = ClientAuthError.createInvalidIdTokenError(response.idToken);
+            this.cacheStorage.setItem(Constants.msalError, error.errorCode);
+            this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
+          }
         }
       }
       // State mismatch - unexpected/invalid state
