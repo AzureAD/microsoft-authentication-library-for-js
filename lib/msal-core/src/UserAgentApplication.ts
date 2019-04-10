@@ -240,14 +240,9 @@ export class UserAgentApplication {
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
-      if (isCallback) {
-        this.handleAuthenticationResponse(urlHash);
-      }
-      else {
-        const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-        if (pendingCallback) {
-          this.processCallBack(pendingCallback, null);
-        }
+      const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
+      if (pendingCallback) {
+        this.processCallBack(pendingCallback, null);
       }
     }
   }
@@ -1280,26 +1275,27 @@ export class UserAgentApplication {
       this.cacheStorage.clearCookie();
       const accountState = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
 
-      if (parentCallback) {
-        parentCallback(response, authErr);
-      } else {
-        if (authErr) {
-          this.errorReceivedCallback(authErr, accountState);
-        } else if (response) {
-          if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
-            if (window.parent !== window) {
-              this.logger.verbose("Window is in iframe, acquiring token silently");
-            } else {
-              this.logger.verbose("acquiring token interactive in progress");
-            }
-            response.tokenType = Constants.accessToken;
+      if (response) {
+        if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
+          if (window.parent !== window) {
+            this.logger.verbose("Window is in iframe, acquiring token silently");
+          } else {
+            this.logger.verbose("acquiring token interactive in progress");
           }
-          else if (stateInfo.requestType === Constants.login) {
-            response.tokenType = Constants.idToken;
-          }
-          this.tokenReceivedCallback(response);
+          response.tokenType = Constants.accessToken;
         }
+        else if (stateInfo.requestType === Constants.login) {
+          response.tokenType = Constants.idToken;
+        }
+        if (!parentCallback) {
+          this.tokenReceivedCallback(response);
+          return;
+        }
+      } else if (!parentCallback) {
+        this.errorReceivedCallback(authErr, accountState);
+        return;
       }
+      parentCallback(response, authErr);
     } catch (err) {
       this.logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
@@ -1359,7 +1355,7 @@ export class UserAgentApplication {
       if (self.config.auth.navigateToLoginRequestUrl) {
         self.cacheStorage.setItem(Constants.urlHash, hash);
         if (window.parent === window && !isPopup) {
-          window.location.href = self.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
+          window.location.href = self.cacheStorage.getItem(Constants.loginRequest, self.inCookie);
         }
         return;
       }
