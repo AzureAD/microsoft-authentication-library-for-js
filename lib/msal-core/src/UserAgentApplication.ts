@@ -486,9 +486,9 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the interactive authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  loginPopup(request?: AuthenticationParameters): Promise<string> {
+  loginPopup(request?: AuthenticationParameters): Promise<AuthResponse> {
     // Creates navigate url; saves value in cache; redirect user to AAD
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<AuthResponse>((resolve, reject) => {
       // Fail if login is already in progress
       if (this.loginInProgress) {
         return reject(ClientAuthError.createLoginInProgressError());
@@ -635,8 +635,8 @@ export class UserAgentApplication {
    * @param {string} extraQueryParameters - Key-value pairs to pass to the STS during the  authentication flow.
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the token or error.
    */
-  acquireTokenPopup(request: AuthenticationParameters): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+  acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
+    return new Promise<AuthResponse>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
 
@@ -866,8 +866,8 @@ export class UserAgentApplication {
    * @returns {Promise.<string>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Resolved with token or rejected with error.
    */
   @resolveTokenOnlyIfOutOfIframe
-  acquireTokenSilent(request: AuthenticationParameters): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+  acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+    return new Promise<AuthResponse>((resolve, reject) => {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
@@ -1100,9 +1100,9 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private addHintParameters(accontObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
+  private addHintParameters(accountObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
 
-    const account = accontObj ? accontObj : this.getAccount();
+    const account = accountObj ? accountObj : this.getAccount();
 
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
     // sid cannot be passed along with login_hint, hence we check both are not populated yet in queryParameters so far
@@ -1487,26 +1487,24 @@ export class UserAgentApplication {
         serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
       }
       // if more than one cached token is found
-      // TODO: Return custom error here
-      // TODO: Check that accessToken is only possible tokenType for this error type
       else if (filteredItems.length > 1) {
-        return {
-          errorDesc: "The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority",
-          token: null,
-          error: "multiple_matching_tokens_detected"
-        };
+        throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+        // return {
+        //   errorDesc: "The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority",
+        //   token: null,
+        //   error: "multiple_matching_tokens_detected"
+        // };
       }
       // if no match found, check if there was a single authority used
       else {
         const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
         if (authorityList.length > 1) {
-          // TODO: Return custom error here
-          // TODO: Check that accessToken is only possible tokenType for this error type
-          return {
-            errorDesc: "Multiple authorities found in the cache. Pass authority in the API overload.",
-            token: null,
-            error: "multiple_matching_tokens_detected"
-          };
+          throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
+          // return {
+          //   errorDesc: "Multiple authorities found in the cache. Pass authority in the API overload.",
+          //   token: null,
+          //   error: "multiple_matching_tokens_detected"
+          // };
         }
 
         serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
@@ -1533,13 +1531,12 @@ export class UserAgentApplication {
       }
       else {
         // if more than cached token is found
-        // TODO: Return custom error here
-        // TODO: Check that accessToken is only possible tokenType for this error type
-        return {
-          errorDesc: "The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority",
-          token: null,
-          error: "multiple_matching_tokens_detected"
-        };
+        throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+        // return {
+        //   errorDesc: "The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority",
+        //   token: null,
+        //   error: "multiple_matching_tokens_detected"
+        // };
       }
     }
 
