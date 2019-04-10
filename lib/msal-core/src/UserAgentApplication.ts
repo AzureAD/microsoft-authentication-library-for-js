@@ -1545,6 +1545,19 @@ export class UserAgentApplication {
       // If expiration is within offset, it will force renew
       const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
       if (expired && (expired > Utils.now() + offset)) {
+        let idToken = new IdToken(accessTokenCacheItem.value.idToken);
+        let response : AuthResponse = {
+          uniqueId: "",
+          tenantId: "",
+          tokenType: "",
+          idToken: idToken,
+          accessToken: accessTokenCacheItem.value.accessToken,
+          scopes: serverAuthenticationRequest.scopes,
+          expiresIn: "",
+          account: null,
+          accountState: "",
+        };
+        Utils.setResponseIdToken(response, idToken);
         return {
           errorDesc: null,
           token: accessTokenCacheItem.value.accessToken,

@@ -12,9 +12,9 @@ export type AuthResponse = {
     tenantId: string;
     tokenType: string;
     idToken: IdToken;
-    accessToken: object;
+    accessToken: string;
     scopes: Array<string>;
-    expiresIn: string;
+    expiresIn: Date;
     account: Account;
     accountState: string;
 };
