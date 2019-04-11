@@ -1,5 +1,5 @@
 
-import {Authority, AuthorityType} from '../src/Authority';
+import { Authority, AuthorityType } from '../src/Authority';
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 
 import { AuthorityFactory } from "../src/AuthorityFactory";
