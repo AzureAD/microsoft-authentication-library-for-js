@@ -1,8 +1,5 @@
-import * as chai from "chai";
+import { expect } from "../../../chai.conf";
 import { AuthError, AuthErrorMessage } from "../../../src/error/AuthError";
-
-const expect = chai.expect;
-chai.config.includeStack = false;
 
 describe("AuthError", () => {
   it("AuthError object can be created", () => {

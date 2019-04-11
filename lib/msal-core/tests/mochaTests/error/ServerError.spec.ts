@@ -1,9 +1,6 @@
 import * as mocha from "mocha";
-import * as chai from "chai";
+import { expect } from "../../../chai.conf";
 import { ServerError, ServerErrorMessage } from "../../../src/error/ServerError";
-
-const expect = chai.expect;
-chai.config.includeStack = false;
 
 describe("ServerError", () => {
   it("ServerError object can be created", () => {

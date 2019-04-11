@@ -142,7 +142,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
 export class UserAgentApplication {
 
   // input Configuration by the user
-  public config: Configuration;
+  private config: Configuration;
 
   // TODO: This will be extracted with Response Changes
   private tokenReceivedCallback: tokenReceivedCallback = null;

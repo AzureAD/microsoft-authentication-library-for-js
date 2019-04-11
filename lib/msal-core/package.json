@@ -28,8 +28,8 @@
     "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
     "doc": "typedoc --out ./docs ./src/ --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
-    "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm run test",
-    "jtest": "typings install && karma start && jasmine-node --nohelpers tests/MSALSpec.js",
+    "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
+    "jtest": "karma start && jasmine-node --nohelpers tests/MSALSpec.js",
     "lint": "tslint -c tslint.json src/**/*.ts",
     "build:webpack": "webpack",
     "test": "karma start --single-run --browsers PhantomJS karma.conf.js"

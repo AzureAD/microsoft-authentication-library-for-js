@@ -1,9 +1,6 @@
-import * as chai from "chai";
+import { expect } from "../../../chai.conf";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { IdToken } from "../../../src/IdToken";
-
-const expect = chai.expect;
-chai.config.includeStack = false;
 
 // TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
 describe("ClientAuthError", () => {

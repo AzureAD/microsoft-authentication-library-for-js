@@ -1,9 +1,6 @@
 import * as mocha from "mocha";
-import * as chai from "chai";
+import { expect } from "../../../chai.conf";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src/error/ClientConfigurationError";
-
-const expect = chai.expect;
-chai.config.includeStack = false;
 
 // TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
 describe("ClientConfigurationError", () => {

@@ -1,10 +1,6 @@
 import * as mocha from "mocha";
-import * as chai from "chai";
+import { expect } from "../../../chai.conf";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../../src/error/InteractionRequiredAuthError";
-
-const expect = chai.expect;
-chai.config.includeStack = false;
-
 
 describe("InteractionRequiredAuthError", () => {
 
