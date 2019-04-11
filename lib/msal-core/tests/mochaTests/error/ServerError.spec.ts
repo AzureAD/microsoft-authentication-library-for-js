@@ -1,5 +1,5 @@
 import * as mocha from "mocha";
-import { expect } from "../../../chai.conf";
+import { expect } from "chai";
 import { ServerError, ServerErrorMessage } from "../../../src/error/ServerError";
 
 describe("ServerError", () => {

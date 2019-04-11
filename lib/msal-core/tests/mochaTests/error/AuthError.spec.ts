@@ -1,4 +1,4 @@
-import { expect } from "../../../chai.conf";
+import { expect } from "chai";
 import { AuthError, AuthErrorMessage } from "../../../src/error/AuthError";
 
 describe("AuthError", () => {

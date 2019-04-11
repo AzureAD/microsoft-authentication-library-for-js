@@ -1,10 +1,9 @@
 import * as Mocha from "mocha";
-import { expect } from "../../chai.conf";
+import { expect } from "chai";
 import { UserAgentApplication, ClientConfigurationError, Constants, AuthenticationParameters } from '../../src/index';
 import { buildConfiguration } from "../../src/Configuration";
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../../src/ITenantDiscoveryResponse";
-chai.config.includeStack = false;
 
 describe("Redirect Flow Unit Tests", function () {
     let msal: UserAgentApplication;

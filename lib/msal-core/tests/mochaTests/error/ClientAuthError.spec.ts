@@ -1,4 +1,4 @@
-import { expect } from "../../../chai.conf";
+import { expect } from "chai";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { IdToken } from "../../../src/IdToken";
 
