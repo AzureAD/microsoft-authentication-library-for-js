@@ -1546,7 +1546,7 @@ export class UserAgentApplication {
           idToken: idToken,
           accessToken: accessTokenCacheItem.value.accessToken,
           scopes: serverAuthenticationRequest.scopes,
-          expiresIn: new Date(expired * 1000),
+          expiresOn: new Date(expired * 1000),
           account: account,
           accountState: aState,
         };
@@ -1706,7 +1706,7 @@ export class UserAgentApplication {
       accessTokenResponse.scopes = consentedScopes;
       let exp = Number(expiresIn);
       if (exp) {
-        accessTokenResponse.expiresIn = new Date(Date.now() + (exp * 1000));
+        accessTokenResponse.expiresOn = new Date(Date.now() + (exp * 1000));
       } else {
         this.logger.error("Could not parse expiresIn parameter. Given value: " + expiresIn);
       }
@@ -1724,7 +1724,7 @@ export class UserAgentApplication {
       accessTokenResponse.accessToken = parameters[Constants.idToken];
       let exp = Number(response.idToken.expiration);
       if (exp) {
-        accessTokenResponse.expiresIn = new Date(exp * 1000);
+        accessTokenResponse.expiresOn = new Date(exp * 1000);
       } else {
         this.logger.error("Could not parse expiresIn parameter");
       }

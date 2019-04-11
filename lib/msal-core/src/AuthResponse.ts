@@ -14,7 +14,7 @@ export type AuthResponse = {
     idToken: IdToken;
     accessToken: string;
     scopes: Array<string>;
-    expiresIn: Date;
+    expiresOn: Date;
     account: Account;
     accountState: string;
 };
