@@ -160,6 +160,7 @@ export class UserAgentApplication {
   /**
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
+   *
    * @param {string} clientId - The clientID of your application, you should get this from the application registration portal.
    * @param {string} authority - A URL indicating a directory that MSAL can use to obtain tokens.
    * - In Azure AD, it is of the form https://&lt;instance>/&lt;tenant&gt;,\ where &lt;instance&gt; is the directory host (e.g. https://login.microsoftonline.com) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)
