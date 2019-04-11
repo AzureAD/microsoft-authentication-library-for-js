@@ -1,6 +1,6 @@
 
 import uuidv4 from 'uuid/v4';
-import TelemetryBlogEventNames from './TelemetryBlobEventNames';
+import { TELEMETRY_BLOB_EVENT_NAMES } from './TelemetryConstants';
 import { 
     EVENT_NAME_PREFIX, 
     EVENT_NAME_KEY, 
@@ -10,7 +10,7 @@ import {
 
 export default class TelemetryEvent { 
 
-    private startTime: Number;
+    private startTime: number;
     protected event; // TOOD TYPE THIS
     public eventId: string;
 
@@ -21,8 +21,8 @@ export default class TelemetryEvent {
             [`${EVENT_NAME_PREFIX}${EVENT_NAME_KEY}`]: eventName,
             [`${EVENT_NAME_PREFIX}${START_TIME_KEY}`]: this.startTime,
             [`${EVENT_NAME_PREFIX}${ELAPSED_TIME_KEY}`]: -1,
-            [`${TelemetryBlogEventNames.MsalCorrelationIdConstStrKey}`]: correlationId
-        }
+            [`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`]: correlationId
+        };
     }
 
     private setElapsedTime(time: Number): void { 
@@ -35,11 +35,11 @@ export default class TelemetryEvent {
     }
 
     public get telemetryCorrelationId(): string {
-        return this.event[`${TelemetryBlogEventNames.MsalCorrelationIdConstStrKey}`];
+        return this.event[`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`];
     }
 
     public set telemetryCorrelationId(value: string) {
-        this.event[`${TelemetryBlogEventNames.MsalCorrelationIdConstStrKey}`] = value;
+        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`] = value;
     }
 
     public get eventName(): string { 

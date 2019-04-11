@@ -3,17 +3,18 @@ import { AadAuthority } from '../AadAuthority';
 import { B2cAuthority } from '../B2cAuthority'
 import sha256 from 'sha256';
 import { Utils } from '../Utils';
+import { TrustedHostList } from '../Constants';
 
 // This is used to replace the real tenant in telemetry info
 const TENANT_PLACEHOLDER = '<tenant>';
 
-export const scrubTenantFromUri = (uri: String): String => {
+export const scrubTenantFromUri = (uri: string): String => {
     const url = new URL(uri);
 
     //validate absolute?
 
-    //validate trusted host
-    if (!AadAuthority.IsInTrustedHostList(url.host)) {
+    // validate trusted host
+    if (!TrustedHostList[url.host.toLocaleLowerCase()]) {
         return null;
     }
 
@@ -31,7 +32,7 @@ export const scrubTenantFromUri = (uri: String): String => {
     return url.href; 
 }
 
-export const hashPersonalIdentifier = (valueToHash: String) => {
+export const hashPersonalIdentifier = (valueToHash: string) => {
     // TODO base64
     return Utils.base64EncodeStringUrlSafe(sha256(valueToHash))
 }

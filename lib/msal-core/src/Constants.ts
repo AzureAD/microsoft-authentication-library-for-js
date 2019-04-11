@@ -100,3 +100,12 @@ export const CacheKeys = {
     AUTHORITY: "msal_authority",
     ACQUIRE_TOKEN_USER: "msal.acquireTokenUser"
 };
+
+export const TrustedHostList =  {
+  "login.windows.net": "login.windows.net",
+  "login.chinacloudapi.cn": "login.chinacloudapi.cn",
+  "login.cloudgovapi.us": "login.cloudgovapi.us",
+  "login.microsoftonline.com": "login.microsoftonline.com",
+  "login.microsoftonline.de": "login.microsoftonline.de",
+  "login.microsoftonline.us": "login.microsoftonline.us"
+};
