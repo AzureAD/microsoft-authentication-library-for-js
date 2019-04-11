@@ -1,28 +1,8 @@
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
 import { IUri } from "./IUri";
-import { User } from "./User";
+import { Account } from "./Account";
 import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
@@ -36,18 +16,17 @@ export class Utils {
   //#region General Util
 
   /**
-   * Utils function to compare two User objects - used to check if the same user is logged in
+   * Utils function to compare two Account objects - used to check if the same user account is logged in
    *
-   * @param u1: User object
-   * @param u2: User object
+   * @param a1: Account object
+   * @param a2: Account object
    */
-  // TODO: Change the name of this to compareUsers or compareAccounts
-  static compareObjects(u1: User, u2: User): boolean {
-   if (!u1 || !u2) {
+  static compareAccounts(a1: Account, a2: Account): boolean {
+   if (!a1 || !a2) {
           return false;
       }
-    if (u1.userIdentifier && u2.userIdentifier) {
-      if (u1.userIdentifier === u2.userIdentifier) {
+    if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
+      if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
         return true;
       }
     }
@@ -589,14 +568,14 @@ export class Utils {
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
-        const user: User = request.account;
-        if (user.sid) {
+        const account: Account = request.account;
+        if (account.sid) {
           ssoType = SSOTypes.SID;
-          ssoData = user.sid;
+          ssoData = account.sid;
         }
-        else if (user.displayableId) {
+        else if (account.userName) {
           ssoType = SSOTypes.LOGIN_HINT;
-          ssoData = user.displayableId;
+          ssoData = account.userName;
         }
       }
       // sid from request
@@ -625,9 +604,9 @@ export class Utils {
     serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
 
     // add the HomeAccountIdentifier info/ domain_hint
-    if (request && request.account && request.account.userIdentifier) {
-        console.log("userIdentifier: " + request.account.userIdentifier);
-        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.userIdentifier, ssoParam);
+    if (request && request.account && request.account.homeAccountIdentifier) {
+        console.log("homeAccountIdentifier: " + request.account.homeAccountIdentifier);
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
     }
 
     return serverReqParam;
@@ -663,11 +642,11 @@ export class Utils {
         break;
       }
       case SSOTypes.HOMEACCOUNT_ID: {
-        // TODO: figure out how this code will change with "account" addition
         let homeAccountId = ssoData.split(".");
         const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
         const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
 
+        // TODO: domain_req and login_req are not needed according to eSTS team
         ssoParam[SSOTypes.LOGIN_REQ] = uid;
         ssoParam[SSOTypes.DOMAIN_REQ] = utid;
 
