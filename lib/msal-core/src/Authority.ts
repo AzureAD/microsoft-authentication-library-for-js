@@ -4,7 +4,7 @@
 import { IUri } from "./IUri";
 import { Utils } from "./Utils";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ErrorMessage } from "./ErrorMessage";
+import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 import { XhrClient } from "./XHRClient";
 
 /**
@@ -96,15 +96,15 @@ export abstract class Authority {
     try {
       components = this.CanonicalAuthorityUrlComponents;
     } catch (e) {
-      throw ErrorMessage.invalidAuthorityType;
+      throw ClientConfigurationErrorMessage.invalidAuthorityType;
     }
 
     if (!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
-      throw ErrorMessage.authorityUriInsecure;
+      throw ClientConfigurationErrorMessage.authorityUriInsecure;
     }
 
     if (!components.PathSegments || components.PathSegments.length < 1) {
-      throw ErrorMessage.authorityUriInvalidPath;
+      throw ClientConfigurationErrorMessage.authorityUriInvalidPath;
     }
   }
 
@@ -129,7 +129,7 @@ export abstract class Authority {
    * Discover endpoints via openid-configuration
    * If successful, caches the endpoint for later use in OIDC
    */
-  public ResolveEndpointsAsync(): Promise<Authority> {
+  public resolveEndpointsAsync(): Promise<Authority> {
     let openIdConfigurationEndpoint = "";
     return this.GetOpenIdConfigurationEndpointAsync().then(openIdConfigurationEndpointResponse => {
       openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;

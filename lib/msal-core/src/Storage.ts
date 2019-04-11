@@ -3,6 +3,7 @@
 
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { CacheLocation } from "./Configuration";
 import { CacheKeys } from "./Constants";
 
 /**
@@ -13,9 +14,9 @@ export class Storage {// Singleton
   private static instance: Storage;
   private localStorageSupported: boolean;
   private sessionStorageSupported: boolean;
-  private cacheLocation: string;
+  private cacheLocation: CacheLocation;
 
-  constructor(cacheLocation: string) {
+  constructor(cacheLocation: CacheLocation) {
     if (Storage.instance) {
       return Storage.instance;
     }
@@ -66,7 +67,7 @@ export class Storage {// Singleton
         }
     }
 
-    getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
+    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         const results: Array<AccessTokenCacheItem> = [];
         let accessTokenCacheItem: AccessTokenCacheItem;
         const storage = window[this.cacheLocation];
@@ -74,7 +75,7 @@ export class Storage {// Singleton
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if (key.match(clientId) && key.match(userIdentifier)) {
+                    if (key.match(clientId) && key.match(homeAccountIdentifier)) {
                         const value = this.getItem(key);
                         if (value) {
                             accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
@@ -88,13 +89,13 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
+    removeAcquireTokenEntries(authorityKey: string, acquireTokenAccountKey: string): void {
         const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey !== "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenAccountKey !== "" && key.indexOf(acquireTokenAccountKey) > -1)) {
                         this.removeItem(key);
                     }
                 }
@@ -158,15 +159,18 @@ export class Storage {// Singleton
     }
 
     /**
-     * Create acquireTokenUserKey to cache user object
+     * Create acquireTokenAccountKey to cache account object
+     * @param accountId
+     * @param state
      */
-    static generateAcquireTokenUserKey(userId: any, state: string): string {
+    static generateAcquireTokenAccountKey(accountId: any, state: string): string {
         return CacheKeys.ACQUIRE_TOKEN_USER + Constants.resourceDelimiter +
-            `${userId}` + Constants.resourceDelimiter  + `${state}`;
+            `${accountId}` + Constants.resourceDelimiter  + `${state}`;
     }
 
     /**
      * Create authorityKey to cache authority
+     * @param state
      */
     static generateAuthorityKey(state: string): string {
         return CacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;

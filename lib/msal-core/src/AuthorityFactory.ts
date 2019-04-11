@@ -8,7 +8,7 @@ import { Utils } from "./Utils";
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ErrorMessage } from "./ErrorMessage";
+import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 
 export class AuthorityFactory {
     /**
@@ -44,7 +44,7 @@ export class AuthorityFactory {
             case AuthorityType.Aad:
                 return new AadAuthority(authorityUrl, validateAuthority);
             default:
-                throw ErrorMessage.invalidAuthorityType;
+                throw ClientConfigurationErrorMessage.invalidAuthorityType;
         }
     }
 
