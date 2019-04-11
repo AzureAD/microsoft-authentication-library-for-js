@@ -1,11 +1,9 @@
 import * as Mocha from "mocha";
-import * as chai from "chai";
+import { expect } from "chai";
 import { UserAgentApplication, ClientConfigurationError, Constants, AuthenticationParameters } from '../src/index';
 import { buildConfiguration } from "../src/Configuration";
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
-const expect = chai.expect;
-chai.config.includeStack = false;
 
 describe("UserAgentApplication", function () {
 
@@ -150,26 +148,25 @@ describe("UserAgentApplication", function () {
 
     describe("Cache Storage Unit Tests", function () {
         it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
-            // var accessTokenKey = {
-            //     authority: validAuthority,
-            //     clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
-            //     scopes: "S1",
-            //     userIdentifer: "1234"
-            // }
-            // var accessTokenValue = {
-            //     accessToken: "accessToken",
-            //     idToken: "idToken",
-            //     expiresIn: "150000000000000",
-            //     clientInfo: ""
-            // }
-            // storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            // var user = { userIdentifier: "1234" };
-            // let cacheResult = msal.getCachedToken({ scopes: ['S1'] }, user);
-            // expect(cacheResult.token).toBe('accessToken');
-            // expect(cacheResult.errorDesc).toBe(null);
-            // expect(cacheResult.error).toBe(null);
-            // storageFake.clear();
-            console.log("Storage: " + window["sessionStorage"]);
+            var accessTokenKey = {
+                authority: validAuthority,
+                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
+                scopes: "S1",
+                userIdentifer: "1234"
+            }
+            var accessTokenValue = {
+                accessToken: "accessToken",
+                idToken: "idToken",
+                expiresIn: "150000000000000",
+                clientInfo: ""
+            }
+            storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            var user = { userIdentifier: "1234" };
+            let cacheResult = msal.getCachedToken({ scopes: ['S1'] }, user);
+            expect(cacheResult.token).toBe('accessToken');
+            expect(cacheResult.errorDesc).toBe(null);
+            expect(cacheResult.error).toBe(null);
+            storageFake.clear();
         });
     });
 
