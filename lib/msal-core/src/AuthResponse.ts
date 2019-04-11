@@ -1,4 +1,7 @@
-import { User } from "./User";
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+import { Account } from "./Account";
 import { IdToken } from "./IdToken";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -12,6 +15,6 @@ export type AuthResponse = {
     accessToken: object;
     scopes: Array<string>;
     expiresIn: string;
-    account: User;
-    userState: string;
+    account: Account;
+    accountState: string;
 };

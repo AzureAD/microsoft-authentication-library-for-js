@@ -1,25 +1,5 @@
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
 import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
@@ -87,7 +67,7 @@ export class Storage {// Singleton
         }
     }
 
-    getAllAccessTokens(clientId: string, userIdentifier: string): Array<AccessTokenCacheItem> {
+    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         const results: Array<AccessTokenCacheItem> = [];
         let accessTokenCacheItem: AccessTokenCacheItem;
         const storage = window[this.cacheLocation];
@@ -95,7 +75,7 @@ export class Storage {// Singleton
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if (key.match(clientId) && key.match(userIdentifier)) {
+                    if (key.match(clientId) && key.match(homeAccountIdentifier)) {
                         const value = this.getItem(key);
                         if (value) {
                             accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
@@ -109,13 +89,13 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenUserKey: string): void {
+    removeAcquireTokenEntries(authorityKey: string, acquireTokenAccountKey: string): void {
         const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenUserKey !== "" && key.indexOf(acquireTokenUserKey) > -1)) {
+                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenAccountKey !== "" && key.indexOf(acquireTokenAccountKey) > -1)) {
                         this.removeItem(key);
                     }
                 }
@@ -179,15 +159,18 @@ export class Storage {// Singleton
     }
 
     /**
-     * Create acquireTokenUserKey to cache user object
+     * Create acquireTokenAccountKey to cache account object
+     * @param accountId
+     * @param state
      */
-    static generateAcquireTokenUserKey(userId: any, state: string): string {
+    static generateAcquireTokenAccountKey(accountId: any, state: string): string {
         return CacheKeys.ACQUIRE_TOKEN_USER + Constants.resourceDelimiter +
-            `${userId}` + Constants.resourceDelimiter  + `${state}`;
+            `${accountId}` + Constants.resourceDelimiter  + `${state}`;
     }
 
     /**
      * Create authorityKey to cache authority
+     * @param state
      */
     static generateAuthorityKey(state: string): string {
         return CacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;
