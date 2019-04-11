@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
-import { IdToken } from "../../../src/IdToken";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { IdToken } from "../../src/IdToken";
 
 // TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
 describe("ClientAuthError", () => {

@@ -1,6 +1,6 @@
 import * as mocha from "mocha";
 import { expect } from "chai";
-import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src/error/ClientConfigurationError";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 
 // TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
 describe("ClientConfigurationError", () => {

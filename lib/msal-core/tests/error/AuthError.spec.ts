@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { AuthError, AuthErrorMessage } from "../../../src/error/AuthError";
+import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
 
 describe("AuthError", () => {
   it("AuthError object can be created", () => {
