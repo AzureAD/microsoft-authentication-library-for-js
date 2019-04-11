@@ -298,7 +298,7 @@ export class UserAgentApplication {
         let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
         this.silentLogin = true;
-        this.acquireTokenSilent(tokenRequest).then((response) => {
+        this.acquireTokenSilent(tokenRequest).then(response => {
           this.silentLogin = false;
           this.logger.info("Unified cache call is successful");
 
@@ -518,7 +518,7 @@ export class UserAgentApplication {
 
           this.silentLogin = true;
           this.acquireTokenSilent(tokenRequest)
-              .then((response) => {
+              .then(response => {
             this.silentLogin = false;
             this.logger.info("Unified cache call is successful");
 
