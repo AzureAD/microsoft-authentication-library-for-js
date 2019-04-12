@@ -1707,7 +1707,7 @@ export class UserAgentApplication {
       accessTokenResponse.scopes = consentedScopes;
       let exp = Number(expiresIn);
       if (exp) {
-        accessTokenResponse.expiresOn = new Date(Date.now() + (exp * 1000));
+        accessTokenResponse.expiresOn = new Date((Utils.now() + exp) * 1000);
       } else {
         this.logger.error("Could not parse expiresIn parameter. Given value: " + expiresIn);
       }
