@@ -46,7 +46,7 @@
       console.log(message);
     }
 
-    var userAgentApplication = new Msal.UserAgentApplication({
+    var config = {
       auth: { 
         clientId: applicationConfig.clientID, 
         validateAuthority: true
@@ -58,7 +58,9 @@
       system: { 
         logger: logger 
       }
-    });
+    };
+
+    var userAgentApplication = new Msal.UserAgentApplication(config);
     // userAgentApplication.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
 
     function loginPopup() {

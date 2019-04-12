@@ -41,12 +41,13 @@ describe("Redirect Flow Unit Tests", function () {
 
     beforeEach(function() {
         // Necessary for login redirect
-        msal = new UserAgentApplication({
-            auth: { 
+        const config = {
+            auth: {
                 clientId: MSAL_CLIENT_ID, 
                 redirectUri: TEST_REDIR_URI
             }
-        });
+        };
+        msal = new UserAgentApplication(config);
         setAuthInstanceStubs();
     });
 
@@ -134,11 +135,12 @@ describe("Redirect Flow Unit Tests", function () {
     });
 
     it('uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated', (done) => {
-        msal = new UserAgentApplication({
+        var config = {
             auth: {
                 clientId: MSAL_CLIENT_ID
             }
-        });
+        };
+        msal = new UserAgentApplication(config);
         history.pushState(null, null, '/new_pushstate_uri');
         sinon.stub(window.location, "replace").callsFake(function (url) {
             expect(url).to.include('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));

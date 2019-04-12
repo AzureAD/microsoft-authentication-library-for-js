@@ -7,6 +7,13 @@ import { AuthenticationParameters } from "../src/AuthenticationParameters";
 import { Account } from "../src/Account";
 import { IdToken } from "../src/IdToken";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
+import { Configuration } from "../src/Configuration";
+
+const DEFAULT_UAA_CONFIG: Configuration = {
+    auth: {
+        clientId: MSAL_CLIENT_ID
+    }
+};
 
 describe('Msal', function (): any {
     let window: any;
@@ -182,11 +189,7 @@ describe('Msal', function (): any {
         global.sessionStorage = storageFake;
         global.document = documentMock;
         global.Math = mathMock;
-        msal = new UserAgentApplication({
-            auth: {
-                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
-            }
-        });
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
         msal.user = null;
         msal.renewStates = [];
         msal.activeRenewals = {};
@@ -287,12 +290,13 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to redirectURI passed in request', (done) => {
-        msal = new UserAgentApplication({
+        const config = {
             auth: {
                 clientId: "0813e1d1-ad72-46a9-8665-399bba48c201", 
                 redirectUri: TEST_REDIR_URI
             }
-        });
+        };
+        msal = new UserAgentApplication(config);
         msal.handleRedirectCallbacks(successCallback, errCallback);
         msal.user = null;
         msal.renewStates = [];
@@ -848,15 +852,14 @@ describe('Msal', function (): any {
     it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-         msal = new UserAgentApplication({
-            auth: {
-                 clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
-            },
+        const config: Configuration = {
+            ...DEFAULT_UAA_CONFIG,
             cache: {
                 cacheLocation: "localStorage"
             }
-         });
-         msal.handleRedirectCallbacks(function(token, tokenType, state) {
+        };
+        msal = new UserAgentApplication(config);
+        msal.handleRedirectCallbacks(function(token, tokenType, state) {
             expect(document.cookie).toBe('');
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
@@ -868,15 +871,15 @@ describe('Msal', function (): any {
     it('tests cacheLocation functionality defaults to sessionStorage', function () {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-
-        msal = new UserAgentApplication({
+        const config = {
             auth: {
                 clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
             },
             cache: {
                 storeAuthStateInCookie: true
             }
-        });
+        };
+        msal = new UserAgentApplication(config);
         msal.handleRedirectCallbacks(function(token, tokenType, state) {
             expect(document.cookie).toBe('');
             expect(token).toBe(mockIdToken);
@@ -891,11 +894,7 @@ describe('loginPopup functionality', function () {
     var loginPopupPromise:Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication({
-            auth: {
-                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
-            }
-        });
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
 
         spyOn(msal, 'loginPopup').and.callThrough();
         loginPopupPromise = msal.loginPopup([msal.clientId]);
@@ -910,11 +909,7 @@ describe('acquireTokenPopup functionality', function () {
     var acquireTokenPopupPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        msal = new UserAgentApplication({
-            auth: {
-                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
-            }
-        });
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
 
         spyOn(msal, 'acquireTokenPopup').and.callThrough();
         let request: AuthenticationParameters = {scopes: [msal.clientId]};
@@ -934,13 +929,7 @@ describe('acquireTokenSilent functionality', function () {
     var acquireTokenSilentPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        
-        msal = new UserAgentApplication({
-            auth: {
-                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
-            }
-        });
-
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
         spyOn(msal, 'loadIframeTimeout').and.callThrough();
         let request: AuthenticationParameters = {scopes: [msal.clientId]};
