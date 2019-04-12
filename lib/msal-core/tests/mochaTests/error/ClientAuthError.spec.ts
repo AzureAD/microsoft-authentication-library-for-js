@@ -79,10 +79,10 @@ describe("ClientAuthError", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleMatchingAuthorities.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.multipleMatchingAuthorities.desc);
+    expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleCacheAuthorities.code);
+    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
     expect(err.errorMessage).to.contain(`${errorDetail} ${scope}`);
-    expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingAuthorities.desc);
+    expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });

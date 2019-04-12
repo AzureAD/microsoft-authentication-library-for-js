@@ -29,10 +29,9 @@
     "doc": "typedoc --out ./docs ./src/ --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
-    "test": "karma start",
+    "test": "karma start --single-run --browsers PhantomJS karma.conf.js",
     "lint": "tslint -c tslint.json src/**/*.ts",
-    "build:webpack": "webpack",
-    "test": "karma start --single-run --browsers PhantomJS karma.conf.js"
+    "build:webpack": "webpack"
   },
   "dependencies": {
     "tslib": "^1.7.1"
