@@ -21,14 +21,17 @@
             graphEndpoint: "https://graph.microsoft.com/v1.0/me"
         };
 
-        // Setting a default value in JSON format
-        var config = Msal.buildConfiguration(
-            { clientId: applicationConfig.clientID, authority: applicationConfig.authority, validateAuthority: true, },
-            { cacheLocation: "localStorage", storeAuthStateInCookie: true },
-            { },
-            { }
-        );
-
+        var config = {
+            auth: { 
+                clientId: applicationConfig.clientID, 
+                authority: applicationConfig.authority, 
+                validateAuthority: true
+            },
+            cache: { 
+                cacheLocation: "localStorage", 
+                storeAuthStateInCookie: true
+            }
+        }
         var myMSALObj = new Msal.UserAgentApplication(config);
         myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
 
