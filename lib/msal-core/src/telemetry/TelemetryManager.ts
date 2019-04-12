@@ -56,10 +56,10 @@ export default class TelemetryManager {
             this.completedEvents[event.telemetryCorrelationId] = [event];
         }
 
-        delete this.completedEvents[event.telemetryCorrelationId];
+        delete this.inProgressEvents[createEventKey(event)];
     }
 
-    flush(correlationId: string) {
+    flush(correlationId: string): void {
         if (!this.telemetryCallback || !this.completedEvents[correlationId]) {
             return;
         }
@@ -90,7 +90,6 @@ export default class TelemetryManager {
 
         // TODO  Format events?
         this.telemetryCallback(eventsWithDefaultEvent.map(e => e.get()));
-
     }
 
     private incrementEventCount(event: TelemetryEvent): void {
@@ -108,7 +107,7 @@ export default class TelemetryManager {
     }
 
     private getOrphanedEvents(correlationId: string): Array<TelemetryEvent> {
-        let orphanedEvents: Array<TelemetryEvent> = Object.keys(this.inProgressEvents)
+        return Object.keys(this.inProgressEvents)
             .reduce((memo, eventKey) => {
                 if (eventKey.indexOf(correlationId) !== -1) {
                     const event = this.inProgressEvents[eventKey];
@@ -117,6 +116,5 @@ export default class TelemetryManager {
                 }
                 return memo;
             }, []);
-        return orphanedEvents;
     }
 }
