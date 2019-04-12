@@ -144,7 +144,7 @@ export class Utils {
   }
 
   /**
-   * return the current time
+   * return the current time in Unix time. Date.getTime() returns in milliseconds.
    */
   static now(): number {
     return Math.round(new Date().getTime() / 1000.0);
