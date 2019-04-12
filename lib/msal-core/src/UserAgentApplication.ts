@@ -1756,7 +1756,7 @@ export class UserAgentApplication {
       idToken: null,
       accessToken: null,
       scopes: [],
-      expiresIn: "",
+      expiresOn: null,
       account: null,
       accountState: "",
     };
