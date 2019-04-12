@@ -1,22 +1,23 @@
 
-import uuidv4 from 'uuid/v4';
-import { TELEMETRY_BLOB_EVENT_NAMES } from './TelemetryConstants';
-import { 
-    EVENT_NAME_PREFIX, 
-    EVENT_NAME_KEY, 
-    START_TIME_KEY, 
+import { v4 as uuid } from "uuid";
+import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
+import {
+    EVENT_NAME_PREFIX,
+    EVENT_NAME_KEY,
+    START_TIME_KEY,
     ELAPSED_TIME_KEY
-} from './TelemetryConstants';
+} from "./TelemetryConstants";
 
-export default class TelemetryEvent { 
+export default class TelemetryEvent {
 
     private startTime: number;
-    protected event; // TOOD TYPE THIS
+    protected event; // TODO TYPE THIS
     public eventId: string;
 
     constructor(eventName: string, correlationId: string) {
-        this.startTime = new Date().getTime()
-        this.eventId = uuidv4();
+
+        this.startTime = new Date().getTime();
+        this.eventId = uuid();
         this.event = {
             [`${EVENT_NAME_PREFIX}${EVENT_NAME_KEY}`]: eventName,
             [`${EVENT_NAME_PREFIX}${START_TIME_KEY}`]: this.startTime,
@@ -25,13 +26,13 @@ export default class TelemetryEvent {
         };
     }
 
-    private setElapsedTime(time: Number): void { 
+    private setElapsedTime(time: Number): void {
         this.event[`${EVENT_NAME_PREFIX}${ELAPSED_TIME_KEY}`] = time;
     }
 
     public stop(): void {
         // Set duration of event
-        this.setElapsedTime(+new Date().getTime() - +this.startTime)
+        this.setElapsedTime(+new Date().getTime() - +this.startTime);
     }
 
     public get telemetryCorrelationId(): string {
@@ -42,7 +43,7 @@ export default class TelemetryEvent {
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`] = value;
     }
 
-    public get eventName(): string { 
+    public get eventName(): string {
         return this.event[`${EVENT_NAME_PREFIX}${EVENT_NAME_KEY}`];
     }
 

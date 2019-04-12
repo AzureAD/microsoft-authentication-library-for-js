@@ -115,7 +115,6 @@ export const CacheKeys = {
     ACQUIRE_TOKEN_USER: "msal.acquireTokenUser"
 };
 
-<<<<<<< HEAD
 export const TrustedHostList =  {
   "login.windows.net": "login.windows.net",
   "login.chinacloudapi.cn": "login.chinacloudapi.cn",
@@ -124,7 +123,6 @@ export const TrustedHostList =  {
   "login.microsoftonline.de": "login.microsoftonline.de",
   "login.microsoftonline.us": "login.microsoftonline.us"
 };
-=======
 /**
  * @hidden
  */
@@ -156,4 +154,3 @@ export const PromptState = {
 };
 
 
->>>>>>> 7dc4e7a27fc36f6081f441c61040298c8252b738

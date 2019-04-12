@@ -1,13 +1,8 @@
 import TelemetryEvent from "./TelemetryEvent";
-import {
-    CompletedEvents,
-    InProgressEvents,
-    EventCountByCorrelationId,
-    EventCount
-} from "./TelemetryTypes";
+import { CompletedEvents, EventCount, EventCountByCorrelationId, InProgressEvents } from "./TelemetryTypes";
 
-const MSAL_CACHE_EVENT_VALUE_PREFIX = 'msal.token';
-const MSAL_CACHE_EVENT_NAME = 'msal.cache_event';
+const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
+const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
 
 const createEventKey = (event: TelemetryEvent): string => (
     `${event.telemetryCorrelationId}-${event.eventId}-${event.eventName}`
@@ -25,7 +20,7 @@ export default class TelemetryManager {
 
     private onlySendFailureTelemetry = false;
     private telemetryConfig = {};
-    private telemetryCallback: Function = null
+    private telemetryCallback: Function = null;
 
     constructor(options: Object, cb: Function) {
         // TODO THROW if bad options or callback

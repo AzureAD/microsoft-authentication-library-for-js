@@ -1,7 +1,6 @@
+import { EVENT_NAME_PREFIX, TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import TelemetryEvent from "./TelemetryEvent";
 import { EventCount, TelemetryPlatform } from "./TelemetryTypes";
-import { EVENT_NAME_PREFIX } from "./TelemetryConstants";
-import { TELEMETRY_BLOB_EVENT_NAMES } from './TelemetryConstants';
 
 export default class DefaultEvent extends TelemetryEvent {
     // TODO Platform Type
@@ -15,12 +14,12 @@ export default class DefaultEvent extends TelemetryEvent {
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.UiEventCountTelemetryBatchKey}`] = this.getEventCount(`${EVENT_NAME_PREFIX}ui_event`, eventCount);
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.HttpEventCountTelemetryBatchKey}`] = this.getEventCount(`${EVENT_NAME_PREFIX}http_event`, eventCount);
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.CacheEventCountConstStrKey}`] = this.getEventCount(`${EVENT_NAME_PREFIX}cache_event`, eventCount);
-        /// Device id?  
+        /// Device id?
     }
 
     private getEventCount(eventName: string, eventCount: EventCount) {
-        if (!eventCount[eventName]) { 
-            return '0';
+        if (!eventCount[eventName]) {
+            return "0";
         }
         return `${eventCount[eventName]}`;
     }
