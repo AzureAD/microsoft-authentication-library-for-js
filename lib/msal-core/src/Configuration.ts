@@ -93,6 +93,33 @@ export type Configuration = {
   framework?: FrameworkOptions
 };
 
+const DEFAULT_AUTH_OPTIONS: AuthOptions = {
+  clientId: "",
+  authority: null,
+  validateAuthority: true,
+  redirectUri: () => Utils.getDefaultRedirectUri(),
+  postLogoutRedirectUri: () => Utils.getDefaultRedirectUri(),
+  state: "",
+  navigateToLoginRequestUrl: true
+};
+
+const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+  cacheLocation: "sessionStorage",
+  storeAuthStateInCookie: false
+};
+
+const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
+  logger: new Logger(null),
+  loadFrameTimeout: FRAME_TIMEOUT,
+  tokenRenewalOffsetSeconds: OFFSET
+};
+
+const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
+  isAngular: false,
+  unprotectedResources: new Array<string>(),
+  protectedResourceMap: new Map<string, Array<string>>()
+};
+
 /**
  * Function to set the default options when not explicitly set
  *
@@ -105,58 +132,13 @@ export type Configuration = {
  */
 
 // destructure with default settings
-export function buildConfiguration(
-  {
-    clientId = "",
-    authority = null,
-    validateAuthority = true,
-    redirectUri = () => Utils.getDefaultRedirectUri(),
-    postLogoutRedirectUri = () => Utils.getDefaultRedirectUri(),
-    state = "",
-    navigateToLoginRequestUrl = true
-  }: AuthOptions,
-  {
-    cacheLocation = "sessionStorage",
-    storeAuthStateInCookie = false
-  }: CacheOptions,
-  {
-    logger = new Logger(null),
-    loadFrameTimeout = FRAME_TIMEOUT,
-    tokenRenewalOffsetSeconds = OFFSET
-  }: SystemOptions,
-  {
-    isAngular = false,
-    unprotectedResources = new Array<string>(),
-    protectedResourceMap = new Map<string, Array<string>>()
-  }: FrameworkOptions
-): Configuration {
-  // restructure
-  let config: Configuration = {
-    auth: {
-      clientId,
-      authority,
-      validateAuthority,
-      redirectUri,
-      postLogoutRedirectUri,
-      state,
-      navigateToLoginRequestUrl
-    },
-    cache: {
-      cacheLocation,
-      storeAuthStateInCookie
-    },
-    system: {
-      logger,
-      loadFrameTimeout,
-      tokenRenewalOffsetSeconds
-    },
-    framework: {
-      isAngular,
-      unprotectedResources,
-      protectedResourceMap
-    }
+export function buildConfiguration({ auth, cache={}, system={}, framework={}}: Configuration): Configuration {
+  const overlayedConfig: Configuration = {
+    auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+    cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
+    system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+    framework: { ...DEFAULT_AUTH_OPTIONS, ...framework }
   };
-
-  return config;
+  return overlayedConfig;
 }
 

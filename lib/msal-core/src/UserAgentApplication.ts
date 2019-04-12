@@ -14,7 +14,7 @@ import { Storage } from "./Storage";
 import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { Configuration } from "./Configuration";
+import { Configuration, buildConfiguration } from "./Configuration";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
@@ -176,7 +176,7 @@ export class UserAgentApplication {
   constructor(configuration: Configuration) {
 
     // Set the Configuration
-    this.config = configuration;
+    this.config = buildConfiguration(configuration);
 
     // Set the callback boolean
     this.redirectCallbacksSet = false;

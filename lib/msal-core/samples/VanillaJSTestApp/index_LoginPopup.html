@@ -46,16 +46,19 @@
       console.log(message);
     }
 
-
-    // Setting a default value in JSON format
-    var config = Msal.buildConfiguration(
-      { clientId: applicationConfig.clientID, validateAuthority: true, },
-      { cacheLocation: "localStorage", storeAuthStateInCookie: true },
-      { logger: logger },
-      {}
-    );
-
-    var userAgentApplication = new Msal.UserAgentApplication(config);
+    var userAgentApplication = new Msal.UserAgentApplication({
+      auth: { 
+        clientId: applicationConfig.clientID, 
+        validateAuthority: true
+      },
+      cache: { 
+        cacheLocation: "localStorage", 
+        storeAuthStateInCookie: true
+      },
+      system: { 
+        logger: logger 
+      }
+    });
     // userAgentApplication.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
 
     function loginPopup() {
