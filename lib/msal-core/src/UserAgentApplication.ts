@@ -157,6 +157,10 @@ export class UserAgentApplication {
     return this.authorityInstance.CanonicalAuthority;
   }
 
+  public getAuthorityInstance(): Authority {
+    return this.authorityInstance;
+  }
+
   /**
    * Initialize a UserAgentApplication with a given clientId and authority.
    * @constructor
@@ -190,9 +194,9 @@ export class UserAgentApplication {
 
     // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
     try {
-        this.cacheStorage = new Storage(this.config.cache.cacheLocation);
+      this.cacheStorage = new Storage(this.config.cache.cacheLocation);
     } catch (e) {
-        this.config.system.logger.error("CacheLocation can be set only to 'localStorage' or 'sessionStorage' ");
+      this.config.system.logger.error("CacheLocation can be set only to 'localStorage' or 'sessionStorage' ");
     }
 
     // Initialize window handling code
@@ -236,19 +240,11 @@ export class UserAgentApplication {
 
     this.redirectCallbacksSet = true;
 
-    const urlHash = window.location.hash;
-    const isCallback = this.isCallback(urlHash);
-
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
-      if (isCallback) {
-        this.handleAuthenticationResponse(urlHash);
-      }
-      else {
-        const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-        if (pendingCallback) {
-          this.processCallBack(pendingCallback, null);
-        }
+      const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
+      if (pendingCallback) {
+        this.processCallBack(pendingCallback, null);
       }
     }
   }
@@ -335,7 +331,7 @@ export class UserAgentApplication {
     this.loginInProgress = true;
 
     // TODO: Make this more readable - is authorityInstance changed, what is happening with the return for AuthorityKey?
-    this.authorityInstance.ResolveEndpointsAsync().then(() => {
+    this.authorityInstance.resolveEndpointsAsync().then(() => {
 
       // create the Request to be sent to the Server
       let serverAuthenticationRequest = new ServerRequestParameters(
@@ -373,7 +369,7 @@ export class UserAgentApplication {
       this.setAuthorityCache(serverAuthenticationRequest.state, this.authority);
 
       // build URL to navigate to proceed with the login
-      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes)  + Constants.response_mode_fragment;
+      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
 
       // Redirect user to login URL
       this.promptUser(urlNavigate);
@@ -422,7 +418,8 @@ export class UserAgentApplication {
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
 
-    acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+    // TODO: Set response type here
+    acquireTokenAuthority.resolveEndpointsAsync().then(() => {
       // On Fulfillment
       const responseType = this.getTokenType(account, request.scopes, false);
       serverAuthenticationRequest = new ServerRequestParameters(
@@ -565,7 +562,7 @@ export class UserAgentApplication {
     this.loginInProgress = true;
 
     // Resolve endpoint
-    this.authorityInstance.ResolveEndpointsAsync().then(() => {
+    this.authorityInstance.resolveEndpointsAsync().then(() => {
       let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -668,7 +665,7 @@ export class UserAgentApplication {
         return;
       }
 
-      acquireTokenAuthority.ResolveEndpointsAsync().then(() => {
+      acquireTokenAuthority.resolveEndpointsAsync().then(() => {
         // On fullfillment
         const responseType = this.getTokenType(account, request.scopes, false);
         serverAuthenticationRequest = new ServerRequestParameters(
@@ -947,7 +944,7 @@ export class UserAgentApplication {
             serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
         }
         // cache miss
-        return serverAuthenticationRequest.authorityInstance.ResolveEndpointsAsync()
+        return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync()
         .then(() => {
           // refresh attempt with iframe
           // Already renewing for this scope, callback when we get the token.
@@ -1282,26 +1279,28 @@ export class UserAgentApplication {
       this.cacheStorage.clearCookie();
       const accountState = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
 
-      if (parentCallback) {
-        parentCallback(response, authErr);
-      } else {
-        if (authErr) {
-          this.errorReceivedCallback(authErr, accountState);
-        } else if (response) {
-          if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
-            if (window.parent !== window) {
-              this.logger.verbose("Window is in iframe, acquiring token silently");
-            } else {
-              this.logger.verbose("acquiring token interactive in progress");
-            }
-            response.tokenType = Constants.accessToken;
+      if (response) {
+        if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
+          if (window.parent !== window) {
+            this.logger.verbose("Window is in iframe, acquiring token silently");
+          } else {
+            this.logger.verbose("acquiring token interactive in progress");
           }
-          else if (stateInfo.requestType === Constants.login) {
-            response.tokenType = Constants.idToken;
-          }
-          this.tokenReceivedCallback(response);
+          response.tokenType = Constants.accessToken;
         }
+        else if (stateInfo.requestType === Constants.login) {
+          response.tokenType = Constants.idToken;
+        }
+        if (!parentCallback) {
+          this.tokenReceivedCallback(response);
+          return;
+        }
+      } else if (!parentCallback) {
+        this.errorReceivedCallback(authErr, accountState);
+        return;
       }
+
+      parentCallback(response, authErr);
     } catch (err) {
       this.logger.error("Error occurred in token received callback function: " + err);
       throw ClientAuthError.createErrorInCallbackFunction(err.toString());
@@ -1361,7 +1360,7 @@ export class UserAgentApplication {
       if (self.config.auth.navigateToLoginRequestUrl) {
         self.cacheStorage.setItem(Constants.urlHash, hash);
         if (window.parent === window && !isPopup) {
-          window.location.href = self.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
+          window.location.href = self.cacheStorage.getItem(Constants.loginRequest, self.inCookie);
         }
         return;
       }
@@ -1744,7 +1743,17 @@ export class UserAgentApplication {
     this.cacheStorage.setItem(Constants.msalError, "");
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
-    let response : AuthResponse;
+    let response : AuthResponse = {
+      uniqueId: "",
+      tenantId: "",
+      tokenType: "",
+      idToken: null,
+      accessToken: null,
+      scopes: [],
+      expiresIn: "",
+      account: null,
+      accountState: "",
+    };
     let error: AuthError;
     const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
@@ -2172,7 +2181,7 @@ export class UserAgentApplication {
   /**
    * tracks if login is in progress
    */
-  getLoginInProgress(): boolean {
+  protected getLoginInProgress(): boolean {
     const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
     if (pendingCallback) {
         return true;
@@ -2217,7 +2226,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private getRedirectUri(): string {
+  public getRedirectUri(): string {
     if (typeof this.config.auth.redirectUri === "function") {
       return this.config.auth.redirectUri();
     }
@@ -2229,7 +2238,7 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private getPostLogoutRedirectUri(): string {
+  public getPostLogoutRedirectUri(): string {
     if (typeof this.config.auth.postLogoutRedirectUri === "function") {
       return this.config.auth.postLogoutRedirectUri();
     }

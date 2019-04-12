@@ -3,7 +3,6 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
-import { AuthError } from "./AuthError";
 
 export const ClientConfigurationErrorMessage = {
     invalidCacheLocation: {

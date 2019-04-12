@@ -77,7 +77,6 @@ export class ServerRequestParameters {
   createNavigateUrl(scopes: Array<string>): string {
     const str = this.createNavigationUrlString(scopes);
     let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
-
     // if the endpoint already has queryparams, lets add to it, otherwise add the first one
     if (authEndpoint.indexOf("?") < 0) {
       authEndpoint += "?";
@@ -101,7 +100,6 @@ export class ServerRequestParameters {
     if (scopes.indexOf(this.clientId) === -1) {
       scopes.push(this.clientId);
     }
-
     const str: Array<string> = [];
     str.push("response_type=" + this.responseType);
 
@@ -116,7 +114,6 @@ export class ServerRequestParameters {
     str.push("client_info=1");
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
-
     if (this.promptValue) {
       str.push("prompt=" + encodeURI(this.promptValue));
     }
@@ -130,7 +127,6 @@ export class ServerRequestParameters {
     }
 
     str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-
     return str;
   }
 

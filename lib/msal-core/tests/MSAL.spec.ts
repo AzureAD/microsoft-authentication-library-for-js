@@ -247,7 +247,6 @@ describe('Msal', function (): any {
         };
 
         msal.loginRedirect();
-
     });
 
     it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
