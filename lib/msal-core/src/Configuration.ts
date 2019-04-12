@@ -137,7 +137,7 @@ export function buildConfiguration({ auth, cache={}, system={}, framework={}}: C
     auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
     cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
     system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-    framework: { ...DEFAULT_AUTH_OPTIONS, ...framework }
+    framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
   };
   return overlayedConfig;
 }
