@@ -1,4 +1,3 @@
-import sha256 from "sha256";
 import { B2cAuthority } from "../B2cAuthority";
 import { TrustedHostList } from "../Constants";
 import { Utils } from "../Utils";
@@ -11,10 +10,9 @@ export const scrubTenantFromUri = (uri: string): String => {
     const url = Utils.GetUrlComponents(uri);
 
     // validate trusted host
-    console.log(url.HostNameAndPort);
     if (!TrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
         // Should this return null or what was passed?
-        return uri;
+        return null;
     }
 
     const pathParams = url.PathSegments;
@@ -30,6 +28,8 @@ export const scrubTenantFromUri = (uri: string): String => {
 };
 
 export const hashPersonalIdentifier = (valueToHash: string) => {
-    // TODO base64
-    return Utils.base64EncodeStringUrlSafe(sha256(valueToHash));
+    // TODO sha256 this
+    // Current test runner is being funny with node libs that are webpacked anyway
+    // need a different solution
+    return Utils.base64EncodeStringUrlSafe(valueToHash);
 };

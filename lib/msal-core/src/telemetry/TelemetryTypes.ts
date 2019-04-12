@@ -11,3 +11,9 @@ export interface TelemetryPlatform {
     applicationName: string;
     applicationVersion: string;
 }
+
+export interface TelemetryConfig {
+    platform: TelemetryPlatform;
+    onlySendFailureTelemetry: boolean;
+    clientId: string;
+}

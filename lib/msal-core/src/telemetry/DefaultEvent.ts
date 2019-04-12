@@ -17,7 +17,7 @@ export default class DefaultEvent extends TelemetryEvent {
         /// Device id?
     }
 
-    private getEventCount(eventName: string, eventCount: EventCount) {
+    private getEventCount(eventName: string, eventCount: EventCount): String {
         if (!eventCount[eventName]) {
             return "0";
         }

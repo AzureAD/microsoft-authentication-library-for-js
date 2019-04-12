@@ -74,6 +74,7 @@
     "karma-webpack": "^4.0.0-rc.5",
     "mocha": "^6.0.2",
     "phantomjs-polyfill": "0.0.2",
+    "sha256": "^0.2.0",
     "shx": "^0.2.2",
     "sinon": "^7.3.1",
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",

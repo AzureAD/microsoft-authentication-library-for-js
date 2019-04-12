@@ -1,5 +1,7 @@
 import TelemetryEvent from "./TelemetryEvent";
-import { CompletedEvents, EventCount, EventCountByCorrelationId, InProgressEvents } from "./TelemetryTypes";
+import { CompletedEvents, EventCount, EventCountByCorrelationId, InProgressEvents, TelemetryConfig, TelemetryPlatform } from "./TelemetryTypes";
+import DefaultEvent from "./DefaultEvent";
+import { platform } from "os";
 
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
 const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
@@ -18,13 +20,16 @@ export default class TelemetryManager {
     // correlation id to map of eventname to count
     private eventCountByCorrelationId: EventCountByCorrelationId = {};
 
-    private onlySendFailureTelemetry = false;
-    private telemetryConfig = {};
+    private onlySendFailureTelemetry: boolean = false;
+    private telemetryPlatform: TelemetryPlatform;
+    private clientId: string;
     private telemetryCallback: Function = null;
 
-    constructor(options: Object, cb: Function) {
+    constructor(config: TelemetryConfig, cb: Function) {
         // TODO THROW if bad options or callback
-        this.telemetryConfig = options;
+        this.telemetryPlatform = config.platform;
+        this.clientId = config.clientId;
+        this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
         this.telemetryCallback = cb;
     }
 
@@ -74,10 +79,17 @@ export default class TelemetryManager {
             return;
         }
 
-        // TODO INSERT DEFAULT EVENT
+        const defaultEvent: DefaultEvent = new DefaultEvent(
+            this.telemetryPlatform,
+            correlationId,
+            this.clientId,
+            eventCountsToFlush
+        );
+
+        const eventsWithDefaultEvent = [ ...eventsToFlush, defaultEvent ];
 
         // TODO  Format events?
-        this.telemetryCallback(eventsToFlush.map(e => e.get()));
+        this.telemetryCallback(eventsWithDefaultEvent.map(e => e.get()));
 
     }
 
