@@ -132,7 +132,7 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
  */
 
 // destructure with default settings
-export function buildConfiguration({ auth, cache={}, system={}, framework={}}: Configuration): Configuration {
+export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
   const overlayedConfig: Configuration = {
     auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
     cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },

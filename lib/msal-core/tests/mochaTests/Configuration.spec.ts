@@ -121,4 +121,4 @@ describe("Configuation.ts", () => {
         const { framework } = configWithDefaults;
         expect(framework.isAngular).to.eq(fake_isAngular);
     });
-})
+});
