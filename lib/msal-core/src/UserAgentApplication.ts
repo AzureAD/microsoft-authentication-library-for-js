@@ -907,12 +907,6 @@ export class UserAgentApplication {
 
         queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
 
-        // add the prompt to Server Request
-        if (request && request.prompt) {
-            this.validatePromptParameter(request.prompt);
-            serverAuthenticationRequest.promptValue = request.prompt;
-        }
-
         serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
         serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
       }
@@ -2386,7 +2380,7 @@ export class UserAgentApplication {
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
-      if (request.prompt) {
+      if (request.prompt && !this.silentLogin) {
         this.validatePromptParameter(request.prompt);
         serverAuthenticationRequest.promptValue = request.prompt;
       }
