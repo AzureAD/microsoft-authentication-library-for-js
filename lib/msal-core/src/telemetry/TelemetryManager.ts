@@ -3,13 +3,13 @@ import { CompletedEvents, EventCount, EventCountByCorrelationId, InProgressEvent
 import DefaultEvent from "./DefaultEvent";
 import { platform } from "os";
 
+// for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
 const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
 
 const createEventKey = (event: TelemetryEvent): string => (
     `${event.telemetryCorrelationId}-${event.eventId}-${event.eventName}`
 );
-
 
 export default class TelemetryManager {
 
@@ -20,16 +20,20 @@ export default class TelemetryManager {
     // correlation id to map of eventname to count
     private eventCountByCorrelationId: EventCountByCorrelationId = {};
 
+    //Implement after API EVENT
     private onlySendFailureTelemetry: boolean = false;
     private telemetryPlatform: TelemetryPlatform;
     private clientId: string;
     private telemetryCallback: Function = null;
 
     constructor(config: TelemetryConfig, cb: Function) {
-        // TODO THROW if bad options or callback
+        // TODO THROW if bad options
         this.telemetryPlatform = config.platform;
         this.clientId = config.clientId;
         this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
+        // TODO, when i get to wiring this through, think about what it means if
+        // a developer does not implement telem at all, we still instrument, but cb can be
+        // optional?
         this.telemetryCallback = cb;
     }
 
@@ -60,20 +64,24 @@ export default class TelemetryManager {
     }
 
     flush(correlationId: string): void {
+
+        // If there is only unfinished events should this still return them?
         if (!this.telemetryCallback || !this.completedEvents[correlationId]) {
             return;
         }
+
         const orphanedEvents = this.getOrphanedEvents(correlationId);
-        orphanedEvents.map(this.incrementEventCount);
+        orphanedEvents.forEach(event => this.incrementEventCount(event));
         const eventsToFlush: Array<TelemetryEvent> = [
             ...this.completedEvents[correlationId],
             ...orphanedEvents
         ];
+
         delete this.completedEvents[correlationId];
         const eventCountsToFlush: EventCount = this.eventCountByCorrelationId[correlationId];
-        delete this.eventCountByCorrelationId[correlationId];
 
-        // TODO add funcitonality for onlyFlushFailures ??
+        delete this.eventCountByCorrelationId[correlationId];
+        // TODO add funcitonality for onlyFlushFailures after implementing api event? ??
 
         if (!eventsToFlush || !eventsToFlush.length) {
             return;
@@ -88,7 +96,6 @@ export default class TelemetryManager {
 
         const eventsWithDefaultEvent = [ ...eventsToFlush, defaultEvent ];
 
-        // TODO  Format events?
         this.telemetryCallback(eventsWithDefaultEvent.map(e => e.get()));
     }
 
@@ -99,10 +106,14 @@ export default class TelemetryManager {
         const eventCount = this.eventCountByCorrelationId[event.telemetryCorrelationId];
         if (!eventCount) {
             this.eventCountByCorrelationId[event.telemetryCorrelationId] = {
-                [event.eventName]: 1
+                [eventName]: 1
             };
         } else {
-            eventCount[event.eventName] = eventCount[event.eventName] + 1;
+            if (eventCount[eventName]) {
+                eventCount[eventName] = eventCount[eventName] + 1;
+            } else {
+                eventCount[eventName] = 1;
+            }
         }
     }
 
