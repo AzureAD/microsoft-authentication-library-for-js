@@ -11,7 +11,7 @@ import {
 export default class TelemetryEvent {
 
     private startTime: number;
-    protected event; // TODO TYPE THIS
+    protected event: any; // TODO TYPE THIS
     public eventId: string;
 
     constructor(eventName: string, correlationId: string) {

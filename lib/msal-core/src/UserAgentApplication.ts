@@ -14,7 +14,7 @@ import { Storage } from "./Storage";
 import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { Configuration } from "./Configuration";
+import { Configuration, buildConfiguration } from "./Configuration";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
@@ -176,7 +176,7 @@ export class UserAgentApplication {
   constructor(configuration: Configuration) {
 
     // Set the Configuration
-    this.config = configuration;
+    this.config = buildConfiguration(configuration);
 
     // Set the callback boolean
     this.redirectCallbacksSet = false;
@@ -906,12 +906,6 @@ export class UserAgentApplication {
         console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
 
         queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
-
-        // add the prompt to Server Request
-        if (request && request.prompt) {
-            this.validatePromptParameter(request.prompt);
-            serverAuthenticationRequest.promptValue = request.prompt;
-        }
 
         serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
         serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
@@ -2386,7 +2380,7 @@ export class UserAgentApplication {
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
-      if (request.prompt) {
+      if (request.prompt && !this.silentLogin) {
         this.validatePromptParameter(request.prompt);
         serverAuthenticationRequest.promptValue = request.prompt;
       }

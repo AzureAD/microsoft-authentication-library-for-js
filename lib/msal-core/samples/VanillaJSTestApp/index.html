@@ -17,18 +17,21 @@
         var applicationConfig = {
             clientID: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
             authority: "https://login.microsoftonline.com/common",
-            graphScopes: ["user.read"],
+            graphScopes: ["user.read", "Mail.Send"],
             graphEndpoint: "https://graph.microsoft.com/v1.0/me"
         };
 
-        // Setting a default value in JSON format
-        var config = Msal.buildConfiguration(
-            { clientId: applicationConfig.clientID, authority: applicationConfig.authority, validateAuthority: true, },
-            { cacheLocation: "localStorage", storeAuthStateInCookie: true },
-            { },
-            { }
-        );
-
+        var config = {
+            auth: {
+                clientId: applicationConfig.clientID,
+                authority: applicationConfig.authority,
+                validateAuthority: true
+            },
+            cache: {
+                cacheLocation: "localStorage",
+                storeAuthStateInCookie: true
+            }
+        }
         var myMSALObj = new Msal.UserAgentApplication(config);
         myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
 
@@ -40,7 +43,7 @@
                 //Login Success
                 showWelcomeMessage();
                 acquireTokenPopupAndCallMSGraph();
-            }, function (error) {
+            }).catch(function (error) {
                 console.log(error);
             });
         }
@@ -55,11 +58,12 @@
                 scopes: applicationConfig.graphScopes
             };
             myMSALObj.acquireTokenSilent(tokenRequest).then(function (tokenResponse) {
+                console.log(tokenResponse.scopes);
                 callMSGraph(applicationConfig.graphEndpoint, tokenResponse.accessToken, graphAPICallback);
             }).catch(function (error) {
                 console.log(error);
                 // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
-                if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
+                if (error.errorMessage.indexOf("consent_required") !== -1 || error.errorMessage.indexOf("interaction_required") !== -1 || error.errorMessage.indexOf("login_required") !== -1) {
                     myMSALObj.acquireTokenPopup(tokenRequest).then(function (tokenResponse) {
                         callMSGraph(applicationConfig.graphEndpoint, tokenResponse.accessToken, graphAPICallback);
                     }).catch(function (error) {
@@ -103,6 +107,7 @@
                 scopes: applicationConfig.graphScopes
             };
             myMSALObj.acquireTokenSilent(tokenRequest).then(function (tokenResponse) {
+                console.log(tokenResponse.scopes);
                 callMSGraph(applicationConfig.graphEndpoint, tokenResponse.accessToken, graphAPICallback);
             }).catch(function (error) {
                 console.log(error);

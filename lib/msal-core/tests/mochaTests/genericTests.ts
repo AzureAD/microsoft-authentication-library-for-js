@@ -1,7 +1,6 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
 import { UserAgentApplication, ClientConfigurationError, Constants, AuthenticationParameters } from '../../src/index';
-import { buildConfiguration } from "../../src/Configuration";
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../../src/ITenantDiscoveryResponse";
 
@@ -42,7 +41,12 @@ describe("Redirect Flow Unit Tests", function () {
 
     beforeEach(function() {
         // Necessary for login redirect
-        let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
+        const config = {
+            auth: {
+                clientId: MSAL_CLIENT_ID, 
+                redirectUri: TEST_REDIR_URI
+            }
+        };
         msal = new UserAgentApplication(config);
         setAuthInstanceStubs();
     });
@@ -131,7 +135,11 @@ describe("Redirect Flow Unit Tests", function () {
     });
 
     it('uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated', (done) => {
-        let config = buildConfiguration({ clientId: MSAL_CLIENT_ID }, {}, {}, {});
+        var config = {
+            auth: {
+                clientId: MSAL_CLIENT_ID
+            }
+        };
         msal = new UserAgentApplication(config);
         history.pushState(null, null, '/new_pushstate_uri');
         sinon.stub(window.location, "replace").callsFake(function (url) {
