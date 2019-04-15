@@ -21,6 +21,11 @@
             graphEndpoint: "https://graph.microsoft.com/v1.0/me"
         };
 
+        var devLogger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345' });
+        function loggerCallback(logLevel, message, piiEnabled) {
+            console.log(message);
+        }
+
         var config = {
             auth: {
                 clientId: applicationConfig.clientID,
@@ -30,8 +35,12 @@
             cache: {
                 cacheLocation: "localStorage",
                 storeAuthStateInCookie: true
+            },
+            system: {
+                logger: devLogger
             }
-        }
+        };
+
         var myMSALObj = new Msal.UserAgentApplication(config);
         myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
 

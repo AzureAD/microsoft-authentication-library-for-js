@@ -277,7 +277,7 @@ export class UserAgentApplication {
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, false);
 
-    const account = this.getAccount();
+    const account: Account = this.getAccount();
 
     // defer queryParameters generation to Helper if developer passes account/sid/login_hint
      if (Utils.isSSOParam(request)) {
@@ -343,9 +343,7 @@ export class UserAgentApplication {
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
-      }
+      serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
       // if the user sets the login start page - angular only??
       let loginStartPage = this.cacheStorage.getItem(Constants.angularLoginRequest);
@@ -397,7 +395,7 @@ export class UserAgentApplication {
     this.validateInputScope(request.scopes, true);
 
     // Get the account object if a session exists
-    const account = request.account ? request.account : this.getAccount();
+    const account: Account = request.account || this.getAccount();
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
@@ -439,9 +437,7 @@ export class UserAgentApplication {
       this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
-      }
+      serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
       // Construct urlNavigate
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
@@ -565,10 +561,8 @@ export class UserAgentApplication {
     this.authorityInstance.resolveEndpointsAsync().then(() => {
       let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
 
-      // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (request) {
-        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
-      }
+      // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
+      serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
       // Cache the state, nonce, and login request data
       this.cacheStorage.setItem(Constants.loginRequest, window.location.href, this.inCookie);
@@ -639,7 +633,7 @@ export class UserAgentApplication {
       const scope = request.scopes.join(" ").toLowerCase();
 
       // Get the account object if a session exists
-      const account = request.account ? request.account : this.getAccount();
+      const account: Account = request.account || this.getAccount();
 
       // If already in progress, throw an error and reject the request
       if (this.acquireTokenInProgress) {
@@ -678,9 +672,7 @@ export class UserAgentApplication {
         );
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-        if (request) {
-          serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
-        }
+        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
         // Cache nonce
         // TODO: why is inCookie not passed here?
@@ -871,7 +863,7 @@ export class UserAgentApplication {
       const scope = request.scopes.join(" ").toLowerCase();
 
       // if the developer passes an account give him the priority
-      const account = request.account ? request.account : this.getAccount();
+      const account: Account = request.account || this.getAccount();
 
       // extract if there is an adalIdToken stashed in the cache
       const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
@@ -883,6 +875,7 @@ export class UserAgentApplication {
       }
 
       const responseType = this.getTokenType(account, request.scopes, true);
+
       let serverAuthenticationRequest = new ServerRequestParameters(
         AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
         this.clientId,
@@ -892,26 +885,21 @@ export class UserAgentApplication {
         this.config.auth.state
       );
 
-      // if the developer provides one of these, give preference to developer choice
-      let queryParameters: QPDict = {};
-
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (Utils.isSSOParam(request)) {
+      if (Utils.isSSOParam(request) || account) {
         serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
       }
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
       else if (!account && !Utils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
         const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
-        console.log("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-
-        queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
-
-        serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
-        serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(request.extraQueryParameters);
+        this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+        serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
+
       let authErr: AuthError;
       let cacheResultResponse;
+
       try {
         cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
       } catch (e) {
@@ -1086,7 +1074,7 @@ export class UserAgentApplication {
    * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
    * domain_req utid received as part of the clientInfo
    * login_req uid received as part of clientInfo
-   * Also does a sanity check for extraQueryParamters passed by the user to ensure no repeat queryParameters
+   * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
    *
    * @param {string} urlNavigate - Authentication request url
    * @param {Account} account - Account for which the token is requested
@@ -1095,7 +1083,7 @@ export class UserAgentApplication {
    */
   private addHintParameters(accountObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
 
-    const account = accountObj ? accountObj : this.getAccount();
+    const account: Account = accountObj || this.getAccount();
 
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
     // sid cannot be passed along with login_hint, hence we check both are not populated yet in queryParameters so far
@@ -1271,7 +1259,7 @@ export class UserAgentApplication {
     try {
       // Clear the cookie in the hash
       this.cacheStorage.clearCookie();
-      const accountState = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
+      const accountState: string = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
 
       if (response) {
         if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
@@ -1748,6 +1736,7 @@ export class UserAgentApplication {
       account: null,
       accountState: "",
     };
+
     let error: AuthError;
     const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
@@ -1771,8 +1760,8 @@ export class UserAgentApplication {
         this.acquireTokenInProgress = false;
         authorityKey = Storage.generateAuthorityKey(stateInfo.state);
 
-        const account = this.getAccount();
-        const accountId = account ? this.getAccountId(account) : "";
+        const account: Account = this.getAccount();
+        const accountId: string = account ? this.getAccountId(account) : "";
 
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
@@ -1823,7 +1812,7 @@ export class UserAgentApplication {
           }
 
           response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
-          const accountKey = this.getAccountId(response.account);
+          const accountKey: string = this.getAccountId(response.account);
 
           acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
           const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
@@ -1851,6 +1840,7 @@ export class UserAgentApplication {
         // Process id_token
         if (hashParams.hasOwnProperty(Constants.idToken)) {
             this.logger.info("Fragment has id token");
+
             // login no longer in progress
             this.loginInProgress = false;
             response = Utils.setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
@@ -1979,7 +1969,7 @@ export class UserAgentApplication {
     for (let i = 0; i < accessTokenCacheItems.length; i++) {
       const idToken = new IdToken(accessTokenCacheItems[i].value.idToken);
       const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.homeAccountIdentifier);
-      const account = Account.createAccount(idToken, clientInfo);
+      const account: Account = Account.createAccount(idToken, clientInfo);
       accounts.push(account);
     }
 
@@ -2109,7 +2099,7 @@ export class UserAgentApplication {
    */
   protected getCachedTokenInternal(scopes : Array<string> , account: Account): AuthResponse {
     // Get the current session's account object
-    const accountObject = account ? account : this.getAccount();
+    const accountObject: Account = account || this.getAccount();
     if (!accountObject) {
         return null;
     }
@@ -2374,7 +2364,7 @@ export class UserAgentApplication {
    * @param request
    * @param serverAuthenticationRequest
    */
-  private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters): ServerRequestParameters {
+  private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
 
     let queryParameters: QPDict = {};
 
@@ -2391,7 +2381,12 @@ export class UserAgentApplication {
       }
     }
 
+    if (adalIdTokenObject) {
+        queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
+    }
+
     // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
+    this.logger.verbose("Calling addHint parameters");
     queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
