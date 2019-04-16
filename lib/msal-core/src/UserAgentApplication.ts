@@ -1089,7 +1089,7 @@ export class UserAgentApplication {
     // sid cannot be passed along with login_hint, hence we check both are not populated yet in queryParameters so far
     if (account) {
       // sid
-      if (account.sid && serverReqParams.promptValue !== PromptState.NONE) {
+      if (account.sid && serverReqParams.promptValue === PromptState.NONE) {
         if (!qParams[SSOTypes.SID]  && !qParams[SSOTypes.LOGIN_HINT]) {
           qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
         }
