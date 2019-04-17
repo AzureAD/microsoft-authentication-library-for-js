@@ -76,6 +76,8 @@ export class IdToken {
       /* tslint:enable:no-string-literal */
       }
     } catch (e) {
+      // This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
+      // Need to add better error handling here to account for being unable to decode jwts.
       throw new Error("Failed to parse the returned id token");
     }
   }

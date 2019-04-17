@@ -1,6 +1,6 @@
 import * as mocha from "mocha";
 import { expect } from "chai";
-import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../../src/error/InteractionRequiredAuthError";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 
 describe("InteractionRequiredAuthError", () => {
 

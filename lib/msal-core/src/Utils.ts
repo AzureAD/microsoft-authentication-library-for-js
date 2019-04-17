@@ -564,7 +564,6 @@ export class Utils {
     let ssoData;
     let ssoParam: QPDict = {};
     let serverReqParam: QPDict = {};
-
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
@@ -605,7 +604,6 @@ export class Utils {
 
     // add the HomeAccountIdentifier info/ domain_hint
     if (request && request.account && request.account.homeAccountIdentifier) {
-        console.log("homeAccountIdentifier: " + request.account.homeAccountIdentifier);
         serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
     }
 
@@ -617,6 +615,7 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
+  // TODO: Can optimize this later, make ssoParam optional
   static addSSOParameter(ssoType: string, ssoData: string, ssoParam: QPDict): QPDict {
 
     switch (ssoType) {

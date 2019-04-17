@@ -913,7 +913,6 @@ export class UserAgentApplication {
       // else proceed with login
       else {
         this.logger.verbose("Token is not in cache for scope:" + scope);
-
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         if (!serverAuthenticationRequest.authorityInstance) {
             serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -954,7 +953,8 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  private isInIframe() {
+  // TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs.
+  public isInIframe() {
       return window.parent !== window;
   }
 
@@ -1480,7 +1480,6 @@ export class UserAgentApplication {
           filteredItems.push(cacheItem);
         }
       }
-
       // no match
       if (filteredItems.length === 0) {
         return null;
@@ -1500,7 +1499,7 @@ export class UserAgentApplication {
       // If expiration is within offset, it will force renew
       const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
       if (expired && (expired > Utils.now() + offset)) {
-        const idToken = new IdToken(accessTokenCacheItem.value.idToken);
+        let idToken = new IdToken(accessTokenCacheItem.value.idToken);
         if (!account) {
           account = this.getAccount();
           if (!account) {
@@ -1987,7 +1986,7 @@ export class UserAgentApplication {
   //#endregion
 
   //#region Scopes (Extract to Scopes.ts)
-  
+
   // Note: "this" dependency in this section is minimal.
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
 
