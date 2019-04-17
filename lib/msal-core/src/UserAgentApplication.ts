@@ -1987,7 +1987,7 @@ export class UserAgentApplication {
   //#endregion
 
   //#region Scopes (Extract to Scopes.ts)
-  
+
   // Note: "this" dependency in this section is minimal.
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
 
