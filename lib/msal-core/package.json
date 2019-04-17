@@ -87,6 +87,6 @@
     "webpack-dev-middleware": "^3.4.0"
   },
   "directories": {
-    "test": "tests"
+    "test": "test"
   }
 }

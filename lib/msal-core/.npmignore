@@ -254,7 +254,7 @@ paket-files/
 # MSAL specific ignore files
 samples/
 node_modules/
-tests/
+test/
 typings/
 .git
 coverage/
