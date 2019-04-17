@@ -192,7 +192,7 @@ export class UserAgentApplication {
     try {
       this.cacheStorage = new Storage(this.config.cache.cacheLocation);
     } catch (e) {
-      this.config.system.logger.error("CacheLocation can be set only to 'localStorage' or 'sessionStorage' ");
+        throw ClientConfigurationError.createInvalidCacheLocationConfigError(this.config.cache.cacheLocation);
     }
 
     // Initialize window handling code
@@ -669,7 +669,7 @@ export class UserAgentApplication {
         serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
         // Cache nonce
-        this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
+        this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
         serverAuthenticationRequest.state = serverAuthenticationRequest.state;
 
         // Cache account and authority
@@ -1576,7 +1576,7 @@ export class UserAgentApplication {
     this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
 
     // renew happens in iframe, so it keeps javascript context
-    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
+    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
@@ -1605,7 +1605,7 @@ export class UserAgentApplication {
     this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
 
     // Cache nonce
-    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
+    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
 
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
@@ -1987,7 +1987,7 @@ export class UserAgentApplication {
   //#endregion
 
   //#region Scopes (Extract to Scopes.ts)
-
+  
   // Note: "this" dependency in this section is minimal.
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
 
