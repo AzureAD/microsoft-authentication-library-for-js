@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { buildConfiguration, Configuration } from "../../src/Configuration";
-import { Logger } from "../../src/Logger";
+import { buildConfiguration, Configuration } from "../src/Configuration";
+import { Logger } from "../src/Logger";
 
-describe("Configuation.ts", () => {
+describe("Configuration.ts", () => {
     it("buildConfiguration defaults", () => {
         const config: Configuration = {
             auth: {

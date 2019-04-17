@@ -1,7 +1,16 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
-import { UserAgentApplication, ClientConfigurationError, Constants, AuthenticationParameters, Account, AuthError, ClientAuthError } from '../src/index';
-import { buildConfiguration } from "../src/Configuration";
+import { 
+    UserAgentApplication,
+    Constants,
+    AuthenticationParameters,
+    Account,
+    Configuration,
+    buildConfiguration,
+    AuthError,
+    ClientAuthError,
+    ClientConfigurationError
+} from '../src/index';
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
 import { Storage } from "../src/Storage";
@@ -62,7 +71,13 @@ describe("UserAgentApplication", function () {
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
             // Necessary for login redirect
-            let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
+            const configParams: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            let config = buildConfiguration(configParams);
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
         });
@@ -151,7 +166,12 @@ describe("UserAgentApplication", function () {
         });
 
         it('uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated', (done) => {
-            let config = buildConfiguration({ clientId: MSAL_CLIENT_ID }, {}, {}, {});
+            const configParams: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID
+                }
+            };
+            let config = buildConfiguration(configParams);
             msal = new UserAgentApplication(config);
             history.pushState(null, null, '/new_pushstate_uri');
             sinon.stub(window.location, "replace").callsFake(function (url) {
@@ -196,9 +216,14 @@ describe("UserAgentApplication", function () {
 
         beforeEach(function () {
             cacheStorage = new Storage("sessionStorage");
-            let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
-            msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
+            const configParams: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            let config = buildConfiguration(configParams);
+            msal = new UserAgentApplication(config);setAuthInstanceStubs();
             setTestCacheItems();
         });
 
