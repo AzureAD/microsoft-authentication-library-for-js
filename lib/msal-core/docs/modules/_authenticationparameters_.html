@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;AuthenticationRequestParameters&quot; | msal</title>
+	<title>&quot;AuthenticationParameters&quot; | msal</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,10 +56,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_authenticationrequestparameters_.html">&quot;AuthenticationRequestParameters&quot;</a>
+					<a href="_authenticationparameters_.html">&quot;AuthenticationParameters&quot;</a>
 				</li>
 			</ul>
-			<h1>External module &quot;AuthenticationRequestParameters&quot;</h1>
+			<h1>External module &quot;AuthenticationParameters&quot;</h1>
 		</div>
 	</div>
 </header>
@@ -70,12 +70,84 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Classes</h3>
+						<section class="tsd-index-section ">
+							<h3>Type aliases</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module tsd-is-external"><a href="../classes/_authenticationrequestparameters_.authenticationrequestparameters.html" class="tsd-kind-icon">Authentication<wbr>Request<wbr>Parameters</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_authenticationparameters_.html#authenticationparameters" class="tsd-kind-icon">Authentication<wbr>Parameters</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_authenticationparameters_.html#qpdict" class="tsd-kind-icon">QPDict</a></li>
 							</ul>
 						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module">
+					<a name="authenticationparameters" class="tsd-anchor"></a>
+					<h3>Authentication<wbr>Parameters</h3>
+					<div class="tsd-signature tsd-kind-icon">Authentication<wbr>Parameters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationParameters.ts#L12">AuthenticationParameters.ts:12</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> account<span class="tsd-signature-symbol">?: </span><a href="../classes/_account_.account.html" class="tsd-signature-type">Account</a></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> authority<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> claims<wbr>Request<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">null</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> correlation<wbr>Id<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> extra<wbr>Query<wbr>Parameters<span class="tsd-signature-symbol">?: </span><a href="_authenticationparameters_.html#qpdict" class="tsd-signature-type">QPDict</a></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> extra<wbr>Scopes<wbr>ToConsent<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> login<wbr>Hint<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> prompt<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> scopes<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> sid<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module">
+					<a name="qpdict" class="tsd-anchor"></a>
+					<h3>QPDict</h3>
+					<div class="tsd-signature tsd-kind-icon">QPDict<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthenticationParameters.ts#L9">AuthenticationParameters.ts:9</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Key-Value type to support queryParams and extraQueryParams</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
 					</div>
 				</section>
 			</section>
@@ -86,84 +158,18 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class="label tsd-is-external">
-						<span>Internals</span>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_index_.html">"index"</a>
-					</li>
-					<li class="label tsd-is-external">
-						<span>Externals</span>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_aadauthority_.html">"<wbr>Aad<wbr>Authority"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_accesstokencacheitem_.html">"<wbr>Access<wbr>Token<wbr>Cache<wbr>Item"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_accesstokenkey_.html">"<wbr>Access<wbr>Token<wbr>Key"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_accesstokenvalue_.html">"<wbr>Access<wbr>Token<wbr>Value"</a>
-					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="_authenticationrequestparameters_.html">"<wbr>Authentication<wbr>Request<wbr>Parameters"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_authority_.html">"<wbr>Authority"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_authorityfactory_.html">"<wbr>Authority<wbr>Factory"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_b2cauthority_.html">"<wbr>B2c<wbr>Authority"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_clientinfo_.html">"<wbr>Client<wbr>Info"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_constants_.html">"<wbr>Constants"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errormessage_.html">"<wbr>Error<wbr>Message"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_itenantdiscoveryresponse_.html">"ITenant<wbr>Discovery<wbr>Response"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_iuri_.html">"IUri"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_idtoken_.html">"<wbr>IdToken"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_logger_.html">"<wbr>Logger"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_requestinfo_.html">"<wbr>Request<wbr>Info"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_storage_.html">"<wbr>Storage"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_.html">"<wbr>User"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_useragentapplication_.html">"<wbr>User<wbr>Agent<wbr>Application"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_utils_.html">"<wbr>Utils"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_xhrclient_.html">"XHRClient"</a>
+					<li class="current tsd-kind-external-module">
+						<a href="_authenticationparameters_.html">"<wbr>Authentication<wbr>Parameters"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/_authenticationrequestparameters_.authenticationrequestparameters.html" class="tsd-kind-icon">Authentication<wbr>Request<wbr>Parameters</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+						<a href="_authenticationparameters_.html#authenticationparameters" class="tsd-kind-icon">Authentication<wbr>Parameters</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+						<a href="_authenticationparameters_.html#qpdict" class="tsd-kind-icon">QPDict</a>
 					</li>
 				</ul>
 			</nav>
