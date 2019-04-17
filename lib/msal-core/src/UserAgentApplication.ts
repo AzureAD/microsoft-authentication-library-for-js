@@ -2352,7 +2352,7 @@ export class UserAgentApplication {
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
-      if (request.prompt && !this.silentLogin) {
+      if (request.prompt) {
         this.validatePromptParameter(request.prompt);
         serverAuthenticationRequest.promptValue = request.prompt;
       }
