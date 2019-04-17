@@ -988,7 +988,7 @@ export class UserAgentApplication {
    * @hidden
    */
   // TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs.
-  private isInIframe() {
+  public isInIframe() {
       return window.parent !== window;
   }
 
@@ -1115,7 +1115,7 @@ export class UserAgentApplication {
     // sid cannot be passed along with login_hint, hence we check both are not populated yet in queryParameters so far
     if (account) {
       // sid
-      if (account.sid && serverReqParams.promptValue !== PromptState.NONE) {
+      if (account.sid && serverReqParams.promptValue === PromptState.NONE) {
         if (!qParams[SSOTypes.SID]  && !qParams[SSOTypes.LOGIN_HINT]) {
           qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
         }
@@ -1537,7 +1537,8 @@ export class UserAgentApplication {
       // If expiration is within offset, it will force renew
       const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
       if (expired && (expired > Utils.now() + offset)) {
-        const idToken = new IdToken(accessTokenCacheItem.value.idToken);
+        let idToken;
+        idToken = new IdToken(accessTokenCacheItem.value.idToken);
         if (!account) {
           account = this.getAccount();
           if (!account) {
