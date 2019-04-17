@@ -35,7 +35,6 @@ const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
  */
-// TODO: Add more accurate description and document the design choices made
 declare global {
     interface Window {
         msal: Object;
@@ -66,7 +65,6 @@ const ResponseTypes = {
 /**
  * @hidden
  */
-// TODO: This will move to Response Object
 export interface CacheResult {
   errorDesc: string;
   token: string;
@@ -87,7 +85,6 @@ export type ResponseStateInfo = {
  * @param tokenReceivedCallback.token token returned from STS if token request is successful.
  * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
  */
-// TODO: Rework the callback as per new design - handleRedirectCallbacks() implementation etc.
 export type tokenReceivedCallback = (response: AuthResponse) => void;
 
 /**
@@ -103,7 +100,6 @@ export type errorReceivedCallback = (authError: AuthError, accountState: string)
  * @param propertyKey
  * @param descriptor
  */
-// TODO: This functionality of wrapper around a function seem to be changing in the latest TS, check this while fixing npm issues
 const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
   const tokenAcquisitionMethod = descriptor.value;
   descriptor.value = function (...args: any[]) {
@@ -124,7 +120,7 @@ export class UserAgentApplication {
   // input Configuration by the developer/user
   private config: Configuration;
 
-  // TODO: This will be extracted with Response Changes
+  // callbacks for token/error
   private tokenReceivedCallback: tokenReceivedCallback = null;
   private errorReceivedCallback: errorReceivedCallback = null;
 
@@ -241,6 +237,7 @@ export class UserAgentApplication {
     this.redirectCallbacksSet = true;
 
     // On the server 302 - Redirect, handle this
+    // TODO: rename pendingCallback to cachedHash
     if (!this.config.framework.isAngular) {
       const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
       if (pendingCallback) {
@@ -330,7 +327,6 @@ export class UserAgentApplication {
     // Track login in progress
     this.loginInProgress = true;
 
-    // TODO: Make this more readable - is authorityInstance changed, what is happening with the return for AuthorityKey?
     this.authorityInstance.resolveEndpointsAsync().then(() => {
 
       // create the Request to be sent to the Server
@@ -416,7 +412,6 @@ export class UserAgentApplication {
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
 
-    // TODO: Set response type here
     acquireTokenAuthority.resolveEndpointsAsync().then(() => {
       // On Fulfillment
       const responseType = this.getTokenType(account, request.scopes, false);
@@ -583,7 +578,6 @@ export class UserAgentApplication {
       window.requestType = Constants.login;
 
       // Register callback to capture results from server
-      // TODO: Need to possible rework functionality here
       this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
 
       // Navigate url in popupWindow
@@ -675,7 +669,6 @@ export class UserAgentApplication {
         serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
         // Cache nonce
-        // TODO: why is inCookie not passed here?
         this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce);
         serverAuthenticationRequest.state = serverAuthenticationRequest.state;
 
@@ -772,7 +765,7 @@ export class UserAgentApplication {
           instance.loginInProgress = false;
           instance.acquireTokenInProgress = false;
           this.logger.info("Closing popup window");
-          // TODO: Why are we only closing for angular?
+          // TODO: Check how this can be extracted for any framework specific code?
           if (this.config.framework.isAngular) {
               this.broadcast("msal:popUpHashChanged", popUpWindowLocation.hash);
               for (let i = 0; i < window.openedWindows.length; i++) {
@@ -961,7 +954,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs.
   private isInIframe() {
       return window.parent !== window;
   }
@@ -1019,7 +1011,6 @@ export class UserAgentApplication {
     this.logger.info("LoadFrame: " + frameName);
     const frameCheck = frameName;
 
-    // TODO: VSTS AI, work on either removing the 500ms timeout or making it optional for IE??
     setTimeout(() => {
       const frameHandle = this.addHiddenIFrame(frameCheck);
       if (frameHandle.src === "" || frameHandle.src === "about:blank") {
@@ -1201,7 +1192,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Consider moving this to Storage.ts
   protected clearCache(): void {
     window.renewStates = [];
     const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
@@ -1217,7 +1207,6 @@ export class UserAgentApplication {
    *
    * @param accessToken
    */
-  // TODO: Consider moving this to Storage.ts
   protected clearCacheForScope(accessToken: string) {
     const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
     for (let i = 0; i < accessTokenItems.length; i++) {
@@ -1437,8 +1426,6 @@ export class UserAgentApplication {
    * @param {Account} account - Account for which the scopes were requested
    * @hidden
    */
-  // TODO: There is a lot of duplication code in this function, rework this sooner than later, may be as a part of Error??
-  // TODO: Only used in ATS - we should separate this
   private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
     let accessTokenCacheItem: AccessTokenCacheItem = null;
     const scopes = serverAuthenticationRequest.scopes;
@@ -1719,7 +1706,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Break this function up - either into utils or token specific --- too long to be readable
   protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
     this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
     this.cacheStorage.setItem(Constants.msalError, "");
@@ -1864,7 +1850,6 @@ export class UserAgentApplication {
               // check nonce integrity if idToken has nonce - throw an error if not matched
               if (response.idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
                 this.account = null;
-                // TODO: optimize this - may be combine if it is a string in both cases
                 this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
                 this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
                 error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.idToken.nonce);
@@ -2003,7 +1988,7 @@ export class UserAgentApplication {
 
   //#region Scopes (Extract to Scopes.ts)
 
-  // TODO: "this" dependency in this section is minimal.
+  // Note: "this" dependency in this section is minimal.
   // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
 
   /**
@@ -2046,7 +2031,6 @@ export class UserAgentApplication {
   * @ignore
   * @hidden
   */
-  // TODO: can this function be removed? not used.
   private getScopeFromState(state: string): string {
     if (state) {
       const splitIndex = state.indexOf("|");
@@ -2238,7 +2222,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: Terrible name, rename it
   private urlContainsQueryStringParameter(name: string, url: string): boolean {
     // regex to detect pattern of a ? or & followed by the name parameter and an equals character
     const regex = new RegExp("[\\?&]" + name + "=");
@@ -2268,7 +2251,6 @@ export class UserAgentApplication {
    */
   private getHostFromUri(uri: string): string {
     // remove http:// or https:// from uri
-    // TODO: Test this:: return  extractedUri = String(uri).replace(/^(https?:)\/\//, "").split("/")[0];
     let extractedUri = String(uri).replace(/^(https?:)\/\//, "");
     extractedUri = extractedUri.split("/")[0];
     return extractedUri;
