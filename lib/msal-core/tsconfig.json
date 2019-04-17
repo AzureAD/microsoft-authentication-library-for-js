@@ -15,6 +15,7 @@
   "types": [
     "jasmine",
     "node",
-    "jasmine-ajax"
+    "jasmine-ajax",
+    "mocha"
   ]
 }

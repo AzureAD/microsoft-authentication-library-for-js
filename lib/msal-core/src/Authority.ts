@@ -129,7 +129,7 @@ export abstract class Authority {
    * Discover endpoints via openid-configuration
    * If successful, caches the endpoint for later use in OIDC
    */
-  public ResolveEndpointsAsync(): Promise<Authority> {
+  public resolveEndpointsAsync(): Promise<Authority> {
     let openIdConfigurationEndpoint = "";
     return this.GetOpenIdConfigurationEndpointAsync().then(openIdConfigurationEndpointResponse => {
       openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;

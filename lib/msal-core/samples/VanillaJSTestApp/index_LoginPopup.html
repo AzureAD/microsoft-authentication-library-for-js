@@ -46,14 +46,19 @@
       console.log(message);
     }
 
-
-    // Setting a default value in JSON format
-    var config = Msal.buildConfiguration(
-      { clientId: applicationConfig.clientID, validateAuthority: true, },
-      { cacheLocation: "localStorage", storeAuthStateInCookie: true },
-      { logger: logger },
-      {}
-    );
+    var config = {
+      auth: { 
+        clientId: applicationConfig.clientID, 
+        validateAuthority: true
+      },
+      cache: { 
+        cacheLocation: "localStorage", 
+        storeAuthStateInCookie: true
+      },
+      system: { 
+        logger: logger 
+      }
+    };
 
     var userAgentApplication = new Msal.UserAgentApplication(config);
     // userAgentApplication.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
@@ -114,13 +119,13 @@
       };
 
       userAgentApplication.acquireTokenSilent(tokenRequest)
-        .then(function (token, error) {
+        .then(function (response) {
           $.ajax({
             type: "POST",
             contentType: "application/json",
             dataType: 'json',
             beforeSend: function (request) {
-              request.setRequestHeader('Authorization', 'bearer ' + token);
+              request.setRequestHeader('Authorization', 'bearer ' + response.accessToken);
             },
             url: applicationConfig.graphEndpoint,
             data: JSON.stringify({ 'message': getEmail(), 'saveToSentItems': true }),

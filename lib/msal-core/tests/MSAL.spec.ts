@@ -1,11 +1,19 @@
-import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError} from "../src/index";
+import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError, AuthResponse} from "../src/index";
 import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../src/Constants";
 import { Authority } from "../src/Authority";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { AuthorityFactory } from "../src/AuthorityFactory";
-import { buildConfiguration } from "../src/Configuration";
 import { AuthenticationParameters } from "../src/AuthenticationParameters";
 import { Account } from "../src/Account";
+import { IdToken } from "../src/IdToken";
+import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
+import { Configuration } from "../src/Configuration";
+
+const DEFAULT_UAA_CONFIG: Configuration = {
+    auth: {
+        clientId: MSAL_CLIENT_ID
+    }
+};
 
 describe('Msal', function (): any {
     let window: any;
@@ -181,9 +189,7 @@ describe('Msal', function (): any {
         global.sessionStorage = storageFake;
         global.document = documentMock;
         global.Math = mathMock;
-
-        let config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201" }, {}, {}, {});
-        msal = new UserAgentApplication(config);
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
         msal.user = null;
         msal.renewStates = [];
         msal.activeRenewals = {};
@@ -245,7 +251,6 @@ describe('Msal', function (): any {
         };
 
         msal.loginRedirect();
-
     });
 
     it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
@@ -285,7 +290,12 @@ describe('Msal', function (): any {
     });
 
     it('navigates user to redirectURI passed in request', (done) => {
-        var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201", redirectUri: TEST_REDIR_URI}, {}, {}, {});
+        const config = {
+            auth: {
+                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201", 
+                redirectUri: TEST_REDIR_URI
+            }
+        };
         msal = new UserAgentApplication(config);
         msal.handleRedirectCallbacks(successCallback, errCallback);
         msal.user = null;
@@ -331,10 +341,13 @@ describe('Msal', function (): any {
         }
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S1'] }, account);
-        expect(cacheResult.token).toBe('accessToken');
-        expect(cacheResult.errorDesc).toBe(null);
-        expect(cacheResult.error).toBe(null);
+        var scopes = ['S1'];
+        let cacheResult: AuthResponse = msal.getCachedToken({ scopes: scopes }, account);
+        expect(cacheResult.tokenType).toContain(Constants.accessToken);
+        expect(cacheResult.accessToken).toContain('accessToken');
+        expect(cacheResult.idToken.rawIdToken).toContain('idToken');
+        expect(cacheResult.scopes).toBe(scopes);
+        expect(cacheResult.account).toBe(account);
         storageFake.clear();
     });
 
@@ -356,10 +369,16 @@ describe('Msal', function (): any {
         accessTokenKey.authority = "authority2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, account);
-        expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements like authority");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        let authErr : AuthError = null;
+        try {
+            let cacheResult = msal.getCachedToken({ scopes: ["S1"] }, account);
+        } catch (e) {
+            authErr = e;
+        }
+        
+        expect(authErr).toEqual(jasmine.any(ClientAuthError));
+        expect(authErr.errorCode).toContain(ClientAuthErrorMessage.multipleMatchingTokens.code);
+        expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
         storageFake.clear();
     });
 
@@ -382,10 +401,17 @@ describe('Msal', function (): any {
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ scopes: ['S3'] }, account);
-        expect(cacheResult.errorDesc).toBe("Multiple authorities found in the cache. Pass authority in the API overload.");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        let authErr : AuthError = null;
+        try {
+            let cacheResult = msal.getCachedToken({ scopes: ["S3"] }, account);
+        } catch (e) {
+            authErr = e;
+        }
+
+        expect(authErr).toEqual(jasmine.any(ClientAuthError));
+        expect(authErr.errorCode).toContain(ClientAuthErrorMessage.multipleCacheAuthorities.code);
+        expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
+
         storageFake.clear();
     });
 
@@ -427,14 +453,19 @@ describe('Msal', function (): any {
         accessTokenValue.accessToken = "accessToken2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult1 = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
-        expect(cacheResult1.errorDesc).toBe(null);
-        expect(cacheResult1.token).toBe('accessToken1');
-        expect(cacheResult1.error).toBe(null);
-        let cacheResult2 = msal.getCachedToken({ authority: "authority2", scopes: ['S1'] }, account);
-        expect(cacheResult2.errorDesc).toBe(null);
-        expect(cacheResult2.token).toBe('accessToken2');
-        expect(cacheResult2.error).toBe(null);
+        let scopes = ['S1'];
+        let cacheResult1 : AuthResponse = msal.getCachedToken({ authority: validAuthority, scopes: scopes }, account);
+        expect(cacheResult1.tokenType).toContain(Constants.accessToken);
+        expect(cacheResult1.accessToken).toContain('accessToken1');
+        expect(cacheResult1.idToken.rawIdToken).toContain('idToken');
+        expect(cacheResult1.scopes).toBe(scopes);
+        expect(cacheResult1.account).toBe(account);
+        let cacheResult2 = msal.getCachedToken({ authority: "authority2", scopes: scopes }, account);
+        expect(cacheResult2.tokenType).toContain(Constants.accessToken);
+        expect(cacheResult2.accessToken).toContain('accessToken2');
+        expect(cacheResult2.idToken.rawIdToken).toContain('idToken');
+        expect(cacheResult2.scopes).toBe(scopes);
+        expect(cacheResult2.account).toBe(account);
         storageFake.clear();
     });
 
@@ -456,10 +487,16 @@ describe('Msal', function (): any {
         accessTokenKey.scopes = "S1 S2";
         storageFake.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         var account = { homeAccountIdentifier: "1234" };
-        let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
-        expect(cacheResult.errorDesc).toBe("The cache contains multiple tokens satisfying the requirements.Call AcquireToken again providing more requirements like authority");
-        expect(cacheResult.token).toBe(null);
-        expect(cacheResult.error).toBe("multiple_matching_tokens_detected");
+        let authErr : AuthError = null;
+        try {
+            let cacheResult = msal.getCachedToken({ authority: validAuthority, scopes: ['S1'] }, account);
+        } catch (e) {
+            authErr = e;
+        }
+
+        expect(authErr).toEqual(jasmine.any(ClientAuthError));
+        expect(authErr.errorCode).toContain(ClientAuthErrorMessage.multipleMatchingTokens.code);
+        expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
         storageFake.clear();
     });
 
@@ -812,44 +849,17 @@ describe('Msal', function (): any {
         msal.loginInProgress = false;
     });
 
-    it('tests that loginStartPage, nonce and state are saved in cookies if enableCookieStorage flag is enables through the msal optional params', function (done) {
-        // TODO: This functionality has changed
-        // var msalInstance = msal;
-        // var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-        // var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, { storeAuthStateInCookie: true }, {}, {});
-        // msal = new UserAgentApplication(config);
-        // msal.handleRedirectCallbacks(function(token, tokenType, state) {
-        //     expect(document.cookie).toBe('');
-        //     expect(token).toBe(mockIdToken);
-        //     expect(tokenType).toBe(Constants.idToken);
-        // }, errCallback);
-        // msal.cacheStorage = storageFake;
-        // var _promptUser = msal.promptUser;
-        // msal.promptUser = function () {
-        //     expect(document.cookie).toContain(Constants.stateLogin);
-        //     expect(document.cookie).toContain(Constants.nonceIdToken);
-        //     expect(document.cookie).toContain(Constants.loginRequest);
-        //     var urlHash = '#' + 'id_token=' + mockIdToken + '&state=' + storageFake.getItem(Constants.stateLogin) + '&nonce=' + storageFake.getItem(Constants.nonceIdToken)
-        //     storageFake.setItem(Constants.urlHash, urlHash);
-        //     storageFake.removeItem(Constants.stateLogin);
-        //     storageFake.removeItem(Constants.nonceIdToken);
-        //     storageFake.removeItem(Constants.loginRequest);
-        //     msal.processCallBack(urlHash);
-        //     msal = msalInstance;
-        //     done();
-        // }
-
-        // let request: AuthenticationParameters = { scopes: [msal.clientID]};
-        // msal.loginRedirect(request);
-        done();
-    });
-
     it('tests cacheLocation functionality sets to localStorage when passed as a parameter', function () {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-        var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {cacheLocation: "localStorage"}, {}, {});
-         msal = new UserAgentApplication(config);
-         msal.handleRedirectCallbacks(function(token, tokenType, state) {
+        const config: Configuration = {
+            ...DEFAULT_UAA_CONFIG,
+            cache: {
+                cacheLocation: "localStorage"
+            }
+        };
+        msal = new UserAgentApplication(config);
+        msal.handleRedirectCallbacks(function(token, tokenType, state) {
             expect(document.cookie).toBe('');
             expect(token).toBe(mockIdToken);
             expect(tokenType).toBe(Constants.idToken);
@@ -861,9 +871,14 @@ describe('Msal', function (): any {
     it('tests cacheLocation functionality defaults to sessionStorage', function () {
         var msalInstance = msal;
         var mockIdToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjbGllbnRpZDEyMyIsIm5hbWUiOiJKb2huIERvZSIsInVwbiI6ImpvaG5AZW1haWwuY29tIiwibm9uY2UiOiIxMjM0In0.bpIBG3n1w7Cv3i_JHRGji6Zuc9F5H8jbDV5q3oj0gcw';
-
-        var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {storeAuthStateInCookie: true}, {}, {});
-
+        const config = {
+            auth: {
+                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"
+            },
+            cache: {
+                storeAuthStateInCookie: true
+            }
+        };
         msal = new UserAgentApplication(config);
         msal.handleRedirectCallbacks(function(token, tokenType, state) {
             expect(document.cookie).toBe('');
@@ -879,8 +894,7 @@ describe('loginPopup functionality', function () {
     var loginPopupPromise:Promise<string>;
     var msal;
     beforeEach(function () {
-        var config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
-        msal = new UserAgentApplication(config);
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
 
         spyOn(msal, 'loginPopup').and.callThrough();
         loginPopupPromise = msal.loginPopup([msal.clientId]);
@@ -895,8 +909,7 @@ describe('acquireTokenPopup functionality', function () {
     var acquireTokenPopupPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        let  config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
-        msal = new UserAgentApplication(config);
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
 
         spyOn(msal, 'acquireTokenPopup').and.callThrough();
         let request: AuthenticationParameters = {scopes: [msal.clientId]};
@@ -916,9 +929,7 @@ describe('acquireTokenSilent functionality', function () {
     var acquireTokenSilentPromise: Promise<string>;
     var msal;
     beforeEach(function () {
-        let  config = buildConfiguration({clientId: "0813e1d1-ad72-46a9-8665-399bba48c201"}, {}, {}, {});
-        msal = new UserAgentApplication(config);
-
+        msal = new UserAgentApplication(DEFAULT_UAA_CONFIG);
         spyOn(msal, 'acquireTokenSilent').and.callThrough();
         spyOn(msal, 'loadIframeTimeout').and.callThrough();
         let request: AuthenticationParameters = {scopes: [msal.clientId]};

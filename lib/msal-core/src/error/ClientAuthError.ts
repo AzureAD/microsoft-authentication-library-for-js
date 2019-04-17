@@ -11,8 +11,8 @@ export const ClientAuthErrorMessage = {
         desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements like authority."
     },
-    multipleMatchingAuthorities: {
-        code: "multiple_matching_authorities",
+    multipleCacheAuthorities: {
+        code: "multiple_authorities",
         desc: "Multiple authorities found in the cache. Pass authority in the API overload."
     },
     endpointResolutionError: {
@@ -91,8 +91,8 @@ export class ClientAuthError extends AuthError {
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAuthorities.code,
-            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingAuthorities.desc}.`);
+        return new ClientAuthError(ClientAuthErrorMessage.multipleCacheAuthorities.code,
+            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleCacheAuthorities.desc}.`);
     }
 
     static createPopupWindowError(errDetail?: string): ClientAuthError {
@@ -109,17 +109,20 @@ export class ClientAuthError extends AuthError {
     }
 
     static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code, `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${idToken}`);
+        return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
+            `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${idToken}`);
     }
 
+    //TODO: Is this not a security flaw to send the user the state expected??
     static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
             `${ClientAuthErrorMessage.invalidStateError.desc} ${invalidState}, state expected : ${actualState}.`);
     }
 
+    //TODO: Is this not a security flaw to send the user the Nonce expected??
     static createNonceMismatchError(invalidNonce: string, actualNonce: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
-            `${ClientAuthErrorMessage.nonceMismatchError} ${invalidNonce}, nonce expected : ${actualNonce}.`);
+            `${ClientAuthErrorMessage.nonceMismatchError.desc} ${invalidNonce}, nonce expected : ${actualNonce}.`);
     }
 
     static createLoginInProgressError(): ClientAuthError {
@@ -143,10 +146,12 @@ export class ClientAuthError extends AuthError {
     }
 
     static createUserLoginRequiredError() : ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code, ClientAuthErrorMessage.userLoginRequiredError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code,
+            ClientAuthErrorMessage.userLoginRequiredError.desc);
     }
 
     static createUserDoesNotExistError() : ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.userDoesNotExistError.code, ClientAuthErrorMessage.userDoesNotExistError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.userDoesNotExistError.code,
+            ClientAuthErrorMessage.userDoesNotExistError.desc);
     }
 }
