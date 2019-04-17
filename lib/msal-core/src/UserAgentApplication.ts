@@ -953,7 +953,6 @@ export class UserAgentApplication {
    * @ignore
    * @hidden
    */
-  // TODO: can this function be removed? not used, or may be use this instead of if in iFrame APIs.
   public isInIframe() {
       return window.parent !== window;
   }

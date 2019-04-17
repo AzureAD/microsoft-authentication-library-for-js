@@ -6,7 +6,6 @@ import {
     AuthenticationParameters,
     Account,
     Configuration,
-    buildConfiguration,
     AuthError,
     ClientAuthError,
     ClientConfigurationError
@@ -71,13 +70,12 @@ describe("UserAgentApplication", function () {
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
             // Necessary for login redirect
-            const configParams: Configuration = {
+            const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
                     redirectUri: TEST_REDIR_URI
                 }
             };
-            let config = buildConfiguration(configParams);
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
         });
@@ -166,12 +164,11 @@ describe("UserAgentApplication", function () {
         });
 
         it('uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated', (done) => {
-            const configParams: Configuration = {
+            const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID
                 }
             };
-            let config = buildConfiguration(configParams);
             msal = new UserAgentApplication(config);
             history.pushState(null, null, '/new_pushstate_uri');
             sinon.stub(window.location, "replace").callsFake(function (url) {
@@ -216,13 +213,12 @@ describe("UserAgentApplication", function () {
 
         beforeEach(function () {
             cacheStorage = new Storage("sessionStorage");
-            const configParams: Configuration = {
+            const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
                     redirectUri: TEST_REDIR_URI
                 }
             };
-            let config = buildConfiguration(configParams);
             msal = new UserAgentApplication(config);setAuthInstanceStubs();
             setTestCacheItems();
         });

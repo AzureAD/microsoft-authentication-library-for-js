@@ -1,13 +1,13 @@
-import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError, AuthResponse} from "../src/index";
-import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../src/Constants";
-import { Authority } from "../src/Authority";
-import { ServerRequestParameters } from "../src/ServerRequestParameters";
-import { AuthorityFactory } from "../src/AuthorityFactory";
-import { AuthenticationParameters } from "../src/AuthenticationParameters";
-import { Account } from "../src/Account";
-import { IdToken } from "../src/IdToken";
-import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
-import { Configuration } from "../src/Configuration";
+import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError, AuthResponse} from "../../src/index";
+import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../../src/Constants";
+import { Authority } from "../../src/Authority";
+import { ServerRequestParameters } from "../../src/ServerRequestParameters";
+import { AuthorityFactory } from "../../src/AuthorityFactory";
+import { AuthenticationParameters } from "../../src/AuthenticationParameters";
+import { Account } from "../../src/Account";
+import { IdToken } from "../../src/IdToken";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { Configuration } from "../../src/Configuration";
 
 const DEFAULT_UAA_CONFIG: Configuration = {
     auth: {

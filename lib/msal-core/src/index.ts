@@ -5,7 +5,7 @@ export { Account } from "./Account";
 export { Constants } from "./Constants";
 export { Authority } from "./Authority";
 export { CacheResult } from "./UserAgentApplication";
-export { CacheLocation, Configuration, buildConfiguration } from "./Configuration";
+export { CacheLocation, Configuration } from "./Configuration";
 export { AuthenticationParameters } from "./AuthenticationParameters";
 export { AuthResponse } from "./AuthResponse";
 
