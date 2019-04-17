@@ -29,7 +29,6 @@ export class IdToken {
     try {
       this.rawIdToken = rawIdToken;
       this.decodedIdToken = Utils.extractIdToken(rawIdToken);
-      console.log("decoded: " + this.decodedIdToken);
       if (this.decodedIdToken) {
         if (this.decodedIdToken.hasOwnProperty("iss")) {
           this.issuer = this.decodedIdToken["iss"];

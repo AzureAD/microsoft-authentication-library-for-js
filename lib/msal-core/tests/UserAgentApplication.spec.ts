@@ -18,10 +18,12 @@ type kv = {
 describe("UserAgentApplication", function () {
 
     const DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
+    const ALTERNATE_INSTANCE = "https://login.windows.net/"
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TENANT = 'common';
     const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
     const validAuthority = DEFAULT_INSTANCE + TENANT;
+    const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -164,26 +166,32 @@ describe("UserAgentApplication", function () {
 
     describe("Cache Storage Unit Tests", function () {
         let cacheStorage: Storage;
-        let accessTokenKey : AccessTokenKey = {
-            authority: validAuthority,
-            clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
-            scopes: "S1",
-            homeAccountIdentifier: "1234"
-        };
-        let accessTokenValue : AccessTokenValue = {
-            accessToken: "accessToken",
-            idToken: "idToken",
-            expiresIn: "150000000000000",
-            homeAccountIdentifier: ""
-        };
-        let account : Account = {
-            accountIdentifier: "1234",
-            environment: "js",
-            homeAccountIdentifier: "1234",
-            idToken: "idToken",
-            name: "Test Account",
-            sid: "123451435",
-            userName: "TestAccount"
+        let accessTokenKey : AccessTokenKey;
+        let accessTokenValue : AccessTokenValue;
+        let account : Account;
+        
+        let setTestCacheItems = function () {
+            accessTokenKey = {
+                authority: validAuthority,
+                clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
+                scopes: "S1",
+                homeAccountIdentifier: "1234"
+            };
+            accessTokenValue = {
+                accessToken: "accessToken1",
+                idToken: "idToken",
+                expiresIn: "150000000000000",
+                homeAccountIdentifier: ""
+            };
+            account = {
+                accountIdentifier: "1234",
+                environment: "js",
+                homeAccountIdentifier: "1234",
+                idToken: "idToken",
+                name: "Test Account",
+                sid: "123451435",
+                userName: "TestAccount"
+            };
         };
 
         beforeEach(function () {
@@ -191,6 +199,7 @@ describe("UserAgentApplication", function () {
             let config = buildConfiguration({ clientId: MSAL_CLIENT_ID, redirectUri: TEST_REDIR_URI }, {}, {}, {});
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
+            setTestCacheItems();
         });
 
         afterEach(function() {
@@ -209,10 +218,10 @@ describe("UserAgentApplication", function () {
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                console.log(response);
-                expect(response.accessToken).to.include('accessToken');
+                expect(response.accessToken).to.include('accessToken1');
             }).catch(function(err) {
                 // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
         });
 
@@ -227,11 +236,12 @@ describe("UserAgentApplication", function () {
             
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
-            accessTokenKey.authority = "authority2";
+            accessTokenKey.authority = alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen
+                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
@@ -240,7 +250,7 @@ describe("UserAgentApplication", function () {
 
         it('tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist', function () {
             var tokenRequest : AuthenticationParameters = {
-                scopes: ["S1"],
+                scopes: ["S3"],
                 account: account
             };
             let params: kv = {  };
@@ -249,16 +259,94 @@ describe("UserAgentApplication", function () {
             
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = 'S2';
-            accessTokenKey.authority = 'authority2';
+            accessTokenKey.authority = alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            
+
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen
+                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.code);
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
             });
         });
 
+        it('tests getCachedToken when authority is passed and no matching accessToken is found', function (done) {
+            var tokenRequest : AuthenticationParameters = {
+                authority: alternateValidAuthority,
+                scopes: ["S1"],
+                account: account
+            };
+            let params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            sinon.stub(msal, <any>"loadFrame").callsFake(function (url: string, frameName: string) {
+                expect(url).to.include(alternateValidAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                done();
+                return {};
+            });
+            
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                // Won't happen - we are not testing response here
+                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
+            }).catch(function(err: AuthError) {
+                // Failure will be caught here since the tests are being run within the stub.
+                console.error("Error in assertion: " + JSON.stringify(err));
+            });
+        });
+
+        it('tests getCachedToken when authority is passed and single matching accessToken is found', function () {
+            var tokenRequest : AuthenticationParameters = {
+                authority: validAuthority,
+                scopes: ["S1"],
+                account: account
+            };
+            let params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+            
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = alternateValidAuthority;
+            accessTokenValue.accessToken = "accessToken2";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.scopes).to.include("S1");
+                expect(response.idToken.rawIdToken).to.include("idToken");
+                expect(response.accessToken).to.include('accessToken2');
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+        });
+
+        it('tests getCachedToken when authority is passed and multiple matching accessTokens are found', function () {
+            var tokenRequest : AuthenticationParameters = {
+                authority: validAuthority,
+                scopes: ["S1"],
+                account: account
+            };
+            let params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+            accessTokenKey.authority = accessTokenKey.authority + "/";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.scopes = "S1 S2";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
+            }).catch(function(err: AuthError) {
+                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
+                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+            });
+        });
     });
 });

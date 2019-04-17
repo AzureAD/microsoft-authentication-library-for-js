@@ -946,7 +946,6 @@ export class UserAgentApplication {
       // else proceed with login
       else {
         this.logger.verbose("Token is not in cache for scope:" + scope);
-
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         if (!serverAuthenticationRequest.authorityInstance) {
             serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -1517,7 +1516,6 @@ export class UserAgentApplication {
           filteredItems.push(cacheItem);
         }
       }
-
       // no match
       if (filteredItems.length === 0) {
         return null;
