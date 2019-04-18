@@ -8,6 +8,8 @@ import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
 
+const { version } = require("../package.json");
+
 /**
  * @hidden
  */
@@ -50,7 +52,7 @@ export class Utils {
    * MSAL JS Library Version
    */
   static getLibraryVersion(): string {
-    return "0.2.4";
+    return version;
   }
 
   /**
