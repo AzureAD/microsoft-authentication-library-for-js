@@ -114,14 +114,16 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 
 #### Request Object
 
-* ‘Request’ object is introduced for all login/accessToken calls, this replaces previous overloading of login/acquireToken calls
+* ‘Request’ object is introduced for all login/accessToken calls, this replaces previous overloading of login/acquireToken calls.
 * Users can choose to pass optional parameters to finetune their requests for authentication and authorization.
+* 'User' object is now replaced with 'Account' => the public API getUser() is now getAccount() with more enhanced data.
 
 ###### Request Object datatype
 
 ```javascript
 	export type QPDict = {[key: string]: string};
 
+    // Request type
 	export type AuthenticationParameters = {
         scopes?: Array<string>;
         extraScopesToConsent?: Array<string>;
@@ -134,6 +136,20 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
         sid?: string;
         loginHint?: string;
     };
+
+    // Account Class
+    export class Account {
+
+        accountIdentifier: string;
+        homeAccountIdentifier: string;
+        userName: string;
+        name: string;
+        idToken: Object;
+        sid: string;
+        environment: string;
+
+        ....
+    }
 ```
 ##### Before (<= 0.2.4)
 
