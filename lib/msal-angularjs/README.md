@@ -7,7 +7,9 @@ The MSAL library preview for AngularJS is a wrapper of the core MSAL.js library 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
 ## Important Note about the MSAL AngularJS Preview
-This library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
+Please note that during the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
+
+This is an early preview library and we are tracking certain [known issues and requests](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Aangularjs+) which we plan on addressing. Please watch the [Roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap) for details.
 
 ## Installation
 The msal-angularjs package is available on NPM:
@@ -18,7 +20,7 @@ The msal-angularjs package is available on NPM:
 
 #### Prerequisite
 
-Before using MSAL, register your application in [Azure AD v2.0 portal](https://apps.dev.microsoft.com/) to get your clientID. As part of the registration, you will also need to add the Web platform, check the "Implicit Flow" checkbox, and add the redirectURI to your application.
+Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get your clientID.
 
 #### 1. Include a reference to the MSAL module in your app module.
 ```js
@@ -89,7 +91,7 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
         msalService.login();
     };
 
-   
+
 }]);
 ```
 
@@ -97,30 +99,30 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
 You can get callbacks for login and acquire Token success/failure.
 
 ```js
- 
+
     $scope.$on("msal:loginSuccess", function () {
         $scope.testMessage = "loginSuccess";
     });
 
-    
+
     $scope.$on("msal:loginFailure", function () {
         $scope.testMessage = "loginFailure";
     });
 
-    
+
     $scope.$on("msal:notAuthorized", function (event, rejection, forResource) {
         $scope.testMessage = "It is not Authorized for resource:" + forResource;
     });
-    
-    
+
+
     $scope.$on("msal:acquireTokenFailure", function (event, errorDesc, error) {
     });
-    
-      
+
+
     $scope.$on("msal:acquireTokenSuccess", function (event, tokenOut) {
     });
 
-      
+
 ```
 
 #### 6. Use userInfo object to access properties of the currently signed in user.
