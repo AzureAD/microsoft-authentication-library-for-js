@@ -72,7 +72,7 @@
             }).catch(function (error) {
                 console.log(error);
                 // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
-                if (error.errorMessage.indexOf("consent_required") !== -1 || error.errorMessage.indexOf("interaction_required") !== -1 || error.errorMessage.indexOf("login_required") !== -1) {
+                if (error.errorCode.indexOf("consent_required") !== -1 || error.errorCode.indexOf("interaction_required") !== -1 || error.errorCode.indexOf("login_required") !== -1) {
                     myMSALObj.acquireTokenPopup(tokenRequest).then(function (tokenResponse) {
                         callMSGraph(applicationConfig.graphEndpoint, tokenResponse.accessToken, graphAPICallback);
                     }).catch(function (error) {
@@ -121,7 +121,7 @@
             }).catch(function (error) {
                 console.log(error);
                 //Call acquireTokenRedirect in case of acquireToken Failure
-                if (error.errorMessage.indexOf("consent_required") !== -1 || error.errorMessage.indexOf("interaction_required") !== -1 || error.errorMessage.indexOf("login_required") !== -1) {
+                if (error.errorCode.indexOf("consent_required") !== -1 || error.errorCode.indexOf("interaction_required") !== -1 || error.errorCode.indexOf("login_required") !== -1) {
                     myMSALObj.acquireTokenRedirect(tokenRequest);
                 }
             });

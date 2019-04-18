@@ -255,7 +255,7 @@ export class UserAgentApplication {
    * @param {Array.<string>} scopes - Permissions you want included in the access token. Not all scopes are guaranteed to be included in the access token returned.
    * @param {string} extraQueryParameters - Key-value pairs to pass to the authentication server during the interactive authentication flow.
    */
-  loginRedirect(request: AuthenticationParameters): void {
+  loginRedirect(request?: AuthenticationParameters): void {
 
     // Throw error if callbacks are not set before redirect
     if (!this.redirectCallbacksSet) {
@@ -2370,7 +2370,10 @@ export class UserAgentApplication {
     queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
-    const eQParams = this.removeSSOParamsFromEQParams(request.extraQueryParameters);
+    let eQParams: QPDict;
+    if (request) {
+        eQParams = this.removeSSOParamsFromEQParams(request.extraQueryParameters);
+    }
 
     // Populate the extraQueryParameters to be sent to the server
     serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
