@@ -258,3 +258,6 @@ test/
 typings/
 .git
 coverage/
+dist/
+endToEndTests/
+lib-es6/
