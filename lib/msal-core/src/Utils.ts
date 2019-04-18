@@ -2,8 +2,11 @@
 // Licensed under the MIT License.
 
 import { IUri } from "./IUri";
-import { User } from "./User";
-import {Constants} from "./Constants";
+import { Account } from "./Account";
+import {Constants, SSOTypes, PromptState} from "./Constants";
+import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthResponse } from "./AuthResponse";
+import { IdToken } from "./IdToken";
 
 /**
  * @hidden
@@ -13,18 +16,17 @@ export class Utils {
   //#region General Util
 
   /**
-   * Utils function to compare two User objects - used to check if the same user is logged in
+   * Utils function to compare two Account objects - used to check if the same user account is logged in
    *
-   * @param u1: User object
-   * @param u2: User object
+   * @param a1: Account object
+   * @param a2: Account object
    */
-  // TODO: Change the name of this to compareUsers or compareAccounts
-  static compareObjects(u1: User, u2: User): boolean {
-   if (!u1 || !u2) {
+  static compareAccounts(a1: Account, a2: Account): boolean {
+   if (!a1 || !a2) {
           return false;
       }
-    if (u1.userIdentifier && u2.userIdentifier) {
-      if (u1.userIdentifier === u2.userIdentifier) {
+    if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
+      if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
         return true;
       }
     }
@@ -142,7 +144,7 @@ export class Utils {
   }
 
   /**
-   * return the current time
+   * return the current time in Unix time. Date.getTime() returns in milliseconds.
    */
   static now(): number {
     return Math.round(new Date().getTime() / 1000.0);
@@ -437,18 +439,22 @@ export class Utils {
 
   //#region URL Processing (Extract to UrlProcessing.ts?)
 
+  static getDefaultRedirectUri(): string {
+      return window.location.href.split("?")[0].split("#")[0];
+  }
+
   /**
    * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
    * @param href The url
    * @param tenantId The tenant id to replace
    */
-  static replaceFirstPath(url: string, tenantId: string): string {
+  static replaceTenantPath(url: string, tenantId: string): string {
       if (!tenantId) {
           return url;
       }
       var urlObject = this.GetUrlComponents(url);
       var pathArray = urlObject.PathSegments;
-      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === Constants.organizations)) {
+      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
           pathArray[0] = tenantId;
           url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
       }
@@ -543,46 +549,170 @@ export class Utils {
   //#region ExtraQueryParameters Processing (Extract?)
 
   /**
-   *
-   * @param extraQueryParameters
-   */
-  static checkSSO(extraQueryParameters: string) {
-    return  !(extraQueryParameters &&  ((extraQueryParameters.indexOf(Constants.login_hint) !== -1 ||  extraQueryParameters.indexOf(Constants.sid) !== -1 )));
-  }
-
-   /**
    * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
    * in any login() or acquireToken() calls
-   *
    * @param idTokenObject
-   * @param login_hint
    * @param extraQueryParameters
+   * @param sid
+   * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  //TODO: Test all paths thoroughly
-  static constructUnifiedCacheExtraQueryParameter(idTokenObject: any, extraQueryParameters?: string) {
-    if (idTokenObject) {
-      if (idTokenObject.hasOwnProperty(Constants.upn)) {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.login_hint);
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-        if (extraQueryParameters) {
-          return extraQueryParameters += "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): QPDict {
+
+    // preference order: account > sid > login_hint
+    let ssoType;
+    let ssoData;
+    let ssoParam: QPDict = {};
+    let serverReqParam: QPDict = {};
+    // if account info is passed, account.sid > account.login_hint
+    if (request) {
+      if (request.account) {
+        const account: Account = request.account;
+        if (account.sid) {
+          ssoType = SSOTypes.SID;
+          ssoData = account.sid;
         }
-        else {
-          return extraQueryParameters = "&" + Constants.login_hint + "=" + idTokenObject.upn + "&" + Constants.domain_hint + "=" + Constants.organizations;
+        else if (account.userName) {
+          ssoType = SSOTypes.LOGIN_HINT;
+          ssoData = account.userName;
         }
       }
-      else {
-        extraQueryParameters = this.urlRemoveQueryStringParameter(extraQueryParameters, Constants.domain_hint);
-        if (extraQueryParameters) {
-          return extraQueryParameters += "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
-        else {
-          return extraQueryParameters = "&" + Constants.domain_hint + "=" + Constants.organizations;
-        }
+      // sid from request
+      else if (request.sid) {
+        ssoType = SSOTypes.SID;
+        ssoData = request.sid;
+      }
+      // loginHint from request
+      else if (request.loginHint) {
+        ssoType = SSOTypes.LOGIN_HINT;
+        ssoData = request.loginHint;
       }
     }
-    return extraQueryParameters;
+    // adalIdToken retrieved from cache
+    else if (idTokenObject) {
+      if (idTokenObject.hasOwnProperty(Constants.upn)) {
+        ssoType = SSOTypes.ID_TOKEN;
+        ssoData = idTokenObject.upn;
+      }
+      else {
+        ssoType = SSOTypes.ORGANIZATIONS;
+        ssoData = null;
+      }
+    }
+
+    serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
+
+    // add the HomeAccountIdentifier info/ domain_hint
+    if (request && request.account && request.account.homeAccountIdentifier) {
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
+    }
+
+    return serverReqParam;
+  }
+
+
+  /**
+   * Add SID to extraQueryParameters
+   * @param sid
+   */
+  // TODO: Can optimize this later, make ssoParam optional
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam: QPDict): QPDict {
+
+    switch (ssoType) {
+      case SSOTypes.SID: {
+        ssoParam[SSOTypes.SID] = ssoData;
+        break;
+      }
+      case SSOTypes.ID_TOKEN: {
+        ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        break;
+      }
+      case SSOTypes.LOGIN_HINT: {
+        ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
+        break;
+      }
+      case SSOTypes.ORGANIZATIONS: {
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        break;
+      }
+      case SSOTypes.CONSUMERS: {
+        ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
+        break;
+      }
+      case SSOTypes.HOMEACCOUNT_ID: {
+        let homeAccountId = ssoData.split(".");
+        const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
+        const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
+
+        // TODO: domain_req and login_req are not needed according to eSTS team
+        ssoParam[SSOTypes.LOGIN_REQ] = uid;
+        ssoParam[SSOTypes.DOMAIN_REQ] = utid;
+
+        if (utid === Constants.consumersUtid) {
+            ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
+        }
+        else {
+            ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
+        }
+        break;
+      }
+      case SSOTypes.LOGIN_REQ: {
+        ssoParam[SSOTypes.LOGIN_REQ] = ssoData;
+        break;
+      }
+      case SSOTypes.DOMAIN_REQ: {
+        ssoParam[SSOTypes.DOMAIN_REQ] = ssoData;
+        break;
+      }
+    }
+
+    return ssoParam;
+  }
+
+  /**
+   * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
+   * @param extraQueryParameters
+   */
+  static generateQueryParametersString(queryParameters: QPDict): string {
+    let paramsString: string = null;
+
+    if (queryParameters) {
+      Object.keys(queryParameters).forEach((key: string) => {
+        if (paramsString == null) {
+          paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
+        }
+        else {
+          paramsString += `&${key}=${encodeURIComponent(queryParameters[key])}`;
+        }
+     });
+    }
+
+    return paramsString;
+  }
+
+  /**
+   * Check to see if there are SSO params set in the Request
+   * @param request
+   */
+  static isSSOParam(request: AuthenticationParameters) {
+      return request && (request.account || request.sid || request.loginHint);
+  }
+
+  //#endregion
+
+  //#region Response Helpers
+
+  static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
+    var response = { ...originalResponse };
+    response.idToken = idToken;
+    if (response.idToken.objectId) {
+      response.uniqueId = response.idToken.objectId;
+    } else {
+      response.uniqueId = response.idToken.subject;
+    }
+    response.tenantId = response.idToken.tenantId;
+    return response;
   }
 
   //#endregion

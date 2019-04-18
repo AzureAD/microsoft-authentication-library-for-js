@@ -10,13 +10,14 @@ export class AccessTokenKey {
 
   authority: string;
   clientId: string;
-  userIdentifier: string;
   scopes: string;
+  homeAccountIdentifier: string;
 
   constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string) {
+    // TODO: Canonicalize authority URI
     this.authority = authority;
     this.clientId = clientId;
     this.scopes = scopes;
-    this.userIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
+    this.homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
   }
 }

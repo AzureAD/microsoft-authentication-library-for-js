@@ -3,7 +3,7 @@
 
 import { AadAuthority } from "./AadAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ErrorMessage } from "./ErrorMessage";
+import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 import { Utils } from "./Utils";
 
 /**
@@ -16,7 +16,7 @@ export class B2cAuthority extends AadAuthority {
 
     const pathSegments = urlComponents.PathSegments;
     if (pathSegments.length < 3) {
-        throw ErrorMessage.b2cAuthorityUriInvalidPath;
+        throw ClientConfigurationErrorMessage.b2cAuthorityUriInvalidPath;
     }
 
     this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}/`;
@@ -42,6 +42,6 @@ export class B2cAuthority extends AadAuthority {
     }
 
     return new Promise<string>((resolve, reject) =>
-      reject(ErrorMessage.unsupportedAuthorityValidation));
+      reject(ClientConfigurationErrorMessage.unsupportedAuthorityValidation));
   }
 }

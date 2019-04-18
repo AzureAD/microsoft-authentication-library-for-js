@@ -13,8 +13,7 @@
     "./src/index.ts"
   ],
   "types": [
-    "jasmine",
     "node",
-    "jasmine-ajax"
+    "mocha"
   ]
 }
