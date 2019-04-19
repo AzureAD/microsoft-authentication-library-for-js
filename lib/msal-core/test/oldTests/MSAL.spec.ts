@@ -1,5 +1,5 @@
 import {UserAgentApplication, AuthError, ClientConfigurationError, ClientAuthError, AuthResponse} from "../../src/index";
-import { Constants, PromptState } from "../../src/Constants";
+import { Constants, ErrorCodes, ErrorDescription, PromptState } from "../../src/Constants";
 import { Authority } from "../../src/Authority";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
 import { AuthorityFactory } from "../../src/AuthorityFactory";
