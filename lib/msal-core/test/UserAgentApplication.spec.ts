@@ -252,7 +252,7 @@ describe("UserAgentApplication", function () {
             msal.loginRedirect({});
         });
 
-        it('exits login function with error if loginInProgress is true', function () {
+        it('exits login function with error if loginInProgress is true', function (done) {
             sinon.stub(msal, <any>"loginInProgress").value(true);
             let checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
@@ -261,12 +261,13 @@ describe("UserAgentApplication", function () {
                 expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
                 expect(authErr.name).to.equal("ClientAuthError");
                 expect(authErr.stack).to.be.undefined;
+                done();
             }
             msal.handleRedirectCallbacks(successCallback, checkErrorFromLibrary);
             msal.loginRedirect();
         });
 
-        it('exits login function with error if invalid prompt parameter is passed', function () {
+        it('exits login function with error if invalid prompt parameter is passed', function (done) {
             // TODO: We need to perform upfront parameter validation in order for this test to pass
             // let tokenRequest = {
             //     prompt: "random"
@@ -286,9 +287,10 @@ describe("UserAgentApplication", function () {
             // expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidPrompt.desc);
             // expect(authErr.name).to.equal("ClientConfigurationError");
             // expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            done();
         });
 
-        it("tests if error is thrown when null scopes are passed", function () {
+        it("tests if error is thrown when null scopes are passed", function (done) {
             msal.handleRedirectCallbacks(successCallback, errCallback);
             var authErr: AuthError;
             try {
@@ -301,9 +303,10 @@ describe("UserAgentApplication", function () {
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            done();
         });
 
-        it("tests if error is thrown when empty array of scopes are passed", function () {
+        it("tests if error is thrown when empty array of scopes are passed", function (done) {
             msal.handleRedirectCallbacks(successCallback, errCallback);
             var authErr: AuthError;
             try {
@@ -318,9 +321,10 @@ describe("UserAgentApplication", function () {
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            done();
         });
 
-        it("tests if error is thrown when client id is not passed as single scope", function () {
+        it("tests if error is thrown when client id is not passed as single scope", function (done) {
             msal.handleRedirectCallbacks(successCallback, errCallback);
             var authErr: AuthError;
             try {
@@ -335,6 +339,7 @@ describe("UserAgentApplication", function () {
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            done();
         });
     });
 
@@ -358,7 +363,7 @@ describe("UserAgentApplication", function () {
             sinon.restore();
         });
 
-        it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function () {
+        it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function (done) {
             let tokenRequest : AuthenticationParameters = {
                 scopes: ["S1"],
                 account: account
@@ -369,14 +374,19 @@ describe("UserAgentApplication", function () {
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.idToken.rawIdToken).to.include("idToken");
                 expect(response.accessToken).to.include('accessToken1');
+                expect(response.account).to.be.eq(account);
+                expect(response.scopes).to.be.eq(tokenRequest.scopes);
+                expect(response.tokenType).to.be.eq(Constants.accessToken);
+                done();
             }).catch(function(err) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
         });
 
-        it('tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes', function () {
+        it('tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes', function (done) {
             let tokenRequest : AuthenticationParameters = {
                 scopes: ["S1"],
                 account: account
@@ -396,10 +406,14 @@ describe("UserAgentApplication", function () {
             }).catch(function(err: AuthError) {
                 expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                expect(err.name).to.equal("ClientAuthError");
+                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                done();
             });
         });
 
-        it('tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist', function () {
+        it('tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist', function (done) {
             let tokenRequest : AuthenticationParameters = {
                 scopes: ["S3"],
                 account: account
@@ -419,6 +433,10 @@ describe("UserAgentApplication", function () {
             }).catch(function(err: AuthError) {
                 expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.code);
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
+                expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
+                expect(err.name).to.equal("ClientAuthError");
+                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                done();
             });
         });
 
@@ -444,18 +462,22 @@ describe("UserAgentApplication", function () {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.include("S1");
+                expect(response.scopes).to.be.eq(tokenRequest.scopes);
+                expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.include("idToken");
                 expect(response.accessToken).to.include('accessToken1');
+                expect(response.tokenType).to.be.eq(Constants.accessToken);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
 
             msal.acquireTokenSilent(tokenRequest2).then(function(response) {
-                expect(response.scopes).to.include("S1");
+                expect(response.scopes).to.be.eq(tokenRequest2.scopes);
+                expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.include("idToken");
                 expect(response.accessToken).to.include('accessToken2');
+                expect(response.tokenType).to.be.eq(Constants.accessToken);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -463,7 +485,7 @@ describe("UserAgentApplication", function () {
             });
         });
 
-        it('tests getCachedToken when authority is passed and multiple matching accessTokens are found', function () {
+        it('tests getCachedToken when authority is passed and multiple matching accessTokens are found', function (done) {
             let tokenRequest : AuthenticationParameters = {
                 authority: validAuthority,
                 scopes: ["S1"],
@@ -482,6 +504,10 @@ describe("UserAgentApplication", function () {
             }).catch(function(err: AuthError) {
                 expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                expect(err.name).to.equal("ClientAuthError");
+                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                done();
             });
         });
 
@@ -572,7 +598,7 @@ describe("UserAgentApplication", function () {
             sinon.restore();
         });
 
-        it("tests saveTokenForHash in case of error", function() {
+        it("tests saveTokenForHash in case of error", function(done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             let checkErrorFromServer = function(error: AuthError, accountState: string) {
@@ -583,34 +609,38 @@ describe("UserAgentApplication", function () {
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
             };
             msal.handleRedirectCallbacks(successCallback, checkErrorFromServer);
         });
 
-        it("tests if you get the state back in errorReceived callback, if state is a number", function () {
+        it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
                 expect(accountState).to.include(TEST_USER_STATE_NUM);
+                done();
             };
             msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
         });
 
-        it("tests if you get the state back in errorReceived callback, if state is a url", function () {
+        it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
                 expect(accountState).to.include(TEST_USER_STATE_URL);
+                done();
             };
             msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
         });
 
-        it("tests that isCallback correctly identifies url hash", function () {
+        it("tests that isCallback correctly identifies url hash", function (done) {
             expect(msal.isCallback("not a callback")).to.be.false;
             expect(msal.isCallback("#error_description=someting_wrong")).to.be.true;
             expect(msal.isCallback("#/error_description=someting_wrong")).to.be.true;
             expect(msal.isCallback("#access_token=token123")).to.be.true;
             expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
+            done();
         });
     });
 
