@@ -15,95 +15,95 @@ As announced earlier @https://github.com/AzureAD/microsoft-authentication-librar
 
 ##### Configuration datatype :
 
-    ```javascript
-        // make CacheStorage a fixed type to limit it to specific inputs
-        type storage = "localStorage" | "sessionStorage";
+```javascript
+    // make CacheStorage a fixed type to limit it to specific inputs
+    type storage = "localStorage" | "sessionStorage";
 
-        // Protocol Support
-        export type AuthOptions = {
-            clientId: string;
-            authority?: string;
-            validateAuthority?: boolean;
-            redirectUri?: string | (() => string);
-            postLogoutRedirectUri?: string | (() => string);
-            state?: string;
-            navigateToLoginRequestUrl?: boolean;
-        };
+    // Protocol Support
+    export type AuthOptions = {
+        clientId: string;
+        authority?: string;
+        validateAuthority?: boolean;
+        redirectUri?: string | (() => string);
+        postLogoutRedirectUri?: string | (() => string);
+        state?: string;
+        navigateToLoginRequestUrl?: boolean;
+    };
 
-        // Cache Support
-        export type CacheOptions = {
-            cacheLocation?: CacheLocation;
-            storeAuthStateInCookie?: boolean;
-        };
+    // Cache Support
+    export type CacheOptions = {
+        cacheLocation?: CacheLocation;
+        storeAuthStateInCookie?: boolean;
+    };
 
-        // Library support
-        export type SystemOptions = {
-            logger?: Logger;
-            loadFrameTimeout?: number;
-            tokenRenewalOffsetSeconds?: number;
-        };
+    // Library support
+    export type SystemOptions = {
+        logger?: Logger;
+        loadFrameTimeout?: number;
+        tokenRenewalOffsetSeconds?: number;
+    };
 
-        // Developer App Environment Support
-        export type FrameworkOptions = {
-            isAngular?: boolean;
-            unprotectedResources?: Array<string>;
-            protectedResourceMap?: Map<string, Array<string>>;
-        };
+    // Developer App Environment Support
+    export type FrameworkOptions = {
+        isAngular?: boolean;
+        unprotectedResources?: Array<string>;
+        protectedResourceMap?: Map<string, Array<string>>;
+    };
 
-        // Configuration Object
-        export type Configuration = {
-            auth: AuthOptions,
-            cache?: CacheOptions,
-            system?: SystemOptions,
-            framework?: FrameworkOptions
-        };
-    ```
+    // Configuration Object
+    export type Configuration = {
+        auth: AuthOptions,
+        cache?: CacheOptions,
+        system?: SystemOptions,
+        framework?: FrameworkOptions
+    };
+```
 
 ##### Example Config object:
 
-    ```javascript
+```javascript
     var config = {
-            auth: {
-                clientId: applicationConfig.clientID,
-                authority: applicationConfig.authority,
-                validateAuthority: true
-            },
-            cache: {
-                cacheLocation: "localStorage",
-                storeAuthStateInCookie: true
-            },
-            system: {
-                logger: devLogger
-            }
-        };
-    ```
+        auth: {
+            clientId: applicationConfig.clientID,
+            authority: applicationConfig.authority,
+            validateAuthority: true
+        },
+        cache: {
+            cacheLocation: "localStorage",
+            storeAuthStateInCookie: true
+        },
+        system: {
+            logger: devLogger
+        }
+    };
+ ```
 
 ##### Before (<= 0.2.4)
 
 ```javascript
-// initialize the MSAL JS configuration options
-var myMSALObj = new Msal.UserAgentApplication(
-	applicationConfig.clientID,
-	applicationConfig.authority,
-	acquireTokenRedirectCallBack,
-	{storeAuthStateInCookie: true, cacheLocation: "localStorage"}
-);
+    // initialize the MSAL JS configuration options
+    var myMSALObj = new Msal.UserAgentApplication(
+        applicationConfig.clientID,
+        applicationConfig.authority,
+        acquireTokenRedirectCallBack,
+        {storeAuthStateInCookie: true, cacheLocation: "localStorage"}
+    );
 ```
 ##### After (>= 1.0.0-preview.0)
 
 ```javascript
-// initialize the configuration object
-var config = {
-	auth: {
-		clientId: applicationConfig.clientID,
-		authority: applicationConfig.authority,
-		validateAuthority: true
-	},
-	cache: {
-		cacheLocation: "localStorage",
-		storeAuthStateInCookie: true
-	}
-};
+    // initialize the configuration object
+    var config = {
+        auth: {
+            clientId: applicationConfig.clientID,
+            authority: applicationConfig.authority,
+            validateAuthority: true
+        },
+        cache: {
+            cacheLocation: "localStorage",
+            storeAuthStateInCookie: true
+        }
+    };
      
 // initialize the MSAL JS with a configuration object
 var myMSALObj = new Msal.UserAgentApplication(config);
