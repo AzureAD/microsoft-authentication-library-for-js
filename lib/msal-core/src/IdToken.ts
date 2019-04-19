@@ -71,9 +71,9 @@ export class IdToken {
             this.homeObjectId = this.decodedIdToken["home_oid"];
         }
 
-          if (this.decodedIdToken.hasOwnProperty("sid")) {
-              this.sid = this.decodedIdToken["sid"];
-          }
+        if (this.decodedIdToken.hasOwnProperty("sid")) {
+            this.sid = this.decodedIdToken["sid"];
+        }
       /* tslint:enable:no-string-literal */
       }
     } catch (e) {
