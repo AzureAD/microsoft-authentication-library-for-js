@@ -2210,6 +2210,16 @@ export class UserAgentApplication {
     return this.config.auth.postLogoutRedirectUri;
   }
 
+  /**
+   * Used to get the current configuration of MSAL.js
+   */
+  public getCurrentConfiguration(): Configuration {
+    if (!this.config) {
+      throw ClientConfigurationError.createNoSetConfigurationError();
+    }
+    return this.config;
+  }
+
   //#endregion
 
   //#region String Util (Should be extracted to Utils.ts)

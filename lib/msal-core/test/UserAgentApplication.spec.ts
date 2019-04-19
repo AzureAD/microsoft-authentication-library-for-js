@@ -10,7 +10,8 @@ import {
     ClientAuthError,
     ClientConfigurationError,
     ServerError,
-    Authority
+    Authority,
+    AuthResponse
 } from '../src/index';
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
@@ -35,7 +36,9 @@ describe("UserAgentApplication", function () {
     const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=12345";
     const TEST_ERROR_CODE = "error_code";
     const TEST_ERROR_DESC = "msal error description"
-    const TEST_STATE = "1234";
+    const TEST_USER_STATE_NUM = "1234";
+    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2";
+    const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
     const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
     const TENANT = 'common';
     const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
@@ -107,7 +110,6 @@ describe("UserAgentApplication", function () {
 
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
-            // Necessary for login redirect
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
@@ -346,7 +348,8 @@ describe("UserAgentApplication", function () {
                     redirectUri: TEST_REDIR_URI
                 }
             };
-            msal = new UserAgentApplication(config);setAuthInstanceStubs();
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
             setTestCacheItems();
         });
 
@@ -555,10 +558,12 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    redirectUri: TEST_REDIR_URI,
+                    state: TEST_USER_STATE_NUM
                 }
             };
-            msal = new UserAgentApplication(config);setAuthInstanceStubs();
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
             setTestCacheItems();
         });
 
@@ -569,9 +574,8 @@ describe("UserAgentApplication", function () {
 
         it("tests saveTokenForHash in case of error", function() {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_STATE);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             let checkErrorFromServer = function(error: AuthError, accountState: string) {
-                expect(accountState).to.include(TEST_STATE);
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
@@ -581,6 +585,24 @@ describe("UserAgentApplication", function () {
                 expect(error.stack).to.include("UserAgentApplication.spec.js");
             };
             msal.handleRedirectCallbacks(successCallback, checkErrorFromServer);
+        });
+
+        it("tests if you get the state back in errorReceived callback, if state is a number", function () {
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            let checkErrorHasState = function(error: AuthError, accountState: string) {
+                expect(accountState).to.include(TEST_USER_STATE_NUM);
+            };
+            msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
+        });
+
+        it("tests if you get the state back in errorReceived callback, if state is a url", function () {
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
+            let checkErrorHasState = function(error: AuthError, accountState: string) {
+                expect(accountState).to.include(TEST_USER_STATE_URL);
+            };
+            msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
         });
 
         it("tests that isCallback correctly identifies url hash", function () {
@@ -603,7 +625,8 @@ describe("UserAgentApplication", function () {
                     postLogoutRedirectUri: TEST_LOGOUT_URI
                 }
             };
-            msal = new UserAgentApplication(config);setAuthInstanceStubs();
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
             setTestCacheItems();
         });
 
@@ -636,7 +659,140 @@ describe("UserAgentApplication", function () {
             // });
             // msal.logout();
         });
+    });
 
+    describe("State Handling", function () {
+
+        beforeEach(function () {
+            cacheStorage = new Storage("sessionStorage");
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI,
+                    state: TEST_USER_STATE_NUM
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+            setTestCacheItems();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("tests getAccountState with a user passed state", function () {
+            var result = msal.getAccountState("123465464565|91111");
+            expect(result).to.be.eq("91111");
+        });
+
+        it('test getAccountState when there is no user state', function () {
+            var result = msal.getAccountState("123465464565");
+            expect(result).to.be.eq("");
+        });
+    
+        it('test getAccountState when there is no state', function () {
+            var result =msal.getAccountState("");
+            expect(result).to.be.eq("");
+        });
+    });
+
+    describe("Cache Location", function () {
+        
+        beforeEach(function () {
+            cacheStorage = new Storage("sessionStorage");
+            setAuthInstanceStubs();
+            setTestCacheItems();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("tests cacheLocation functionality defaults to sessionStorage", function () {
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+            const checkConfig = msal.getCurrentConfiguration();
+            expect(checkConfig.cache.cacheLocation).to.be.eq("sessionStorage");
+        });
+
+        it("tests cacheLocation functionality sets to localStorage when passed as a parameter", function () {
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                },
+                cache: {
+                    cacheLocation: "localStorage"
+                }
+            };
+            msal = new UserAgentApplication(config);
+            const checkConfig = msal.getCurrentConfiguration();
+            expect(checkConfig.cache.cacheLocation).to.be.eq(config.cache.cacheLocation);
+        });
+    });
+    
+    describe("Popup Flow", function () {
+
+        beforeEach(function() {
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("returns a promise from loginPopup", function () {
+            let loginPopupPromise : Promise<AuthResponse>;
+            loginPopupPromise = msal.loginPopup({});
+            expect(loginPopupPromise instanceof Promise).to.be.true;
+        });
+
+        it("returns a promise from acquireTokenPopup", function () {
+            let acquireTokenPromise : Promise<AuthResponse>;
+            acquireTokenPromise = msal.acquireTokenPopup({scopes: [MSAL_CLIENT_ID]});
+            expect(acquireTokenPromise instanceof Promise).to.be.true;
+        });
+    });
+
+    describe("Silent Flow", function () {
+
+        beforeEach(function() {
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("returns a promise from acquireTokenSilent", function () {
+            let acquireTokenSilentPromise : Promise<AuthResponse>;
+            acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [MSAL_CLIENT_ID]});
+            expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
+        });
 
     });
 });
