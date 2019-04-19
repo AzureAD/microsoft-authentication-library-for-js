@@ -1,3 +1,5 @@
+import { CacheLocation } from "./Configuration";
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
@@ -75,8 +77,8 @@ export class Constants {
   static get openidScope(): string { return "openid"; }
   static get profileScope(): string { return "profile"; }
 
-  static get cacheLocationLocal(): string { return "localStorage"; }
-  static get cacheLocationSession(): string { return "sessionStorage"; }
+  static get cacheLocationLocal(): CacheLocation { return "localStorage"; }
+  static get cacheLocationSession(): CacheLocation { return "sessionStorage"; }
 }
 
 /**
