@@ -17,6 +17,7 @@ describe("ClientAuthError", () => {
       err = error;
     }
 
+    expect(err instanceof ClientAuthError).to.be.true;
     expect(err.errorCode).to.equal(TEST_ERROR_CODE);
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);

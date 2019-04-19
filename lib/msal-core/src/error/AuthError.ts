@@ -25,7 +25,6 @@ export class AuthError extends Error {
         this.name = "AuthError";
     }
 
-
     static createUnexpectedError(errDesc: string) {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
     }

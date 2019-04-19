@@ -1181,7 +1181,6 @@ export class UserAgentApplication {
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
-
     const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
     this.promptUser(urlNavigate);
   }
@@ -2214,17 +2213,6 @@ export class UserAgentApplication {
   //#endregion
 
   //#region String Util (Should be extracted to Utils.ts)
-
-  /**
-   * Checks if the authorization endpoint URL contains query string parameters
-   * @ignore
-   * @hidden
-   */
-  private urlContainsQueryStringParameter(name: string, url: string): boolean {
-    // regex to detect pattern of a ? or & followed by the name parameter and an equals character
-    const regex = new RegExp("[\\?&]" + name + "=");
-    return regex.test(url);
-  }
 
   /**
    * Returns the anchor part(#) of the URL
