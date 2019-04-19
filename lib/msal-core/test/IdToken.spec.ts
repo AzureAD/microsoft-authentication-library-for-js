@@ -8,8 +8,9 @@ describe("IdToken", function() {
     describe("constructor parsing the raw id token string", function () {
 
         let idTokenObj : IdToken;
-        beforeEach(function () {
-            
+
+        afterEach(function () {
+            idTokenObj = null;
         });
 
         it("throws an error if an null string is passed", function () {
