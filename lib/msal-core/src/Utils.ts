@@ -7,6 +7,7 @@ import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
+import { ClientAuthError } from "./error/ClientAuthError";
 
 const { version } = require("../package.json");
 
@@ -330,7 +331,7 @@ export class Utils {
     base64IdToken = String(base64IdToken).replace(/=+$/, "");
     var length = base64IdToken.length;
     if (length % 4 === 1) {
-      throw new Error("The token to be decoded is not correctly encoded.");
+      throw ClientAuthError.createTokenEncodingError(base64IdToken);
     }
     let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = "";
     for (var i = 0; i < length; i += 4) {

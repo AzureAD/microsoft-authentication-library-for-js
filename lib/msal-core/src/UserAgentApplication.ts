@@ -587,9 +587,9 @@ export class UserAgentApplication {
       }
     }, () => {
       // Endpoint resolution failure error
-      this.logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
-      this.cacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
-      this.cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
+      this.logger.info(ClientAuthErrorMessage.endpointResolutionError.code + ":" + ClientAuthErrorMessage.endpointResolutionError.desc);
+      this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
+      this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
 
       // What is this? Is this the reject that is passed in?? -- REDO this in the subsequent refactor, passing reject is confusing
       if (reject) {
@@ -690,9 +690,9 @@ export class UserAgentApplication {
 
       }, () => {
         // On rejection
-        this.logger.info(ErrorCodes.endpointResolutionError + ":" + ErrorDescription.endpointResolutionError);
-        this.cacheStorage.setItem(Constants.msalError, ErrorCodes.endpointResolutionError);
-        this.cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.endpointResolutionError);
+        this.logger.info(ClientAuthErrorMessage.endpointResolutionError.code + ":" + ClientAuthErrorMessage.endpointResolutionError.desc);
+        this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
+        this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
 
         if (reject) {
           reject(ClientAuthError.createEndpointResolutionError());
@@ -729,9 +729,9 @@ export class UserAgentApplication {
       instance.loginInProgress = false;
       instance.acquireTokenInProgress = false;
 
-      this.logger.info(ErrorCodes.popUpWindowError + ":" + ErrorDescription.popUpWindowError);
-      this.cacheStorage.setItem(Constants.msalError, ErrorCodes.popUpWindowError);
-      this.cacheStorage.setItem(Constants.msalErrorDescription, ErrorDescription.popUpWindowError);
+      this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
+      this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.popUpWindowError.code);
+      this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.popUpWindowError.desc);
       if (reject) {
         reject(ClientAuthError.createPopupWindowError());
       }
@@ -749,7 +749,7 @@ export class UserAgentApplication {
         }
         window.clearInterval(pollTimer);
         if (this.config.framework.isAngular) {
-            this.broadcast("msal:popUpClosed", ErrorCodes.userCancelledError + Constants.resourceDelimiter + ErrorDescription.userCancelledError);
+            this.broadcast("msal:popUpClosed", ClientAuthErrorMessage.userCancelledError.code + Constants.resourceDelimiter + ClientAuthErrorMessage.userCancelledError.desc);
             return;
         }
         instance.loginInProgress = false;

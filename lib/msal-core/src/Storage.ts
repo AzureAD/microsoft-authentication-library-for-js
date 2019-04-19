@@ -5,6 +5,7 @@ import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "./Configuration";
 import { CacheKeys } from "./Constants";
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -26,7 +27,7 @@ export class Storage {// Singleton
     this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
     Storage.instance = this;
     if (!this.localStorageSupported && !this.sessionStorageSupported) {
-      throw new Error("localStorage and sessionStorage not supported");
+      throw ClientConfigurationError.createNoStorageSupportError();
     }
 
     return Storage.instance;

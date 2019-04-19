@@ -29,7 +29,7 @@ export const ClientAuthErrorMessage = {
     },
     invalidIdToken: {
         code: "invalid_id_token",
-        desc: "Invalid ID token."
+        desc: "Invalid ID token format."
     },
     invalidStateError: {
         code: "invalid_state_error",
@@ -62,6 +62,22 @@ export const ClientAuthErrorMessage = {
     userDoesNotExistError: {
         code: "user_non_existent",
         desc: "User object does not exist. Please call a login API."
+    },
+    clientInfoDecodingError: {
+        code: "client_info_decoding_error",
+        desc: "The client info could not be parsed/decoded correctly. Please review the trace to determine the root cause."
+    },
+    nullOrEmptyIdToken: {
+        code: "null_or_empty_id_token",
+        desc: "The idToken is null or empty. Please review the trace to determine the root cause."
+    },
+    idTokenNotParsed: {
+        code: "id_token_parsing_error",
+        desc: "ID token cannot be parsed. Please review stack trace to determine root cause."
+    },
+    tokenEncodingError: {
+        code: "token_encoding_error",
+        desc: "The token to be decoded is not encoded correctly."
     }
 };
 
@@ -153,5 +169,25 @@ export class ClientAuthError extends AuthError {
     static createUserDoesNotExistError() : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userDoesNotExistError.code,
             ClientAuthErrorMessage.userDoesNotExistError.desc);
+    }
+
+    static createClientInfoDecodingError(caughtError: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.clientInfoDecodingError.code,
+            `${ClientAuthErrorMessage.clientInfoDecodingError.desc} Failed with error: ${caughtError}`);
+    }
+
+    static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
+            `${ClientAuthErrorMessage.nullOrEmptyIdToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
+    }
+
+    static createIdTokenParsingError(caughtParsingError: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.idTokenNotParsed.code,
+            `${ClientAuthErrorMessage.idTokenNotParsed.desc} Failed with error: ${caughtParsingError}`);
+    }
+
+    static createTokenEncodingError(incorrectlyEncodedToken: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenEncodingError.code,
+            `${ClientAuthErrorMessage.tokenEncodingError.desc} Attempted to decode: ${incorrectlyEncodedToken}`);
     }
 }
