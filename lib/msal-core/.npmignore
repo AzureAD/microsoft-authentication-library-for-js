@@ -260,4 +260,3 @@ typings/
 coverage/
 dist/
 endToEndTests/
-lib-es6/

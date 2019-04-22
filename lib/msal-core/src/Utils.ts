@@ -7,8 +7,7 @@ import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
-
-const { version } = require("../package.json");
+import { Library } from "./Constants";
 
 /**
  * @hidden
@@ -52,7 +51,7 @@ export class Utils {
    * MSAL JS Library Version
    */
   static getLibraryVersion(): string {
-    return version;
+    return Library.version;
   }
 
   /**
