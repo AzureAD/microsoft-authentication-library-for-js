@@ -1181,7 +1181,6 @@ export class UserAgentApplication {
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
-
     const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
     this.promptUser(urlNavigate);
   }
@@ -2211,20 +2210,19 @@ export class UserAgentApplication {
     return this.config.auth.postLogoutRedirectUri;
   }
 
+  /**
+   * Used to get the current configuration of MSAL.js
+   */
+  public getCurrentConfiguration(): Configuration {
+    if (!this.config) {
+      throw ClientConfigurationError.createNoSetConfigurationError();
+    }
+    return this.config;
+  }
+
   //#endregion
 
   //#region String Util (Should be extracted to Utils.ts)
-
-  /**
-   * Checks if the authorization endpoint URL contains query string parameters
-   * @ignore
-   * @hidden
-   */
-  private urlContainsQueryStringParameter(name: string, url: string): boolean {
-    // regex to detect pattern of a ? or & followed by the name parameter and an equals character
-    const regex = new RegExp("[\\?&]" + name + "=");
-    return regex.test(url);
-  }
 
   /**
    * Returns the anchor part(#) of the URL
