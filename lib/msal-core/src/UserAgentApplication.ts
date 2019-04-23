@@ -1474,7 +1474,7 @@ export class UserAgentApplication {
       for (let i = 0; i < tokenCacheItems.length; i++) {
         const cacheItem = tokenCacheItems[i];
         const cachedScopes = cacheItem.key.scopes.split(" ");
-        if (Utils.containsScope(cachedScopes, scopes) && cacheItem.key.authority === serverAuthenticationRequest.authority) {
+        if (Utils.containsScope(cachedScopes, scopes) && Utils.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
           filteredItems.push(cacheItem);
         }
       }
@@ -2310,7 +2310,7 @@ export class UserAgentApplication {
   private setAuthorityCache(state: string, authority: string) {
     // Cache authorityKey
     const authorityKey = Storage.generateAuthorityKey(state);
-    this.cacheStorage.setItem(authorityKey, authority, this.inCookie);
+    this.cacheStorage.setItem(authorityKey, Utils.CanonicalizeUri(authority), this.inCookie);
   }
 
   /**
