@@ -11,8 +11,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidCacheLocation: {
         code: "invalid_cache_location",
-        desc: "The cache contains multiple tokens satisfying the requirements. " +
-            "Call AcquireToken again providing more requirements like authority."
+        desc: "The cache location provided is not valid."
     },
     noStorageSupported: {
         code: "browser_storage_not_supported",

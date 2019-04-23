@@ -47,7 +47,7 @@ describe("ClientConfigurationError", () => {
 
   it("createNoStorageSupportError creates a ClientConfigurationError object", () => {
 
-    const noStorageSupportError = ClientConfigurationError.createNoStorageSupportError();
+    const noStorageSupportError = ClientConfigurationError.createNoStorageSupportedError();
     let err: ClientConfigurationError;
 
     try {
@@ -56,9 +56,9 @@ describe("ClientConfigurationError", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.noStorageSupport.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.noStorageSupport.desc);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.noStorageSupport.desc);
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.noStorageSupported.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.noStorageSupported.desc);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.noStorageSupported.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
