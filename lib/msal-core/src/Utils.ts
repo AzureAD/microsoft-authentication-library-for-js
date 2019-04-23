@@ -452,16 +452,21 @@ export class Utils {
    * @param tenantId The tenant id to replace
    */
   static replaceTenantPath(url: string, tenantId: string): string {
-      if (!tenantId) {
-          return url;
-      }
+      url = url.toLowerCase();
       var urlObject = this.GetUrlComponents(url);
       var pathArray = urlObject.PathSegments;
-      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
-          pathArray[0] = tenantId;
-          url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
+      if (!tenantId) {
+        return this.constructAuthorityUriFromObject(urlObject, pathArray);
       }
-      return this.CanonicalizeUri(url);
+      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
+        pathArray[0] = tenantId;
+        return this.constructAuthorityUriFromObject(urlObject, pathArray);
+      }
+      return url;
+  }
+
+  static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
+    return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
   }
 
   /**
