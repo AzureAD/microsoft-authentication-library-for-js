@@ -1511,7 +1511,7 @@ export class UserAgentApplication {
           tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? Constants.idToken : Constants.accessToken,
           idToken: idToken,
           accessToken: accessTokenCacheItem.value.accessToken,
-          scopes: serverAuthenticationRequest.scopes,
+          scopes: accessTokenCacheItem.key.scopes.split(" "),
           expiresOn: new Date(expired * 1000),
           account: account,
           accountState: aState,

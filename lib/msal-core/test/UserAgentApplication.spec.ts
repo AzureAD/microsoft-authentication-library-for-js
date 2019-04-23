@@ -1,6 +1,6 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
-import { 
+import {
     UserAgentApplication,
     Constants,
     AuthenticationParameters,
@@ -24,7 +24,7 @@ import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 
 type kv = {
-    [key: string]: string;   
+    [key: string]: string;
 }
 
 describe("UserAgentApplication", function () {
@@ -83,7 +83,7 @@ describe("UserAgentApplication", function () {
     let accessTokenKey : AccessTokenKey;
     let accessTokenValue : AccessTokenValue;
     let account : Account;
-    
+
     let setTestCacheItems = function () {
         accessTokenKey = {
             authority: validAuthority,
@@ -377,7 +377,7 @@ describe("UserAgentApplication", function () {
                 expect(response.idToken.rawIdToken).to.include("idToken");
                 expect(response.accessToken).to.include('accessToken1');
                 expect(response.account).to.be.eq(account);
-                expect(response.scopes).to.be.eq(tokenRequest.scopes);
+                expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
                 expect(response.tokenType).to.be.eq(Constants.accessToken);
                 done();
             }).catch(function(err) {
@@ -394,12 +394,12 @@ describe("UserAgentApplication", function () {
             let params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
-            
+
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
             accessTokenKey.authority = alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            
+
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
@@ -421,7 +421,7 @@ describe("UserAgentApplication", function () {
             let params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
-            
+
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = 'S2';
             accessTokenKey.authority = alternateValidAuthority;
@@ -460,9 +460,9 @@ describe("UserAgentApplication", function () {
             accessTokenKey.authority = alternateValidAuthority + "/";
             accessTokenValue.accessToken = "accessToken2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            
+
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.eq(tokenRequest.scopes);
+                expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.include("idToken");
                 expect(response.accessToken).to.include('accessToken1');
@@ -473,7 +473,7 @@ describe("UserAgentApplication", function () {
             });
 
             msal.acquireTokenSilent(tokenRequest2).then(function(response) {
-                expect(response.scopes).to.be.eq(tokenRequest2.scopes);
+                expect(response.scopes).to.be.deep.eq(tokenRequest2.scopes);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.include("idToken");
                 expect(response.accessToken).to.include('accessToken2');
@@ -498,7 +498,7 @@ describe("UserAgentApplication", function () {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            
+
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
@@ -530,7 +530,7 @@ describe("UserAgentApplication", function () {
                 done();
                 return {};
             });
-            
+
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -562,7 +562,7 @@ describe("UserAgentApplication", function () {
                 done();
                 return {};
             });
-            
+
             accessTokenValue.expiresIn = "1300";
             accessTokenKey.authority = alternateValidAuthority + "/";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -664,7 +664,7 @@ describe("UserAgentApplication", function () {
             cacheStorage.clear();
             sinon.restore();
         });
-        
+
         it("clears cache and account object", function (done) {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(Constants.idTokenKey, "idTokenKey");
@@ -721,7 +721,7 @@ describe("UserAgentApplication", function () {
             var result = msal.getAccountState("123465464565");
             expect(result).to.be.eq("");
         });
-    
+
         it('test getAccountState when there is no state', function () {
             var result =msal.getAccountState("");
             expect(result).to.be.eq("");
@@ -729,7 +729,7 @@ describe("UserAgentApplication", function () {
     });
 
     describe("Cache Location", function () {
-        
+
         beforeEach(function () {
             cacheStorage = new Storage("sessionStorage");
             setAuthInstanceStubs();
@@ -768,7 +768,7 @@ describe("UserAgentApplication", function () {
             expect(checkConfig.cache.cacheLocation).to.be.eq(config.cache.cacheLocation);
         });
     });
-    
+
     describe("Popup Flow", function () {
 
         beforeEach(function() {
