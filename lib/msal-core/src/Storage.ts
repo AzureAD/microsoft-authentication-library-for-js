@@ -5,6 +5,7 @@ import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "./Configuration";
 import { CacheKeys } from "./Constants";
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -26,7 +27,7 @@ export class Storage {// Singleton
     this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
     Storage.instance = this;
     if (!this.localStorageSupported && !this.sessionStorageSupported) {
-      throw new Error("localStorage and sessionStorage not supported");
+      throw ClientConfigurationError.createNoStorageSupportedError();
     }
 
     return Storage.instance;
@@ -123,7 +124,7 @@ export class Storage {// Singleton
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         let cookieStr = cName + "=" + cValue + ";";
         if (expires) {
-            const expireTime = this.setExpirationCookie(expires);
+            const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += "expires=" + expireTime + ";";
         }
 
@@ -145,9 +146,9 @@ export class Storage {// Singleton
         return "";
     }
 
-    setExpirationCookie(cookieLife: number): string {
+    getCookieExpirationTime(cookieLifeDays: number): string {
         const today = new Date();
-        const expr = new Date(today.getTime() + cookieLife * 24 * 60 * 60 * 1000);
+        const expr = new Date(today.getTime() + cookieLifeDays * 24 * 60 * 60 * 1000);
         return expr.toUTCString();
     }
 

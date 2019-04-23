@@ -1,3 +1,5 @@
+import { CacheLocation } from "./Configuration";
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
@@ -75,36 +77,8 @@ export class Constants {
   static get openidScope(): string { return "openid"; }
   static get profileScope(): string { return "profile"; }
 
-  static get cacheLocationLocal(): string { return "localStorage"; }
-  static get cacheLocationSession(): string { return "sessionStorage"; }
-
-
-}
-
-/**
- * @hidden
- */
-export class ErrorCodes {
-  static get loginProgressError(): string { return "login_progress_error"; }
-  static get acquireTokenProgressError(): string { return "acquiretoken_progress_error"; }
-  static get inputScopesError(): string { return "input_scopes_error"; }
-  static get endpointResolutionError(): string { return "endpoints_resolution_error"; }
-  static get popUpWindowError(): string { return "popup_window_error"; }
-  static get userLoginError(): string { return "user_login_error"; }
-  static get userCancelledError(): string { return "user_cancelled"; }
-}
-
-/**
- * @hidden
- */
-export class ErrorDescription {
-  static get loginProgressError(): string { return "Login is in progress"; }
-  static get acquireTokenProgressError(): string { return "Acquire token is in progress"; }
-  static get inputScopesError(): string { return "Invalid value of input scopes provided"; }
-  static get endpointResolutionError(): string { return "Endpoints cannot be resolved"; }
-  static get popUpWindowError(): string { return "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."; }
-  static get userLoginError(): string { return "User login is required"; }
-  static get userCancelledError(): string { return "User closed the popup window and cancelled the flow"; }
+  static get cacheLocationLocal(): CacheLocation { return "localStorage"; }
+  static get cacheLocationSession(): CacheLocation { return "sessionStorage"; }
 }
 
 /**

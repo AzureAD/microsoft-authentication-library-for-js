@@ -38,9 +38,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.endpointResolutionError.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.endpointResolutionError.desc);
-    expect(err.errorMessage).to.contain(ERROR_DETAIL);
-    expect(err.message).to.contain(ClientAuthErrorMessage.endpointResolutionError.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.endpointResolutionError.desc);
+    expect(err.errorMessage).to.include(ERROR_DETAIL);
+    expect(err.message).to.include(ClientAuthErrorMessage.endpointResolutionError.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
 
@@ -60,9 +60,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleMatchingTokens.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-    expect(err.errorMessage).to.contain(`${errorDetail} ${scope}`);
-    expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+    expect(err.errorMessage).to.include(`${errorDetail} ${scope}`);
+    expect(err.message).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -81,9 +81,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleCacheAuthorities.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-    expect(err.errorMessage).to.contain(`${errorDetail} ${scope}`);
-    expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
+    expect(err.errorMessage).to.include(`${errorDetail} ${scope}`);
+    expect(err.message).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -101,9 +101,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.popUpWindowError.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.popUpWindowError.desc);
-    expect(err.errorMessage).to.contain(ERROR_DETAIL);
-    expect(err.message).to.contain(ClientAuthErrorMessage.popUpWindowError.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.popUpWindowError.desc);
+    expect(err.errorMessage).to.include(ERROR_DETAIL);
+    expect(err.message).to.include(ClientAuthErrorMessage.popUpWindowError.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -143,8 +143,8 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.invalidIdToken.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.invalidIdToken.desc);
-    expect(err.message).to.contain(ClientAuthErrorMessage.invalidIdToken.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.invalidIdToken.desc);
+    expect(err.message).to.include(ClientAuthErrorMessage.invalidIdToken.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -163,9 +163,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.invalidStateError.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.invalidStateError.desc);
-    expect(err.errorMessage).to.contain(`${invalidState}, state expected : ${state}.`);
-    expect(err.message).to.contain(ClientAuthErrorMessage.invalidStateError.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.invalidStateError.desc);
+    expect(err.errorMessage).to.include(`${invalidState}, state expected : ${state}.`);
+    expect(err.message).to.include(ClientAuthErrorMessage.invalidStateError.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -184,9 +184,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.nonceMismatchError.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.nonceMismatchError.desc);
-    expect(err.errorMessage).to.contain(`${invalidNonce}, nonce expected : ${nonce}.`);
-    expect(err.message).to.contain(ClientAuthErrorMessage.nonceMismatchError.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.nonceMismatchError.desc);
+    expect(err.errorMessage).to.include(`${invalidNonce}, nonce expected : ${nonce}.`);
+    expect(err.message).to.include(ClientAuthErrorMessage.nonceMismatchError.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -258,9 +258,9 @@ describe("ClientAuthError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.callbackError.code);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.callbackError.desc);
-    expect(err.errorMessage).to.contain(ClientAuthErrorMessage.callbackError.desc);
-    expect(err.message).to.contain(`${ERROR_DESC}`);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.callbackError.desc);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.callbackError.desc);
+    expect(err.message).to.include(`${ERROR_DESC}`);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
@@ -300,6 +300,87 @@ describe("ClientAuthError", () => {
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
+
+  it("createClientInfoDecodingError creates a ClientAuthError object", () => {
+
+    const caughtErrorString = "There was an error.";
+    const clientInfoDecodingError = ClientAuthError.createClientInfoDecodingError(caughtErrorString);
+    let err: ClientAuthError;
+
+    try {
+      throw clientInfoDecodingError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientAuthErrorMessage.clientInfoDecodingError.code);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+    expect(err.errorMessage).to.include(caughtErrorString);
+    expect(err.message).to.include(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+    expect(err.name).to.equal("ClientAuthError");
+    expect(err.stack).to.include("ClientAuthError.spec.js");
+  });
+
+  it("createIdTokenNullOrEmptyError creates a ClientAuthError object", () => {
+
+    const invalidRawIdToken = "invalidRawIdToken";
+    const nullOrEmptyIdTokenError = ClientAuthError.createIdTokenNullOrEmptyError(invalidRawIdToken);
+    let err: ClientAuthError;
+
+    try {
+      throw nullOrEmptyIdTokenError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+    expect(err.errorMessage).to.include(invalidRawIdToken);
+    expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+    expect(err.name).to.equal("ClientAuthError");
+    expect(err.stack).to.include("ClientAuthError.spec.js");
+  });
+
+  it("createIdTokenParsingError creates a ClientAuthError object", () => {
+
+    const invalidIdToken = "You can't parse this.";
+    const createIdTokenParsingError = ClientAuthError.createIdTokenParsingError(invalidIdToken);
+    let err: ClientAuthError;
+
+    try {
+      throw createIdTokenParsingError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientAuthErrorMessage.idTokenNotParsed.code);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.idTokenNotParsed.desc);
+    expect(err.errorMessage).to.include(invalidIdToken);
+    expect(err.message).to.include(ClientAuthErrorMessage.idTokenNotParsed.desc);
+    expect(err.name).to.equal("ClientAuthError");
+    expect(err.stack).to.include("ClientAuthError.spec.js");
+  });
+
+  it("createTokenEncodingError creates a ClientAuthError object", () => {
+
+    const incorrectlyEncodedToken = "This isn't encoded correctly!";
+    const tokenEncodingError = ClientAuthError.createTokenEncodingError(incorrectlyEncodedToken);
+    let err: ClientAuthError;
+
+    try {
+      throw tokenEncodingError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenEncodingError.code);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.tokenEncodingError.desc);
+    expect(err.errorMessage).to.include(incorrectlyEncodedToken);
+    expect(err.message).to.include(ClientAuthErrorMessage.tokenEncodingError.desc);
+    expect(err.name).to.equal("ClientAuthError");
+    expect(err.stack).to.include("ClientAuthError.spec.js");
+  });
+
 });
 
 
