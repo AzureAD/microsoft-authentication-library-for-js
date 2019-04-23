@@ -14,7 +14,6 @@ export class AccessTokenKey {
   homeAccountIdentifier: string;
 
   constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string) {
-    // TODO: Canonicalize authority URI
     this.authority = Utils.CanonicalizeUri(authority);
     this.clientId = clientId;
     this.scopes = scopes;
