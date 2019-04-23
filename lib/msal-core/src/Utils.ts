@@ -461,7 +461,7 @@ export class Utils {
           pathArray[0] = tenantId;
           url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
       }
-      return Utils.CanonicalizeUri(url);
+      return this.CanonicalizeUri(url);
   }
 
   /**
