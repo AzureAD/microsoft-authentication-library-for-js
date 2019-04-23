@@ -14,7 +14,7 @@ export const ClientConfigurationErrorMessage = {
         desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements like authority."
     },
-    noStorageSupport: {
+    noStorageSupported: {
         code: "browser_storage_not_supported",
         desc: "localStorage and sessionStorage are not supported."
     },
@@ -91,9 +91,9 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
     }
 
-    static createNoStorageSupportError() : ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.noStorageSupport.code,
-            ClientConfigurationErrorMessage.noStorageSupport.desc);
+    static createNoStorageSupportedError() : ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.noStorageSupported.code,
+            ClientConfigurationErrorMessage.noStorageSupported.desc);
     }
 
     static createRedirectCallbacksNotSetError(): ClientConfigurationError {

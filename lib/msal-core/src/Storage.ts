@@ -20,7 +20,6 @@ export class Storage {// Singleton
   constructor(cacheLocation: CacheLocation) {
     if (Storage.instance) {
       return Storage.instance;
-
     }
 
     this.cacheLocation = cacheLocation;
@@ -28,7 +27,7 @@ export class Storage {// Singleton
     this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
     Storage.instance = this;
     if (!this.localStorageSupported && !this.sessionStorageSupported) {
-      throw ClientConfigurationError.createNoStorageSupportError();
+      throw ClientConfigurationError.createNoStorageSupportedError();
     }
 
     return Storage.instance;
