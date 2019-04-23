@@ -457,7 +457,6 @@ export class Utils {
       var pathArray = urlObject.PathSegments;
       if (tenantId && pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
         pathArray[0] = tenantId;
-        return this.constructAuthorityUriFromObject(urlObject, pathArray);
       }
       return this.constructAuthorityUriFromObject(urlObject, pathArray);
   }
