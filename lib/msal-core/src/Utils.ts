@@ -455,14 +455,11 @@ export class Utils {
       url = url.toLowerCase();
       var urlObject = this.GetUrlComponents(url);
       var pathArray = urlObject.PathSegments;
-      if (!tenantId) {
-        return this.constructAuthorityUriFromObject(urlObject, pathArray);
-      }
-      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
+      if (tenantId && pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
         pathArray[0] = tenantId;
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
       }
-      return url;
+      return this.constructAuthorityUriFromObject(urlObject, pathArray);
   }
 
   static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
