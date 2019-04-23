@@ -38,9 +38,27 @@ describe("ClientConfigurationError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidCacheLocation.code);
-    expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
-    expect(err.errorMessage).to.contain(givenCacheLocation);
-    expect(err.message).to.contain(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
+    expect(err.errorMessage).to.include(givenCacheLocation);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
+    expect(err.name).to.equal("ClientConfigurationError");
+    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+  });
+
+  it("createNoStorageSupportError creates a ClientConfigurationError object", () => {
+
+    const noStorageSupportError = ClientConfigurationError.createNoStorageSupportError();
+    let err: ClientConfigurationError;
+
+    try {
+      throw noStorageSupportError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.noStorageSupport.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.noStorageSupport.desc);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.noStorageSupport.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
@@ -77,9 +95,9 @@ describe("ClientConfigurationError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidCallbackObject.code);
-    expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
-    expect(err.errorMessage).to.contain(`Given value for ${callbackType} callback function: ${callbackFunction}`);
-    expect(err.message).to.contain(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
+    expect(err.errorMessage).to.include(`Given value for ${callbackType} callback function: ${callbackFunction}`);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
@@ -97,9 +115,9 @@ describe("ClientConfigurationError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-    expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
-    expect(err.errorMessage).to.contain(`Given value: ${scopesValue}`);
-    expect(err.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.emptyScopes.desc);
+    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.emptyScopes.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
@@ -117,9 +135,9 @@ describe("ClientConfigurationError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
-    expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
-    expect(err.errorMessage).to.contain(`Given value: ${scopesValue}`);
-    expect(err.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.nonArrayScopes.desc);
+    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.nonArrayScopes.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
@@ -137,16 +155,16 @@ describe("ClientConfigurationError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
-    expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
-    expect(err.errorMessage).to.contain(`Given value: ${scopesValue}`);
-    expect(err.message).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.clientScope.desc);
+    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.clientScope.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
 
   it("createScopesRequiredError creates a ClientConfigurationError object", () => {
 
-    const scopesValue = "";
+    const scopesValue = "random";
     const scopesRequiredError = ClientConfigurationError.createScopesRequiredError(scopesValue);
     let err: ClientConfigurationError;
 
@@ -157,9 +175,29 @@ describe("ClientConfigurationError", () => {
     }
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-    expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-    expect(err.errorMessage).to.contain(`Given value: ${scopesValue}`);
-    expect(err.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.scopesRequired.desc);
+    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.scopesRequired.desc);
+    expect(err.name).to.equal("ClientConfigurationError");
+    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+  });
+
+  it("createInvalidPromptError creates a ClientConfigurationError object", () => {
+
+    const promptValue = "random";
+    const invalidPromptError = ClientConfigurationError.createInvalidPromptError(promptValue);
+    let err: ClientConfigurationError;
+
+    try {
+      throw invalidPromptError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidPrompt.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidPrompt.desc);
+    expect(err.errorMessage).to.include(`Given value: ${promptValue}`);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.invalidPrompt.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
