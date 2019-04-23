@@ -5,6 +5,10 @@ import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
 
 export const ClientConfigurationErrorMessage = {
+    configurationNotSet: {
+        code: "no_config_set",
+        desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
+    },
     invalidCacheLocation: {
         code: "invalid_cache_location",
         desc: "The cache contains multiple tokens satisfying the requirements. " +
@@ -75,6 +79,11 @@ export class ClientConfigurationError extends ClientAuthError {
         super(errorCode, errorMessage);
         this.name = "ClientConfigurationError";
         Object.setPrototypeOf(this, ClientConfigurationError.prototype);
+    }
+
+    static createNoSetConfigurationError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.configurationNotSet.code,
+            `${ClientConfigurationErrorMessage.configurationNotSet.desc}`);
     }
 
     static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
