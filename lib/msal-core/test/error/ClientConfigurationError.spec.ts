@@ -83,9 +83,8 @@ describe("ClientConfigurationError", () => {
 
   it("createInvalidCallbackObjectError creates a ClientConfigurationError object", () => {
 
-    const callbackType = "successCallback";
-    const callbackFunction: Object = "";
-    const invalidCallBackObject = ClientConfigurationError.createInvalidCallbackObjectError(callbackType, callbackFunction);
+    const callbackFunction: Object = null;
+    const invalidCallBackObject = ClientConfigurationError.createInvalidCallbackObjectError(callbackFunction);
     let err: ClientConfigurationError;
 
     try {
@@ -96,7 +95,7 @@ describe("ClientConfigurationError", () => {
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidCallbackObject.code);
     expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
-    expect(err.errorMessage).to.include(`Given value for ${callbackType} callback function: ${callbackFunction}`);
+    expect(err.errorMessage).to.include(`Given value for callback function: ${callbackFunction}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");

@@ -53,6 +53,15 @@ describe("UserAgentApplication", function () {
 
     let msal: UserAgentApplication;
 
+    let authCallback = function (error, response) {
+        if (error) {
+            console.log("Error: " + error);
+            console.log("State: " + response.state);
+        } else {
+            console.log(response);
+        }
+    };
+
     let successCallback = function(response) {
         console.log("Response: " + response);
     };
@@ -131,8 +140,7 @@ describe("UserAgentApplication", function () {
         });
 
         it('throws error if null argument is passed to either argument of setRedirectCallbacks', (done) => {
-            expect(() => msal.handleRedirectCallbacks(successCallback, null)).to.throw(ClientConfigurationError);
-            expect(() => msal.handleRedirectCallbacks(null, errCallback)).to.throw(ClientConfigurationError);
+            expect(() => msal.handleRedirectCallback(null)).to.throw(ClientConfigurationError);
             done();
         });
 
@@ -147,7 +155,7 @@ describe("UserAgentApplication", function () {
                 expect(url).not.to.include(Constants.prompt_none);
                 done();
             });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
             msal.loginRedirect({});
         });
@@ -163,7 +171,7 @@ describe("UserAgentApplication", function () {
                 expect(url).not.to.include(Constants.prompt_none);
                 done();
             });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
             let request: AuthenticationParameters = { prompt: "select_account" };
@@ -181,7 +189,7 @@ describe("UserAgentApplication", function () {
                 expect(url).to.include(Constants.prompt_none);
                 done();
             });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
             let request: AuthenticationParameters = { prompt: "none" };
@@ -212,7 +220,7 @@ describe("UserAgentApplication", function () {
                 expect(url).to.not.include(Constants.prompt_none);
                 done();
             });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
             let tokenRequest: AuthenticationParameters = {
                 prompt: "select_account",
@@ -230,7 +238,7 @@ describe("UserAgentApplication", function () {
                 expect(url).to.include('&client_info=1');
                 done();
             });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
 
             msal.loginRedirect({});
@@ -248,7 +256,7 @@ describe("UserAgentApplication", function () {
                 expect(url).to.include('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
                 done();
             });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             msal.loginRedirect({});
         });
 
@@ -263,7 +271,7 @@ describe("UserAgentApplication", function () {
                 expect(authErr.stack).to.be.undefined;
                 done();
             }
-            msal.handleRedirectCallbacks(successCallback, checkErrorFromLibrary);
+            msal.handleRedirectCallback(checkErrorFromLibrary);
             msal.loginRedirect();
         });
 
@@ -291,7 +299,7 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if error is thrown when null scopes are passed", function (done) {
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             var authErr: AuthError;
             try {
                 msal.acquireTokenRedirect({});
@@ -307,7 +315,7 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if error is thrown when empty array of scopes are passed", function (done) {
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             var authErr: AuthError;
             try {
                 msal.acquireTokenRedirect({
@@ -325,7 +333,7 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if error is thrown when client id is not passed as single scope", function (done) {
-            msal.handleRedirectCallbacks(successCallback, errCallback);
+            msal.handleRedirectCallback(authCallback);
             var authErr: AuthError;
             try {
                 msal.acquireTokenRedirect({
@@ -601,7 +609,7 @@ describe("UserAgentApplication", function () {
         it("tests saveTokenForHash in case of error", function(done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            let checkErrorFromServer = function(error: AuthError, accountState: string) {
+            let checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
@@ -611,27 +619,27 @@ describe("UserAgentApplication", function () {
                 expect(error.stack).to.include("UserAgentApplication.spec.js");
                 done();
             };
-            msal.handleRedirectCallbacks(successCallback, checkErrorFromServer);
+            msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            let checkErrorHasState = function(error: AuthError, accountState: string) {
-                expect(accountState).to.include(TEST_USER_STATE_NUM);
+            let checkErrorHasState = function(error: AuthError, response: AuthResponse) {
+                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
             };
-            msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
+            msal.handleRedirectCallback(checkErrorHasState);
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
-            let checkErrorHasState = function(error: AuthError, accountState: string) {
-                expect(accountState).to.include(TEST_USER_STATE_URL);
+            let checkErrorHasState = function(error: AuthError, response: AuthResponse) {
+                expect(response.accountState).to.include(TEST_USER_STATE_URL);
                 done();
             };
-            msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
+            msal.handleRedirectCallback(checkErrorHasState);
         });
 
         it("tests that isCallback correctly identifies url hash", function (done) {

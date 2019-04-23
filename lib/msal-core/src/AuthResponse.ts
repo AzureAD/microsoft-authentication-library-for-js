@@ -18,3 +18,19 @@ export type AuthResponse = {
     account: Account;
     accountState: string;
 };
+
+export function buildResponseStateOnly(state: string) : AuthResponse {
+    let response : AuthResponse = {
+        uniqueId: "",
+        tenantId: "",
+        tokenType: "",
+        idToken: null,
+        accessToken: "",
+        scopes: null,
+        expiresOn: null,
+        account: null,
+        accountState: state
+    };
+
+    return response;
+}

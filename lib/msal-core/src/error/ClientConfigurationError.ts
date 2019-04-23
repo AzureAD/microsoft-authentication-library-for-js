@@ -99,9 +99,9 @@ export class ClientConfigurationError extends ClientAuthError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.noRedirectCallbacksSet.code, ClientConfigurationErrorMessage.noRedirectCallbacksSet.desc);
     }
 
-    static createInvalidCallbackObjectError(callbackType: string, callbackObject: object): ClientConfigurationError {
+    static createInvalidCallbackObjectError(callbackObject: object): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCallbackObject.code,
-            `${ClientConfigurationErrorMessage.invalidCallbackObject.desc} Given value for ${callbackType} callback function: ${callbackObject}`);
+            `${ClientConfigurationErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
     }
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {

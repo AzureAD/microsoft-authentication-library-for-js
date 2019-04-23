@@ -21,7 +21,7 @@ import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
-import { AuthResponse } from "./AuthResponse";
+import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 
 // default authority
 /**
@@ -81,17 +81,11 @@ export type ResponseStateInfo = {
 };
 
 /**
- * A type alias for a tokenReceivedCallback function.
- * @param tokenReceivedCallback.token token returned from STS if token request is successful.
- * @param tokenReceivedCallback.tokenType tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.
+ * A type alias for an authResponseCallback function.
+ * @param authErr error created for failure cases
+ * @param response response containing token strings in success cases, or just state value in error cases
  */
-export type tokenReceivedCallback = (response: AuthResponse) => void;
-
-/**
- * A type alias for a errorReceivedCallback function.
- * @param errorReceivedCallback.errorDesc error object created by library containing error string returned from the STS if API call fails.
- */
-export type errorReceivedCallback = (authError: AuthError, accountState: string) => void;
+export type authResponseCallback = (authErr: AuthError, response?: AuthResponse) => void;
 
 /**
  * A wrapper to handle the token response/error within the iFrame always
@@ -121,8 +115,7 @@ export class UserAgentApplication {
   private config: Configuration;
 
   // callbacks for token/error
-  private tokenReceivedCallback: tokenReceivedCallback = null;
-  private errorReceivedCallback: errorReceivedCallback = null;
+  private authResponseCallback: authResponseCallback = null;
 
   // Added for readability as these params are very frequently used
   private logger: Logger;
@@ -217,31 +210,25 @@ export class UserAgentApplication {
   //#region Redirect Callbacks
   /**
    * Sets the callback functions for the redirect flow to send back the success or error object.
-   * @param {tokenReceivedCallback} successCallback - Callback which contains the AuthResponse object, containing data from the server.
-   * @param {errorReceivedCallback} errorCallback - Callback which contains a AuthError object, containing error data from either the server
-   * or the library, depending on the origin of the error.
+   * @param {authResponseCallback} authCallback - Callback which contains an AuthError object, containing error data from either the server
+   * or the library, depending on the origin of the error, or the AuthResponse object, containing data from the server.
    */
-  handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
-    if (!successCallback) {
+  handleRedirectCallback(authCallback: authResponseCallback): void {
+    if (!authCallback) {
       this.redirectCallbacksSet = false;
-      throw ClientConfigurationError.createInvalidCallbackObjectError("successCallback", successCallback);
-    } else if (!errorCallback) {
-      this.redirectCallbacksSet = false;
-      throw ClientConfigurationError.createInvalidCallbackObjectError("errorCallback", errorCallback);
+      throw ClientConfigurationError.createInvalidCallbackObjectError(authCallback);
     }
 
     // Set callbacks
-    this.tokenReceivedCallback = successCallback;
-    this.errorReceivedCallback = errorCallback;
+    this.authResponseCallback = authCallback;
 
     this.redirectCallbacksSet = true;
 
     // On the server 302 - Redirect, handle this
-    // TODO: rename pendingCallback to cachedHash
     if (!this.config.framework.isAngular) {
-      const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-      if (pendingCallback) {
-        this.processCallBack(pendingCallback, null);
+      const cachedHash = this.cacheStorage.getItem(Constants.urlHash);
+      if (cachedHash) {
+        this.processCallBack(cachedHash, null);
       }
     }
   }
@@ -264,7 +251,7 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.loginInProgress) {
-      this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), this.getAccountState(this.silentAuthenticationState));
+      this.authResponseCallback(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
       return;
     }
 
@@ -296,9 +283,10 @@ export class UserAgentApplication {
           this.silentLogin = false;
           this.logger.info("Unified cache call is successful");
 
-          if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback(response);
+          if (this.authResponseCallback) {
+            this.authResponseCallback(null, response);
           }
+          return;
         }, (error) => {
           this.silentLogin = false;
           this.logger.error("Error occurred during unified cache ATS");
@@ -395,7 +383,7 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      this.errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), this.getAccountState(this.silentAuthenticationState));
+      this.authResponseCallback(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
       return;
     }
 
@@ -1261,11 +1249,11 @@ export class UserAgentApplication {
           response.tokenType = Constants.idToken;
         }
         if (!parentCallback) {
-          this.tokenReceivedCallback(response);
+          this.authResponseCallback(null, response);
           return;
         }
       } else if (!parentCallback) {
-        this.errorReceivedCallback(authErr, accountState);
+        this.authResponseCallback(authErr, buildResponseStateOnly(accountState));
         return;
       }
 
