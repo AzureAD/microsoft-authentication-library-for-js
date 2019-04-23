@@ -9,7 +9,7 @@ import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
 import { ClientAuthError } from "./error/ClientAuthError";
 
-const { version } = require("../package.json");
+import { Library } from "./Constants";
 
 /**
  * @hidden
@@ -53,7 +53,7 @@ export class Utils {
    * MSAL JS Library Version
    */
   static getLibraryVersion(): string {
-    return version;
+    return Library.version;
   }
 
   /**

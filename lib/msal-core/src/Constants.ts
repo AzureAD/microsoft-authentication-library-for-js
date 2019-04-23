@@ -119,4 +119,6 @@ export const PromptState = {
 	NONE: "none",
 };
 
-
+export const Library = {
+  version: "1.0.0-preview.1"
+};
