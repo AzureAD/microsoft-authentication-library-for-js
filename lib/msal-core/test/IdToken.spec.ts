@@ -3,7 +3,7 @@ import { IdToken } from "../src/IdToken";
 import { AuthError, ClientAuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 
-describe("IdToken", function() {
+describe("IdToken.ts Class", function() {
 
     describe("constructor parsing the raw id token string", function () {
 

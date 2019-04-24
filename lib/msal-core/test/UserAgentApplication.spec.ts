@@ -27,7 +27,7 @@ type kv = {
     [key: string]: string;
 }
 
-describe("UserAgentApplication", function () {
+describe("UserAgentApplication.ts Class", function () {
 
     const DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
     const ALTERNATE_INSTANCE = "https://login.windows.net/"

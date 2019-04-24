@@ -7,7 +7,7 @@ import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
 import { Account } from "../src/Account";
 
-describe("Session Storage", function () {
+describe("CacheStorage.ts Class - Session Storage", function () {
     let TEST_KEY = "test_key";
     let TEST_VALUE = "test value";
     let TEST_ACCOUNT_ID = "1234";
