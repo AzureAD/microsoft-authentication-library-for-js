@@ -33,4 +33,5 @@ export function validateClaimsRequest(request: AuthenticationParameters) {
         throw ClientConfigurationError.createClaimsRequestParsingError(e);
     }
 
+    // TODO: More validation will be added when the server team tells us how they have actually implemented claims
 }

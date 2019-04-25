@@ -15,7 +15,7 @@ import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -2353,6 +2353,12 @@ export class UserAgentApplication {
         serverAuthenticationRequest.promptValue = request.prompt;
       }
 
+      // Add claims challenge to serverRequestParameters if passed
+      if (request.claimsRequest) {
+        validateClaimsRequest(request);
+        serverAuthenticationRequest.claimsValue = request.claimsRequest;
+      }
+
       // if the developer provides one of these, give preference to developer choice
       if (Utils.isSSOParam(request)) {
         queryParameters = Utils.constructUnifiedCacheQueryParameter(request, null);
@@ -2360,7 +2366,7 @@ export class UserAgentApplication {
     }
 
     if (adalIdTokenObject) {
-        queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
+      queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
     }
 
     // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
@@ -2370,7 +2376,7 @@ export class UserAgentApplication {
     // sanity check for developer passed extraQueryParameters
     let eQParams: QPDict;
     if (request) {
-        eQParams = this.removeSSOParamsFromEQParams(request.extraQueryParameters);
+      eQParams = this.removeSSOParamsFromEQParams(request.extraQueryParameters);
     }
 
     // Populate the extraQueryParameters to be sent to the server
