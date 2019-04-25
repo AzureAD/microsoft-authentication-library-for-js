@@ -24,6 +24,10 @@
     <div id="label">Sign-in with Microsoft</div>
     <button id="auth" onclick="loginPopup();">Login (with Popup)</button>
   </div>
+  <div id="readEmail" class="hidden">
+    <input id="emailRead" type="text" />
+    <button id="auth" onclick="readEmail();">Read email</button>
+  </div>
   <div id="sendEmail" class="hidden">
     <input id="emailToSendTo" type="text" />
     <button id="auth" onclick="sendEmail();">Send email</button>
@@ -47,16 +51,16 @@
     }
 
     var config = {
-      auth: { 
-        clientId: applicationConfig.clientID, 
+      auth: {
+        clientId: applicationConfig.clientID,
         validateAuthority: true
       },
-      cache: { 
-        cacheLocation: "localStorage", 
+      cache: {
+        cacheLocation: "localStorage",
         storeAuthStateInCookie: true
       },
-      system: { 
-        logger: logger 
+      system: {
+        logger: logger
       }
     };
 
