@@ -109,11 +109,11 @@ export class ServerRequestParameters {
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
     if (this.promptValue) {
-      str.push("prompt=" + encodeURI(this.promptValue));
+      str.push("prompt=" + encodeURIComponent(this.promptValue));
     }
 
     if (this.claimsValue) {
-      str.push("claims=" + encodeURI(this.claimsValue));
+      str.push("claims=" + encodeURIComponent(this.claimsValue));
     }
 
     if (this.queryParameters) {
