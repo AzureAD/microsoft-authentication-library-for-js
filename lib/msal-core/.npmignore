@@ -258,5 +258,4 @@ test/
 typings/
 .git
 coverage/
-dist/
 endToEndTests/
