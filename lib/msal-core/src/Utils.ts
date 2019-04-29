@@ -623,7 +623,7 @@ export class Utils {
       ssoParam = {};
     }
 
-    if(!ssoData) {
+    if (!ssoData) {
         return ssoParam;
     }
 
