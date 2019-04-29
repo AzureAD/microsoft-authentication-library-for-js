@@ -1799,6 +1799,7 @@ export class UserAgentApplication {
             clientInfo = hashParams[Constants.clientInfo];
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
+            throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
           }
 
           response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
