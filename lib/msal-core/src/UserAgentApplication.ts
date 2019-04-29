@@ -1806,7 +1806,7 @@ export class UserAgentApplication {
           let accountKey: string;
           if (response.account && !Utils.isEmpty(response.account.homeAccountIdentifier)) {
             accountKey = response.account.homeAccountIdentifier;
-            }
+          }
           else {
             accountKey = Constants.no_account;
           }
@@ -1877,6 +1877,7 @@ export class UserAgentApplication {
             } else {
               authorityKey = stateInfo.state;
               acquireTokenAccountKey = stateInfo.state;
+
               this.logger.error("Invalid id_token received in the response");
               error = ClientAuthError.createInvalidIdTokenError(response.idToken);
               this.cacheStorage.setItem(Constants.msalError, error.errorCode);
@@ -1891,7 +1892,6 @@ export class UserAgentApplication {
 
         const expectedState = this.cacheStorage.getItem(Constants.stateLogin, this.inCookie);
         this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + stateInfo.state);
-
         error = ClientAuthError.createInvalidStateError(stateInfo.state, expectedState);
         this.cacheStorage.setItem(Constants.msalError, error.errorCode);
         this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
@@ -2320,6 +2320,9 @@ export class UserAgentApplication {
     if (account) {
         accountId = this.getAccountId(account);
     }
+    else {
+        accountId = Constants.no_account;
+    }
 
     const acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, state);
     this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
@@ -2343,7 +2346,7 @@ export class UserAgentApplication {
   private getAccountId(account: Account): any {
     //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
     let accountId: string;
-    if (account.homeAccountIdentifier) {
+    if (!Utils.isEmpty(account.homeAccountIdentifier)) {
          accountId = account.homeAccountIdentifier;
     }
     else {
