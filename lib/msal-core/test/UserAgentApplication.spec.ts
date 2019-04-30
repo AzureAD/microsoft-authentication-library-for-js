@@ -53,25 +53,15 @@ describe("UserAgentApplication", function () {
 
     let msal: UserAgentApplication;
 
-    let authCallback = function (error, response) {
+    const authCallback = function (error, response) {
         if (error) {
-            console.log("Error: " + error);
-            console.log("State: " + response.state);
+            throw error;
         } else {
             console.log(response);
         }
     };
 
-    let successCallback = function(response) {
-        console.log("Response: " + response);
-    };
-
-    let errCallback = function (error, state) {
-        console.log("Error: " + error);
-        console.log("State: " + state);
-    };
-
-    let setAuthInstanceStubs = function () {
+    const setAuthInstanceStubs = function () {
         sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () : Promise<Authority> {
             return new Promise((resolve, reject) => {
                 return resolve(msal.getAuthorityInstance());
@@ -83,7 +73,7 @@ describe("UserAgentApplication", function () {
         sinon.stub(msal, "isInIframe").returns(false);
     };
 
-    let setUtilUnifiedCacheQPStubs = function (params: kv) {
+    const setUtilUnifiedCacheQPStubs = function (params: kv) {
         sinon.stub(Utils, "constructUnifiedCacheQueryParameter").returns(params);
         sinon.stub(Utils, "addSSOParameter").returns(params);
     };
@@ -262,7 +252,7 @@ describe("UserAgentApplication", function () {
 
         it('exits login function with error if loginInProgress is true', function (done) {
             sinon.stub(msal, <any>"loginInProgress").value(true);
-            let checkErrorFromLibrary = function (authErr: AuthError) {
+            const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
                 expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
@@ -609,7 +599,7 @@ describe("UserAgentApplication", function () {
         it("tests saveTokenForHash in case of error", function(done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            let checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
@@ -625,7 +615,7 @@ describe("UserAgentApplication", function () {
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            let checkErrorHasState = function(error: AuthError, response: AuthResponse) {
+            const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
             };
@@ -635,7 +625,7 @@ describe("UserAgentApplication", function () {
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
-            let checkErrorHasState = function(error: AuthError, response: AuthResponse) {
+            const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_URL);
                 done();
             };
@@ -721,17 +711,17 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests getAccountState with a user passed state", function () {
-            var result = msal.getAccountState("123465464565|91111");
+            const result = msal.getAccountState("123465464565|91111");
             expect(result).to.be.eq("91111");
         });
 
         it('test getAccountState when there is no user state', function () {
-            var result = msal.getAccountState("123465464565");
+            const result = msal.getAccountState("123465464565");
             expect(result).to.be.eq("");
         });
 
         it('test getAccountState when there is no state', function () {
-            var result =msal.getAccountState("");
+            const result = msal.getAccountState("");
             expect(result).to.be.eq("");
         });
     });

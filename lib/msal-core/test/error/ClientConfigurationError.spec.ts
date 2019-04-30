@@ -83,7 +83,7 @@ describe("ClientConfigurationError", () => {
 
   it("createInvalidCallbackObjectError creates a ClientConfigurationError object", () => {
 
-    const callbackFunction: Object = null;
+    const callbackFunction: Function = null;
     const invalidCallBackObject = ClientConfigurationError.createInvalidCallbackObjectError(callbackFunction);
     let err: ClientConfigurationError;
 

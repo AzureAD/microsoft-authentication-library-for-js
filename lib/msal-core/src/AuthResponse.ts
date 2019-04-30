@@ -20,7 +20,7 @@ export type AuthResponse = {
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
-    let response : AuthResponse = {
+    return {
         uniqueId: "",
         tenantId: "",
         tokenType: "",
@@ -31,6 +31,4 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         account: null,
         accountState: state
     };
-
-    return response;
 }
