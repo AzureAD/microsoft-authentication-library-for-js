@@ -566,7 +566,6 @@ export class Utils {
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
-    let ssoParam: QPDict = {};
     let serverReqParam: QPDict = {};
     // if account info is passed, account.sid > account.login_hint
     if (request) {
@@ -604,11 +603,11 @@ export class Utils {
       }
     }
 
-    serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
+    serverReqParam = this.addSSOParameter(ssoType, ssoData);
 
     // add the HomeAccountIdentifier info/ domain_hint
     if (request && request.account && request.account.homeAccountIdentifier) {
-        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, serverReqParam);
     }
 
     return serverReqParam;
@@ -619,8 +618,10 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  // TODO: Can optimize this later, make ssoParam optional
-  static addSSOParameter(ssoType: string, ssoData: string, ssoParam: QPDict): QPDict {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: QPDict): QPDict {
+    if (!ssoParam) {
+      ssoParam = {};
+    }
 
     switch (ssoType) {
       case SSOTypes.SID: {

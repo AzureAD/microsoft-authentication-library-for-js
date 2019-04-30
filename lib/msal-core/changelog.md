@@ -1,3 +1,13 @@
+# 1.0.0-preview.3
+Add a hook in package.json to build msal js before npm publish to have the libraries up to date
+
+# 1.0.0-preview.2
+## Bug Fixes
+
+* Fix for the multiple_authorities issue seen due to non Canonalized authority storage in cache PR #656
+* Populate scopes from cache for getCachedToken Response object PR #657.
+* ES6 modules are added back into the npm #654
+
 # 1.0.0-preview.1
 ## Bug Fixes
 

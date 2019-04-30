@@ -1,5 +1,5 @@
 {
-  "name": "msal",
+  "name": "@azure/msal",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "1.0.0-preview.2",
+  "version": "1.0.0-preview.4",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -32,7 +32,8 @@
     "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
     "test": "karma start --single-run --browsers PhantomJS karma.conf.js",
     "lint": "tslint -c tslint.json src/**/*.ts",
-    "build:webpack": "webpack"
+    "build:webpack": "webpack",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "atob": "~2.1.1",
