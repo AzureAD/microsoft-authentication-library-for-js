@@ -2146,7 +2146,7 @@ export class UserAgentApplication {
   /**
    * tracks if login is in progress
    */
-  protected getLoginInProgress(): boolean {
+  public getLoginInProgress(): boolean {
     const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
     if (pendingCallback) {
         return true;
