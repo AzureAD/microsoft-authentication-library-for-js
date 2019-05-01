@@ -35,7 +35,6 @@ export type AuthOptions = {
   validateAuthority?: boolean;
   redirectUri?: string | (() => string);
   postLogoutRedirectUri?: string | (() => string);
-  state?: string;
   navigateToLoginRequestUrl?: boolean;
 };
 
@@ -99,7 +98,6 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
   validateAuthority: true,
   redirectUri: () => Utils.getDefaultRedirectUri(),
   postLogoutRedirectUri: () => Utils.getDefaultRedirectUri(),
-  state: "",
   navigateToLoginRequestUrl: true
 };
 
