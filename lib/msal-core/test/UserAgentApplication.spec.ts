@@ -614,7 +614,7 @@ describe("UserAgentApplication", function () {
             msal.handleRedirectCallbacks(successCallback, checkErrorFromServer);
         });
 
-        it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
+        it.only("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
