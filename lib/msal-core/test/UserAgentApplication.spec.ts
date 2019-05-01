@@ -254,7 +254,7 @@ describe("UserAgentApplication", function () {
 
         it('exits login function with error if loginInProgress is true', function (done) {
             sinon.stub(msal, <any>"loginInProgress").value(true);
-            let checkErrorFromLibrary = function (authErr: AuthError) {
+            let checkErrorFromLibrary = function (authErr: AuthError, state: string) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
                 expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
@@ -584,8 +584,7 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    state: TEST_USER_STATE_NUM
+                    redirectUri: TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -698,8 +697,7 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    state: TEST_USER_STATE_NUM
+                    redirectUri: TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
