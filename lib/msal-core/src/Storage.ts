@@ -101,6 +101,8 @@ export class Storage {// Singleton
                         if (state && !this.tokenRenewalInProgress(state)) {
                             this.removeItem(key);
                             this.removeItem(Constants.renewStatus + state);
+                            this.removeItem(Constants.stateLogin);
+                            this.removeItem(Constants.stateAcquireToken);
                             this.setItemCookie(key, "", -1);
                         }
                     }

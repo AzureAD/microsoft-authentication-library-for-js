@@ -233,10 +233,10 @@ describe("Session Storage", function () {
             
             expect(cacheStorage.getItem(Constants.msalClientInfo)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.tokenKeys)).to.be.eq("");
-            expect(cacheStorage.getItem(Constants.stateLogin)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.idTokenKey)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.nonceIdToken)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.renewStatus)).to.be.null;
+            expect(cacheStorage.getItem(Constants.stateLogin)).to.be.null;
         });
 
     });
