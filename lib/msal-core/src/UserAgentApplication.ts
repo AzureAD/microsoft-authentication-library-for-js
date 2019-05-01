@@ -1253,7 +1253,6 @@ export class UserAgentApplication {
       // Clear the cookie in the hash
       this.cacheStorage.clearCookie();
       const accountState: string = this.getAccountState(stateInfo.state);
-
       if (response) {
         if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
           if (window.parent !== window) {
@@ -1943,7 +1942,7 @@ export class UserAgentApplication {
         return state.substring(splitIndex + 1);
       }
     }
-    return "";
+    return state;
   }
 
   /**

@@ -33,11 +33,11 @@ describe("UserAgentApplication", function () {
     const ALTERNATE_INSTANCE = "https://login.windows.net/"
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
-    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=12345";
+    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description";
     const TEST_ERROR_CODE = "error_code";
     const TEST_ERROR_DESC = "msal error description"
     const TEST_USER_STATE_NUM = "1234";
-    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2";
+    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
     const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
     const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
     const TENANT = 'common';
@@ -598,9 +598,10 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            let errHash = TEST_ERROR_HASH + "&state=RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(Constants.urlHash, errHash);
             let checkErrorFromServer = function(error: AuthError, accountState: string) {
+                expect(accountState).to.be.eq(TEST_USER_STATE_NUM);
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
@@ -614,8 +615,8 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            let errHash = TEST_ERROR_HASH + "&state=RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(Constants.urlHash, errHash);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
                 expect(accountState).to.include(TEST_USER_STATE_NUM);
                 done();
@@ -624,8 +625,8 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
+            let errHash = TEST_ERROR_HASH + "&state=RANDOM-GUID-HERE|" + TEST_USER_STATE_URL;
+            cacheStorage.setItem(Constants.urlHash, errHash);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
                 expect(accountState).to.include(TEST_USER_STATE_URL);
                 done();
@@ -717,7 +718,7 @@ describe("UserAgentApplication", function () {
 
         it('test getAccountState when there is no user state', function () {
             var result = msal.getAccountState("123465464565");
-            expect(result).to.be.eq("");
+            expect(result).to.be.eq("123465464565");
         });
 
         it('test getAccountState when there is no state', function () {
