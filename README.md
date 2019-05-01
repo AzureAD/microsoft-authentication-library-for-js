@@ -1,17 +1,15 @@
+
 Microsoft Authentication Library Preview for JavaScript (MSAL.js)
 =========================================================
 
-| [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/classes/_useragentapplication_.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
+| [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library preview for JavaScript enables client-side JavaScript web applications running in a web browser to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://cloud.microsoft.com) services such as [Microsoft Graph](https://graph.microsoft.io).
+The MSAL library preview for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://cloud.microsoft.com) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
 
-
-## Important Note about the MSAL Preview
-The MSAL.js core library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
 ## Installation
 Via NPM:
@@ -24,7 +22,7 @@ Via CDN:
     <script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.js"></script>
     <script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.min.js"></script>
 
- Note that msal.js is built for ES5, therefore enabling support for Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill.
+Note that msal.js is built for ES5, therefore enabling support for Internet Explorer 11. If you want to target Internet Explorer, you'll need to add a reference to promises polyfill.
 
     <!-- IE support: add promises polyfill before msal.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
@@ -38,30 +36,29 @@ The example snippets below show how to acquire a token for Microsoft Graph.
 
 Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get your clientID.
 
-
 #### 1. Instantiate the UserAgentApplication
 
-Instantiate the UserAgentApplication with a minimal required configuration of clientID.   
+Instantiate the UserAgentApplication with a minimal required configuration of clientId.
 
-A callback function must be passed in for the redirect flows(loginRedirect and acquireTokenRedirect). This callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
+You must register a callback handler if you are using redirect flow(loginRedirect and acquireTokenRedirect). This callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 UserAgentApplication has other optional parameters like redirectUri which can be assigned. Please refer to the [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics#configuration-options) to see the full list and their default values.
 
 ```JavaScript
     var applicationConfig = {
-        clientID: 'your_client_id'
+        auth: {
+            clientId: 'your_client_id'
+        }
     };
 
-     var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, tokenReceivedCallback);
+    var msalInstance = new Msal.UserAgentApplication(applicationConfig);
 
-    //callback function for redirect flows
-    function tokenReceivedCallback(errorDesc, token, error, tokenType) {
-        if (token) {
-        }
-        else {
-            log(error + ":" + errorDesc);
-        }
-    }
+    msalInstance.handleRedirectCallbacks(response => {
+        // handle redirect response
+    }), err => {
+       // handle error
+    });
+
 ```
 
 #### 2. Login the user
@@ -69,43 +66,56 @@ UserAgentApplication has other optional parameters like redirectUri which can be
 Your app must login the user with either loginPopup or the loginRedirect method to establish user context. When the login methods are called and the authentication of the user is completed by the Azure AD service, an [id token](https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens) is returned which is used to identify the user with some basic information.
 
 ```JavaScript
-   var graphScopes = ["user.read", "mail.send"];
+   var loginRequest = {
+       scopes: ["user.read", "mail.send"] // optional
+   };
 
-   userAgentApplication.loginPopup(graphScopes).then(function (idToken) {
-       //login success
-   }, function (error) {
-       //login failure
-       console.log(error);
-   });
+    msalInstance.loginPopup(loginRequest)
+        .then(response => {
+            // handle response
+        })
+        .catch(err => {
+            // handle error
+        });
 
 ```
 > Note: The scopes passed to the login method are optional. In this example, the graphScopes are passed in the login method to obtain consent upfront from the user for your app to access certain Graph API scopes. The idtoken returned here does not contain the scopes. In the next step, you can see how to get an access token which will contain the consented scopes.
 
 #### 3. Get an access token to call an API
 
-In MSAL, you can get access tokens for the APIs your app needs to call using the acquireTokenSilent method which makes a silent request(without prompting the user) to Azure AD to obtain an access token. The Azure AD service then returns an [access token](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.  
+In MSAL, you can get access tokens for the APIs your app needs to call using the acquireTokenSilent method which makes a silent request(without prompting the user) to Azure AD to obtain an access token. The Azure AD service then returns an [access token](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
 
 If the silent token acquisition fails for some reasons such as an expired token or password change, you will need to invoke an interactive method to acquire tokens such as acquireTokenPopup or acquireTokenRedirect.
 
  ```JavaScript
-    var graphScopes = ["user.read", "mail.send"];
 
-    userAgentApplication.loginPopup(graphScopes).then(function (idToken) {
-        //Login Success
-        userAgentApplication.acquireTokenSilent(graphScopes).then(function (accessToken) {
-            //AcquireTokenSilent Success
-        }, function (error) {
-            //AcquireTokenSilent Failure, send an interactive request.
-            userAgentApplication.acquireTokenPopup(graphScopes).then(function (accessToken) {
-                updateUI();
-            }, function (error) {
-                console.log(error);
-            });
+    var tokenRequest = {
+        scopes: ["user.read", "mail.send"]
+    };
+
+    msalInstance.loginPopup(loginRequest)
+        .then(response => msalInstance.acquireTokenSilent(graphScopes)
+        .then(response {
+            // get access token from response
+            // response.accessToken
         })
-    }, function (error) {
-        //login failure
-        console.log(error);
-    });
+        .catch(err => {
+            // if the error requires user consent
+            if (err.errorCode.indexOf("consent_required") !== -1 ||err.errorCode.indexOf("interaction_required") !== -1 ||err.errorCode.indexOf("login_required") !== -1 ) {
+                return msalnstance.acquireTokenPopup(tokenRequest)
+                    .then(response => {
+                        // get access token from response
+                        // response.accessToken
+                    })
+                    .catch(err => {
+                        // handle error
+                    })
+            } else {
+                // handle error
+            }
+        });
+
+
 ```
 
 #### 4. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API
@@ -121,9 +131,9 @@ If the silent token acquisition fails for some reasons such as an expired token 
     var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
 
     fetch(graphEndpoint, options)
-        .then(function (response) {
+        .then(resp => {
              //do something with response
-        }
+        });
 ```
 
 You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
