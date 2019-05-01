@@ -98,7 +98,7 @@ export class Storage {// Singleton
                 if (storage.hasOwnProperty(key)) {
                     if (key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_USER) !== 1) {
                         const state = key.split(Constants.resourceDelimiter)[1];
-                        if (!this.tokenRenewalInProgress(state)) {
+                        if (state && !this.tokenRenewalInProgress(state)) {
                             this.removeItem(key);
                             this.removeItem(Constants.renewStatus + state);
                             this.setItemCookie(key, "", -1);
