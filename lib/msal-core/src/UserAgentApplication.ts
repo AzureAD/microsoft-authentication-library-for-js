@@ -367,6 +367,10 @@ export class UserAgentApplication {
 
       // Redirect user to login URL
       this.promptUser(urlNavigate);
+    }).catch((err) => {
+      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
+      this.logger.warning("could not resolve endpoints");
+      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.silentAuthenticationState));
     });
   }
 
@@ -442,6 +446,10 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.stateAcquireToken, serverAuthenticationRequest.state, this.inCookie);
         window.location.replace(urlNavigate);
       }
+    }).catch((err) => {
+      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
+      this.logger.warning("could not resolve endpoints");
+      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.silentAuthenticationState));
     });
   }
 
