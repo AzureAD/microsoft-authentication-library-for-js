@@ -416,6 +416,20 @@ describe("UserAgentApplication", function () {
 
     describe("Cache Storage Unit Tests", function () {
 
+        beforeEach(function () {
+            cacheStorage = new Storage("sessionStorage");
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI,
+                    state: TEST_USER_STATE_NUM
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+            setTestCacheItems();
+        });
+
         afterEach(function() {
             cacheStorage.clear();
             sinon.restore();
