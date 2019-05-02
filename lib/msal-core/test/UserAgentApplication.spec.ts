@@ -397,7 +397,7 @@ describe("UserAgentApplication", function () {
             msal.handleRedirectCallback(tokenReceivedCallback, checkErrorFromServer);
         });
 
-        it("Calls the error callback if two callbacks are sent", function (done) {
+        it("Calls the token callback if two callbacks are sent", function (done) {
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
             cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_HASH);
@@ -411,6 +411,22 @@ describe("UserAgentApplication", function () {
                 done();
             };
             msal.handleRedirectCallback(checkResponseFromServer, errorReceivedCallback);
+        });
+
+        it("Calls the response callback if single callback is sent", function (done) {
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
+            cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_HASH);
+            
+            const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(Constants.idToken);
+                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
+                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                done();
+            };
+            msal.handleRedirectCallback(checkResponseFromServer);
         });
     });
 
