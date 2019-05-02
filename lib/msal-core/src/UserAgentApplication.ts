@@ -88,6 +88,18 @@ export type ResponseStateInfo = {
 export type authResponseCallback = (authErr: AuthError, response?: AuthResponse) => void;
 
 /**
+ * A type alias for an tokenReceivedCallback function.
+ * @param response response containing token strings in success cases, or just state value in error cases
+ */
+export type tokenReceivedCallback = (response: AuthResponse) => void;
+
+/**
+ * A type alias for an errorReceivedCallback function.
+ * @param authErr error created for failure cases
+ */
+export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
+
+/**
  * A wrapper to handle the token response/error within the iFrame always
  *
  * @param target
@@ -116,6 +128,8 @@ export class UserAgentApplication {
 
   // callbacks for token/error
   private authResponseCallback: authResponseCallback = null;
+  private tokenReceivedCallback: tokenReceivedCallback = null;
+  private errorReceivedCallback: errorReceivedCallback = null;
 
   // Added for readability as these params are very frequently used
   private logger: Logger;
@@ -213,14 +227,22 @@ export class UserAgentApplication {
    * @param {authResponseCallback} authCallback - Callback which contains an AuthError object, containing error data from either the server
    * or the library, depending on the origin of the error, or the AuthResponse object, containing data from the server.
    */
-  handleRedirectCallback(authCallback: authResponseCallback): void {
-    if (!authCallback) {
+  handleRedirectCallback(tokenReceivedCallback: tokenReceivedCallback, errorReceivedCallback: errorReceivedCallback): void;
+  handleRedirectCallback(authCallback: authResponseCallback): void;
+  handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
+    if (!authOrTokenCallback) {
       this.redirectCallbacksSet = false;
-      throw ClientConfigurationError.createInvalidCallbackObjectError(authCallback);
+      throw ClientConfigurationError.createInvalidCallbackObjectError(authOrTokenCallback);
     }
 
     // Set callbacks
-    this.authResponseCallback = authCallback;
+    if (errorReceivedCallback) {
+      this.tokenReceivedCallback = authOrTokenCallback as tokenReceivedCallback;
+      this.errorReceivedCallback = errorReceivedCallback;
+      this.logger.warning("This overload for callback is deprecated - please change the format of the callbacks to a single callback as shown: (err: AuthError, response: AuthResponse).");
+    } else {
+      this.authResponseCallback = authOrTokenCallback as authResponseCallback;
+    }
 
     this.redirectCallbacksSet = true;
 
@@ -230,6 +252,22 @@ export class UserAgentApplication {
       if (cachedHash) {
         this.processCallBack(cachedHash, null);
       }
+    }
+  }
+
+  private redirectSuccessHandler(response: AuthResponse) : void {
+    if (this.errorReceivedCallback) {
+      this.tokenReceivedCallback(response);
+    } else if (this.authResponseCallback) {
+      this.authResponseCallback(null, response);
+    }
+  }
+
+  private redirectErrorHandler(authErr: AuthError, response: AuthResponse) : void {
+    if (this.errorReceivedCallback) {
+      this.errorReceivedCallback(authErr, response.accountState);
+    } else {
+      this.authResponseCallback(authErr, response);
     }
   }
 
@@ -251,7 +289,7 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.loginInProgress) {
-      this.authResponseCallback(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
+      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
       return;
     }
 
@@ -283,8 +321,8 @@ export class UserAgentApplication {
           this.silentLogin = false;
           this.logger.info("Unified cache call is successful");
 
-          if (this.authResponseCallback) {
-            this.authResponseCallback(null, response);
+          if (this.redirectCallbacksSet) {
+            this.redirectSuccessHandler(response);
           }
           return;
         }, (error) => {
@@ -383,7 +421,7 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      this.authResponseCallback(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
+      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
       return;
     }
 
@@ -1249,11 +1287,11 @@ export class UserAgentApplication {
           response.tokenType = Constants.idToken;
         }
         if (!parentCallback) {
-          this.authResponseCallback(null, response);
+          this.redirectSuccessHandler(response);
           return;
         }
       } else if (!parentCallback) {
-        this.authResponseCallback(authErr, buildResponseStateOnly(accountState));
+        this.redirectErrorHandler(authErr, buildResponseStateOnly(accountState));
         return;
       }
 
