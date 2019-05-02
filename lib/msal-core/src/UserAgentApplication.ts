@@ -1744,7 +1744,14 @@ export class UserAgentApplication {
         authorityKey = Storage.generateAuthorityKey(stateInfo.state);
 
         const account: Account = this.getAccount();
-        const accountId: string = account ? this.getAccountId(account) : "";
+        let accountId;
+
+        if (account && !Utils.isEmpty(account.homeAccountIdentifier)) {
+            accountId = account.homeAccountIdentifier;
+        }
+        else {
+            accountId = Constants.no_account;
+        }
 
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
@@ -1792,10 +1799,18 @@ export class UserAgentApplication {
             clientInfo = hashParams[Constants.clientInfo];
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
+            throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
           }
 
           response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
-          const accountKey: string = this.getAccountId(response.account);
+
+          let accountKey: string;
+          if (response.account && !Utils.isEmpty(response.account.homeAccountIdentifier)) {
+            accountKey = response.account.homeAccountIdentifier;
+          }
+          else {
+            accountKey = Constants.no_account;
+          }
 
           acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
           const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
@@ -1862,6 +1877,7 @@ export class UserAgentApplication {
             } else {
               authorityKey = stateInfo.state;
               acquireTokenAccountKey = stateInfo.state;
+
               this.logger.error("Invalid id_token received in the response");
               error = ClientAuthError.createInvalidIdTokenError(response.idToken);
               this.cacheStorage.setItem(Constants.msalError, error.errorCode);
@@ -1876,7 +1892,6 @@ export class UserAgentApplication {
 
         const expectedState = this.cacheStorage.getItem(Constants.stateLogin, this.inCookie);
         this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + stateInfo.state);
-
         error = ClientAuthError.createInvalidStateError(stateInfo.state, expectedState);
         this.cacheStorage.setItem(Constants.msalError, error.errorCode);
         this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
@@ -1892,6 +1907,10 @@ export class UserAgentApplication {
     }
     if (error) {
       throw error;
+    }
+
+    if (!response) {
+        throw AuthError.createUnexpectedError("Response is null");
     }
     return response;
   }
@@ -2295,6 +2314,7 @@ export class UserAgentApplication {
    * @param state
    */
   private setAccountCache(account: Account, state: string) {
+
     // Cache acquireTokenAccountKey
     let accountId = account ? this.getAccountId(account) : Constants.no_account;
 
@@ -2317,8 +2337,17 @@ export class UserAgentApplication {
    * Returns the unique identifier for the logged in account
    * @param account
    */
-  private getAccountId(account: Account): string {
-    return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
+  private getAccountId(account: Account): any {
+    //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
+    let accountId: string;
+    if (!Utils.isEmpty(account.homeAccountIdentifier)) {
+         accountId = account.homeAccountIdentifier;
+    }
+    else {
+        accountId = Constants.no_account;
+    }
+
+    return accountId;
   }
 
   /**

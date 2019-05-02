@@ -67,6 +67,10 @@ export const ClientAuthErrorMessage = {
         code: "client_info_decoding_error",
         desc: "The client info could not be parsed/decoded correctly. Please review the trace to determine the root cause."
     },
+    clientInfoNotPopulatedError: {
+        code: "client_info_not_populated_error",
+        desc: "The service did not populate client_info in the response, Please verify with the service team"
+    },
     nullOrEmptyIdToken: {
         code: "null_or_empty_id_token",
         desc: "The idToken is null or empty. Please review the trace to determine the root cause."
@@ -174,6 +178,11 @@ export class ClientAuthError extends AuthError {
     static createClientInfoDecodingError(caughtError: string) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoDecodingError.code,
             `${ClientAuthErrorMessage.clientInfoDecodingError.desc} Failed with error: ${caughtError}`);
+    }
+
+    static createClientInfoNotPopulatedError(caughtError: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.clientInfoNotPopulatedError.code,
+            `${ClientAuthErrorMessage.clientInfoNotPopulatedError.desc} Failed with error: ${caughtError}`);
     }
 
     static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
