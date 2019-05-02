@@ -2417,14 +2417,8 @@ export class UserAgentApplication {
       this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
       delete eQParams[Constants.claims];
     }
-    if (request.sid) {
-      this.logger.warning("Removed duplicate sid from extraQueryParameters. Please use either the sid field OR pass as extraQueryParameter - not both.");
-      delete eQParams[SSOTypes.SID];
-    }
-    if (request.loginHint) {
-      this.logger.warning("Removed duplicate loginHint from extraQueryParameters. Please use either the loginHint field OR pass as extraQueryParameter - not both.");
-      delete eQParams[SSOTypes.LOGIN_HINT];
-    }
+    delete eQParams[SSOTypes.SID];
+    delete eQParams[SSOTypes.LOGIN_HINT];
     return eQParams;
   }
 
