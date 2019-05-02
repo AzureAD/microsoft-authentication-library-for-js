@@ -1017,7 +1017,7 @@ export class UserAgentApplication {
         this.logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
       }
     },
-    this.config.system.waitTimeToLoadFrame);
+    this.config.system.navigateFrameWait);
   }
 
   /**
