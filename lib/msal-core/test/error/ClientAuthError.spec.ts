@@ -321,26 +321,6 @@ describe("ClientAuthError", () => {
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });
 
-  it("createClientInfoNotPopulatedError creates a ClientAuthError object", () => {
-
-    const caughtErrorString = "There was an error.";
-    const clientInfoNotPopulatedError = ClientAuthError.createClientInfoNotPopulatedError(caughtErrorString);
-    let err: ClientAuthError;
-
-    try {
-      throw clientInfoNotPopulatedError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientAuthErrorMessage.clientInfoNotPopulatedError.code);
-    expect(err.errorMessage).to.include(ClientAuthErrorMessage.clientInfoNotPopulatedError.desc);
-    expect(err.errorMessage).to.include(caughtErrorString);
-    expect(err.message).to.include(ClientAuthErrorMessage.clientInfoNotPopulatedError.desc);
-    expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
-  });
-
   it("createIdTokenNullOrEmptyError creates a ClientAuthError object", () => {
 
     const invalidRawIdToken = "invalidRawIdToken";

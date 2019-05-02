@@ -46,9 +46,9 @@ describe("Session Storage", function () {
     };
 
     describe("class constructor", function () {
-
+        
         beforeEach(function () {
-
+            
         });
 
         afterEach(function () {
@@ -57,7 +57,7 @@ describe("Session Storage", function () {
         });
 
         it("parses the cache location correctly", function (done) {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new Storage("sessionStorage");    
             sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             sinon.stub(window.sessionStorage, "setItem").callsFake(function (key, value) {
                 expect(key).to.be.eq(TEST_KEY);
@@ -135,7 +135,7 @@ describe("Session Storage", function () {
             let actualNextDayUTC = cacheStorage.getCookieExpirationTime(1);
             let dayAfterUTC = new Date(nextDayUTC.getTime() + 86400000);
             let actualDayAfterUTC = cacheStorage.getCookieExpirationTime(2);
-
+            
             expect(actualNextDayUTC).to.be.eq(nextDayUTC.toUTCString());
             expect(actualDayAfterUTC).to.be.eq(dayAfterUTC.toUTCString());
         });
@@ -209,7 +209,7 @@ describe("Session Storage", function () {
             expect(cacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
 
             cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenAccountKey);
-
+            
             expect(cacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(cacheStorage.getItem(authorityKey)).to.be.null;
         });
@@ -230,7 +230,7 @@ describe("Session Storage", function () {
             expect(cacheStorage.getItem(Constants.renewStatus)).to.be.eq("Completed");
 
             cacheStorage.resetCacheItems();
-
+            
             expect(cacheStorage.getItem(Constants.msalClientInfo)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.tokenKeys)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.stateLogin)).to.be.eq("");
@@ -247,7 +247,7 @@ describe("Session Storage", function () {
             let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             expect(acquireTokenAccountKey).to.include(TEST_ACCOUNT_ID);
             expect(acquireTokenAccountKey).to.include(TEST_STATE);
-            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_ACCOUNT);
+            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_USER);
         });
 
         it("generates authority key", function () {

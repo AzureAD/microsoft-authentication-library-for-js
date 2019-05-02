@@ -302,9 +302,9 @@ export class UserAgentApplication {
     const account: Account = this.getAccount();
 
     // defer queryParameters generation to Helper if developer passes account/sid/login_hint
-    if (Utils.isSSOParam(request)) {
-      // if account is not provided, we pass null
-      this.loginRedirectHelper(account, request, scopes);
+     if (Utils.isSSOParam(request)) {
+       // if account is not provided, we pass null
+       this.loginRedirectHelper(account, request, scopes);
     }
     // else handle the library data
     else {
@@ -361,7 +361,7 @@ export class UserAgentApplication {
         this.clientId, scopes,
         ResponseTypes.id_token,
         this.getRedirectUri(),
-        request.state
+        this.config.auth.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -393,10 +393,6 @@ export class UserAgentApplication {
 
       // Redirect user to login URL
       this.promptUser(urlNavigate);
-    }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
-      this.logger.warning("could not resolve endpoints");
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.config.auth.state));
     });
   }
 
@@ -430,6 +426,7 @@ export class UserAgentApplication {
     }
 
     // If no session exists, prompt the user to login.
+    const scope = request.scopes.join(" ").toLowerCase();
     if (!account && !(request.sid  || request.loginHint)) {
       this.logger.info("User login is required");
       throw ClientAuthError.createUserLoginRequiredError();
@@ -450,7 +447,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request.state
+        this.config.auth.state
       );
 
       // Cache nonce
@@ -471,10 +468,6 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.stateAcquireToken, serverAuthenticationRequest.state, this.inCookie);
         window.location.replace(urlNavigate);
       }
-    }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
-      this.logger.warning("could not resolve endpoints");
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.config.auth.state));
     });
   }
 
@@ -587,7 +580,7 @@ export class UserAgentApplication {
 
     // Resolve endpoint
     this.authorityInstance.resolveEndpointsAsync().then(() => {
-      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request.state);
+      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -695,7 +688,7 @@ export class UserAgentApplication {
           request.scopes,
           responseType,
           this.getRedirectUri(),
-          request.state
+          this.config.auth.state
         );
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -908,7 +901,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request.state
+        this.config.auth.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -1050,7 +1043,7 @@ export class UserAgentApplication {
         this.logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
       }
     },
-    this.config.system.navigateFrameWait);
+    500);
   }
 
   /**
@@ -1279,7 +1272,8 @@ export class UserAgentApplication {
     try {
       // Clear the cookie in the hash
       this.cacheStorage.clearCookie();
-      const accountState: string = this.getAccountState(stateInfo.state);
+      const accountState: string = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
+
       if (response) {
         if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
           if (window.parent !== window) {
@@ -1536,7 +1530,7 @@ export class UserAgentApplication {
             throw AuthError.createUnexpectedError("Account should not be null here.");
           }
         }
-        const aState = this.getAccountState(serverAuthenticationRequest.state);
+        const aState = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
         let response : AuthResponse = {
           uniqueId: "",
           tenantId: "",
@@ -1776,14 +1770,7 @@ export class UserAgentApplication {
         authorityKey = Storage.generateAuthorityKey(stateInfo.state);
 
         const account: Account = this.getAccount();
-        let accountId;
-
-        if (account && !Utils.isEmpty(account.homeAccountIdentifier)) {
-            accountId = account.homeAccountIdentifier;
-        }
-        else {
-            accountId = Constants.no_account;
-        }
+        const accountId: string = account ? this.getAccountId(account) : "";
 
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
@@ -1831,18 +1818,10 @@ export class UserAgentApplication {
             clientInfo = hashParams[Constants.clientInfo];
           } else {
             this.logger.warning("ClientInfo not received in the response from AAD");
-            throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
           }
 
           response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
-
-          let accountKey: string;
-          if (response.account && !Utils.isEmpty(response.account.homeAccountIdentifier)) {
-            accountKey = response.account.homeAccountIdentifier;
-          }
-          else {
-            accountKey = Constants.no_account;
-          }
+          const accountKey: string = this.getAccountId(response.account);
 
           acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
           const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
@@ -1909,7 +1888,6 @@ export class UserAgentApplication {
             } else {
               authorityKey = stateInfo.state;
               acquireTokenAccountKey = stateInfo.state;
-
               this.logger.error("Invalid id_token received in the response");
               error = ClientAuthError.createInvalidIdTokenError(response.idToken);
               this.cacheStorage.setItem(Constants.msalError, error.errorCode);
@@ -1924,6 +1902,7 @@ export class UserAgentApplication {
 
         const expectedState = this.cacheStorage.getItem(Constants.stateLogin, this.inCookie);
         this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + stateInfo.state);
+
         error = ClientAuthError.createInvalidStateError(stateInfo.state, expectedState);
         this.cacheStorage.setItem(Constants.msalError, error.errorCode);
         this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
@@ -1939,10 +1918,6 @@ export class UserAgentApplication {
     }
     if (error) {
       throw error;
-    }
-
-    if (!response) {
-        throw AuthError.createUnexpectedError("Response is null");
     }
     return response;
   }
@@ -1988,7 +1963,7 @@ export class UserAgentApplication {
         return state.substring(splitIndex + 1);
       }
     }
-    return state;
+    return "";
   }
 
   /**
@@ -2129,7 +2104,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param account
    */
-  protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string): AuthResponse {
+  protected getCachedTokenInternal(scopes : Array<string> , account: Account): AuthResponse {
     // Get the current session's account object
     const accountObject: Account = account || this.getAccount();
     if (!accountObject) {
@@ -2145,7 +2120,7 @@ export class UserAgentApplication {
       scopes,
       responseType,
       this.getRedirectUri(),
-      state
+      this.config.auth.state
     );
 
     // get cached token
@@ -2197,7 +2172,7 @@ export class UserAgentApplication {
   /**
    * tracks if login is in progress
    */
-  public getLoginInProgress(): boolean {
+  protected getLoginInProgress(): boolean {
     const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
     if (pendingCallback) {
         return true;
@@ -2346,7 +2321,6 @@ export class UserAgentApplication {
    * @param state
    */
   private setAccountCache(account: Account, state: string) {
-
     // Cache acquireTokenAccountKey
     let accountId = account ? this.getAccountId(account) : Constants.no_account;
 
@@ -2369,17 +2343,8 @@ export class UserAgentApplication {
    * Returns the unique identifier for the logged in account
    * @param account
    */
-  private getAccountId(account: Account): any {
-    //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
-    let accountId: string;
-    if (!Utils.isEmpty(account.homeAccountIdentifier)) {
-         accountId = account.homeAccountIdentifier;
-    }
-    else {
-        accountId = Constants.no_account;
-    }
-
-    return accountId;
+  private getAccountId(account: Account): string {
+    return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
   }
 
   /**

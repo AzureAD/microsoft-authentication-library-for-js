@@ -16,7 +16,6 @@ export type AuthenticationParameters = {
     extraQueryParameters?: QPDict;
     claimsRequest?: null;
     authority?: string;
-    state?: string;
     correlationId?: string;
     account?: Account;
     sid?: string;

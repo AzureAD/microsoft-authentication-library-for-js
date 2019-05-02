@@ -165,7 +165,7 @@ export class Storage {// Singleton
      * @param state
      */
     static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return CacheKeys.ACQUIRE_TOKEN_ACCOUNT + Constants.resourceDelimiter +
+        return CacheKeys.ACQUIRE_TOKEN_USER + Constants.resourceDelimiter +
             `${accountId}` + Constants.resourceDelimiter  + `${state}`;
     }
 

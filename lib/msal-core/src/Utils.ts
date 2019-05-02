@@ -623,10 +623,6 @@ export class Utils {
       ssoParam = {};
     }
 
-    if (!ssoData) {
-        return ssoParam;
-    }
-
     switch (ssoType) {
       case SSOTypes.SID: {
         ssoParam[SSOTypes.SID] = ssoData;
