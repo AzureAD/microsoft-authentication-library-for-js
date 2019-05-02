@@ -33,11 +33,11 @@ describe("UserAgentApplication", function () {
     const ALTERNATE_INSTANCE = "https://login.windows.net/"
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
-    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=12345";
+    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description";
     const TEST_ERROR_CODE = "error_code";
     const TEST_ERROR_DESC = "msal error description"
     const TEST_USER_STATE_NUM = "1234";
-    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2";
+    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
     const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
     const TEST_UID = "123-test-uid";
     const TEST_UTID = "456-test-utid";
@@ -672,8 +672,7 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    state: TEST_USER_STATE_NUM
+                    redirectUri: TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -786,8 +785,7 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    state: TEST_USER_STATE_NUM
+                    redirectUri: TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
