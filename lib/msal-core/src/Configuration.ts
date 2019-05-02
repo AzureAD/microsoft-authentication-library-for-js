@@ -12,6 +12,8 @@ export type CacheLocation = "localStorage" | "sessionStorage";
  */
 const FRAME_TIMEOUT = 6000;
 const OFFSET = 300;
+const NAVIGATE_FRAME_WAIT = 500;
+
 
 /**
  *  Authentication Options
@@ -35,7 +37,6 @@ export type AuthOptions = {
   validateAuthority?: boolean;
   redirectUri?: string | (() => string);
   postLogoutRedirectUri?: string | (() => string);
-  state?: string;
   navigateToLoginRequestUrl?: boolean;
 };
 
@@ -63,6 +64,7 @@ export type SystemOptions = {
   logger?: Logger;
   loadFrameTimeout?: number;
   tokenRenewalOffsetSeconds?: number;
+  navigateFrameWait?: number;
 };
 
 /**
@@ -99,7 +101,6 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
   validateAuthority: true,
   redirectUri: () => Utils.getDefaultRedirectUri(),
   postLogoutRedirectUri: () => Utils.getDefaultRedirectUri(),
-  state: "",
   navigateToLoginRequestUrl: true
 };
 
@@ -111,7 +112,8 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
   logger: new Logger(null),
   loadFrameTimeout: FRAME_TIMEOUT,
-  tokenRenewalOffsetSeconds: OFFSET
+  tokenRenewalOffsetSeconds: OFFSET,
+  navigateFrameWait: NAVIGATE_FRAME_WAIT
 };
 
 const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
