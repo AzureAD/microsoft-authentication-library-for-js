@@ -237,11 +237,10 @@ export class UserAgentApplication {
     this.redirectCallbacksSet = true;
 
     // On the server 302 - Redirect, handle this
-    // TODO: rename pendingCallback to cachedHash
     if (!this.config.framework.isAngular) {
-      const pendingCallback = this.cacheStorage.getItem(Constants.urlHash);
-      if (pendingCallback) {
-        this.processCallBack(pendingCallback, null);
+      const cachedHash = this.cacheStorage.getItem(Constants.urlHash);
+      if (cachedHash) {
+        this.processCallBack(cachedHash, null);
       }
     }
   }
@@ -264,7 +263,11 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.loginInProgress) {
-      this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), this.getAccountState(this.silentAuthenticationState));
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+      this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), reqState);
       return;
     }
 
@@ -277,9 +280,9 @@ export class UserAgentApplication {
     const account: Account = this.getAccount();
 
     // defer queryParameters generation to Helper if developer passes account/sid/login_hint
-     if (Utils.isSSOParam(request)) {
-       // if account is not provided, we pass null
-       this.loginRedirectHelper(account, request, scopes);
+    if (Utils.isSSOParam(request)) {
+      // if account is not provided, we pass null
+      this.loginRedirectHelper(account, request, scopes);
     }
     // else handle the library data
     else {
@@ -335,7 +338,7 @@ export class UserAgentApplication {
         this.clientId, scopes,
         ResponseTypes.id_token,
         this.getRedirectUri(),
-        this.config.auth.state
+        request.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -399,12 +402,15 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      this.errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), this.getAccountState(this.silentAuthenticationState));
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+      this.errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), reqState);
       return;
     }
 
     // If no session exists, prompt the user to login.
-    const scope = request.scopes.join(" ").toLowerCase();
     if (!account && !(request.sid  || request.loginHint)) {
       this.logger.info("User login is required");
       throw ClientAuthError.createUserLoginRequiredError();
@@ -425,7 +431,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        this.config.auth.state
+        request.state
       );
 
       // Cache nonce
@@ -562,7 +568,7 @@ export class UserAgentApplication {
 
     // Resolve endpoint
     this.authorityInstance.resolveEndpointsAsync().then(() => {
-      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), this.config.auth.state);
+      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request.state);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -670,7 +676,7 @@ export class UserAgentApplication {
           request.scopes,
           responseType,
           this.getRedirectUri(),
-          this.config.auth.state
+          request.state
         );
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -883,7 +889,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        this.config.auth.state
+        request.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -1254,8 +1260,7 @@ export class UserAgentApplication {
     try {
       // Clear the cookie in the hash
       this.cacheStorage.clearCookie();
-      const accountState: string = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
-
+      const accountState: string = this.getAccountState(stateInfo.state);
       if (response) {
         if ((stateInfo.requestType === Constants.renewToken) || response.accessToken) {
           if (window.parent !== window) {
@@ -1512,7 +1517,7 @@ export class UserAgentApplication {
             throw AuthError.createUnexpectedError("Account should not be null here.");
           }
         }
-        const aState = this.getAccountState(this.cacheStorage.getItem(Constants.stateLogin, this.inCookie));
+        const aState = this.getAccountState(serverAuthenticationRequest.state);
         let response : AuthResponse = {
           uniqueId: "",
           tenantId: "",
@@ -1964,7 +1969,7 @@ export class UserAgentApplication {
         return state.substring(splitIndex + 1);
       }
     }
-    return "";
+    return state;
   }
 
   /**
@@ -2105,7 +2110,7 @@ export class UserAgentApplication {
    * @param scopes
    * @param account
    */
-  protected getCachedTokenInternal(scopes : Array<string> , account: Account): AuthResponse {
+  protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string): AuthResponse {
     // Get the current session's account object
     const accountObject: Account = account || this.getAccount();
     if (!accountObject) {
@@ -2121,7 +2126,7 @@ export class UserAgentApplication {
       scopes,
       responseType,
       this.getRedirectUri(),
-      this.config.auth.state
+      state
     );
 
     // get cached token
