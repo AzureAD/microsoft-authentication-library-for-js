@@ -39,11 +39,23 @@ describe("UserAgentApplication", function () {
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2";
     const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
+    const TEST_UID = "123-test-uid";
+    const TEST_UTID = "456-test-utid";
+    const TEST_NONCE = "test_nonce";
+    const TEST_UNIQUE_ID = "248289761001";
+    const TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;
+    const TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
+    const TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
     const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
     const TENANT = 'common';
     const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
+    const MSAL_TENANT_ID = "124ds324-43de-n89m-7477-466fefs45a85";
     const validAuthority = DEFAULT_INSTANCE + TENANT;
     const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
+    const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ" 
+    + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0=" 
+    + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
+    const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`;
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -60,6 +72,18 @@ describe("UserAgentApplication", function () {
             console.log(response);
         }
     };
+
+    const tokenReceivedCallback = function (response) {
+        console.log(response);
+    }
+
+    const errorReceivedCallback = function (error, state) {
+        if (error) {
+            throw error;
+        } else {
+            console.log(state);
+        }
+    }
 
     const setAuthInstanceStubs = function () {
         sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () : Promise<Authority> {
@@ -341,20 +365,56 @@ describe("UserAgentApplication", function () {
         });
     });
 
-    describe("Cache Storage Unit Tests", function () {
+    describe("Different Callback Signatures", function () {
 
         beforeEach(function () {
             cacheStorage = new Storage("sessionStorage");
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    redirectUri: TEST_REDIR_URI,
+                    state: TEST_USER_STATE_NUM
                 }
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
             setTestCacheItems();
         });
+        
+        it("Calls the error callback if two callbacks are sent", function (done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, accountState: string) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof ServerError).to.be.true;
+                expect(error.name).to.include("ServerError");
+                expect(error.errorCode).to.include(TEST_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(tokenReceivedCallback, checkErrorFromServer);
+        });
+
+        it("Calls the error callback if two callbacks are sent", function (done) {
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
+            cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_HASH);
+            
+            const checkResponseFromServer = function(response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(Constants.idToken);
+                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
+                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                done();
+            };
+            msal.handleRedirectCallback(checkResponseFromServer, errorReceivedCallback);
+        });
+    });
+
+    describe("Cache Storage Unit Tests", function () {
 
         afterEach(function() {
             cacheStorage.clear();
