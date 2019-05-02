@@ -12,6 +12,8 @@ export type CacheLocation = "localStorage" | "sessionStorage";
  */
 const FRAME_TIMEOUT = 6000;
 const OFFSET = 300;
+const LOAD_FRAME_WAIT_TIME = 500;
+
 
 /**
  *  Authentication Options
@@ -63,6 +65,7 @@ export type SystemOptions = {
   logger?: Logger;
   loadFrameTimeout?: number;
   tokenRenewalOffsetSeconds?: number;
+  waitTimeToLoadFrame?: number;
 };
 
 /**
@@ -111,7 +114,8 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
   logger: new Logger(null),
   loadFrameTimeout: FRAME_TIMEOUT,
-  tokenRenewalOffsetSeconds: OFFSET
+  tokenRenewalOffsetSeconds: OFFSET,
+  waitTimeToLoadFrame: LOAD_FRAME_WAIT_TIME
 };
 
 const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
