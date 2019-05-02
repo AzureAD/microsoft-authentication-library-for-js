@@ -1816,7 +1816,6 @@ export class UserAgentApplication {
           const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
 
           let cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
-          console.log("cache acquireTokenAccountKey", cachedAccount);
           let acquireTokenAccount: Account;
 
           // Check with the account in the Cache
@@ -2317,13 +2316,7 @@ export class UserAgentApplication {
   private setAccountCache(account: Account, state: string) {
 
     // Cache acquireTokenAccountKey
-    let accountId: string;
-    if (account) {
-        accountId = this.getAccountId(account);
-    }
-    else {
-        accountId = Constants.no_account;
-    }
+    let accountId = account ? this.getAccountId(account) : Constants.no_account;
 
     const acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, state);
     this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
