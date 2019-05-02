@@ -289,7 +289,11 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.loginInProgress) {
-      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(reqState));
       return;
     }
 
@@ -394,9 +398,8 @@ export class UserAgentApplication {
       // Redirect user to login URL
       this.promptUser(urlNavigate);
     }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.config.auth.state));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state));
     });
   }
 
@@ -425,7 +428,11 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(this.silentAuthenticationState)));
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(reqState)));
       return;
     }
 
@@ -472,9 +479,8 @@ export class UserAgentApplication {
         window.location.replace(urlNavigate);
       }
     }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.config.auth.state));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state));
     });
   }
 
@@ -634,7 +640,6 @@ export class UserAgentApplication {
         popUpWindow.close();
       }
     }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
       reject(ClientAuthError.createEndpointResolutionError(err.toString));
     });

@@ -33,7 +33,6 @@ describe("UserAgentApplication", function () {
     const ALTERNATE_INSTANCE = "https://login.windows.net/"
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
-    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description";
     const TEST_ERROR_CODE = "error_code";
     const TEST_ERROR_DESC = "msal error description"
     const TEST_USER_STATE_NUM = "1234";
@@ -56,6 +55,7 @@ describe("UserAgentApplication", function () {
     + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0=" 
     + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
     const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`;
+    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -372,8 +372,7 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    state: TEST_USER_STATE_NUM
+                    redirectUri: TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -382,7 +381,7 @@ describe("UserAgentApplication", function () {
         });
         
         it("Calls the error callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, accountState: string) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
@@ -437,8 +436,7 @@ describe("UserAgentApplication", function () {
             const config: Configuration = {
                 auth: {
                     clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    state: TEST_USER_STATE_NUM
+                    redirectUri: TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -686,7 +684,7 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
@@ -702,7 +700,7 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
@@ -712,7 +710,7 @@ describe("UserAgentApplication", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH);
+            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_URL);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_URL);
@@ -805,7 +803,7 @@ describe("UserAgentApplication", function () {
 
         it('test getAccountState when there is no user state', function () {
             const result = msal.getAccountState("123465464565");
-            expect(result).to.be.eq("");
+            expect(result).to.be.eq("123465464565");
         });
 
         it('test getAccountState when there is no state', function () {
