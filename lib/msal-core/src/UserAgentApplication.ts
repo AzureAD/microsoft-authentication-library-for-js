@@ -2115,7 +2115,7 @@ export class UserAgentApplication {
 
   /**
    * @hidden
-   *
+   * @ignore
    * Appends extraScopesToConsent if passed
    * @param {@link AuthenticationParameters}
    */
