@@ -2110,6 +2110,7 @@ export class UserAgentApplication {
   * Broadcast messages - Used only for Angular?  *
   * @param eventName
   * @param data
+  * @hidden
   */
   private broadcast(eventName: string, data: string) {
     const evt = new CustomEvent(eventName, { detail: data });
@@ -2301,6 +2302,7 @@ export class UserAgentApplication {
    * @param userObject
    * @param scopes
    * @param silentCall
+   * @hidden
    */
   private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
 
@@ -2337,6 +2339,7 @@ export class UserAgentApplication {
    * Sets the cachekeys for and stores the account information in cache
    * @param account
    * @param state
+   * @hidden
    */
   private setAccountCache(account: Account, state: string) {
 
@@ -2351,6 +2354,7 @@ export class UserAgentApplication {
    * Sets the cacheKey for and stores the authority information in cache
    * @param state
    * @param authority
+   * @hidden
    */
   private setAuthorityCache(state: string, authority: string) {
     // Cache authorityKey
@@ -2361,6 +2365,7 @@ export class UserAgentApplication {
   /**
    * Returns the unique identifier for the logged in account
    * @param account
+   * @hidden
    */
   private getAccountId(account: Account): any {
     //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
@@ -2378,6 +2383,7 @@ export class UserAgentApplication {
   /**
    * Construct 'tokenRequest' from the available data in adalIdToken
    * @param extraQueryParameters
+   * @hidden
    */
   private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 
@@ -2395,6 +2401,7 @@ export class UserAgentApplication {
    * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
    * @param request
    * @param serverAuthenticationRequest
+   * @hidden
    */
   private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
 
@@ -2437,6 +2444,7 @@ export class UserAgentApplication {
   /**
    * Utility to test if valid prompt value is passed in the request
    * @param request
+   * @hidden
    */
   private validatePromptParameter (prompt: string) {
     if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
@@ -2447,6 +2455,7 @@ export class UserAgentApplication {
   /**
    * Remove sid and login_hint if passed as extraQueryParameters
    * @param eQParams
+   * @hidden
    */
   private removeSSOParamsFromEQParams(eQParams: QPDict): QPDict {
 
