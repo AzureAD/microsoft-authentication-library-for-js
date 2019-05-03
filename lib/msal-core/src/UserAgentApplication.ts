@@ -352,18 +352,7 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.angularLoginRequest, "");
       }
 
-      // Cache the state, nonce, and login request data
-      this.cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.inCookie);
-      this.cacheStorage.setItem(Constants.loginError, "");
-
-      this.cacheStorage.setItem(Constants.stateLogin, serverAuthenticationRequest.state, this.inCookie);
-      this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
-
-      this.cacheStorage.setItem(Constants.msalError, "");
-      this.cacheStorage.setItem(Constants.msalErrorDescription, "");
-
-      // Cache authorityKey
-      this.setAuthorityCache(serverAuthenticationRequest.state, this.authority);
+      this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
 
       // build URL to navigate to proceed with the login
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
@@ -430,12 +419,7 @@ export class UserAgentApplication {
         request.state
       );
 
-      // Cache nonce
-      this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
-
-      // Cache account and authority
-      this.setAccountCache(account, serverAuthenticationRequest.state);
-      this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
+      this.updateCacheEntries(serverAuthenticationRequest, account);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -466,7 +450,6 @@ export class UserAgentApplication {
       parameters.hasOwnProperty(Constants.error) ||
       parameters.hasOwnProperty(Constants.accessToken) ||
       parameters.hasOwnProperty(Constants.idToken)
-
     );
   }
 
@@ -519,7 +502,6 @@ export class UserAgentApplication {
 
             resolve(response);
           }, (error) => {
-
             this.silentLogin = false;
             this.logger.error("Error occurred during unified cache ATS");
             this.loginPopupHelper(null, request, resolve, reject, scopes);
@@ -564,6 +546,8 @@ export class UserAgentApplication {
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
+
+      this.updateCacheEntries(serverAuthenticationRequest, account, window.location.href);
 
       // Cache the state, nonce, and login request data
       this.cacheStorage.setItem(Constants.loginRequest, window.location.href, this.inCookie);
@@ -674,13 +658,7 @@ export class UserAgentApplication {
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
         serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
-        // Cache nonce
-        this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
-        serverAuthenticationRequest.state = serverAuthenticationRequest.state;
-
-        // Cache account and authority
-        this.setAccountCache(account, serverAuthenticationRequest.state);
-        this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
+        this.updateCacheEntries(serverAuthenticationRequest, account);
 
         // Construct the urlNavigate
         let urlNavigate = serverAuthenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
@@ -1573,12 +1551,7 @@ export class UserAgentApplication {
     this.logger.verbose("renewToken is called for scope:" + scope);
     const frameHandle = this.addHiddenIFrame("msalRenewFrame" + scope);
 
-    // Cache account and authority
-    this.setAccountCache(account, serverAuthenticationRequest.state);
-    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
-
-    // renew happens in iframe, so it keeps javascript context
-    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+    this.updateCacheEntries(serverAuthenticationRequest, account);
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
@@ -1602,12 +1575,7 @@ export class UserAgentApplication {
     this.logger.info("renewidToken is called");
     const frameHandle = this.addHiddenIFrame("msalIdTokenFrame");
 
-    // Cache account and authority
-    this.setAccountCache(account, serverAuthenticationRequest.state);
-    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
-
-    // Cache nonce
-    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+    this.updateCacheEntries(serverAuthenticationRequest, account);
 
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
@@ -1889,7 +1857,7 @@ export class UserAgentApplication {
     }
 
     this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
-    this.cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenAccountKey);
+    this.cacheStorage.removeAcquireTokenEntries();
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);
@@ -2316,6 +2284,33 @@ export class UserAgentApplication {
     // Cache authorityKey
     const authorityKey = Storage.generateAuthorityKey(state);
     this.cacheStorage.setItem(authorityKey, Utils.CanonicalizeUri(authority), this.inCookie);
+  }
+
+  /**
+   * Updates account, authority, and nonce in cache
+   * @param serverAuthenticationRequest
+   * @param account
+   */
+  private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
+    // Cache account and authority
+    if (loginStartPage) {
+      // Cache the state, nonce, and login request data
+      this.cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.inCookie);
+      this.cacheStorage.setItem(Constants.loginError, "");
+
+      this.cacheStorage.setItem(Constants.stateLogin, serverAuthenticationRequest.state, this.inCookie);
+      this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+
+      this.cacheStorage.setItem(Constants.msalError, "");
+      this.cacheStorage.setItem(Constants.msalErrorDescription, "");
+    } else {
+      this.setAccountCache(account, serverAuthenticationRequest.state);
+    }
+    // Cache authorityKey
+    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
+
+    // Cache nonce
+    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
   }
 
   /**
