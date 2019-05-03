@@ -5,7 +5,7 @@ import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { Utils } from "../src/Utils";
 
-describe("ClientInfo", function () {
+describe("Client Info", function () {
     let TEST_UID = "123-test-uid";
     let TEST_UTID = "456-test-utid";
     let TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;

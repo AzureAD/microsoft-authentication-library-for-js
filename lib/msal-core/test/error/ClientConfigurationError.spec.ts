@@ -1,9 +1,9 @@
 import * as mocha from "mocha";
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientAuthError, AuthError } from "../../src";
 
-// TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
-describe("ClientConfigurationError", () => {
+describe("ClientConfigurationError.ts Class", () => {
 
   it("ClientConfigurationError object can be created", () => {
 
@@ -18,6 +18,10 @@ describe("ClientConfigurationError", () => {
       err = error;
     }
 
+    expect(err instanceof ClientConfigurationError).to.be.true;
+    expect(err instanceof ClientAuthError).to.be.true;
+    expect(err instanceof AuthError).to.be.true;
+    expect(err instanceof Error).to.be.true;
     expect(err.errorCode).to.equal(TEST_ERROR_CODE);
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
