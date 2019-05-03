@@ -15,7 +15,7 @@ import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -923,14 +923,17 @@ export class UserAgentApplication {
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
+      let userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
       let authErr: AuthError;
       let cacheResultResponse;
 
-      try {
-        cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
-      } catch (e) {
-        authErr = e;
+      if (!userContainedClaims) {
+        try {
+          cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
+        } catch (e) {
+          authErr = e;
+        }
       }
 
       // resolve/reject based on cacheResult
@@ -946,7 +949,11 @@ export class UserAgentApplication {
       }
       // else proceed with login
       else {
-        this.logger.verbose("Token is not in cache for scope:" + scope);
+        if (userContainedClaims) {
+          this.logger.verbose("Skipped cache lookup since claims were given.");
+        } else {
+          this.logger.verbose("Token is not in cache for scope:" + scope);
+        }
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         if (!serverAuthenticationRequest.authorityInstance) {
             serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -2488,6 +2495,12 @@ export class UserAgentApplication {
         serverAuthenticationRequest.promptValue = request.prompt;
       }
 
+      // Add claims challenge to serverRequestParameters if passed
+      if (request.claimsRequest) {
+        validateClaimsRequest(request);
+        serverAuthenticationRequest.claimsValue = request.claimsRequest;
+      }
+
       // if the developer provides one of these, give preference to developer choice
       if (Utils.isSSOParam(request)) {
         queryParameters = Utils.constructUnifiedCacheQueryParameter(request, null);
@@ -2495,7 +2508,7 @@ export class UserAgentApplication {
     }
 
     if (adalIdTokenObject) {
-        queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
+      queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
     }
 
     // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
@@ -2505,7 +2518,7 @@ export class UserAgentApplication {
     // sanity check for developer passed extraQueryParameters
     let eQParams: QPDict;
     if (request) {
-        eQParams = this.removeSSOParamsFromEQParams(request.extraQueryParameters);
+      eQParams = this.sanitizeEQParams(request);
     }
 
     // Populate the extraQueryParameters to be sent to the server
@@ -2531,17 +2544,21 @@ export class UserAgentApplication {
   /**
    * @hidden
    * @ignore
-   *
-   * Remove sid and login_hint if passed as extraQueryParameters
-   * @param eQParams
+
+   * Removes unnecessary or duplicate query parameters from extraQueryParameters
+   * @param request
    */
-  private removeSSOParamsFromEQParams(eQParams: QPDict): QPDict {
-
-    if (eQParams) {
-      delete eQParams[SSOTypes.SID];
-      delete eQParams[SSOTypes.LOGIN_HINT];
+  private sanitizeEQParams(request: AuthenticationParameters) : QPDict {
+    let eQParams : QPDict = request.extraQueryParameters;
+    if (!eQParams) {
+      return null;
     }
-
+    if (request.claimsRequest) {
+      this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
+      delete eQParams[Constants.claims];
+    }
+    delete eQParams[SSOTypes.SID];
+    delete eQParams[SSOTypes.LOGIN_HINT];
     return eQParams;
   }
 

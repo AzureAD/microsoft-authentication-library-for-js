@@ -67,6 +67,10 @@ export const ClientConfigurationErrorMessage = {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
     },
+    claimsRequestParsingError: {
+        code: "claims_request_parsing_error",
+        desc: "Could not parse the given claims request object."
+    }
 };
 
 /**
@@ -127,5 +131,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createInvalidPromptError(promptValue: any): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
+    }
+
+    static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
+            `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
     }
 }

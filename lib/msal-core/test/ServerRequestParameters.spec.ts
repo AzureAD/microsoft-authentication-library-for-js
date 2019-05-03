@@ -3,7 +3,7 @@ import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { Authority } from "../src";
 import { AuthorityFactory } from "../src/AuthorityFactory";
 
-describe("ServerRequestParameters", function () {
+describe("ServerRequestParameters.ts Class", function () {
 
     describe("State Generation", function () {
 
