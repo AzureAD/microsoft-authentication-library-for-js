@@ -1802,7 +1802,7 @@ export class UserAgentApplication {
         if (hashParams.hasOwnProperty(Constants.sessionState)) {
             this.cacheStorage.setItem(Constants.msalSessionState, hashParams[Constants.sessionState]);
         }
-        response.accountState = stateInfo.state;
+        response.accountState = this.getAccountState(stateInfo.state);
 
         let clientInfo: string = "";
 

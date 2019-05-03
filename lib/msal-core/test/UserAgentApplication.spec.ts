@@ -27,23 +27,35 @@ type kv = {
     [key: string]: string;
 }
 
-describe("UserAgentApplication.ts Class", function () {
+describe("UserAgentApplication", function () {
 
     const DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
     const ALTERNATE_INSTANCE = "https://login.windows.net/"
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
-    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description";
     const TEST_ERROR_CODE = "error_code";
     const TEST_ERROR_DESC = "msal error description"
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
     const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
+    const TEST_UID = "123-test-uid";
+    const TEST_UTID = "456-test-utid";
+    const TEST_NONCE = "test_nonce";
+    const TEST_UNIQUE_ID = "248289761001";
+    const TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;
+    const TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
+    const TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
     const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
     const TENANT = 'common';
     const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
+    const MSAL_TENANT_ID = "124ds324-43de-n89m-7477-466fefs45a85";
     const validAuthority = DEFAULT_INSTANCE + TENANT;
     const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
+    const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ" 
+    + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0=" 
+    + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
+    const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}`;
+    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -218,85 +230,6 @@ describe("UserAgentApplication.ts Class", function () {
                 prompt: "select_account",
                 account: accountObj
             };
-            msal.loginRedirect(tokenRequest);
-        });
-
-        it("tests that claims is added to the url when passed in request object", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
-                }
-            };
-            let tokenRequest: AuthenticationParameters = {
-                claimsRequest: JSON.stringify(claimsRequestObj)
-            };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
-                done();
-            });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-            msal.loginRedirect(tokenRequest);
-        });
-
-        it("tests that claims is added to the url when passed in extraQueryParameters", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
-                }
-            };
-            let tokenRequest: AuthenticationParameters = {
-                extraQueryParameters: { 
-                    claims: JSON.stringify(claimsRequestObj)
-                }
-            };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.extraQueryParameters.claims));
-                done();
-            });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-            msal.loginRedirect(tokenRequest);
-        });
-
-        it("removes claims from extraQueryParameters when passed in extraQueryParameters and request object", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
-                }
-            };
-            let claimsRequestObj2 = {
-                'accessToken': {
-                    'test2': null
-                }
-            };
-            let tokenRequest: AuthenticationParameters = {
-                claimsRequest: JSON.stringify(claimsRequestObj),
-                extraQueryParameters: { 
-                    claims: JSON.stringify(claimsRequestObj2)
-                }
-            };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
-                done();
-            });
-            msal.handleRedirectCallbacks(successCallback, errCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
@@ -621,7 +554,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it("tests getCachedToken when authority is passed and single matching accessToken is found which is expired", function (done) {
+        it('tests getCachedToken when authority is passed and single matching accessToken is found which is expired', function (done) {
             let tokenRequest : AuthenticationParameters = {
                 authority: alternateValidAuthority,
                 scopes: ["S1"],
@@ -654,46 +587,6 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Error in assertion: " + JSON.stringify(err));
             });
         });
-
-        it("tests getCachedToken is skipped when claims are passed in", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
-                }
-            };
-            let tokenRequest : AuthenticationParameters = {
-                authority: validAuthority,
-                scopes: ["S1"],
-                account: account,
-                claimsRequest: JSON.stringify(claimsRequestObj)
-            };
-            let params: kv = {  };
-            params[SSOTypes.SID] = account.sid;
-            setUtilUnifiedCacheQPStubs(params);
-            let cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
-
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                expect(cacheCallSpy.notCalled).to.be.true;
-                expect(url).to.include(validAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
-                done();
-                return {};
-            });
-
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-
-            msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                // Won't happen - we are not testing response here
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
-            });
-        });
     });
 
     describe("Processing Authentication Responses", function() {
@@ -714,6 +607,22 @@ describe("UserAgentApplication.ts Class", function () {
         afterEach(function() {
             cacheStorage.clear();
             sinon.restore();
+        });
+
+        it("tests saveTokenForHash in case of response", function(done) {
+            let successHash = TEST_SUCCESS_HASH + "&state=RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
+            cacheStorage.setItem(Constants.urlHash, successHash);
+            let checkRespFromServer = function(response: AuthResponse) {
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(Constants.idToken);
+                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
+                expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                done();
+            };
+            msal.handleRedirectCallbacks(checkRespFromServer, errCallback);
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
@@ -737,7 +646,7 @@ describe("UserAgentApplication.ts Class", function () {
             let errHash = TEST_ERROR_HASH + "&state=RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM;
             cacheStorage.setItem(Constants.urlHash, errHash);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
-                expect(accountState).to.include(TEST_USER_STATE_NUM);
+                expect(accountState).to.eq(TEST_USER_STATE_NUM);
                 done();
             };
             msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
@@ -747,7 +656,7 @@ describe("UserAgentApplication.ts Class", function () {
             let errHash = TEST_ERROR_HASH + "&state=RANDOM-GUID-HERE|" + TEST_USER_STATE_URL;
             cacheStorage.setItem(Constants.urlHash, errHash);
             let checkErrorHasState = function(error: AuthError, accountState: string) {
-                expect(accountState).to.include(TEST_USER_STATE_URL);
+                expect(accountState).to.be.eq(TEST_USER_STATE_URL);
                 done();
             };
             msal.handleRedirectCallbacks(successCallback, checkErrorHasState);
