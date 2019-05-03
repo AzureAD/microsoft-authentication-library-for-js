@@ -9,6 +9,9 @@ import { ClientConfigurationError } from "./error/ClientConfigurationError";
  */
 export type QPDict = {[key: string]: string};
 
+/**
+ * @link AuthenticationParameters}AuthenticationParameters
+ */
 export type AuthenticationParameters = {
     scopes?: Array<string>;
     extraScopesToConsent?: Array<string>;
