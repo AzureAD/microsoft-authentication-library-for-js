@@ -73,7 +73,7 @@ After instantiating your instance, if you plan on using a redirect flow (`loginR
     var msalInstance = new Msal.UserAgentApplication(msalConfig);
 
     msalInstance.handleRedirectCallback((error, response) => {
-        // handle redirect response
+        // handle redirect response or error
     });
 
 ```
