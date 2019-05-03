@@ -875,12 +875,14 @@ describe("UserAgentApplication", function () {
             let loginPopupPromise : Promise<AuthResponse>;
             loginPopupPromise = msal.loginPopup({});
             expect(loginPopupPromise instanceof Promise).to.be.true;
+            loginPopupPromise.catch(error => {});
         });
 
         it("returns a promise from acquireTokenPopup", function () {
             let acquireTokenPromise : Promise<AuthResponse>;
             acquireTokenPromise = msal.acquireTokenPopup({scopes: [MSAL_CLIENT_ID]});
             expect(acquireTokenPromise instanceof Promise).to.be.true;
+            acquireTokenPromise.catch(error => {});
         });
     });
 
@@ -906,6 +908,7 @@ describe("UserAgentApplication", function () {
             let acquireTokenSilentPromise : Promise<AuthResponse>;
             acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [MSAL_CLIENT_ID]});
             expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
+            acquireTokenSilentPromise.catch(error => {});
         });
 
     });
