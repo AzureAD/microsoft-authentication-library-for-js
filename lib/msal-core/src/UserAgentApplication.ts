@@ -399,7 +399,11 @@ export class UserAgentApplication {
       this.promptUser(urlNavigate);
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state));
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
     });
   }
 
@@ -480,7 +484,12 @@ export class UserAgentApplication {
       }
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state));
+
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
     });
   }
 
