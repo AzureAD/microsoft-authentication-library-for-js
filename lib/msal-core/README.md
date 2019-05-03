@@ -61,7 +61,7 @@ Before using MSAL.js you will need to [register an application in Azure AD](http
 
 `UserAgentApplication` can be configured with a variety of different options, detailed in our [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-preview-api-release#configuration-options), but the only required parameter is `auth.clientId`.
 
-After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallbacks(successHandler, errorHandler)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises
+After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 ```JavaScript
     var msalConfig = {
@@ -72,10 +72,8 @@ After instantiating your instance, if you plan on using a redirect flow (`loginR
 
     var msalInstance = new Msal.UserAgentApplication(msalConfig);
 
-    msalInstance.handleRedirectCallbacks(response => {
+    msalInstance.handleRedirectCallback((error, response) => {
         // handle redirect response
-    }), err => {
-       // handle error
     });
 
 ```
