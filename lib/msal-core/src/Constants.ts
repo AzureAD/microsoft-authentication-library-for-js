@@ -86,7 +86,7 @@ export class Constants {
  * @hidden
  */
 export const CacheKeys = {
-    AUTHORITY: "msal_authority",
+    AUTHORITY: "msal.authority",
     ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
 };
 
