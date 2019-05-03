@@ -800,13 +800,12 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("adds postLogoutRedirectUri to logout URI", function (done) {
-            // TODO: This test fails because we are appending a '/' character too many times. Will push a fix for this soon.
-            // sinon.stub(window.location, "replace").callsFake(function (url) {
-            //     expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/logout?');
-            //     expect(url).to.include(TEST_LOGOUT_URI);
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/logout?');
+                expect(url).to.include(encodeURIComponent(TEST_LOGOUT_URI));
                 done();
-            // });
-            // msal.logout();
+            });
+            msal.logout();
         });
     });
 
