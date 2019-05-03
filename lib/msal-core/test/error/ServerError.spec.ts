@@ -1,8 +1,9 @@
 import * as mocha from "mocha";
 import { expect } from "chai";
 import { ServerError, ServerErrorMessage } from "../../src/error/ServerError";
+import { AuthError } from "../../src";
 
-describe("ServerError", () => {
+describe("ServerError.ts Class", () => {
   it("ServerError object can be created", () => {
 
     const TEST_ERROR_CODE: string = "test";
@@ -16,7 +17,9 @@ describe("ServerError", () => {
       err = error;
     }
 
-    // TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
+    expect(err instanceof ServerError).to.be.true;
+    expect(err instanceof AuthError).to.be.true;
+    expect(err instanceof Error).to.be.true;
     expect(err.errorCode).to.equal(TEST_ERROR_CODE);
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);

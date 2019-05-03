@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
 
-describe("AuthError", () => {
+describe("AuthError.ts Class", () => {
   it("AuthError object can be created", () => {
     const TEST_ERROR_CODE: string = "test";
     const TEST_ERROR_MSG: string = "This is a test error";
@@ -14,7 +14,8 @@ describe("AuthError", () => {
       err = error;
     }
 
-    // TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
+    expect(err instanceof AuthError).to.be.true;
+    expect(err instanceof Error).to.be.true;
     expect(err.errorCode).to.equal(TEST_ERROR_CODE);
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
