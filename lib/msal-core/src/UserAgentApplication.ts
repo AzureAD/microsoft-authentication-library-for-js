@@ -1214,7 +1214,7 @@ export class UserAgentApplication {
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
-    const urlNavigate = this.authority + "oauth2/v2.0/logout?" + logout;
+    const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
     this.promptUser(urlNavigate);
   }
 
