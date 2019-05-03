@@ -26,13 +26,8 @@ export class ServerRequestParameters {
   responseType: string;
   redirectUri: string;
 
-  // TODO: The below are not used - check and delete with the rename PR
   promptValue: string;
-  sid: string;
-  loginHint: string;
-  domainHint: string;
-  loginReq: string;
-  domainReq: string;
+  claimsValue: string;
 
   queryParameters: string;
   extraQueryParameters: string;
@@ -67,7 +62,6 @@ export class ServerRequestParameters {
 
     this.responseType = responseType;
     this.redirectUri = redirectUri;
-
   }
 
   /**
@@ -115,7 +109,11 @@ export class ServerRequestParameters {
     str.push(`x-client-SKU=${this.xClientSku}`);
     str.push(`x-client-Ver=${this.xClientVer}`);
     if (this.promptValue) {
-      str.push("prompt=" + encodeURI(this.promptValue));
+      str.push("prompt=" + encodeURIComponent(this.promptValue));
+    }
+
+    if (this.claimsValue) {
+      str.push("claims=" + encodeURIComponent(this.claimsValue));
     }
 
     if (this.queryParameters) {

@@ -7,7 +7,7 @@ import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
 import { Account } from "../src/Account";
 
-describe("Local Storage", function () {
+describe("CacheStorage.ts Class - Local Storage", function () {
     let TEST_KEY = "test_key";
     let TEST_VALUE = "test value";
     let TEST_ACCOUNT_ID = "1234";
@@ -46,9 +46,9 @@ describe("Local Storage", function () {
     };
 
     describe("class constructor", function () {
-        
+
         beforeEach(function () {
-            
+
         });
 
         afterEach(function () {
@@ -134,7 +134,7 @@ describe("Local Storage", function () {
             let actualNextDayUTC = cacheStorage.getCookieExpirationTime(1);
             let dayAfterUTC = new Date(nextDayUTC.getTime() + 86400000);
             let actualDayAfterUTC = cacheStorage.getCookieExpirationTime(2);
-            
+
             expect(actualNextDayUTC).to.be.eq(nextDayUTC.toUTCString());
             expect(actualDayAfterUTC).to.be.eq(dayAfterUTC.toUTCString());
         });
@@ -246,7 +246,7 @@ describe("Local Storage", function () {
             let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             expect(acquireTokenAccountKey).to.include(TEST_ACCOUNT_ID);
             expect(acquireTokenAccountKey).to.include(TEST_STATE);
-            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_USER);
+            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_ACCOUNT);
         });
 
         it("generates authority key", function () {
