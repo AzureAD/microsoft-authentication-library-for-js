@@ -373,7 +373,13 @@ export class UserAgentApplication {
     }).catch((err) => {
       // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.config.auth.state));
+
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+
+      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(reqState));
     });
   }
 
@@ -455,7 +461,13 @@ export class UserAgentApplication {
     }).catch((err) => {
       // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(this.config.auth.state));
+
+      let reqState;
+      if (request) {
+        reqState = request.state;
+      }
+
+      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(reqState));
     });
   }
 
