@@ -1,3 +1,15 @@
+# 1.0.0-preview.5
+* Error First Callbacks PR #658
+* Claims Request Support PR #664 
+* loginInProgress() as a public function #671 
+* 'state' moved from config to request, returning the user state if passed stripping the GUID #674 #679 #681 
+* cache cleanup of all values (keys cleanup will be done in next release) #675 
+* made loading iFrame timeout in silent calls configurable, 'navigateFrameWait' #676 
+* readme updated with latest code patterns #672 
+
+# 1.0.0-preview.4
+Add dist back into npm package as a valid build artifact
+
 # 1.0.0-preview.3
 Add a hook in package.json to build msal js before npm publish to have the libraries up to date
 
