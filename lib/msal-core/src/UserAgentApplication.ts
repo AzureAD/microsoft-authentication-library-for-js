@@ -45,6 +45,7 @@ declare global {
 
 /**
  * @hidden
+ * @ignore
  * response_type from OpenIDConnect
  * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
  * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
@@ -58,6 +59,7 @@ const ResponseTypes = {
 
 /**
  * @hidden
+ * @ignore
  */
 export interface CacheResult {
   errorDesc: string;
@@ -67,6 +69,7 @@ export interface CacheResult {
 
 /**
  * @hidden
+ * @ignore
  * Data type to hold information about state returned from the server
  */
 export type ResponseStateInfo = {
@@ -77,19 +80,23 @@ export type ResponseStateInfo = {
 
 /**
  * A type alias for a tokenReceivedCallback function.
- * @returns response of type {@link AuthResponse}
+ * {@link (tokenReceivedCallback:type)}
+ * @returns response of type {@link (AuthResponse:type)}
  * The function that will get the call back once this API is completed (either successfully or with a failure).
  */
 export type tokenReceivedCallback = (response: AuthResponse) => void;
 
 /**
  * A type alias for a errorReceivedCallback function.
- * @returns response of type {@link AuthError}
+ * {@link (errorReceivedCallback:type)}
+ * @returns response of type {@link (AuthError:class)}
+ * @returns {string} account state
  */
 export type errorReceivedCallback = (authError: AuthError, accountState: string) => void;
 
 /**
  * @hidden
+ * @ignore
  * A wrapper to handle the token response/error within the iFrame always
  *
  * @param target
@@ -109,7 +116,8 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
 };
 
 /**
- * UserAgentApplication class : {@link UserAgentApplication}
+ * UserAgentApplication class
+ * 
  * Object Instance that the developer can use to make loginXX OR acquireTokenXX functions
  */
 export class UserAgentApplication {
@@ -150,38 +158,43 @@ export class UserAgentApplication {
   }
 
   /**
-   * returns the authority, where authority is a URL indicating the directory that MSAL can use to obtain tokens
-   * - In Azure AD, this attribute is a URL indicating the Azure active directory that MSAL uses to obtain tokens
-   * It is of the form https://login.microsoftonline.com/&lt;Enter_the_Tenant_Info_Here&gt;
-   * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com)
-   * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations
-   * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
-   * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
-   * - In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/
+   * Method to manage the authority URL.
    *
-   * @returns {string} authority
+   * @returns {string} authority 
    */
   public get authority(): string {
     return this.authorityInstance.CanonicalAuthority;
   }
 
   /**
-   * returns the authority instance
-   * @returns authority {@link Authority}
+   * Get the current authority instance from the MSAL configuration object
+   *
+   * @returns {@link Authority} authority instance
    */
   public getAuthorityInstance(): Authority {
     return this.authorityInstance;
   }
 
   /**
-   * Constructor for the {@link UserAgentApplication} object
-   * This is to be able to instantiate the {@link UserAgentApplication} object
    * @constructor
+   * Constructor for the UserAgentApplication used to instantiate the UserAgentApplication object
    *
-   * Important attributes to configure are:
-   * - clientID: the application ID of your application. You get obtain one by registering your application with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview
-   * - authority: the authority URL for your application
-   * @param {@link Configuration} configuration object for the MSAL UserAgentApplication instance
+   * Important attributes in the Configuration object for auth are:
+   * - clientID: the application ID of your application.
+   * You can obtain one by registering your application with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview
+   * - authority: the authority URL for your application.
+   *
+   * In Azure AD, authority is a URL indicating the Azure active directory that MSAL uses to obtain tokens.
+   * It is of the form https://login.microsoftonline.com/&lt;Enter_the_Tenant_Info_Here&gt;.
+   * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
+   * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
+   * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
+   * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
+   *
+   * 
+   * In Azure B2C, authority is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/&lt;policyName&gt;/
+
+   * @param {@link (Configuration:type)} configuration object for the MSAL UserAgentApplication instance
    */
   constructor(configuration: Configuration) {
 
@@ -230,9 +243,11 @@ export class UserAgentApplication {
 
   //#region Redirect Callbacks
   /**
-   * Sets the callback functions for the redirect flow to send back the success or error object.
-   * @param {tokenReceivedCallback} successCallback - Callback which contains the AuthResponse object, containing data from the server.
-   * @param {errorReceivedCallback} errorCallback - Callback which contains a AuthError object, containing error data from either the server
+   * @hidden
+   * @ignore
+   * Set the callback functions for the redirect flow to send back the success or error object.
+   * @param {@link (tokenReceivedCallback:type)} successCallback - Callback which contains the AuthResponse object, containing data from the server.
+   * @param {@link (errorReceivedCallback:type)} errorCallback - Callback which contains a AuthError object, containing error data from either the server
    * or the library, depending on the origin of the error.
    */
   handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
@@ -265,7 +280,7 @@ export class UserAgentApplication {
 
   /**
    * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
-   * @param {@link AuthenticationParameters}
+   * @param {@link (AuthenticationParameters:type)}
    */
   loginRedirect(request?: AuthenticationParameters): void {
 
@@ -334,6 +349,7 @@ export class UserAgentApplication {
 
   /**
    * @hidden
+   * @ignore
    * Helper function to loginRedirect
    *
    * @param account
@@ -398,8 +414,8 @@ export class UserAgentApplication {
   }
 
   /**
-   * Used when you want to obtain an access_token for your API by redirecting the user to the authorization endpoint.
-   * @param {@link AuthenticationParameters}
+   * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint.
+   * @param {@link (AuthenticationParameters:type)}
    *
    * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
    */
@@ -482,6 +498,7 @@ export class UserAgentApplication {
 
   /**
    * @hidden
+   * @ignore
    * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
    * @param {string} hash - Hash passed from redirect page.
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
@@ -506,9 +523,9 @@ export class UserAgentApplication {
   /**
    * Use when initiating the login process via opening a popup window in the user's browser
    *
-   * @param {@link AuthenticationParameters}
+   * @param {@link (AuthenticationParameters:type)}
    *
-   * @returns {Promise.<AuthResponse>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+   * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
    */
   loginPopup(request?: AuthenticationParameters): Promise<AuthResponse> {
     // Creates navigate url; saves value in cache; redirect user to AAD
@@ -649,7 +666,7 @@ export class UserAgentApplication {
    * @param {@link AuthenticationParameters}
    *
    * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-   * @returns {Promise.<AuthResponse>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+   * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
    */
   acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
     return new Promise<AuthResponse>((resolve, reject) => {
@@ -877,7 +894,7 @@ export class UserAgentApplication {
    * @param {@link AuthenticationParameters}
    *
    * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-   * @returns {Promise.<AuthResponse>} - A Promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+   * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
    *
    */
   @resolveTokenOnlyIfOutOfIframe
@@ -1218,8 +1235,8 @@ export class UserAgentApplication {
   //#region Logout
 
   /**
-   * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
-   * Defaults behaviour is to redirect the user to `window.location.href`.
+   * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
+   * Default behaviour is to redirect the user to `window.location.href`.
    */
   logout(): void {
     this.clearCache();
@@ -1970,8 +1987,10 @@ export class UserAgentApplication {
   //#region Account
 
   /**
-   * Returns the signed in account (received from an account object created at the time of login) or null when no state is found
-   * @returns {@link Account} account object stored in MSAL
+   * Returns the signed in account
+   * (the account object is created at the time of successful login)
+   * or null when no state is found
+   * @returns {@link Account} - the account object stored in MSAL
    */
   getAccount(): Account {
     // if a session already exists, get the account from the session
@@ -2011,9 +2030,9 @@ export class UserAgentApplication {
   }
 
   /**
-   * Used to filter all cached items and return a list of unique accounts based on homeAccountIdentifier.
+   * Use to get a list of unique accounts in MSAL cache based on homeAccountIdentifier.
    *
-   * @param {@link Array<Account>} Accounts - accounts saved in the cache.
+   * @param {@link Array<Account>} Account - all unique accounts in MSAL cache.
    */
   getAllAccounts(): Array<Account> {
     const accounts: Array<Account> = [];
