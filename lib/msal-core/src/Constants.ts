@@ -121,5 +121,5 @@ export const PromptState = {
 };
 
 export const Library = {
-  version: "1.0.0-preview.4"
+  version: "1.0.0-preview.5"
 };
