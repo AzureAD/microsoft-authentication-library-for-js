@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { IdToken } from "../../src/IdToken";
+import { AuthError } from "../../src";
 
-// TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
-describe("ClientAuthError", () => {
+describe("ClientAuthError.ts Class", () => {
 
   it("ClientAuthError object can be created", () => {
     const TEST_ERROR_CODE: string = "test";
@@ -18,6 +18,8 @@ describe("ClientAuthError", () => {
     }
 
     expect(err instanceof ClientAuthError).to.be.true;
+    expect(err instanceof AuthError).to.be.true;
+    expect(err instanceof Error).to.be.true;
     expect(err.errorCode).to.equal(TEST_ERROR_CODE);
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
@@ -317,6 +319,26 @@ describe("ClientAuthError", () => {
     expect(err.errorMessage).to.include(ClientAuthErrorMessage.clientInfoDecodingError.desc);
     expect(err.errorMessage).to.include(caughtErrorString);
     expect(err.message).to.include(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+    expect(err.name).to.equal("ClientAuthError");
+    expect(err.stack).to.include("ClientAuthError.spec.js");
+  });
+
+  it("createClientInfoNotPopulatedError creates a ClientAuthError object", () => {
+
+    const caughtErrorString = "There was an error.";
+    const clientInfoNotPopulatedError = ClientAuthError.createClientInfoNotPopulatedError(caughtErrorString);
+    let err: ClientAuthError;
+
+    try {
+      throw clientInfoNotPopulatedError;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientAuthErrorMessage.clientInfoNotPopulatedError.code);
+    expect(err.errorMessage).to.include(ClientAuthErrorMessage.clientInfoNotPopulatedError.desc);
+    expect(err.errorMessage).to.include(caughtErrorString);
+    expect(err.message).to.include(ClientAuthErrorMessage.clientInfoNotPopulatedError.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.js");
   });

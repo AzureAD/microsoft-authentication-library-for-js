@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { buildConfiguration, Configuration } from "../src/Configuration";
 import { Logger } from "../src/Logger";
 
-describe("Configuration.ts", () => {
+describe("Configuration.ts Type", () => {
     it("buildConfiguration defaults", () => {
         const config: Configuration = {
             auth: {
@@ -22,7 +22,6 @@ describe("Configuration.ts", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { auth } = configWithDefaults;
-        expect(auth.state).to.eq("");
         expect(auth.validateAuthority).to.be.true;
     });
     it("buildConfiguration respects auth passed in", () => {
@@ -31,13 +30,11 @@ describe("Configuration.ts", () => {
         const config: Configuration = {
             auth: {
                 clientId: "iamnotreal",
-                state: fake_state,
                 validateAuthority: fake_validateAuthority
             }
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { auth } = configWithDefaults;
-        expect(auth.state).to.eq(fake_state);
         expect(auth.validateAuthority).to.eq(fake_validateAuthority);
     });
     it("buildConfiguration cache defaults", () => {

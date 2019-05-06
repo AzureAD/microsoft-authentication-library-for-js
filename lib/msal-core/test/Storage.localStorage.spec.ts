@@ -7,7 +7,7 @@ import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
 import { Account } from "../src/Account";
 
-describe("Local Storage", function () {
+describe("CacheStorage.ts Class - Local Storage", function () {
     let TEST_KEY = "test_key";
     let TEST_VALUE = "test value";
     let TEST_ACCOUNT_ID = "1234";
@@ -46,9 +46,9 @@ describe("Local Storage", function () {
     };
 
     describe("class constructor", function () {
-        
+
         beforeEach(function () {
-            
+
         });
 
         afterEach(function () {
@@ -134,7 +134,7 @@ describe("Local Storage", function () {
             let actualNextDayUTC = cacheStorage.getCookieExpirationTime(1);
             let dayAfterUTC = new Date(nextDayUTC.getTime() + 86400000);
             let actualDayAfterUTC = cacheStorage.getCookieExpirationTime(2);
-            
+
             expect(actualNextDayUTC).to.be.eq(nextDayUTC.toUTCString());
             expect(actualDayAfterUTC).to.be.eq(dayAfterUTC.toUTCString());
         });
@@ -207,7 +207,7 @@ describe("Local Storage", function () {
             expect(cacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(cacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
 
-            cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenAccountKey);
+            cacheStorage.removeAcquireTokenEntries();
             
             expect(cacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(cacheStorage.getItem(authorityKey)).to.be.null;
@@ -219,23 +219,23 @@ describe("Local Storage", function () {
             window.localStorage.setItem(Constants.stateLogin, "stateLogin");
             window.localStorage.setItem(Constants.idTokenKey, "idToken1");
             window.localStorage.setItem(Constants.nonceIdToken, "idTokenNonce");
-            window.localStorage.setItem(Constants.renewStatus, "Completed");
+            window.localStorage.setItem(Constants.renewStatus + "|RANDOM_GUID", "Completed");
 
             expect(cacheStorage.getItem(Constants.msalClientInfo)).to.be.eq("clientInfo");
             expect(cacheStorage.getItem(Constants.tokenKeys)).to.be.eq("tokenKeys");
             expect(cacheStorage.getItem(Constants.stateLogin)).to.be.eq("stateLogin");
             expect(cacheStorage.getItem(Constants.idTokenKey)).to.be.eq("idToken1");
             expect(cacheStorage.getItem(Constants.nonceIdToken)).to.be.eq("idTokenNonce");
-            expect(cacheStorage.getItem(Constants.renewStatus)).to.be.eq("Completed");
+            expect(cacheStorage.getItem(Constants.renewStatus + "|RANDOM_GUID")).to.be.eq("Completed");
 
             cacheStorage.resetCacheItems();
-            
+
             expect(cacheStorage.getItem(Constants.msalClientInfo)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.tokenKeys)).to.be.eq("");
-            expect(cacheStorage.getItem(Constants.stateLogin)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.idTokenKey)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.nonceIdToken)).to.be.eq("");
             expect(cacheStorage.getItem(Constants.renewStatus)).to.be.null;
+            expect(cacheStorage.getItem(Constants.stateLogin)).to.be.null;
         });
 
     });
@@ -246,7 +246,7 @@ describe("Local Storage", function () {
             let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             expect(acquireTokenAccountKey).to.include(TEST_ACCOUNT_ID);
             expect(acquireTokenAccountKey).to.include(TEST_STATE);
-            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_USER);
+            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_ACCOUNT);
         });
 
         it("generates authority key", function () {

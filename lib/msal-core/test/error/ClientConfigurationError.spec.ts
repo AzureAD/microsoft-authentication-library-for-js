@@ -1,9 +1,9 @@
 import * as mocha from "mocha";
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientAuthError, AuthError } from "../../src";
 
-// TODO: Should we test the type of object created? Also setPrototypeOf() related test to be added if needed.
-describe("ClientConfigurationError", () => {
+describe("ClientConfigurationError.ts Class", () => {
 
   it("ClientConfigurationError object can be created", () => {
 
@@ -18,6 +18,10 @@ describe("ClientConfigurationError", () => {
       err = error;
     }
 
+    expect(err instanceof ClientConfigurationError).to.be.true;
+    expect(err instanceof ClientAuthError).to.be.true;
+    expect(err instanceof AuthError).to.be.true;
+    expect(err instanceof Error).to.be.true;
     expect(err.errorCode).to.equal(TEST_ERROR_CODE);
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
@@ -83,9 +87,8 @@ describe("ClientConfigurationError", () => {
 
   it("createInvalidCallbackObjectError creates a ClientConfigurationError object", () => {
 
-    const callbackType = "successCallback";
-    const callbackFunction: Object = "";
-    const invalidCallBackObject = ClientConfigurationError.createInvalidCallbackObjectError(callbackType, callbackFunction);
+    const callbackFunction: Function = null;
+    const invalidCallBackObject = ClientConfigurationError.createInvalidCallbackObjectError(callbackFunction);
     let err: ClientConfigurationError;
 
     try {
@@ -96,7 +99,7 @@ describe("ClientConfigurationError", () => {
 
     expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidCallbackObject.code);
     expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
-    expect(err.errorMessage).to.include(`Given value for ${callbackType} callback function: ${callbackFunction}`);
+    expect(err.errorMessage).to.include(`Given value for callback function: ${callbackFunction}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.js");

@@ -53,8 +53,8 @@
             scopes: graphConfig.graphScopes
     };
 
-        var myMSALObj = new Msal.UserAgentApplication(msalConfig);
-    myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErrorRedirectCallBack);
+    var myMSALObj = new Msal.UserAgentApplication(msalConfig);
+    myMSALObj.handleRedirectCallback(authRedirectCallBack);
 
     function signIn() {
         /*let loginRequest = {
@@ -140,16 +140,16 @@
         });
     }
 
-    function acquireTokenRedirectCallBack(endpoint, response) {
-        if (response.tokenType === "access_token") {
-            callMSGraph(endpoint, response.accessToken, graphAPICallback);
+    function authRedirectCallBack(error, response) {
+        if (error) {
+            console.log(error);
         } else {
-            console.log("token type is:" + response.tokenType);
+            if (response.tokenType === "access_token") {
+                callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, graphAPICallback);
+            } else {
+                console.log("token type is:" + response.tokenType);
+            }
         }
-    }
-
-    function  acquireTokenErrorRedirectCallBack(error) {
-        console.log(error);
     }
 
     function requiresInteraction(errorMessage) {

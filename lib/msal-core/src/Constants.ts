@@ -19,6 +19,7 @@ export class Constants {
   static get accessToken(): string { return "access_token"; }
   static get expiresIn(): string { return "expires_in"; }
   static get sessionState(): string { return "session_state"; }
+  static get claims(): string { return "claims"; }
 
   static get msalClientInfo(): string { return "msal.client.info"; }
   static get msalError(): string { return "msal.error"; }
@@ -85,8 +86,8 @@ export class Constants {
  * @hidden
  */
 export const CacheKeys = {
-    AUTHORITY: "msal_authority",
-    ACQUIRE_TOKEN_USER: "msal.acquireTokenUser"
+    AUTHORITY: "msal.authority",
+    ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
 };
 
 /**
@@ -120,5 +121,5 @@ export const PromptState = {
 };
 
 export const Library = {
-  version: "1.0.0-preview.3"
+  version: "1.0.0"
 };
