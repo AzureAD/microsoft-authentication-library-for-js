@@ -1383,7 +1383,8 @@ export class UserAgentApplication {
         window.location.hash = "";
       }
       if (!this.redirectCallbacksSet) {
-        // We reached this point too early, return and come back later
+        // We reached this point too early - cache hash, return and process in handleRedirectCallbacks
+        self.cacheStorage.setItem(Constants.urlHash, hash);
         return;
       }
     }
