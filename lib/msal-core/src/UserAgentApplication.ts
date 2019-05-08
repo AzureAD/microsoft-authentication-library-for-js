@@ -642,7 +642,7 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
       this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
 
-      // What is this? Is this the reject that is passed in?? -- REDO this in the subsequent refactor, passing reject is confusing
+      // reject that is passed in - REDO this in the subsequent refactor, passing reject is confusing
       if (reject) {
         reject(ClientAuthError.createEndpointResolutionError());
       }
@@ -651,6 +651,7 @@ export class UserAgentApplication {
       if (popUpWindow) {
         popUpWindow.close();
       }
+    // this is an all catch for any failure for the above code except the specific 'reject' call
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
       reject(ClientAuthError.createEndpointResolutionError(err.toString));
@@ -728,18 +729,18 @@ export class UserAgentApplication {
         }
 
       }, () => {
-        // On rejection - This is needed to catch the specific 'reject' in the code which is populated to simulate promises to enduser
         this.logger.info(ClientAuthErrorMessage.endpointResolutionError.code + ":" + ClientAuthErrorMessage.endpointResolutionError.desc);
         this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
         this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
 
+        // reject that is passed in - REDO this in the subsequent refactor, passing reject is confusing
         if (reject) {
           reject(ClientAuthError.createEndpointResolutionError());
         }
         if (popUpWindow) {
             popUpWindow.close();
         }
-      // this is an all catch for any failure for the above code
+      // this is an all catch for any failure for the above code except the specific 'reject' call
       }).catch((err) => {
         this.logger.warning("could not resolve endpoints");
         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
