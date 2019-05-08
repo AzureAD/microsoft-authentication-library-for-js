@@ -371,6 +371,12 @@ export class UserAgentApplication {
     // Track login in progress
     this.loginInProgress = true;
 
+    // request can be optional for login calls, hence check for the same
+    let reqState: string;
+    if (request) {
+      reqState = request.state;
+    }
+
     this.authorityInstance.resolveEndpointsAsync().then(() => {
 
       // create the Request to be sent to the Server
@@ -379,7 +385,7 @@ export class UserAgentApplication {
         this.clientId, scopes,
         ResponseTypes.id_token,
         this.getRedirectUri(),
-        request.state
+        reqState
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -402,10 +408,6 @@ export class UserAgentApplication {
       this.promptUser(urlNavigate);
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
       this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
     });
   }
@@ -593,9 +595,15 @@ export class UserAgentApplication {
     // Track login progress
     this.loginInProgress = true;
 
+    // request can be optional for login calls, hence check for the same
+    let reqState: string;
+    if (request && request.state) {
+        reqState = request.state;
+    }
+
     // Resolve endpoint
     this.authorityInstance.resolveEndpointsAsync().then(() => {
-      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request.state);
+      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), reqState);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -720,7 +728,7 @@ export class UserAgentApplication {
         }
 
       }, () => {
-        // On rejection
+        // On rejection - This is needed to catch the specific 'reject' in the code which is populated to simulate promises to enduser
         this.logger.info(ClientAuthErrorMessage.endpointResolutionError.code + ":" + ClientAuthErrorMessage.endpointResolutionError.desc);
         this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
         this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
@@ -731,6 +739,7 @@ export class UserAgentApplication {
         if (popUpWindow) {
             popUpWindow.close();
         }
+      // this is an all catch for any failure for the above code
       }).catch((err) => {
         this.logger.warning("could not resolve endpoints");
         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
