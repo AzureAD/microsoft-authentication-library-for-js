@@ -1133,7 +1133,7 @@ export class UserAgentApplication {
       // login_hint
       else {
         // login_hint is account.userName
-        if (!qParams[SSOTypes.LOGIN_HINT]  && account.userName && !Utils.isEmpty(account.userName)) {
+        if (!qParams[SSOTypes.SID] && !qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName)) {
           qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
         }
       }
