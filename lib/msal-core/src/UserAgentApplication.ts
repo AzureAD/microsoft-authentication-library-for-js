@@ -775,7 +775,7 @@ export class UserAgentApplication {
 
     const pollTimer = window.setInterval(() => {
       // If popup closed or login in progress, cancel login
-      if (popupWindow && popupWindow.closed && instance.loginInProgress) {
+      if (popupWindow && popupWindow.closed && (instance.loginInProgress || instance.acquireTokenInProgress)) {
         if (reject) {
           reject(ClientAuthError.createUserCancelledError());
         }
