@@ -90,18 +90,37 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenAccountKey: string): void {
+    removeAcquireTokenEntries(): void {
         const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenAccountKey !== "" && key.indexOf(acquireTokenAccountKey) > -1)) {
-                        this.removeItem(key);
+                    if (key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) {
+                        const splitKey = key.split(Constants.resourceDelimiter);
+                        let state;
+                        if (splitKey.length > 1) {
+                            state = splitKey[1];
+                        }
+                        if (state && !this.tokenRenewalInProgress(state)) {
+                            this.removeItem(key);
+                            this.removeItem(Constants.renewStatus + state);
+                            this.removeItem(Constants.stateLogin);
+                            this.removeItem(Constants.stateAcquireToken);
+                            this.setItemCookie(key, "", -1);
+                        }
                     }
                 }
             }
         }
+
+        this.clearCookie();
+    }
+
+    private tokenRenewalInProgress(stateValue: string): boolean {
+        const storage = window[this.cacheLocation];
+        const renewStatus = storage[Constants.renewStatus + stateValue];
+        return !(!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress);
     }
 
     resetCacheItems(): void {
@@ -113,11 +132,9 @@ export class Storage {// Singleton
                     if (key.indexOf(Constants.msal) !== -1) {
                         this.setItem(key, "");
                     }
-                    if (key.indexOf(Constants.renewStatus) !== -1) {
-                        this.removeItem(key);
-                    }
                 }
             }
+            this.removeAcquireTokenEntries();
         }
     }
 

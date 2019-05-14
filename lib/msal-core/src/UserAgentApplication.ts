@@ -21,7 +21,7 @@ import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
-import { AuthResponse } from "./AuthResponse";
+import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -79,6 +79,14 @@ export type ResponseStateInfo = {
 };
 
 /**
+ * A type alias for an authResponseCallback function.
+ * {@link (authResponseCallback:type)}
+ * @param authErr error created for failure cases
+ * @param response response containing token strings in success cases, or just state value in error cases
+ */
+export type authResponseCallback = (authErr: AuthError, response?: AuthResponse) => void;
+
+/**
  * A type alias for a tokenReceivedCallback function.
  * {@link (tokenReceivedCallback:type)}
  * @returns response of type {@link (AuthResponse:type)}
@@ -92,7 +100,7 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
  * @returns response of type {@link (AuthError:class)}
  * @returns {string} account state
  */
-export type errorReceivedCallback = (authError: AuthError, accountState: string) => void;
+export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
 
 /**
  * @hidden
@@ -126,6 +134,7 @@ export class UserAgentApplication {
   private config: Configuration;
 
   // callbacks for token/error
+  private authResponseCallback: authResponseCallback = null;
   private tokenReceivedCallback: tokenReceivedCallback = null;
   private errorReceivedCallback: errorReceivedCallback = null;
 
@@ -250,18 +259,22 @@ export class UserAgentApplication {
    * @param {@link (errorReceivedCallback:type)} errorCallback - Callback which contains a AuthError object, containing error data from either the server
    * or the library, depending on the origin of the error.
    */
-  handleRedirectCallbacks(successCallback: tokenReceivedCallback, errorCallback: errorReceivedCallback): void {
-    if (!successCallback) {
+  handleRedirectCallback(tokenReceivedCallback: tokenReceivedCallback, errorReceivedCallback: errorReceivedCallback): void;
+  handleRedirectCallback(authCallback: authResponseCallback): void;
+  handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
+    if (!authOrTokenCallback) {
       this.redirectCallbacksSet = false;
-      throw ClientConfigurationError.createInvalidCallbackObjectError("successCallback", successCallback);
-    } else if (!errorCallback) {
-      this.redirectCallbacksSet = false;
-      throw ClientConfigurationError.createInvalidCallbackObjectError("errorCallback", errorCallback);
+      throw ClientConfigurationError.createInvalidCallbackObjectError(authOrTokenCallback);
     }
 
     // Set callbacks
-    this.tokenReceivedCallback = successCallback;
-    this.errorReceivedCallback = errorCallback;
+    if (errorReceivedCallback) {
+      this.tokenReceivedCallback = authOrTokenCallback as tokenReceivedCallback;
+      this.errorReceivedCallback = errorReceivedCallback;
+      this.logger.warning("This overload for callback is deprecated - please change the format of the callbacks to a single callback as shown: (err: AuthError, response: AuthResponse).");
+    } else {
+      this.authResponseCallback = authOrTokenCallback as authResponseCallback;
+    }
 
     this.redirectCallbacksSet = true;
 
@@ -271,6 +284,22 @@ export class UserAgentApplication {
       if (cachedHash) {
         this.processCallBack(cachedHash, null);
       }
+    }
+  }
+
+  private redirectSuccessHandler(response: AuthResponse) : void {
+    if (this.errorReceivedCallback) {
+      this.tokenReceivedCallback(response);
+    } else if (this.authResponseCallback) {
+      this.authResponseCallback(null, response);
+    }
+  }
+
+  private redirectErrorHandler(authErr: AuthError, response: AuthResponse) : void {
+    if (this.errorReceivedCallback) {
+      this.errorReceivedCallback(authErr, response.accountState);
+    } else {
+      this.authResponseCallback(authErr, response);
     }
   }
 
@@ -295,7 +324,7 @@ export class UserAgentApplication {
       if (request) {
         reqState = request.state;
       }
-      this.errorReceivedCallback(ClientAuthError.createLoginInProgressError(), reqState);
+      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(reqState));
       return;
     }
 
@@ -327,9 +356,10 @@ export class UserAgentApplication {
           this.silentLogin = false;
           this.logger.info("Unified cache call is successful");
 
-          if (this.tokenReceivedCallback) {
-            this.tokenReceivedCallback(response);
+          if (this.redirectCallbacksSet) {
+            this.redirectSuccessHandler(response);
           }
+          return;
         }, (error) => {
           this.silentLogin = false;
           this.logger.error("Error occurred during unified cache ATS");
@@ -382,18 +412,7 @@ export class UserAgentApplication {
         this.cacheStorage.setItem(Constants.angularLoginRequest, "");
       }
 
-      // Cache the state, nonce, and login request data
-      this.cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.inCookie);
-      this.cacheStorage.setItem(Constants.loginError, "");
-
-      this.cacheStorage.setItem(Constants.stateLogin, serverAuthenticationRequest.state, this.inCookie);
-      this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
-
-      this.cacheStorage.setItem(Constants.msalError, "");
-      this.cacheStorage.setItem(Constants.msalErrorDescription, "");
-
-      // Cache authorityKey
-      this.setAuthorityCache(serverAuthenticationRequest.state, this.authority);
+      this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
 
       // build URL to navigate to proceed with the login
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
@@ -401,15 +420,12 @@ export class UserAgentApplication {
       // Redirect user to login URL
       this.promptUser(urlNavigate);
     }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
-
       let reqState;
       if (request) {
         reqState = request.state;
       }
-
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(reqState));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
     });
   }
 
@@ -437,7 +453,7 @@ export class UserAgentApplication {
       if (request) {
         reqState = request.state;
       }
-      this.errorReceivedCallback(ClientAuthError.createAcquireTokenInProgressError(), reqState);
+      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(reqState)));
       return;
     }
 
@@ -465,12 +481,7 @@ export class UserAgentApplication {
         request.state
       );
 
-      // Cache nonce
-      this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
-
-      // Cache account and authority
-      this.setAccountCache(account, serverAuthenticationRequest.state);
-      this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
+      this.updateCacheEntries(serverAuthenticationRequest, account);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -484,15 +495,13 @@ export class UserAgentApplication {
         window.location.replace(urlNavigate);
       }
     }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
 
       let reqState;
       if (request) {
         reqState = request.state;
       }
-
-      this.errorReceivedCallback(ClientAuthError.createEndpointResolutionError(err.toString), this.getAccountState(reqState));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
     });
   }
 
@@ -512,7 +521,6 @@ export class UserAgentApplication {
       parameters.hasOwnProperty(Constants.error) ||
       parameters.hasOwnProperty(Constants.accessToken) ||
       parameters.hasOwnProperty(Constants.idToken)
-
     );
   }
 
@@ -566,7 +574,6 @@ export class UserAgentApplication {
 
             resolve(response);
           }, (error) => {
-
             this.silentLogin = false;
             this.logger.error("Error occurred during unified cache ATS");
             this.loginPopupHelper(null, request, resolve, reject, scopes);
@@ -613,6 +620,8 @@ export class UserAgentApplication {
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
+      this.updateCacheEntries(serverAuthenticationRequest, account, window.location.href);
+
       // Cache the state, nonce, and login request data
       this.cacheStorage.setItem(Constants.loginRequest, window.location.href, this.inCookie);
       this.cacheStorage.setItem(Constants.loginError, "");
@@ -655,7 +664,6 @@ export class UserAgentApplication {
         popUpWindow.close();
       }
     }).catch((err) => {
-      // All catch - when is this executed? Possibly when error is thrown, but not if previous function rejects instead of throwing
       this.logger.warning("could not resolve endpoints");
       reject(ClientAuthError.createEndpointResolutionError(err.toString));
     });
@@ -717,13 +725,7 @@ export class UserAgentApplication {
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
         serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
-        // Cache nonce
-        this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
-        serverAuthenticationRequest.state = serverAuthenticationRequest.state;
-
-        // Cache account and authority
-        this.setAccountCache(account, serverAuthenticationRequest.state);
-        this.setAuthorityCache(serverAuthenticationRequest.state, acquireTokenAuthority.CanonicalAuthority);
+        this.updateCacheEntries(serverAuthenticationRequest, account);
 
         // Construct the urlNavigate
         let urlNavigate = serverAuthenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
@@ -1245,7 +1247,7 @@ export class UserAgentApplication {
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
-    const urlNavigate = this.authority + "/oauth2/v2.0/logout?" + logout;
+    const urlNavigate = this.authority + "oauth2/v2.0/logout?" + logout;
     this.promptUser(urlNavigate);
   }
 
@@ -1325,11 +1327,11 @@ export class UserAgentApplication {
           response.tokenType = Constants.idToken;
         }
         if (!parentCallback) {
-          this.tokenReceivedCallback(response);
+          this.redirectSuccessHandler(response);
           return;
         }
       } else if (!parentCallback) {
-        this.errorReceivedCallback(authErr, accountState);
+        this.redirectErrorHandler(authErr, buildResponseStateOnly(accountState));
         return;
       }
 
@@ -1633,12 +1635,7 @@ export class UserAgentApplication {
     this.logger.verbose("renewToken is called for scope:" + scope);
     const frameHandle = this.addHiddenIFrame("msalRenewFrame" + scope);
 
-    // Cache account and authority
-    this.setAccountCache(account, serverAuthenticationRequest.state);
-    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
-
-    // renew happens in iframe, so it keeps javascript context
-    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+    this.updateCacheEntries(serverAuthenticationRequest, account);
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
@@ -1662,12 +1659,7 @@ export class UserAgentApplication {
     this.logger.info("renewidToken is called");
     const frameHandle = this.addHiddenIFrame("msalIdTokenFrame");
 
-    // Cache account and authority
-    this.setAccountCache(account, serverAuthenticationRequest.state);
-    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
-
-    // Cache nonce
-    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+    this.updateCacheEntries(serverAuthenticationRequest, account);
 
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
@@ -1836,7 +1828,7 @@ export class UserAgentApplication {
         if (hashParams.hasOwnProperty(Constants.sessionState)) {
             this.cacheStorage.setItem(Constants.msalSessionState, hashParams[Constants.sessionState]);
         }
-        response.accountState = stateInfo.state;
+        response.accountState = this.getAccountState(stateInfo.state);
 
         let clientInfo: string = "";
 
@@ -1965,7 +1957,7 @@ export class UserAgentApplication {
     }
 
     this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
-    this.cacheStorage.removeAcquireTokenEntries(authorityKey, acquireTokenAccountKey);
+    this.cacheStorage.removeAcquireTokenEntries();
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);
@@ -2454,12 +2446,39 @@ export class UserAgentApplication {
   }
 
   /**
+   * Updates account, authority, and nonce in cache
+   * @param serverAuthenticationRequest
+   * @param account
    * @hidden
    * @ignore
-   *
+   */
+  private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
+    // Cache account and authority
+    if (loginStartPage) {
+      // Cache the state, nonce, and login request data
+      this.cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.inCookie);
+      this.cacheStorage.setItem(Constants.loginError, "");
+
+      this.cacheStorage.setItem(Constants.stateLogin, serverAuthenticationRequest.state, this.inCookie);
+      this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+
+      this.cacheStorage.setItem(Constants.msalError, "");
+      this.cacheStorage.setItem(Constants.msalErrorDescription, "");
+    } else {
+      this.setAccountCache(account, serverAuthenticationRequest.state);
+    }
+    // Cache authorityKey
+    this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
+
+    // Cache nonce
+    this.cacheStorage.setItem(Constants.nonceIdToken, serverAuthenticationRequest.nonce, this.inCookie);
+  }
+
+  /**
    * Returns the unique identifier for the logged in account
    * @param account
    * @hidden
+   * @ignore
    */
   private getAccountId(account: Account): any {
     //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;

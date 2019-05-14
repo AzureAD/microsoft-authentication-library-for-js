@@ -86,7 +86,7 @@ export class Constants {
  * @hidden
  */
 export const CacheKeys = {
-    AUTHORITY: "msal_authority",
+    AUTHORITY: "msal.authority",
     ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
 };
 
@@ -121,5 +121,5 @@ export const PromptState = {
 };
 
 export const Library = {
-  version: "1.0.0-preview.4"
+  version: "1.0.0"
 };

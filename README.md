@@ -1,5 +1,5 @@
 
-Microsoft Authentication Library Preview for JavaScript (MSAL.js)
+Microsoft Authentication Library for JavaScript (MSAL.js)
 =========================================================
 
 | [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/classes/_useragentapplication_.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
@@ -9,9 +9,6 @@ Microsoft Authentication Library Preview for JavaScript (MSAL.js)
 The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://cloud.microsoft.com) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
-
-## Important Note about the MSAL Preview
-The MSAL.js core library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
 
 
 ## Installation
@@ -59,9 +56,9 @@ Before using MSAL.js you will need to [register an application in Azure AD](http
 
 #### 1. Instantiate the UserAgentApplication
 
-`UserAgentApplication` can be configured with a variety of different options, detailed in our [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-preview-api-release#configuration-options), but the only required parameter is `auth.clientId`.
+`UserAgentApplication` can be configured with a variety of different options, detailed in our [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#configuration-options), but the only required parameter is `auth.clientId`.
 
-After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallbacks(successHandler, errorHandler)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises
+After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 ```JavaScript
     var msalConfig = {
@@ -72,13 +69,13 @@ After instantiating your instance, if you plan on using a redirect flow (`loginR
 
     var msalInstance = new Msal.UserAgentApplication(msalConfig);
 
-    msalInstance.handleRedirectCallbacks(response => {
-        // handle redirect response
-    }), err => {
-       // handle error
+    msalInstance.handleRedirectCallback((error, response) => {
+        // handle redirect response or error
     });
 
 ```
+
+For details on the configuration options, read [Initializing client applications with MSAL.js](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications).
 
 #### 2. Login the user
 
@@ -118,7 +115,7 @@ If the `acquireTokenSilent` call fails with an error of type `InteractionRequire
 
 `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you.
 
-See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-preview-api-release#signing-in-and-getting-tokens-with-msaljs) for reference.
+See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#signing-in-and-getting-tokens-with-msaljs) for reference.
 
 ```JavaScript
     // if the user is already logged in you can acquire a token
