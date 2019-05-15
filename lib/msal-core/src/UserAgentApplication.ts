@@ -1122,18 +1122,18 @@ export class UserAgentApplication {
     const account: Account = accountObj || this.getAccount();
 
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
-    // sid cannot be passed along with login_hint, hence we check both are not populated yet in queryParameters so far
-    if (account) {
+    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters so far
+    if (account && !qParams[SSOTypes.SID]) {
       // sid
       if (account.sid && serverReqParams.promptValue === PromptState.NONE) {
-        if (!qParams[SSOTypes.SID]  && !qParams[SSOTypes.LOGIN_HINT]) {
+        if (!qParams[SSOTypes.LOGIN_HINT]) {
           qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
         }
       }
       // login_hint
       else {
         // login_hint is account.userName
-        if (!qParams[SSOTypes.SID] && !qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName)) {
+        if (!qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName)) {
           qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
         }
       }
