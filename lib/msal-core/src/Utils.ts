@@ -8,8 +8,8 @@ import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
 import { ClientAuthError } from "./error/ClientAuthError";
-
 import { Library } from "./Constants";
+import { Base64 } from "js-base64";
 
 /**
  * @hidden
@@ -231,8 +231,8 @@ export class Utils {
    */
   static base64EncodeStringUrlSafe(input: string): string {
     // html5 should support atob function for decoding
-    if (window.btoa) {
-      return window.btoa(input);
+    if (Base64) {
+      return Base64.encode(input);
     }
     else {
       return this.encode(input);
@@ -247,8 +247,8 @@ export class Utils {
   static base64DecodeStringUrlSafe(base64IdToken: string): string {
     // html5 should support atob function for decoding
     base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
-    if (window.atob) {
-        return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
+    if (Base64) {
+        return decodeURIComponent(encodeURIComponent(Base64.decode(base64IdToken))); // jshint ignore:line
     }
     else {
         return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
