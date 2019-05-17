@@ -51,8 +51,8 @@ describe("UserAgentApplication.ts Class", function () {
     const MSAL_TENANT_ID = "124ds324-43de-n89m-7477-466fefs45a85";
     const validAuthority = DEFAULT_INSTANCE + TENANT;
     const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
-    const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ" 
-    + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0=" 
+    const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
+    + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
     + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
     const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
     const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
@@ -243,83 +243,83 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect(tokenRequest);
         });
 
-        it("tests that claims is added to the url when passed in request object", function (done) {	
-            let claimsRequestObj = {	
-                'accessToken': {	
-                    'test': null	
-                }	
-            };	
-            let tokenRequest: AuthenticationParameters = {	
-                claimsRequest: JSON.stringify(claimsRequestObj)	
-            };	
-            sinon.stub(window.location, "replace").callsFake(function (url) {	
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');	
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);	
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));	
-                expect(url).to.include('&state');	
-                expect(url).to.include('&client_info=1');	
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));	
-                done();	
-            });	
-            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);	
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);	
-            msal.loginRedirect(tokenRequest);	
-        });	
+        it("tests that claims is added to the url when passed in request object", function (done) {
+            let claimsRequestObj = {
+                'accessToken': {
+                    'test': null
+                }
+            };
+            let tokenRequest: AuthenticationParameters = {
+                claimsRequest: JSON.stringify(claimsRequestObj)
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequest);
+        });
 
-        it("tests that claims is added to the url when passed in extraQueryParameters", function (done) {	
-            let claimsRequestObj = {	
-                'accessToken': {	
-                    'test': null	
-                }	
-            };	
-            let tokenRequest: AuthenticationParameters = {	
-                extraQueryParameters: { 	
-                    claims: JSON.stringify(claimsRequestObj)	
-                }	
-            };	
-            sinon.stub(window.location, "replace").callsFake(function (url) {	
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');	
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);	
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));	
-                expect(url).to.include('&state');	
-                expect(url).to.include('&client_info=1');	
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.extraQueryParameters.claims));	
-                done();	
-            });	
-            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);	
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);	
-            msal.loginRedirect(tokenRequest);	
-        });	
+        it("tests that claims is added to the url when passed in extraQueryParameters", function (done) {
+            let claimsRequestObj = {
+                'accessToken': {
+                    'test': null
+                }
+            };
+            let tokenRequest: AuthenticationParameters = {
+                extraQueryParameters: {
+                    claims: JSON.stringify(claimsRequestObj)
+                }
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.extraQueryParameters.claims));
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequest);
+        });
 
-        it("removes claims from extraQueryParameters when passed in extraQueryParameters and request object", function (done) {	
-            let claimsRequestObj = {	
-                'accessToken': {	
-                    'test': null	
-                }	
-            };	
-            let claimsRequestObj2 = {	
-                'accessToken': {	
-                    'test2': null	
-                }	
-            };	
-            let tokenRequest: AuthenticationParameters = {	
-                claimsRequest: JSON.stringify(claimsRequestObj),	
-                extraQueryParameters: { 	
-                    claims: JSON.stringify(claimsRequestObj2)	
-                }	
-            };	
-            sinon.stub(window.location, "replace").callsFake(function (url) {	
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');	
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);	
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));	
-                expect(url).to.include('&state');	
-                expect(url).to.include('&client_info=1');	
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));	
-                done();	
-            });	
-            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);	
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);	
-            msal.loginRedirect(tokenRequest);	
+        it("removes claims from extraQueryParameters when passed in extraQueryParameters and request object", function (done) {
+            let claimsRequestObj = {
+                'accessToken': {
+                    'test': null
+                }
+            };
+            let claimsRequestObj2 = {
+                'accessToken': {
+                    'test2': null
+                }
+            };
+            let tokenRequest: AuthenticationParameters = {
+                claimsRequest: JSON.stringify(claimsRequestObj),
+                extraQueryParameters: {
+                    claims: JSON.stringify(claimsRequestObj2)
+                }
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequest);
         });
 
         it('navigates user to redirectURI passed in constructor config', (done) => {
@@ -458,7 +458,7 @@ describe("UserAgentApplication.ts Class", function () {
             setAuthInstanceStubs();
             setTestCacheItems();
         });
-        
+
         it("Calls the error callback if two callbacks are sent", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
@@ -479,7 +479,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
             cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_HASH + TEST_USER_STATE_NUM);
-            
+
             const checkResponseFromServer = function(response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
@@ -495,7 +495,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
             cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_HASH + TEST_USER_STATE_NUM);
-            
+
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
@@ -741,44 +741,44 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it("tests getCachedToken is skipped when claims are passed in", function (done) {	
-            let claimsRequestObj = {	
-                'accessToken': {	
-                    'test': null	
-                }	
-            };	
-            let tokenRequest : AuthenticationParameters = {	
-                authority: validAuthority,	
-                scopes: ["S1"],	
-                account: account,	
-                claimsRequest: JSON.stringify(claimsRequestObj)	
-            };	
-            let params: kv = {  };	
-            params[SSOTypes.SID] = account.sid;	
-            setUtilUnifiedCacheQPStubs(params);	
-            let cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");	
+        it("tests getCachedToken is skipped when claims are passed in", function (done) {
+            let claimsRequestObj = {
+                'accessToken': {
+                    'test': null
+                }
+            };
+            let tokenRequest : AuthenticationParameters = {
+                authority: validAuthority,
+                scopes: ["S1"],
+                account: account,
+                claimsRequest: JSON.stringify(claimsRequestObj)
+            };
+            let params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+            let cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
 
-             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {	
-                expect(cacheCallSpy.notCalled).to.be.true;	
-                expect(url).to.include(validAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');	
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);	
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));	
-                expect(url).to.include('&state');	
-                expect(url).to.include('&client_info=1');	
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));	
-                done();	
-                return {};	
-            });	
+             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+                expect(cacheCallSpy.notCalled).to.be.true;
+                expect(url).to.include(validAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
+                done();
+                return {};
+            });
 
-             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));	
+             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
-             msal.acquireTokenSilent(tokenRequest).then(function(response) {	
-                // Won't happen - we are not testing response here	
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));	
-            }).catch(function(err: AuthError) {	
-                // Failure will be caught here since the tests are being run within the stub.	
-                console.error("Error in assertion: " + JSON.stringify(err));	
-            });	
+             msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                // Won't happen - we are not testing response here
+                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
+            }).catch(function(err: AuthError) {
+                // Failure will be caught here since the tests are being run within the stub.
+                console.error("Error in assertion: " + JSON.stringify(err));
+            });
         });
     });
 
@@ -902,12 +902,29 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("adds postLogoutRedirectUri to logout URI", function (done) {
             sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/logout?');
                 expect(url).to.include(encodeURIComponent(TEST_LOGOUT_URI));
                 done();
             });
             msal.logout();
         });
+        it("uses the end_session_endpoint url", function (done) {
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(validOpenIdConfigurationResponse.EndSessionEndpoint);
+                done();
+            });
+            msal.logout();
+        });
+        it("falls back to default url when there is no end_session_endpoint ", function (done) {
+            sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").reset();
+            sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value("");
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/logout?');
+                done();
+            });
+            msal.logout();
+        });
+
+
     });
 
     describe("State Handling", function () {
