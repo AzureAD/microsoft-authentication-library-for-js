@@ -302,11 +302,7 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.loginInProgress) {
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(reqState));
+      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(request && request.state));
       return;
     }
 
@@ -371,12 +367,6 @@ export class UserAgentApplication {
     // Track login in progress
     this.loginInProgress = true;
 
-    // request can be optional for login calls, hence check for the same
-    let reqState: string;
-    if (request) {
-      reqState = request.state;
-    }
-
     this.authorityInstance.resolveEndpointsAsync().then(() => {
 
       // create the Request to be sent to the Server
@@ -385,7 +375,7 @@ export class UserAgentApplication {
         this.clientId, scopes,
         ResponseTypes.id_token,
         this.getRedirectUri(),
-        reqState
+        request && request.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -408,7 +398,7 @@ export class UserAgentApplication {
       this.promptUser(urlNavigate);
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request && request.state));
     });
   }
 
@@ -432,11 +422,7 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(reqState)));
+      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(request && request.state)));
       return;
     }
 
@@ -461,7 +447,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request.state
+        request && request.state
       );
 
       this.updateCacheEntries(serverAuthenticationRequest, account);
@@ -479,12 +465,7 @@ export class UserAgentApplication {
       }
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request && request.state));
     });
   }
 
@@ -595,15 +576,9 @@ export class UserAgentApplication {
     // Track login progress
     this.loginInProgress = true;
 
-    // request can be optional for login calls, hence check for the same
-    let reqState: string;
-    if (request && request.state) {
-        reqState = request.state;
-    }
-
     // Resolve endpoint
     this.authorityInstance.resolveEndpointsAsync().then(() => {
-      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), reqState);
+      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request && request.state);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
