@@ -1247,10 +1247,10 @@ export class UserAgentApplication {
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
-    this.authorityInstance.resolveEndpointsAsync().then(a => {
-        const urlNavigate = a.EndSessionEndpoint
-            ? a.EndSessionEndpoint + "?" + logout
-            : this.authority + "oauth2/v2.0/logout?" + logout;
+    this.authorityInstance.resolveEndpointsAsync().then(authority => {
+        const urlNavigate = authority.EndSessionEndpoint
+            ? `${authority.EndSessionEndpoint}?${logout}`
+            : `${this.authority}oauth2/v2.0/logout?${logout}`;
         this.promptUser(urlNavigate);
     });
   }
