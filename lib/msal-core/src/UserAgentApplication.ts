@@ -683,7 +683,7 @@ export class UserAgentApplication {
           request.scopes,
           responseType,
           this.getRedirectUri(),
-          request.state
+          request && request.state
         );
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -894,7 +894,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request.state
+        request && request.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
