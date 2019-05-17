@@ -231,12 +231,7 @@ export class Utils {
    */
   static base64EncodeStringUrlSafe(input: string): string {
     // html5 should support atob function for decoding
-    if (Base64) {
-      return Base64.encode(input);
-    }
-    else {
-      return this.encode(input);
-    }
+    return Base64.encode(input);
   }
 
   /**
@@ -247,12 +242,7 @@ export class Utils {
   static base64DecodeStringUrlSafe(base64IdToken: string): string {
     // html5 should support atob function for decoding
     base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
-    if (Base64) {
-        return decodeURIComponent(encodeURIComponent(Base64.decode(base64IdToken))); // jshint ignore:line
-    }
-    else {
-        return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
-    }
+    return decodeURIComponent(encodeURIComponent(Base64.decode(base64IdToken))); // jshint ignore:line
   }
 
   /**
