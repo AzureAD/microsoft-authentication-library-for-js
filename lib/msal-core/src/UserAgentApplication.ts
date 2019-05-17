@@ -672,7 +672,7 @@ export class UserAgentApplication {
       }
 
       // If no session exists, prompt the user to login.
-      if (!account && !!(request.sid  || request.loginHint)) {
+      if (!account && !(request.sid  || request.loginHint)) {
         this.logger.info("User login is required");
         return reject(ClientAuthError.createUserLoginRequiredError());
       }
@@ -895,7 +895,7 @@ export class UserAgentApplication {
       const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
       //if there is no account logged in and no login_hint/sid is passed in the request
-      if (!account && !!(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
+      if (!account && !(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
         this.logger.info("User login is required");
         return reject(ClientAuthError.createUserLoginRequiredError());
       }
@@ -1122,23 +1122,23 @@ export class UserAgentApplication {
     const account: Account = accountObj || this.getAccount();
 
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
-    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters so far
+    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
     if (account && !qParams[SSOTypes.SID]) {
-      // sid
-      if (account.sid && serverReqParams.promptValue === PromptState.NONE) {
-        if (!qParams[SSOTypes.LOGIN_HINT]) {
+      // sid - populate only if login_hint is not already populated and the account has sid
+      const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && serverReqParams.promptValue === PromptState.NONE;
+      if (populateSID) {
           qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
-        }
       }
-      // login_hint
+      // login_hint - account.userName
       else {
-        // login_hint is account.userName
-        if (!qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName)) {
+        const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName);
+        if (populateLoginHint) {
           qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
         }
       }
 
-      if (!qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ] ) {
+      const populateReqParams = !qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ];
+      if (populateReqParams) {
         qParams = Utils.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, account.homeAccountIdentifier, qParams);
       }
     }
