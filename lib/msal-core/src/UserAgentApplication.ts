@@ -363,7 +363,7 @@ export class UserAgentApplication {
    * @param AuthenticationParameters
    * @param scopes
    */
-  private loginRedirectHelper(account: Account, request: AuthenticationParameters, scopes?: Array<string>) {
+  private loginRedirectHelper(account: Account, request?: AuthenticationParameters, scopes?: Array<string>) {
     // Track login in progress
     this.loginInProgress = true;
 
@@ -422,7 +422,7 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(request && request.state)));
+      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(request.state)));
       return;
     }
 
@@ -447,7 +447,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request && request.state
+        request.state
       );
 
       this.updateCacheEntries(serverAuthenticationRequest, account);
@@ -465,7 +465,7 @@ export class UserAgentApplication {
       }
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request && request.state));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state));
     });
   }
 
@@ -517,7 +517,7 @@ export class UserAgentApplication {
      // add the prompt parameter to the 'extraQueryParameters' if passed
       if (Utils.isSSOParam(request)) {
          // if account is not provided, we pass null
-         this.loginPopupHelper(account, request, resolve, reject, scopes);
+         this.loginPopupHelper(account, resolve, reject, request, scopes);
       }
       // else handle the library data
       else {
@@ -539,12 +539,12 @@ export class UserAgentApplication {
           }, (error) => {
             this.silentLogin = false;
             this.logger.error("Error occurred during unified cache ATS");
-            this.loginPopupHelper(null, request, resolve, reject, scopes);
+            this.loginPopupHelper(null, resolve, reject, request, scopes);
           });
         }
         // else proceed with login
         else {
-          this.loginPopupHelper(null, request, resolve, reject, scopes );
+          this.loginPopupHelper(null, resolve, reject, request, scopes);
         }
       }
     });
@@ -560,7 +560,7 @@ export class UserAgentApplication {
    * @param reject
    * @param scopes
    */
-  private loginPopupHelper(account: Account, request: AuthenticationParameters, resolve: any, reject: any, scopes?: Array<string>) {
+  private loginPopupHelper(account: Account, resolve: any, reject: any, request?: AuthenticationParameters, scopes?: Array<string>) {
     if (!scopes) {
       scopes = [this.clientId];
     }
@@ -683,7 +683,7 @@ export class UserAgentApplication {
           request.scopes,
           responseType,
           this.getRedirectUri(),
-          request && request.state
+          request.state
         );
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
