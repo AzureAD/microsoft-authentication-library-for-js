@@ -36,7 +36,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "atob": "~2.1.1",
+    "js-base64": "^2.5.1",
     "tslib": "^1.9.3"
   },
   "devDependencies": {
@@ -45,6 +45,7 @@
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.11.5",
     "@types/sinon": "^7.0.11",
+    "@types/js-base64": "^2.3.1",
     "ajv": "6.6.1",
     "awesome-typescript-loader": "^3.2.3",
     "babel-polyfill": "^6.26.0",
