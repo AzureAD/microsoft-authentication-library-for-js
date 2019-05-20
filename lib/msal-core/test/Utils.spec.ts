@@ -16,21 +16,21 @@ describe("Utils.ts class", () => {
         console.log(Utils.replaceTenantPath("http://a.com/common", "1234-5678"));
     });
 
-    it("test Base64 encode decode", () => {
+    it.only("test Base64 encode decode", () => {
         // english
-        expect(Base64.encode("msaljs")).to.be.equal("bXNhbGpz");
-        expect(Base64.decode("bXNhbGpz")).to.be.equal("msaljs");
+        expect(Utils.base64EncodeStringUrlSafe("msaljs")).to.be.equal("bXNhbGpz");
+        expect(Utils.base64DecodeStringUrlSafe("bXNhbGpz")).to.be.equal("msaljs");
 
         // Icelandic
-        expect(Base64.encode("Björn Ironside")).to.be.equal("QmrDtnJuIElyb25zaWRl");
-        expect(Base64.decode("QmrDtnJuIElyb25zaWRl")).to.be.equal("Björn Ironside");
+        expect(Utils.base64EncodeStringUrlSafe("Björn Ironside")).to.be.equal("QmrDtnJuIElyb25zaWRl");
+        expect(Utils.base64DecodeStringUrlSafe("QmrDtnJuIElyb25zaWRl")).to.be.equal("Björn Ironside");
 
         // hebrew
-        expect(Base64.encode("בְּצַלְאֵל")).to.be.equal("15HWvNaw16bWt9ec1rDXkNa115w=");
-        expect(Base64.decode("15HWvNaw16bWt9ec1rDXkNa115w=")).to.be.equal("בְּצַלְאֵל");
+        expect(Utils.base64EncodeStringUrlSafe("בְּצַלְאֵל")).to.be.equal("15HWvNaw16bWt9ec1rDXkNa115w=");
+        expect(Utils.base64DecodeStringUrlSafe("15HWvNaw16bWt9ec1rDXkNa115w=")).to.be.equal("בְּצַלְאֵל");
 
          // spanish
-         expect(Base64.encode("Avrán")).to.be.equal("QXZyw6Fu");
-         expect(Base64.decode("QXZyw6Fu")).to.be.equal("Avrán");
+         expect(Utils.base64EncodeStringUrlSafe("Avrán")).to.be.equal("QXZyw6Fu");
+         expect(Utils.base64DecodeStringUrlSafe("QXZyw6Fu")).to.be.equal("Avrán");
     });
 });
