@@ -320,11 +320,7 @@ export class UserAgentApplication {
 
     // Creates navigate url; saves value in cache; redirect user to AAD
     if (this.loginInProgress) {
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(reqState));
+      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(request && request.state));
       return;
     }
 
@@ -386,7 +382,7 @@ export class UserAgentApplication {
    * @param AuthenticationParameters
    * @param scopes
    */
-  private loginRedirectHelper(account: Account, request: AuthenticationParameters, scopes?: Array<string>) {
+  private loginRedirectHelper(account: Account, request?: AuthenticationParameters, scopes?: Array<string>) {
     // Track login in progress
     this.loginInProgress = true;
 
@@ -398,7 +394,7 @@ export class UserAgentApplication {
         this.clientId, scopes,
         ResponseTypes.id_token,
         this.getRedirectUri(),
-        request.state
+        request && request.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -421,11 +417,7 @@ export class UserAgentApplication {
       this.promptUser(urlNavigate);
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request && request.state));
     });
   }
 
@@ -449,11 +441,7 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.acquireTokenInProgress) {
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(reqState)));
+      this.redirectErrorHandler(ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(request.state)));
       return;
     }
 
@@ -496,12 +484,7 @@ export class UserAgentApplication {
       }
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-
-      let reqState;
-      if (request) {
-        reqState = request.state;
-      }
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(reqState));
+      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state));
     });
   }
 
@@ -554,7 +537,7 @@ export class UserAgentApplication {
      // add the prompt parameter to the 'extraQueryParameters' if passed
       if (Utils.isSSOParam(request)) {
          // if account is not provided, we pass null
-         this.loginPopupHelper(account, request, resolve, reject, scopes);
+         this.loginPopupHelper(account, resolve, reject, request, scopes);
       }
       // else handle the library data
       else {
@@ -576,12 +559,12 @@ export class UserAgentApplication {
           }, (error) => {
             this.silentLogin = false;
             this.logger.error("Error occurred during unified cache ATS");
-            this.loginPopupHelper(null, request, resolve, reject, scopes);
+            this.loginPopupHelper(null, resolve, reject, request, scopes);
           });
         }
         // else proceed with login
         else {
-          this.loginPopupHelper(null, request, resolve, reject, scopes );
+          this.loginPopupHelper(null, resolve, reject, request, scopes);
         }
       }
     });
@@ -597,7 +580,7 @@ export class UserAgentApplication {
    * @param reject
    * @param scopes
    */
-  private loginPopupHelper(account: Account, request: AuthenticationParameters, resolve: any, reject: any, scopes?: Array<string>) {
+  private loginPopupHelper(account: Account, resolve: any, reject: any, request?: AuthenticationParameters, scopes?: Array<string>) {
     if (!scopes) {
       scopes = [this.clientId];
     }
@@ -615,7 +598,7 @@ export class UserAgentApplication {
 
     // Resolve endpoint
     this.authorityInstance.resolveEndpointsAsync().then(() => {
-      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request.state);
+      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request && request.state);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -654,7 +637,7 @@ export class UserAgentApplication {
       this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
       this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
 
-      // What is this? Is this the reject that is passed in?? -- REDO this in the subsequent refactor, passing reject is confusing
+      // reject that is passed in - REDO this in the subsequent refactor, passing reject is confusing
       if (reject) {
         reject(ClientAuthError.createEndpointResolutionError());
       }
@@ -663,6 +646,7 @@ export class UserAgentApplication {
       if (popUpWindow) {
         popUpWindow.close();
       }
+    // this is an all catch for any failure for the above code except the specific 'reject' call
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
       reject(ClientAuthError.createEndpointResolutionError(err.toString));
@@ -740,17 +724,19 @@ export class UserAgentApplication {
         }
 
       }, () => {
-        // On rejection
+        // Endpoint resolution failure error
         this.logger.info(ClientAuthErrorMessage.endpointResolutionError.code + ":" + ClientAuthErrorMessage.endpointResolutionError.desc);
         this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.endpointResolutionError.code);
         this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.endpointResolutionError.desc);
 
+        // reject that is passed in - REDO this in the subsequent refactor, passing reject is confusing
         if (reject) {
           reject(ClientAuthError.createEndpointResolutionError());
         }
         if (popUpWindow) {
             popUpWindow.close();
         }
+      // this is an all catch for any failure for the above code except the specific 'reject' call
       }).catch((err) => {
         this.logger.warning("could not resolve endpoints");
         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
@@ -928,7 +914,7 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request.state
+        request && request.state
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
