@@ -125,7 +125,7 @@ const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descrip
 
 /**
  * UserAgentApplication class
- * 
+ *
  * Object Instance that the developer can use to make loginXX OR acquireTokenXX functions
  */
 export class UserAgentApplication {
@@ -169,7 +169,7 @@ export class UserAgentApplication {
   /**
    * Method to manage the authority URL.
    *
-   * @returns {string} authority 
+   * @returns {string} authority
    */
   public get authority(): string {
     return this.authorityInstance.CanonicalAuthority;
@@ -200,7 +200,7 @@ export class UserAgentApplication {
    * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
    * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
    *
-   * 
+   *
    * In Azure B2C, authority is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/&lt;policyName&gt;/
 
    * @param {@link (Configuration:type)} configuration object for the MSAL UserAgentApplication instance
@@ -1233,8 +1233,12 @@ export class UserAgentApplication {
     if (this.getPostLogoutRedirectUri()) {
       logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
     }
-    const urlNavigate = this.authority + "oauth2/v2.0/logout?" + logout;
-    this.promptUser(urlNavigate);
+    this.authorityInstance.resolveEndpointsAsync().then(authority => {
+        const urlNavigate = authority.EndSessionEndpoint
+            ? `${authority.EndSessionEndpoint}?${logout}`
+            : `${this.authority}oauth2/v2.0/logout?${logout}`;
+        this.promptUser(urlNavigate);
+    });
   }
 
   /**

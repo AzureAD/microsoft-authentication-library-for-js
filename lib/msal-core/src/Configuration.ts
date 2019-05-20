@@ -21,7 +21,7 @@ const NAVIGATE_FRAME_WAIT = 500;
 
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
- * 
+ *
  *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
