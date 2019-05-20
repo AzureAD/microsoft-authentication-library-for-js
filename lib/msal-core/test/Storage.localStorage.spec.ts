@@ -213,7 +213,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(cacheStorage.getItem(authorityKey)).to.be.null;
         });
 
-        it("resetCacheItems resets all msal related cache items", function () {
+        it("resetCacheItems deletes all msal related cache items", function () {
             window.localStorage.setItem(Constants.msalClientInfo, "clientInfo");
             window.localStorage.setItem(Constants.tokenKeys, "tokenKeys");
             window.localStorage.setItem(Constants.stateLogin, "stateLogin");
@@ -230,10 +230,10 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
             cacheStorage.resetCacheItems();
 
-            expect(cacheStorage.getItem(Constants.msalClientInfo)).to.be.eq("");
-            expect(cacheStorage.getItem(Constants.tokenKeys)).to.be.eq("");
-            expect(cacheStorage.getItem(Constants.idTokenKey)).to.be.eq("");
-            expect(cacheStorage.getItem(Constants.nonceIdToken)).to.be.eq("");
+            expect(cacheStorage.getItem(Constants.msalClientInfo)).to.be.null;
+            expect(cacheStorage.getItem(Constants.tokenKeys)).to.be.null;
+            expect(cacheStorage.getItem(Constants.idTokenKey)).to.be.null;
+            expect(cacheStorage.getItem(Constants.nonceIdToken)).to.be.null;
             expect(cacheStorage.getItem(Constants.renewStatus)).to.be.null;
             expect(cacheStorage.getItem(Constants.stateLogin)).to.be.null;
         });

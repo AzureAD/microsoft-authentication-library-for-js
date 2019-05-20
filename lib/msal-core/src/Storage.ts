@@ -130,7 +130,7 @@ export class Storage {// Singleton
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
                     if (key.indexOf(Constants.msal) !== -1) {
-                        this.setItem(key, "");
+                        this.removeItem(key);
                     }
                 }
             }
