@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>@azure/msal</title>
+	<title>msal</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">@azure/msal</a>
+					<a href="index.html" class="title">msal</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -56,7 +56,7 @@
 					<a href="globals.html">Globals</a>
 				</li>
 			</ul>
-			<h1> @azure/msal</h1>
+			<h1> msal</h1>
 		</div>
 	</div>
 </header>
@@ -64,87 +64,110 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<h1 id="microsoft-authentication-library-preview-for-javascript-msal-js-">Microsoft Authentication Library Preview for JavaScript (MSAL.js)</h1>
+				<h1 id="microsoft-authentication-library-for-javascript-msal-js-">Microsoft Authentication Library for JavaScript (MSAL.js)</h1>
 				<table>
 					<thead>
 						<tr>
 							<th><a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa">Getting Started</a></th>
-							<th><a href="https://aka.ms/aaddevv2">Docs</a></th>
-							<th><a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/docs/classes/_useragentapplication_.useragentapplication.html">Library Reference</a></th>
+							<th><a href="https://aka.ms/aaddevv2">AAD Docs</a></th>
+							<th><a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/classes/_useragentapplication_.useragentapplication.html">Library Reference</a></th>
 							<th><a href="README.md#community-help-and-support">Support</a></th>
 							<th><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples">Samples</a></th>
 						</tr>
 					</thead>
 				</table>
-				<p>The MSAL library preview for JavaScript enables client-side JavaScript web applications running in a web browser to authenticate users using <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview">Azure AD</a> work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through <a href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers">Azure AD B2C</a> service. It also enables your app to get tokens to access <a href="https://cloud.microsoft.com">Microsoft Cloud</a> services such as <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
+				<p>The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview">Azure AD</a> work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through <a href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers">Azure AD B2C</a> service. It also enables your app to get tokens to access <a href="https://cloud.microsoft.com">Microsoft Cloud</a> services such as <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
 				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a><a href="https://www.npmjs.com/package/msal"><img src="https://img.shields.io/npm/v/msal.svg?style=flat" alt="npm version"></a><a href="https://nodei.co/npm/msal/"><img src="https://img.shields.io/npm/dm/msal.svg" alt="npm version"></a></p>
-				<h2 id="important-note-about-the-msal-preview">Important Note about the MSAL Preview</h2>
-				<p>The MSAL.js core library is suitable for use in a production environment. We provide the same production level support for this library as we do our current production libraries. During the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.</p>
 				<h2 id="installation">Installation</h2>
 				<p>Via NPM:</p>
 				<pre><code>npm <span class="hljs-keyword">install</span> msal</code></pre><p>Via CDN:</p>
 				<pre><code><span class="hljs-comment">&lt;!-- Latest compiled and minified JavaScript --&gt;</span>
 <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/&lt;version&gt;/js/msal.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/&lt;version&gt;/js/msal.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><p>Note that msal.js is built for ES5, therefore enabling support for Internet Explorer 11. If you want to target Internet Explorer, you&#39;ll need to add a reference to promises polyfill.</p>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://secure.aadcdn.microsoftonline-p.com/lib/&lt;version&gt;/js/msal.min.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><p>Internet Explorer does not have native <code>Promise</code> support, and so you will need to include a polyfill for promises such as <code>bluebird</code>.</p>
 				<pre><code><span class="hljs-comment">&lt;!-- IE support: add promises polyfill before msal.js  --&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"pre"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><p>See here for more details on <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs#q4-what-browsers-is-msaljs-supported-on">supported browsers</a>.</p>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"pre"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><p>See here for more details on <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs#q4-what-browsers-is-msaljs-supported-on">supported browsers and known compatability issues</a>.</p>
+				<h2 id="roadmap-and-what-to-expect-from-this-library">Roadmap and What To Expect From This Library</h2>
+				<p>Msal support on Javascript is a collection of libraries. <code>msal-core</code> or just simply <code>msal</code>, is the framework agnostic core library. Once our core 1.x+ is stabilized, we are going to bring our <code>msal-angular</code> library with the latest 1.x improvements.  We are planning to deprecate support for <code>msal-angularjs</code> based on usage trends of the framework and the library indicating increased adoption of Angular 2+ instead of Angular 1x. After our current libraries are up to standards, we will begin balancing new feature requests, with new platforms such as <code>react</code> and <code>node.js</code>.</p>
+				<p>Our goal is to communicate extremely well with the community and to take their opinions into account. We would like to get to a monthly minor release schedule, with patches comming as often as needed.  The level of communication, planning, and granularity we want to get to will be a work in progress.</p>
+				<p>Please check our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap">roadmap</a> to see what we are working on and what we are tracking next.</p>
+				<h2 id="oauth-2-0-and-the-implict-flow">Oauth 2.0 and the Implict Flow</h2>
+				<p>Msal implments the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow">Implicit Grant Flow</a>, as defined by the Oauth 2.0 protocol and is <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc">OpenID</a> compliant.</p>
+				<p>Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective.
+					The implicit flow runs in the context of a web browser which cannot manage client secrets securely. It is optimized for single page apps and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure.
+				These security concerns are mitigated per standard practices such as- use of short lived tokens (and so no refresh tokens are returned), the library requiring a registered redirect URI for the app, library matching the request and response with a unique nonce and state parameter.</p>
+				<h2 id="cache-storage">Cache Storage</h2>
+				<p>We offer two methods of storage for Msal, <code>localStorage</code> and <code>sessionStorage</code>.  Our recommendation is to use <code>sessionStorage</code> because it is more secure in storing tokens that are acquired by your users, but <code>localStorage</code> will give you Single Sign On accross tabs and user sessions.  We encourge you to explore the options and make the best decision for your application.</p>
 				<h2 id="usage">Usage</h2>
-				<p>The example snippets below show how to acquire a token for Microsoft Graph.</p>
+				<p>The example below walks you through how to login a user and acquire a token to be used for Microsoft&#39;s Graph Api.</p>
 				<h4 id="prerequisite">Prerequisite</h4>
-				<p>Before using MSAL.js, <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app">register an application in Azure AD</a> to get your clientID.</p>
+				<p>Before using MSAL.js you will need to <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app">register an application in Azure AD</a> to get a valid <code>clientId</code> for configuration, and to register the routes that your app will accept redirect traffic on.</p>
 				<h4 id="1-instantiate-the-useragentapplication">1. Instantiate the UserAgentApplication</h4>
-				<p>Instantiate the UserAgentApplication with a minimal required configuration of clientID.   </p>
-				<p>A callback function must be passed in for the redirect flows(loginRedirect and acquireTokenRedirect). This callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.</p>
-				<p>UserAgentApplication has other optional parameters like redirectUri which can be assigned. Please refer to the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics#configuration-options">Wiki</a> to see the full list and their default values.</p>
-				<pre><code class="language-JavaScript">    <span class="hljs-keyword">var</span> applicationConfig = {
-        <span class="hljs-attr">clientID</span>: <span class="hljs-string">'your_client_id'</span>
+				<p><code>UserAgentApplication</code> can be configured with a variety of different options, detailed in our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#configuration-options">Wiki</a>, but the only required parameter is <code>auth.clientId</code>.</p>
+				<p>After instantiating your instance, if you plan on using a redirect flow (<code>loginRedirect</code> and <code>acquireTokenRedirect</code>), you must register a callback handlers  using <code>handleRedirectCallback(authCallback)</code> where <code>authCallback = function(AuthError, AuthResponse)</code>. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.</p>
+				<pre><code class="language-JavaScript">    <span class="hljs-keyword">var</span> msalConfig = {
+        <span class="hljs-attr">auth</span>: {
+            <span class="hljs-attr">clientId</span>: <span class="hljs-string">'your_client_id'</span>
+        }
     };
 
-     <span class="hljs-keyword">var</span> userAgentApplication = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(applicationConfig.clientID, <span class="hljs-literal">null</span>, tokenReceivedCallback);
+    <span class="hljs-keyword">var</span> msalInstance = <span class="hljs-keyword">new</span> Msal.UserAgentApplication(msalConfig);
 
-    <span class="hljs-comment">//callback function for redirect flows</span>
-    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">tokenReceivedCallback</span>(<span class="hljs-params">errorDesc, token, error, tokenType</span>) </span>{
-        <span class="hljs-keyword">if</span> (token) {
-        }
-        <span class="hljs-keyword">else</span> {
-            log(error + <span class="hljs-string">":"</span> + errorDesc);
-        }
-    }</code></pre>
-				<h4 id="2-login-the-user">2. Login the user</h4>
-				<p>Your app must login the user with either loginPopup or the loginRedirect method to establish user context. When the login methods are called and the authentication of the user is completed by the Azure AD service, an <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens">id token</a> is returned which is used to identify the user with some basic information.</p>
-				<pre><code class="language-JavaScript">   <span class="hljs-keyword">var</span> graphScopes = [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>];
-
-   userAgentApplication.loginPopup(graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">idToken</span>) </span>{
-       <span class="hljs-comment">//login success</span>
-   }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-       <span class="hljs-comment">//login failure</span>
-       <span class="hljs-built_in">console</span>.log(error);
-   });
+    msalInstance.handleRedirectCallback(<span class="hljs-function">(<span class="hljs-params">error, response</span>) =&gt;</span> {
+        <span class="hljs-comment">// handle redirect response or error</span>
+    });
 </code></pre>
-				<blockquote>
-					<p>Note: The scopes passed to the login method are optional. In this example, the graphScopes are passed in the login method to obtain consent upfront from the user for your app to access certain Graph API scopes. The idtoken returned here does not contain the scopes. In the next step, you can see how to get an access token which will contain the consented scopes.</p>
-				</blockquote>
-				<h4 id="3-get-an-access-token-to-call-an-api">3. Get an access token to call an API</h4>
-				<p>In MSAL, you can get access tokens for the APIs your app needs to call using the acquireTokenSilent method which makes a silent request(without prompting the user) to Azure AD to obtain an access token. The Azure AD service then returns an <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens">access token</a> containing the user consented scopes to allow your app to securely call the API.  </p>
-				<p>If the silent token acquisition fails for some reasons such as an expired token or password change, you will need to invoke an interactive method to acquire tokens such as acquireTokenPopup or acquireTokenRedirect.</p>
-				<pre><code class="language-JavaScript">    <span class="hljs-keyword">var</span> graphScopes = [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>];
+				<p>For details on the configuration options, read <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications">Initializing client applications with MSAL.js</a>.</p>
+				<h4 id="2-login-the-user">2. Login the user</h4>
+				<p>Your app must login the user with either the <code>loginPopup</code> or the <code>loginRedirect</code> method to establish user context.</p>
+				<p>When the login methods are called and the authentication of the user is completed by the Azure AD service, an <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens">id token</a> is returned which is used to identify the user with some basic information.</p>
+				<p>When you login a user, you can pass in scopes that the user can pre consent to on login, however this is not required. Please note that consenting to scopes on login, does not return an access_token for these scopes, but gives you the opportunity to obtain a token silently with these scopes passed in, with no further interaction from the user.</p>
+				<p>It is best practice to only request scopes you need when you need them, a concept called dynamic consent. While this can create more interactive consent for users in your application, it also reduces drop-off from users that may be uneasy granting a large list of permissions for features they are not yet using.</p>
+				<p>AAD will only allow you to get consent for 3 resources at a time, although you can request many scopes within a resource.
+				When the user makes a login request, you can pass in multiple resources and their corresponding scopes because AAD issues an idToken pre consenting those scopes. However acquireToken calls are valid only for one resource / multiple scopes. If you need to access multiple resources, please make separate acquireToken calls per resource.</p>
+				<pre><code class="language-JavaScript">   <span class="hljs-keyword">var</span> loginRequest = {
+       <span class="hljs-attr">scopes</span>: [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>] <span class="hljs-comment">// optional Array&lt;string&gt;</span>
+   };
 
-    userAgentApplication.loginPopup(graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">idToken</span>) </span>{
-        <span class="hljs-comment">//Login Success</span>
-        userAgentApplication.acquireTokenSilent(graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">accessToken</span>) </span>{
-            <span class="hljs-comment">//AcquireTokenSilent Success</span>
-        }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-            <span class="hljs-comment">//AcquireTokenSilent Failure, send an interactive request.</span>
-            userAgentApplication.acquireTokenPopup(graphScopes).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">accessToken</span>) </span>{
-                updateUI();
-            }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-                <span class="hljs-built_in">console</span>.log(error);
-            });
+    msalInstance.loginPopup(loginRequest)
+        .then(<span class="hljs-function"><span class="hljs-params">response</span> =&gt;</span> {
+            <span class="hljs-comment">// handle response</span>
         })
-    }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
-        <span class="hljs-comment">//login failure</span>
-        <span class="hljs-built_in">console</span>.log(error);
-    });</code></pre>
+        .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> {
+            <span class="hljs-comment">// handle error</span>
+        });
+</code></pre>
+				<h4 id="3-get-an-access-token-to-call-an-api">3. Get an access token to call an API</h4>
+				<p>In MSAL, you can get access tokens for the APIs your app needs to call using the <code>acquireTokenSilent</code> method which makes a silent request(without prompting the user with UI) to Azure AD to obtain an access token. The Azure AD service then returns an <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens">access token</a> containing the user consented scopes to allow your app to securely call the API.</p>
+				<p>You can use <code>acquireTokenRedirect</code> or <code>acquireTokenPopup</code> to initiate interactive requests, although, it is best practice to only show interactive experiences if you are unable to obtain a token silently due to interaction required errors. If you are using an interactive token call, it must match the login method used in your application. (<code>loginPopup</code>=&gt; <code>acquireTokenPopup</code>, <code>loginRedirect</code> =&gt; <code>acquireTokenRedirect</code>).</p>
+				<p>If the <code>acquireTokenSilent</code> call fails with an error of type <code>InteractionRequiredAuthError</code> you will need to initiate an interactive request.  This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes.</p>
+				<p><code>acquireTokenSilent</code> will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you.</p>
+				<p>See <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#signing-in-and-getting-tokens-with-msaljs">Request and Response Data Types</a> for reference.</p>
+				<pre><code class="language-JavaScript">    <span class="hljs-comment">// if the user is already logged in you can acquire a token</span>
+    <span class="hljs-keyword">if</span> (msalInstance.getAccount()) {
+        <span class="hljs-keyword">var</span> tokenRequest = {
+            <span class="hljs-attr">scopes</span>: [<span class="hljs-string">"user.read"</span>, <span class="hljs-string">"mail.send"</span>]
+        };
+        msalInstance.acquireTokenSilent(tokenRequest)
+            .then(<span class="hljs-function"><span class="hljs-params">response</span> =&gt;</span> {
+                <span class="hljs-comment">// get access token from response</span>
+                <span class="hljs-comment">// response.accessToken</span>
+            })
+            .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> {
+                <span class="hljs-comment">// could also check if err instance of InteractionRequiredAuthError if you can import the class.</span>
+                <span class="hljs-keyword">if</span> (err.name === <span class="hljs-string">"InteractionRequiredAuthError"</span>) {
+                    <span class="hljs-keyword">return</span> msalnstance.acquireTokenPopup(tokenRequest)
+                        .then(<span class="hljs-function"><span class="hljs-params">response</span> =&gt;</span> {
+                            <span class="hljs-comment">// get access token from response</span>
+                            <span class="hljs-comment">// response.accessToken</span>
+                        })
+                        .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> {
+                            <span class="hljs-comment">// handle error</span>
+                        });
+                }
+            });
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// user is not logged in, you will need to log them in to acquire a token</span>
+    }</code></pre>
 				<h4 id="4-use-the-token-as-a-bearer-in-an-http-request-to-call-the-microsoft-graph-or-a-web-api">4. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API</h4>
 				<pre><code class="language-JavaScript">    <span class="hljs-keyword">var</span> headers = <span class="hljs-keyword">new</span> Headers();
     <span class="hljs-keyword">var</span> bearer = <span class="hljs-string">"Bearer "</span> + token;
@@ -156,9 +179,23 @@
     <span class="hljs-keyword">var</span> graphEndpoint = <span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>;
 
     fetch(graphEndpoint, options)
-        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">response</span>) </span>{
+        .then(<span class="hljs-function"><span class="hljs-params">resp</span> =&gt;</span> {
              <span class="hljs-comment">//do something with response</span>
-        }</code></pre>
+        });</code></pre>
+				<p>You can learn further details about MSAL.js functionality documented in the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki">MSAL Wiki</a> and find complete <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples">code samples</a>.</p>
+				<pre><code class="language-JavaScript">    <span class="hljs-keyword">var</span> headers = <span class="hljs-keyword">new</span> Headers();
+    <span class="hljs-keyword">var</span> bearer = <span class="hljs-string">"Bearer "</span> + token;
+    headers.append(<span class="hljs-string">"Authorization"</span>, bearer);
+    <span class="hljs-keyword">var</span> options = {
+         <span class="hljs-attr">method</span>: <span class="hljs-string">"GET"</span>,
+         <span class="hljs-attr">headers</span>: headers
+    };
+    <span class="hljs-keyword">var</span> graphEndpoint = <span class="hljs-string">"https://graph.microsoft.com/v1.0/me"</span>;
+
+    fetch(graphEndpoint, options)
+        .then(<span class="hljs-function"><span class="hljs-params">resp</span> =&gt;</span> {
+             <span class="hljs-comment">//do something with response</span>
+        });</code></pre>
 				<p>You can learn further details about MSAL.js functionality documented in the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki">MSAL Wiki</a> and find complete <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples">code samples</a>.</p>
 				<h2 id="community-help-and-support">Community Help and Support</h2>
 				<ul>
