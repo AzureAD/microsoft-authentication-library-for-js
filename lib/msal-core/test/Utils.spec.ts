@@ -16,7 +16,7 @@ describe("Utils.ts class", () => {
         console.log(Utils.replaceTenantPath("http://a.com/common", "1234-5678"));
     });
 
-    it.only("test Base64 encode decode", () => {
+    it("test Base64 encode decode", () => {
         // english
         expect(Utils.base64EncodeStringUrlSafe("msaljs")).to.be.equal("bXNhbGpz");
         expect(Utils.base64DecodeStringUrlSafe("bXNhbGpz")).to.be.equal("msaljs");
