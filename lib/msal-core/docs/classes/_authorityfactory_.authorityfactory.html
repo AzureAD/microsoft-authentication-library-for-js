@@ -81,31 +81,36 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
+						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external"><a href="_authorityfactory_.authorityfactory.html#createinstance" class="tsd-kind-icon">Create<wbr>Instance</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-static tsd-is-external"><a href="_authorityfactory_.authorityfactory.html#detectauthorityfromurl" class="tsd-kind-icon">Detect<wbr>Authority<wbr>From<wbr>Url</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="_authorityfactory_.authorityfactory.html#createinstance" class="tsd-kind-icon">Create<wbr>Instance</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
 					<a name="createinstance" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> Create<wbr>Instance</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">Create<wbr>Instance<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, validateAuthority<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_authority_.authority.html" class="tsd-signature-type">Authority</a></li>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">Create<wbr>Instance<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, validateAuthority<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Authority</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthorityFactory.ts#L55">AuthorityFactory.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthorityFactory.ts#L35">AuthorityFactory.ts:35</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Create an authority object of the correct type based on the url
+									Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -115,30 +120,7 @@
 									<h5>validateAuthority: <span class="tsd-signature-type">boolean</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_authority_.authority.html" class="tsd-signature-type">Authority</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-static tsd-is-external">
-					<a name="detectauthorityfromurl" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagPrivate">Private</span> Detect<wbr>Authority<wbr>From<wbr>Url</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-static tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">Detect<wbr>Authority<wbr>From<wbr>Url<span class="tsd-signature-symbol">(</span>authorityUrl<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/_authority_.authoritytype.html" class="tsd-signature-type">AuthorityType</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/AuthorityFactory.ts#L37">AuthorityFactory.ts:37</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>authorityUrl: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../enums/_authority_.authoritytype.html" class="tsd-signature-type">AuthorityType</a></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Authority</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -150,77 +132,8 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class="label tsd-is-external">
-						<span>Internals</span>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="../modules/_index_.html">"index"</a>
-					</li>
-					<li class="label tsd-is-external">
-						<span>Externals</span>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_aadauthority_.html">"<wbr>Aad<wbr>Authority"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_accesstokencacheitem_.html">"<wbr>Access<wbr>Token<wbr>Cache<wbr>Item"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_accesstokenkey_.html">"<wbr>Access<wbr>Token<wbr>Key"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_accesstokenvalue_.html">"<wbr>Access<wbr>Token<wbr>Value"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_authenticationrequestparameters_.html">"<wbr>Authentication<wbr>Request<wbr>Parameters"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_authority_.html">"<wbr>Authority"</a>
-					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_authorityfactory_.html">"<wbr>Authority<wbr>Factory"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_b2cauthority_.html">"<wbr>B2c<wbr>Authority"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_clientinfo_.html">"<wbr>Client<wbr>Info"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_constants_.html">"<wbr>Constants"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_errormessage_.html">"<wbr>Error<wbr>Message"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_itenantdiscoveryresponse_.html">"ITenant<wbr>Discovery<wbr>Response"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_iuri_.html">"IUri"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_idtoken_.html">"<wbr>IdToken"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_logger_.html">"<wbr>Logger"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_requestinfo_.html">"<wbr>Request<wbr>Info"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_storage_.html">"<wbr>Storage"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_.html">"<wbr>User"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_useragentapplication_.html">"<wbr>User<wbr>Agent<wbr>Application"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_utils_.html">"<wbr>Utils"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_xhrclient_.html">"XHRClient"</a>
 					</li>
 				</ul>
 			</nav>
@@ -228,14 +141,11 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
 						<a href="_authorityfactory_.authorityfactory.html" class="tsd-kind-icon">Authority<wbr>Factory</a>
 						<ul>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static tsd-is-external">
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
 								<a href="_authorityfactory_.authorityfactory.html#createinstance" class="tsd-kind-icon">Create<wbr>Instance</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private tsd-is-static tsd-is-external">
-								<a href="_authorityfactory_.authorityfactory.html#detectauthorityfromurl" class="tsd-kind-icon">Detect<wbr>Authority<wbr>From<wbr>Url</a>
 							</li>
 						</ul>
 					</li>
