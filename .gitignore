@@ -256,3 +256,5 @@ node_modules/
 typings/
 lib-commonjs/
 lib-es6/
+lib/msal-core/lib-commonjs
+lib/msal-core/lib-es6
