@@ -20,12 +20,12 @@ export const ClientConfigurationErrorMessage = {
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
         desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
-            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     invalidCallbackObject: {
         code: "invalid_callback_object",
         desc: "The object passed for the callback was invalid. " +
-          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     scopesRequired: {
         code: "scopes_required",
