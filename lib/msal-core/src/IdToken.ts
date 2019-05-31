@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import { Utils } from "./Utils";
+import { ClientAuthError } from "./error/ClientAuthError";
 
 /**
  * @hidden
@@ -24,7 +25,7 @@ export class IdToken {
   /* tslint:disable:no-string-literal */
   constructor(rawIdToken: string) {
     if (Utils.isEmpty(rawIdToken)) {
-      throw new Error("null or empty raw idtoken");
+      throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken);
     }
     try {
       this.rawIdToken = rawIdToken;
@@ -70,13 +71,15 @@ export class IdToken {
             this.homeObjectId = this.decodedIdToken["home_oid"];
         }
 
-          if (this.decodedIdToken.hasOwnProperty("sid")) {
-              this.sid = this.decodedIdToken["sid"];
-          }
+        if (this.decodedIdToken.hasOwnProperty("sid")) {
+            this.sid = this.decodedIdToken["sid"];
+        }
       /* tslint:enable:no-string-literal */
       }
     } catch (e) {
-      throw new Error("Failed to parse the returned id token");
+      // TODO: This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
+      // Need to add better error handling here to account for being unable to decode jwts.
+      throw ClientAuthError.createIdTokenParsingError(e);
     }
   }
 

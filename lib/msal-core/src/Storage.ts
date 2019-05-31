@@ -5,6 +5,7 @@ import { Constants } from "./Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "./Configuration";
 import { CacheKeys } from "./Constants";
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -26,7 +27,7 @@ export class Storage {// Singleton
     this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
     Storage.instance = this;
     if (!this.localStorageSupported && !this.sessionStorageSupported) {
-      throw new Error("localStorage and sessionStorage not supported");
+      throw ClientConfigurationError.createNoStorageSupportedError();
     }
 
     return Storage.instance;
@@ -89,18 +90,37 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(authorityKey: string, acquireTokenAccountKey: string): void {
+    removeAcquireTokenEntries(): void {
         const storage = window[this.cacheLocation];
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if ((authorityKey !== "" && key.indexOf(authorityKey) > -1) || (acquireTokenAccountKey !== "" && key.indexOf(acquireTokenAccountKey) > -1)) {
-                        this.removeItem(key);
+                    if (key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) {
+                        const splitKey = key.split(Constants.resourceDelimiter);
+                        let state;
+                        if (splitKey.length > 1) {
+                            state = splitKey[1];
+                        }
+                        if (state && !this.tokenRenewalInProgress(state)) {
+                            this.removeItem(key);
+                            this.removeItem(Constants.renewStatus + state);
+                            this.removeItem(Constants.stateLogin);
+                            this.removeItem(Constants.stateAcquireToken);
+                            this.setItemCookie(key, "", -1);
+                        }
                     }
                 }
             }
         }
+
+        this.clearCookie();
+    }
+
+    private tokenRenewalInProgress(stateValue: string): boolean {
+        const storage = window[this.cacheLocation];
+        const renewStatus = storage[Constants.renewStatus + stateValue];
+        return !(!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress);
     }
 
     resetCacheItems(): void {
@@ -110,20 +130,18 @@ export class Storage {// Singleton
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
                     if (key.indexOf(Constants.msal) !== -1) {
-                        this.setItem(key, "");
-                    }
-                    if (key.indexOf(Constants.renewStatus) !== -1) {
                         this.removeItem(key);
                     }
                 }
             }
+            this.removeAcquireTokenEntries();
         }
     }
 
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         let cookieStr = cName + "=" + cValue + ";";
         if (expires) {
-            const expireTime = this.setExpirationCookie(expires);
+            const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += "expires=" + expireTime + ";";
         }
 
@@ -145,9 +163,9 @@ export class Storage {// Singleton
         return "";
     }
 
-    setExpirationCookie(cookieLife: number): string {
+    getCookieExpirationTime(cookieLifeDays: number): string {
         const today = new Date();
-        const expr = new Date(today.getTime() + cookieLife * 24 * 60 * 60 * 1000);
+        const expr = new Date(today.getTime() + cookieLifeDays * 24 * 60 * 60 * 1000);
         return expr.toUTCString();
     }
 
@@ -164,7 +182,7 @@ export class Storage {// Singleton
      * @param state
      */
     static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return CacheKeys.ACQUIRE_TOKEN_USER + Constants.resourceDelimiter +
+        return CacheKeys.ACQUIRE_TOKEN_ACCOUNT + Constants.resourceDelimiter +
             `${accountId}` + Constants.resourceDelimiter  + `${state}`;
     }
 

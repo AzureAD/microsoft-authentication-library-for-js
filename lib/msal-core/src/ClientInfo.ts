@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import { Utils } from "./Utils";
+import { ClientAuthError } from "./error/ClientAuthError";
 
 /**
  * @hidden
@@ -46,7 +47,7 @@ export class ClientInfo {
         }
       }
     } catch (e) {
-      throw new Error(e);
+      throw ClientAuthError.createClientInfoDecodingError(e);
     }
   }
 }

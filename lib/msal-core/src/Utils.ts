@@ -7,6 +7,9 @@ import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
+import { ClientAuthError } from "./error/ClientAuthError";
+import { Library } from "./Constants";
+import { Base64 } from "js-base64";
 
 /**
  * @hidden
@@ -50,7 +53,7 @@ export class Utils {
    * MSAL JS Library Version
    */
   static getLibraryVersion(): string {
-    return "0.2.4";
+    return Library.version;
   }
 
   /**
@@ -228,12 +231,7 @@ export class Utils {
    */
   static base64EncodeStringUrlSafe(input: string): string {
     // html5 should support atob function for decoding
-    if (window.btoa) {
-      return window.btoa(input);
-    }
-    else {
-      return this.encode(input);
-    }
+    return Base64.encode(input);
   }
 
   /**
@@ -244,12 +242,7 @@ export class Utils {
   static base64DecodeStringUrlSafe(base64IdToken: string): string {
     // html5 should support atob function for decoding
     base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
-    if (window.atob) {
-        return decodeURIComponent(encodeURIComponent(window.atob(base64IdToken))); // jshint ignore:line
-    }
-    else {
-        return decodeURIComponent(encodeURIComponent(this.decode(base64IdToken)));
-    }
+    return decodeURIComponent(encodeURIComponent(Base64.decode(base64IdToken))); // jshint ignore:line
   }
 
   /**
@@ -328,7 +321,7 @@ export class Utils {
     base64IdToken = String(base64IdToken).replace(/=+$/, "");
     var length = base64IdToken.length;
     if (length % 4 === 1) {
-      throw new Error("The token to be decoded is not correctly encoded.");
+      throw ClientAuthError.createTokenEncodingError(base64IdToken);
     }
     let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = "";
     for (var i = 0; i < length; i += 4) {
@@ -449,16 +442,17 @@ export class Utils {
    * @param tenantId The tenant id to replace
    */
   static replaceTenantPath(url: string, tenantId: string): string {
-      if (!tenantId) {
-          return url;
-      }
+      url = url.toLowerCase();
       var urlObject = this.GetUrlComponents(url);
       var pathArray = urlObject.PathSegments;
-      if (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS)) {
-          pathArray[0] = tenantId;
-          url = urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/");
+      if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
+        pathArray[0] = tenantId;
       }
-      return url;
+      return this.constructAuthorityUriFromObject(urlObject, pathArray);
+  }
+
+  static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
+    return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
   }
 
   /**
@@ -562,9 +556,7 @@ export class Utils {
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
-    let ssoParam: QPDict = {};
     let serverReqParam: QPDict = {};
-
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
@@ -601,12 +593,11 @@ export class Utils {
       }
     }
 
-    serverReqParam = this.addSSOParameter(ssoType, ssoData, ssoParam);
+    serverReqParam = this.addSSOParameter(ssoType, ssoData);
 
     // add the HomeAccountIdentifier info/ domain_hint
     if (request && request.account && request.account.homeAccountIdentifier) {
-        console.log("homeAccountIdentifier: " + request.account.homeAccountIdentifier);
-        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, ssoParam);
+        serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, serverReqParam);
     }
 
     return serverReqParam;
@@ -617,7 +608,14 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static addSSOParameter(ssoType: string, ssoData: string, ssoParam: QPDict): QPDict {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: QPDict): QPDict {
+    if (!ssoParam) {
+      ssoParam = {};
+    }
+
+    if (!ssoData) {
+        return ssoParam;
+    }
 
     switch (ssoType) {
       case SSOTypes.SID: {

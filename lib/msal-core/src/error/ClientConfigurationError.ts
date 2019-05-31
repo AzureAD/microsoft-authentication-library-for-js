@@ -5,20 +5,27 @@ import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
 
 export const ClientConfigurationErrorMessage = {
+    configurationNotSet: {
+        code: "no_config_set",
+        desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
+    },
     invalidCacheLocation: {
         code: "invalid_cache_location",
-        desc: "The cache contains multiple tokens satisfying the requirements. " +
-            "Call AcquireToken again providing more requirements like authority."
+        desc: "The cache location provided is not valid."
+    },
+    noStorageSupported: {
+        code: "browser_storage_not_supported",
+        desc: "localStorage and sessionStorage are not supported."
     },
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
         desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
-            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     invalidCallbackObject: {
         code: "invalid_callback_object",
         desc: "The object passed for the callback was invalid. " +
-          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     scopesRequired: {
         code: "scopes_required",
@@ -60,6 +67,10 @@ export const ClientConfigurationErrorMessage = {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
     },
+    claimsRequestParsingError: {
+        code: "claims_request_parsing_error",
+        desc: "Could not parse the given claims request object."
+    }
 };
 
 /**
@@ -73,18 +84,28 @@ export class ClientConfigurationError extends ClientAuthError {
         Object.setPrototypeOf(this, ClientConfigurationError.prototype);
     }
 
+    static createNoSetConfigurationError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.configurationNotSet.code,
+            `${ClientConfigurationErrorMessage.configurationNotSet.desc}`);
+    }
+
     static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCacheLocation.code,
             `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
+    }
+
+    static createNoStorageSupportedError() : ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.noStorageSupported.code,
+            ClientConfigurationErrorMessage.noStorageSupported.desc);
     }
 
     static createRedirectCallbacksNotSetError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.noRedirectCallbacksSet.code, ClientConfigurationErrorMessage.noRedirectCallbacksSet.desc);
     }
 
-    static createInvalidCallbackObjectError(callbackType: string, callbackObject: object): ClientConfigurationError {
+    static createInvalidCallbackObjectError(callbackObject: object): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCallbackObject.code,
-            `${ClientConfigurationErrorMessage.invalidCallbackObject.desc} Given value for ${callbackType} callback function: ${callbackObject}`);
+            `${ClientConfigurationErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
     }
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {
@@ -110,5 +131,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createInvalidPromptError(promptValue: any): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
+    }
+
+    static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
+            `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
     }
 }
