@@ -10,17 +10,17 @@ import {
 
 export default class TelemetryEvent {
 
-    private startTime: number;
+    private startTimestamp: number;
     protected event: any; // TODO TYPE THIS
     public eventId: string;
 
     constructor(eventName: string, correlationId: string) {
 
-        this.startTime = new Date().getTime();
+        this.startTimestamp = Date.now();
         this.eventId = uuid();
         this.event = {
             [`${EVENT_NAME_PREFIX}${EVENT_NAME_KEY}`]: eventName,
-            [`${EVENT_NAME_PREFIX}${START_TIME_KEY}`]: this.startTime,
+            [`${EVENT_NAME_PREFIX}${START_TIME_KEY}`]: this.startTimestamp,
             [`${EVENT_NAME_PREFIX}${ELAPSED_TIME_KEY}`]: -1,
             [`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`]: correlationId
         };
@@ -32,7 +32,7 @@ export default class TelemetryEvent {
 
     public stop(): void {
         // Set duration of event
-        this.setElapsedTime(+new Date().getTime() - +this.startTime);
+        this.setElapsedTime(+Date.now() - +this.startTimestamp);
     }
 
     public get telemetryCorrelationId(): string {

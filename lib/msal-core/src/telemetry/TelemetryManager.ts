@@ -1,7 +1,6 @@
 import TelemetryEvent from "./TelemetryEvent";
 import { CompletedEvents, EventCount, EventCountByCorrelationId, InProgressEvents, TelemetryConfig, TelemetryPlatform } from "./TelemetryTypes";
 import DefaultEvent from "./DefaultEvent";
-import { platform } from "os";
 
 // for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
@@ -46,7 +45,8 @@ export default class TelemetryManager {
     }
 
     stopEvent(event: TelemetryEvent) {
-        if (!this.telemetryCallback || !this.inProgressEvents[createEventKey(event)]) {
+        const eventKey = createEventKey(event);
+        if (!this.telemetryCallback || !this.inProgressEvents[eventKey]) {
             return;
         }
         event.stop();
@@ -54,13 +54,9 @@ export default class TelemetryManager {
 
         const completedEvents = this.completedEvents[event.telemetryCorrelationId];
 
-        if (completedEvents && completedEvents.length) {
-            this.completedEvents[event.telemetryCorrelationId] = [...completedEvents, event];
-        } else {
-            this.completedEvents[event.telemetryCorrelationId] = [event];
-        }
+        this.completedEvents[event.telemetryCorrelationId] = [...(completedEvents || []), event];
 
-        delete this.inProgressEvents[createEventKey(event)];
+        delete this.inProgressEvents[eventKey];
     }
 
     flush(correlationId: string): void {
@@ -109,11 +105,7 @@ export default class TelemetryManager {
                 [eventName]: 1
             };
         } else {
-            if (eventCount[eventName]) {
-                eventCount[eventName] = eventCount[eventName] + 1;
-            } else {
-                eventCount[eventName] = 1;
-            }
+            eventCount[eventName] = eventCount[eventName] ? eventCount[eventName] + 1 : 1;
         }
     }
 

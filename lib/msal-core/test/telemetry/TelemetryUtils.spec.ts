@@ -18,10 +18,6 @@ describe("TelemetryUtils", () => {
         const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/tfp/banana");
         expect(uri).to.eq("https://login.microsoftonline.com/abc-123/tfp/<tenant>");
     });
-    it("TelemtryUtils.scrubTenantFromUri works for b2c", () => {
-        const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/tfp/banana");
-        expect(uri).to.eq("https://login.microsoftonline.com/abc-123/tfp/<tenant>");
-    });
     it("TelemetryUtils.hashPersonalIdentifier produces a result", () => {
         const result = hashPersonalIdentifier("test");
         expect(result).to.be.a.string;
