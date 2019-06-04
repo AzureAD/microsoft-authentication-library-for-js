@@ -3,6 +3,7 @@
 
 import { Account } from "./Account";
 import { IdToken } from "./IdToken";
+import { QPDict } from "./Constants";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -17,6 +18,7 @@ export type AuthResponse = {
     expiresOn: Date;
     account: Account;
     accountState: string;
+    claims: QPDict;
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
@@ -29,6 +31,7 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         scopes: null,
         expiresOn: null,
         account: null,
-        accountState: state
+        accountState: state,
+        claims: null
     };
 }

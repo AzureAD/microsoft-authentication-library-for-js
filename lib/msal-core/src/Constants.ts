@@ -133,6 +133,11 @@ export const PromptState = {
 	NONE: "none",
 };
 
+/**
+ * Key-Value type to support queryParams and extraQueryParams
+ */
+export type QPDict = {[key: string]: string};
+
 export const Library = {
   version: "1.0.2"
 };

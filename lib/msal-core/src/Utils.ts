@@ -4,11 +4,11 @@
 import { IUri } from "./IUri";
 import { Account } from "./Account";
 import {Constants, SSOTypes, PromptState} from "./Constants";
-import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthenticationParameters } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
 import { ClientAuthError } from "./error/ClientAuthError";
-import { Library } from "./Constants";
+import { Library, QPDict } from "./Constants";
 import { Base64 } from "js-base64";
 
 /**
@@ -705,6 +705,7 @@ export class Utils {
   static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
     var response = { ...originalResponse };
     response.idToken = idToken;
+    response.claims = idToken.decodedIdToken;
     if (response.idToken.objectId) {
       response.uniqueId = response.idToken.objectId;
     } else {

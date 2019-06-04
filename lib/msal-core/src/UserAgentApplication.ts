@@ -7,7 +7,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams } from "./Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams, QPDict } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -15,7 +15,7 @@ import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -1573,6 +1573,7 @@ export class UserAgentApplication {
           expiresOn: new Date(expired * 1000),
           account: account,
           accountState: aState,
+          claims: idToken.decodedIdToken
         };
         Utils.setResponseIdToken(response, idToken);
         return response;
@@ -1767,6 +1768,7 @@ export class UserAgentApplication {
       expiresOn: null,
       account: null,
       accountState: "",
+      claims: null
     };
 
     let error: AuthError;

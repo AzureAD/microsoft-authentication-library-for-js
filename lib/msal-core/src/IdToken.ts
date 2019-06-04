@@ -3,6 +3,7 @@
 
 import { Utils } from "./Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
+import { QPDict } from "./Constants";
 
 /**
  * @hidden
@@ -20,7 +21,7 @@ export class IdToken {
   nonce: string;
   expiration: string;
   rawIdToken: string;
-  decodedIdToken: Object;
+  decodedIdToken: QPDict;
   sid: string;
   /* tslint:disable:no-string-literal */
   constructor(rawIdToken: string) {

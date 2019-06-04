@@ -3,11 +3,7 @@
 
 import { Account } from "./Account";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-
-/**
- * Key-Value type to support queryParams and extraQueryParams
- */
-export type QPDict = {[key: string]: string};
+import { QPDict } from "./Constants";
 
 /**
  * @link AuthenticationParameters}AuthenticationParameters
