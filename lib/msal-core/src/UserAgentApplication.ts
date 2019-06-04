@@ -1833,6 +1833,7 @@ export class UserAgentApplication {
           // retrieve the id_token from response if present :
           if (hashParams.hasOwnProperty(Constants.idToken)) {
             response.idToken = new IdToken(hashParams[Constants.idToken]);
+            response.claims = response.idToken.decodedIdToken;
           } else {
             response = Utils.setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
