@@ -90,7 +90,7 @@ export const CacheKeys = {
     ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
 };
 
-export const TrustedHostList =  {
+export const AADTrustedHostList =  {
   "login.windows.net": "login.windows.net",
   "login.chinacloudapi.cn": "login.chinacloudapi.cn",
   "login.cloudgovapi.us": "login.cloudgovapi.us",

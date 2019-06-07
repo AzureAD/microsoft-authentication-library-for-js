@@ -17,3 +17,6 @@ export const TELEMETRY_BLOB_EVENT_NAMES =  {
     TenantIdConstStrKey: "Microsoft_MSAL_tenant_id",
     UiEventCountTelemetryBatchKey: "Microsoft_MSAL_ui_event_count"
 };
+
+// This is used to replace the real tenant in telemetry info
+export const TENANT_PLACEHOLDER = "<tenant>";

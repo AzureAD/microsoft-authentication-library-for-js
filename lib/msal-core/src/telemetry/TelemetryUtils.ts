@@ -1,16 +1,16 @@
 import { B2cAuthority } from "../B2cAuthority";
-import { TrustedHostList } from "../Constants";
+import { AADTrustedHostList } from "../Constants";
+import { TENANT_PLACEHOLDER } from "./TelemetryConstants";
 import { Utils } from "../Utils";
 
-// This is used to replace the real tenant in telemetry info
-const TENANT_PLACEHOLDER = "<tenant>";
+
 
 export const scrubTenantFromUri = (uri: string): String => {
 
     const url = Utils.GetUrlComponents(uri);
 
     // validate trusted host
-    if (!TrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
+    if (!AADTrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
         // Should this return null or what was passed?
         return null;
     }

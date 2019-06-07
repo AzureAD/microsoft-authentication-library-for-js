@@ -3,7 +3,7 @@
 
 import { Authority, AuthorityType } from "./Authority";
 import { XhrClient } from "./XHRClient";
-import { TrustedHostList } from './Constants';
+import { AADTrustedHostList } from './Constants';
 
 /**
  * @hidden
@@ -53,6 +53,6 @@ export class AadAuthority extends Authority {
    * @param {string} The host to look up
    */
   public IsInTrustedHostList(host: string): boolean {
-    return TrustedHostList[host.toLowerCase()];
+    return AADTrustedHostList[host.toLowerCase()];
   }
 }
