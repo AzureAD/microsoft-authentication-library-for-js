@@ -11,7 +11,8 @@ import {
     ClientConfigurationError,
     ServerError,
     Authority,
-    AuthResponse
+    AuthResponse,
+    InteractionRequiredAuthError
 } from '../src/index';
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
@@ -34,6 +35,9 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
     const TEST_ERROR_CODE = "error_code";
+    const TEST_INTERACTION_REQ_ERROR_CODE = "interaction_required";
+    const TEST_LOGIN_REQ_ERROR_CODE = "login_required";
+    const TEST_CONSENT_REQ_ERROR_CODE = "consent_required";
     const TEST_ERROR_DESC = "msal error description"
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
@@ -56,6 +60,12 @@ describe("UserAgentApplication.ts Class", function () {
     + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
     const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
     const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_INTERACTION_REQ_ERROR_HASH1 = "#error=interaction_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_INTERACTION_REQ_ERROR_HASH2 = "#error=interaction_required&error_description=msal+error+description+interaction_required&state=RANDOM-GUID-HERE|";
+    const TEST_LOGIN_REQ_ERROR_HASH1 = "#error=login_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_LOGIN_REQ_ERROR_HASH2 = "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|";
+    const TEST_CONSENT_REQ_ERROR_HASH1 = "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_CONSENT_REQ_ERROR_HASH2 = "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|";
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -862,6 +872,130 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
             done();
         });
+    });
+
+    describe("InteractionRequired Error Types", function () {
+
+        beforeEach(function () {
+            cacheStorage = new Storage("sessionStorage");
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+            setTestCacheItems();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("tests saveTokenForHash in case of interaction_required error code", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(TEST_INTERACTION_REQ_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of interaction_required error code and description", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(TEST_INTERACTION_REQ_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.errorMessage).to.include(TEST_INTERACTION_REQ_ERROR_CODE);
+                expect(error.message).to.include(TEST_INTERACTION_REQ_ERROR_CODE);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of login_required error code", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(TEST_LOGIN_REQ_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of login_required error code and description", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(TEST_LOGIN_REQ_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.errorMessage).to.include(TEST_LOGIN_REQ_ERROR_CODE);
+                expect(error.message).to.include(TEST_LOGIN_REQ_ERROR_CODE);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of consent_required error code", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(TEST_CONSENT_REQ_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of consent_required error code and description", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(TEST_CONSENT_REQ_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.errorMessage).to.include(TEST_CONSENT_REQ_ERROR_CODE);
+                expect(error.message).to.include(TEST_CONSENT_REQ_ERROR_CODE);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
     });
 
     describe("Logout functionality", function () {
