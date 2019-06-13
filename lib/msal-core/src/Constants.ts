@@ -1,7 +1,7 @@
-import { CacheLocation } from "./Configuration";
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+import { CacheLocation } from "./Configuration";
 
 /**
  * @hidden
@@ -132,11 +132,6 @@ export const PromptState = {
 	CONSENT: "consent",
 	NONE: "none",
 };
-
-/**
- * Key-Value type to support queryParams and extraQueryParams
- */
-export type QPDict = {[key: string]: string};
 
 export const Library = {
   version: "1.0.2"

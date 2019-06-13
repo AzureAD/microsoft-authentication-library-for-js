@@ -4,7 +4,7 @@
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { Utils } from "./Utils";
-import { QPDict } from "./Constants";
+import { Dict } from "./MsalTypes";
 
 /**
  * accountIdentifier       combination of idToken.uid and idToken.utid
@@ -21,7 +21,9 @@ export class Account {
     homeAccountIdentifier: string;
     userName: string;
     name: string;
-    claims: QPDict;
+    // will be deprecated soon
+    idToken: Dict;
+    claims: Dict;
     sid: string;
     environment: string;
 
@@ -32,14 +34,17 @@ export class Account {
      * @param userName
      * @param name
      * @param idToken
+     * @param claims
      * @param sid
      * @param environment
      */
-    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idTokenClaims: QPDict, sid: string,  environment: string) {
+    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idTokenClaims: Dict, sid: string,  environment: string) {
       this.accountIdentifier = accountIdentifier;
       this.homeAccountIdentifier = homeAccountIdentifier;
       this.userName = userName;
       this.name = name;
+      // will be deprecated soon
+      this.idToken = idTokenClaims;
       this.claims = idTokenClaims;
       this.sid = sid;
       this.environment = environment;
@@ -52,8 +57,10 @@ export class Account {
      */
     static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
 
+        // Note: IdToken and ClientInfo classes handle the possibility of idToken and clientInfo being null
+
         // create accountIdentifier
-        const accountIdentifier: string = idToken.objectId ||  idToken.subject;
+        const accountIdentifier: string = idToken.objectId || idToken.subject;
 
         // create homeAccountIdentifier
         const uid: string = clientInfo ? clientInfo.uid : "";
@@ -63,6 +70,6 @@ export class Account {
         if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
             homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
         }
-        return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.decodedIdToken, idToken.sid, idToken.issuer);
+        return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
 }

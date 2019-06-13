@@ -7,7 +7,8 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams, QPDict } from "./Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams} from "./Constants";
+import { Dict } from "./MsalTypes";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -1123,7 +1124,7 @@ export class UserAgentApplication {
    * @param {@link ServerRequestParameters}
    * @ignore
    */
-  private addHintParameters(accountObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
+  private addHintParameters(accountObj: Account, qParams: Dict, serverReqParams: ServerRequestParameters): Dict {
 
     const account: Account = accountObj || this.getAccount();
 
@@ -1573,7 +1574,7 @@ export class UserAgentApplication {
           expiresOn: new Date(expired * 1000),
           account: account,
           accountState: aState,
-          claims: idToken.decodedIdToken
+          claims: idToken.claims
         };
         Utils.setResponseIdToken(response, idToken);
         return response;
@@ -1833,7 +1834,7 @@ export class UserAgentApplication {
           // retrieve the id_token from response if present :
           if (hashParams.hasOwnProperty(Constants.idToken)) {
             response.idToken = new IdToken(hashParams[Constants.idToken]);
-            response.claims = response.idToken.decodedIdToken;
+            response.claims = response.idToken.claims;
           } else {
             response = Utils.setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
@@ -2517,7 +2518,7 @@ export class UserAgentApplication {
    */
   private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
 
-    let queryParameters: QPDict = {};
+    let queryParameters: Dict = {};
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
@@ -2547,7 +2548,7 @@ export class UserAgentApplication {
     queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
-    let eQParams: QPDict;
+    let eQParams: Dict;
     if (request) {
       eQParams = this.sanitizeEQParams(request);
     }
@@ -2579,8 +2580,8 @@ export class UserAgentApplication {
    * Removes unnecessary or duplicate query parameters from extraQueryParameters
    * @param request
    */
-  private sanitizeEQParams(request: AuthenticationParameters) : QPDict {
-    let eQParams : QPDict = request.extraQueryParameters;
+  private sanitizeEQParams(request: AuthenticationParameters) : Dict {
+    let eQParams : Dict = request.extraQueryParameters;
     if (!eQParams) {
       return null;
     }

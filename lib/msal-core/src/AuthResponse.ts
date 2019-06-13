@@ -3,7 +3,7 @@
 
 import { Account } from "./Account";
 import { IdToken } from "./IdToken";
-import { QPDict } from "./Constants";
+import { Dict } from "./MsalTypes";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -18,7 +18,7 @@ export type AuthResponse = {
     expiresOn: Date;
     account: Account;
     accountState: string;
-    claims: QPDict;
+    claims: Dict;
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
