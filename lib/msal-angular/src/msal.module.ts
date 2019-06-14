@@ -4,7 +4,6 @@ import {CommonModule} from "@angular/common";
 import { MsalService, MSAL_CONFIG} from "./msal.service";
 import {MsalGuard} from "./msal-guard.service";
 import {BroadcastService} from "./broadcast.service";
-import { MsalRouter } from './msal.router';
 
 
 Injectable()
@@ -23,7 +22,7 @@ export class MsalModule {
     return {
       ngModule: MsalModule,
       providers: [
-          {provide: MSAL_CONFIG, useValue: config} , MsalService, MsalRouter, {provide :WindowWrapper, useValue: window}
+          {provide: MSAL_CONFIG, useValue: config} ,   MsalService ,{provide :WindowWrapper, useValue: window}
       ]
     }
   }

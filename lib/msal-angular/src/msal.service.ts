@@ -24,7 +24,7 @@ export class MsalService extends UserAgentApplication {
     private loginScopes: string[];
     _renewActive: boolean;
 
-    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private broadcastService: BroadcastService) {
+    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private router: Router, private broadcastService: BroadcastService) {
         super(config.clientID, config.authority, null,
             {
                 validateAuthority: config.validateAuthority,
@@ -62,7 +62,17 @@ export class MsalService extends UserAgentApplication {
             }
         });
 
-       
+        this.router.events.subscribe(event => {
+            for (var i = 0; i < router.config.length; i++) {
+                if (!router.config[i].canActivate) {
+                    if (this.config && this.config.unprotectedResources) {
+                        if (!this.isUnprotectedResource(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
+                            this.config.unprotectedResources.push(router.config[i].path);
+                        }
+                    }
+                }
+            }
+        })
     }
 
      updateDataFromCache(scopes: string[]) {
@@ -228,6 +238,22 @@ export class MsalService extends UserAgentApplication {
                 this.broadcastService.broadcast("msal:loginFailure", msalError);
             }
         }
+    }
+
+
+    private isUnprotectedResource(url: string) {
+        if (this.config && this.config.unprotectedResources) {
+            for (var i = 0; i < this.config.unprotectedResources.length; i++) {
+                if (url.indexOf(this.config.unprotectedResources[i]) > -1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private isEmpty(str: string): boolean {
+        return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
     //dummy method for future use

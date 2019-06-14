@@ -4,10 +4,12 @@ import "rxjs/add/observable/of";
 import "rxjs/add/operator/do";
 import "rxjs/add/operator/delay";
 import { UserAgentApplication, CacheResult, User, Logger } from "msal";
+import { Router } from "@angular/router";
 import { BroadcastService } from "./broadcast.service";
 export declare const MSAL_CONFIG: InjectionToken<string>;
 export declare class MsalService extends UserAgentApplication {
     private config;
+    private router;
     private broadcastService;
     user: any;
     _oauthData: {
@@ -18,10 +20,12 @@ export declare class MsalService extends UserAgentApplication {
     };
     private loginScopes;
     _renewActive: boolean;
-    constructor(config: MsalConfig, broadcastService: BroadcastService);
+    constructor(config: MsalConfig, router: Router, broadcastService: BroadcastService);
     updateDataFromCache(scopes: string[]): void;
     private processHash;
     private processRedirectCallBack;
+    private isUnprotectedResource;
+    private isEmpty;
     private authCallback;
     protected clearCache(): void;
     getLogger(): Logger;
