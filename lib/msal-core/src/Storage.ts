@@ -90,13 +90,18 @@ export class Storage {// Singleton
         return results;
     }
 
-    removeAcquireTokenEntries(): void {
+    removeAcquireTokenEntries(state?: string): void {
         const storage = window[this.cacheLocation];
+        let removeState = true;
         if (storage) {
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if (key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) {
+                    if (state) {
+                        removeState = key.indexOf(state) !== -1;
+                    }
+                    if ((key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && removeState) {
+                        console.log("This should print once");
                         const splitKey = key.split(Constants.resourceDelimiter);
                         let state;
                         if (splitKey.length > 1) {
