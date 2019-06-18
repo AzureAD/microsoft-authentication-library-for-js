@@ -101,7 +101,6 @@ export class Storage {// Singleton
                         removeState = key.indexOf(state) !== -1;
                     }
                     if ((key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && removeState) {
-                        console.log("This should print once");
                         const splitKey = key.split(Constants.resourceDelimiter);
                         let state;
                         if (splitKey.length > 1) {

@@ -1399,7 +1399,6 @@ export class UserAgentApplication {
       }
     }
 
-    console.log("Hash: " + hash);
     self.processCallBack(hash, stateInfo, tokenResponseCallback);
 
     // If current window is opener, close all windows
@@ -1695,7 +1694,6 @@ export class UserAgentApplication {
     if (parameters.hasOwnProperty("scope")) {
       // read the scopes
       scope = parameters["scope"];
-      console.log("Scope: " + scope);
       const consentedScopes = scope.split(" ");
 
       // retrieve all access tokens from the cache, remove the dup scores
@@ -1869,11 +1867,6 @@ export class UserAgentApplication {
           let cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
           let acquireTokenAccount: Account;
 
-          console.log("Account Key: " + acquireTokenAccountKey);
-
-          console.log("AqcTokAccnt_noAccount: " + this.cacheStorage.getItem(acquireTokenAccountKey_noaccount));
-          console.log("Cached Account: " + cachedAccount);
-
           // Check with the account in the Cache
           if (!Utils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
@@ -1882,7 +1875,6 @@ export class UserAgentApplication {
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
             else {
-              console.log("The account object created from the response is not the same as the one passed in the acquireToken request");
               this.logger.warning(
                 "The account object created from the response is not the same as the one passed in the acquireToken request");
             }
@@ -1890,7 +1882,6 @@ export class UserAgentApplication {
           else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
             response = this.saveAccessToken(response, authority, hashParams, clientInfo);
           }
-          console.log("None of the above");
         }
 
         // Process id_token
@@ -2442,7 +2433,6 @@ export class UserAgentApplication {
   private setAuthorityCache(state: string, authority: string) {
     // Cache authorityKey
     const authorityKey = Storage.generateAuthorityKey(state);
-    console.log("Set State to: " + state);
     this.cacheStorage.setItem(authorityKey, Utils.CanonicalizeUri(authority), this.inCookie);
   }
 
