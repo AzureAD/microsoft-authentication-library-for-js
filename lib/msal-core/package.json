@@ -29,6 +29,7 @@
     "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
     "doc": "typedoc --mode modules --excludePrivate --excludeProtected --out ./docs ./src/ --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
+    "build:modules:watch": "tsc -m es6 --outDir lib-es6 --watch",
     "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
     "test": "karma start --single-run --browsers PhantomJS karma.conf.js",
     "lint": "tslint -c tslint.json src/**/*.ts",

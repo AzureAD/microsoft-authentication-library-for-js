@@ -13,6 +13,7 @@ export type AuthResponse = {
     tokenType: string;
     idToken: IdToken;
     accessToken: string;
+    accessTokenType: string;
     scopes: Array<string>;
     expiresOn: Date;
     account: Account;
@@ -26,6 +27,7 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         tokenType: "",
         idToken: null,
         accessToken: "",
+        accessTokenType: "",
         scopes: null,
         expiresOn: null,
         account: null,

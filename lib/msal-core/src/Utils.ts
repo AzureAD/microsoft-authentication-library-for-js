@@ -231,7 +231,7 @@ export class Utils {
    */
   static base64EncodeStringUrlSafe(input: string): string {
     // html5 should support atob function for decoding
-    return Base64.encode(input);
+    return Base64.encode(input, true);
   }
 
   /**
@@ -476,7 +476,8 @@ export class Utils {
     let urlComponents = <IUri>{
       Protocol: match[1],
       HostNameAndPort: match[4],
-      AbsolutePath: match[5]
+      AbsolutePath: match[5],
+      QueryString: match[7]
     };
 
     let pathSegments = urlComponents.AbsolutePath.split("/");

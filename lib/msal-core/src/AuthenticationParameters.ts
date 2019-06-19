@@ -9,6 +9,11 @@ import { ClientConfigurationError } from "./error/ClientConfigurationError";
  */
 export type QPDict = {[key: string]: string};
 
+export enum AuthenticationType {
+    PoP = 'pop',
+    Bearer = 'bearer'
+}
+
 /**
  * @link AuthenticationParameters}AuthenticationParameters
  */
@@ -24,6 +29,9 @@ export type AuthenticationParameters = {
     account?: Account;
     sid?: string;
     loginHint?: string;
+    requestMethod?: string;
+    requestUri?: string;
+    authenticationType?: AuthenticationType;
 };
 
 export function validateClaimsRequest(request: AuthenticationParameters) {

@@ -11,4 +11,5 @@ export interface IUri {
   Search: string;
   Hash: string;
   PathSegments: string[];
+  QueryString: string;
 }

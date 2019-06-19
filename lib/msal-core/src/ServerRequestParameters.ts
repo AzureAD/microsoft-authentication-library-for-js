@@ -28,6 +28,7 @@ export class ServerRequestParameters {
 
   promptValue: string;
   claimsValue: string;
+  popToken: string;
 
   queryParameters: string;
   extraQueryParameters: string;
@@ -45,10 +46,11 @@ export class ServerRequestParameters {
    * @param redirectUri
    * @param state
    */
-  constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string ) {
+  constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string, popToken?: string ) {
     this.authorityInstance = authority;
     this.clientId = clientId;
     this.scopes = scope;
+    this.popToken = popToken;
 
     this.nonce = Utils.createNewGuid();
     this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
@@ -114,6 +116,10 @@ export class ServerRequestParameters {
 
     if (this.claimsValue) {
       str.push("claims=" + encodeURIComponent(this.claimsValue));
+    }
+
+    if (this.popToken) {
+        str.push("pop_jwk=" + encodeURIComponent(this.popToken));
     }
 
     if (this.queryParameters) {

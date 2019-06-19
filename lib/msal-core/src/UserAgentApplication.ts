@@ -15,13 +15,14 @@ import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters, QPDict, validateClaimsRequest, AuthenticationType } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
+import { PopTokenGenerator } from './PopTokenGenerator';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -154,6 +155,8 @@ export class UserAgentApplication {
   private silentLogin: boolean;
   private redirectCallbacksSet: boolean;
 
+  private popTokenGenerator: PopTokenGenerator;
+
   // Authority Functionality
   protected authorityInstance: Authority;
 
@@ -223,6 +226,9 @@ export class UserAgentApplication {
     // track login and acquireToken in progress
     this.loginInProgress = false;
     this.acquireTokenInProgress = false;
+
+
+    this.popTokenGenerator = new PopTokenGenerator();
 
     // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
     try {
@@ -457,7 +463,9 @@ export class UserAgentApplication {
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
 
-    acquireTokenAuthority.resolveEndpointsAsync().then(() => {
+    acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
+      const popToken = request.authenticationType === AuthenticationType.PoP ? await this.popTokenGenerator.getNewToken(request) : null;
+
       // On Fulfillment
       const responseType = this.getTokenType(account, request.scopes, false);
       serverAuthenticationRequest = new ServerRequestParameters(
@@ -466,7 +474,8 @@ export class UserAgentApplication {
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request.state
+        request.state,
+        popToken
       );
 
       this.updateCacheEntries(serverAuthenticationRequest, account);
@@ -694,7 +703,9 @@ export class UserAgentApplication {
         return;
       }
 
-      acquireTokenAuthority.resolveEndpointsAsync().then(() => {
+      acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
+        const popToken = request.authenticationType === AuthenticationType.PoP ? await this.popTokenGenerator.getNewToken(request) : null;
+
         // On fullfillment
         const responseType = this.getTokenType(account, request.scopes, false);
         serverAuthenticationRequest = new ServerRequestParameters(
@@ -703,7 +714,8 @@ export class UserAgentApplication {
           request.scopes,
           responseType,
           this.getRedirectUri(),
-          request.state
+          request.state,
+          popToken
         );
 
         // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -887,7 +899,7 @@ export class UserAgentApplication {
    */
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
-    return new Promise<AuthResponse>((resolve, reject) => {
+    return new Promise<AuthResponse>(async (resolve, reject) => {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
@@ -908,13 +920,17 @@ export class UserAgentApplication {
 
       const responseType = this.getTokenType(account, request.scopes, true);
 
+      // POP
+      const popToken = request.authenticationType === AuthenticationType.PoP ? await this.popTokenGenerator.getNewToken(request) : null;
+
       let serverAuthenticationRequest = new ServerRequestParameters(
         AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
         this.clientId,
         request.scopes,
         responseType,
         this.getRedirectUri(),
-        request && request.state
+        request && request.state,
+        popToken
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -936,6 +952,7 @@ export class UserAgentApplication {
       if (!userContainedClaims) {
         try {
           cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
+        //   console.log('cacheResultResponse', cacheResultResponse);
         } catch (e) {
           authErr = e;
         }
@@ -944,6 +961,18 @@ export class UserAgentApplication {
       // resolve/reject based on cacheResult
       if (cacheResultResponse) {
         this.logger.info("Token is already in cache for scope:" + scope);
+
+        if (cacheResultResponse.accessTokenType === AuthenticationType.PoP) {
+            const signedPopToken = await this.popTokenGenerator.signToken(cacheResultResponse.accessToken);
+
+            resolve({
+                ...cacheResultResponse,
+                accessToken: signedPopToken
+            });
+
+            return null;
+        }
+
         resolve(cacheResultResponse);
         return null;
       }
@@ -1192,7 +1221,7 @@ export class UserAgentApplication {
     // Store the server esponse in the current window??
     if (!window.callbackMappedToRenewStates[expectedState]) {
       window.callbackMappedToRenewStates[expectedState] =
-      (response: AuthResponse, error: AuthError) => {
+      async (response: AuthResponse, error: AuthError) => {
         // reset active renewals
         window.activeRenewals[scope] = null;
 
@@ -1202,6 +1231,16 @@ export class UserAgentApplication {
             if (error) {
                 window.promiseMappedToRenewStates[expectedState][i].reject(error);
             } else if (response) {
+                if (response.accessTokenType === AuthenticationType.PoP) {
+                    const signedPopToken = await this.popTokenGenerator.signToken(response.accessToken);
+
+                    window.promiseMappedToRenewStates[expectedState][i].resolve({
+                        ...response,
+                        accessToken: signedPopToken
+                    });
+
+                    return;
+                }
                 window.promiseMappedToRenewStates[expectedState][i].resolve(response);
             } else {
               throw AuthError.createUnexpectedError("Error and response are both null");
@@ -1569,6 +1608,7 @@ export class UserAgentApplication {
           tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? Constants.idToken : Constants.accessToken,
           idToken: idToken,
           accessToken: accessTokenCacheItem.value.accessToken,
+          accessTokenType: accessTokenCacheItem.value.accessTokenType,
           scopes: accessTokenCacheItem.key.scopes.split(" "),
           expiresOn: new Date(expired * 1000),
           account: account,
@@ -1713,7 +1753,7 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo, response.accessTokenType);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1733,7 +1773,7 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
 
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo, response.accessTokenType);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
@@ -1758,21 +1798,26 @@ export class UserAgentApplication {
     this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
     let response : AuthResponse = {
-      uniqueId: "",
-      tenantId: "",
-      tokenType: "",
-      idToken: null,
-      accessToken: null,
-      scopes: [],
-      expiresOn: null,
-      account: null,
-      accountState: "",
+        uniqueId: "",
+        tenantId: "",
+        tokenType: "",
+        idToken: null,
+        accessToken: null,
+        accessTokenType: "",
+        scopes: [],
+        expiresOn: null,
+        account: null,
+        accountState: ""
     };
 
     let error: AuthError;
     const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
     let acquireTokenAccountKey: string = "";
+
+    if (Constants.accessToken) {
+        response.accessTokenType = hashParams.token_type;
+    }
 
     // If server returns an error
     if (hashParams.hasOwnProperty(Constants.errorDescription) || hashParams.hasOwnProperty(Constants.error)) {
