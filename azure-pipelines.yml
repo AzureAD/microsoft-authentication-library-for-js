@@ -28,7 +28,7 @@ steps:
     targetArgument: '$(Build.SourcesDirectory)'
     result: 'PoliCheck.xml'
 
-- task: CredScan@2
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
   inputs:
     toolVersion: '1.0.26.1'
     scanFolder: 'lib/msal-core'
