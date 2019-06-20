@@ -22,6 +22,10 @@ steps:
   displayName: 'npm install and build'
 
 - task: CredScan@2
+  displayName: 'Run CredScan'
+  inputs:
+    scanFolder: 'lib/msal-core'
+    debugMode: false
 
 - task: PoliCheck@1
   inputs:
