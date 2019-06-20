@@ -15,17 +15,23 @@ steps:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
 
-- script: |
-    cd lib/msal-core/
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: 'lib/msal-core'
+    verbose: true
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
+    customCommand: 'run build'
 
 - task: PoliCheck@1
   inputs:
     inputType: 'Basic'
     targetType: 'F'
-    targetArgument: '$(Build.SourcesDirectory)'
+    targetArgument: 'lib/msal-core'
     result: 'PoliCheck.xml'
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
