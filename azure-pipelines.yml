@@ -30,5 +30,4 @@ steps:
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
   inputs:
-    toolVersion: '1.0.26.1'
     scanFolder: 'lib/msal-core'
