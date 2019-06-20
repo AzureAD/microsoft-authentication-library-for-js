@@ -1948,7 +1948,7 @@ export class UserAgentApplication {
     }
 
     this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
-    this.cacheStorage.removeAcquireTokenEntries();
+    this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);

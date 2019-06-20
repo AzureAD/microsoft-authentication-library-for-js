@@ -12,6 +12,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
     let TEST_VALUE = "test value";
     let TEST_ACCOUNT_ID = "1234";
     let TEST_STATE = "state5678";
+    let TEST_STATE2 = "state9012";
     let cacheStorage : Storage;
     let ACCESS_TOKEN_KEY : AccessTokenKey;
     let ACCESS_TOKEN_VALUE : AccessTokenValue;
@@ -211,6 +212,35 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             
             expect(cacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(cacheStorage.getItem(authorityKey)).to.be.null;
+        });
+
+        it("removeAcquireTokenEntries removes specific acquireToken or authorityKey entries in the cache", function () {
+            let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
+            let authorityKey = Storage.generateAuthorityKey(TEST_STATE);
+
+            let acquireTokenAccountKey2 = Storage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE2);
+            let authorityKey2 = Storage.generateAuthorityKey(TEST_STATE2);
+            window.localStorage.setItem(acquireTokenAccountKey, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(authorityKey, validAuthority);
+            window.localStorage.setItem(acquireTokenAccountKey2, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(authorityKey2, validAuthority);
+
+            expect(cacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
+            expect(cacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
+            expect(cacheStorage.getItem(acquireTokenAccountKey2)).to.be.eq(JSON.stringify(ACCOUNT));
+            expect(cacheStorage.getItem(authorityKey2)).to.be.eq(validAuthority);
+
+            cacheStorage.removeAcquireTokenEntries(TEST_STATE);
+            
+            expect(cacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
+            expect(cacheStorage.getItem(authorityKey)).to.be.null;
+            expect(cacheStorage.getItem(acquireTokenAccountKey2)).to.be.eq(JSON.stringify(ACCOUNT));
+            expect(cacheStorage.getItem(authorityKey2)).to.be.eq(validAuthority);
+
+            cacheStorage.removeAcquireTokenEntries(TEST_STATE2);
+
+            expect(cacheStorage.getItem(acquireTokenAccountKey2)).to.be.null;
+            expect(cacheStorage.getItem(authorityKey2)).to.be.null;
         });
 
         it("resetCacheItems deletes all msal related cache items", function () {
