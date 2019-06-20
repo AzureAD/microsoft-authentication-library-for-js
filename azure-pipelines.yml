@@ -30,4 +30,5 @@ steps:
 
 - task: CredScan@2
   inputs:
+    toolVersion: '1.0.26.1'
     scanFolder: 'lib/msal-core'
