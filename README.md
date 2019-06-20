@@ -131,7 +131,7 @@ See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authe
             .catch(err => {
                 // could also check if err instance of InteractionRequiredAuthError if you can import the class.
                 if (err.name === "InteractionRequiredAuthError") {
-                    return msalInstance.acquireTokenPopup(tokenRequest)
+                    return msalnstance.acquireTokenPopup(tokenRequest)
                         .then(response => {
                             // get access token from response
                             // response.accessToken
