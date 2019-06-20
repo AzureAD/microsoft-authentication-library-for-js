@@ -1805,7 +1805,7 @@ export class UserAgentApplication {
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
 
-      if (this.isInteractionRequired(hashParams[Constants.errorDescription])) {
+      if (this.isInteractionRequired(hashParams[Constants.error]) || this.isInteractionRequired(hashParams[Constants.errorDescription])) {
         error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       } else {
         error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
@@ -1948,7 +1948,7 @@ export class UserAgentApplication {
     }
 
     this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
-    this.cacheStorage.removeAcquireTokenEntries();
+    this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);
