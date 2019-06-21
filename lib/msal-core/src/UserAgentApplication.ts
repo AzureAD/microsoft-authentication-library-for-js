@@ -7,7 +7,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState } from "./Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -2585,8 +2585,12 @@ export class UserAgentApplication {
       this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
       delete eQParams[Constants.claims];
     }
-    delete eQParams[SSOTypes.SID];
-    delete eQParams[SSOTypes.LOGIN_HINT];
+    BlacklistedEQParams.forEach(param => {
+      if (eQParams[param]) {
+        this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
+        delete eQParams[param];
+      }
+    });
     return eQParams;
   }
 
