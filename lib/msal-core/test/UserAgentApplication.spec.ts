@@ -44,6 +44,10 @@ describe("UserAgentApplication.ts Class", function () {
     const validAuthority = DEFAULT_INSTANCE + TENANT;
     const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
 
+    // Test SSO params
+    const TEST_LOGIN_HINT = "test@test.com";
+    const TEST_SID = "1234-5678";
+
     // Test state params
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
@@ -343,6 +347,49 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
+        });
+
+        it('removes login_hint from request.extraQueryParameters', (done) => {
+            let tokenRequestWithoutLoginHint: AuthenticationParameters = {
+                extraQueryParameters: {
+                    login_hint: JSON.stringify(TEST_LOGIN_HINT)
+                }
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.not.include('&login_hint=');
+                expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.LOGIN_HINT]));
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequestWithoutLoginHint);
+        });
+
+        it('removes sid from request.extraQueryParameters', (done) => {
+            let tokenRequestWithoutLoginHint: AuthenticationParameters = {
+                extraQueryParameters: {
+                    sid: JSON.stringify(TEST_SID)
+                }
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.not.include('&sid=');
+                expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
+                
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequestWithoutLoginHint);
         });
 
         it('navigates user to redirectURI passed in constructor config', (done) => {
