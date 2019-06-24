@@ -8,25 +8,25 @@ describe("TelemetryEvent", () =>{
     it("constructed with correct params", () => {
         const correlationId = uuid();
         const eventName = "fakeEvent";
-        const telemetyEvent: TelemetryEvent = new TelemetryEvent(
+        const telemetryEvent: TelemetryEvent = new TelemetryEvent(
             eventName,
             correlationId
         );
-        expect(telemetyEvent.telemetryCorrelationId).to.eql(correlationId);
-        expect(telemetyEvent.eventName).to.eql(eventName);
+        expect(telemetryEvent.telemetryCorrelationId).to.eql(correlationId);
+        expect(telemetryEvent.eventName).to.eql(eventName);
     });
 
     it("stop event and get elapsed time", done => {
         const time = 500;
         const correlationId = uuid();
         const eventName = "coolEvent";
-        const telemetyEvent: TelemetryEvent = new TelemetryEvent(
+        const telemetryEvent: TelemetryEvent = new TelemetryEvent(
             eventName,
             correlationId
         );
         setTimeout(() => {
-            telemetyEvent.stop();
-            const event = telemetyEvent.get();
+            telemetryEvent.stop();
+            const event = telemetryEvent.get();
             // greater than exact, //less than 100ms over
             expect(event['msal.elapsed_time']).to.be.greaterThan(time - 1);
             expect(event['msal.elapsed_time']).to.be.lessThan(time + 100);
