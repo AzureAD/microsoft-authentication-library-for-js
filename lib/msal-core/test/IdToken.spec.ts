@@ -6,9 +6,9 @@ import { TEST_TOKENS } from "./TestConstants";
 
 describe("IdToken.ts Class", function() {
 
-    it("verifies IdToken is constructed properly given a RAW IDTOKEN for V1", function () {
+    it("verifies IdToken is constructed properly given a IDTOKEN for V1", function () {
 
-        const idToken: IdToken = new IdToken(TEST_TOKENS.RAW_IDTOKEN_V1);
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V1);
         const iss: string = "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/";
         const tid: string = "fa15d692-e9c7-4460-a743-29f2956fd429";
 
@@ -20,7 +20,7 @@ describe("IdToken.ts Class", function() {
 
     it("verifies IdToken is constructed properly given a RAW IDTOKEN for V2", function () {
 
-         const idToken: IdToken = new IdToken(TEST_TOKENS.RAW_IDTOKEN_V2);
+         const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
          const iss: string = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
          const exp: number = 1536361411;
 
@@ -31,13 +31,13 @@ describe("IdToken.ts Class", function() {
 
     it("verfies the rawIdToken is saved correctly", function () {
 
-        const idToken: IdToken = new IdToken(TEST_TOKENS.RAW_IDTOKEN_V2);
-        expect(idToken.rawIdToken).to.equal(TEST_TOKENS.RAW_IDTOKEN_V2);
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
+        expect(idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
     });
 
     it("verifies claims are generated properly in the idToken class", function () {
 
-        const idToken: IdToken = new IdToken(TEST_TOKENS.RAW_IDTOKEN_V2);
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
         const idTokenClaims = idToken.claims;
         const iss: string = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
         const claimIss = "iss";
@@ -47,7 +47,7 @@ describe("IdToken.ts Class", function() {
 
     it("verifies if new claim is added, it reflects in the idTokena", function () {
 
-        const idToken: IdToken = new IdToken(TEST_TOKENS.RAW_IDTOKEN_V2_NEWCLAIM);
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
         const idTokenClaims = idToken.claims;
         const claimEmail = "email";
 

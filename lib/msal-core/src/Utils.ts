@@ -704,18 +704,20 @@ export class Utils {
   //#region Response Helpers
 
   static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
+
     var response = { ...originalResponse };
-    response.idToken = idToken;
+    response.idToken = idToken.rawIdToken;
     response.claims = idToken.claims;
-    if (response.idToken.objectId) {
-      response.uniqueId = response.idToken.objectId;
+
+    if (idToken.objectId) {
+      response.uniqueId = idToken.objectId;
     } else {
-      response.uniqueId = response.idToken.subject;
+      response.uniqueId = idToken.subject;
     }
-    response.tenantId = response.idToken.tenantId;
+    response.tenantId = idToken.tenantId;
+
     return response;
   }
-
   //#endregion
 
 }

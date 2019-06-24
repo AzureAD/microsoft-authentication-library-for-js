@@ -10,7 +10,7 @@ import { TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
 
 describe("Account.ts Class", function() {
 
-    const idToken: IdToken = new IdToken(TEST_TOKENS.RAW_IDTOKEN_V2);
+    const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
     const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
 
 
