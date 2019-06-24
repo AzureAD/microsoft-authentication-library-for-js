@@ -11,7 +11,8 @@ import {
     ClientConfigurationError,
     ServerError,
     Authority,
-    AuthResponse
+    AuthResponse,
+    InteractionRequiredAuthError
 } from '../src/index';
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
@@ -22,6 +23,7 @@ import { Utils } from "../src/Utils";
 import { SSOTypes } from "../src/Constants";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
+import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";
 
 type kv = {
     [key: string]: string;
@@ -29,33 +31,58 @@ type kv = {
 
 describe("UserAgentApplication.ts Class", function () {
 
+    // Test URIs
     const DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
     const ALTERNATE_INSTANCE = "https://login.windows.net/"
     const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
     const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
-    const TEST_ERROR_CODE = "error_code";
-    const TEST_ERROR_DESC = "msal error description"
-    const TEST_USER_STATE_NUM = "1234";
-    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
-    const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
-    const TEST_UID = "123-test-uid";
-    const TEST_UTID = "456-test-utid";
-    const TEST_NONCE = "test_nonce";
-    const TEST_UNIQUE_ID = "248289761001";
-    const TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;
-    const TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
-    const TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
-    const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
+
+    // Test MSAL config params
     const TENANT = 'common';
     const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
     const MSAL_TENANT_ID = "124ds324-43de-n89m-7477-466fefs45a85";
     const validAuthority = DEFAULT_INSTANCE + TENANT;
     const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
+
+    // Test SSO params
+    const TEST_LOGIN_HINT = "test@test.com";
+    const TEST_SID = "1234-5678";
+
+    // Test state params
+    const TEST_USER_STATE_NUM = "1234";
+    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
+    const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
+    
+    // Test Unique Params
+    const TEST_NONCE = "test_nonce";
+    const TEST_UNIQUE_ID = "248289761001";
+
+    // Test Client Info Params
+    const TEST_UID = "123-test-uid";
+    const TEST_UTID = "456-test-utid";
+    const TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;
+    const TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
+    const TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
+    const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
+    
+    // Test Hash Params
     const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
     + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
     + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
+    const TEST_ERROR_CODE = "error_code";
+    const TEST_ERROR_DESC = "msal error description"
+
+    // Test Hashes
     const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
     const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_INTERACTION_REQ_ERROR_HASH1 = "#error=interaction_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_INTERACTION_REQ_ERROR_HASH2 = "#error=interaction_required&error_description=msal+error+description+interaction_required&state=RANDOM-GUID-HERE|";
+    const TEST_LOGIN_REQ_ERROR_HASH1 = "#error=login_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_LOGIN_REQ_ERROR_HASH2 = "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|";
+    const TEST_CONSENT_REQ_ERROR_HASH1 = "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
+    const TEST_CONSENT_REQ_ERROR_HASH2 = "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|";
+    
+    // Sample OpenId Configurations
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
@@ -320,6 +347,49 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
             expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
+        });
+
+        it('removes login_hint from request.extraQueryParameters', (done) => {
+            let tokenRequestWithoutLoginHint: AuthenticationParameters = {
+                extraQueryParameters: {
+                    login_hint: JSON.stringify(TEST_LOGIN_HINT)
+                }
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.not.include('&login_hint=');
+                expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.LOGIN_HINT]));
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequestWithoutLoginHint);
+        });
+
+        it('removes sid from request.extraQueryParameters', (done) => {
+            let tokenRequestWithoutLoginHint: AuthenticationParameters = {
+                extraQueryParameters: {
+                    sid: JSON.stringify(TEST_SID)
+                }
+            };
+            sinon.stub(window.location, "replace").callsFake(function (url) {
+                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                expect(url).to.not.include('&sid=');
+                expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
+                
+                done();
+            });
+            msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            msal.loginRedirect(tokenRequestWithoutLoginHint);
         });
 
         it('navigates user to redirectURI passed in constructor config', (done) => {
@@ -862,6 +932,130 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
             done();
         });
+    });
+
+    describe("InteractionRequired Error Types", function () {
+
+        beforeEach(function () {
+            cacheStorage = new Storage("sessionStorage");
+            const config: Configuration = {
+                auth: {
+                    clientId: MSAL_CLIENT_ID,
+                    redirectUri: TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+            setTestCacheItems();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("tests saveTokenForHash in case of interaction_required error code", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of interaction_required error code and description", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.message).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of login_required error code", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of login_required error code and description", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.message).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of consent_required error code", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        it("tests saveTokenForHash in case of consent_required error code and description", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof InteractionRequiredAuthError).to.be.true;
+                expect(error.name).to.include("InteractionRequiredAuthError");
+                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.message).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
     });
 
     describe("Logout functionality", function () {

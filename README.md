@@ -36,8 +36,8 @@ Our goal is to communicate extremely well with the community and to take their o
 
 Please check our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap) to see what we are working on and what we are tracking next.
 
-## Oauth 2.0 and the Implict Flow
-Msal implements the [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the Oauth 2.0 protocol and is [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc) compliant.
+## OAuth 2.0 and the Implicit Flow
+Msal implements the [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and is [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc) compliant.
 
 Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective.
 The implicit flow runs in the context of a web browser which cannot manage client secrets securely. It is optimized for single page apps and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure.
@@ -131,7 +131,7 @@ See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authe
             .catch(err => {
                 // could also check if err instance of InteractionRequiredAuthError if you can import the class.
                 if (err.name === "InteractionRequiredAuthError") {
-                    return msalnstance.acquireTokenPopup(tokenRequest)
+                    return msalInstance.acquireTokenPopup(tokenRequest)
                         .then(response => {
                             // get access token from response
                             // response.accessToken

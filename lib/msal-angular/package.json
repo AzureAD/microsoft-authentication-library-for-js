@@ -18,8 +18,9 @@
     "msal",
     "oauth"
   ],
-  "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "main": "./lib-commonjs/index.js",
+  "module": "./lib-es6/index.js",
+  "types": "./lib-commonjs/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
