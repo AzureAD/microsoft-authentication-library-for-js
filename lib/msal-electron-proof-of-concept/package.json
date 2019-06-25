@@ -1,11 +1,12 @@
 {
-  "name": "msal-electron-poc",
-  "version": "1.0.0",
-  "description": "Microsoft Authentication Library for Electron Proof of Concept",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "MIT"
+    "name": "msal-electron-poc",
+    "version": "1.0.0",
+    "description":
+        "Microsoft Authentication Library for Electron Proof of Concept",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "MIT"
 }
