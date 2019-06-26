@@ -240,7 +240,7 @@ export class UserAgentApplication {
     window.msal = this;
 
     const urlHash = window.location.hash;
-    const isCallback = this.isCallback(urlHash);
+    const isCallback = this.urlContainsHash(urlHash);
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
@@ -536,27 +536,125 @@ export class UserAgentApplication {
     });
   }
 
-  //#endregion
-
-  //#region Redirect Flow
-
   /**
-   * @hidden
-   * @ignore
-   * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
-   * @param {string} hash - Hash passed from redirect page.
-   * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
+   * Use this function to obtain a token before every call to the API / resource provider
+   *
+   * MSAL return's a cached token when available
+   * Or it send's a request to the STS to obtain a new token using a hidden iframe.
+   *
+   * @param {@link AuthenticationParameters}
+   *
+   * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+   * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+   *
    */
-  // TODO - rename this, the name is confusing
-  isCallback(hash: string): boolean {
-    hash = this.getHash(hash);
-    const parameters = Utils.deserialize(hash);
-    return (
-      parameters.hasOwnProperty(Constants.errorDescription) ||
-      parameters.hasOwnProperty(Constants.error) ||
-      parameters.hasOwnProperty(Constants.accessToken) ||
-      parameters.hasOwnProperty(Constants.idToken)
-    );
+  @resolveTokenOnlyIfOutOfIframe
+  acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+    return new Promise<AuthResponse>((resolve, reject) => {
+
+      // Validate and filter scopes (the validate function will throw if validation fails)
+      this.validateInputScope(request.scopes, true);
+
+      const scope = request.scopes.join(" ").toLowerCase();
+
+      // if the developer passes an account give him the priority
+      const account: Account = request.account || this.getAccount();
+
+      // extract if there is an adalIdToken stashed in the cache
+      const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
+
+      //if there is no account logged in and no login_hint/sid is passed in the request
+      if (!account && !(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
+        this.logger.info("User login is required");
+        return reject(ClientAuthError.createUserLoginRequiredError());
+      }
+
+      const responseType = this.getTokenType(account, request.scopes, true);
+
+      let serverAuthenticationRequest = new ServerRequestParameters(
+        AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
+        this.clientId,
+        request.scopes,
+        responseType,
+        this.getRedirectUri(),
+        request && request.state
+      );
+
+      // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+      if (Utils.isSSOParam(request) || account) {
+        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
+      }
+      //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
+      else if (!account && !Utils.isEmpty(adalIdToken)) {
+        // if adalIdToken exists, extract the SSO info from the same
+        const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
+        this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+        serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
+      }
+      let userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
+
+      let authErr: AuthError;
+      let cacheResultResponse;
+
+      if (!userContainedClaims) {
+        try {
+          cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
+        } catch (e) {
+          authErr = e;
+        }
+      }
+
+      // resolve/reject based on cacheResult
+      if (cacheResultResponse) {
+        this.logger.info("Token is already in cache for scope:" + scope);
+        resolve(cacheResultResponse);
+        return null;
+      }
+      else if (authErr) {
+        this.logger.infoPii(authErr.errorCode + ":" + authErr.errorMessage);
+        reject(authErr);
+        return null;
+      }
+      // else proceed with login
+      else {
+        if (userContainedClaims) {
+          this.logger.verbose("Skipped cache lookup since claims were given.");
+        } else {
+          this.logger.verbose("Token is not in cache for scope:" + scope);
+        }
+        // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+        if (!serverAuthenticationRequest.authorityInstance) {
+            serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+        }
+        // cache miss
+        return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync()
+        .then(() => {
+          // refresh attempt with iframe
+          // Already renewing for this scope, callback when we get the token.
+          if (window.activeRenewals[scope]) {
+            this.logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+            // Active renewals contains the state for each renewal.
+            this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+          }
+          else {
+            if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
+              // App uses idToken to send to api endpoints
+              // Default scope is tracked as clientId to store this token
+              this.logger.verbose("renewing idToken");
+              this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+            } else {
+              // renew access token
+              this.logger.verbose("renewing accesstoken");
+              this.renewToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+            }
+          }
+        }).catch((err) => {
+          this.logger.warning("could not resolve endpoints");
+          reject(ClientAuthError.createEndpointResolutionError(err.toString()));
+          return null;
+        });
+      }
+    });
   }
 
   //#endregion
@@ -690,128 +788,7 @@ export class UserAgentApplication {
 
   //#endregion
 
-  //#region Silent Flow
-
-  /**
-   * Use this function to obtain a token before every call to the API / resource provider
-   *
-   * MSAL return's a cached token when available
-   * Or it send's a request to the STS to obtain a new token using a hidden iframe.
-   *
-   * @param {@link AuthenticationParameters}
-   *
-   * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-   * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-   *
-   */
-  @resolveTokenOnlyIfOutOfIframe
-  acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
-    return new Promise<AuthResponse>((resolve, reject) => {
-
-      // Validate and filter scopes (the validate function will throw if validation fails)
-      this.validateInputScope(request.scopes, true);
-
-      const scope = request.scopes.join(" ").toLowerCase();
-
-      // if the developer passes an account give him the priority
-      const account: Account = request.account || this.getAccount();
-
-      // extract if there is an adalIdToken stashed in the cache
-      const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
-
-      //if there is no account logged in and no login_hint/sid is passed in the request
-      if (!account && !(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
-        this.logger.info("User login is required");
-        return reject(ClientAuthError.createUserLoginRequiredError());
-      }
-
-      const responseType = this.getTokenType(account, request.scopes, true);
-
-      let serverAuthenticationRequest = new ServerRequestParameters(
-        AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
-        this.clientId,
-        request.scopes,
-        responseType,
-        this.getRedirectUri(),
-        request && request.state
-      );
-
-      // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (Utils.isSSOParam(request) || account) {
-        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
-      }
-      //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
-      else if (!account && !Utils.isEmpty(adalIdToken)) {
-        // if adalIdToken exists, extract the SSO info from the same
-        const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
-        this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-        serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
-      }
-      let userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
-
-      let authErr: AuthError;
-      let cacheResultResponse;
-
-      if (!userContainedClaims) {
-        try {
-          cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
-        } catch (e) {
-          authErr = e;
-        }
-      }
-
-      // resolve/reject based on cacheResult
-      if (cacheResultResponse) {
-        this.logger.info("Token is already in cache for scope:" + scope);
-        resolve(cacheResultResponse);
-        return null;
-      }
-      else if (authErr) {
-        this.logger.infoPii(authErr.errorCode + ":" + authErr.errorMessage);
-        reject(authErr);
-        return null;
-      }
-      // else proceed with login
-      else {
-        if (userContainedClaims) {
-          this.logger.verbose("Skipped cache lookup since claims were given.");
-        } else {
-          this.logger.verbose("Token is not in cache for scope:" + scope);
-        }
-        // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
-        if (!serverAuthenticationRequest.authorityInstance) {
-            serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
-        }
-        // cache miss
-        return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync()
-        .then(() => {
-          // refresh attempt with iframe
-          // Already renewing for this scope, callback when we get the token.
-          if (window.activeRenewals[scope]) {
-            this.logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
-            // Active renewals contains the state for each renewal.
-            this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
-          }
-          else {
-            if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
-              // App uses idToken to send to api endpoints
-              // Default scope is tracked as clientId to store this token
-              this.logger.verbose("renewing idToken");
-              this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
-            } else {
-              // renew access token
-              this.logger.verbose("renewing accesstoken");
-              this.renewToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
-            }
-          }
-        }).catch((err) => {
-          this.logger.warning("could not resolve endpoints");
-          reject(ClientAuthError.createEndpointResolutionError(err.toString()));
-          return null;
-        });
-      }
-    });
-  }
+  //#region Iframe Management
 
   /**
    * @hidden
@@ -828,18 +805,6 @@ export class UserAgentApplication {
    */
   private parentIsMsal() {
     return window.parent !== window && window.parent.msal;
-  }
-
-  /**
-   * @hidden
-   */
-  private isInteractionRequired(errorString: string) : boolean {
-    if (errorString.indexOf("interaction_required") !== -1 ||
-    errorString.indexOf("consent_required") !== -1 ||
-    errorString.indexOf("login_required") !== -1) {
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -927,6 +892,18 @@ export class UserAgentApplication {
   //#endregion
 
   //#region General Helpers
+
+  /**
+   * @hidden
+   */
+  private isInteractionRequired(errorString: string) : boolean {
+    if (errorString.indexOf("interaction_required") !== -1 ||
+    errorString.indexOf("consent_required") !== -1 ||
+    errorString.indexOf("login_required") !== -1) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * @hidden
@@ -1095,6 +1072,24 @@ export class UserAgentApplication {
   //#endregion
 
   //#region Response
+
+  /**
+   * @hidden
+   * @ignore
+   * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
+   * @param {string} hash - Hash passed from redirect page.
+   * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
+   */
+  urlContainsHash(hash: string): boolean {
+    hash = this.getHash(hash);
+    const parameters = Utils.deserialize(hash);
+    return (
+      parameters.hasOwnProperty(Constants.errorDescription) ||
+      parameters.hasOwnProperty(Constants.error) ||
+      parameters.hasOwnProperty(Constants.accessToken) ||
+      parameters.hasOwnProperty(Constants.idToken)
+    );
+  }
 
   /**
    * @hidden
