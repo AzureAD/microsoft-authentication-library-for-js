@@ -10,6 +10,7 @@ import { Utils } from "./Utils";
  * @hidden
  */
 export class B2cAuthority extends AadAuthority {
+  public static B2C_PREFIX: String = "tfp";
   public constructor(authority: string, validateAuthority: boolean) {
     super(authority, validateAuthority);
     const urlComponents = Utils.GetUrlComponents(authority);
