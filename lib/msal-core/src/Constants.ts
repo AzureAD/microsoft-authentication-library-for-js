@@ -80,6 +80,9 @@ export class Constants {
 
   static get cacheLocationLocal(): CacheLocation { return "localStorage"; }
   static get cacheLocationSession(): CacheLocation { return "sessionStorage"; }
+
+  static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
+  static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
 }
 
 /**
@@ -119,6 +122,8 @@ export const BlacklistedEQParams = [
   SSOTypes.SID,
   SSOTypes.LOGIN_HINT
 ];
+
+export type InteractionType = "redirectInteraction" | "popupInteraction";
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
