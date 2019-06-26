@@ -143,7 +143,7 @@ export class Utils {
      if (!expires) {
          expires = "3599";
       }
-    return parseInt(expires, 10);
+    return this.now() + parseInt(expires, 10);
   }
 
   /**
