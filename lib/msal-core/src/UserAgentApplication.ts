@@ -388,9 +388,13 @@ export class UserAgentApplication {
    * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
    */
   private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
-     // If already in progress, do not proceed
-     if (this.acquireTokenInProgress) {
-      this.errorHandler(interactionType, ClientAuthError.createAcquireTokenInProgressError(), buildResponseStateOnly(this.getAccountState(request && request.state)), reject);
+
+    // If already in progress, do not proceed
+    if (this.loginInProgress || this.acquireTokenInProgress) {
+      this.errorHandler(interactionType,
+        this.loginInProgress ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError(),
+        buildResponseStateOnly(this.getAccountState(request && request.state)),
+        reject);
       return;
     }
 
@@ -454,9 +458,9 @@ export class UserAgentApplication {
    */
   private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, scopes?: Array<string>, resolve?: any, reject?: any): void {
     // Track the acquireToken progress
-    this.acquireTokenInProgress = true;
+    isLoginCall ? this.loginInProgress = true : this.acquireTokenInProgress = true;
 
-    const scope = scopes.join(" ").toLowerCase();
+    const scope = scopes ? scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
     let serverAuthenticationRequest: ServerRequestParameters;
     const acquireTokenAuthority = (!isLoginCall && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -526,7 +530,7 @@ export class UserAgentApplication {
       }
 
       // prompt user for interaction
-      this.promptUser(urlNavigate, popUpWindow);
+      this.navigateWindow(urlNavigate, popUpWindow);
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
       this.errorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
@@ -953,7 +957,7 @@ export class UserAgentApplication {
    * Used to redirect the browser to the STS authorization endpoint
    * @param {string} urlNavigate - URL of the authorization endpoint
    */
-  private promptUser(urlNavigate: string, popupWindow?: Window) {
+  private navigateWindow(urlNavigate: string, popupWindow?: Window) {
     // Navigate if valid URL
     if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
       let navigateWindow: Window = popupWindow ? popupWindow : window;
@@ -1034,7 +1038,7 @@ export class UserAgentApplication {
         const urlNavigate = authority.EndSessionEndpoint
             ? `${authority.EndSessionEndpoint}?${logout}`
             : `${this.authority}oauth2/v2.0/logout?${logout}`;
-        this.promptUser(urlNavigate);
+        this.navigateWindow(urlNavigate);
     });
   }
 
