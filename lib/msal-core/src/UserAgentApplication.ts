@@ -1574,7 +1574,7 @@ export class UserAgentApplication {
           expiresOn: new Date(expired * 1000),
           account: account,
           accountState: aState,
-          claims: idToken.claims
+          idTokenClaims: idToken.claims
         };
 
         Utils.setResponseIdToken(response, idToken);
@@ -1770,7 +1770,7 @@ export class UserAgentApplication {
       expiresOn: null,
       account: null,
       accountState: "",
-      claims: null
+      idTokenClaims: null
     };
 
     let error: AuthError;
@@ -1837,7 +1837,7 @@ export class UserAgentApplication {
           if (hashParams.hasOwnProperty(Constants.idToken)) {
             idTokenObj = new IdToken(hashParams[Constants.idToken]);
             response.idToken = idTokenObj.rawIdToken;
-            response.claims = idTokenObj.claims;
+            response.idTokenClaims = idTokenObj.claims;
           } else {
             idTokenObj = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));
             response = Utils.setResponseIdToken(response, idTokenObj);

@@ -43,7 +43,7 @@ describe("Account.ts Class", function() {
         expect(account.name).to.equal(idToken.name);
         // This will be deprecated soon
         expect(account.idToken).to.equal(idToken.claims);
-        expect(account.claims).to.equal(idToken.claims);
+        expect(account.idTokenClaims).to.equal(idToken.claims);
         expect(account.sid).to.equal(idToken.sid);
         expect(account.environment).to.equal(idToken.issuer);
     });

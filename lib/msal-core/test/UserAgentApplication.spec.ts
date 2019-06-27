@@ -117,7 +117,7 @@ describe("UserAgentApplication.ts Class", function () {
             environment: "js",
             homeAccountIdentifier: "1234",
             idToken: {claim: "idTokenSampleClaim"},
-            claims: {claim: "idTokenSampleClaim"},
+            idTokenClaims: {claim: "idTokenSampleClaim"},
             name: "Test Account",
             sid: "123451435",
             userName: "TestAccount"
@@ -210,7 +210,7 @@ describe("UserAgentApplication.ts Class", function () {
                 userName: "some_id",
                 name: null,
                 idToken: null,
-                claims: null,
+                idTokenClaims: null,
                 sid: null,
                 environment: null
             };

@@ -23,7 +23,7 @@ export class Account {
     name: string;
     // will be deprecated soon
     idToken: Dict;
-    claims: Dict;
+    idTokenClaims: Dict;
     sid: string;
     environment: string;
 
@@ -45,7 +45,7 @@ export class Account {
       this.name = name;
       // will be deprecated soon
       this.idToken = idTokenClaims;
-      this.claims = idTokenClaims;
+      this.idTokenClaims = idTokenClaims;
       this.sid = sid;
       this.environment = environment;
     }

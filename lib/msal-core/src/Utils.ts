@@ -705,18 +705,14 @@ export class Utils {
 
   static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
 
-    var response = { ...originalResponse };
-    response.idToken = idToken.rawIdToken;
-    response.claims = idToken.claims;
+    return {
+      ...originalResponse,
+      idToken: idToken.rawIdToken,
+      idTokenClaims: idToken.claims,
+      uniqueId: idToken.objectId || idToken.subject,
+      tenantId: idToken.tenantId
+    };
 
-    if (idToken.objectId) {
-      response.uniqueId = idToken.objectId;
-    } else {
-      response.uniqueId = idToken.subject;
-    }
-    response.tenantId = idToken.tenantId;
-
-    return response;
   }
   //#endregion
 

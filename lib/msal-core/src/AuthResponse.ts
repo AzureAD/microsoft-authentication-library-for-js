@@ -18,7 +18,7 @@ export type AuthResponse = {
     expiresOn: Date;
     account: Account;
     accountState: string;
-    claims: Dict;
+    idTokenClaims: Dict;
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
@@ -32,6 +32,6 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         expiresOn: null,
         account: null,
         accountState: state,
-        claims: null
+        idTokenClaims: null
     };
 }
