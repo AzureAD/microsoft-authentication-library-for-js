@@ -164,24 +164,6 @@ fetch(graphEndpoint, options)
 
 You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
 
-```JavaScript
-var headers = new Headers();
-var bearer = "Bearer " + token;
-headers.append("Authorization", bearer);
-var options = {
-	 method: "GET",
-	 headers: headers
-};
-var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
-
-fetch(graphEndpoint, options)
-	.then(resp => {
-		 //do something with response
-	});
-```
-
-You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
-
 ## Wrapper libraries
 
 We provide preview versions of the following wrapper libraries as separate packages.
