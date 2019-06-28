@@ -1712,15 +1712,15 @@ export class UserAgentApplication {
       }
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]);
+      const expiresIn = Utils.parseExpiresIn(parameters[Constants.expiresIn]);
+      expiration = Utils.now() + expiresIn;
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, (expiresIn + Utils.now()).toString(), clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiration.toString(), clientInfo);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
       accessTokenResponse.accessToken  = parameters[Constants.accessToken];
       accessTokenResponse.scopes = consentedScopes;
-      expiration = Utils.now() + expiresIn;
     }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
@@ -1728,12 +1728,12 @@ export class UserAgentApplication {
 
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      expiration = Number(response.idToken.expiration);
 
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration.toString(), clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], expiration.toString(), clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
-      expiration = Number(response.idToken.expiration);
     }
     if (expiration) {
       accessTokenResponse.expiresOn = new Date(expiration * 1000);
