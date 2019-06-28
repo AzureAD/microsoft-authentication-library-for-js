@@ -711,6 +711,10 @@ export class Utils {
       response.uniqueId = response.idToken.subject;
     }
     response.tenantId = response.idToken.tenantId;
+    let exp = Number(response.idToken.expiration);
+    if (exp && !response.expiresOn) {
+      response.expiresOn = new Date(exp * 1000);
+    }
     return response;
   }
 
