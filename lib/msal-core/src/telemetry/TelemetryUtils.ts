@@ -3,8 +3,6 @@ import { AADTrustedHostList } from "../Constants";
 import { TENANT_PLACEHOLDER } from "./TelemetryConstants";
 import { Utils } from "../Utils";
 
-
-
 export const scrubTenantFromUri = (uri: string): String => {
 
     const url = Utils.GetUrlComponents(uri);
