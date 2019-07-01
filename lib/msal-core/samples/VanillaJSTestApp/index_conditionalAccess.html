@@ -14,6 +14,7 @@
             <button id="SignIn" onclick="signIn()">Sign In</button>
             <button id="ReadMail" onclick="readMail()">Read Email</button>
             <button id="CallExtApi" onclick="extAPI()">External API</button>
+            <button id="CallExtCaApi" onclick="extCAAPI()">External CA API</button>
         </div>
         <div class="rightContainer">
             <pre id="json"></pre>
@@ -49,7 +50,7 @@
         scopes: ["Mail.Read"]
     };
 
-    var extApiTokenRequest = {
+    var caApiTokenRequest = {
         scopes: ['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']
     };
 
@@ -58,13 +59,14 @@
         graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
     };
 
-    var externalAppConfig = {
+    var externalCaAppConfig = {
+        externalCaTodoListEndpoint: "https://buildtodoservice.azurewebsites.net/api/AccessCaApi",
         externalTodoListEndpoint: "https://buildtodoservice.azurewebsites.net/api/todolist",
         apiScopes: ['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user'],
         requestedScopes: ['User.Read', 'api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']
     }
 
-    var resourceRequests = [graphTokenRequest, extApiTokenRequest];
+    var resourceRequests = [graphTokenRequest, caApiTokenRequest];
 
     var myMSALObj = new Msal.UserAgentApplication(msalConfig);
     myMSALObj.handleRedirectCallback(authRedirectCallBack);
@@ -78,7 +80,7 @@
             showWelcomeMessage();
             acquireTokenPopupAndCallApi(graphConfig.graphMeEndpoint, graphTokenRequest);
         }).catch(function (error) {
-            console.log(error);
+            console.log("Login Error (Popup): " + JSON.stringify(error));
         });
     }
 
@@ -116,14 +118,15 @@
             console.log("Silent Token Response (Popup): " + JSON.stringify(tokenResponse));
             getAPI(endpoint, tokenResponse.accessToken, apiCallback);
         }).catch(function (error) {
-            console.log(error);
+            console.log("Silent Error (Popup): " + JSON.stringify(error));
             // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
             if (requiresInteraction(error.errorCode)) {
+                console.log("Claims: " + error);
                 myMSALObj.acquireTokenPopup(request).then(function (tokenResponse) {
                     console.log("Token Response (Popup): " + JSON.stringify(tokenResponse));
                     getAPI(endpoint, tokenResponse.accessToken, apiCallback);
                 }).catch(function (error) {
-                    console.log(error);
+                    console.log("Error (Popup): " + JSON.stringify(error));
                 });
             } else if (error.errorCode === "user_login_error") {
                 myMSALObj.loginPopup(request).then()
@@ -151,6 +154,7 @@
     }
 
     function getAPI(theUrl, accessToken, callback) {
+        console.log(theUrl);
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200)
@@ -191,9 +195,15 @@
     }
 
     function extAPI() {
-        redirectEndpoint = externalAppConfig.externalTodoListEndpoint;
-        acquireTokenPopupAndCallApi(redirectEndpoint, extApiTokenRequest);
-        // acquireTokenRedirectAndCallApi(externalAppConfig.externalTodoListEndpoint, extApiTokenRequest);
+        redirectEndpoint = externalCaAppConfig.externalTodoListEndpoint;
+        acquireTokenPopupAndCallApi(redirectEndpoint, caApiTokenRequest);
+        // acquireTokenRedirectAndCallApi(externalCaAppConfig.externalCaTodoListEndpoint, extApiTokenRequest);
+    }
+
+    function extCAAPI() {
+        redirectEndpoint = externalCaAppConfig.externalCaTodoListEndpoint;
+        acquireTokenPopupAndCallApi(redirectEndpoint, caApiTokenRequest);
+        // acquireTokenRedirectAndCallApi(externalCaAppConfig.externalCaTodoListEndpoint, extApiTokenRequest);
     }
 
     function signOut() {
