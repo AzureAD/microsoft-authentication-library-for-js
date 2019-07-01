@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "0.1.2",
+  "version": "0.1.3",
   "keywords": [
     "implicit",
     "angular",
@@ -96,7 +96,8 @@
     "build": "npm run clean && npm run doc && npm run build:modules && webpack",
     "test": "typings install && karma start karma.conf.js",
     "ngcompile": "npm run clean && npm run doc && ngc -p tsconfig-aot.json && webpack",
-    "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js"
+    "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js",
+    "prepack": "npm run build"
   },
   "description": "Microsoft Authentication Library for Angular (Preview)\r ========================================================="
 }

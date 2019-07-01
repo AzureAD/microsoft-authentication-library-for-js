@@ -3,14 +3,15 @@ import { EVENT_NAME_PREFIX, TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConsta
 import { scrubTenantFromUri, hashPersonalIdentifier } from "./TelemetryUtils";
 import { Logger } from "../Logger";
 
-const AUTHORITY_KEY = EVENT_NAME_PREFIX + "authority";
-const AUTHORITY_TYPE_KEY = EVENT_NAME_PREFIX + "authority_type";
-const PROMPT_KEY = EVENT_NAME_PREFIX + "ui_behavior";
-const TENANT_ID_KEY = EVENT_NAME_PREFIX + "tenant_id";
-const USER_ID_KEY = EVENT_NAME_PREFIX + "user_id";
-const WAS_SUCESSFUL_KEY = EVENT_NAME_PREFIX + "was_successful";
-const API_ERROR_CODE_KEY = EVENT_NAME_PREFIX + "api_error_code";
-const LOGIN_HINT_KEY = EVENT_NAME_PREFIX + "login_hint";
+// export these to test... could namespace them, or find another way?
+export const AUTHORITY_KEY = EVENT_NAME_PREFIX + "authority";
+export const AUTHORITY_TYPE_KEY = EVENT_NAME_PREFIX + "authority_type";
+export const PROMPT_KEY = EVENT_NAME_PREFIX + "ui_behavior";
+export const TENANT_ID_KEY = EVENT_NAME_PREFIX + "tenant_id";
+export const USER_ID_KEY = EVENT_NAME_PREFIX + "user_id";
+export const WAS_SUCESSFUL_KEY = EVENT_NAME_PREFIX + "was_successful";
+export const API_ERROR_CODE_KEY = EVENT_NAME_PREFIX + "api_error_code";
+export const LOGIN_HINT_KEY = EVENT_NAME_PREFIX + "login_hint";
 
 export const API_CODE = {
     AcquireTokenRedirect: 2001,
@@ -67,11 +68,11 @@ export default class ApiEvent extends TelemetryEvent {
     }
 
     public set wasSuccessful(wasSuccessful: boolean) {
-        this.event[WAS_SUCESSFUL_KEY] = wasSuccessful.toString();
+        this.event[WAS_SUCESSFUL_KEY] = wasSuccessful;
     }
 
     public get wasSuccessful() {
-        return this.event[WAS_SUCESSFUL_KEY] === true.toString();
+        return this.event[WAS_SUCESSFUL_KEY] === true;
     }
 
     public set loginHint(loginHint: string) {

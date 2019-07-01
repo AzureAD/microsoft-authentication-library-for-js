@@ -8,8 +8,8 @@ describe("DefaultEvent", () => {
         const correlationId = uuid();
         const clientId = uuid();
         const eventCount: EventCount = {
-            'msal.ui_event': 100,
-            'msal.http_event': 200
+            "msal.ui_event": 100,
+            "msal.http_event": 200
         };
         const platformConfig: TelemetryPlatform =  {
             sdk: "javascript",
@@ -24,12 +24,12 @@ describe("DefaultEvent", () => {
             eventCount
         );
         const event = defaultEvent.get();
-        expect(event.Microsoft_MSAL_ui_event_count).to.eq("100");
-        expect(event.Microsoft_MSAL_http_event_count).to.eq("200");
-        expect(event.Microsoft_MSAL_cache_event_count).to.eq("0");
-        expect(event['msal.application_name']).to.eq("mochaTest");
-        expect(event['msal.event_name']).to.eq("msal.default_event");
-        expect(event['msal.application_name']).to.eq("mochaTest");
-        expect(event['msal.elapsed_time']).to.eq(-1);
+        expect(event.Microsoft_MSAL_ui_event_count).to.eq(100);
+        expect(event.Microsoft_MSAL_http_event_count).to.eq(200);
+        expect(event.Microsoft_MSAL_cache_event_count).to.eq(0);
+        expect(event["msal.application_name"]).to.eq("mochaTest");
+        expect(event["msal.event_name"]).to.eq("msal.default_event");
+        expect(event["msal.application_name"]).to.eq("mochaTest");
+        expect(event["msal.elapsed_time"]).to.eq(-1);
     });
 });
