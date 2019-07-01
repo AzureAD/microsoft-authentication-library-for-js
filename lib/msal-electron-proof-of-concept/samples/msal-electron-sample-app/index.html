@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>MSAL Electron Proof of Concept Sample App</title>
+</head>
+
+<body>
+  <div class="container">
+    <div class="leftContainer">
+      <p id="WelcomeMessage">Hi, welcome to the MSAL Electron Proof of Concept Sample App!</p>
+      <button id="SignIn">Sign In</button>
+      <button id="SignOut" style="display: none">Logout</button>
+      <pre>
+        <code>
+      <div id="UserInfo"></div>
+        </code>
+      </pre>
+    </div>
+  </div>
+</body>
+<script>
+  require('./dist/renderer.js')
+</script>
+
+</html>
