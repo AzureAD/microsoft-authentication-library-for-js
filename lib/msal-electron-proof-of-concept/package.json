@@ -4,6 +4,9 @@
     "description": "Microsoft Authentication Library for Electron Proof of Concept",
     "main": "index.js",
     "scripts": {
+        "build": "npm run build:modules && npm run lint",
+        "build:modules": "tsc",
+        "lint": "tslint -c tslint.json src/**/*.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": {
@@ -12,11 +15,28 @@
         "url": "https://www.microsoft.com"
     },
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    },
+    "keyword": [
+        "auth code",
+        "electron",
+        "AAD",
+        "msal",
+        "oauth"
+    ],
     "devDependencies": {
         "@types/chai": "^4.1.7",
         "@types/mocha": "^5.2.7",
         "chai": "^4.2.0",
-        "electron": "^5.0.6",
-        "mocha": "^6.1.4"
+        "mocha": "^6.1.4",
+        "tslint": "^5.18.0"
+    },
+    "peerDependencies": {
+        "electron": "5.x"
+    },
+    "dependencies": {
+        "typescript": "^3.5.2"
     }
 }
