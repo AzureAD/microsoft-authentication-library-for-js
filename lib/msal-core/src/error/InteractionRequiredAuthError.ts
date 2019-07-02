@@ -4,14 +4,14 @@
 import { ServerError } from "./ServerError";
 
 export const InteractionRequiredAuthErrorMessage = {
-    loginRequired: {
-        code: "login_required"
-    },
     interactionRequired: {
         code: "interaction_required"
     },
     consentRequired: {
         code: "consent_required"
+    },
+    loginRequired: {
+        code: "login_required"
     },
 };
 
@@ -29,9 +29,9 @@ export class InteractionRequiredAuthError extends ServerError {
 
     static isInteractionRequiredError(errorString: string) : boolean {
         return (
-            errorString.indexOf("interaction_required") !== -1 ||
-            errorString.indexOf("consent_required") !== -1 ||
-            errorString.indexOf("login_required") !== -1
+            errorString.indexOf(InteractionRequiredAuthErrorMessage.interactionRequired.code) !== -1 ||
+            errorString.indexOf(InteractionRequiredAuthErrorMessage.consentRequired.code) !== -1 ||
+            errorString.indexOf(InteractionRequiredAuthErrorMessage.loginRequired.code) !== -1
         );
     }
 
