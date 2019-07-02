@@ -1,5 +1,5 @@
-import { app, BrowserWindow } from "electron";
-import * as path from "path";
+import { app, BrowserWindow } from 'electron';
+import * as path from 'path';
 
 export default class Main {
     static mainWindow: Electron.BrowserWindow;
@@ -7,8 +7,8 @@ export default class Main {
 
     static main(): void {
         Main.application = app;
-        Main.application.on("window-all-closed", Main.onWindowAllClosed);
-        Main.application.on("ready", Main.onReady);
+        Main.application.on('window-all-closed', Main.onWindowAllClosed);
+        Main.application.on('ready', Main.onReady);
     }
 
     private static onWindowAllClosed(): void {
@@ -21,8 +21,8 @@ export default class Main {
 
     private static onReady(): void {
         Main.createMainWindow();
-        Main.mainWindow.loadFile(path.join(__dirname, "../index.html"));
-        Main.mainWindow.on("closed", Main.onClose);
+        Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
+        Main.mainWindow.on('closed', Main.onClose);
     }
 
     private static createMainWindow(): void {

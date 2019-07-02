@@ -1,2 +1,2 @@
-import Main from './Main';
+import Main from './main';
 Main.main();
