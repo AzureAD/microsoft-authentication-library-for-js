@@ -27,6 +27,14 @@ export class InteractionRequiredAuthError extends ServerError {
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
 
+    static isInteractionRequiredError(errorString: string) : boolean {
+        return (
+            errorString.indexOf("interaction_required") !== -1 ||
+            errorString.indexOf("consent_required") !== -1 ||
+            errorString.indexOf("login_required") !== -1
+        );
+    }
+
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
         return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.loginRequired.code, errorDesc);
     }

@@ -240,7 +240,7 @@ export class UserAgentApplication {
     window.msal = this;
 
     const urlHash = window.location.hash;
-    const isCallback = this.urlContainsHash(urlHash);
+    const isCallback = this.isStsResponse(urlHash);
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
@@ -899,18 +899,6 @@ export class UserAgentApplication {
 
   /**
    * @hidden
-   */
-  private isInteractionRequired(errorString: string) : boolean {
-    if (errorString.indexOf("interaction_required") !== -1 ||
-    errorString.indexOf("consent_required") !== -1 ||
-    errorString.indexOf("login_required") !== -1) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * @hidden
    *
    * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
    * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
@@ -961,7 +949,8 @@ export class UserAgentApplication {
     // Navigate if valid URL
     if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
       let navigateWindow: Window = popupWindow ? popupWindow : window;
-      popupWindow ? this.logger.infoPii("Navigated Popup window to:" + urlNavigate) : this.logger.infoPii("Navigate to:" + urlNavigate);
+      let logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
+      this.logger.infoPii(logMessage);
       navigateWindow.location.replace(urlNavigate);
     }
     else {
@@ -1084,9 +1073,8 @@ export class UserAgentApplication {
    * @param {string} hash - Hash passed from redirect page.
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
    */
-  urlContainsHash(hash: string): boolean {
-    hash = this.getHash(hash);
-    const parameters = Utils.deserialize(hash);
+  isStsResponse(hash: string): boolean {
+    const parameters = this.deserializeHash(hash);
     return (
       parameters.hasOwnProperty(Constants.errorDescription) ||
       parameters.hasOwnProperty(Constants.error) ||
@@ -1234,7 +1222,7 @@ export class UserAgentApplication {
    * @param hash
    */
   private deserializeHash(hash: string) {
-    hash = this.getHash(hash);
+    hash = Utils.getHashFromUrl(hash);
     return Utils.deserialize(hash);
   }
 
@@ -1624,7 +1612,8 @@ export class UserAgentApplication {
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
 
-      if (this.isInteractionRequired(hashParams[Constants.error]) || this.isInteractionRequired(hashParams[Constants.errorDescription])) {
+      if (InteractionRequiredAuthError.isInteractionRequiredError(hashParams[Constants.error]) ||
+        InteractionRequiredAuthError.isInteractionRequiredError(hashParams[Constants.errorDescription])) {
         error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       } else {
         error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
@@ -2146,22 +2135,6 @@ export class UserAgentApplication {
   //#endregion
 
   //#region String Util (Should be extracted to Utils.ts)
-
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Returns the anchor part(#) of the URL
-   */
-  private getHash(hash: string): string {
-    if (hash.indexOf("#/") > -1) {
-      hash = hash.substring(hash.indexOf("#/") + 2);
-    } else if (hash.indexOf("#") > -1) {
-      hash = hash.substring(1);
-    }
-
-    return hash;
-  }
 
   /**
    * @hidden
