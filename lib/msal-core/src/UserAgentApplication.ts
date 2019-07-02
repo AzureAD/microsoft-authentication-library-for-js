@@ -1568,7 +1568,7 @@ export class UserAgentApplication {
           uniqueId: "",
           tenantId: "",
           tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? Constants.idToken : Constants.accessToken,
-          idToken: idToken,
+          idToken: idToken.rawIdToken,
           accessToken: accessTokenCacheItem.value.accessToken,
           scopes: accessTokenCacheItem.key.scopes.split(" "),
           expiresOn: new Date(expired * 1000),
@@ -1836,7 +1836,7 @@ export class UserAgentApplication {
           // retrieve the id_token from response if present
           if (hashParams.hasOwnProperty(Constants.idToken)) {
             idTokenObj = new IdToken(hashParams[Constants.idToken]);
-            response.idToken = idTokenObj;
+            response.idToken = idTokenObj.rawIdToken;
             response.idTokenClaims = idTokenObj.claims;
           } else {
             idTokenObj = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));

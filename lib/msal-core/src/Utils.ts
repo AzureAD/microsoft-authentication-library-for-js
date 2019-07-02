@@ -707,7 +707,7 @@ export class Utils {
 
     return {
       ...originalResponse,
-      idToken: idToken,
+      idToken: idToken.rawIdToken,
       idTokenClaims: idToken.claims,
       uniqueId: idToken.objectId || idToken.subject,
       tenantId: idToken.tenantId

@@ -577,7 +577,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.accessToken).to.equal(TEST_TOKENS.ACCESSTOKEN);
                 expect(response.account).to.be.eq(account);
                 expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
@@ -668,7 +668,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
                 expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.accessToken).to.equal(TEST_TOKENS.ACCESSTOKEN);
                 expect(response.tokenType).to.be.eq(Constants.accessToken);
             }).catch(function(err: AuthError) {
@@ -679,7 +679,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenSilent(tokenRequest2).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(tokenRequest2.scopes);
                 expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.accessToken).to.equal("accessToken2");
                 expect(response.tokenType).to.be.eq(Constants.accessToken);
                 done();
