@@ -1,6 +1,6 @@
 {
   "name": "msal-electron-sample-app",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A minimalist sample Electron application that uses the MSAL Electron Proof of Concept library for authentication with AAD",
   "main": "index.js",
   "scripts": {
