@@ -498,7 +498,7 @@ export class UserAgentApplication {
         // Set response type
         responseType = ResponseTypes.id_token;
       } else {
-        responseType = this.getTokenType(account, request.scopes, false);
+        responseType = this.getTokenType(account, scopes, false);
       }
 
       serverAuthenticationRequest = new ServerRequestParameters(
@@ -516,7 +516,7 @@ export class UserAgentApplication {
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
       // Construct urlNavigate
-      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(request.scopes) + Constants.response_mode_fragment;
+      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
 
       // set state in cache
       if (interactionType === Constants.interactionTypeRedirect) {
@@ -2184,7 +2184,7 @@ export class UserAgentApplication {
     // all other cases
     else {
       if (!Utils.compareAccounts(accountObject, this.getAccount())) {
-           tokenType = ResponseTypes.id_token_token;
+        tokenType = ResponseTypes.id_token_token;
       }
       else {
         tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
