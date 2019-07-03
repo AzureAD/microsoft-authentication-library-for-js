@@ -240,7 +240,7 @@ export class UserAgentApplication {
     window.msal = this;
 
     const urlHash = window.location.hash;
-    const isCallback = this.isStsResponse(urlHash);
+    const isCallback = this.isCallback(urlHash);
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
@@ -310,8 +310,10 @@ export class UserAgentApplication {
       } else if (this.authResponseCallback) {
         this.authResponseCallback(null, response);
       }
-    } else {
+    } else if (interactionType === Constants.interactionTypePopup) {
       resolve(response);
+    } else {
+      throw ClientAuthError.createInvalidInteractionTypeError();
     }
   }
 
@@ -322,8 +324,10 @@ export class UserAgentApplication {
       } else {
         this.authResponseCallback(authErr, response);
       }
-    } else {
+    } else if (interactionType === Constants.interactionTypePopup) {
       reject(authErr);
+    } else {
+      throw ClientAuthError.createInvalidInteractionTypeError();
     }
   }
 
@@ -333,6 +337,7 @@ export class UserAgentApplication {
    * @param {@link (AuthenticationParameters:type)}
    */
   loginRedirect(request?: AuthenticationParameters): void {
+    // Throw error if callbacks are not set before redirect
     if (!this.redirectCallbacksSet) {
       throw ClientConfigurationError.createRedirectCallbacksNotSetError();
     }
@@ -346,6 +351,7 @@ export class UserAgentApplication {
    * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
    */
   acquireTokenRedirect(request: AuthenticationParameters): void {
+    // Throw error if callbacks are not set before redirect
     if (!this.redirectCallbacksSet) {
       throw ClientConfigurationError.createRedirectCallbacksNotSetError();
     }
@@ -391,21 +397,17 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.loginInProgress || this.acquireTokenInProgress) {
+      let thrownError = this.loginInProgress ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
+      let stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request && request.state));
       this.errorHandler(interactionType,
-        this.loginInProgress ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError(),
-        buildResponseStateOnly(this.getAccountState(request && request.state)),
+        thrownError,
+        stateOnlyResponse,
         reject);
       return;
     }
 
-    let scopes: Array<string>;
-    // Throw error if callbacks are not set before redirect
-    if (isLoginCall) {
-      // if extraScopesToConsent is passed, append them to the login request
-      scopes = this.appendScopes(request);
-    } else {
-      scopes = request.scopes;
-    }
+    // if extraScopesToConsent is passed in loginCall, append them to the login request
+    let scopes: Array<string> = isLoginCall ? this.appendScopes(request) : request.scopes;
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, !isLoginCall);
@@ -458,7 +460,11 @@ export class UserAgentApplication {
    */
   private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, scopes?: Array<string>, resolve?: any, reject?: any): void {
     // Track the acquireToken progress
-    isLoginCall ? this.loginInProgress = true : this.acquireTokenInProgress = true;
+    if (isLoginCall) {
+      this.loginInProgress = true;
+    } else {
+      this.acquireTokenInProgress = true;
+    }
 
     const scope = scopes ? scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
@@ -519,11 +525,7 @@ export class UserAgentApplication {
         }
       } else {
         window.renewStates.push(serverAuthenticationRequest.state);
-        if (isLoginCall) {
-          window.requestType = Constants.login;
-        } else {
-          window.requestType = Constants.renewToken;
-        }
+        window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
 
         // Register callback to capture results from server
         this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
@@ -561,7 +563,7 @@ export class UserAgentApplication {
 
       const scope = request.scopes.join(" ").toLowerCase();
 
-      // if the developer passes an account give him the priority
+      // if the developer passes an account, give that account the priority
       const account: Account = request.account || this.getAccount();
 
       // extract if there is an adalIdToken stashed in the cache
@@ -621,11 +623,9 @@ export class UserAgentApplication {
       }
       // else proceed with login
       else {
-        if (userContainedClaims) {
-          this.logger.verbose("Skipped cache lookup since claims were given.");
-        } else {
-          this.logger.verbose("Token is not in cache for scope:" + scope);
-        }
+        let logMessage = userContainedClaims ? "Skipped cache lookup since claims were given." : "Token is not in cache for scope:" + scope;
+        this.logger.verbose(logMessage);
+
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         if (!serverAuthenticationRequest.authorityInstance) {
             serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -1073,7 +1073,7 @@ export class UserAgentApplication {
    * @param {string} hash - Hash passed from redirect page.
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
    */
-  isStsResponse(hash: string): boolean {
+  isCallback(hash: string): boolean {
     const parameters = this.deserializeHash(hash);
     return (
       parameters.hasOwnProperty(Constants.errorDescription) ||
@@ -1221,8 +1221,8 @@ export class UserAgentApplication {
    * Returns deserialized portion of URL hash
    * @param hash
    */
-  private deserializeHash(hash: string) {
-    hash = Utils.getHashFromUrl(hash);
+  private deserializeHash(urlFragment: string) {
+    let hash = Utils.getHashFromUrl(urlFragment);
     return Utils.deserialize(hash);
   }
 

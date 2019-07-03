@@ -925,11 +925,11 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that isCallback correctly identifies url hash", function (done) {
-            expect(msal.isStsResponse("not a callback")).to.be.false;
-            expect(msal.isStsResponse("#error_description=someting_wrong")).to.be.true;
-            expect(msal.isStsResponse("#/error_description=someting_wrong")).to.be.true;
-            expect(msal.isStsResponse("#access_token=token123")).to.be.true;
-            expect(msal.isStsResponse("#id_token=idtoken234")).to.be.true;
+            expect(msal.isCallback("not a callback")).to.be.false;
+            expect(msal.isCallback("#error_description=someting_wrong")).to.be.true;
+            expect(msal.isCallback("#/error_description=someting_wrong")).to.be.true;
+            expect(msal.isCallback("#access_token=token123")).to.be.true;
+            expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
             done();
         });
     });

@@ -545,15 +545,13 @@ export class Utils {
    * Returns the anchor part(#) of the URL
    */
   static getHashFromUrl(urlStringOrFragment: string): string {
-    let hash = urlStringOrFragment;
     const hashIndex1 = urlStringOrFragment.indexOf("#");
     const hashIndex2 = urlStringOrFragment.indexOf("#/");
     if (hashIndex2 > -1) {
-      hash = urlStringOrFragment.substring(hashIndex2 + 2);
+      return urlStringOrFragment.substring(hashIndex2 + 2);
     } else if (hashIndex1 > -1) {
-      hash = urlStringOrFragment.substring(hashIndex1 + 1);
+      return urlStringOrFragment.substring(hashIndex1 + 1);
     }
-    return hash;
   }
 
   //#endregion
