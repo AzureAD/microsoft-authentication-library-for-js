@@ -4,11 +4,12 @@
 import { IUri } from "./IUri";
 import { Account } from "./Account";
 import {Constants, SSOTypes, PromptState} from "./Constants";
-import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthenticationParameters } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
 import { ClientAuthError } from "./error/ClientAuthError";
-import { Library } from "./Constants";
+import { Library} from "./Constants";
+import { Dict } from "./MsalTypes";
 import { Base64 } from "js-base64";
 
 /**
@@ -551,12 +552,12 @@ export class Utils {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): QPDict {
+  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): Dict {
 
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
-    let serverReqParam: QPDict = {};
+    let serverReqParam: Dict = {};
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
@@ -608,7 +609,7 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: QPDict): QPDict {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: Dict): Dict {
     if (!ssoParam) {
       ssoParam = {};
     }
@@ -673,7 +674,7 @@ export class Utils {
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  static generateQueryParametersString(queryParameters: QPDict): string {
+  static generateQueryParametersString(queryParameters: Dict): string {
     let paramsString: string = null;
 
     if (queryParameters) {
@@ -703,17 +704,16 @@ export class Utils {
   //#region Response Helpers
 
   static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
-    var response = { ...originalResponse };
-    response.idToken = idToken;
-    if (response.idToken.objectId) {
-      response.uniqueId = response.idToken.objectId;
-    } else {
-      response.uniqueId = response.idToken.subject;
-    }
-    response.tenantId = response.idToken.tenantId;
-    return response;
-  }
 
+    return {
+      ...originalResponse,
+      idToken: idToken.rawIdToken,
+      idTokenClaims: idToken.claims,
+      uniqueId: idToken.objectId || idToken.subject,
+      tenantId: idToken.tenantId
+    };
+
+  }
   //#endregion
 
 }

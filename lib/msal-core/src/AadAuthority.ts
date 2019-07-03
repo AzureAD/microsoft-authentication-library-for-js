@@ -3,7 +3,6 @@
 
 import { Authority, AuthorityType } from "./Authority";
 import { XhrClient } from "./XHRClient";
-import { AADTrustedHostList } from "./Constants";
 
 /**
  * @hidden
@@ -22,6 +21,15 @@ export class AadAuthority extends Authority {
   public get AuthorityType(): AuthorityType {
     return AuthorityType.Aad;
   }
+
+  private static readonly TrustedHostList: any = {
+    "login.windows.net": "login.windows.net",
+    "login.chinacloudapi.cn": "login.chinacloudapi.cn",
+    "login.cloudgovapi.us": "login.cloudgovapi.us",
+    "login.microsoftonline.com": "login.microsoftonline.com",
+    "login.microsoftonline.de": "login.microsoftonline.de",
+    "login.microsoftonline.us": "login.microsoftonline.us"
+  };
 
   /**
    * Returns a promise which resolves to the OIDC endpoint
@@ -53,6 +61,6 @@ export class AadAuthority extends Authority {
    * @param {string} The host to look up
    */
   public IsInTrustedHostList(host: string): boolean {
-    return AADTrustedHostList[host.toLowerCase()];
+    return AadAuthority.TrustedHostList[host.toLowerCase()];
   }
 }

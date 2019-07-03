@@ -1,7 +1,7 @@
-import { CacheLocation } from "./Configuration";
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+import { CacheLocation } from "./Configuration";
 
 /**
  * @hidden
@@ -90,14 +90,6 @@ export const CacheKeys = {
     ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
 };
 
-export const AADTrustedHostList =  {
-  "login.windows.net": "login.windows.net",
-  "login.chinacloudapi.cn": "login.chinacloudapi.cn",
-  "login.cloudgovapi.us": "login.cloudgovapi.us",
-  "login.microsoftonline.com": "login.microsoftonline.com",
-  "login.microsoftonline.de": "login.microsoftonline.de",
-  "login.microsoftonline.us": "login.microsoftonline.us"
-};
 /**
  * @hidden
  */
@@ -115,11 +107,6 @@ export const SSOTypes = {
     DOMAIN_REQ: "domain_req"
 };
 
-export const BlacklistedEQParams = [
-  SSOTypes.SID,
-  SSOTypes.LOGIN_HINT
-];
-
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
@@ -134,5 +121,5 @@ export const PromptState = {
 };
 
 export const Library = {
-  version: "1.0.2"
+  version: "1.0.1"
 };

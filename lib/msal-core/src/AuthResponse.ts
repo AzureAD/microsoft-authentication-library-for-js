@@ -3,6 +3,7 @@
 
 import { Account } from "./Account";
 import { IdToken } from "./IdToken";
+import { Dict } from "./MsalTypes";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -11,12 +12,13 @@ export type AuthResponse = {
     uniqueId: string;
     tenantId: string;
     tokenType: string;
-    idToken: IdToken;
+    idToken: string;
     accessToken: string;
     scopes: Array<string>;
     expiresOn: Date;
     account: Account;
     accountState: string;
+    idTokenClaims: Dict;
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
@@ -29,6 +31,7 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         scopes: null,
         expiresOn: null,
         account: null,
-        accountState: state
+        accountState: state,
+        idTokenClaims: null
     };
 }

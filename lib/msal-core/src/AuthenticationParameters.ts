@@ -3,11 +3,7 @@
 
 import { Account } from "./Account";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-
-/**
- * Key-Value type to support queryParams and extraQueryParams
- */
-export type QPDict = {[key: string]: string};
+import { Dict } from "./MsalTypes";
 
 /**
  * @link AuthenticationParameters}AuthenticationParameters
@@ -16,7 +12,7 @@ export type AuthenticationParameters = {
     scopes?: Array<string>;
     extraScopesToConsent?: Array<string>;
     prompt?: string;
-    extraQueryParameters?: QPDict;
+    extraQueryParameters?: Dict;
     claimsRequest?: string;
     authority?: string;
     state?: string;
