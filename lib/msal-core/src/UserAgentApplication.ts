@@ -13,6 +13,9 @@ import { Logger } from "./Logger";
 import { Storage } from "./Storage";
 import { Account } from "./Account";
 import { Utils } from "./Utils";
+import { TokenProcessor } from "./TokenProcessor";
+import { ScopeSet } from "./ScopeSet";
+import { UrlProcessor } from "./UrlProcessor";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
@@ -21,7 +24,7 @@ import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
-import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
+import { AuthResponse, buildResponseStateOnly, setResponseIdToken } from "./AuthResponse";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -593,7 +596,7 @@ export class UserAgentApplication {
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
       else if (!account && !Utils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
-        const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
+        const adalIdTokenObject = TokenProcessor.extractIdToken(adalIdToken);
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
@@ -1222,7 +1225,7 @@ export class UserAgentApplication {
    * @param hash
    */
   private deserializeHash(urlFragment: string) {
-    let hash = Utils.getHashFromUrl(urlFragment);
+    let hash = UrlProcessor.getHashFromUrl(urlFragment);
     return Utils.deserialize(hash);
   }
 
@@ -1309,7 +1312,7 @@ export class UserAgentApplication {
       for (let i = 0; i < tokenCacheItems.length; i++) {
         const cacheItem = tokenCacheItems[i];
         const cachedScopes = cacheItem.key.scopes.split(" ");
-        if (Utils.containsScope(cachedScopes, scopes)) {
+        if (ScopeSet.containsScope(cachedScopes, scopes)) {
           filteredItems.push(cacheItem);
         }
       }
@@ -1339,7 +1342,7 @@ export class UserAgentApplication {
       for (let i = 0; i < tokenCacheItems.length; i++) {
         const cacheItem = tokenCacheItems[i];
         const cachedScopes = cacheItem.key.scopes.split(" ");
-        if (Utils.containsScope(cachedScopes, scopes) && Utils.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
+        if (ScopeSet.containsScope(cachedScopes, scopes) && UrlProcessor.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
           filteredItems.push(cacheItem);
         }
       }
@@ -1381,7 +1384,7 @@ export class UserAgentApplication {
           account: account,
           accountState: aState,
         };
-        Utils.setResponseIdToken(response, idToken);
+        setResponseIdToken(response, idToken);
         return response;
       } else {
         this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
@@ -1418,7 +1421,7 @@ export class UserAgentApplication {
   private extractADALIdToken(): any {
     const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
     if (!Utils.isEmpty(adalIdToken)) {
-        return Utils.extractIdToken(adalIdToken);
+      return TokenProcessor.extractIdToken(adalIdToken);
     }
     return null;
   }
@@ -1437,7 +1440,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = Utils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlProcessor.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
 
     window.renewStates.push(serverAuthenticationRequest.state);
     window.requestType = Constants.renewToken;
@@ -1462,7 +1465,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = Utils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlProcessor.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
 
     if (this.silentLogin) {
         window.requestType = Constants.login;
@@ -1511,7 +1514,7 @@ export class UserAgentApplication {
 
         if (accessTokenCacheItem.key.homeAccountIdentifier === response.account.homeAccountIdentifier) {
           const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
-          if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
+          if (ScopeSet.isIntersectingScopes(cachedScopes, consentedScopes)) {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
           }
         }
@@ -1640,7 +1643,7 @@ export class UserAgentApplication {
           if (hashParams.hasOwnProperty(Constants.idToken)) {
             response.idToken = new IdToken(hashParams[Constants.idToken]);
           } else {
-            response = Utils.setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
+            response = setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
 
           // retrieve the authority from cache and replace with tenantID
@@ -1648,7 +1651,7 @@ export class UserAgentApplication {
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
           if (!Utils.isEmpty(authority)) {
-            authority = Utils.replaceTenantPath(authority, response.tenantId);
+            authority = UrlProcessor.replaceTenantPath(authority, response.tenantId);
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
@@ -1698,7 +1701,7 @@ export class UserAgentApplication {
 
             // login no longer in progress
             this.loginInProgress = false;
-            response = Utils.setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
+            response = setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
             if (hashParams.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = hashParams[Constants.clientInfo];
             } else {
@@ -1709,7 +1712,7 @@ export class UserAgentApplication {
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceTenantPath(authority, response.idToken.tenantId);
+              authority = UrlProcessor.replaceTenantPath(authority, response.idToken.tenantId);
             }
 
             this.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
@@ -2225,7 +2228,7 @@ export class UserAgentApplication {
   private setAuthorityCache(state: string, authority: string) {
     // Cache authorityKey
     const authorityKey = Storage.generateAuthorityKey(state);
-    this.cacheStorage.setItem(authorityKey, Utils.CanonicalizeUri(authority), this.inCookie);
+    this.cacheStorage.setItem(authorityKey, UrlProcessor.CanonicalizeUri(authority), this.inCookie);
   }
 
   /**

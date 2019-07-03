@@ -9,14 +9,15 @@ import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
+import { UrlProcessor } from "./UrlProcessor";
 
 export class AuthorityFactory {
     /**
     * Parse the url and determine the type of authority
     */
     private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
-        authorityUrl = Utils.CanonicalizeUri(authorityUrl);
-        const components = Utils.GetUrlComponents(authorityUrl);
+        authorityUrl = UrlProcessor.CanonicalizeUri(authorityUrl);
+        const components = UrlProcessor.GetUrlComponents(authorityUrl);
         const pathSegments = components.PathSegments;
         switch (pathSegments[0]) {
             case "tfp":

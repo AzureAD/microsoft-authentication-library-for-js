@@ -2,12 +2,13 @@ import { B2cAuthority } from "../B2cAuthority";
 import { AADTrustedHostList } from "../Constants";
 import { TENANT_PLACEHOLDER } from "./TelemetryConstants";
 import { Utils } from "../Utils";
+import { UrlProcessor } from "../UrlProcessor";
 
 
 
 export const scrubTenantFromUri = (uri: string): String => {
 
-    const url = Utils.GetUrlComponents(uri);
+    const url = UrlProcessor.GetUrlComponents(uri);
 
     // validate trusted host
     if (!AADTrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {

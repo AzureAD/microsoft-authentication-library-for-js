@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { Logger } from "./Logger";
-import { Utils } from "./Utils";
+import { UrlProcessor } from "./UrlProcessor";
 
 /**
  * Cache location options supported by MSAL are:
@@ -99,8 +99,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
   clientId: "",
   authority: null,
   validateAuthority: true,
-  redirectUri: () => Utils.getDefaultRedirectUri(),
-  postLogoutRedirectUri: () => Utils.getDefaultRedirectUri(),
+  redirectUri: () => UrlProcessor.getDefaultRedirectUri(),
+  postLogoutRedirectUri: () => UrlProcessor.getDefaultRedirectUri(),
   navigateToLoginRequestUrl: true
 };
 

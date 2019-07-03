@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 
 import { IUri } from "./IUri";
-import { Utils } from "./Utils";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 import { XhrClient } from "./XHRClient";
+import { UrlProcessor } from "./UrlProcessor";
 
 /**
  * @hidden
@@ -66,7 +66,7 @@ export abstract class Authority {
   }
 
   public set CanonicalAuthority(url: string) {
-    this.canonicalAuthority = Utils.CanonicalizeUri(url);
+    this.canonicalAuthority = UrlProcessor.CanonicalizeUri(url);
     this.canonicalAuthorityUrlComponents = null;
   }
 
@@ -75,7 +75,7 @@ export abstract class Authority {
 
   public get CanonicalAuthorityUrlComponents(): IUri {
     if (!this.canonicalAuthorityUrlComponents) {
-      this.canonicalAuthorityUrlComponents = Utils.GetUrlComponents(this.CanonicalAuthority);
+      this.canonicalAuthorityUrlComponents = UrlProcessor.GetUrlComponents(this.CanonicalAuthority);
     }
 
     return this.canonicalAuthorityUrlComponents;

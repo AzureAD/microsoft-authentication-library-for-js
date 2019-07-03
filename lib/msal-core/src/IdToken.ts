@@ -3,6 +3,7 @@
 
 import { Utils } from "./Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
+import { TokenProcessor } from "./TokenProcessor";
 
 /**
  * @hidden
@@ -29,7 +30,7 @@ export class IdToken {
     }
     try {
       this.rawIdToken = rawIdToken;
-      this.decodedIdToken = Utils.extractIdToken(rawIdToken);
+      this.decodedIdToken = TokenProcessor.extractIdToken(rawIdToken);
       if (this.decodedIdToken) {
         if (this.decodedIdToken.hasOwnProperty("iss")) {
           this.issuer = this.decodedIdToken["iss"];
