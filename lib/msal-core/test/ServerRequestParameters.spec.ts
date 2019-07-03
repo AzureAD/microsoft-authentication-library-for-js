@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { Authority } from "../src";
 import { AuthorityFactory } from "../src/AuthorityFactory";
+import { UrlProcessor } from "../src/UrlProcessor";
 
 describe("ServerRequestParameters.ts Class", function () {
 
@@ -13,7 +14,7 @@ describe("ServerRequestParameters.ts Class", function () {
             authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
             authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
             var result;
-            result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
+            result = UrlProcessor.createNavigationUrlString(authenticationRequestParameters);
             expect(decodeURIComponent(result[4])).to.include("12345");
         });
 
@@ -23,7 +24,7 @@ describe("ServerRequestParameters.ts Class", function () {
             authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
             authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
             var result;
-            result = authenticationRequestParameters.createNavigationUrlString(["user.read"]);
+            result = UrlProcessor.createNavigationUrlString(authenticationRequestParameters);
             expect(decodeURIComponent(result[4])).to.include("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         });
     });

@@ -24,6 +24,7 @@ import { SSOTypes } from "../src/Constants";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";
+import { ServerRequestParameters } from "../src/ServerRequestParameters";
 
 type kv = {
     [key: string]: string;
@@ -125,8 +126,8 @@ describe("UserAgentApplication.ts Class", function () {
     };
 
     const setUtilUnifiedCacheQPStubs = function (params: kv) {
-        sinon.stub(Utils, "constructUnifiedCacheQueryParameter").returns(params);
-        sinon.stub(Utils, "addSSOParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, <any>"constructUnifiedCacheQueryParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, <any>"addSSOParameter").returns(params);
     };
 
     let cacheStorage: Storage;
