@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { IUri } from "./IUri";
 import { Account } from "./Account";
-import {Constants, SSOTypes, PromptState} from "./Constants";
+import {Constants, SSOTypes} from "./Constants";
 import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
@@ -168,60 +167,6 @@ export class Utils {
 
   //#endregion
 
-  //#region Token Processing (Extract to TokenProcessing.ts)
-
-  /**
-   * decode a JWT
-   *
-   * @param jwtToken
-   */
-  static decodeJwt(jwtToken: string): any {
-    if (this.isEmpty(jwtToken)) {
-      return null;
-    }
-    const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-    const matches = idTokenPartsRegex.exec(jwtToken);
-    if (!matches || matches.length < 4) {
-      //this._requestContext.logger.warn("The returned id_token is not parseable.");
-      return null;
-    }
-    const crackedToken = {
-      header: matches[1],
-      JWSPayload: matches[2],
-      JWSSig: matches[3]
-    };
-    return crackedToken;
-  }
-
-  /**
-   * Extract IdToken by decoding the RAWIdToken
-   *
-   * @param encodedIdToken
-   */
-  static extractIdToken(encodedIdToken: string): any {
-    // id token will be decoded to get the username
-    const decodedToken = this.decodeJwt(encodedIdToken);
-    if (!decodedToken) {
-      return null;
-    }
-    try {
-      const base64IdToken = decodedToken.JWSPayload;
-      const base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
-      if (!base64Decoded) {
-        //this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
-        return null;
-      }
-      // ECMA script has JSON built-in support
-      return JSON.parse(base64Decoded);
-    } catch (err) {
-      //this._requestContext.logger.error("The returned id_token could not be decoded" + err);
-    }
-
-    return null;
-  }
-
-  //#endregion
-
   //#region Encode and Decode
 
   /**
@@ -373,187 +318,6 @@ export class Utils {
       match = search.exec(query);
     }
     return obj;
-  }
-
-  //#endregion
-
-  //#region Scopes (extract to Scopes.ts)
-
-  /**
-   * Check if there are dup scopes in a given request
-   *
-   * @param cachedScopes
-   * @param scopes
-   */
-  // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
-  static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-    cachedScopes = this.convertToLowerCase(cachedScopes);
-    for (let i = 0; i < scopes.length; i++) {
-        if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
-            return true;
-        }
-    }
-    return false;
-  }
-
-  /**
-   * Check if a given scope is present in the request
-   *
-   * @param cachedScopes
-   * @param scopes
-   */
-  static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-    cachedScopes = this.convertToLowerCase(cachedScopes);
-    return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
-  }
-
-  /**
-   * toLower
-   *
-   * @param scopes
-   */
-  // TODO: Rename this, too generic name for a function that only deals with scopes
-  static convertToLowerCase(scopes: Array<string>): Array<string> {
-    return scopes.map(scope => scope.toLowerCase());
-  }
-
-  /**
-   * remove one element from a scope array
-   *
-   * @param scopes
-   * @param scope
-   */
-  // TODO: Rename this, too generic name for a function that only deals with scopes
-  static removeElement(scopes: Array<string>, scope: string): Array<string> {
-    return scopes.filter(value => value !== scope);
-  }
-
-  //#endregion
-
-  //#region URL Processing (Extract to UrlProcessing.ts?)
-
-  static getDefaultRedirectUri(): string {
-      return window.location.href.split("?")[0].split("#")[0];
-  }
-
-  /**
-   * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-   * @param href The url
-   * @param tenantId The tenant id to replace
-   */
-  static replaceTenantPath(url: string, tenantId: string): string {
-      url = url.toLowerCase();
-      var urlObject = this.GetUrlComponents(url);
-      var pathArray = urlObject.PathSegments;
-      if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
-        pathArray[0] = tenantId;
-      }
-      return this.constructAuthorityUriFromObject(urlObject, pathArray);
-  }
-
-  static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
-    return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
-  }
-
-  /**
-   * Parses out the components from a url string.
-   * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
-   */
-  static GetUrlComponents(url: string): IUri {
-    if (!url) {
-      throw "Url required";
-    }
-
-    // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
-    var regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
-
-    var match = url.match(regEx);
-
-    if (!match || match.length < 6) {
-      throw "Valid url required";
-    }
-
-    let urlComponents = <IUri>{
-      Protocol: match[1],
-      HostNameAndPort: match[4],
-      AbsolutePath: match[5]
-    };
-
-    let pathSegments = urlComponents.AbsolutePath.split("/");
-    pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
-    urlComponents.PathSegments = pathSegments;
-    return urlComponents;
-  }
-
-  /**
-   * Given a url or path, append a trailing slash if one doesnt exist
-   *
-   * @param url
-   */
-  static CanonicalizeUri(url: string): string {
-    if (url) {
-      url = url.toLowerCase();
-    }
-
-    if (url && !Utils.endsWith(url, "/")) {
-      url += "/";
-    }
-
-    return url;
-  }
-
-  /**
-   * Checks to see if the url ends with the suffix
-   * Required because we are compiling for es5 instead of es6
-   * @param url
-   * @param str
-   */
-  // TODO: Rename this, not clear what it is supposed to do
-  static endsWith(url: string, suffix: string): boolean {
-    if (!url || !suffix) {
-      return false;
-    }
-
-    return url.indexOf(suffix, url.length - suffix.length) !== -1;
-  }
-
-  /**
-   * Utils function to remove the login_hint and domain_hint from the i/p extraQueryParameters
-   * @param url
-   * @param name
-   */
-  static urlRemoveQueryStringParameter(url: string, name: string): string {
-    if (this.isEmpty(url)) {
-      return url;
-    }
-
-    var regex = new RegExp("(\\&" + name + "=)[^\&]+");
-    url = url.replace(regex, "");
-    // name=value&
-    regex = new RegExp("(" + name + "=)[^\&]+&");
-    url = url.replace(regex, "");
-    // name=value
-    regex = new RegExp("(" + name + "=)[^\&]+");
-    url = url.replace(regex, "");
-    return url;
-  }
-
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Returns the anchor part(#) of the URL
-   */
-  static getHashFromUrl(urlStringOrFragment: string): string {
-    let hash = urlStringOrFragment;
-    const hashIndex1 = urlStringOrFragment.indexOf("#");
-    const hashIndex2 = urlStringOrFragment.indexOf("#/");
-    if (hashIndex2 > -1) {
-      hash = urlStringOrFragment.substring(hashIndex2 + 2);
-    } else if (hashIndex1 > -1) {
-      hash = urlStringOrFragment.substring(hashIndex1 + 1);
-    }
-    return hash;
   }
 
   //#endregion
@@ -714,22 +478,6 @@ export class Utils {
    */
   static isSSOParam(request: AuthenticationParameters) {
       return request && (request.account || request.sid || request.loginHint);
-  }
-
-  //#endregion
-
-  //#region Response Helpers
-
-  static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
-    var response = { ...originalResponse };
-    response.idToken = idToken;
-    if (response.idToken.objectId) {
-      response.uniqueId = response.idToken.objectId;
-    } else {
-      response.uniqueId = response.idToken.subject;
-    }
-    response.tenantId = response.idToken.tenantId;
-    return response;
   }
 
   //#endregion
