@@ -8,7 +8,6 @@ import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
 import { Constants, SSOTypes, PromptState, BlacklistedEQParams} from "./Constants";
-import { Dict } from "./MsalTypes";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -16,7 +15,7 @@ import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -1124,7 +1123,7 @@ export class UserAgentApplication {
    * @param {@link ServerRequestParameters}
    * @ignore
    */
-  private addHintParameters(accountObj: Account, qParams: Dict, serverReqParams: ServerRequestParameters): Dict {
+  private addHintParameters(accountObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
 
     const account: Account = accountObj || this.getAccount();
 
@@ -1568,15 +1567,13 @@ export class UserAgentApplication {
           uniqueId: "",
           tenantId: "",
           tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? Constants.idToken : Constants.accessToken,
-          idToken: idToken.rawIdToken,
+          idToken: idToken,
           accessToken: accessTokenCacheItem.value.accessToken,
           scopes: accessTokenCacheItem.key.scopes.split(" "),
           expiresOn: new Date(expired * 1000),
           account: account,
           accountState: aState,
-          idTokenClaims: idToken.claims
         };
-
         Utils.setResponseIdToken(response, idToken);
         return response;
       } else {
@@ -1688,7 +1685,7 @@ export class UserAgentApplication {
    * @private
    */
   /* tslint:disable:no-string-literal */
-  private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idToken: IdToken): AuthResponse {
+  private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string): AuthResponse {
     let scope: string;
     let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
@@ -1716,7 +1713,7 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], idToken.rawIdToken, expiresIn, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1736,11 +1733,11 @@ export class UserAgentApplication {
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
 
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
-      let exp = Number(idToken.expiration);
+      let exp = Number(response.idToken.expiration);
       if (exp) {
         accessTokenResponse.expiresOn = new Date(exp * 1000);
       } else {
@@ -1770,14 +1767,12 @@ export class UserAgentApplication {
       expiresOn: null,
       account: null,
       accountState: "",
-      idTokenClaims: null
     };
 
     let error: AuthError;
     const hashParams = this.deserializeHash(hash);
     let authorityKey: string = "";
     let acquireTokenAccountKey: string = "";
-    let idTokenObj: IdToken = null;
 
     // If server returns an error
     if (hashParams.hasOwnProperty(Constants.errorDescription) || hashParams.hasOwnProperty(Constants.error)) {
@@ -1833,14 +1828,11 @@ export class UserAgentApplication {
           this.logger.info("Fragment has access token");
           this.acquireTokenInProgress = false;
 
-          // retrieve the id_token from response if present
+          // retrieve the id_token from response if present :
           if (hashParams.hasOwnProperty(Constants.idToken)) {
-            idTokenObj = new IdToken(hashParams[Constants.idToken]);
-            response.idToken = idTokenObj.rawIdToken;
-            response.idTokenClaims = idTokenObj.claims;
+            response.idToken = new IdToken(hashParams[Constants.idToken]);
           } else {
-            idTokenObj = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));
-            response = Utils.setResponseIdToken(response, idTokenObj);
+            response = Utils.setResponseIdToken(response, new IdToken(this.cacheStorage.getItem(Constants.idTokenKey)));
           }
 
           // retrieve the authority from cache and replace with tenantID
@@ -1859,7 +1851,7 @@ export class UserAgentApplication {
             throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
           }
 
-          response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
+          response.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
 
           let accountKey: string;
           if (response.account && !Utils.isEmpty(response.account.homeAccountIdentifier)) {
@@ -1879,7 +1871,7 @@ export class UserAgentApplication {
           if (!Utils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
             if (response.account && acquireTokenAccount && Utils.compareAccounts(response.account, acquireTokenAccount)) {
-              response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+              response = this.saveAccessToken(response, authority, hashParams, clientInfo);
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
             else {
@@ -1888,7 +1880,7 @@ export class UserAgentApplication {
             }
           }
           else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
-            response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+            response = this.saveAccessToken(response, authority, hashParams, clientInfo);
           }
         }
 
@@ -1898,10 +1890,7 @@ export class UserAgentApplication {
 
             // login no longer in progress
             this.loginInProgress = false;
-
-            // set the idToken
-            idTokenObj = new IdToken(hashParams[Constants.idToken]);
-            response = Utils.setResponseIdToken(response, idTokenObj);
+            response = Utils.setResponseIdToken(response, new IdToken(hashParams[Constants.idToken]));
             if (hashParams.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = hashParams[Constants.clientInfo];
             } else {
@@ -1912,19 +1901,19 @@ export class UserAgentApplication {
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceTenantPath(authority, idTokenObj.tenantId);
+              authority = Utils.replaceTenantPath(authority, response.idToken.tenantId);
             }
 
-            this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
+            this.account = Account.createAccount(response.idToken, new ClientInfo(clientInfo));
             response.account = this.account;
 
-            if (idTokenObj && idTokenObj.nonce) {
+            if (response.idToken && response.idToken.nonce) {
               // check nonce integrity if idToken has nonce - throw an error if not matched
-              if (idTokenObj.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
+              if (response.idToken.nonce !== this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie)) {
                 this.account = null;
-                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + idTokenObj.nonce);
-                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + idTokenObj.nonce);
-                error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), idTokenObj.nonce);
+                this.cacheStorage.setItem(Constants.loginError, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
+                this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie) + "," + "Actual Nonce: " + response.idToken.nonce);
+                error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(Constants.nonceIdToken, this.inCookie), response.idToken.nonce);
               }
               // Save the token
               else {
@@ -1932,14 +1921,14 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(Constants.msalClientInfo, clientInfo);
 
                 // Save idToken as access token for app itself
-                this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+                this.saveAccessToken(response, authority, hashParams, clientInfo);
               }
             } else {
               authorityKey = stateInfo.state;
               acquireTokenAccountKey = stateInfo.state;
 
               this.logger.error("Invalid id_token received in the response");
-              error = ClientAuthError.createInvalidIdTokenError(idTokenObj);
+              error = ClientAuthError.createInvalidIdTokenError(response.idToken);
               this.cacheStorage.setItem(Constants.msalError, error.errorCode);
               this.cacheStorage.setItem(Constants.msalErrorDescription, error.errorMessage);
             }
@@ -1972,7 +1961,6 @@ export class UserAgentApplication {
     if (!response) {
         throw AuthError.createUnexpectedError("Response is null");
     }
-
     return response;
   }
   /* tslint:enable:no-string-literal */
@@ -2526,7 +2514,7 @@ export class UserAgentApplication {
    */
   private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
 
-    let queryParameters: Dict = {};
+    let queryParameters: QPDict = {};
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
@@ -2556,7 +2544,7 @@ export class UserAgentApplication {
     queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
-    let eQParams: Dict;
+    let eQParams: QPDict;
     if (request) {
       eQParams = this.sanitizeEQParams(request);
     }
@@ -2588,8 +2576,8 @@ export class UserAgentApplication {
    * Removes unnecessary or duplicate query parameters from extraQueryParameters
    * @param request
    */
-  private sanitizeEQParams(request: AuthenticationParameters) : Dict {
-    let eQParams : Dict = request.extraQueryParameters;
+  private sanitizeEQParams(request: AuthenticationParameters) : QPDict {
+    let eQParams : QPDict = request.extraQueryParameters;
     if (!eQParams) {
       return null;
     }

@@ -4,10 +4,14 @@ import { ClientInfo } from "../src/ClientInfo";
 import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { Utils } from "../src/Utils";
-import { TEST_DATA_CLIENT_INFO as TEST_DATA } from "./TestConstants";
 
 describe("Client Info", function () {
-
+    let TEST_UID = "123-test-uid";
+    let TEST_UTID = "456-test-utid";
+    let TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;
+    let TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
+    let TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
+    
     describe("getters and setters", function () {
 
         let clientInfoObj : ClientInfo;
@@ -21,14 +25,14 @@ describe("Client Info", function () {
 
         it("for uid", function () {
             expect(clientInfoObj.uid).to.be.empty;
-            clientInfoObj.uid = TEST_DATA.TEST_UID;
-            expect(clientInfoObj.uid).to.be.eq(TEST_DATA.TEST_UID);
+            clientInfoObj.uid = TEST_UID;
+            expect(clientInfoObj.uid).to.be.eq(TEST_UID);
         });
 
         it("for utid", function () {
             expect(clientInfoObj.utid).to.be.empty;
-            clientInfoObj.utid = TEST_DATA.TEST_UTID;
-            expect(clientInfoObj.utid).to.be.eq(TEST_DATA.TEST_UTID);
+            clientInfoObj.utid = TEST_UTID;
+            expect(clientInfoObj.utid).to.be.eq(TEST_UTID);
         });
 
     });
@@ -70,11 +74,11 @@ describe("Client Info", function () {
         });
 
         it("throws an error if the decoded string is not a valid JSON object.", function () {
-            sinon.stub(Utils, "base64DecodeStringUrlSafe").returns(TEST_DATA.TEST_INVALID_JSON_CLIENT_INFO);
+            sinon.stub(Utils, "base64DecodeStringUrlSafe").returns(TEST_INVALID_JSON_CLIENT_INFO);
             let authErr : AuthError;
             try {
                 // What we pass in here doesn't matter since we are stubbing
-                clientInfoObj = new ClientInfo(TEST_DATA.TEST_RAW_CLIENT_INFO);
+                clientInfoObj = new ClientInfo(TEST_RAW_CLIENT_INFO);
             } catch (e) {
                 authErr = e;
             }
@@ -88,12 +92,12 @@ describe("Client Info", function () {
         });
 
         it("correct sets uid and utid if parsing is done correctly", function () {
-            sinon.stub(Utils, "base64DecodeStringUrlSafe").returns(TEST_DATA.TEST_DECODED_CLIENT_INFO);
+            sinon.stub(Utils, "base64DecodeStringUrlSafe").returns(TEST_DECODED_CLIENT_INFO);
             // What we pass in here doesn't matter since we are stubbing
-            clientInfoObj = new ClientInfo(TEST_DATA.TEST_RAW_CLIENT_INFO);
+            clientInfoObj = new ClientInfo(TEST_RAW_CLIENT_INFO);
             expect(clientInfoObj).to.not.be.null;
-            expect(clientInfoObj.uid).to.be.eq(TEST_DATA.TEST_UID);
-            expect(clientInfoObj.utid).to.be.eq(TEST_DATA.TEST_UTID);
+            expect(clientInfoObj.uid).to.be.eq(TEST_UID);
+            expect(clientInfoObj.utid).to.be.eq(TEST_UTID);
         });
 
     });
