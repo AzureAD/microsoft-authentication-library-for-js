@@ -552,6 +552,7 @@ export class Utils {
     } else if (hashIndex1 > -1) {
       return urlStringOrFragment.substring(hashIndex1 + 1);
     }
+    return urlStringOrFragment;
   }
 
   //#endregion
