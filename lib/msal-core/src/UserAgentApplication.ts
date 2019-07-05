@@ -1805,7 +1805,10 @@ export class UserAgentApplication {
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
 
-      if (this.isInteractionRequired(hashParams[Constants.error]) || this.isInteractionRequired(hashParams[Constants.errorDescription])) {
+      const hashErr = hashParams[Constants.error];
+      const hashErrDesc = hashParams[Constants.errorDescription];
+
+      if ((hashErr && this.isInteractionRequired(hashErr)) || (hashErrDesc && this.isInteractionRequired(hashErrDesc))) {
         error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       } else {
         error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);

@@ -52,7 +52,7 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
     const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
-    
+
     // Test Unique Params
     const TEST_NONCE = "test_nonce";
     const TEST_UNIQUE_ID = "248289761001";
@@ -64,13 +64,14 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
     const TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
     const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
-    
+
     // Test Hash Params
     const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
     + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
     + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
     const TEST_ERROR_CODE = "error_code";
-    const TEST_ERROR_DESC = "msal error description"
+    const TEST_ERROR_DESC = "msal error description";
+    const TEST_ACCESS_DENIED = "access_denied";
 
     // Test Hashes
     const TEST_SUCCESS_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
@@ -81,7 +82,8 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_LOGIN_REQ_ERROR_HASH2 = "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|";
     const TEST_CONSENT_REQ_ERROR_HASH1 = "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
     const TEST_CONSENT_REQ_ERROR_HASH2 = "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|";
-    
+    const TEST_SERVER_ERROR_SUBCODE_CANCEL = "#error=access_denied&error_subcode=cancel&state=RANDOM-GUID-HERE|";
+
     // Sample OpenId Configurations
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
@@ -384,7 +386,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(url).to.include('&client_info=1');
                 expect(url).to.not.include('&sid=');
                 expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
-                
+
                 done();
             });
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
@@ -904,6 +906,24 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
+
+        // TEST_SERVER_ERROR_SUBCODE_CANCEL
+        it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof ServerError).to.be.true;
+                expect(error.name).to.include("ServerError");
+                expect(error.errorCode).to.include(TEST_ACCESS_DENIED);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+
+
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
@@ -1055,7 +1075,6 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
-
     });
 
     describe("Logout functionality", function () {
