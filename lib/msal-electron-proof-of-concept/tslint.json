@@ -14,11 +14,13 @@
             "spaces",
             4
         ],
+        "interface-over-type-literal": false,
         "label-position": true,
         "max-line-length": [
             false,
             180
         ],
+        "member-access": false,
         "no-arg": true,
         "no-bitwise": false,
         "no-console": [
@@ -36,6 +38,7 @@
         "no-eval": true,
         "no-string-literal": true,
         "no-trailing-whitespace": true,
+        "object-literal-sort-keys": false,
         "one-line": [
             true,
             "check-open-brace",

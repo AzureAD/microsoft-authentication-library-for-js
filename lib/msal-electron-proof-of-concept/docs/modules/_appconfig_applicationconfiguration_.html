@@ -71,12 +71,182 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Classes</h3>
+							<h3>Type aliases</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module"><a href="../classes/_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-kind-icon">Application<wbr>Configuration</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-kind-icon">Application<wbr>Configuration</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_appconfig_applicationconfiguration_.html#authoptions" class="tsd-kind-icon">Auth<wbr>Options</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Functions</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_appconfig_applicationconfiguration_.html#buildapplicationconfiguration" class="tsd-kind-icon">build<wbr>Application<wbr>Configuration</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section tsd-is-not-exported">
+							<h3>Object literals</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported"><a href="_appconfig_applicationconfiguration_.html#default_auth_options" class="tsd-kind-icon">DEFAULT_<wbr>AUTH_<wbr>OPTIONS</a></li>
 							</ul>
 						</section>
 					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module">
+					<a name="applicationconfiguration" class="tsd-anchor"></a>
+					<h3>Application<wbr>Configuration</h3>
+					<div class="tsd-signature tsd-kind-icon">Application<wbr>Configuration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L23">appConfig/applicationConfiguration.ts:23</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Use the ApplicationConfiguration object to configure MSAL and initialize your PublicClientApplication.</p>
+						</div>
+						<p>This object allows you to configure your application to use important elements of MSAL functionality.</p>
+						<ul>
+							<li>auth: this object holds elements that deal with authentication (clientID, Microsoft Identity Platform authority, etc.)</li>
+						</ul>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5>auth<span class="tsd-signature-symbol">: </span><a href="_appconfig_applicationconfiguration_.html#authoptions" class="tsd-signature-type">AuthOptions</a></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module">
+					<a name="authoptions" class="tsd-anchor"></a>
+					<h3>Auth<wbr>Options</h3>
+					<div class="tsd-signature tsd-kind-icon">Auth<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L10">appConfig/applicationConfiguration.ts:10</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<dl class="tsd-comment-tags">
+							<dt>type</dt>
+							<dd><p>AuthOptions: Used to configure the auth options in the ApplicationConfiguration object.</p>
+								<ul>
+									<li>clientId       - Client ID of your app registered with our Application registration portal : <a href="https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview">https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview</a> in Microsoft Identity Platform</li>
+									<li>authority      - You can configure a specific authority, defaults to &quot; &quot; or &quot;<a href="https://login.microsoftonline.com/common&quot;">https://login.microsoftonline.com/common&quot;</a></li>
+									<li>redirectUri    - The redirect URI of the application, this should be same as the value in the application registration portal. Defaults to <code>msal://auth</code>.</li>
+								</ul>
+							</dd>
+						</dl>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> authority<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>client<wbr>Id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> redirect<wbr>Uri<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="buildapplicationconfiguration" class="tsd-anchor"></a>
+					<h3>build<wbr>Application<wbr>Configuration</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">build<wbr>Application<wbr>Configuration<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-signature-type">ApplicationConfiguration</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L40">appConfig/applicationConfiguration.ts:40</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>MSAL function that sets the default options when not explicitly configured from app developer.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>__namedParameters: <span class="tsd-signature-type">object</span></h5>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter">
+											<h5>auth<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h5>
+											<ul class="tsd-parameters">
+												<li class="tsd-parameter">
+													<h5><span class="tsd-flag ts-flagOptional">Optional</span> authority<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+												</li>
+												<li class="tsd-parameter">
+													<h5>client<wbr>Id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
+												</li>
+												<li class="tsd-parameter">
+													<h5><span class="tsd-flag ts-flagOptional">Optional</span> redirect<wbr>Uri<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-signature-type">ApplicationConfiguration</a></h4>
+							<p>TApplicationConfiguration object.</p>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
+				<h2>Object literals</h2>
+				<section class="tsd-panel tsd-member tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+					<a name="default_auth_options" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> DEFAULT_<wbr>AUTH_<wbr>OPTIONS</h3>
+					<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>AUTH_<wbr>OPTIONS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L27">appConfig/applicationConfiguration.ts:27</a></li>
+						</ul>
+					</aside>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-not-exported">
+						<a name="default_auth_options.authority-1" class="tsd-anchor"></a>
+						<h3>authority</h3>
+						<div class="tsd-signature tsd-kind-icon">authority<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L29">appConfig/applicationConfiguration.ts:29</a></li>
+							</ul>
+						</aside>
+					</section>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-not-exported">
+						<a name="default_auth_options.clientid-1" class="tsd-anchor"></a>
+						<h3>client<wbr>Id</h3>
+						<div class="tsd-signature tsd-kind-icon">client<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;&quot;</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L28">appConfig/applicationConfiguration.ts:28</a></li>
+							</ul>
+						</aside>
+					</section>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-not-exported">
+						<a name="default_auth_options.redirecturi-1" class="tsd-anchor"></a>
+						<h3>redirect<wbr>Uri</h3>
+						<div class="tsd-signature tsd-kind-icon">redirect<wbr>Uri<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/applicationConfiguration.ts#L30">appConfig/applicationConfiguration.ts:30</a></li>
+							</ul>
+						</aside>
+					</section>
 				</section>
 			</section>
 		</div>
@@ -102,8 +272,17 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-kind-icon">Application<wbr>Configuration</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+						<a href="_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-kind-icon">Application<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+						<a href="_appconfig_applicationconfiguration_.html#authoptions" class="tsd-kind-icon">Auth<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_appconfig_applicationconfiguration_.html#buildapplicationconfiguration" class="tsd-kind-icon">build<wbr>Application<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="_appconfig_applicationconfiguration_.html#default_auth_options" class="tsd-kind-icon">DEFAULT_<wbr>AUTH_<wbr>OPTIONS</a>
 					</li>
 				</ul>
 			</nav>

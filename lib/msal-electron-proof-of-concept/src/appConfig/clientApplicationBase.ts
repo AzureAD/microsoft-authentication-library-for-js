@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { ApplicationConfiguration } from './applicationConfiguration';
+import { ApplicationConfiguration, buildApplicationConfiguration } from './applicationConfiguration';
 
 /**
  * ClientApplicationBase abstract class
@@ -9,9 +9,13 @@ import { ApplicationConfiguration } from './applicationConfiguration';
  * Abstract class that provides a base for Public and Private Application classes.
  */
 export abstract class ClientApplicationBase {
-    private config: ApplicationConfiguration;
+    private _config: ApplicationConfiguration;
 
     constructor(applicationConfiguration: ApplicationConfiguration) {
-        this.config = applicationConfiguration;
+        this._config = buildApplicationConfiguration(applicationConfiguration);
+    }
+
+    get config(): ApplicationConfiguration {
+        return this._config;
     }
 }

@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron';
+import { PublicClientApplication } from 'msal-electron-poc';
 import * as path from 'path';
 
 export default class Main {
@@ -23,6 +24,9 @@ export default class Main {
         Main.createMainWindow();
         Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
         Main.mainWindow.on('closed', Main.onClose);
+
+        // Once appplication is ready, configure MSAL Public Client App
+        Main.setupAuth();
     }
 
     private static createMainWindow(): void {
@@ -33,5 +37,19 @@ export default class Main {
                 nodeIntegration: true,
             },
         });
+    }
+
+    // This is where MSAL set up and configuration happens.
+    private static setupAuth(): void {
+        // Ideally, the values for the app's config will be stored securely
+        // somewhere else and accessed here.
+        const msalConfig = {
+            auth: {
+                clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
+            },
+        };
+        const msalApp = new PublicClientApplication(msalConfig);
+        console.log('MSAL PublicClientApplication: ');
+        console.dir(msalApp);
     }
 }

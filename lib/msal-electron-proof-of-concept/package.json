@@ -2,7 +2,7 @@
     "name": "msal-electron-poc",
     "version": "0.1.0",
     "description": "Microsoft Authentication Library for Electron Proof of Concept",
-    "main": "index.js",
+    "main": "dist/index.js",
     "scripts": {
         "build": "npm run build:modules && npm run lint",
         "build:modules": "tsc",
