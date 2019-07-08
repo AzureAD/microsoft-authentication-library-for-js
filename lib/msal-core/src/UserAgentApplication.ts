@@ -1689,6 +1689,7 @@ export class UserAgentApplication {
     let scope: string;
     let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
+    let expiration: number;
 
     // if the response contains "scope"
     if (parameters.hasOwnProperty("scope")) {
@@ -1711,20 +1712,15 @@ export class UserAgentApplication {
       }
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
+      const expiresIn = Utils.parseExpiresIn(parameters[Constants.expiresIn]);
+      expiration = Utils.now() + expiresIn;
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiration.toString(), clientInfo);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
       accessTokenResponse.accessToken  = parameters[Constants.accessToken];
       accessTokenResponse.scopes = consentedScopes;
-      let exp = Number(expiresIn);
-      if (exp) {
-        accessTokenResponse.expiresOn = new Date((Utils.now() + exp) * 1000);
-      } else {
-        this.logger.error("Could not parse expiresIn parameter. Given value: " + expiresIn);
-      }
     }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
@@ -1732,17 +1728,17 @@ export class UserAgentApplication {
 
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      expiration = Number(response.idToken.expiration);
 
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], expiration.toString(), clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
-      let exp = Number(response.idToken.expiration);
-      if (exp) {
-        accessTokenResponse.expiresOn = new Date(exp * 1000);
-      } else {
-        this.logger.error("Could not parse expiresIn parameter");
-      }
+    }
+    if (expiration) {
+      accessTokenResponse.expiresOn = new Date(expiration * 1000);
+    } else {
+      this.logger.error("Could not parse expiresIn parameter");
     }
     return accessTokenResponse;
   }
