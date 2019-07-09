@@ -7,7 +7,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState } from "./Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -1689,6 +1689,7 @@ export class UserAgentApplication {
     let scope: string;
     let accessTokenResponse = { ...response };
     const clientObj: ClientInfo = new ClientInfo(clientInfo);
+    let expiration: number;
 
     // if the response contains "scope"
     if (parameters.hasOwnProperty("scope")) {
@@ -1711,20 +1712,15 @@ export class UserAgentApplication {
       }
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const expiresIn = Utils.expiresIn(parameters[Constants.expiresIn]).toString();
+      const expiresIn = Utils.parseExpiresIn(parameters[Constants.expiresIn]);
+      expiration = Utils.now() + expiresIn;
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiresIn, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], response.idToken.rawIdToken, expiration.toString(), clientInfo);
 
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
       accessTokenResponse.accessToken  = parameters[Constants.accessToken];
       accessTokenResponse.scopes = consentedScopes;
-      let exp = Number(expiresIn);
-      if (exp) {
-        accessTokenResponse.expiresOn = new Date((Utils.now() + exp) * 1000);
-      } else {
-        this.logger.error("Could not parse expiresIn parameter. Given value: " + expiresIn);
-      }
     }
     // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
     else {
@@ -1732,17 +1728,17 @@ export class UserAgentApplication {
 
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+      expiration = Number(response.idToken.expiration);
 
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], response.idToken.expiration, clientInfo);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], expiration.toString(), clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
-      let exp = Number(response.idToken.expiration);
-      if (exp) {
-        accessTokenResponse.expiresOn = new Date(exp * 1000);
-      } else {
-        this.logger.error("Could not parse expiresIn parameter");
-      }
+    }
+    if (expiration) {
+      accessTokenResponse.expiresOn = new Date(expiration * 1000);
+    } else {
+      this.logger.error("Could not parse expiresIn parameter");
     }
     return accessTokenResponse;
   }
@@ -1948,7 +1944,7 @@ export class UserAgentApplication {
     }
 
     this.cacheStorage.setItem(Constants.renewStatus + stateInfo.state, Constants.tokenRenewStatusCompleted);
-    this.cacheStorage.removeAcquireTokenEntries();
+    this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
     // this is required if navigateToLoginRequestUrl=false
     if (this.inCookie) {
       this.cacheStorage.setItemCookie(authorityKey, "", -1);
@@ -2585,8 +2581,12 @@ export class UserAgentApplication {
       this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
       delete eQParams[Constants.claims];
     }
-    delete eQParams[SSOTypes.SID];
-    delete eQParams[SSOTypes.LOGIN_HINT];
+    BlacklistedEQParams.forEach(param => {
+      if (eQParams[param]) {
+        this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
+        delete eQParams[param];
+      }
+    });
     return eQParams;
   }
 

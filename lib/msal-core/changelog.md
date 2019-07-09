@@ -1,3 +1,11 @@
+# 1.0.2
+* Fixed broken link in docs for error message and module docs (#731)
+* Fix typo in README (#743, #749)
+* Update lerna version (#748)
+* Fix Interaction_Required error to throw on all interaction_required error types (#753)
+* Added a react sample (#727)
+* Fix for bug preventing asynchronous acquireTokenSilent calls (#768)
+
 # 1.0.1
 * Fixed bug where navigateToLoginRequestURL = false would cause callback to not fire (#696)
 * Fixed bug where null request object would cause null pointer exception for state parameter (#698)
