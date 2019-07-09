@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "lerna": "2.9.0"
+    "lerna": "^2.11.0"
   },
   "scripts": {
     "test": "cd lib/msal-core && npm install && npm run build && cd ../msal-angular && npm install && npm run ngcompile && npm run test && cd ../msal-angularjs && npm install && npm rebuild && npm run test",
