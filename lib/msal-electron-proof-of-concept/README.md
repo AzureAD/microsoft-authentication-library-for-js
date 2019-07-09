@@ -12,6 +12,15 @@ Using NPM:
 npm install msal-electron-poc
 ```
 
+Additionally, since the library uses `electron` as a peer dependency, you must have electron installed in your project as a devDependency or in your local machine. If your project is already setup, you may have already installed Electron. Otherwise, use the following command in your project's root directory:
+
+
+```bash
+npm install electron --save-dev
+```
+
+*Note: Please use Electron major version 5 (5.x.x) to satisfy MSAL Electron's peerDependency requirement.*
+
 ## What To Expect From This Library
 
 At present, `msal-electron-poc` is intended to be a proof of concept library in providing authentication to Electron applications using OAuth 2.0's Authorization Code Grant flow and Azure Active Directory. 
