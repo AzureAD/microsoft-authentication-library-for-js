@@ -27,7 +27,6 @@ const NAVIGATE_FRAME_WAIT = 500;
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
- *  - state                       - Use to send the state parameter with authentication request
  *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
  *
  */
@@ -57,7 +56,7 @@ export type CacheOptions = {
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- *
+ * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
   logger?: Logger;
