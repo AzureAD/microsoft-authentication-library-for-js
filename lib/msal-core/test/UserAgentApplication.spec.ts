@@ -24,7 +24,7 @@ import { SSOTypes } from "../src/Constants";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";
-import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG  } from "./TestConstants";
+import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
 import { IdToken } from "../src/IdToken";
 
 type kv = {
@@ -40,8 +40,8 @@ describe("UserAgentApplication.ts Class", function () {
 
     // Test Unique Params
     const TEST_NONCE = "123523";
-    const IDTOKEN_OBJECT = "00000000-0000-0000-66f3-3332eca7ea81";
-    const TEST_UNIQUE_ID = IDTOKEN_OBJECT;
+    const IDTOKEN_OID = "00000000-0000-0000-66f3-3332eca7ea81";
+    const TEST_UNIQUE_ID = IDTOKEN_OID;
 
     // Test Hash Params
     const TEST_ERROR_CODE = "error_code";
@@ -50,6 +50,9 @@ describe("UserAgentApplication.ts Class", function () {
     // Test SSO params
     const TEST_LOGIN_HINT = "test@test.com";
     const TEST_SID = "1234-5678";
+
+    // Test Account Params
+    const TEST_HOME_ACCOUNT_ID = "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==";
 
     // Sample OpenId Configurations
     const validOpenIdConfigString = `{"authorization_endpoint":"${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
@@ -109,18 +112,18 @@ describe("UserAgentApplication.ts Class", function () {
             authority: TEST_CONFIG.validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            homeAccountIdentifier: "1234"
+            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID
         };
         accessTokenValue = {
             accessToken: TEST_TOKENS.ACCESSTOKEN,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             expiresIn: "150000000000000",
-            homeAccountIdentifier: ""
+            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID
         };
         account = {
             accountIdentifier: "1234",
             environment: "js",
-            homeAccountIdentifier: "1234",
+            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID,
             idToken: new IdToken(TEST_TOKENS.IDTOKEN_V2).claims,
             idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2).claims,
             name: "Abe Lincoln",
@@ -520,7 +523,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("Calls the token callback if two callbacks are sent", function (done) {
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, TEST_HASHES.TEST_SUCCESS_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.urlHash, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
             const checkResponseFromServer = function(response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
@@ -536,7 +539,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("Calls the response callback if single callback is sent", function (done) {
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, TEST_HASHES.TEST_SUCCESS_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.urlHash, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
@@ -848,7 +851,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of response", function(done) {
-            let successHash = TEST_HASHES.TEST_SUCCESS_HASH + TEST_USER_STATE_NUM;
+            let successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
             cacheStorage.setItem(Constants.urlHash, successHash);
@@ -906,6 +909,45 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.isCallback("#access_token=token123")).to.be.true;
             expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
             done();
+        });
+
+        it("tests that expiresIn returns the correct date for access tokens", function (done) {
+            sinon.stub(Utils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
+            let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
+            let successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
+            cacheStorage.setItem(Constants.urlHash, successHash);
+            let checkRespFromServer = function(response: AuthResponse) {
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(Constants.accessToken);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
+                expect(response.expiresOn.getTime()).to.be.eq((TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000);
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                done();
+            };
+            msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
+        });
+
+        it("tests that expiresIn returns the correct date for id tokens", function (done) {
+            let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
+            let successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
+            cacheStorage.setItem(Constants.urlHash, successHash);
+            let checkRespFromServer = function(response: AuthResponse) {
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(Constants.idToken);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
+                expect(response.expiresOn.getTime()).to.be.eq(TEST_ID_TOKEN_ISSUED * 1000);
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                done();
+            };
+            msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
         });
     });
 

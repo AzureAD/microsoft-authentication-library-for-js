@@ -137,14 +137,14 @@ export class Utils {
   /**
    * Returns time in seconds for expiration based on string value passed in.
    *
-   * @param expires
+   * @param expiresIn
    */
-  static expiresIn(expires: string): number {
+  static parseExpiresIn(expiresIn: string): number {
     // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-     if (!expires) {
-         expires = "3599";
-      }
-    return this.now() + parseInt(expires, 10);
+    if (!expiresIn) {
+      expiresIn = "3599";
+    }
+    return parseInt(expiresIn, 10);
   }
 
   /**
@@ -705,12 +705,22 @@ export class Utils {
 
   static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
 
+    let exp = Number(idTokenObj.expiration);
+    let currExpiresOn: Date;
+    if (exp && !originalResponse.expiresOn) {
+        currExpiresOn = new Date(exp * 1000);
+    }
+    else {
+        currExpiresOn = originalResponse.expiresOn;
+    }
+
     return {
       ...originalResponse,
       idToken: idTokenObj,
       idTokenClaims: idTokenObj.claims,
       uniqueId: idTokenObj.objectId || idTokenObj.subject,
-      tenantId: idTokenObj.tenantId
+      tenantId: idTokenObj.tenantId,
+      expiresOn: currExpiresOn
     };
 
   }
