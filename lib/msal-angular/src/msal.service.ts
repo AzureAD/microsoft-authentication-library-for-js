@@ -24,7 +24,7 @@ export class MsalService extends UserAgentApplication {
     private loginScopes: string[];
     _renewActive: boolean;
 
-    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private broadcastService: BroadcastService) {
+    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private router: Router = null, private broadcastService: BroadcastService) {
         super(config.clientID, config.authority, null,
             {
                 validateAuthority: config.validateAuthority,
