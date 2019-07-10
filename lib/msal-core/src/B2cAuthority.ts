@@ -5,14 +5,15 @@ import { AadAuthority } from "./AadAuthority";
 import { Authority, AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 import { Utils } from "./Utils";
+import { IXhrClient } from "./XHRClient";
 
 /**
  * @hidden
  */
 export class B2cAuthority extends AadAuthority {
   public static B2C_PREFIX: String = "tfp";
-  public constructor(authority: string, validateAuthority: boolean) {
-    super(authority, validateAuthority);
+  public constructor(authority: string, validateAuthority: boolean, xhrClient?: IXhrClient) {
+    super(authority, validateAuthority, xhrClient);
     const urlComponents = Utils.GetUrlComponents(authority);
 
     const pathSegments = urlComponents.PathSegments;

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { Authority, AuthorityType } from "./Authority";
-import { XhrClient } from "./XHRClient";
+import { IXhrClient } from "./XHRClient";
 import { AADTrustedHostList } from "./Constants";
 
 /**
@@ -15,8 +15,8 @@ export class AadAuthority extends Authority {
       return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
   }
 
-  public constructor(authority: string, validateAuthority: boolean) {
-    super(authority, validateAuthority);
+  public constructor(authority: string, validateAuthority: boolean, xhrClient?: IXhrClient) {
+    super(authority, validateAuthority, xhrClient);
   }
 
   public get AuthorityType(): AuthorityType {
@@ -40,9 +40,7 @@ export class AadAuthority extends Authority {
       return resultPromise;
     }
 
-    let client: XhrClient = new XhrClient();
-
-    return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
+    return this.xhrClient.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
       .then((response) => {
         return response.tenant_discovery_endpoint;
       });

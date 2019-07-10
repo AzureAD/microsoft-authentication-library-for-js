@@ -2,11 +2,28 @@
 // Licensed under the MIT License.
 
 /**
+ * Provides a simple interface for sending a REST API request
+ * and returning the deserialized JSON response as an object.
+ */
+export interface IXhrClient {
+  /**
+   * Sends a request asyncrhonously to the specified URL and returns
+   * the deserialized JSON response as an object.
+   *
+   * @param url The Url to which the request will be sent.
+   * @param method The HTTP method to use for the request.
+   * @param enableCaching If true, enables response caching.
+   * @return An object containing the deserialized JSON response.
+   */
+  sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any>;
+}
+
+/**
  * XHR client for JSON endpoints
  * https://www.npmjs.com/package/async-promise
  * @hidden
  */
-export class XhrClient {
+export class XhrClient implements IXhrClient {
   public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
     return new Promise<string>((resolve, reject) => {
       var xhr = new XMLHttpRequest();

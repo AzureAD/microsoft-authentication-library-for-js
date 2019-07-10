@@ -8,6 +8,7 @@ export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, Configuration } from "./Configuration";
 export { AuthenticationParameters } from "./AuthenticationParameters";
 export { AuthResponse } from "./AuthResponse";
+export { IXhrClient } from "./XHRClient";
 
 // Errors
 export { AuthError } from "./error/AuthError";

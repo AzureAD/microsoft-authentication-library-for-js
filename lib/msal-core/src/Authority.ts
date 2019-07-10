@@ -5,7 +5,7 @@ import { IUri } from "./IUri";
 import { Utils } from "./Utils";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { XhrClient } from "./XHRClient";
+import { XhrClient, IXhrClient } from "./XHRClient";
 
 /**
  * @hidden
@@ -20,12 +20,15 @@ export enum AuthorityType {
  * @hidden
  */
 export abstract class Authority {
-  constructor(authority: string, validateAuthority: boolean) {
+  constructor(authority: string, validateAuthority: boolean, xhrClient?: IXhrClient) {
     this.IsValidationEnabled = validateAuthority;
     this.CanonicalAuthority = authority;
+    this.xhrClient = xhrClient || new XhrClient();
 
     this.validateAsUri();
   }
+
+  protected xhrClient: IXhrClient;
 
   public abstract get AuthorityType(): AuthorityType;
 
@@ -112,8 +115,7 @@ export abstract class Authority {
    * Calls the OIDC endpoint and returns the response
    */
   private DiscoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-    const client = new XhrClient();
-    return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
+    return this.xhrClient.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
         .then((response: any) => {
             return <ITenantDiscoveryResponse>{
                 AuthorizationEndpoint: response.authorization_endpoint,

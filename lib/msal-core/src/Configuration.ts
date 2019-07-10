@@ -3,6 +3,7 @@
 
 import { Logger } from "./Logger";
 import { Utils } from "./Utils";
+import { IXhrClient } from "./XHRClient";
 
 /**
  * Cache location options supported by MSAL are:
@@ -57,12 +58,14 @@ export type CacheOptions = {
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
+ * - xhrClient                    - Enables use of a different IXhrClient implementation for authority resolution
  */
 export type SystemOptions = {
   logger?: Logger;
   loadFrameTimeout?: number;
   tokenRenewalOffsetSeconds?: number;
   navigateFrameWait?: number;
+  xhrClient?: IXhrClient
 };
 
 /**
@@ -142,4 +145,3 @@ export function buildConfiguration({ auth, cache = {}, system = {}, framework = 
   };
   return overlayedConfig;
 }
-

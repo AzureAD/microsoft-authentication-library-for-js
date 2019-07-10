@@ -163,7 +163,7 @@ export class UserAgentApplication {
    */
   // If the developer passes an authority, create an instance
   public set authority(val) {
-    this.authorityInstance = AuthorityFactory.CreateInstance(val, this.config.auth.validateAuthority);
+    this.authorityInstance = this.createAuthorityInstance(val);
   }
 
   /**
@@ -182,6 +182,19 @@ export class UserAgentApplication {
    */
   public getAuthorityInstance(): Authority {
     return this.authorityInstance;
+  }
+
+  /**
+   * Creates an Authority instance with AuthorityFactory using the
+   * specified authorityUrl and details from Configuration.
+   *
+   * @param authorityUrl The authorityUrl that is passed to the AuthorityFactory.
+   */
+  private createAuthorityInstance(authorityUrl: string): Authority {
+    return AuthorityFactory.CreateInstance(
+      authorityUrl,
+      this.config.auth.validateAuthority,
+      this.config.system.xhrClient);
   }
 
   /**
@@ -452,7 +465,7 @@ export class UserAgentApplication {
     }
 
     let serverAuthenticationRequest: ServerRequestParameters;
-    const acquireTokenAuthority = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+    const acquireTokenAuthority = request.authority ? this.createAuthorityInstance(request.authority) : this.authorityInstance;
 
     // Track the acquireToken progress
     this.acquireTokenInProgress = true;
@@ -685,7 +698,7 @@ export class UserAgentApplication {
       this.acquireTokenInProgress = true;
 
       let serverAuthenticationRequest: ServerRequestParameters;
-      const acquireTokenAuthority = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+      const acquireTokenAuthority = request.authority ? this.createAuthorityInstance(request.authority) : this.authorityInstance;
 
       // Open the popup window
       const popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
@@ -909,7 +922,7 @@ export class UserAgentApplication {
       const responseType = this.getTokenType(account, request.scopes, true);
 
       let serverAuthenticationRequest = new ServerRequestParameters(
-        AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
+        this.createAuthorityInstance(request.authority),
         this.clientId,
         request.scopes,
         responseType,
@@ -961,7 +974,7 @@ export class UserAgentApplication {
         }
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
         if (!serverAuthenticationRequest.authorityInstance) {
-            serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+            serverAuthenticationRequest.authorityInstance = request.authority ? this.createAuthorityInstance(request.authority) : this.authorityInstance;
         }
         // cache miss
         return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync()
@@ -1510,7 +1523,7 @@ export class UserAgentApplication {
       // if only one cached token found
       if (filteredItems.length === 1) {
         accessTokenCacheItem = filteredItems[0];
-        serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
+        serverAuthenticationRequest.authorityInstance = this.createAuthorityInstance(accessTokenCacheItem.key.authority);
       }
       // if more than one cached token is found
       else if (filteredItems.length > 1) {
@@ -1523,7 +1536,7 @@ export class UserAgentApplication {
           throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
         }
 
-        serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
+        serverAuthenticationRequest.authorityInstance = this.createAuthorityInstance(authorityList[0]);
       }
     }
     // if an authority is passed in the API
@@ -2166,7 +2179,7 @@ export class UserAgentApplication {
     }
 
     // Construct AuthenticationRequest based on response type
-    const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
+    const newAuthority = this.authorityInstance ? this.authorityInstance : this.createAuthorityInstance(this.authority);
     const responseType = this.getTokenType(accountObject, scopes, true);
     const serverAuthenticationRequest = new ServerRequestParameters(
       newAuthority,

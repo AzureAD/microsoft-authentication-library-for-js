@@ -5,6 +5,7 @@
  * @hidden
  */
 import { Utils } from "./Utils";
+import { IXhrClient } from "./XHRClient";
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
@@ -32,7 +33,7 @@ export class AuthorityFactory {
     * Create an authority object of the correct type based on the url
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, xhrClient?: IXhrClient): Authority {
         if (Utils.isEmpty(authorityUrl)) {
             return null;
         }
@@ -40,9 +41,9 @@ export class AuthorityFactory {
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.B2C:
-                return new B2cAuthority(authorityUrl, validateAuthority);
+                return new B2cAuthority(authorityUrl, validateAuthority, xhrClient);
             case AuthorityType.Aad:
-                return new AadAuthority(authorityUrl, validateAuthority);
+                return new AadAuthority(authorityUrl, validateAuthority, xhrClient);
             default:
                 throw ClientConfigurationErrorMessage.invalidAuthorityType;
         }
