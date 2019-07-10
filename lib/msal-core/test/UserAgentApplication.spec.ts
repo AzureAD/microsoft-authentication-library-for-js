@@ -52,7 +52,6 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_SID = "1234-5678";
 
     // Test Account Params
-    const TEST_HOME_ACCOUNT_ID = "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==";
 
     // Sample OpenId Configurations
     const validOpenIdConfigString = `{"authorization_endpoint":"${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
@@ -112,18 +111,18 @@ describe("UserAgentApplication.ts Class", function () {
             authority: TEST_CONFIG.validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
         accessTokenValue = {
             accessToken: TEST_TOKENS.ACCESSTOKEN,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             expiresIn: "150000000000000",
-            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
         account = {
             accountIdentifier: "1234",
             environment: "js",
-            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID,
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             idToken: new IdToken(TEST_TOKENS.IDTOKEN_V2).claims,
             idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2).claims,
             name: "Abe Lincoln",
