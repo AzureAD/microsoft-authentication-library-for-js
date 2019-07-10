@@ -21,9 +21,10 @@
         "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
     },
     "keyword": [
+        "AAD",
+        "AuthCodeFlow",
         "auth code",
         "electron",
-        "AAD",
         "msal",
         "oauth"
     ],

@@ -31,18 +31,20 @@ At present, `msal-electron-poc` is intended to be a proof of concept library in 
 
 MSAL Electron implements the [Authorization Code Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), as defined by the OAuth 2.0 protocol and is [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc) compliant.
 
-Our goal is that the library abstracts enough of the protocol away so that you can get 'plug and play' authentication, but it is important to know and understand the auth code flow from a security perspective.
+Although our goal is to abstract enough of the protocol away so that you can get 'plug and play' authentication, it is important to know and understand the auth code flow from a security perspective in order to use this library.
 
 The auth code flow runs in the context of a native client (a client running directly on a user's device), which falls under the definition of a public client in the OAuth 2.0 spec.
 
-As opposed to confidential clients, public clients cannot guarantee the confidentiality of their credentials given the environment they operate in. In short, the auth code grant is designed as a specific solution to more secure authentication for this kind of application.
+As opposed to confidential clients, public clients cannot guarantee the confidentiality of their credentials given the environment they operate in. In short, the auth code grant is designed as a specific solution to more secure authentication for this specific class of applications.
 
 For more information on the concepts related to the Auth Code Grant flow, refer to the [official RFC on OAuth 2.0](https://tools.ietf.org/html/rfc6749#section-1.3.1).
 
 
 ## Prerequisites
 
-Before using MSAL Electron you will need to [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+Before using MSAL Electron you will need to:
++ [Register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, 
++ Register the routes that your app will accept redirect traffic on.
 
 You will need the following information in order to configure `msal-electron` to work with your AAD application:
 
