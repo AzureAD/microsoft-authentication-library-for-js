@@ -52,7 +52,7 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
     const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
-    
+
     // Test Unique Params
     const TEST_NONCE = "test_nonce";
     const TEST_UNIQUE_ID = "248289761001";
@@ -72,7 +72,7 @@ describe("UserAgentApplication.ts Class", function () {
     const DEFAULT_EXPIRES_IN = 3599;
     const BASELINE_DATE_CHECK = Utils.now();
     const TEST_ID_TOKEN_ISSUED = 1561749650;
-    
+
     // Test Hash Params
     const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
     + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTU2MTc0OTY1MCwKICJpYXQiOiAxNTYxNzQ5NjUwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
@@ -93,7 +93,7 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_LOGIN_REQ_ERROR_HASH2 = "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|";
     const TEST_CONSENT_REQ_ERROR_HASH1 = "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
     const TEST_CONSENT_REQ_ERROR_HASH2 = "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|";
-    
+
     // Sample OpenId Configurations
     const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
@@ -396,7 +396,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(url).to.include('&client_info=1');
                 expect(url).to.not.include('&sid=');
                 expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
-                
+
                 done();
             });
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
@@ -862,7 +862,42 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Error in assertion: " + JSON.stringify(err));
             });
         });
+
+        it("tests getCachedToken is skipped when force is set true", function (done) {
+
+            const tokenRequest : AuthenticationParameters = {
+                authority: validAuthority,
+                scopes: ["S1"],
+                account: account,
+                forceRefresh: true
+            };
+
+            setUtilUnifiedCacheQPStubs({
+                [SSOTypes.SID]: account.sid
+            });
+            const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
+
+            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+                expect(cacheCallSpy.notCalled).to.be.true;
+                expect(url).to.include(validAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
+                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                done();
+                return {};
+            });
+
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                // Won't happen - we are not testing response here
+                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
+            }).catch(done);
+        });
     });
+
+
 
     describe("Processing Authentication Responses", function() {
 

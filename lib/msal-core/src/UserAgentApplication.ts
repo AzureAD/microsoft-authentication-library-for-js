@@ -933,7 +933,7 @@ export class UserAgentApplication {
       let authErr: AuthError;
       let cacheResultResponse;
 
-      if (!userContainedClaims) {
+      if (!userContainedClaims && !request.forceRefresh) {
         try {
           cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
         } catch (e) {

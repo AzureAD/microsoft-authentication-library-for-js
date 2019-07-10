@@ -24,6 +24,7 @@ export type AuthenticationParameters = {
     account?: Account;
     sid?: string;
     loginHint?: string;
+    forceRefresh?: boolean;
 };
 
 export function validateClaimsRequest(request: AuthenticationParameters) {
