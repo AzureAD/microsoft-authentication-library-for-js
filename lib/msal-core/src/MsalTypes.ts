@@ -2,6 +2,6 @@
 // Licensed under the MIT License.
 
 /**
- * Key-Value type to support queryParams and extraQueryParams
+ * Key-Value type to support queryParams, extraQueryParams and claims
  */
-export type Dict = {[key: string]: string};
+export type StringDict = {[key: string]: string};

@@ -3,7 +3,7 @@
 
 import { Account } from "./Account";
 import { IdToken } from "./IdToken";
-import { Dict } from "./MsalTypes";
+import { StringDict } from "./MsalTypes";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -13,7 +13,7 @@ export type AuthResponse = {
     tenantId: string;
     tokenType: string;
     idToken: IdToken;
-    idTokenClaims: Dict;
+    idTokenClaims: StringDict;
     accessToken: string;
     scopes: Array<string>;
     expiresOn: Date;

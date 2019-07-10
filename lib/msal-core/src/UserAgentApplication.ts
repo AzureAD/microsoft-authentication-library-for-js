@@ -15,7 +15,8 @@ import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { AuthenticationParameters, QPDict, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { StringDict } from "./MsalTypes";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -1123,7 +1124,7 @@ export class UserAgentApplication {
    * @param {@link ServerRequestParameters}
    * @ignore
    */
-  private addHintParameters(accountObj: Account, qParams: QPDict, serverReqParams: ServerRequestParameters): QPDict {
+  private addHintParameters(accountObj: Account, qParams: StringDict, serverReqParams: ServerRequestParameters): StringDict {
 
     const account: Account = accountObj || this.getAccount();
 
@@ -2524,7 +2525,7 @@ export class UserAgentApplication {
    */
   private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
 
-    let queryParameters: QPDict = {};
+    let queryParameters: StringDict = {};
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
@@ -2554,7 +2555,7 @@ export class UserAgentApplication {
     queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
 
     // sanity check for developer passed extraQueryParameters
-    let eQParams: QPDict;
+    let eQParams: StringDict;
     if (request) {
       eQParams = this.sanitizeEQParams(request);
     }
@@ -2586,8 +2587,8 @@ export class UserAgentApplication {
    * Removes unnecessary or duplicate query parameters from extraQueryParameters
    * @param request
    */
-  private sanitizeEQParams(request: AuthenticationParameters) : QPDict {
-    let eQParams : QPDict = request.extraQueryParameters;
+  private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
+    let eQParams : StringDict = request.extraQueryParameters;
     if (!eQParams) {
       return null;
     }

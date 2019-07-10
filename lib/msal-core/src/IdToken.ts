@@ -3,7 +3,7 @@
 
 import { Utils } from "./Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
-import { Dict } from "./MsalTypes";
+import { StringDict } from "./MsalTypes";
 
 /**
  * @hidden
@@ -21,7 +21,7 @@ export class IdToken {
   nonce: string;
   expiration: string;
   rawIdToken: string;
-  claims: Dict;
+  claims: StringDict;
   sid: string;
   /* tslint:disable:no-string-literal */
   constructor(rawIdToken: string) {

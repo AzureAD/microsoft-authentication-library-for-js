@@ -10,7 +10,7 @@ import { IdToken } from "./IdToken";
 import { ClientAuthError } from "./error/ClientAuthError";
 import { Library } from "./Constants";
 import { Base64 } from "js-base64";
-import { Dict } from "./MsalTypes";
+import { StringDict } from "./MsalTypes";
 
 /**
  * @hidden
@@ -552,12 +552,12 @@ export class Utils {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): Dict {
+  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
 
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
-    let serverReqParam: Dict = {};
+    let serverReqParam: StringDict = {};
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
@@ -609,7 +609,7 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: Dict): Dict {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
     if (!ssoParam) {
       ssoParam = {};
     }
@@ -674,7 +674,7 @@ export class Utils {
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  static generateQueryParametersString(queryParameters: Dict): string {
+  static generateQueryParametersString(queryParameters: StringDict): string {
     let paramsString: string = null;
 
     if (queryParameters) {
