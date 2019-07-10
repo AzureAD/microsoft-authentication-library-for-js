@@ -29,7 +29,7 @@ const NAVIGATE_FRAME_WAIT = 500;
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
  *  - state                       - Use to send the state parameter with authentication request
  *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
- *
+ *  - responseType                - used to configure response type. Default is 'id_token'. Available options are 'id_token', 'token', 'id_token token'.
  */
 export type AuthOptions = {
   clientId: string;
@@ -38,6 +38,7 @@ export type AuthOptions = {
   redirectUri?: string | (() => string);
   postLogoutRedirectUri?: string | (() => string);
   navigateToLoginRequestUrl?: boolean;
+  responseType? : string;
 };
 
 /**
@@ -102,7 +103,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
   validateAuthority: true,
   redirectUri: () => Utils.getDefaultRedirectUri(),
   postLogoutRedirectUri: () => Utils.getDefaultRedirectUri(),
-  navigateToLoginRequestUrl: true
+  navigateToLoginRequestUrl: true,
+  responseType : "id_token"
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {

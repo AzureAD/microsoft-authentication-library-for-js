@@ -142,6 +142,7 @@ export class UserAgentApplication {
   private logger: Logger;
   private clientId: string;
   private inCookie: boolean;
+  private responseType: string;
 
   // Cache and Account info referred across token grant flow
   protected cacheStorage: Storage;
@@ -216,6 +217,7 @@ export class UserAgentApplication {
     this.logger = this.config.system.logger;
     this.clientId = this.config.auth.clientId;
     this.inCookie = this.config.cache.storeAuthStateInCookie;
+    this.responseType = this.config.auth.responseType;
 
     // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
     this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -392,7 +394,7 @@ export class UserAgentApplication {
       let serverAuthenticationRequest = new ServerRequestParameters(
         this.authorityInstance,
         this.clientId, scopes,
-        ResponseTypes.id_token,
+        this.responseType,
         this.getRedirectUri(),
         request && request.state
       );
@@ -598,7 +600,7 @@ export class UserAgentApplication {
 
     // Resolve endpoint
     this.authorityInstance.resolveEndpointsAsync().then(() => {
-      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, ResponseTypes.id_token, this.getRedirectUri(), request && request.state);
+      let serverAuthenticationRequest = new ServerRequestParameters(this.authorityInstance, this.clientId, scopes, this.responseType, this.getRedirectUri(), request && request.state);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer;
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
@@ -2381,10 +2383,10 @@ export class UserAgentApplication {
     // acquireTokenSilent
     if (silentCall) {
       if (Utils.compareAccounts(accountObject, this.getAccount())) {
-        tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+        tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? this.responseType : ResponseTypes.token;
       }
       else {
-        tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
+        tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? this.responseType : ResponseTypes.id_token_token;
       }
 
       return tokenType;
@@ -2395,7 +2397,7 @@ export class UserAgentApplication {
            tokenType = ResponseTypes.id_token_token;
       }
       else {
-        tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+        tokenType = (scopes.indexOf(this.clientId) > -1) ? this.responseType : ResponseTypes.token;
       }
 
       return tokenType;
