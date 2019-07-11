@@ -1730,19 +1730,19 @@ export class UserAgentApplication {
 
       // Generate and cache accessTokenKey and accessTokenValue
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-      expiration = Number(response.idToken.expiration);
-
-      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], idTokenObj.expiration, clientInfo);
+      expiration = Number(idTokenObj.expiration);
+      const accessTokenValue = new AccessTokenValue(parameters[Constants.idToken], parameters[Constants.idToken], expiration.toString(), clientInfo);
       this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
       accessTokenResponse.scopes = [scope];
       accessTokenResponse.accessToken = parameters[Constants.idToken];
-      let exp = Number(idTokenObj.expiration);
-      if (expiration) {
-        accessTokenResponse.expiresOn = new Date(expiration * 1000);
-      } else {
-        this.logger.error("Could not parse expiresIn parameter");
-      }
     }
+
+    if (expiration) {
+        accessTokenResponse.expiresOn = new Date(expiration * 1000);
+    } else {
+        this.logger.error("Could not parse expiresIn parameter");
+    }
+
     return accessTokenResponse;
   }
 
