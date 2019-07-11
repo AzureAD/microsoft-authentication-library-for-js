@@ -6,8 +6,9 @@ import { PublicClientApplication } from 'msal-electron-poc';
 import * as path from 'path';
 
 export default class Main {
-    static mainWindow: Electron.BrowserWindow;
     static application: Electron.App;
+    static mainWindow: Electron.BrowserWindow;
+    static msalApp: PublicClientApplication;
 
     static main(): void {
         Main.application = app;
@@ -29,7 +30,7 @@ export default class Main {
         Main.mainWindow.on('closed', Main.onClose);
 
         // Once appplication is ready, configure MSAL Public Client App
-        Main.setupAuth();
+        Main.configureAuthentication();
     }
 
     private static createMainWindow(): void {
@@ -43,12 +44,15 @@ export default class Main {
     }
 
     // This is where MSAL set up and configuration happens.
-    private static setupAuth(): void {
-        const msalAuthConfig = {
-            clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
+    private static configureAuthentication(): void {
+        const msalConfig = {
+            auth: {
+                authority: 'https://login.microsoftonline.com/common',
+                clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
+                redirectUri: 'https://localhost:3000',
+            },
         };
-        const msalApp = new PublicClientApplication(msalAuthConfig);
-        console.log('MSAL PublicClientApplication: ');
-        console.dir(msalApp);
+        this.msalApp = new PublicClientApplication(msalConfig);
+        console.dir(this.msalApp);
     }
 }
