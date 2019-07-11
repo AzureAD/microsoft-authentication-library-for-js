@@ -884,7 +884,6 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
-
         // TEST_SERVER_ERROR_SUBCODE_CANCEL
         it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
             cacheStorage.setItem(Constants.urlHash, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
@@ -899,8 +898,6 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
-
-
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
