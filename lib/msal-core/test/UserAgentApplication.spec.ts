@@ -918,6 +918,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
             cacheStorage.setItem(Constants.urlHash, successHash);
+
             let checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(Constants.accessToken);
@@ -942,7 +943,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.tokenType).to.be.eq(Constants.idToken);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(response.expiresOn.getTime()).to.be.eq(TEST_ID_TOKEN_ISSUED * 1000);
+                expect(response.expiresOn.getTime()).to.be.eq(TEST_TOKEN_LIFETIMES.TEST_ID_TOKEN_EXP * 1000);
                 expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
                 done();
             };

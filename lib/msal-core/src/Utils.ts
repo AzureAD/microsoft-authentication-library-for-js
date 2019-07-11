@@ -706,12 +706,8 @@ export class Utils {
   static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
 
     let exp = Number(idTokenObj.expiration);
-    let currExpiresOn: Date;
     if (exp && !originalResponse.expiresOn) {
-        currExpiresOn = new Date(exp * 1000);
-    }
-    else {
-        currExpiresOn = originalResponse.expiresOn;
+        originalResponse.expiresOn = new Date(exp * 1000);
     }
 
     return {
@@ -720,9 +716,7 @@ export class Utils {
       idTokenClaims: idTokenObj.claims,
       uniqueId: idTokenObj.objectId || idTokenObj.subject,
       tenantId: idTokenObj.tenantId,
-      expiresOn: currExpiresOn
     };
-
   }
 
   //#endregion
