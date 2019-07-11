@@ -1017,8 +1017,8 @@ export class UserAgentApplication {
    */
   private isInteractionRequired(errorString: string) : boolean {
 
-    const options = [InteractionErrorType.INTERACTION, InteractionErrorType.CONSENT, InteractionErrorType.LOGIN];
-    if (errorString && options.indexOf(errorString) > -1) {
+    const errorTypes = [InteractionErrorType.INTERACTION, InteractionErrorType.CONSENT, InteractionErrorType.LOGIN];
+    if (errorString && errorTypes.indexOf(errorString) > -1) {
         return true;
     }
     return false;
