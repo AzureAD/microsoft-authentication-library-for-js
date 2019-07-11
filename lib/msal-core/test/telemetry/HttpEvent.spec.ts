@@ -1,18 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { expect } from "chai";
-import HttpEvent, {
-    HTTP_METHOD_KEY,
-    HTTP_PATH_KEY,
-    USER_AGENT_KEY,
-    QUERY_PARAMETERS_KEY,
-    API_VERSION_KEY,
-    O_AUTH_ERROR_CODE_KEY,
-    REQUEST_ID_HEADER_KEY,
-    SPE_INFO_KEY,
-    SERVER_ERROR_CODE_KEY,
-    SERVER_SUB_ERROR_CODE_KEY,
-    RESPONSE_CODE_KEY
-} from "../../src/telemetry/HttpEvent";
+import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
 
 describe("HttpEvent", () => {
     it("constructs and carries exepcted values", () => {
@@ -51,15 +39,15 @@ describe("HttpEvent", () => {
 
         const event = httpEvent.get();
 
-        expect(event[USER_AGENT_KEY]).to.eq(fakeUserAgent);
-        expect(event[API_VERSION_KEY]).to.eq(fakeApiVersion);
-        expect(event[RESPONSE_CODE_KEY]).to.eq(fakeHttpResponseStatus);
-        expect(event[O_AUTH_ERROR_CODE_KEY]).to.eq(fakeOAuthErrorCode);
-        expect(event[HTTP_METHOD_KEY]).to.eq(fakeHttpMethod);
-        expect(event[REQUEST_ID_HEADER_KEY]).to.eq(fakeRequestIdHeader);
-        expect(event[SPE_INFO_KEY]).to.eq(fakeSpeInfo);
-        expect(event[SERVER_ERROR_CODE_KEY]).to.eq(fakeServerErrorCode);
-        expect(event[SERVER_SUB_ERROR_CODE_KEY]).to.eq(fakeSubErrorCode);
+        expect(event[EVENT_KEYS.USER_AGENT]).to.eq(fakeUserAgent);
+        expect(event[EVENT_KEYS.API_VERSION]).to.eq(fakeApiVersion);
+        expect(event[EVENT_KEYS.RESPONSE_CODE]).to.eq(fakeHttpResponseStatus);
+        expect(event[EVENT_KEYS.O_AUTH_ERROR_CODE]).to.eq(fakeOAuthErrorCode);
+        expect(event[EVENT_KEYS.HTTP_METHOD]).to.eq(fakeHttpMethod);
+        expect(event[EVENT_KEYS.REQUEST_ID_HEADER]).to.eq(fakeRequestIdHeader);
+        expect(event[EVENT_KEYS.SPE_INFO]).to.eq(fakeSpeInfo);
+        expect(event[EVENT_KEYS.SERVER_ERROR_CODE]).to.eq(fakeServerErrorCode);
+        expect(event[EVENT_KEYS.SERVER_SUB_ERROR_CODE]).to.eq(fakeSubErrorCode);
     });
 
     it("sets values that are changed", () => {
@@ -80,8 +68,8 @@ describe("HttpEvent", () => {
 
         const event = httpEvent.get();
 
-        expect(event[HTTP_PATH_KEY]).to.eq(expectedFakePath);
-        expect(event[QUERY_PARAMETERS_KEY]).to.eq(expectedFakeQueryParams);
+        expect(event[EVENT_KEYS.HTTP_PATH]).to.eq(expectedFakePath);
+        expect(event[EVENT_KEYS.QUERY_PARAMETERS]).to.eq(expectedFakeQueryParams);
 
     });
 });

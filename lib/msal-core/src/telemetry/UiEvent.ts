@@ -1,19 +1,21 @@
 import TelemetryEvent from "./TelemetryEvent";
-import { EVENT_NAME_PREFIX } from "./TelemetryConstants";
+import { prependEventNamePrefix } from "./TelemetryUtils";
 
-export const USER_CANCELLED_KEY = EVENT_NAME_PREFIX + "user_cancelled";
-export const ACCESS_DENIED_KEY = EVENT_NAME_PREFIX + "access_denied";
+export const EVENT_KEYS = {
+    USER_CANCELLED: prependEventNamePrefix("user_cancelled"),
+    ACCESS_DENIED: prependEventNamePrefix("access_denied")
+};
 
 export default class UiEvent extends TelemetryEvent {
     constructor(correlationId: string) {
-        super(`${EVENT_NAME_PREFIX}ui_event`, correlationId);
+        super(prependEventNamePrefix("ui_event"), correlationId);
     }
 
     public set userCancelled(userCancelled: boolean) {
-        this.event[USER_CANCELLED_KEY] = userCancelled;
+        this.event[EVENT_KEYS.USER_CANCELLED] = userCancelled;
     }
 
     public set accessDenied(accessDenied: boolean) {
-        this.event[ACCESS_DENIED_KEY] = accessDenied;
+        this.event[EVENT_KEYS.ACCESS_DENIED] = accessDenied;
     }
 }

@@ -144,7 +144,7 @@ export class Logger {// Singleton Class
     this.logMessage(LogLevel.Verbose, message, true);
   }
 
-  piiLoggingIsEnabled(): boolean {
+  isPiiLoggingEnabled(): boolean {
     return this.piiLoggingEnabled;
   }
 }

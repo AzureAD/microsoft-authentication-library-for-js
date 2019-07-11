@@ -1,7 +1,4 @@
-import UiEvent, {
-    USER_CANCELLED_KEY,
-    ACCESS_DENIED_KEY
-} from "../../src/telemetry/UiEvent";
+import UiEvent, { EVENT_KEYS } from "../../src/telemetry/UiEvent";
 import { v4 as uuid } from "uuid";
 import { expect } from "chai";
 
@@ -26,7 +23,7 @@ describe("UiEvent", () => {
         expect(uiEvent.telemetryCorrelationId).to.eq(correlationId);
         const event = uiEvent.get();
 
-        expect(event[ACCESS_DENIED_KEY]).to.eq(fakeAccessDenied);
-        expect(event[USER_CANCELLED_KEY]).to.eq(fakeUserCancelled);
+        expect(event[EVENT_KEYS.ACCESS_DENIED]).to.eq(fakeAccessDenied);
+        expect(event[EVENT_KEYS.USER_CANCELLED]).to.eq(fakeUserCancelled);
     });
 });
