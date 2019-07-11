@@ -1,10 +1,12 @@
 import { CacheLocation } from "./Configuration";
+import { InteractionRequiredAuthErrorMessage as InteractionError } from "./error/InteractionRequiredAuthError";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 /**
  * @hidden
+ * Constants
  */
 export class Constants {
   static get errorDescription(): string { return "error_description"; }
@@ -84,6 +86,7 @@ export class Constants {
 
 /**
  * @hidden
+ * CacheKeys for 'authority' and 'account'
  */
 export const CacheKeys = {
     AUTHORITY: "msal.authority",
@@ -98,8 +101,10 @@ export const AADTrustedHostList =  {
   "login.microsoftonline.de": "login.microsoftonline.de",
   "login.microsoftonline.us": "login.microsoftonline.us"
 };
+
 /**
  * @hidden
+ * SSO Types - generated to populate hints
  */
 export const SSOTypes = {
     ACCOUNT: "account",
@@ -115,6 +120,9 @@ export const SSOTypes = {
     DOMAIN_REQ: "domain_req"
 };
 
+/**
+ * @hidden
+ */
 export const BlacklistedEQParams = [
   SSOTypes.SID,
   SSOTypes.LOGIN_HINT
@@ -133,6 +141,19 @@ export const PromptState = {
 	NONE: "none",
 };
 
+/**
+ * @hidden
+ */
 export const Library = {
   version: "1.0.2"
+};
+
+/**
+ * @hidden
+ * Readable shortcut for Interaction Required Errors
+ */
+export const InteractionErrorType = {
+    LOGIN: InteractionError.loginRequired.code,
+    CONSENT: InteractionError.consentRequired.code,
+    INTERACTION: InteractionError.interactionRequired.code
 };
