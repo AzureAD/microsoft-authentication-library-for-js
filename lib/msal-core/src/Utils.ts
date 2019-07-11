@@ -4,12 +4,13 @@
 import { IUri } from "./IUri";
 import { Account } from "./Account";
 import {Constants, SSOTypes, PromptState} from "./Constants";
-import { AuthenticationParameters, QPDict } from "./AuthenticationParameters";
+import { AuthenticationParameters } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
 import { ClientAuthError } from "./error/ClientAuthError";
 import { Library } from "./Constants";
 import { Base64 } from "js-base64";
+import { StringDict } from "./MsalTypes";
 
 /**
  * @hidden
@@ -136,14 +137,14 @@ export class Utils {
   /**
    * Returns time in seconds for expiration based on string value passed in.
    *
-   * @param expires
+   * @param expiresIn
    */
-  static expiresIn(expires: string): number {
+  static parseExpiresIn(expiresIn: string): number {
     // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-     if (!expires) {
-         expires = "3599";
-      }
-    return this.now() + parseInt(expires, 10);
+    if (!expiresIn) {
+      expiresIn = "3599";
+    }
+    return parseInt(expiresIn, 10);
   }
 
   /**
@@ -551,12 +552,12 @@ export class Utils {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): QPDict {
+  static constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
 
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
-    let serverReqParam: QPDict = {};
+    let serverReqParam: StringDict = {};
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
@@ -608,7 +609,7 @@ export class Utils {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: QPDict): QPDict {
+  static addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
     if (!ssoParam) {
       ssoParam = {};
     }
@@ -673,7 +674,7 @@ export class Utils {
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  static generateQueryParametersString(queryParameters: QPDict): string {
+  static generateQueryParametersString(queryParameters: StringDict): string {
     let paramsString: string = null;
 
     if (queryParameters) {
@@ -702,16 +703,20 @@ export class Utils {
 
   //#region Response Helpers
 
-  static setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
-    var response = { ...originalResponse };
-    response.idToken = idToken;
-    if (response.idToken.objectId) {
-      response.uniqueId = response.idToken.objectId;
-    } else {
-      response.uniqueId = response.idToken.subject;
+  static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
+
+    let exp = Number(idTokenObj.expiration);
+    if (exp && !originalResponse.expiresOn) {
+        originalResponse.expiresOn = new Date(exp * 1000);
     }
-    response.tenantId = response.idToken.tenantId;
-    return response;
+
+    return {
+      ...originalResponse,
+      idToken: idTokenObj,
+      idTokenClaims: idTokenObj.claims,
+      uniqueId: idTokenObj.objectId || idTokenObj.subject,
+      tenantId: idTokenObj.tenantId,
+    };
   }
 
   //#endregion
