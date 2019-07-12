@@ -929,6 +929,7 @@ export class UserAgentApplication {
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
+
       let userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
       let authErr: AuthError;
@@ -1806,10 +1807,12 @@ export class UserAgentApplication {
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
 
-      const hashErr = hashParams[Constants.error];
-      const hashErrDesc = hashParams[Constants.errorDescription];
+      const {
+        [Constants.error]: hashErr,
+        [Constants.errorDescription]: hashErrDesc
+      } = hashParams;
 
-      if ((hashErr && this.isInteractionRequired(hashErr)) || (hashErrDesc && this.isInteractionRequired(hashErrDesc))) {
+      if ((this.isInteractionRequired(hashErr)) || (this.isInteractionRequired(hashErrDesc))) {
         error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       } else {
         error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
