@@ -17,6 +17,6 @@ export class AccessTokenKey {
     this.authority = Utils.CanonicalizeUri(authority);
     this.clientId = clientId;
     this.scopes = scopes;
-    this.homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
+    this.homeAccountIdentifier = Utils.base64Encode(uid) + "." + Utils.base64Encode(utid);
   }
 }

@@ -36,7 +36,6 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "js-base64": "^2.5.1",
     "tslib": "^1.9.3",
     "uuid": "^3.3.2"
   },
