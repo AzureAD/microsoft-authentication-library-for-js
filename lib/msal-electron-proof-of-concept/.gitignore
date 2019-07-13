@@ -260,3 +260,6 @@ typings/
 lib-commonjs/
 lib-es6/
 dist/
+
+# OS specific ignore files
+.DS_Store
