@@ -45,6 +45,7 @@ export default class Main {
 
     // This is where MSAL set up and configuration happens.
     private static configureAuthentication(): void {
+<<<<<<< HEAD
         const msalAuthConfig = {
             authority: 'https://login.microsoftonline.com/common',
             clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
@@ -52,6 +53,16 @@ export default class Main {
         };
 
         this.msalApp = new PublicClientApplication(msalAuthConfig);
+=======
+        const msalConfig = {
+            auth: {
+                authority: 'https://login.microsoftonline.com/common',
+                clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
+                redirectUri: 'https://localhost:3000',
+            },
+        };
+        this.msalApp = new PublicClientApplication(msalConfig);
+>>>>>>> ebae38930bf4af8f9a32b692d87ca044d1f8f75c
         console.dir(this.msalApp);
     }
 }
