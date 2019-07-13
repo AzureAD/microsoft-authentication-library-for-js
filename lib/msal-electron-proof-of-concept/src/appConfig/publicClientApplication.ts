@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
-import { ApplicationConfiguration } from './applicationConfiguration';
-import { ClientApplicationBase } from './clientApplicationBase';
+import { AuthOptions } from './AuthOptions';
+import { ClientApplicationBase } from './ClientApplicationBase';
 
 /**
  * PublicClientApplication class
@@ -11,7 +10,7 @@ import { ClientApplicationBase } from './clientApplicationBase';
  * can use in order to acquire tokens.
  */
 export class PublicClientApplication extends ClientApplicationBase {
-    constructor(applicationConfiguration: ApplicationConfiguration) {
-        super(applicationConfiguration);
+    constructor(authOptions: AuthOptions) {
+        super(authOptions);
     }
 }
