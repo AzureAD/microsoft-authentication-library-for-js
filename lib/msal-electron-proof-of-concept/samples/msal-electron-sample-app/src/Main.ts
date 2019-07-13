@@ -52,6 +52,5 @@ export default class Main {
         };
 
         this.msalApp = new PublicClientApplication(msalAuthConfig);
-        console.dir(this.msalApp);
     }
 }
