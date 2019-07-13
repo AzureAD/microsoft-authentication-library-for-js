@@ -44,12 +44,10 @@ export default class Main {
 
     // This is where MSAL set up and configuration happens.
     private static setupAuth(): void {
-        const msalConfig = {
-            auth: {
-                clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
-            },
+        const msalAuthConfig = {
+            clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
         };
-        const msalApp = new PublicClientApplication(msalConfig);
+        const msalApp = new PublicClientApplication(msalAuthConfig);
         console.log('MSAL PublicClientApplication: ');
         console.dir(msalApp);
     }
