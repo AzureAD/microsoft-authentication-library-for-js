@@ -56,6 +56,8 @@ export default class Main {
         console.dir(this.msalApp);
     }
 
+    // Sets a listener for the AcquireToken event that when triggered
+    // performs the authorization code grant flow
     private static listenForAcquireToken(): void {
         ipcMain.on('AcquireToken', () => {
             console.log('Acquiring Token');
