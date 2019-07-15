@@ -54,15 +54,14 @@ export default class Main {
             clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
             redirectUri: 'https://localhost:3000',
         };
-
         this.msalApp = new PublicClientApplication(msalAuthConfig);
+        console.dir(this.msalApp);
     }
 
     private static listenForAcquireToken(): void {
         ipcMain.on('AcquireToken', () => {
             console.log('Acquiring Token');
             const tokenRequest = {
-                scopes: ['user.read', 'mail.read'],
             };
             const accessToken: string = this.msalApp.acquireToken(tokenRequest);
             console.log(accessToken);

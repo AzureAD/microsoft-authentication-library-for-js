@@ -2,11 +2,10 @@
 // Licensed under the MIT License.
 
 import { AuthOptions } from './AuthOptions';
-import { UriUtils } from '../utils/uriUtils';
 
 const DEFAULT_AUTH_OPTIONS = {
-    authority: UriUtils.getDefaultAuthority(),
-    redirectUri: UriUtils.getDefaultRedirectUri(),
+    authority: 'https://login.microsoftonline.com/common/',
+    redirectUri: 'msalElectron://auth',
 };
 
 /**
@@ -20,6 +19,6 @@ export class ApplicationConfiguration {
     public authOptions: AuthOptions;
 
     constructor(authOptions: AuthOptions) {
-        this.authOptions = authOptions;
+        this.authOptions = { ...DEFAULT_AUTH_OPTIONS, ...authOptions };
     }
 }

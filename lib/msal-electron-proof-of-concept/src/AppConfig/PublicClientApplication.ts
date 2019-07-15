@@ -3,6 +3,7 @@
 import { AuthenticationParameters } from './AuthenticationParameters';
 import { AuthOptions } from './AuthOptions';
 import { ClientApplicationBase } from './ClientApplicationBase';
+import { ClientConfigurationError } from './Error/ClientConfigurationError';
 
 /**
  * PublicClientApplication class
@@ -22,7 +23,16 @@ export class PublicClientApplication extends ClientApplicationBase {
      * such as MS Graph.
      */
     public acquireToken(request: AuthenticationParameters): string {
+        // Validate and filter scopes
+        this.validateInputScopes(request.scopes);
+
         return 'Access Token';
+    }
+
+    private validateInputScopes(scopes: string[]): void {
+        if (!scopes) {
+            throw ClientConfigurationError.createScopesRequiredError(scopes);
+        }
     }
 
 }
