@@ -25,7 +25,7 @@ export class PublicClientApplication extends ClientApplicationBase {
     public acquireToken(request: AuthenticationParameters): string {
         // Validate and filter scopes
         this.validateInputScopes(request.scopes);
-
+        const scope = request.scopes.join(' ').toLowerCase();
         return 'Access Token';
     }
 
@@ -36,8 +36,13 @@ export class PublicClientApplication extends ClientApplicationBase {
         }
 
         // Check that scopes is an array
-        if(!Array.isArray(scopes)) {
+        if (!Array.isArray(scopes)) {
             throw ClientConfigurationError.createScopesNonArrayError(scopes);
+        }
+
+        // Check that scopes array is non-empty
+        if (scopes.length < 1) {
+            throw ClientConfigurationError.createEmptyScopesArrayError(scopes);
         }
     }
 

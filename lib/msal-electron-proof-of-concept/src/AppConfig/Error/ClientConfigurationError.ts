@@ -18,6 +18,10 @@ export const ClientConfigurationErrorMessage = {
         code: 'nonarray_input_scopes_error',
         description: 'Scopes cannot be passed as non-array.',
     },
+    emptyScopes: {
+        code: 'empty_input_scopes_error',
+        description: 'Scopes cannot be passed as empty array.',
+    },
 };
 
 /**
@@ -27,6 +31,11 @@ export const ClientConfigurationErrorMessage = {
  * flow.
  */
 export class ClientConfigurationError extends AuthErrorBase {
+    static createEmptyScopesArrayError(scopes: any): ClientConfigurationError {
+        const errorMessage = ClientConfigurationErrorMessage.emptyScopes;
+        return this.buildClientConfigurationScopesError(errorMessage, scopes);
+    }
+
     static createScopesRequiredError(scopes: any): ClientConfigurationError {
         const errorMessage = ClientConfigurationErrorMessage.scopesRequired;
         return this.buildClientConfigurationScopesError(errorMessage, scopes);

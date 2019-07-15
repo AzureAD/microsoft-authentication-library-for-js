@@ -5,7 +5,7 @@ import { AuthOptions } from './AuthOptions';
 
 const DEFAULT_AUTH_OPTIONS = {
     authority: 'https://login.microsoftonline.com/common/',
-    redirectUri: 'msalElectron://auth',
+    redirectUri: 'msalElectron://auth/',
 };
 
 /**

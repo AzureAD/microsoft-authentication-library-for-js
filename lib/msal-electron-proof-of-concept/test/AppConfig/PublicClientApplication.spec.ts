@@ -56,5 +56,24 @@ describe('PublicClientApplication.ts class', () => {
             expect(authError.message).to.contain(nonArrayInputScopesErrorMessage.description);
             expect(authError.name).to.equal('ClientConfigurationError');
         });
+
+        // Empty scopes array
+        it('should throw ClientConfigurationError empty_input_scopes_error when scopes object is empty array', () => {
+            const emptyInputScopesErrorMessage = ClientConfigurationErrorMessage.emptyScopes;
+            const invalidTokenRequest = {
+                scopes: [],
+            };
+
+            try {
+                msalApp.acquireToken(invalidTokenRequest);
+            } catch (error) {
+                authError = error;
+            }
+
+            expect(authError.errorCode).to.equal(emptyInputScopesErrorMessage.code);
+            expect(authError.errorMessage).to.contain(emptyInputScopesErrorMessage.description);
+            expect(authError.message).to.contain(emptyInputScopesErrorMessage.description);
+            expect(authError.name).to.equal('ClientConfigurationError');
+        });
     });
 });

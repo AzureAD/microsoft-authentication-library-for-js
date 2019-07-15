@@ -5,24 +5,23 @@ import { expect } from 'chai';
 import * as Mocha from 'mocha';
 
 import { ApplicationConfiguration } from '../../src/index';
+import { TEST_CONFIGURATION, TEST_VALID_AUTH_CONFIGURATION } from '../testConstants';
 
 describe('ApplicationConfiguration.ts', () => {
-    // Test MSAL config params
-    const MSAL_CLIENT_ID = '0813e1d1-ad72-46a9-8665-399bba48c201';
     let msalConfig;
 
     describe('#constructor', () => {
         beforeEach(() => {
             msalConfig = {
-                clientId: MSAL_CLIENT_ID,
+                clientId: TEST_VALID_AUTH_CONFIGURATION.clientId,
             };
         });
 
-        it('sets correct clientId and other auth options to null when called with only clientId in auth config object', () => {
+        it('sets correct default configuration when only client ID is passed in', () => {
             const appConfig = new ApplicationConfiguration(msalConfig);
-            expect(appConfig.authOptions.clientId).to.equal(MSAL_CLIENT_ID);
-            expect(appConfig.authOptions.authority).to.be.undefined;
-            expect(appConfig.authOptions.redirectUri).to.be.undefined;
+            expect(appConfig.authOptions.clientId).to.equal(TEST_VALID_AUTH_CONFIGURATION.clientId);
+            expect(appConfig.authOptions.authority).to.equal(TEST_VALID_AUTH_CONFIGURATION.authority);
+            expect(appConfig.authOptions.redirectUri).to.equal(TEST_VALID_AUTH_CONFIGURATION.redirectUri);
         });
     });
 
