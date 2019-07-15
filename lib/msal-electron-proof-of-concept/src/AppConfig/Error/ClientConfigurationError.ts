@@ -14,6 +14,10 @@ export const ClientConfigurationErrorMessage = {
         code: 'empty_input_scopes_error',
         description: 'Scopes are required to obtain an access token.',
     },
+    nonArrayScopes: {
+        code: 'nonarray_input_scopes_error',
+        description: 'Scopes cannot be passed as non-array.',
+    },
 };
 
 /**
@@ -25,6 +29,16 @@ export const ClientConfigurationErrorMessage = {
 export class ClientConfigurationError extends AuthErrorBase {
     static createScopesRequiredError(scopes: any): ClientConfigurationError {
         const errorMessage = ClientConfigurationErrorMessage.scopesRequired;
+        return this.buildClientConfigurationScopesError(errorMessage, scopes);
+
+    }
+
+    static createScopesNonArrayError(scopes: any): ClientConfigurationError {
+        const errorMessage = ClientConfigurationErrorMessage.nonArrayScopes;
+        return this.buildClientConfigurationScopesError(errorMessage, scopes);
+    }
+
+    private static buildClientConfigurationScopesError(errorMessage, scopes: string[]): ClientConfigurationError {
         return new ClientConfigurationError(errorMessage.code,
             `${errorMessage.description} Given value: ${scopes}`);
     }

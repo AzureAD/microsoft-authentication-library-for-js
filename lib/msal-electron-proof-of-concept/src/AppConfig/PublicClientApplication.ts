@@ -30,8 +30,14 @@ export class PublicClientApplication extends ClientApplicationBase {
     }
 
     private validateInputScopes(scopes: string[]): void {
+        // Check that scopes are present
         if (!scopes) {
             throw ClientConfigurationError.createScopesRequiredError(scopes);
+        }
+
+        // Check that scopes is an array
+        if(!Array.isArray(scopes)) {
+            throw ClientConfigurationError.createScopesNonArrayError(scopes);
         }
     }
 
