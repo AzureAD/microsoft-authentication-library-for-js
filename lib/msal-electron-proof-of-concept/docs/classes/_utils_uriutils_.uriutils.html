@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;AppConfig/PublicClientApplication&quot; | msal-electron-poc</title>
+	<title>UriUtils | msal-electron-poc</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,27 +56,114 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_appconfig_publicclientapplication_.html">&quot;AppConfig/PublicClientApplication&quot;</a>
+					<a href="../modules/_utils_uriutils_.html">&quot;Utils/UriUtils&quot;</a>
+				</li>
+				<li>
+					<a href="_utils_uriutils_.uriutils.html">UriUtils</a>
 				</li>
 			</ul>
-			<h1>External module &quot;AppConfig/PublicClientApplication&quot;</h1>
+			<h1>Class UriUtils</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>The UriUtils class exposes static utility methods
+						that deal with validating, processing and building URIs</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">UriUtils</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Classes</h3>
+							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module"><a href="../classes/_appconfig_publicclientapplication_.publicclientapplication.html" class="tsd-kind-icon">Public<wbr>Client<wbr>Application</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="_utils_uriutils_.uriutils.html#canonicalizeuri" class="tsd-kind-icon">canonicalize<wbr>Uri</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="_utils_uriutils_.uriutils.html#validatesuffix" class="tsd-kind-icon">validate<wbr>Suffix</a></li>
 							</ul>
 						</section>
 					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="canonicalizeuri" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> canonicalize<wbr>Uri</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">canonicalize<wbr>Uri<span class="tsd-signature-symbol">(</span>rawUri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/Utils/UriUtils.ts#L15">Utils/UriUtils.ts:15</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Validates that the URI supplied is in canonical form and if not
+									performs the necessary changes in order to canonicalize it</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>rawUri: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="validatesuffix" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> validate<wbr>Suffix</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">validate<wbr>Suffix<span class="tsd-signature-symbol">(</span>uri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, suffix<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/Utils/UriUtils.ts#L33">Utils/UriUtils.ts:33</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Checks to see if the supplied uri ends with the supplied suffix</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>uri: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>suffix: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -87,42 +174,54 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_applicationconfiguration_.html">"<wbr>App<wbr>Config/<wbr>Application<wbr>Configuration"</a>
+						<a href="../modules/_appconfig_applicationconfiguration_.html">"<wbr>App<wbr>Config/<wbr>Application<wbr>Configuration"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_authoptions_.html">"<wbr>App<wbr>Config/<wbr>Auth<wbr>Options"</a>
+						<a href="../modules/_appconfig_authoptions_.html">"<wbr>App<wbr>Config/<wbr>Auth<wbr>Options"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_authenticationparameters_.html">"<wbr>App<wbr>Config/<wbr>Authentication<wbr>Parameters"</a>
+						<a href="../modules/_appconfig_authenticationparameters_.html">"<wbr>App<wbr>Config/<wbr>Authentication<wbr>Parameters"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_clientapplicationbase_.html">"<wbr>App<wbr>Config/<wbr>Client<wbr>Application<wbr>Base"</a>
+						<a href="../modules/_appconfig_clientapplicationbase_.html">"<wbr>App<wbr>Config/<wbr>Client<wbr>Application<wbr>Base"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_defaultconstants_.html">"<wbr>App<wbr>Config/<wbr>Default<wbr>Constants"</a>
+						<a href="../modules/_appconfig_defaultconstants_.html">"<wbr>App<wbr>Config/<wbr>Default<wbr>Constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_error_autherror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Auth<wbr>Error"</a>
+						<a href="../modules/_appconfig_error_autherror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Auth<wbr>Error"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_appconfig_error_clientconfigurationerror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Client<wbr>Configuration<wbr>Error"</a>
+						<a href="../modules/_appconfig_error_clientconfigurationerror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Client<wbr>Configuration<wbr>Error"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_appconfig_publicclientapplication_.html">"<wbr>App<wbr>Config/<wbr>Public<wbr>Client<wbr>Application"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
-						<a href="_appconfig_publicclientapplication_.html">"<wbr>App<wbr>Config/<wbr>Public<wbr>Client<wbr>Application"</a>
+						<a href="../modules/_utils_uriutils_.html">"<wbr>Utils/<wbr>Uri<wbr>Utils"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_utils_uriutils_.html">"<wbr>Utils/<wbr>Uri<wbr>Utils"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_index_.html">"index"</a>
+						<a href="../modules/_index_.html">"index"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/_appconfig_publicclientapplication_.publicclientapplication.html" class="tsd-kind-icon">Public<wbr>Client<wbr>Application</a>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="_utils_uriutils_.uriutils.html" class="tsd-kind-icon">Uri<wbr>Utils</a>
+						<ul>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="_utils_uriutils_.uriutils.html#canonicalizeuri" class="tsd-kind-icon">canonicalize<wbr>Uri</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="_utils_uriutils_.uriutils.html#validatesuffix" class="tsd-kind-icon">validate<wbr>Suffix</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 				</ul>
 			</nav>
 		</div>

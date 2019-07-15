@@ -50,9 +50,7 @@ export default class Main {
     // This is where MSAL set up and configuration happens.
     private static configureAuthentication(): void {
         const msalAuthConfig = {
-            authority: 'https://login.microsoftonline.com/common',
             clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
-            redirectUri: 'https://localhost:3000',
         };
         this.msalApp = new PublicClientApplication(msalAuthConfig);
         console.dir(this.msalApp);
@@ -62,6 +60,7 @@ export default class Main {
         ipcMain.on('AcquireToken', () => {
             console.log('Acquiring Token');
             const tokenRequest = {
+                scopes: ['user.read', 'mail.read'],
             };
             const accessToken: string = this.msalApp.acquireToken(tokenRequest);
             console.log(accessToken);

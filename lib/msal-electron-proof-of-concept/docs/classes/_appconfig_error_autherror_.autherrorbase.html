@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>ClientApplicationBase | msal-electron-poc</title>
+	<title>AuthErrorBase | msal-electron-poc</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,13 +56,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_appconfig_clientapplicationbase_.html">&quot;AppConfig/ClientApplicationBase&quot;</a>
+					<a href="../modules/_appconfig_error_autherror_.html">&quot;AppConfig/Error/AuthError&quot;</a>
 				</li>
 				<li>
-					<a href="_appconfig_clientapplicationbase_.clientapplicationbase.html">ClientApplicationBase</a>
+					<a href="_appconfig_error_autherror_.autherrorbase.html">AuthErrorBase</a>
 				</li>
 			</ul>
-			<h1>Class ClientApplicationBase</h1>
+			<h1>Class AuthErrorBase</h1>
 		</div>
 	</div>
 </header>
@@ -72,19 +72,23 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>ClientApplicationBase abstract class</p>
+						<p>General error class thrown by MSAL Electron</p>
 					</div>
-					<p>Abstract class that provides a base for Public and Private Application classes.</p>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">ClientApplicationBase</span>
+						<span class="tsd-signature-type">Error</span>
 						<ul class="tsd-hierarchy">
 							<li>
-								<a href="_appconfig_publicclientapplication_.publicclientapplication.html" class="tsd-signature-type">PublicClientApplication</a>
+								<span class="target">AuthErrorBase</span>
+								<ul class="tsd-hierarchy">
+									<li>
+										<a href="_appconfig_error_clientconfigurationerror_.clientconfigurationerror.html" class="tsd-signature-type">ClientConfigurationError</a>
+									</li>
+								</ul>
 							</li>
 						</ul>
 					</li>
@@ -97,13 +101,18 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_appconfig_clientapplicationbase_.clientapplicationbase.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_appconfig_error_autherror_.autherrorbase.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
-							<h3>Accessors</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="_appconfig_clientapplicationbase_.clientapplicationbase.html#config" class="tsd-kind-icon">config</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_appconfig_error_autherror_.autherrorbase.html#errorcode" class="tsd-kind-icon">error<wbr>Code</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_appconfig_error_autherror_.autherrorbase.html#errormessage" class="tsd-kind-icon">error<wbr>Message</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_appconfig_error_autherror_.autherrorbase.html#message" class="tsd-kind-icon">message</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_appconfig_error_autherror_.autherrorbase.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_appconfig_error_autherror_.autherrorbase.html#stack" class="tsd-kind-icon">stack</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="_appconfig_error_autherror_.autherrorbase.html#error" class="tsd-kind-icon">Error</a></li>
 							</ul>
 						</section>
 					</div>
@@ -115,44 +124,94 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Client<wbr>Application<wbr>Base<span class="tsd-signature-symbol">(</span>authOptions<span class="tsd-signature-symbol">: </span><a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_clientapplicationbase_.clientapplicationbase.html" class="tsd-signature-type">ClientApplicationBase</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Auth<wbr>Error<wbr>Base<span class="tsd-signature-symbol">(</span>errorCode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, errorMessage<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_error_autherror_.autherrorbase.html" class="tsd-signature-type">AuthErrorBase</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/ClientApplicationBase.ts#L13">AppConfig/ClientApplicationBase.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/Error/AuthError.ts#L10">AppConfig/Error/AuthError.ts:10</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>authOptions: <a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a></h5>
+									<h5>errorCode: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> errorMessage: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_appconfig_clientapplicationbase_.clientapplicationbase.html" class="tsd-signature-type">ClientApplicationBase</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_appconfig_error_autherror_.autherrorbase.html" class="tsd-signature-type">AuthErrorBase</a></h4>
 						</li>
 					</ul>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Accessors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-					<a name="config" class="tsd-anchor"></a>
-					<h3>config</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-signature-type">ApplicationConfiguration</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/ClientApplicationBase.ts#L19">AppConfig/ClientApplicationBase.ts:19</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-signature-type">ApplicationConfiguration</a></h4>
-						</li>
-					</ul>
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="errorcode" class="tsd-anchor"></a>
+					<h3>error<wbr>Code</h3>
+					<div class="tsd-signature tsd-kind-icon">error<wbr>Code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/Error/AuthError.ts#L9">AppConfig/Error/AuthError.ts:9</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="errormessage" class="tsd-anchor"></a>
+					<h3>error<wbr>Message</h3>
+					<div class="tsd-signature tsd-kind-icon">error<wbr>Message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/Error/AuthError.ts#L10">AppConfig/Error/AuthError.ts:10</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="message" class="tsd-anchor"></a>
+					<h3>message</h3>
+					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from Error.message</p>
+						<ul>
+							<li>Defined in /mnt/c/Users/HectorMg/workspace/microsoft-authentication-library-for-js/lib/msal-electron-proof-of-concept/node_modules/typedoc/node_modules/typescript/lib/lib.es5.d.ts:964</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="name" class="tsd-anchor"></a>
+					<h3>name</h3>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from Error.name</p>
+						<ul>
+							<li>Defined in /mnt/c/Users/HectorMg/workspace/microsoft-authentication-library-for-js/lib/msal-electron-proof-of-concept/node_modules/typedoc/node_modules/typescript/lib/lib.es5.d.ts:963</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+					<a name="stack" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> stack</h3>
+					<div class="tsd-signature tsd-kind-icon">stack<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from Error.stack</p>
+						<p>Overrides Error.stack</p>
+						<ul>
+							<li>Defined in /mnt/c/Users/HectorMg/workspace/microsoft-authentication-library-for-js/lib/msal-electron-proof-of-concept/node_modules/typedoc/node_modules/typescript/lib/lib.es5.d.ts:965</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
+					<a name="error" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> Error</h3>
+					<div class="tsd-signature tsd-kind-icon">Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ErrorConstructor</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in /mnt/c/Users/HectorMg/workspace/microsoft-authentication-library-for-js/lib/msal-electron-proof-of-concept/node_modules/typedoc/node_modules/typescript/lib/lib.es5.d.ts:974</li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 		</div>
@@ -171,13 +230,13 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_appconfig_authenticationparameters_.html">"<wbr>App<wbr>Config/<wbr>Authentication<wbr>Parameters"</a>
 					</li>
-					<li class="current tsd-kind-external-module">
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_appconfig_clientapplicationbase_.html">"<wbr>App<wbr>Config/<wbr>Client<wbr>Application<wbr>Base"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_appconfig_defaultconstants_.html">"<wbr>App<wbr>Config/<wbr>Default<wbr>Constants"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_appconfig_error_autherror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Auth<wbr>Error"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -199,13 +258,28 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_appconfig_clientapplicationbase_.clientapplicationbase.html" class="tsd-kind-icon">Client<wbr>Application<wbr>Base</a>
+						<a href="_appconfig_error_autherror_.autherrorbase.html" class="tsd-kind-icon">Auth<wbr>Error<wbr>Base</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_appconfig_clientapplicationbase_.clientapplicationbase.html#constructor" class="tsd-kind-icon">constructor</a>
+								<a href="_appconfig_error_autherror_.autherrorbase.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
-							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-								<a href="_appconfig_clientapplicationbase_.clientapplicationbase.html#config" class="tsd-kind-icon">config</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_appconfig_error_autherror_.autherrorbase.html#errorcode" class="tsd-kind-icon">error<wbr>Code</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_appconfig_error_autherror_.autherrorbase.html#errormessage" class="tsd-kind-icon">error<wbr>Message</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="_appconfig_error_autherror_.autherrorbase.html#message" class="tsd-kind-icon">message</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="_appconfig_error_autherror_.autherrorbase.html#name" class="tsd-kind-icon">name</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="_appconfig_error_autherror_.autherrorbase.html#stack" class="tsd-kind-icon">stack</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
+								<a href="_appconfig_error_autherror_.autherrorbase.html#error" class="tsd-kind-icon">Error</a>
 							</li>
 						</ul>
 					</li>

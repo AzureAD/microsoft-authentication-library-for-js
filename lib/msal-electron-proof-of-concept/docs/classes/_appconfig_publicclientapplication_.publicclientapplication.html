@@ -56,7 +56,7 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_appconfig_publicclientapplication_.html">&quot;appConfig/publicClientApplication&quot;</a>
+					<a href="../modules/_appconfig_publicclientapplication_.html">&quot;AppConfig/PublicClientApplication&quot;</a>
 				</li>
 				<li>
 					<a href="_appconfig_publicclientapplication_.publicclientapplication.html">PublicClientApplication</a>
@@ -107,6 +107,12 @@
 								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="_appconfig_publicclientapplication_.publicclientapplication.html#config" class="tsd-kind-icon">config</a></li>
 							</ul>
 						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_appconfig_publicclientapplication_.publicclientapplication.html#acquiretoken" class="tsd-kind-icon">acquire<wbr>Token</a></li>
+							</ul>
+						</section>
 					</div>
 				</section>
 			</section>
@@ -116,20 +122,20 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Public<wbr>Client<wbr>Application<span class="tsd-signature-symbol">(</span>applicationConfiguration<span class="tsd-signature-symbol">: </span><a href="../modules/_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-signature-type">ApplicationConfiguration</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_publicclientapplication_.publicclientapplication.html" class="tsd-signature-type">PublicClientApplication</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Public<wbr>Client<wbr>Application<span class="tsd-signature-symbol">(</span>authOptions<span class="tsd-signature-symbol">: </span><a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_publicclientapplication_.publicclientapplication.html" class="tsd-signature-type">PublicClientApplication</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_appconfig_clientapplicationbase_.clientapplicationbase.html">ClientApplicationBase</a>.<a href="_appconfig_clientapplicationbase_.clientapplicationbase.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/publicClientApplication.ts#L13">appConfig/publicClientApplication.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/PublicClientApplication.ts#L14">AppConfig/PublicClientApplication.ts:14</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>applicationConfiguration: <a href="../modules/_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-signature-type">ApplicationConfiguration</a></h5>
+									<h5>authOptions: <a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_appconfig_publicclientapplication_.publicclientapplication.html" class="tsd-signature-type">PublicClientApplication</a></h4>
@@ -143,17 +149,51 @@
 					<a name="config" class="tsd-anchor"></a>
 					<h3>config</h3>
 					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-signature-type">ApplicationConfiguration</a></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-signature-type">ApplicationConfiguration</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="_appconfig_clientapplicationbase_.clientapplicationbase.html">ClientApplicationBase</a>.<a href="_appconfig_clientapplicationbase_.clientapplicationbase.html#config">config</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2520ed9/lib/msal-electron-proof-of-concept/src/appConfig/clientApplicationBase.ts#L18">appConfig/clientApplicationBase.ts:18</a></li>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/ClientApplicationBase.ts#L19">AppConfig/ClientApplicationBase.ts:19</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="../modules/_appconfig_applicationconfiguration_.html#applicationconfiguration" class="tsd-signature-type">ApplicationConfiguration</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-signature-type">ApplicationConfiguration</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="acquiretoken" class="tsd-anchor"></a>
+					<h3>acquire<wbr>Token</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">acquire<wbr>Token<span class="tsd-signature-symbol">(</span>request<span class="tsd-signature-symbol">: </span><a href="../modules/_appconfig_authenticationparameters_.html#authenticationparameters" class="tsd-signature-type">AuthenticationParameters</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/f5c09b4/lib/msal-electron-proof-of-concept/src/AppConfig/PublicClientApplication.ts#L25">AppConfig/PublicClientApplication.ts:25</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>The acquireToken method uses the Authorization Code
+										Grant to retrieve an access token from the AAD authorization server,
+										which can be used to make authenticated calls to an resource server
+									such as MS Graph.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>request: <a href="../modules/_appconfig_authenticationparameters_.html#authenticationparameters" class="tsd-signature-type">AuthenticationParameters</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -166,13 +206,31 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_appconfig_applicationconfiguration_.html">"app<wbr>Config/application<wbr>Configuration"</a>
+						<a href="../modules/_appconfig_applicationconfiguration_.html">"<wbr>App<wbr>Config/<wbr>Application<wbr>Configuration"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_appconfig_clientapplicationbase_.html">"app<wbr>Config/client<wbr>Application<wbr>Base"</a>
+						<a href="../modules/_appconfig_authoptions_.html">"<wbr>App<wbr>Config/<wbr>Auth<wbr>Options"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_appconfig_authenticationparameters_.html">"<wbr>App<wbr>Config/<wbr>Authentication<wbr>Parameters"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_appconfig_clientapplicationbase_.html">"<wbr>App<wbr>Config/<wbr>Client<wbr>Application<wbr>Base"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_appconfig_defaultconstants_.html">"<wbr>App<wbr>Config/<wbr>Default<wbr>Constants"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_appconfig_error_autherror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Auth<wbr>Error"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_appconfig_error_clientconfigurationerror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Client<wbr>Configuration<wbr>Error"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
-						<a href="../modules/_appconfig_publicclientapplication_.html">"app<wbr>Config/public<wbr>Client<wbr>Application"</a>
+						<a href="../modules/_appconfig_publicclientapplication_.html">"<wbr>App<wbr>Config/<wbr>Public<wbr>Client<wbr>Application"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_utils_uriutils_.html">"<wbr>Utils/<wbr>Uri<wbr>Utils"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_.html">"index"</a>
@@ -191,6 +249,9 @@
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
 								<a href="_appconfig_publicclientapplication_.publicclientapplication.html#config" class="tsd-kind-icon">config</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_appconfig_publicclientapplication_.publicclientapplication.html#acquiretoken" class="tsd-kind-icon">acquire<wbr>Token</a>
 							</li>
 						</ul>
 					</li>
