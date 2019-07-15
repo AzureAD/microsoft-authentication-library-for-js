@@ -46,6 +46,9 @@ These security concerns are mitigated per standard practices such as- use of sho
 
 We offer two methods of storage for Msal, `localStorage` and `sessionStorage`.  Our recommendation is to use `sessionStorage` because it is more secure in storing tokens that are acquired by your users, but `localStorage` will give you Single Sign On accross tabs and user sessions.  We encourge you to explore the options and make the best decision for your application.
 
+### forceRefresh to skip cache
+If you would like to skip a cached token and go to the server, please pass in the boolean `forceRefresh` into the `AuthenticationParameters` object used to make a login / token request. **WARNING:** This should not be used by default, because of the performance impact on your application.  Relying on the cache will give your users a better experience, and skipping it should only be used in scenarios where you know the current cached data does not have up to date information.  Example: Admin tool to add roles to a user that needs to get a new token with updates roles.
+
 ## Usage
 The example below walks you through how to login a user and acquire a token to be used for Microsoft's Graph Api.
 

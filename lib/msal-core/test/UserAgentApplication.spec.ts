@@ -827,7 +827,42 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Error in assertion: " + JSON.stringify(err));
             });
         });
+
+        it("tests getCachedToken is skipped when force is set true", function (done) {
+
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["S1"],
+                account: account,
+                forceRefresh: true
+            };
+
+            setUtilUnifiedCacheQPStubs({
+                [SSOTypes.SID]: account.sid
+            });
+            const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
+
+            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+                expect(cacheCallSpy.notCalled).to.be.true;
+                expect(url).to.include(TEST_CONFIG.validAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
+                expect(url).to.include('&client_id=' + TEST_CONFIG.MSAL_CLIENT_ID);
+                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include('&state');
+                expect(url).to.include('&client_info=1');
+                done();
+                return {};
+            });
+
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                // Won't happen - we are not testing response here
+                throw `Shouldn't have response here. Data: ${JSON.stringify(response)}`;
+            }).catch(done);
+        });
     });
+
+
 
     describe("Processing Authentication Responses", function() {
 

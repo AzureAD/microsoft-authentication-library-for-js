@@ -934,7 +934,9 @@ export class UserAgentApplication {
       let authErr: AuthError;
       let cacheResultResponse;
 
-      if (!userContainedClaims) {
+      const forceCacheSkip = request ? request.forceRefresh : false;
+
+      if (!userContainedClaims && !forceCacheSkip) {
         try {
           cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
         } catch (e) {
@@ -957,6 +959,8 @@ export class UserAgentApplication {
       else {
         if (userContainedClaims) {
           this.logger.verbose("Skipped cache lookup since claims were given.");
+        } else if (forceCacheSkip) {
+          this.logger.verbose("Skipped cache lookup since request.forceRefresh option was set to true");
         } else {
           this.logger.verbose("Token is not in cache for scope:" + scope);
         }
