@@ -1,6 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
+/**
+ * The UriUtils class exposes static utility methods
+ * that deal with validating, processing and building URIs
+ */
+
 export class UriUtils {
     /**
      * Validates that the URI supplied is in canonical form and if not

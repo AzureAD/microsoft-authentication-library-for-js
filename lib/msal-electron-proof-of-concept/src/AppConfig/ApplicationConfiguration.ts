@@ -2,10 +2,11 @@
 // Licensed under the MIT License.
 
 import { AuthOptions } from './AuthOptions';
+import { DEFAULT_AUTHORITY, DEFAULT_REDIRECT_URI } from './DefaultConstants';
 
 const DEFAULT_AUTH_OPTIONS = {
-    authority: 'https://login.microsoftonline.com/common/',
-    redirectUri: 'msalElectron://auth/',
+    authority: DEFAULT_AUTHORITY,
+    redirectUri: DEFAULT_REDIRECT_URI,
 };
 
 /**

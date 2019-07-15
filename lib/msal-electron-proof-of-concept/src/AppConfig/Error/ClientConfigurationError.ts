@@ -1,7 +1,7 @@
-import { AuthErrorBase } from './AuthError';
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
+
+import { AuthErrorBase } from './AuthError';
 
 /**
  * The ClientConfigurationMessage object holds all
