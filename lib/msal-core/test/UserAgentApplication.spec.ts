@@ -486,6 +486,17 @@ describe("UserAgentApplication.ts Class", function () {
             expect(authErr.stack).to.include("UserAgentApplication.spec.js");
             done();
         });
+
+        it("throws an error if configured with a null request", () => {
+            let correctError;
+            try {
+                msal.acquireTokenRedirect();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                correctError = true;
+            }
+            expect(correctError).to.be.true;
+        });
     });
 
     describe("Different Callback Signatures", function () {
@@ -1281,6 +1292,17 @@ describe("UserAgentApplication.ts Class", function () {
             expect(acquireTokenPromise instanceof Promise).to.be.true;
             acquireTokenPromise.catch(error => {});
         });
+
+        it("throws an error if configured with a null request", () => {
+            let correctError;
+            try {
+                msal.acquireTokenPopup();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                correctError = true;
+            }
+            expect(correctError).to.be.true;
+        });
     });
 
     describe("Silent Flow", function () {
@@ -1306,6 +1328,17 @@ describe("UserAgentApplication.ts Class", function () {
             acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]});
             expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
             acquireTokenSilentPromise.catch(error => {});
+        });
+
+        it("throws an error if configured with a null request", () => {
+            let correctError;
+            try {
+                msal.acquireTokenSilent();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                correctError = true;
+            }
+            expect(correctError).to.be.true;
         });
 
     });

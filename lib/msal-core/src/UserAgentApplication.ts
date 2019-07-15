@@ -429,6 +429,10 @@ export class UserAgentApplication {
    * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
    */
   acquireTokenRedirect(request: AuthenticationParameters): void {
+    if (!request) {
+      throw ClientConfigurationError.createEmptyRequestError();
+    }
+
     // Throw error if callbacks are not set before redirect
     if (!this.redirectCallbacksSet) {
       throw ClientConfigurationError.createRedirectCallbacksNotSetError();
@@ -662,6 +666,9 @@ export class UserAgentApplication {
    * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
    */
   acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
+    if (!request) {
+      throw ClientConfigurationError.createEmptyRequestError();
+    }
     return new Promise<AuthResponse>((resolve, reject) => {
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
@@ -888,6 +895,9 @@ export class UserAgentApplication {
    */
   @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+    if (!request) {
+      throw ClientConfigurationError.createEmptyRequestError();
+    }
     return new Promise<AuthResponse>((resolve, reject) => {
 
       // Validate and filter scopes (the validate function will throw if validation fails)
@@ -934,9 +944,7 @@ export class UserAgentApplication {
       let authErr: AuthError;
       let cacheResultResponse;
 
-      const forceCacheSkip = request ? request.forceRefresh : false;
-
-      if (!userContainedClaims && !forceCacheSkip) {
+      if (!userContainedClaims && !request.forceRefresh) {
         try {
           cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
         } catch (e) {
@@ -959,7 +967,7 @@ export class UserAgentApplication {
       else {
         if (userContainedClaims) {
           this.logger.verbose("Skipped cache lookup since claims were given.");
-        } else if (forceCacheSkip) {
+        } else if (request.forceRefresh) {
           this.logger.verbose("Skipped cache lookup since request.forceRefresh option was set to true");
         } else {
           this.logger.verbose("Token is not in cache for scope:" + scope);
