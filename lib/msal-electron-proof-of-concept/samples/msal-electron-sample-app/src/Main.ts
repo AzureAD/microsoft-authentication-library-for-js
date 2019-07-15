@@ -61,7 +61,10 @@ export default class Main {
     private static listenForAcquireToken(): void {
         ipcMain.on('AcquireToken', () => {
             console.log('Acquiring Token');
-            const accessToken: string = this.msalApp.acquireToken();
+            const tokenRequest = {
+                scopes: ['user.read', 'mail.read'],
+            };
+            const accessToken: string = this.msalApp.acquireToken(tokenRequest);
             console.log(accessToken);
         });
     }

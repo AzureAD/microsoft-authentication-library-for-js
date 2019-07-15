@@ -2,7 +2,6 @@
 // Licensed under the MIT License
 
 export class UriUtils {
-
     /**
      * Validates that the URI supplied is in canonical form and if not
      * performs the necessary changes in order to canonicalize it

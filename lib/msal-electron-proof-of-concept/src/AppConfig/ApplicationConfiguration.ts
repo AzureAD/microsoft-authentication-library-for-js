@@ -2,6 +2,12 @@
 // Licensed under the MIT License.
 
 import { AuthOptions } from './AuthOptions';
+import { UriUtils } from '../utils/uriUtils';
+
+const DEFAULT_AUTH_OPTIONS = {
+    authority: UriUtils.getDefaultAuthority(),
+    redirectUri: UriUtils.getDefaultRedirectUri(),
+};
 
 /**
  * Use the ApplicationConfiguration object to configure MSAL and initialize your PublicClientApplication.
