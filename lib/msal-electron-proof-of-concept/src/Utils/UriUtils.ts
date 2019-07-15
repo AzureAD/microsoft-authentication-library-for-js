@@ -14,7 +14,7 @@ export class UriUtils {
             canonicalUri = rawUri.toLowerCase();
         }
 
-        if (rawUri && !UriUtils.endsWith(rawUri, '/')) {
+        if (rawUri && !UriUtils.validateSuffix(rawUri, '/')) {
             canonicalUri += '/';
         }
 
@@ -24,10 +24,9 @@ export class UriUtils {
     /**
      * Checks to see if the supplied uri ends with the supplied suffix
      * @param uri
-     * @param str
+     * @param suffix
      */
-    // TODO: Rename this, not clear what it is supposed to do
-    static endsWith(uri: string, suffix: string): boolean {
+    static validateSuffix(uri: string, suffix: string): boolean {
         if (!uri || !suffix) {
             return false;
         }

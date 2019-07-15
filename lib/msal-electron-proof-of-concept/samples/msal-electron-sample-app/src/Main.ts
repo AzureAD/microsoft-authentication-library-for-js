@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { PublicClientApplication } from 'msal-electron-poc';
 import * as path from 'path';
 
@@ -31,6 +31,9 @@ export default class Main {
 
         // Once appplication is ready, configure MSAL Public Client App
         Main.configureAuthentication();
+
+        // Listen for AcquireToken button call
+        Main.listenForAcquireToken();
     }
 
     private static createMainWindow(): void {
@@ -41,6 +44,7 @@ export default class Main {
                 nodeIntegration: true,
             },
         });
+        this.mainWindow.webContents.openDevTools();
     }
 
     // This is where MSAL set up and configuration happens.
@@ -52,5 +56,13 @@ export default class Main {
         };
 
         this.msalApp = new PublicClientApplication(msalAuthConfig);
+    }
+
+    private static listenForAcquireToken(): void {
+        ipcMain.on('AcquireToken', () => {
+            console.log('Acquiring Token');
+            const accessToken: string = this.msalApp.acquireToken();
+            console.log(accessToken);
+        });
     }
 }

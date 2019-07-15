@@ -13,4 +13,9 @@ export class PublicClientApplication extends ClientApplicationBase {
     constructor(authOptions: AuthOptions) {
         super(authOptions);
     }
+
+    public acquireToken(): string {
+        return 'Access Token';
+    }
+
 }
