@@ -25,7 +25,7 @@ PLEASE HELP US TO HELP YOU BETTER AND FASTER BY PROVIDING THE FOLLOWING INFORMAT
 <pre><code>
 Library version: X.Y.Z
 <!-- Check whether this is still an issue in the most recent version -->
-
+</code></pre>
 
 ## Current behavior
 <!-- Describe how the issue manifests. -->
@@ -39,4 +39,4 @@ Library version: X.Y.Z
 <!-- please provide the *STEPS TO REPRODUCE* -->
 
 
-</code></pre>
+

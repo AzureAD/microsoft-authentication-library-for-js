@@ -2,12 +2,14 @@
 Microsoft Authentication Library for Angular Preview
 =========================================================
 
-The MSAL library preview for Angular is a wrapper of the core MSAL.js library which enables Angular(4.3 to 5) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://cloud.microsoft.com) OR  [Microsoft Graph](https://graph.microsoft.io).
+The MSAL library preview for Angular is a wrapper of the core MSAL.js library which enables Angular(4.3 to 5) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://www.microsoft.com/enterprise) OR  [Microsoft Graph](https://graph.microsoft.io).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
 ## Important Note about the MSAL Angular Preview
 Please note that during the preview we may make changes to the API, internal cache format, and other mechanisms of this library, which you will be required to take along with bug fixes or feature improvements. This may impact your application. For instance, a change to the cache format may impact your users, such as requiring them to sign in again. An API change may require you to update your code. When we provide the General Availability release we will require you to update to the General Availability version within six months, as applications written using a preview version of library may no longer work.
+
+This is an early preview library and we are tracking certain [known issues and requests](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues?q=is%3Aopen+is%3Aissue+label%3Aangular) which we plan on addressing. Please watch the [Roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap) for details.
 
 ## Installation
 The msal-angular package is available on NPM:
@@ -177,8 +179,8 @@ only consent it and no access token will be acquired till the time client actual
 * **unprotectedResources** : Array of  URI's. Msal will not attach a token to outgoing requests that have these uri. Defaults to 'null'.
 
 * **protectedResourceMap** : Mapping of resources to scopes  {"https://graph.microsoft.com/v1.0/me", ["user.read", "mail.send"]}. Used internally by the MSAL for automatically attaching tokens in webApi calls.
-                             This is required only for CORS calls.	
-                            
+                             This is required only for CORS calls.
+
 export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
 
 * **level** : Configurable log level. Default value is Info.
@@ -279,7 +281,7 @@ First navigate to the root directory of the library(msal-angular) and install th
 Then use the following command to build the library and run all the unit tests:
 
 	npm run ngcompile
-	
+
 	npm run test
 
 ## Security Library
