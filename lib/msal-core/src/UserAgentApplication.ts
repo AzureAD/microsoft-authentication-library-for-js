@@ -7,7 +7,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams } from "./Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionErrorType } from "./Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -929,6 +929,7 @@ export class UserAgentApplication {
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
+
       let userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
       let authErr: AuthError;
@@ -1020,12 +1021,9 @@ export class UserAgentApplication {
    * @hidden
    */
   private isInteractionRequired(errorString: string) : boolean {
-    if (errorString.indexOf("interaction_required") !== -1 ||
-    errorString.indexOf("consent_required") !== -1 ||
-    errorString.indexOf("login_required") !== -1) {
-      return true;
-    }
-    return false;
+
+    const errorTypes = [InteractionErrorType.INTERACTION, InteractionErrorType.CONSENT, InteractionErrorType.LOGIN];
+    return errorString && errorTypes.indexOf(errorString) > -1;
   }
 
   /**
@@ -1810,7 +1808,12 @@ export class UserAgentApplication {
         acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
       }
 
-      if (this.isInteractionRequired(hashParams[Constants.error]) || this.isInteractionRequired(hashParams[Constants.errorDescription])) {
+      const {
+        [Constants.error]: hashErr,
+        [Constants.errorDescription]: hashErrDesc
+      } = hashParams;
+
+      if ((this.isInteractionRequired(hashErr)) || (this.isInteractionRequired(hashErrDesc))) {
         error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
       } else {
         error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);

@@ -47,6 +47,9 @@ describe("UserAgentApplication.ts Class", function () {
     const TEST_ERROR_CODE = "error_code";
     const TEST_ERROR_DESC = "msal error description";
 
+    const TEST_ACCESS_DENIED = "access_denied";
+    const TEST_SERVER_ERROR_SUBCODE_CANCEL = "#error=access_denied&error_subcode=cancel&state=RANDOM-GUID-HERE|";
+
     // Test SSO params
     const TEST_LOGIN_HINT = "test@test.com";
     const TEST_SID = "1234-5678";
@@ -916,6 +919,21 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
+        // TEST_SERVER_ERROR_SUBCODE_CANCEL
+        it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
+            cacheStorage.setItem(Constants.urlHash, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(error instanceof ServerError).to.be.true;
+                expect(error.name).to.include("ServerError");
+                expect(error.errorCode).to.include(TEST_ACCESS_DENIED);
+                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(Constants.urlHash, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
@@ -1107,7 +1125,6 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
-
     });
 
     describe("Logout functionality", function () {
