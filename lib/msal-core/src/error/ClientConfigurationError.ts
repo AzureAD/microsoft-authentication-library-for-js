@@ -70,6 +70,10 @@ export const ClientConfigurationErrorMessage = {
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
         desc: "Could not parse the given claims request object."
+    },
+    emptyRequestError: {
+        code: "empty_request_error",
+        desc: "Request object is required."
     }
 };
 
@@ -136,5 +140,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
             `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
+    }
+
+    static createEmptyRequestError(): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.emptyRequestError;
+        return new ClientConfigurationError(code, desc);
     }
 }
