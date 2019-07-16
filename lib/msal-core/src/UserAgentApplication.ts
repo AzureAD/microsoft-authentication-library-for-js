@@ -1019,10 +1019,7 @@ export class UserAgentApplication {
   private isInteractionRequired(errorString: string) : boolean {
 
     const errorTypes = [InteractionErrorType.INTERACTION, InteractionErrorType.CONSENT, InteractionErrorType.LOGIN];
-    if (errorString && errorTypes.indexOf(errorString) > -1) {
-        return true;
-    }
-    return false;
+    return errorString && errorTypes.indexOf(errorString) > -1;
   }
 
   /**
