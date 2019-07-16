@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { IUri } from "./IUri";
-import { Utils } from "./Utils";
+import { IUri } from "../IUri";
+import { Utils } from "../Utils";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
 import { XhrClient } from "./XHRClient";
 
 /**

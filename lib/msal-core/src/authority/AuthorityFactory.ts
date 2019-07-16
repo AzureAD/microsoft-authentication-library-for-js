@@ -4,11 +4,11 @@
 /**
  * @hidden
  */
-import { Utils } from "./Utils";
+import { Utils } from "../Utils";
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
 
 export class AuthorityFactory {
     /**

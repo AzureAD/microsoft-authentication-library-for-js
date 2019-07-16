@@ -3,8 +3,8 @@
 
 import { AadAuthority } from "./AadAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { Utils } from "./Utils";
+import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { Utils } from "../Utils";
 
 /**
  * @hidden

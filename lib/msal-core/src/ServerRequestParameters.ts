@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Authority } from "./Authority";
+import { Authority } from "./authority/Authority";
 import { Utils } from "./Utils";
 
 /**
