@@ -5,6 +5,8 @@ import { AuthOptions } from './AuthOptions';
 import { ClientApplicationBase } from './ClientApplicationBase';
 import { ClientConfigurationError } from './Error/ClientConfigurationError';
 
+import { strict as assert } from 'assert';
+
 /**
  * PublicClientApplication class
  *
@@ -31,9 +33,7 @@ export class PublicClientApplication extends ClientApplicationBase {
 
     private validateInputScopes(scopes: string[]): void {
         // Check that scopes are present
-        if (!scopes) {
-            throw ClientConfigurationError.createScopesRequiredError(scopes);
-        }
+        assert(scopes, ClientConfigurationError.createScopesRequiredError(scopes));
 
         // Check that scopes is an array
         if (!Array.isArray(scopes)) {
