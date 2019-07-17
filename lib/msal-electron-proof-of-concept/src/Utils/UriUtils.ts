@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
-import * as url from 'url';
 import { strict as assert } from 'assert';
+import * as url from 'url';
+
 import { UriError } from './Error/UriError';
 
 /**
