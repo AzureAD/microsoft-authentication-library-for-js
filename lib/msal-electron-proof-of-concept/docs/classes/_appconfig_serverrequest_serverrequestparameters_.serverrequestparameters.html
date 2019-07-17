@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>ApplicationConfiguration | msal-electron-poc</title>
+	<title>ServerRequestParameters | msal-electron-poc</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,35 +56,24 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_appconfig_applicationconfiguration_.html">&quot;AppConfig/ApplicationConfiguration&quot;</a>
+					<a href="../modules/_appconfig_serverrequest_serverrequestparameters_.html">&quot;AppConfig/ServerRequest/ServerRequestParameters&quot;</a>
 				</li>
 				<li>
-					<a href="_appconfig_applicationconfiguration_.applicationconfiguration.html">ApplicationConfiguration</a>
+					<a href="_appconfig_serverrequest_serverrequestparameters_.serverrequestparameters.html">ServerRequestParameters</a>
 				</li>
 			</ul>
-			<h1>Class ApplicationConfiguration</h1>
+			<h1>Class ServerRequestParameters</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Use the ApplicationConfiguration object to configure MSAL and initialize your PublicClientApplication.</p>
-					</div>
-					<p>This object allows you to configure your application to use important elements of MSAL functionality.</p>
-					<ul>
-						<li>auth: this object holds elements that deal with authentication (clientID, Microsoft identity platform authority, etc.)</li>
-					</ul>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">ApplicationConfiguration</span>
+						<span class="target">ServerRequestParameters</span>
 					</li>
 				</ul>
 			</section>
@@ -95,13 +84,7 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_appconfig_applicationconfiguration_.applicationconfiguration.html#constructor" class="tsd-kind-icon">constructor</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Properties</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_appconfig_applicationconfiguration_.applicationconfiguration.html#authoptions" class="tsd-kind-icon">auth<wbr>Options</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_appconfig_serverrequest_serverrequestparameters_.serverrequestparameters.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 					</div>
@@ -113,37 +96,42 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Application<wbr>Configuration<span class="tsd-signature-symbol">(</span>authOptions<span class="tsd-signature-symbol">: </span><a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-signature-type">ApplicationConfiguration</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Server<wbr>Request<wbr>Parameters<span class="tsd-signature-symbol">(</span>authorityInstance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Authority</span>, clientId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, redirectUri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, scopes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_appconfig_serverrequest_serverrequestparameters_.serverrequestparameters.html" class="tsd-signature-type">ServerRequestParameters</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/35ec2c1/lib/msal-electron-proof-of-concept/src/AppConfig/ApplicationConfiguration.ts#L20">AppConfig/ApplicationConfiguration.ts:20</a></li>
+									<li>Defined in AppConfig/ServerRequest/ServerRequestParameters.ts:12</li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Constructor</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>authOptions: <a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a></h5>
+									<h5>authorityInstance: <span class="tsd-signature-type">Authority</span></h5>
+								</li>
+								<li>
+									<h5>clientId: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>redirectUri: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+										</div>
+									</div>
+								</li>
+								<li>
+									<h5>scopes: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-signature-type">ApplicationConfiguration</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_appconfig_serverrequest_serverrequestparameters_.serverrequestparameters.html" class="tsd-signature-type">ServerRequestParameters</a></h4>
 						</li>
 					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="authoptions" class="tsd-anchor"></a>
-					<h3>auth<wbr>Options</h3>
-					<div class="tsd-signature tsd-kind-icon">auth<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="../modules/_appconfig_authoptions_.html#authoptions" class="tsd-signature-type">AuthOptions</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/35ec2c1/lib/msal-electron-proof-of-concept/src/AppConfig/ApplicationConfiguration.ts#L20">AppConfig/ApplicationConfiguration.ts:20</a></li>
-						</ul>
-					</aside>
 				</section>
 			</section>
 		</div>
@@ -153,7 +141,7 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class="current tsd-kind-external-module">
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_appconfig_applicationconfiguration_.html">"<wbr>App<wbr>Config/<wbr>Application<wbr>Configuration"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -186,7 +174,7 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_appconfig_error_clientconfigurationerror_.html">"<wbr>App<wbr>Config/<wbr>Error/<wbr>Client<wbr>Configuration<wbr>Error"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_appconfig_serverrequest_serverrequestparameters_.html">"<wbr>App<wbr>Config/<wbr>Server<wbr>Request/<wbr>Server<wbr>Request<wbr>Parameters"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -208,21 +196,15 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_appconfig_applicationconfiguration_.applicationconfiguration.html" class="tsd-kind-icon">Application<wbr>Configuration</a>
+						<a href="_appconfig_serverrequest_serverrequestparameters_.serverrequestparameters.html" class="tsd-kind-icon">Server<wbr>Request<wbr>Parameters</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_appconfig_applicationconfiguration_.applicationconfiguration.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_appconfig_applicationconfiguration_.applicationconfiguration.html#authoptions" class="tsd-kind-icon">auth<wbr>Options</a>
+								<a href="_appconfig_serverrequest_serverrequestparameters_.serverrequestparameters.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/_appconfig_applicationconfiguration_.html#default_auth_options" class="tsd-kind-icon">DEFAULT_<wbr>AUTH_<wbr>OPTIONS</a>
-					</li>
 				</ul>
 			</nav>
 		</div>
