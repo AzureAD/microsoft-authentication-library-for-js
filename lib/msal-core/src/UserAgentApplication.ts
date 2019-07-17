@@ -287,23 +287,7 @@ export class UserAgentApplication {
     }
   }
 
-  private redirectSuccessHandler(response: AuthResponse) : void {
-    if (this.errorReceivedCallback) {
-      this.tokenReceivedCallback(response);
-    } else if (this.authResponseCallback) {
-      this.authResponseCallback(null, response);
-    }
-  }
-
-  private redirectErrorHandler(authErr: AuthError, response: AuthResponse) : void {
-    if (this.errorReceivedCallback) {
-      this.errorReceivedCallback(authErr, response.accountState);
-    } else {
-      this.authResponseCallback(authErr, response);
-    }
-  }
-
-  private successHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
+  private responseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
     if (interactionType === Constants.interactionTypeRedirect) {
       if (this.errorReceivedCallback) {
         this.tokenReceivedCallback(response);
@@ -317,7 +301,7 @@ export class UserAgentApplication {
     }
   }
 
-  private errorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
+  private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
     if (interactionType === Constants.interactionTypeRedirect) {
       if (this.errorReceivedCallback) {
         this.errorReceivedCallback(authErr, response.accountState);
@@ -397,9 +381,9 @@ export class UserAgentApplication {
 
     // If already in progress, do not proceed
     if (this.loginInProgress || this.acquireTokenInProgress) {
-      let thrownError = this.loginInProgress ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
-      let stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request && request.state));
-      this.errorHandler(interactionType,
+      const thrownError = this.loginInProgress ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
+      const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request && request.state));
+      this.authErrorHandler(interactionType,
         thrownError,
         stateOnlyResponse,
         reject);
@@ -407,7 +391,7 @@ export class UserAgentApplication {
     }
 
     // if extraScopesToConsent is passed in loginCall, append them to the login request
-    let scopes: Array<string> = isLoginCall ? this.appendScopes(request) : request.scopes;
+    const scopes: Array<string> = isLoginCall ? this.appendScopes(request) : request.scopes;
 
     // Validate and filter scopes (the validate function will throw if validation fails)
     this.validateInputScope(scopes, !isLoginCall);
@@ -431,7 +415,7 @@ export class UserAgentApplication {
             this.silentLogin = false;
             this.logger.info("Unified cache call is successful");
 
-            this.successHandler(interactionType, response, resolve);
+            this.responseHandler(interactionType, response, resolve);
             return;
           }, (error) => {
             this.silentLogin = false;
@@ -483,7 +467,7 @@ export class UserAgentApplication {
 
     acquireTokenAuthority.resolveEndpointsAsync().then(() => {
       // On Fulfillment
-      let responseType: string;
+      const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, scopes, false);
       let loginStartPage: string;
 
       if (isLoginCall) {
@@ -494,11 +478,6 @@ export class UserAgentApplication {
         } else {
           this.cacheStorage.setItem(Constants.angularLoginRequest, "");
         }
-
-        // Set response type
-        responseType = ResponseTypes.id_token;
-      } else {
-        responseType = this.getTokenType(account, scopes, false);
       }
 
       serverAuthenticationRequest = new ServerRequestParameters(
@@ -535,7 +514,7 @@ export class UserAgentApplication {
       this.navigateWindow(urlNavigate, popUpWindow);
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
-      this.errorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
+      this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
       if (popUpWindow) {
         popUpWindow.close();
       }
@@ -597,7 +576,7 @@ export class UserAgentApplication {
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
-      let userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
+      const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
       let authErr: AuthError;
       let cacheResultResponse;
@@ -1124,11 +1103,11 @@ export class UserAgentApplication {
           response.tokenType = Constants.idToken;
         }
         if (!parentCallback) {
-          this.redirectSuccessHandler(response);
+          this.responseHandler(Constants.interactionTypeRedirect, response);
           return;
         }
       } else if (!parentCallback) {
-        this.redirectErrorHandler(authErr, buildResponseStateOnly(accountState));
+        this.authErrorHandler(Constants.interactionTypeRedirect, authErr, buildResponseStateOnly(accountState));
         return;
       }
 
@@ -1222,7 +1201,7 @@ export class UserAgentApplication {
    * @param hash
    */
   private deserializeHash(urlFragment: string) {
-    let hash = Utils.getHashFromUrl(urlFragment);
+    const hash = Utils.getHashFromUrl(urlFragment);
     return Utils.deserialize(hash);
   }
 
