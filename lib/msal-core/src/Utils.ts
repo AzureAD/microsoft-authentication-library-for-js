@@ -549,7 +549,8 @@ export class Utils {
     const hashIndex2 = urlStringOrFragment.indexOf("#/");
     if (hashIndex2 > -1) {
       return urlStringOrFragment.substring(hashIndex2 + 2);
-    } else if (hashIndex1 > -1) {
+    }
+    if (hashIndex1 > -1) {
       return urlStringOrFragment.substring(hashIndex1 + 1);
     }
     return urlStringOrFragment;
