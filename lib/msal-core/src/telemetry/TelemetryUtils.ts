@@ -1,9 +1,7 @@
 import { B2cAuthority } from "../B2cAuthority";
 import { AADTrustedHostList } from "../Constants";
-import { TENANT_PLACEHOLDER } from "./TelemetryConstants";
+import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { Utils } from "../Utils";
-
-
 
 export const scrubTenantFromUri = (uri: string): String => {
 
@@ -33,3 +31,5 @@ export const hashPersonalIdentifier = (valueToHash: string) => {
     // need a different solution
     return Utils.base64EncodeStringUrlSafe(valueToHash);
 };
+
+export const prependEventNamePrefix = (suffix: string): string => `${EVENT_NAME_PREFIX}${suffix || ""}`;

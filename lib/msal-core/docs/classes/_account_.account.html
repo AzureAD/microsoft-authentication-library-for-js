@@ -107,6 +107,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#environment" class="tsd-kind-icon">environment</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#homeaccountidentifier" class="tsd-kind-icon">home<wbr>Account<wbr>Identifier</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#idtoken" class="tsd-kind-icon">id<wbr>Token</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#idtokenclaims" class="tsd-kind-icon">id<wbr>Token<wbr>Claims</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#name" class="tsd-kind-icon">name</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#sid" class="tsd-kind-icon">sid</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_account_.account.html#username" class="tsd-kind-icon">user<wbr>Name</a></li>
@@ -121,13 +122,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Account<span class="tsd-signature-symbol">(</span>accountIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, homeAccountIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, userName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, idToken<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object</span>, sid<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, environment<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_account_.account.html" class="tsd-signature-type">Account</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Account<span class="tsd-signature-symbol">(</span>accountIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, homeAccountIdentifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, userName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, idTokenClaims<span class="tsd-signature-symbol">: </span><a href="../modules/_msaltypes_.html#stringdict" class="tsd-signature-type">StringDict</a>, sid<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, environment<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_account_.account.html" class="tsd-signature-type">Account</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L25">Account.ts:25</a></li>
+									<li>Defined in Account.ts:28</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -155,7 +156,7 @@
 									<h5>name: <span class="tsd-signature-type">string</span></h5>
 								</li>
 								<li>
-									<h5>idToken: <span class="tsd-signature-type">Object</span></h5>
+									<h5>idTokenClaims: <a href="../modules/_msaltypes_.html#stringdict" class="tsd-signature-type">StringDict</a></h5>
 								</li>
 								<li>
 									<h5>sid: <span class="tsd-signature-type">string</span></h5>
@@ -181,7 +182,7 @@
 					<div class="tsd-signature tsd-kind-icon">account<wbr>Identifier<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L19">Account.ts:19</a></li>
+							<li>Defined in Account.ts:20</li>
 						</ul>
 					</aside>
 				</section>
@@ -191,7 +192,7 @@
 					<div class="tsd-signature tsd-kind-icon">environment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L25">Account.ts:25</a></li>
+							<li>Defined in Account.ts:28</li>
 						</ul>
 					</aside>
 				</section>
@@ -201,17 +202,27 @@
 					<div class="tsd-signature tsd-kind-icon">home<wbr>Account<wbr>Identifier<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L20">Account.ts:20</a></li>
+							<li>Defined in Account.ts:21</li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="idtoken" class="tsd-anchor"></a>
 					<h3>id<wbr>Token</h3>
-					<div class="tsd-signature tsd-kind-icon">id<wbr>Token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object</span></div>
+					<div class="tsd-signature tsd-kind-icon">id<wbr>Token<span class="tsd-signature-symbol">:</span> <a href="../modules/_msaltypes_.html#stringdict" class="tsd-signature-type">StringDict</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L23">Account.ts:23</a></li>
+							<li>Defined in Account.ts:25</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="idtokenclaims" class="tsd-anchor"></a>
+					<h3>id<wbr>Token<wbr>Claims</h3>
+					<div class="tsd-signature tsd-kind-icon">id<wbr>Token<wbr>Claims<span class="tsd-signature-symbol">:</span> <a href="../modules/_msaltypes_.html#stringdict" class="tsd-signature-type">StringDict</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in Account.ts:26</li>
 						</ul>
 					</aside>
 				</section>
@@ -221,7 +232,7 @@
 					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L22">Account.ts:22</a></li>
+							<li>Defined in Account.ts:23</li>
 						</ul>
 					</aside>
 				</section>
@@ -231,7 +242,7 @@
 					<div class="tsd-signature tsd-kind-icon">sid<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L24">Account.ts:24</a></li>
+							<li>Defined in Account.ts:27</li>
 						</ul>
 					</aside>
 				</section>
@@ -241,7 +252,7 @@
 					<div class="tsd-signature tsd-kind-icon">user<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Account.ts#L21">Account.ts:21</a></li>
+							<li>Defined in Account.ts:22</li>
 						</ul>
 					</aside>
 				</section>
@@ -279,6 +290,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_account_.account.html#idtoken" class="tsd-kind-icon">id<wbr>Token</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_account_.account.html#idtokenclaims" class="tsd-kind-icon">id<wbr>Token<wbr>Claims</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_account_.account.html#name" class="tsd-kind-icon">name</a>
