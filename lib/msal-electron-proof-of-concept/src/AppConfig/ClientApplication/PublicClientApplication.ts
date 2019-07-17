@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-import { AuthenticationParameters } from './AuthenticationParameters';
-import { AuthOptions } from './AuthOptions';
+import { AuthenticationParameters } from '../AuthenticationParameters';
+import { AuthOptions } from '../AuthOptions';
+import { ClientConfigurationError } from '../Error/ClientConfigurationError';
 import { ClientApplicationBase } from './ClientApplicationBase';
-import { ClientConfigurationError } from './Error/ClientConfigurationError';
 
 import { strict as assert } from 'assert';
 
