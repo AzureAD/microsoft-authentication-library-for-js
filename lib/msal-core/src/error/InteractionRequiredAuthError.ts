@@ -28,11 +28,13 @@ export class InteractionRequiredAuthError extends ServerError {
     }
 
     static isInteractionRequiredError(errorString: string) : boolean {
-        return (
-            errorString.indexOf(InteractionRequiredAuthErrorMessage.interactionRequired.code) !== -1 ||
-            errorString.indexOf(InteractionRequiredAuthErrorMessage.consentRequired.code) !== -1 ||
-            errorString.indexOf(InteractionRequiredAuthErrorMessage.loginRequired.code) !== -1
-        );
+        const interactionRequiredCodes = [
+            InteractionRequiredAuthErrorMessage.interactionRequired.code,
+            InteractionRequiredAuthErrorMessage.consentRequired.code,
+            InteractionRequiredAuthErrorMessage.loginRequired.code
+        ];
+
+        return errorString && interactionRequiredCodes.indexOf(errorString) > -1;
     }
 
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {

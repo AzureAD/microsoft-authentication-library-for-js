@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
 import { v4 as uuid } from "uuid";
-import { idText } from "typescript";
 
 
 describe("TelemetryEvent", () =>{
@@ -28,8 +27,8 @@ describe("TelemetryEvent", () =>{
             telemetryEvent.stop();
             const event = telemetryEvent.get();
             // greater than exact, //less than 100ms over
-            expect(event['msal.elapsed_time']).to.be.greaterThan(time - 1);
-            expect(event['msal.elapsed_time']).to.be.lessThan(time + 100);
+            expect(event["msal.elapsed_time"]).to.be.greaterThan(time - 1);
+            expect(event["msal.elapsed_time"]).to.be.lessThan(time + 100);
             done();
         } , time);
     });
