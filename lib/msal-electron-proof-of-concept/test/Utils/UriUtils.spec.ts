@@ -4,13 +4,17 @@
 import { expect } from 'chai';
 import * as Mocha from 'mocha';
 
-import { TEST_CONFIGURATION, TEST_URIS } from '../testConstants'; 
-import { UriUtils } from '../../src/utils/uriUtils';
+import { UriError } from '../../src/Utils/Error/UriError';
+import { UriUtils } from '../../src/Utils/UriUtils';
+import { TEST_CONFIGURATION, TEST_URIS } from '../testConstants';
 
 describe('uriUtils.ts class', () => {
     describe('#canonicalizeUri', () => {
-        it('should return undefined if called with null object', () => {
-            expect(UriUtils.canonicalizeUri(null)).to.be.undefined;
+        it('should throw UriError if called with null object', () => {
+            const invalidCanonicalizeUriCall = () => {
+                return UriUtils.canonicalizeUri(null);
+            };
+            expect(invalidCanonicalizeUriCall).to.throw(UriError);
         });
 
         it('should return the same URI if called with a proper canonical URI', () => {

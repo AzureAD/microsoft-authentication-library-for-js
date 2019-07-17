@@ -1,6 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
+import * as url from 'url';
+import { strict as assert } from 'assert';
+import { UriError } from './Error/UriError';
+
 /**
  * The UriUtils class exposes static utility methods
  * that deal with validating, processing and building URIs
@@ -13,12 +17,11 @@ export class UriUtils {
      * @param rawUri
      */
     static canonicalizeUri(rawUri: string): string {
-        let canonicalUri: string;
-        if (rawUri) {
-            canonicalUri = rawUri.toLowerCase();
-        }
+        assert(rawUri, UriError.createUriRequiredError(rawUri));
+        const urlElements = url.parse(rawUri, true);
+        let canonicalUri = urlElements.href;
 
-        if (rawUri && !UriUtils.validateSuffix(rawUri, '/')) {
+        if (!UriUtils.validateSuffix(canonicalUri, '/')) {
             canonicalUri += '/';
         }
 
