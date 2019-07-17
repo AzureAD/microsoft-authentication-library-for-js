@@ -27,7 +27,6 @@ export class PublicClientApplication extends ClientApplicationBase {
     public acquireToken(request: AuthenticationParameters): string {
         // Validate and filter scopes
         this.validateInputScopes(request.scopes);
-        const scope = request.scopes.join(' ').toLowerCase();
         return 'Access Token';
     }
 
