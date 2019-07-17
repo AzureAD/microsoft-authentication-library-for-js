@@ -593,7 +593,7 @@ export class UserAgentApplication {
       let authErr: AuthError;
       let cacheResultResponse;
 
-      if (!userContainedClaims) {
+      if (!userContainedClaims && !request.forceRefresh) {
         try {
           cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
         } catch (e) {
@@ -614,7 +614,14 @@ export class UserAgentApplication {
       }
       // else proceed with login
       else {
-        let logMessage = userContainedClaims ? "Skipped cache lookup since claims were given." : "Token is not in cache for scope:" + scope;
+        let logMessage;
+        if (userContainedClaims) {
+          logMessage = "Skipped cache lookup since claims were given.";
+        } else if (request.forceRefresh) {
+          logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
+        } else {
+          logMessage = "Token is not in cache for scope:" + scope;
+        }
         this.logger.verbose(logMessage);
 
         // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
