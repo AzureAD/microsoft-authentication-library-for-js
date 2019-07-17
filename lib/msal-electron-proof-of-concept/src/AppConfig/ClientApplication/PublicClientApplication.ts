@@ -3,9 +3,11 @@
 import { AuthenticationParameters } from '../AuthenticationParameters';
 import { AuthOptions } from '../AuthOptions';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
+import { ServerRequestParameters } from '../ServerRequest/ServerRequestParameters';
 import { ClientApplicationBase } from './ClientApplicationBase';
 
 import { strict as assert } from 'assert';
+import { AadAuthority } from '../Authority/AadAuthority';
 
 /**
  * PublicClientApplication class
@@ -27,6 +29,14 @@ export class PublicClientApplication extends ClientApplicationBase {
     public acquireToken(request: AuthenticationParameters): string {
         // Validate and filter scopes
         this.validateInputScopes(request.scopes);
+        const authorityUrl = request.authority ? request.authority : this.authorityUrl;
+        const authorityInstance = new AadAuthority(this.authorityUrl);
+
+        const serverAuthenticationRequest = new ServerRequestParameters(
+            authorityInstance,
+            this.clientId,
+            this.redirectUri,
+            request.scopes);
         return 'Access Token';
     }
 

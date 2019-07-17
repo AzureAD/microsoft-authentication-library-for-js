@@ -16,7 +16,19 @@ export abstract class ClientApplicationBase {
         this.configuration = new ApplicationConfiguration(authOptions);
     }
 
-    get config(): ApplicationConfiguration {
+    public get authorityUrl(): string {
+        return this.configuration.authOptions.authority;
+    }
+
+    public get clientId(): string {
+        return this.configuration.authOptions.clientId;
+    }
+
+    public get config(): ApplicationConfiguration {
         return this.configuration;
+    }
+
+    public get redirectUri(): string {
+        return this.configuration.authOptions.redirectUri;
     }
 }
