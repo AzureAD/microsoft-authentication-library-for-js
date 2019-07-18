@@ -1,5 +1,4 @@
 import { Authority } from "../Authority/Authority";
-import { timingSafeEqual } from "crypto";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.

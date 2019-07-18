@@ -29,9 +29,11 @@ export class PublicClientApplication extends ClientApplicationBase {
     public acquireToken(request: AuthenticationParameters): string {
         // Validate and filter scopes
         this.validateInputScopes(request.scopes);
+        // Set Authority URL from developer input or default if not in request
         const authorityUrl = request.authority ? request.authority : this.authorityUrl;
-        const authorityInstance = new AadAuthority(this.authorityUrl);
-
+        // Create Authority Instance
+        const authorityInstance = new AadAuthority(authorityUrl);
+        // Build Server Authentication Request
         const serverAuthenticationRequest = new ServerRequestParameters(
             authorityInstance,
             this.clientId,
