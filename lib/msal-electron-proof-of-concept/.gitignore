@@ -260,6 +260,8 @@ typings/
 lib-commonjs/
 lib-es6/
 dist/
+# Remove docs from .gitignore when development is done
+docs/ 
 
 # OS specific ignore files
 .DS_Store
