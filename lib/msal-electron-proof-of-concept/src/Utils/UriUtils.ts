@@ -18,10 +18,16 @@ export class UriUtils {
      * @param rawUri
      */
     static canonicalizeUri(rawUri: string): string {
+        // Assert non-empty input
         assert(rawUri, UriError.createUriRequiredError(rawUri));
-        const urlElements = url.parse(rawUri, true);
-        let canonicalUri = urlElements.href;
 
+        // Parse input URI to normalize each part
+        const urlElements = url.parse(rawUri, true);
+
+        // Rebuild URI in canonical form
+        let canonicalUri = `${urlElements.protocol}//${urlElements.host}/${urlElements.path}`
+
+        // Add trailing forward slash if missing
         if (!UriUtils.validateSuffix(canonicalUri, '/')) {
             canonicalUri += '/';
         }
