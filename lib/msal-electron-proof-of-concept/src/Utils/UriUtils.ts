@@ -25,7 +25,7 @@ export class UriUtils {
         const urlElements = url.parse(rawUri, true);
 
         // Rebuild URI in canonical form
-        let canonicalUri = `${urlElements.protocol}//${urlElements.host}/${urlElements.path}`
+        let canonicalUri = `${urlElements.protocol}//${urlElements.host}${urlElements.path}`;
 
         // Add trailing forward slash if missing
         if (!UriUtils.validateSuffix(canonicalUri, '/')) {
@@ -44,7 +44,6 @@ export class UriUtils {
         if (!uri || !suffix) {
             return false;
         }
-
         return uri.indexOf(suffix, uri.length - suffix.length) !== -1;
     }
 

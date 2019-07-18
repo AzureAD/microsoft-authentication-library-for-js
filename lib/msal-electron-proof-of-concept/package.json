@@ -4,7 +4,7 @@
     "description": "Microsoft Authentication Library for Electron Proof of Concept",
     "main": "dist/index.js",
     "scripts": {
-        "build": "npm run build:modules && npm run lint && npm run docs",
+        "build": "npm run build:modules && npm run lint",
         "build:modules": "tsc",
         "docs": "typedoc --mode modules --excludePrivate --excludeProtected --out ./docs ./src/",
         "lint": "tslint -c tslint.json src/**/*.ts",
