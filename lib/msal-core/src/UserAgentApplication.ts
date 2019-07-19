@@ -288,7 +288,7 @@ export class UserAgentApplication {
     }
   }
 
-  private responseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
+  private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
     if (interactionType === Constants.interactionTypeRedirect) {
       if (this.errorReceivedCallback) {
         this.tokenReceivedCallback(response);
@@ -424,7 +424,7 @@ export class UserAgentApplication {
             this.silentLogin = false;
             this.logger.info("Unified cache call is successful");
 
-            this.responseHandler(interactionType, response, resolve);
+            this.authResponseHandler(interactionType, response, resolve);
             return;
           }, (error) => {
             this.silentLogin = false;
@@ -1122,7 +1122,7 @@ export class UserAgentApplication {
           response.tokenType = Constants.idToken;
         }
         if (!parentCallback) {
-          this.responseHandler(Constants.interactionTypeRedirect, response);
+          this.authResponseHandler(Constants.interactionTypeRedirect, response);
           return;
         }
       } else if (!parentCallback) {
