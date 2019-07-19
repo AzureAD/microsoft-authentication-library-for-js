@@ -433,14 +433,20 @@ export class UserAgentApplication {
             // call the loginRedirectHelper later with no user account context
             this.acquireTokenHelper(null, interactionType, isLoginCall, request, scopes, resolve, reject);
           });
-        } else {
+        }
+        // No ADAL token found, proceed to login
+        else {
           this.acquireTokenHelper(null, interactionType, isLoginCall, request, scopes, resolve, reject);
         }
-      } else {
+      }
+      // AcquireToken call, but no account or context given, so throw error
+      else {
         this.logger.info("User login is required");
         throw ClientAuthError.createUserLoginRequiredError();
       }
-    } else {
+    }
+    // User session exists
+    else {
       this.acquireTokenHelper(account, interactionType, isLoginCall, request, scopes, resolve, reject);
     }
   }
