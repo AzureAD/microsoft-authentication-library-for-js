@@ -4,7 +4,7 @@ import { Authority } from './Authority';
 // Licensed under the MIT License.
 
 export class AadAuthority extends Authority {
-    constructor(authorityUrl: string) {
-        super(authorityUrl);
+    constructor(authorityUrl: string, tenant?: string) {
+        super(authorityUrl, tenant);
     }
 }

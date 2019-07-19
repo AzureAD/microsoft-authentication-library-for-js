@@ -8,7 +8,7 @@ import { UriUtils } from '../../Utils/UriUtils';
  */
 export abstract class Authority {
     private canonicalAuthority: string;
-    private tenantId: string;
+    private tenantId?: string;
 
     constructor(authorityUrl: string, tenantId?: string) {
         this.canonicalAuthority = UriUtils.canonicalizeUri(authorityUrl);
