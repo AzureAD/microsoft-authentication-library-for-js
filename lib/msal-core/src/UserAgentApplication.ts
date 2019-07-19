@@ -517,12 +517,14 @@ export class UserAgentApplication {
         if (!isLoginCall) {
           this.cacheStorage.setItem(Constants.stateAcquireToken, serverAuthenticationRequest.state, this.inCookie);
         }
-      } else {
+      } else if (interactionType === Constants.interactionTypePopup) {
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
 
         // Register callback to capture results from server
         this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
+      } else {
+        throw ClientAuthError.createInvalidInteractionTypeError();
       }
 
       // prompt user for interaction
