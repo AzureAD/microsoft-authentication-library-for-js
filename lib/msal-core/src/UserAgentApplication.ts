@@ -430,7 +430,7 @@ export class UserAgentApplication {
             this.silentLogin = false;
             this.logger.error("Error occurred during unified cache ATS: " + error);
 
-            // call the loginRedirectHelper later with no user account context
+            // proceed to login since ATS failed
             this.acquireTokenHelper(null, interactionType, isLoginCall, request, scopes, resolve, reject);
           });
         }
