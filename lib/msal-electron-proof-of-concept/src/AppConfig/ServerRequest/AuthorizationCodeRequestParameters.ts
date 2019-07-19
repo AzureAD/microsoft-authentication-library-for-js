@@ -22,8 +22,14 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
         return navigateUrl;
     }
 
+    /**
+     * Extends ServerRequestParameters buildQueryParameters by appending
+     * Auth Code request specific query paramters to the query parameters array.
+     */
     public buildQueryParameters(): string[] {
         const params = super.buildQueryParameters();
+        params.push('response_type=code');
+        params.push('response_mode=query');
         // TODO: Add state and PKCE Code Challenge/Verifier to requests for security
         return params;
     }

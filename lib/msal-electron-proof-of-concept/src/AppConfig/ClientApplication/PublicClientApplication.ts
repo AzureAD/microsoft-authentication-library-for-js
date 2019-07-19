@@ -9,6 +9,9 @@ import { AuthorizationCodeRequestParameters } from '../ServerRequest/Authorizati
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
+import { BrowserWindow, protocol } from 'electron';
+import * as path from 'path';
+import * as url from 'url';
 
 /**
  * PublicClientApplication class
@@ -17,6 +20,7 @@ import { strict as assert } from 'assert';
  * can use in order to acquire tokens.
  */
 export class PublicClientApplication extends ClientApplication {
+    authWindow: BrowserWindow;
     constructor(authOptions: AuthOptions) {
         super(authOptions);
     }
@@ -40,7 +44,21 @@ export class PublicClientApplication extends ClientApplication {
             this.clientId,
             this.redirectUri,
             request.scopes);
-        console.log(authCodeRequestParameters.buildRequestUrl());
+        protocol.registerFileProtocol('msal', (req, callback) => {
+                const urlPath = req.url.replace(`msal://`, '');
+                callback(path.normalize(`${__dirname}/${urlPath}`));
+            }, (error) => {
+                if (error) {
+                    console.error(`Error: Failed to register custom protocol 'msal'.`);
+                }
+            });
+        this.openAuthWindow();
+        this.authWindow.loadURL(authCodeRequestParameters.buildRequestUrl());
+
+        this.authWindow.webContents.on('will-redirect', (event, codeURL) => {
+            const { query: queryParams } = url.parse(codeURL, true);
+            console.log(queryParams);
+        });
         return 'Access Token';
     }
 
@@ -57,6 +75,20 @@ export class PublicClientApplication extends ClientApplication {
         if (scopes.length < 1) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes);
         }
+    }
+
+    private openAuthWindow() {
+        this.authWindow = new BrowserWindow({
+            height: 400,
+            width: 800,
+            alwaysOnTop: true,
+            webPreferences: {
+                contextIsolation: true
+            }
+        });
+        this.authWindow.on('closed', () => {
+            this.authWindow = null;
+        });
     }
 
 }

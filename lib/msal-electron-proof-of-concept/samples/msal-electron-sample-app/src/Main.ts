@@ -38,8 +38,8 @@ export default class Main {
 
     private static createMainWindow(): void {
         this.mainWindow = new BrowserWindow({
-            width: 1000,
-            height: 800,
+            width: 800,
+            height: 400,
             webPreferences: {
                 nodeIntegration: true,
             },
@@ -53,7 +53,6 @@ export default class Main {
             clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
         };
         this.msalApp = new PublicClientApplication(msalAuthConfig);
-        console.dir(this.msalApp);
     }
 
     // Sets a listener for the AcquireToken event that when triggered

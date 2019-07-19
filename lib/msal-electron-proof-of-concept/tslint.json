@@ -51,6 +51,7 @@
         ],
         "radix": true,
         "semicolon": true,
+        "trailing-comma": false,
         "triple-equals": [
             true,
             "allow-null-check"
