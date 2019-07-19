@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
 import { AuthenticationParameters } from '../AuthenticationParameters';
 import { AuthOptions } from '../AuthOptions';
+import { AadAuthority } from '../Authority/AadAuthority';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
-import { ServerRequestParameters } from '../ServerRequest/ServerRequestParameters';
-import { ClientApplicationBase } from './ClientApplicationBase';
+import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
+import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
-import { AadAuthority } from '../Authority/AadAuthority';
 
 /**
  * PublicClientApplication class
@@ -15,7 +16,7 @@ import { AadAuthority } from '../Authority/AadAuthority';
  * This class can be instantiated into objects that the developer
  * can use in order to acquire tokens.
  */
-export class PublicClientApplication extends ClientApplicationBase {
+export class PublicClientApplication extends ClientApplication {
     constructor(authOptions: AuthOptions) {
         super(authOptions);
     }
@@ -34,11 +35,12 @@ export class PublicClientApplication extends ClientApplicationBase {
         // Create Authority Instance
         const authorityInstance = new AadAuthority(authorityUrl);
         // Build Server Authentication Request
-        const serverAuthenticationRequest = new ServerRequestParameters(
+        const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
             authorityInstance,
             this.clientId,
             this.redirectUri,
             request.scopes);
+        console.log(authCodeRequestParameters.buildRequestUrl());
         return 'Access Token';
     }
 

@@ -5,11 +5,11 @@ import { ApplicationConfiguration } from '../ApplicationConfiguration';
 import { AuthOptions } from '../AuthOptions';
 
 /**
- * ClientApplicationBase abstract class
+ * ClientApplication abstract class
  *
  * Abstract class that provides a base for Public and Private Application classes.
  */
-export abstract class ClientApplicationBase {
+export abstract class ClientApplication {
     private configuration: ApplicationConfiguration;
 
     constructor(authOptions: AuthOptions) {

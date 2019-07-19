@@ -8,8 +8,14 @@ import { UriUtils } from '../../Utils/UriUtils';
  */
 export abstract class Authority {
     private canonicalAuthority: string;
+    private tenantId: string;
 
-    constructor(authorityUrl: string) {
+    constructor(authorityUrl: string, tenantId?: string) {
         this.canonicalAuthority = UriUtils.canonicalizeUri(authorityUrl);
+        this.tenantId = tenantId;
+    }
+
+    public get authorizationEndpoint(): string {
+       return `${this.canonicalAuthority}oauth2/v2.0/authorize?`;
     }
 }
