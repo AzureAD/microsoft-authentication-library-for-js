@@ -134,6 +134,62 @@ describe("UserAgentApplication.ts Class", function () {
         };
     };
 
+    describe("Telemetry in UserAgenApplication", () => {
+        it("configure telemtry in UAA happy case smoke test", () => {
+            msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    telemetry: {
+                        applicationName: TEST_CONFIG.applicationName,
+                        applicationVersion: TEST_CONFIG.applicationVersion,
+                        telemetryEmitter: event => {}
+                    }
+                }
+            });
+        });
+        it("configure telemtry in UAA missing configuration throws config error", () => {
+            const configureTestCase = () => msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    telemetry: {
+                        applicationName: TEST_CONFIG.applicationName,
+                        applicationVersion: TEST_CONFIG.applicationVersion,
+                    }
+                }
+            });
+
+            expect(configureTestCase).to.throw(ClientConfigurationError);
+        });
+        it("telemetry manager exists in UAA when configured", () => {
+            msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    telemetry: {
+                        applicationName: TEST_CONFIG.applicationName,
+                        applicationVersion: TEST_CONFIG.applicationVersion,
+                        telemetryEmitter: event => {}
+                    }
+                }
+            });
+            expect(msal.telemetryManager).to.not.be.undefined;
+            expect(msal.telemetryManager).to.not.be.null;
+        });
+        it("telemetry manager doesn't exis in UAA when not configured", () => {
+            msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+            expect(msal.telemetryManager).to.be.null;
+        });
+    });
+
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
             const config: Configuration = {

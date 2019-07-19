@@ -3,6 +3,7 @@
 
 import { Logger } from "./Logger";
 import { Utils } from "./Utils";
+import { TelemetryEmitter } from "./telemetry/TelemetryTypes"
 
 /**
  * Cache location options supported by MSAL are:
@@ -51,6 +52,19 @@ export type CacheOptions = {
 };
 
 /**
+ * Telemetry Config Options
+ * - applicationName              - Name of the consuming apps application
+ * - applicationVersion           - Verison of the consuming application
+ * - telemetryEmitter             - Function where telemetry events are flushed to
+ */
+export type TelemetryOptions = {
+  applicationName: string;
+  applicationVersion: string;
+  telemetryEmitter: TelemetryEmitter
+ //TODO, add onlyAddFailureTelemetry option
+};
+
+/**
  * Library Specific Options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
@@ -63,6 +77,7 @@ export type SystemOptions = {
   loadFrameTimeout?: number;
   tokenRenewalOffsetSeconds?: number;
   navigateFrameWait?: number;
+  telemetry?: TelemetryOptions
 };
 
 /**
