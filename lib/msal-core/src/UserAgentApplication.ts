@@ -509,7 +509,7 @@ export class UserAgentApplication {
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
 
-      // Construct urlNavigate
+      // Construct url to navigate to
       let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
 
       // set state in cache
