@@ -546,13 +546,13 @@ export class Utils {
    * Returns the anchor part(#) of the URL
    */
   static getHashFromUrl(urlStringOrFragment: string): string {
-    const hashIndex1 = urlStringOrFragment.indexOf("#");
-    const hashIndex2 = urlStringOrFragment.indexOf("#/");
-    if (hashIndex2 > -1) {
-      return urlStringOrFragment.substring(hashIndex2 + 2);
+    const index = urlStringOrFragment.indexOf("#");
+    const indexWithSlash = urlStringOrFragment.indexOf("#/");
+    if (indexWithSlash > -1) {
+      return urlStringOrFragment.substring(indexWithSlash + 2);
     }
-    if (hashIndex1 > -1) {
-      return urlStringOrFragment.substring(hashIndex1 + 1);
+    if (index > -1) {
+      return urlStringOrFragment.substring(index + 1);
     }
     return urlStringOrFragment;
   }
