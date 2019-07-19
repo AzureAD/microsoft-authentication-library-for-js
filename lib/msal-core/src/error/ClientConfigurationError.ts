@@ -3,6 +3,7 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
+import { TelemetryOptions } from "../Configuration";
 
 export const ClientConfigurationErrorMessage = {
     configurationNotSet: {
@@ -20,12 +21,12 @@ export const ClientConfigurationErrorMessage = {
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
         desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
-            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     invalidCallbackObject: {
         code: "invalid_callback_object",
         desc: "The object passed for the callback was invalid. " +
-          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/-basics."
+          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     scopesRequired: {
         code: "scopes_required",
@@ -70,6 +71,14 @@ export const ClientConfigurationErrorMessage = {
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
         desc: "Could not parse the given claims request object."
+    },
+    emptyRequestError: {
+        code: "empty_request_error",
+        desc: "Request object is required."
+    },
+    telemetryConfigError: {
+        code: "telemetry_config_error",
+        desc: "Telemetry config is not configured with required values"
     }
 };
 
@@ -136,5 +145,26 @@ export class ClientConfigurationError extends ClientAuthError {
     static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
             `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
+    }
+
+    static createEmptyRequestError(): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.emptyRequestError;
+        return new ClientConfigurationError(code, desc);
+    }
+
+    static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.telemetryConfigError;
+        const requiredKeys = {
+            applicationName: "string",
+            applicationVersion: "string",
+            telemetryEmitter: "function"
+        };
+
+        const missingKeys = Object.keys(requiredKeys)
+            .reduce((keys, key) => {
+                return config[key] ? keys : keys.concat([ `${key} (${requiredKeys[key]})` ]);
+            }, []);
+
+        return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
     }
 }

@@ -1,3 +1,20 @@
+# 1.0.2
+* Fixed broken link in docs for error message and module docs (#731)
+* Fix typo in README (#743, #749)
+* Update lerna version (#748)
+* Fix Interaction_Required error to throw on all interaction_required error types (#753)
+* Added a react sample (#727)
+* Fix for bug preventing asynchronous acquireTokenSilent calls (#768)
+
+# 1.0.1
+* Fixed bug where navigateToLoginRequestURL = false would cause callback to not fire (#696)
+* Fixed bug where null request object would cause null pointer exception for state parameter (#698)
+* All msal related cache items are deleted on logout (#709)
+* Fixed bug where "user cancelled" error in acquireTokenPopup would not throw (#707)
+* Logout endpoint now uses the given EndSessionEndpoint from the oauth discovery endpoint response (#716)
+* Now uses base64.js instead of window.atob (#712)
+* Fixed bug where login_hint was added if sid was already populated. (#700)
+
 # 1.0.0
 * Formal release of msal-1.0.0 which includes all the msal-1.0.0-preview.x changes.
 * Includes breaking API Changes - please find the details @https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-preview-api-release

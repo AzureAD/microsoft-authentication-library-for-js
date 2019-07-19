@@ -24,7 +24,7 @@ export class MsalGuard implements CanActivate {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
         this.authService.updateDataFromCache([this.config.clientID]);
-        if (!this.authService._oauthData.isAuthenticated && !this.authService._oauthData.userName) {
+        if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
             if (state.url) {
 
                 if (!this.authService._renewActive && !this.authService.loginInProgress()) {
@@ -88,6 +88,10 @@ export class MsalGuard implements CanActivate {
 
     isEmpty = function (str: any) {
         return (typeof str === "undefined" || !str || 0 === str.length);
+    };
+
+    isObjectEmpty(obj: Object) {
+        return Object.keys(obj).length === 0;
     };
 
 }

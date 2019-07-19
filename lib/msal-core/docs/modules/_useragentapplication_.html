@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;UserAgentApplication&quot; | @azure/msal</title>
+	<title>&quot;UserAgentApplication&quot; | msal</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">@azure/msal</a>
+					<a href="../index.html" class="title">msal</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -85,7 +85,7 @@
 						<section class="tsd-index-section ">
 							<h3>Type aliases</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_useragentapplication_.html#responsestateinfo" class="tsd-kind-icon">Response<wbr>State<wbr>Info</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_useragentapplication_.html#authresponsecallback" class="tsd-kind-icon">auth<wbr>Response<wbr>Callback</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_useragentapplication_.html#errorreceivedcallback" class="tsd-kind-icon">error<wbr>Received<wbr>Callback</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-external-module"><a href="_useragentapplication_.html#tokenreceivedcallback" class="tsd-kind-icon">token<wbr>Received<wbr>Callback</a></li>
 							</ul>
@@ -96,42 +96,55 @@
 								<li class="tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported"><a href="_useragentapplication_.html#default_authority" class="tsd-kind-icon">DEFAULT_<wbr>AUTHORITY</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section tsd-is-not-exported">
-							<h3>Functions</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported"><a href="_useragentapplication_.html#resolvetokenonlyifoutofiframe" class="tsd-kind-icon">resolve<wbr>Token<wbr>Only<wbr>IfOut<wbr>OfIframe</a></li>
-							</ul>
-						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Type aliases</h2>
 				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-external-module">
-					<a name="responsestateinfo" class="tsd-anchor"></a>
-					<h3>Response<wbr>State<wbr>Info</h3>
-					<div class="tsd-signature tsd-kind-icon">Response<wbr>State<wbr>Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<a name="authresponsecallback" class="tsd-anchor"></a>
+					<h3>auth<wbr>Response<wbr>Callback</h3>
+					<div class="tsd-signature tsd-kind-icon">auth<wbr>Response<wbr>Callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L77">UserAgentApplication.ts:77</a></li>
+							<li>Defined in UserAgentApplication.ts:88</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Data type to hold information about state returned from the server</p>
+							<p>A type alias for an authResponseCallback function.
+							{@link (authResponseCallback:type)}</p>
 						</div>
+						<dl class="tsd-comment-tags">
+							<dt>param</dt>
+							<dd><p>error created for failure cases</p>
+							</dd>
+							<dt>param</dt>
+							<dd><p>response containing token strings in success cases, or just state value in error cases</p>
+							</dd>
+						</dl>
 					</div>
 					<div class="tsd-type-declaration">
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>request<wbr>Type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>state<wbr>Match<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5>
+							<li class="tsd-parameter-siganture">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias tsd-is-not-exported">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>authErr<span class="tsd-signature-symbol">: </span><a href="../classes/_error_autherror_.autherror.html" class="tsd-signature-type">AuthError</a>, response<span class="tsd-signature-symbol">?: </span><a href="_authresponse_.html#authresponse" class="tsd-signature-type">AuthResponse</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>authErr: <a href="../classes/_error_autherror_.autherror.html" class="tsd-signature-type">AuthError</a></h5>
+											</li>
+											<li>
+												<h5><span class="tsd-flag ts-flagOptional">Optional</span> response: <a href="_authresponse_.html#authresponse" class="tsd-signature-type">AuthResponse</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+									</li>
+								</ul>
 							</li>
 						</ul>
 					</div>
@@ -142,16 +155,20 @@
 					<div class="tsd-signature tsd-kind-icon">error<wbr>Received<wbr>Callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L94">UserAgentApplication.ts:94</a></li>
+							<li>Defined in UserAgentApplication.ts:104</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>A type alias for a errorReceivedCallback function.</p>
+							<p>A type alias for a errorReceivedCallback function.
+							{@link (errorReceivedCallback:type)}</p>
 						</div>
 						<dl class="tsd-comment-tags">
-							<dt>param</dt>
-							<dd><p>error object created by library containing error string returned from the STS if API call fails.</p>
+							<dt>returns</dt>
+							<dd><p>response of type {@link (AuthError:class)}</p>
+							</dd>
+							<dt>returns</dt>
+							<dd><p>account state</p>
 							</dd>
 						</dl>
 					</div>
@@ -160,14 +177,14 @@
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-siganture">
 								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias tsd-is-not-exported">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>authError<span class="tsd-signature-symbol">: </span><a href="../classes/_error_autherror_.autherror.html" class="tsd-signature-type">AuthError</a>, accountState<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>authErr<span class="tsd-signature-symbol">: </span><a href="../classes/_error_autherror_.autherror.html" class="tsd-signature-type">AuthError</a>, accountState<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 								</ul>
 								<ul class="tsd-descriptions">
 									<li class="tsd-description">
 										<h4 class="tsd-parameters-title">Parameters</h4>
 										<ul class="tsd-parameters">
 											<li>
-												<h5>authError: <a href="../classes/_error_autherror_.autherror.html" class="tsd-signature-type">AuthError</a></h5>
+												<h5>authErr: <a href="../classes/_error_autherror_.autherror.html" class="tsd-signature-type">AuthError</a></h5>
 											</li>
 											<li>
 												<h5>accountState: <span class="tsd-signature-type">string</span></h5>
@@ -186,19 +203,18 @@
 					<div class="tsd-signature tsd-kind-icon">token<wbr>Received<wbr>Callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L88">UserAgentApplication.ts:88</a></li>
+							<li>Defined in UserAgentApplication.ts:96</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>A type alias for a tokenReceivedCallback function.</p>
+							<p>A type alias for a tokenReceivedCallback function.
+							{@link (tokenReceivedCallback:type)}</p>
 						</div>
 						<dl class="tsd-comment-tags">
-							<dt>param</dt>
-							<dd><p>token returned from STS if token request is successful.</p>
-							</dd>
-							<dt>param</dt>
-							<dd><p>tokenType returned from the STS if API call is successful. Possible values are: id_token OR access_token.</p>
+							<dt>returns</dt>
+							<dd><p>response of type {@link (AuthResponse:type)}
+								The function that will get the call back once this API is completed (either successfully or with a failure).</p>
 							</dd>
 						</dl>
 					</div>
@@ -233,62 +249,9 @@
 					<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>AUTHORITY<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"https://login.microsoftonline.com/common"</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://login.microsoftonline.com/common&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L33">UserAgentApplication.ts:33</a></li>
+							<li>Defined in UserAgentApplication.ts:28</li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<dl class="tsd-comment-tags">
-							<dt>param</dt>
-							<dd><p>A URL indicating a directory that MSAL can use to obtain tokens.</p>
-								<ul>
-									<li>In Azure AD, it is of the form https://&lt;tenant&gt;/&lt;tenant&gt;, where &lt;tenant&gt; is the directory host (e.g. <a href="https://login.microsoftonline.com">https://login.microsoftonline.com</a>) and &lt;tenant&gt; is a identifier within the directory itself (e.g. a domain associated to the tenant, such as contoso.onmicrosoft.com, or the GUID representing the TenantID property of the directory)</li>
-									<li>In Azure B2C, it is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/<policyName>/</li>
-									<li>Default value is: &quot;<a href="https://login.microsoftonline.com/common&quot;">https://login.microsoftonline.com/common&quot;</a></li>
-								</ul>
-							</dd>
-						</dl>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
-				<h2>Functions</h2>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-					<a name="resolvetokenonlyifoutofiframe" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> resolve<wbr>Token<wbr>Only<wbr>IfOut<wbr>OfIframe</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<li class="tsd-signature tsd-kind-icon">resolve<wbr>Token<wbr>Only<wbr>IfOut<wbr>OfIframe<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, propertyKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, descriptor<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PropertyDescriptor</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PropertyDescriptor</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/UserAgentApplication.ts#L103">UserAgentApplication.ts:103</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>A wrapper to handle the token response/error within the iFrame always</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>target: <span class="tsd-signature-type">any</span></h5>
-								</li>
-								<li>
-									<h5>propertyKey: <span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li>
-									<h5>descriptor: <span class="tsd-signature-type">PropertyDescriptor</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-										</div>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">PropertyDescriptor</span></h4>
-						</li>
-					</ul>
 				</section>
 			</section>
 		</div>
@@ -314,7 +277,7 @@
 						<a href="../classes/_useragentapplication_.useragentapplication.html" class="tsd-kind-icon">User<wbr>Agent<wbr>Application</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
-						<a href="_useragentapplication_.html#responsestateinfo" class="tsd-kind-icon">Response<wbr>State<wbr>Info</a>
+						<a href="_useragentapplication_.html#authresponsecallback" class="tsd-kind-icon">auth<wbr>Response<wbr>Callback</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
 						<a href="_useragentapplication_.html#errorreceivedcallback" class="tsd-kind-icon">error<wbr>Received<wbr>Callback</a>
@@ -324,9 +287,6 @@
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
 						<a href="_useragentapplication_.html#default_authority" class="tsd-kind-icon">DEFAULT_<wbr>AUTHORITY</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="_useragentapplication_.html#resolvetokenonlyifoutofiframe" class="tsd-kind-icon">resolve<wbr>Token<wbr>Only<wbr>IfOut<wbr>OfIframe</a>
 					</li>
 				</ul>
 			</nav>

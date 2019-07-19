@@ -135,7 +135,7 @@
             console.log("stack:" + error.stack);
             //Call acquireTokenRedirect in case of acquireToken Failure
             if (requiresInteraction(error.errorCode)) {
-                myMSALObj.acquireTokenRedirect(endpoint, request);
+                myMSALObj.acquireTokenRedirect(request);
             }
         });
     }
