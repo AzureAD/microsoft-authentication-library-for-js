@@ -2,6 +2,12 @@
 // Licensed under the MIT License.
 
 import { AuthOptions } from './AuthOptions';
+import { DEFAULT_AUTHORITY, DEFAULT_REDIRECT_URI } from './DefaultConstants';
+
+const DEFAULT_AUTH_OPTIONS = {
+    authority: DEFAULT_AUTHORITY,
+    redirectUri: DEFAULT_REDIRECT_URI,
+};
 
 /**
  * Use the ApplicationConfiguration object to configure MSAL and initialize your PublicClientApplication.
@@ -14,6 +20,6 @@ export class ApplicationConfiguration {
     public authOptions: AuthOptions;
 
     constructor(authOptions: AuthOptions) {
-        this.authOptions = authOptions;
+        this.authOptions = { ...DEFAULT_AUTH_OPTIONS, ...authOptions };
     }
 }

@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { PublicClientApplication } from 'msal-electron-poc';
 import * as path from 'path';
 
 export default class Main {
-    static mainWindow: Electron.BrowserWindow;
     static application: Electron.App;
+    static mainWindow: Electron.BrowserWindow;
+    static msalApp: PublicClientApplication;
 
     static main(): void {
         Main.application = app;
@@ -29,7 +30,10 @@ export default class Main {
         Main.mainWindow.on('closed', Main.onClose);
 
         // Once appplication is ready, configure MSAL Public Client App
-        Main.setupAuth();
+        Main.configureAuthentication();
+
+        // Listen for AcquireToken button call
+        Main.listenForAcquireToken();
     }
 
     private static createMainWindow(): void {
@@ -40,15 +44,28 @@ export default class Main {
                 nodeIntegration: true,
             },
         });
+        this.mainWindow.webContents.openDevTools();
     }
 
     // This is where MSAL set up and configuration happens.
-    private static setupAuth(): void {
+    private static configureAuthentication(): void {
         const msalAuthConfig = {
             clientId: '5b5a6ef2-d06c-4fdf-b986-805178ea4d2f',
         };
-        const msalApp = new PublicClientApplication(msalAuthConfig);
-        console.log('MSAL PublicClientApplication: ');
-        console.dir(msalApp);
+        this.msalApp = new PublicClientApplication(msalAuthConfig);
+        console.dir(this.msalApp);
+    }
+
+    // Sets a listener for the AcquireToken event that when triggered
+    // performs the authorization code grant flow
+    private static listenForAcquireToken(): void {
+        ipcMain.on('AcquireToken', () => {
+            console.log('Acquiring Token');
+            const tokenRequest = {
+                scopes: ['user.read', 'mail.read'],
+            };
+            const accessToken: string = this.msalApp.acquireToken(tokenRequest);
+            console.log(accessToken);
+        });
     }
 }
