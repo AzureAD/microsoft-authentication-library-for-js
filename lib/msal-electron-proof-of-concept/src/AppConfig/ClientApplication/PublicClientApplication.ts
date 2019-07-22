@@ -13,6 +13,7 @@ import { BrowserWindow, protocol } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import { Authority } from '../Authority/Authority';
+import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
 
 /**
  * PublicClientApplication class
@@ -33,18 +34,18 @@ export class PublicClientApplication extends ClientApplication {
      * which can be used to make authenticated calls to an resource server
      * such as MS Graph.
      */
-    public acquireToken(request: AuthenticationParameters): string {
-        // Validate and filter scopes
-        this.validateInputScopes(request.scopes);
-        // Set Authority URL from developer input or default if not in request
-        const authorityUrl = request.authority ? request.authority : this.authorityUrl;
-        // Create Authority Instance
-        const authorityInstance = new AadAuthority(authorityUrl);
-        // Get Authorization Code
-        const authCode = this.retrieveAuthCode(authorityInstance, request.scopes).then(code => {
-            console.log(code);
+    public async acquireToken(request: AuthenticationParameters): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            // Validate and filter scopes
+            this.validateInputScopes(request.scopes);
+            // Set Authority URL from developer input or default if not in request
+            const authorityUrl = request.authority ? request.authority : this.authorityUrl;
+            // Create Authority Instance
+            const authorityInstance = new AadAuthority(authorityUrl);
+            // Get Authorization Code
+            const authCode = this.retrieveAuthCode(authorityInstance, request.scopes);
+            resolve(authCode);
         });
-        return 'Access Token';
     }
 
     /**
@@ -54,10 +55,7 @@ export class PublicClientApplication extends ClientApplication {
      */
     private validateInputScopes(scopes: string[]): void {
         // Throws if scopes object is not truthy
-        assert(
-            scopes,
-            ClientConfigurationError.createScopesRequiredError(scopes)
-        );
+        assert(scopes, ClientConfigurationError.createScopesRequiredError(scopes));
 
         // Throws if scopes object is not an array.
         if (!Array.isArray(scopes)) {
@@ -76,7 +74,7 @@ export class PublicClientApplication extends ClientApplication {
      * @param authorityInstance
      * @param scopes
      */
-    private retrieveAuthCode(authorityInstance: Authority, scopes: string[]) {
+    private retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
         // Register custom protocol to listen for auth code response
         this.listenOnCustomProtocol();
 
@@ -95,9 +93,15 @@ export class PublicClientApplication extends ClientApplication {
         this.openAuthWindow();
         this.authWindow.loadURL(navigateUrl);
         return new Promise((resolve, reject) => {
-            this.authWindow.webContents.on('will-redirect', (event, codeURL) => {
-                const { query: queryParams } = url.parse(codeURL, true);
-                resolve(queryParams.code);
+            this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
+                const response =  url.parse(responseUrl, true);
+                if (response.query.error) {
+                    const errorDescription = response.query.error_description as string;
+                    const authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(errorDescription);
+                    reject(authError);
+                }
+                resolve(response.query.code as string);
+                this.authWindow.close();
             });
         });
     }
@@ -110,8 +114,8 @@ export class PublicClientApplication extends ClientApplication {
         protocol.registerFileProtocol(
             'msal',
             (req, callback) => {
-                const urlPath = req.url.replace(`msal://`, '');
-                callback(path.normalize(`${__dirname}/${urlPath}`));
+                const requestUrl = url.parse(req.url, true);
+                callback(path.normalize(`${__dirname}/${requestUrl.path}`));
             },
             (error) => {
                 if (error) {

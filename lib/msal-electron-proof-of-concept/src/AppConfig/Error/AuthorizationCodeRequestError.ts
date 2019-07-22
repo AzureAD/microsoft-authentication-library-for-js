@@ -1,0 +1,39 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License
+
+import { AuthErrorBase } from './AuthError';
+
+/**
+ * The AuthorizationCodeRequestErrorMessage object holds all
+ * the code-description pairs for their respective
+ * AuthorizationCodeRequestError type.
+ */
+
+export const AuthorizationCodeRequestErrorMessage = {
+    accessDenied: {
+        code: 'auth_code_access_denied_error',
+        description: 'Access was denied by the authorization server.',
+    },
+};
+
+/**
+ * The AuthorizationCodeRequestError class handles errors
+ * that happen during the Authorization Code Request.
+ */
+export class AuthorizationCodeRequestError extends AuthErrorBase {
+    static createAuthCodeAccessDeniedError(error_description: string): AuthorizationCodeRequestError {
+        const errorMessage = AuthorizationCodeRequestErrorMessage.accessDenied;
+        return new AuthorizationCodeRequestError(errorMessage.code, `${errorMessage.description}`);
+    }
+
+    private static buildAuthorizationCodeRequestScopesError(errorMessage, scopes: string[]): AuthorizationCodeRequestError {
+        return new AuthorizationCodeRequestError(errorMessage.code,
+            `${errorMessage.description} Given value: ${scopes}`);
+    }
+
+    constructor(errorCode: string, errorMessage?: string) {
+        super(errorCode, errorMessage);
+        this.name = 'AuthorizationCodeRequestError';
+        Object.setPrototypeOf(this, AuthorizationCodeRequestError.prototype);
+    }
+}
