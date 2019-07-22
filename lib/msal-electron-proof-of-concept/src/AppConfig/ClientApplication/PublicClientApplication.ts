@@ -13,6 +13,7 @@ import { BrowserWindow, protocol } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import { Authority } from '../Authority/Authority';
+import { DEFAULT_POPUP_WIDTH, DEFAULT_POPUP_HEIGHT } from '../DefaultConstants';
 import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
 
 /**
@@ -29,7 +30,7 @@ export class PublicClientApplication extends ClientApplication {
     }
 
     /**
-     * The acquireToken method uses the Authorization Code
+     * The acquireToken async method uses the Authorization Code
      * Grant to retrieve an access token from the AAD authorization server,
      * which can be used to make authenticated calls to an resource server
      * such as MS Graph.
@@ -80,11 +81,7 @@ export class PublicClientApplication extends ClientApplication {
      */
     private async retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
         // Register custom protocol to listen for auth code response
-        try {
-            this.listenOnCustomProtocol();
-        } catch (error) {
-            console.log(error);
-        }
+        this.listenOnCustomProtocol();
 
         // Build Server Authentication Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
@@ -143,10 +140,14 @@ export class PublicClientApplication extends ClientApplication {
             });
     }
 
+    /**
+     * This mehtod opens a PopUp browser window that will
+     * be used to authenticate the user.
+     */
     private openAuthWindow() {
         this.authWindow = new BrowserWindow({
-            height: 400,
-            width: 800,
+            height: DEFAULT_POPUP_HEIGHT,
+            width: DEFAULT_POPUP_WIDTH,
             alwaysOnTop: true,
             webPreferences: {
                 contextIsolation: true
