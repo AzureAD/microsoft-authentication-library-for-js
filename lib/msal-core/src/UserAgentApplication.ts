@@ -14,7 +14,7 @@ import { Storage } from "./Storage";
 import { Account } from "./Account";
 import { Utils } from "./Utils";
 import { AuthorityFactory } from "./AuthorityFactory";
-import { Configuration, buildConfiguration } from "./Configuration";
+import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
@@ -23,8 +23,9 @@ import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
-
-// default authority
+import TelemetryManager from "./telemetry/TelemetryManager";
+import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
+ // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
 
 /**
@@ -143,6 +144,7 @@ export class UserAgentApplication {
   private logger: Logger;
   private clientId: string;
   private inCookie: boolean;
+  private telemetryManager: TelemetryManager;
 
   // Cache and Account info referred across token grant flow
   protected cacheStorage: Storage;
@@ -217,6 +219,8 @@ export class UserAgentApplication {
     this.logger = this.config.system.logger;
     this.clientId = this.config.auth.clientId;
     this.inCookie = this.config.cache.storeAuthStateInCookie;
+
+    this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
     // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
     this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -2406,6 +2410,28 @@ export class UserAgentApplication {
     });
     return eQParams;
   }
-
  //#endregion
+
+  private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
+    if (!config) { // if unset
+      return null
+    }
+    // if set then validate
+    const { applicationName, applicationVersion, telemetryEmitter } = config;
+    if (!applicationName || !applicationVersion || ! telemetryEmitter) {
+      throw ClientConfigurationError.createTelemetryConfigError(config);
+    }
+    // if valid then construct
+    const telemetryPlatform: TelemetryPlatform = {
+      sdk: "msal.js", // TODO need to be able to override this for angular, react, etc
+      sdkVersion: Utils.getLibraryVersion(),
+      applicationName,
+      applicationVersion
+    };
+    const telemetryManagerConfig: TelemetryConfig = {
+      platform: telemetryPlatform,
+      clientId: clientId
+    };
+    return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
+  }
 }
