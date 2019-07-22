@@ -36,15 +36,19 @@ export class PublicClientApplication extends ClientApplication {
      */
     public async acquireToken(request: AuthenticationParameters): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            // Validate and filter scopes
-            this.validateInputScopes(request.scopes);
-            // Set Authority URL from developer input or default if not in request
-            const authorityUrl = request.authority ? request.authority : this.authorityUrl;
-            // Create Authority Instance
-            const authorityInstance = new AadAuthority(authorityUrl);
-            // Get Authorization Code
-            const authCode = this.retrieveAuthCode(authorityInstance, request.scopes);
-            resolve(authCode);
+            try {
+                // Validate and filter scopes
+                this.validateInputScopes(request.scopes);
+                // Set Authority URL from developer input or default if not in request
+                const authorityUrl = request.authority ? request.authority : this.authorityUrl;
+                // Create Authority Instance
+                const authorityInstance = new AadAuthority(authorityUrl);
+                // Get Authorization Code
+                const authCode = this.retrieveAuthCode(authorityInstance, request.scopes);
+                resolve(authCode);
+            } catch (error) {
+                return reject(error);
+            }
         });
     }
 
@@ -74,9 +78,13 @@ export class PublicClientApplication extends ClientApplication {
      * @param authorityInstance
      * @param scopes
      */
-    private retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
+    private async retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
         // Register custom protocol to listen for auth code response
-        this.listenOnCustomProtocol();
+        try {
+            this.listenOnCustomProtocol();
+        } catch (error) {
+            console.log(error);
+        }
 
         // Build Server Authentication Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
@@ -92,9 +100,18 @@ export class PublicClientApplication extends ClientApplication {
         // Open PopUp window and load the navigate URL
         this.openAuthWindow();
         this.authWindow.loadURL(navigateUrl);
+        return await this.listenForAuthCode();
+    }
+
+    /**
+     * Creates a listener for 'will-redirect' event on the
+     * auth window and returns the authorization code from the
+     * server's response.
+     */
+    private async listenForAuthCode(): Promise<string> {
         return new Promise((resolve, reject) => {
             this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                const response =  url.parse(responseUrl, true);
+                const response = url.parse(responseUrl, true);
                 if (response.query.error) {
                     const errorDescription = response.query.error_description as string;
                     const authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(errorDescription);

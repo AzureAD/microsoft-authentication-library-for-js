@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import * as Mocha from 'mocha';
 
 import { PublicClientApplication } from '../../src';
-import { AuthErrorBase } from '../../src/AppConfig/Error/AuthError';
+import { AuthError } from '../../src/AppConfig/Error/AuthError';
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from '../../src/AppConfig/Error/ClientConfigurationError';
 import { TEST_VALID_AUTH_CONFIGURATION } from '../testConstants';
 
@@ -16,17 +16,18 @@ describe('PublicClientApplication.ts class', () => {
     describe('#acquireToken', () => {
         // Client Configuration tests
         let msalApp: PublicClientApplication;
-        let authError: AuthErrorBase;
+        let authError: AuthError;
 
         beforeEach(() => {
             msalApp = new PublicClientApplication(msalAuthConfig);
         });
 
         // No input scopes configures
-        it('should throw ClientConfigurationError empty_input_scopes_error when no scopes are configured', () => {
+        it('should throw ClientConfigurationError empty_input_scopes_error when no scopes are configured', async () => {
             const emptyInputScopesErrorMessage = ClientConfigurationErrorMessage.scopesRequired;
+
             try {
-                msalApp.acquireToken({});
+                await msalApp.acquireToken({});
             } catch (error) {
                 authError = error;
             }
@@ -38,7 +39,7 @@ describe('PublicClientApplication.ts class', () => {
         });
 
         // Non-Array input scopes object
-        it('should throw ClientConfigurationError nonarray_input_scopes_error when scopes object is not an array', () => {
+        it('should throw ClientConfigurationError nonarray_input_scopes_error when scopes object is not an array', async () => {
             const nonArrayInputScopesErrorMessage = ClientConfigurationErrorMessage.nonArrayScopes;
             const invalidTokenRequest = {
                 scopes: 'user.read',
@@ -46,11 +47,10 @@ describe('PublicClientApplication.ts class', () => {
 
             try {
                 // @ts-ignore
-                msalApp.acquireToken(invalidTokenRequest);
+                await msalApp.acquireToken(invalidTokenRequest);
             } catch (error) {
                 authError = error;
             }
-
             expect(authError.errorCode).to.equal(nonArrayInputScopesErrorMessage.code);
             expect(authError.errorMessage).to.contain(nonArrayInputScopesErrorMessage.description);
             expect(authError.message).to.contain(nonArrayInputScopesErrorMessage.description);
@@ -58,14 +58,14 @@ describe('PublicClientApplication.ts class', () => {
         });
 
         // Empty scopes array
-        it('should throw ClientConfigurationError empty_input_scopes_error when scopes object is empty array', () => {
-            const emptyInputScopesErrorMessage = ClientConfigurationErrorMessage.emptyScopes;
+        it('should throw ClientConfigurationError empty_input_scopes_array_error when scopes object is empty array', async () => {
+            const emptyInputScopesErrorMessage = ClientConfigurationErrorMessage.emptyScopesArray;
             const invalidTokenRequest = {
                 scopes: [],
             };
 
             try {
-                msalApp.acquireToken(invalidTokenRequest);
+                await msalApp.acquireToken(invalidTokenRequest);
             } catch (error) {
                 authError = error;
             }

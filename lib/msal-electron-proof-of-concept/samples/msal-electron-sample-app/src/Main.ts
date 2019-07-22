@@ -57,14 +57,18 @@ export default class Main {
 
     // Sets a listener for the AcquireToken event that when triggered
     // performs the authorization code grant flow
-    private static listenForAcquireToken(): void {
+    private static async listenForAcquireToken(): Promise<void> {
         ipcMain.on('AcquireToken', () => {
-            console.log('Acquiring Token');
             const tokenRequest = {
                 scopes: ['user.read', 'mail.read'],
             };
-            const accessToken: string = this.msalApp.acquireToken(tokenRequest);
+            try {
+                this.msalApp.acquireToken(tokenRequest).then((accessToken) => {
+                    console.log(accessToken);
+                });
+            } catch (error) {
+                console.error(error);
+            }
         });
-            console.log(accessToken);
     }
 }

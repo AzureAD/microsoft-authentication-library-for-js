@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
-import { AuthErrorBase } from './AuthError';
+import { AuthError } from './AuthError';
 
 /**
  * The AuthorizationCodeRequestErrorMessage object holds all
@@ -20,7 +20,7 @@ export const AuthorizationCodeRequestErrorMessage = {
  * The AuthorizationCodeRequestError class handles errors
  * that happen during the Authorization Code Request.
  */
-export class AuthorizationCodeRequestError extends AuthErrorBase {
+export class AuthorizationCodeRequestError extends AuthError {
     static createAuthCodeAccessDeniedError(error_description: string): AuthorizationCodeRequestError {
         const errorMessage = AuthorizationCodeRequestErrorMessage.accessDenied;
         return new AuthorizationCodeRequestError(errorMessage.code, `${errorMessage.description}`);
