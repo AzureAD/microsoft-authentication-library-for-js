@@ -241,11 +241,11 @@ export class UserAgentApplication {
     window.msal = this;
 
     const urlHash = window.location.hash;
-    const isCallback = this.isCallback(urlHash);
+    const urlContainsHash = this.urlContainsHash(urlHash);
 
     // On the server 302 - Redirect, handle this
     if (!this.config.framework.isAngular) {
-      if (isCallback) {
+      if (urlContainsHash) {
         this.handleAuthenticationResponse(urlHash);
       }
     }
@@ -1080,7 +1080,11 @@ export class UserAgentApplication {
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
    */
   isCallback(hash: string): boolean {
-    const parameters = this.deserializeHash(hash);
+    return this.urlContainsHash(hash);
+  }
+
+  private urlContainsHash(urlString: string): boolean {
+    const parameters = this.deserializeHash(urlString);
     return (
       parameters.hasOwnProperty(Constants.errorDescription) ||
       parameters.hasOwnProperty(Constants.error) ||
