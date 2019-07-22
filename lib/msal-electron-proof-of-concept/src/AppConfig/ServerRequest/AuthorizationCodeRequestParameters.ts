@@ -14,10 +14,18 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
       super(authorityInstance, clientId, redirectUri, scopes);
     }
 
+    /**
+     * Builds the Authorization Code request URL using the parameters
+     * defined by the Client Application's configuration
+     */
     public buildRequestUrl(): string {
+        // Get Authorization Endpoint from Authority
         const authorizationEndpoint = this.authority.authorizationEndpoint;
+        // Get query parameters array
         const queryParameters = this.buildQueryParameters();
+        // Build query parameter string
         const queryParameterString = queryParameters.join('&');
+        // Concatenate URL elements
         const navigateUrl = `${authorizationEndpoint}${queryParameterString}`;
         return navigateUrl;
     }
@@ -27,11 +35,10 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
      * Auth Code request specific query paramters to the query parameters array.
      */
     public buildQueryParameters(): string[] {
-        const params = super.buildQueryParameters();
-        params.push('response_type=code');
-        params.push('response_mode=query');
+        const queryParams = super.buildQueryParameters();
+        queryParams.push('response_type=code');
+        queryParams.push('response_mode=query');
         // TODO: Add state and PKCE Code Challenge/Verifier to requests for security
-        return params;
+        return queryParams;
     }
-
 }

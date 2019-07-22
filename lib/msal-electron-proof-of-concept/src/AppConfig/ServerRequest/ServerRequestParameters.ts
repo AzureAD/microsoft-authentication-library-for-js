@@ -31,6 +31,10 @@ export abstract class ServerRequestParameters {
         return this.authorityInstance;
     }
 
+    /**
+     * Returns an array of URI-encoded query parameter string elements
+     * that correspond to universal MSAL server request parameters.
+     */
     public buildQueryParameters(): string[] {
         const params: string[] = [];
         const scope = this.scopes.join(' ');

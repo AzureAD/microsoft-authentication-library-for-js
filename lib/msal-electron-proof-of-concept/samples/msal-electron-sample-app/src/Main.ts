@@ -64,7 +64,7 @@ export default class Main {
                 scopes: ['user.read', 'mail.read'],
             };
             const accessToken: string = this.msalApp.acquireToken(tokenRequest);
-            console.log(accessToken);
         });
+            console.log(accessToken);
     }
 }
