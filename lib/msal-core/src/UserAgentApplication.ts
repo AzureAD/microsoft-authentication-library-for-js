@@ -1080,6 +1080,7 @@ export class UserAgentApplication {
    * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
    */
   isCallback(hash: string): boolean {
+    this.logger.info("isCallback will be deprecated in favor of urlContainsHash in MSAL.js v2.0.");
     return this.urlContainsHash(hash);
   }
 
