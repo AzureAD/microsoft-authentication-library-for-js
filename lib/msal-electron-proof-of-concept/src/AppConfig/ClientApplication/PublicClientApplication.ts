@@ -1,20 +1,21 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+import { AuthCodeListener } from '../../AuthCodeListener/AuthCodeListener';
+import { CustomFileProtocolListener } from '../../AuthCodeListener/CustomFileProtocolListener';
 import { AuthenticationParameters } from '../AuthenticationParameters';
 import { AuthOptions } from '../AuthOptions';
 import { AadAuthority } from '../Authority/AadAuthority';
+import { Authority } from '../Authority/Authority';
+import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
+import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
-import { BrowserWindow, protocol } from 'electron';
-import * as path from 'path';
+import { BrowserWindow } from 'electron';
 import * as url from 'url';
-import { Authority } from '../Authority/Authority';
-import { DEFAULT_POPUP_WIDTH, DEFAULT_POPUP_HEIGHT } from '../DefaultConstants';
-import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
 
 /**
  * PublicClientApplication class
@@ -24,6 +25,7 @@ import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequest
  */
 export class PublicClientApplication extends ClientApplication {
     private authWindow: BrowserWindow;
+    private authCodeListener: AuthCodeListener;
 
     constructor(authOptions: AuthOptions) {
         super(authOptions);
@@ -81,7 +83,8 @@ export class PublicClientApplication extends ClientApplication {
      */
     private async retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
         // Register custom protocol to listen for auth code response
-        this.listenOnCustomProtocol();
+        this.authCodeListener = new CustomFileProtocolListener('msal');
+        this.authCodeListener.start();
 
         // Build Server Authentication Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
@@ -116,28 +119,9 @@ export class PublicClientApplication extends ClientApplication {
                 }
                 resolve(response.query.code as string);
                 this.authWindow.close();
+                this.authCodeListener.close();
             });
         });
-    }
-
-    /**
-     * Registers a custom file protocol on which the library will
-     * listen for Auth Code response.
-     */
-    private listenOnCustomProtocol(): void {
-        protocol.registerFileProtocol(
-            'msal',
-            (req, callback) => {
-                const requestUrl = url.parse(req.url, true);
-                callback(path.normalize(`${__dirname}/${requestUrl.path}`));
-            },
-            (error) => {
-                if (error) {
-                    console.error(
-                        `Error: Failed to register custom protocol 'msal'.`
-                    );
-                }
-            });
     }
 
     /**
