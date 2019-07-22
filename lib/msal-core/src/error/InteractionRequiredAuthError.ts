@@ -4,14 +4,14 @@
 import { ServerError } from "./ServerError";
 
 export const InteractionRequiredAuthErrorMessage = {
-    loginRequired: {
-        code: "login_required"
-    },
     interactionRequired: {
         code: "interaction_required"
     },
     consentRequired: {
         code: "consent_required"
+    },
+    loginRequired: {
+        code: "login_required"
     },
 };
 
@@ -25,6 +25,16 @@ export class InteractionRequiredAuthError extends ServerError {
         this.name = "InteractionRequiredAuthError";
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
+    }
+
+    static isInteractionRequiredError(errorString: string) : boolean {
+        const interactionRequiredCodes = [
+            InteractionRequiredAuthErrorMessage.interactionRequired.code,
+            InteractionRequiredAuthErrorMessage.consentRequired.code,
+            InteractionRequiredAuthErrorMessage.loginRequired.code
+        ];
+
+        return errorString && interactionRequiredCodes.indexOf(errorString) > -1;
     }
 
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {

@@ -430,6 +430,24 @@ export class Utils {
     return url;
   }
 
+  /**
+   * @hidden
+   * @ignore
+   *
+   * Returns the anchor part(#) of the URL
+   */
+  static getHashFromUrl(urlStringOrFragment: string): string {
+    const index = urlStringOrFragment.indexOf("#");
+    const indexWithSlash = urlStringOrFragment.indexOf("#/");
+    if (indexWithSlash > -1) {
+      return urlStringOrFragment.substring(indexWithSlash + 2);
+    }
+    if (index > -1) {
+      return urlStringOrFragment.substring(index + 1);
+    }
+    return urlStringOrFragment;
+  }
+
   //#endregion
 
   //#region ExtraQueryParameters Processing (Extract?)
