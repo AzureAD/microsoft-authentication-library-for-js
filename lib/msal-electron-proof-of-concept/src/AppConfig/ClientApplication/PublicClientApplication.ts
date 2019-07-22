@@ -11,6 +11,7 @@ import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
 import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
+import { ServerResponse } from '../ServerResponse/ServerResponse';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
@@ -86,6 +87,17 @@ export class PublicClientApplication extends ClientApplication {
         this.authCodeListener = new CustomFileProtocolListener('msal');
         this.authCodeListener.start();
 
+        // Build navigate URL for Auth Code request
+        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes);
+        return await this.listenForAuthCode(navigateUrl);
+    }
+
+    /**
+     * Builds URL for auth code authorization request
+     * @param authorityInstance
+     * @param scopes
+     */
+    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[]): string {
         // Build Server Authentication Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
             authorityInstance,
@@ -95,12 +107,7 @@ export class PublicClientApplication extends ClientApplication {
         );
 
         // Create navigate URL string from request parameters
-        const navigateUrl = authCodeRequestParameters.buildRequestUrl();
-
-        // Open PopUp window and load the navigate URL
-        this.openAuthWindow();
-        this.authWindow.loadURL(navigateUrl);
-        return await this.listenForAuthCode();
+        return authCodeRequestParameters.buildRequestUrl();
     }
 
     /**
@@ -108,10 +115,14 @@ export class PublicClientApplication extends ClientApplication {
      * auth window and returns the authorization code from the
      * server's response.
      */
-    private async listenForAuthCode(): Promise<string> {
+    private async listenForAuthCode(navigateUrl: string): Promise<string> {
+        // Open PopUp window and load the navigate URL
+        this.openAuthWindow();
+        this.authWindow.loadURL(navigateUrl);
         return new Promise((resolve, reject) => {
             this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
                 const response = url.parse(responseUrl, true);
+                const servResp = new ServerResponse(responseUrl);
                 if (response.query.error) {
                     const errorDescription = response.query.error_description as string;
                     const authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(errorDescription);

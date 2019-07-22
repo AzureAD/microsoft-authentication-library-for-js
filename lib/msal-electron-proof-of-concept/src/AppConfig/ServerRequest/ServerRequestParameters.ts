@@ -1,7 +1,7 @@
-import { Authority } from '../Authority/Authority';
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+import { Authority } from '../Authority/Authority';
 
 /**
  * ServerRequestParamters is the base class from which AuthorizationCodeRequestParameters
