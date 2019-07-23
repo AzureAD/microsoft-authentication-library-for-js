@@ -1,3 +1,6 @@
+# 1.1.1
+* Fixed an issue where cacheLocation was no longer accepting string values (#862)
+
 # 1.1.0
 * Core 
     * idTokenClaims has been added to the API surface in AuthResponse and Account (#804)
