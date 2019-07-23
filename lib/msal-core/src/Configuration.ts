@@ -10,11 +10,7 @@ import { TelemetryEmitter } from "./telemetry/TelemetryTypes"
  * - local storage: MSAL uses browsers local storage to store its cache
  * - session storage: MSAL uses the browsers session storage to store its cache
  */
-export enum CacheLocationChoices {
-  LocalStorage = "localStorage",
-  SessionStorage = "sessionStorage"
-}
-export type CacheLocation = CacheLocationChoices.LocalStorage | CacheLocationChoices.SessionStorage;
+export type CacheLocation = "localStorage" | "sessionStorage";
 
 /**
  * Defaults for the Configuration Options
@@ -124,7 +120,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-  cacheLocation: CacheLocationChoices.SessionStorage,
+  cacheLocation: "sessionStorage",
   storeAuthStateInCookie: false
 };
 
@@ -161,3 +157,4 @@ export function buildConfiguration({ auth, cache = {}, system = {}, framework = 
   };
   return overlayedConfig;
 }
+
