@@ -1,8 +1,20 @@
 import { expect } from "chai";
 import { Utils } from "../src/Utils";
-import { IdToken } from "../src/IdToken";
 
 describe("Utils.ts class", () => {
+
+    const EN_PLAINTEXT = "msaljs";
+    const EN_B64_ENCODED = "bXNhbGpz";
+
+    const ISL_PLAINTEXT = "Björn Ironside";
+    const ISL_B64_ENCODED = "QmrDtnJuIElyb25zaWRl";
+
+    const HE_PLAINTEXT = "בְּצַלְאֵל";
+    const HE_B64_ENCODED = "15HWvNaw16bWt9ec1rDXkNa115w=";
+
+    const ES_PLAINTEXT = "Avrán";
+    const ES_B64_ENCODED = "QXZyw6Fu";
+
     it("get getLibraryVersion()", () => {
         const version: string = Utils.getLibraryVersion();
 
@@ -10,21 +22,26 @@ describe("Utils.ts class", () => {
         expect(version.split(".").length).to.be.greaterThan(2);
     });
 
-    it("test Base64 encode decode", () => {
-        // english
-        expect(Utils.base64EncodeStringUrlSafe("msaljs")).to.be.equal("bXNhbGpz");
-        expect(Utils.base64DecodeStringUrlSafe("bXNhbGpz")).to.be.equal("msaljs");
+    describe("test Base64 encode decode", () => {
+        it('english', () => {
+            expect(Utils.base64Encode(EN_PLAINTEXT)).to.be.equal(EN_B64_ENCODED);
+            expect(Utils.base64Decode(EN_B64_ENCODED)).to.be.equal(EN_PLAINTEXT);
+        });
 
-        // Icelandic
-        expect(Utils.base64EncodeStringUrlSafe("Björn Ironside")).to.be.equal("QmrDtnJuIElyb25zaWRl");
-        expect(Utils.base64DecodeStringUrlSafe("QmrDtnJuIElyb25zaWRl")).to.be.equal("Björn Ironside");
+        it('Icelandic', () => {
+            expect(Utils.base64Encode(ISL_PLAINTEXT)).to.be.equal(ISL_B64_ENCODED);
+            expect(Utils.base64Decode(ISL_B64_ENCODED)).to.be.equal(ISL_PLAINTEXT);
+        });
 
-        // hebrew
-        expect(Utils.base64EncodeStringUrlSafe("בְּצַלְאֵל")).to.be.equal("15HWvNaw16bWt9ec1rDXkNa115w=");
-        expect(Utils.base64DecodeStringUrlSafe("15HWvNaw16bWt9ec1rDXkNa115w=")).to.be.equal("בְּצַלְאֵל");
+        it('hebrew', () => {
+            expect(Utils.base64Encode(HE_PLAINTEXT)).to.be.equal(HE_B64_ENCODED);
+            expect(Utils.base64Decode(HE_B64_ENCODED)).to.be.equal(HE_PLAINTEXT);
+        });
 
-         // spanish
-         expect(Utils.base64EncodeStringUrlSafe("Avrán")).to.be.equal("QXZyw6Fu");
-         expect(Utils.base64DecodeStringUrlSafe("QXZyw6Fu")).to.be.equal("Avrán");
+        it('spanish', () => {
+            expect(Utils.base64Encode(ES_PLAINTEXT)).to.be.equal(ES_B64_ENCODED);
+            expect(Utils.base64Decode(ES_B64_ENCODED)).to.be.equal(ES_PLAINTEXT);
+        });
     });
+
 });

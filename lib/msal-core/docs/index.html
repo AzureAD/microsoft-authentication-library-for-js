@@ -76,7 +76,7 @@
 						</tr>
 					</thead>
 				</table>
-				<p>The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview">Azure AD</a> work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through <a href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers">Azure AD B2C</a> service. It also enables your app to get tokens to access <a href="https://cloud.microsoft.com">Microsoft Cloud</a> services such as <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
+				<p>The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview">Azure AD</a> work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through <a href="https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers">Azure AD B2C</a> service. It also enables your app to get tokens to access <a href="https://www.microsoft.com/enterprise">Microsoft Cloud</a> services such as <a href="https://graph.microsoft.io">Microsoft Graph</a>.</p>
 				<p><a href="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js"><img src="https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev" alt="Build Status"></a><a href="https://www.npmjs.com/package/msal"><img src="https://img.shields.io/npm/v/msal.svg?style=flat" alt="npm version"></a><a href="https://nodei.co/npm/msal/"><img src="https://img.shields.io/npm/dm/msal.svg" alt="npm version"></a></p>
 				<h2 id="installation">Installation</h2>
 				<p>Via NPM:</p>
@@ -90,8 +90,8 @@
 				<p>Msal support on Javascript is a collection of libraries. <code>msal-core</code> or just simply <code>msal</code>, is the framework agnostic core library. Once our core 1.x+ is stabilized, we are going to bring our <code>msal-angular</code> library with the latest 1.x improvements.  We are planning to deprecate support for <code>msal-angularjs</code> based on usage trends of the framework and the library indicating increased adoption of Angular 2+ instead of Angular 1x. After our current libraries are up to standards, we will begin balancing new feature requests, with new platforms such as <code>react</code> and <code>node.js</code>.</p>
 				<p>Our goal is to communicate extremely well with the community and to take their opinions into account. We would like to get to a monthly minor release schedule, with patches comming as often as needed.  The level of communication, planning, and granularity we want to get to will be a work in progress.</p>
 				<p>Please check our <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap">roadmap</a> to see what we are working on and what we are tracking next.</p>
-				<h2 id="oauth-2-0-and-the-implict-flow">Oauth 2.0 and the Implict Flow</h2>
-				<p>Msal implments the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow">Implicit Grant Flow</a>, as defined by the Oauth 2.0 protocol and is <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc">OpenID</a> compliant.</p>
+				<h2 id="oauth-2-0-and-the-implicit-flow">OAuth 2.0 and the Implicit Flow</h2>
+				<p>Msal implments the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow">Implicit Grant Flow</a>, as defined by the OAuth 2.0 protocol and is <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc">OpenID</a> compliant.</p>
 				<p>Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective.
 					The implicit flow runs in the context of a web browser which cannot manage client secrets securely. It is optimized for single page apps and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure.
 				These security concerns are mitigated per standard practices such as- use of short lived tokens (and so no refresh tokens are returned), the library requiring a registered redirect URI for the app, library matching the request and response with a unique nonce and state parameter.</p>
@@ -284,13 +284,13 @@
 						<a href="modules/_logger_.html">"<wbr>Logger"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="modules/_msaltypes_.html">"<wbr>Msal<wbr>Types"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="modules/_serverrequestparameters_.html">"<wbr>Server<wbr>Request<wbr>Parameters"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_storage_.html">"<wbr>Storage"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_telemetry_.html">"<wbr>Telemetry"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_useragentapplication_.html">"<wbr>User<wbr>Agent<wbr>Application"</a>
@@ -318,6 +318,36 @@
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_index_.html">"index"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_apievent_.html">"telemetry/<wbr>Api<wbr>Event"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_cacheevent_.html">"telemetry/<wbr>Cache<wbr>Event"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_defaultevent_.html">"telemetry/<wbr>Default<wbr>Event"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_httpevent_.html">"telemetry/<wbr>Http<wbr>Event"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_telemetryconstants_.html">"telemetry/<wbr>Telemetry<wbr>Constants"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_telemetryevent_.html">"telemetry/<wbr>Telemetry<wbr>Event"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_telemetrymanager_.html">"telemetry/<wbr>Telemetry<wbr>Manager"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_telemetrytypes_.html">"telemetry/<wbr>Telemetry<wbr>Types"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_telemetryutils_.html">"telemetry/<wbr>Telemetry<wbr>Utils"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_telemetry_uievent_.html">"telemetry/<wbr>UiEvent"</a>
 					</li>
 				</ul>
 			</nav>
