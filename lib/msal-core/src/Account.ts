@@ -65,7 +65,7 @@ export class Account {
 
         let homeAccountIdentifier: string;
         if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-            homeAccountIdentifier = Utils.base64EncodeStringUrlSafe(uid) + "." + Utils.base64EncodeStringUrlSafe(utid);
+            homeAccountIdentifier = Utils.base64Encode(uid) + "." + Utils.base64Encode(utid);
         }
         return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
