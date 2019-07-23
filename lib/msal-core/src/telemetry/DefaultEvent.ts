@@ -1,19 +1,20 @@
 import { EVENT_NAME_PREFIX, TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import TelemetryEvent from "./TelemetryEvent";
 import { EventCount, TelemetryPlatform } from "./TelemetryTypes";
+import { prependEventNamePrefix } from "./TelemetryUtils";
 
 export default class DefaultEvent extends TelemetryEvent {
     // TODO Platform Type
     constructor(platform: TelemetryPlatform, correlationId: string, clientId: string, eventCount: EventCount) {
-        super(`${EVENT_NAME_PREFIX}default_event`, correlationId);
-        this.event[`${EVENT_NAME_PREFIX}client_id`] = clientId;
-        this.event[`${EVENT_NAME_PREFIX}sdk_plaform`] = platform.sdk;
-        this.event[`${EVENT_NAME_PREFIX}sdk_version`] = platform.sdkVersion;
-        this.event[`${EVENT_NAME_PREFIX}application_name`] = platform.applicationName;
-        this.event[`${EVENT_NAME_PREFIX}application_version`] = platform.applicationVersion;
-        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.UiEventCountTelemetryBatchKey}`] = this.getEventCount(`${EVENT_NAME_PREFIX}ui_event`, eventCount);
-        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.HttpEventCountTelemetryBatchKey}`] = this.getEventCount(`${EVENT_NAME_PREFIX}http_event`, eventCount);
-        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.CacheEventCountConstStrKey}`] = this.getEventCount(`${EVENT_NAME_PREFIX}cache_event`, eventCount);
+        super(prependEventNamePrefix("default_event"), correlationId);
+        this.event[prependEventNamePrefix("client_id")] = clientId;
+        this.event[prependEventNamePrefix("sdk_plaform")] = platform.sdk;
+        this.event[prependEventNamePrefix("sdk_version")] = platform.sdkVersion;
+        this.event[prependEventNamePrefix("application_name")] = platform.applicationName;
+        this.event[prependEventNamePrefix("application_version")] = platform.applicationVersion;
+        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.UiEventCountTelemetryBatchKey}`] = this.getEventCount(prependEventNamePrefix("ui_event"), eventCount);
+        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.HttpEventCountTelemetryBatchKey}`] = this.getEventCount(prependEventNamePrefix("http_event"), eventCount);
+        this.event[`${TELEMETRY_BLOB_EVENT_NAMES.CacheEventCountConstStrKey}`] = this.getEventCount(prependEventNamePrefix("cache_event"), eventCount);
         /// Device id?
     }
 

@@ -1,7 +1,7 @@
-export const EVENT_NAME_PREFIX: String = "msal.";
-export const EVENT_NAME_KEY: String = "event_name";
-export const START_TIME_KEY: String = "start_time";
-export const ELAPSED_TIME_KEY : String = "elapsed_time";
+export const EVENT_NAME_PREFIX = "msal.";
+export const EVENT_NAME_KEY = "event_name";
+export const START_TIME_KEY = "start_time";
+export const ELAPSED_TIME_KEY  = "elapsed_time";
 
 export const TELEMETRY_BLOB_EVENT_NAMES =  {
     MsalCorrelationIdConstStrKey: "Microsoft.MSAL.correlation_id",
@@ -20,3 +20,4 @@ export const TELEMETRY_BLOB_EVENT_NAMES =  {
 
 // This is used to replace the real tenant in telemetry info
 export const TENANT_PLACEHOLDER = "<tenant>";
+

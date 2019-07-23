@@ -82,6 +82,9 @@ export class Constants {
 
   static get cacheLocationLocal(): CacheLocation { return "localStorage"; }
   static get cacheLocationSession(): CacheLocation { return "sessionStorage"; }
+
+  static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
+  static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
 }
 
 /**
@@ -128,6 +131,8 @@ export const BlacklistedEQParams = [
   SSOTypes.LOGIN_HINT
 ];
 
+export type InteractionType = "redirectInteraction" | "popupInteraction";
+
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
@@ -146,14 +151,4 @@ export const PromptState = {
  */
 export const Library = {
   version: "1.0.2"
-};
-
-/**
- * @hidden
- * Readable shortcut for Interaction Required Errors
- */
-export const InteractionErrorType = {
-    LOGIN: InteractionError.loginRequired.code,
-    CONSENT: InteractionError.consentRequired.code,
-    INTERACTION: InteractionError.interactionRequired.code
 };

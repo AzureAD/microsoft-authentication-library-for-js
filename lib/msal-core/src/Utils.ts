@@ -7,9 +7,7 @@ import {Constants, SSOTypes, PromptState} from "./Constants";
 import { AuthenticationParameters } from "./AuthenticationParameters";
 import { AuthResponse } from "./AuthResponse";
 import { IdToken } from "./IdToken";
-import { ClientAuthError } from "./error/ClientAuthError";
 import { Library } from "./Constants";
-import { Base64 } from "js-base64";
 import { StringDict } from "./MsalTypes";
 
 /**
@@ -207,7 +205,7 @@ export class Utils {
     }
     try {
       const base64IdToken = decodedToken.JWSPayload;
-      const base64Decoded = this.base64DecodeStringUrlSafe(base64IdToken);
+      const base64Decoded = this.base64Decode(base64IdToken);
       if (!base64Decoded) {
         //this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
         return null;
@@ -225,14 +223,18 @@ export class Utils {
 
   //#region Encode and Decode
 
+  // See: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#Solution_4_%E2%80%93_escaping_the_string_before_encoding_it
+
   /**
    * encoding string to base64 - platform specific check
    *
    * @param input
    */
-  static base64EncodeStringUrlSafe(input: string): string {
-    // html5 should support atob function for decoding
-    return Base64.encode(input);
+  static base64Encode(input: string): string {
+    return btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g,
+        function toSolidBytes(match, p1) {
+            return String.fromCharCode(Number("0x" + p1));
+    }));
   }
 
   /**
@@ -240,121 +242,10 @@ export class Utils {
    *
    * @param base64IdToken
    */
-  static base64DecodeStringUrlSafe(base64IdToken: string): string {
-    // html5 should support atob function for decoding
-    base64IdToken = base64IdToken.replace(/-/g, "+").replace(/_/g, "/");
-    return decodeURIComponent(encodeURIComponent(Base64.decode(base64IdToken))); // jshint ignore:line
-  }
-
-  /**
-   * base64 encode a string
-   *
-   * @param input
-   */
-  // TODO: Rename to specify type of encoding
-  static encode(input: string): string {
-    const keyStr: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    let output = "";
-    let chr1: number, chr2: number, chr3: number, enc1: number, enc2: number, enc3: number, enc4: number;
-    var i = 0;
-
-    input = this.utf8Encode(input);
-
-    while (i < input.length) {
-      chr1 = input.charCodeAt(i++);
-      chr2 = input.charCodeAt(i++);
-      chr3 = input.charCodeAt(i++);
-
-      enc1 = chr1 >> 2;
-      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-      enc4 = chr3 & 63;
-
-      if (isNaN(chr2)) {
-        enc3 = enc4 = 64;
-      } else if (isNaN(chr3)) {
-        enc4 = 64;
-      }
-
-      output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) + keyStr.charAt(enc3) + keyStr.charAt(enc4);
-    }
-
-    return output.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  }
-
-  /**
-   * utf8 encode a string
-   *
-   * @param input
-   */
-  static utf8Encode(input: string): string {
-    input = input.replace(/\r\n/g, "\n");
-    var utftext = "";
-
-    for (var n = 0; n < input.length; n++) {
-      var c = input.charCodeAt(n);
-
-      if (c < 128) {
-        utftext += String.fromCharCode(c);
-      }
-      else if ((c > 127) && (c < 2048)) {
-        utftext += String.fromCharCode((c >> 6) | 192);
-        utftext += String.fromCharCode((c & 63) | 128);
-      }
-      else {
-        utftext += String.fromCharCode((c >> 12) | 224);
-        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-        utftext += String.fromCharCode((c & 63) | 128);
-      }
-    }
-
-    return utftext;
-  }
-
-  /**
-   * decode a base64 token string
-   *
-   * @param base64IdToken
-   */
-  // TODO: Rename to specify type of encoding
-  static decode(base64IdToken: string): string {
-    var codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    base64IdToken = String(base64IdToken).replace(/=+$/, "");
-    var length = base64IdToken.length;
-    if (length % 4 === 1) {
-      throw ClientAuthError.createTokenEncodingError(base64IdToken);
-    }
-    let h1: number, h2: number, h3: number, h4: number, bits: number, c1: number, c2: number, c3: number, decoded = "";
-    for (var i = 0; i < length; i += 4) {
-      //Every 4 base64 encoded character will be converted to 3 byte string, which is 24 bits
-      // then 6 bits per base64 encoded character
-      h1 = codes.indexOf(base64IdToken.charAt(i));
-      h2 = codes.indexOf(base64IdToken.charAt(i + 1));
-      h3 = codes.indexOf(base64IdToken.charAt(i + 2));
-      h4 = codes.indexOf(base64IdToken.charAt(i + 3));
-      // For padding, if last two are "="
-      if (i + 2 === length - 1) {
-        bits = h1 << 18 | h2 << 12 | h3 << 6;
-        c1 = bits >> 16 & 255;
-        c2 = bits >> 8 & 255;
-        decoded += String.fromCharCode(c1, c2);
-        break;
-      }
-      // if last one is "="
-      else if (i + 1 === length - 1) {
-        bits = h1 << 18 | h2 << 12;
-        c1 = bits >> 16 & 255;
-        decoded += String.fromCharCode(c1);
-        break;
-      }
-      bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
-      // then convert to 3 byte chars
-      c1 = bits >> 16 & 255;
-      c2 = bits >> 8 & 255;
-      c3 = bits & 255;
-      decoded += String.fromCharCode(c1, c2, c3);
-    }
-    return decoded;
+  static base64Decode(input: string): string {
+    return decodeURIComponent(atob(input).split("").map(function(c) {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(""));
   }
 
   /**
@@ -539,6 +430,24 @@ export class Utils {
     return url;
   }
 
+  /**
+   * @hidden
+   * @ignore
+   *
+   * Returns the anchor part(#) of the URL
+   */
+  static getHashFromUrl(urlStringOrFragment: string): string {
+    const index = urlStringOrFragment.indexOf("#");
+    const indexWithSlash = urlStringOrFragment.indexOf("#/");
+    if (indexWithSlash > -1) {
+      return urlStringOrFragment.substring(indexWithSlash + 2);
+    }
+    if (index > -1) {
+      return urlStringOrFragment.substring(index + 1);
+    }
+    return urlStringOrFragment;
+  }
+
   //#endregion
 
   //#region ExtraQueryParameters Processing (Extract?)
@@ -642,8 +551,8 @@ export class Utils {
       }
       case SSOTypes.HOMEACCOUNT_ID: {
         let homeAccountId = ssoData.split(".");
-        const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
-        const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
+        const uid = Utils.base64Decode(homeAccountId[0]);
+        const utid = Utils.base64Decode(homeAccountId[1]);
 
         // TODO: domain_req and login_req are not needed according to eSTS team
         ssoParam[SSOTypes.LOGIN_REQ] = uid;

@@ -3,6 +3,7 @@
 
 import { Constants } from "../Constants";
 import { ClientAuthError } from "./ClientAuthError";
+import { TelemetryOptions } from "../Configuration";
 
 export const ClientConfigurationErrorMessage = {
     configurationNotSet: {
@@ -74,6 +75,10 @@ export const ClientConfigurationErrorMessage = {
     emptyRequestError: {
         code: "empty_request_error",
         desc: "Request object is required."
+    },
+    telemetryConfigError: {
+        code: "telemetry_config_error",
+        desc: "Telemetry config is not configured with required values"
     }
 };
 
@@ -145,5 +150,21 @@ export class ClientConfigurationError extends ClientAuthError {
     static createEmptyRequestError(): ClientConfigurationError {
         const { code, desc } = ClientConfigurationErrorMessage.emptyRequestError;
         return new ClientConfigurationError(code, desc);
+    }
+
+    static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.telemetryConfigError;
+        const requiredKeys = {
+            applicationName: "string",
+            applicationVersion: "string",
+            telemetryEmitter: "function"
+        };
+
+        const missingKeys = Object.keys(requiredKeys)
+            .reduce((keys, key) => {
+                return config[key] ? keys : keys.concat([ `${key} (${requiredKeys[key]})` ]);
+            }, []);
+
+        return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
     }
 }

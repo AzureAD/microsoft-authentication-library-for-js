@@ -1,0 +1,93 @@
+import TelemetryEvent from "./TelemetryEvent";
+import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
+import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "./TelemetryUtils";
+import { Logger } from "../Logger";
+
+export const EVENT_KEYS = {
+    AUTHORITY: prependEventNamePrefix("authority"),
+    AUTHORITY_TYPE: prependEventNamePrefix("authority_type"),
+    PROMPT: prependEventNamePrefix("ui_behavior"),
+    TENANT_ID: prependEventNamePrefix("tenant_id"),
+    USER_ID: prependEventNamePrefix("user_id"),
+    WAS_SUCESSFUL: prependEventNamePrefix("was_successful"),
+    API_ERROR_CODE: prependEventNamePrefix("api_error_code"),
+    LOGIN_HINT: prependEventNamePrefix("login_hint")
+};
+
+export enum API_CODE {
+    AcquireTokenRedirect = 2001,
+    AcquireTokenSilent = 2002,
+    AcquireTokenPopup = 2003,
+    LoginRedirect = 2004,
+    LoginPopup = 2005
+}
+
+
+export enum API_EVENT_IDENTIFIER {
+    AcquireTokenRedirect = "AcquireTokenRedirect",
+    AcquireTokenSilent = "AcquireTokenSilent",
+    AcquireTokenPopup = "AcquireTokenPopup",
+    LoginRedirect = "LoginRedirect",
+    LoginPopup = "LoginPopup"
+}
+
+export default class ApiEvent extends TelemetryEvent {
+
+    private logger: Logger;
+
+    constructor(correlationId: string, logger: Logger) {
+        super(prependEventNamePrefix("api_event"), correlationId);
+        this.logger = logger;
+    }
+
+    public set apiEventIdentifier(apiEventIdentifier: string) {
+        this.event[TELEMETRY_BLOB_EVENT_NAMES.ApiTelemIdConstStrKey] = apiEventIdentifier;
+    }
+
+    public set apiCode(apiCode: number) {
+        this.event[TELEMETRY_BLOB_EVENT_NAMES.ApiIdConstStrKey] = apiCode;
+    }
+
+    public set authority(uri: string) {
+        this.event[EVENT_KEYS.AUTHORITY] = scrubTenantFromUri(uri).toLowerCase();
+    }
+
+    public set apiErrorCode(errorCode: string) {
+        this.event[EVENT_KEYS.API_ERROR_CODE] = errorCode;
+    }
+
+    public set tenantId(tenantId: string) {
+        this.event[EVENT_KEYS.TENANT_ID] = this.logger.isPiiLoggingEnabled() && tenantId ?
+            hashPersonalIdentifier(tenantId)
+            : null;
+    }
+
+    public set accountId(accountId: string) {
+        this.event[EVENT_KEYS.USER_ID] = this.logger.isPiiLoggingEnabled() && accountId ?
+            hashPersonalIdentifier(accountId)
+            : null;
+    }
+
+    public set wasSuccessful(wasSuccessful: boolean) {
+        this.event[EVENT_KEYS.WAS_SUCESSFUL] = wasSuccessful;
+    }
+
+    public get wasSuccessful() {
+        return this.event[EVENT_KEYS.WAS_SUCESSFUL] === true;
+    }
+
+    public set loginHint(loginHint: string) {
+        this.event[EVENT_KEYS.LOGIN_HINT] = this.logger.isPiiLoggingEnabled() && loginHint ?
+            hashPersonalIdentifier(loginHint)
+            : null;
+    }
+
+    public set authorityType(authorityType: string) {
+        this.event[EVENT_KEYS.AUTHORITY_TYPE] = authorityType.toLowerCase();
+    }
+
+    public set promptType(promptType: string) {
+        this.event[EVENT_KEYS.PROMPT] = promptType.toLowerCase();
+    }
+
+}
