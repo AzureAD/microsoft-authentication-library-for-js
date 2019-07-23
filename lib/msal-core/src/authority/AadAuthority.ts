@@ -3,7 +3,7 @@
 
 import { Authority, AuthorityType } from "./Authority";
 import { XhrClient } from "./XHRClient";
-import { AADTrustedHostList } from "./Constants";
+import { AADTrustedHostList } from "./../Constants";
 
 /**
  * @hidden

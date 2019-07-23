@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
-import { Authority } from "../src";
-import { AuthorityFactory } from "../src/AuthorityFactory";
+import { Authority } from "../src/authority/Authority";
+import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 
 describe("ServerRequestParameters.ts Class", function () {
 
