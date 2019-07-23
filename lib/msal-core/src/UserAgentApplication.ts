@@ -25,7 +25,9 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
- // default authority
+import LoginProvider from "./login/LoginProvider";
+
+// default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
 
 /**
@@ -53,7 +55,7 @@ declare global {
  * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
  *
  */
-const ResponseTypes = {
+export const ResponseTypes = {
   id_token: "id_token",
   token: "token",
   id_token_token: "id_token token"
@@ -141,13 +143,13 @@ export class UserAgentApplication {
   private errorReceivedCallback: errorReceivedCallback = null;
 
   // Added for readability as these params are very frequently used
-  private logger: Logger;
-  private clientId: string;
+  public logger: Logger;
+  public clientId: string;
   private inCookie: boolean;
   private telemetryManager: TelemetryManager;
 
   // Cache and Account info referred across token grant flow
-  protected cacheStorage: Storage;
+  public cacheStorage: Storage;
   private account: Account;
 
   // state variables
@@ -158,7 +160,10 @@ export class UserAgentApplication {
   private redirectCallbacksSet: boolean;
 
   // Authority Functionality
-  protected authorityInstance: Authority;
+  public authorityInstance: Authority;
+
+  // Providers
+  private loginProvider: LoginProvider;
 
   /**
    * setter for the authority URL
@@ -236,6 +241,8 @@ export class UserAgentApplication {
         throw ClientConfigurationError.createInvalidCacheLocationConfigError(this.config.cache.cacheLocation);
     }
 
+    this.loginProvider = new LoginProvider(this, this.logger);
+
     // Initialize window handling code
     window.openedWindows = [];
     window.activeRenewals = {};
@@ -292,7 +299,7 @@ export class UserAgentApplication {
     }
   }
 
-  private redirectSuccessHandler(response: AuthResponse) : void {
+  public redirectSuccessHandler(response: AuthResponse) : void {
     if (this.errorReceivedCallback) {
       this.tokenReceivedCallback(response);
     } else if (this.authResponseCallback) {
@@ -300,7 +307,7 @@ export class UserAgentApplication {
     }
   }
 
-  private redirectErrorHandler(authErr: AuthError, response: AuthResponse) : void {
+  public redirectErrorHandler(authErr: AuthError, response: AuthResponse) : void {
     if (this.errorReceivedCallback) {
       this.errorReceivedCallback(authErr, response.accountState);
     } else {
@@ -317,113 +324,7 @@ export class UserAgentApplication {
    * @param {@link (AuthenticationParameters:type)}
    */
   loginRedirect(request?: AuthenticationParameters): void {
-
-    // Throw error if callbacks are not set before redirect
-    if (!this.redirectCallbacksSet) {
-      throw ClientConfigurationError.createRedirectCallbacksNotSetError();
-    }
-
-    // Creates navigate url; saves value in cache; redirect user to AAD
-    if (this.loginInProgress) {
-      this.redirectErrorHandler(ClientAuthError.createLoginInProgressError(), buildResponseStateOnly(request && request.state));
-      return;
-    }
-
-    // if extraScopesToConsent is passed, append them to the login request
-    let scopes: Array<string> = this.appendScopes(request);
-
-    // Validate and filter scopes (the validate function will throw if validation fails)
-    this.validateInputScope(scopes, false);
-
-    const account: Account = this.getAccount();
-
-    // defer queryParameters generation to Helper if developer passes account/sid/login_hint
-    if (Utils.isSSOParam(request)) {
-      // if account is not provided, we pass null
-      this.loginRedirectHelper(account, request, scopes);
-    }
-    // else handle the library data
-    else {
-      // extract ADAL id_token if exists
-      let adalIdToken = this.extractADALIdToken();
-
-      // silent login if ADAL id_token is retrieved successfully - SSO
-      if (adalIdToken && !scopes) {
-        this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-        let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
-
-        this.silentLogin = true;
-        this.acquireTokenSilent(tokenRequest).then(response => {
-          this.silentLogin = false;
-          this.logger.info("Unified cache call is successful");
-
-          if (this.redirectCallbacksSet) {
-            this.redirectSuccessHandler(response);
-          }
-          return;
-        }, (error) => {
-          this.silentLogin = false;
-          this.logger.error("Error occurred during unified cache ATS");
-
-          // call the loginRedirectHelper later with no user account context
-          this.loginRedirectHelper(null, request, scopes);
-        });
-      }
-      // else proceed to login
-      else {
-        // call the loginRedirectHelper later with no user account context
-        this.loginRedirectHelper(null, request, scopes);
-      }
-    }
-
-  }
-
-  /**
-   * @hidden
-   * @ignore
-   * Helper function to loginRedirect
-   *
-   * @param account
-   * @param AuthenticationParameters
-   * @param scopes
-   */
-  private loginRedirectHelper(account: Account, request?: AuthenticationParameters, scopes?: Array<string>) {
-    // Track login in progress
-    this.loginInProgress = true;
-
-    this.authorityInstance.resolveEndpointsAsync().then(() => {
-
-      // create the Request to be sent to the Server
-      let serverAuthenticationRequest = new ServerRequestParameters(
-        this.authorityInstance,
-        this.clientId, scopes,
-        ResponseTypes.id_token,
-        this.getRedirectUri(),
-        request && request.state
-      );
-
-      // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
-
-      // if the user sets the login start page - angular only??
-      let loginStartPage = this.cacheStorage.getItem(Constants.angularLoginRequest);
-      if (!loginStartPage || loginStartPage === "") {
-        loginStartPage = window.location.href;
-      } else {
-        this.cacheStorage.setItem(Constants.angularLoginRequest, "");
-      }
-
-      this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
-
-      // build URL to navigate to proceed with the login
-      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
-
-      // Redirect user to login URL
-      this.promptUser(urlNavigate);
-    }).catch((err) => {
-      this.logger.warning("could not resolve endpoints");
-      this.redirectErrorHandler(ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request && request.state));
-    });
+    return this.loginProvider.loginRedirect(request);
   }
 
   /**
@@ -1172,7 +1073,7 @@ export class UserAgentApplication {
    * Used to redirect the browser to the STS authorization endpoint
    * @param {string} urlNavigate - URL of the authorization endpoint
    */
-  private promptUser(urlNavigate: string) {
+  public promptUser(urlNavigate: string) {
     // Navigate if valid URL
     if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
       this.logger.infoPii("Navigate to:" + urlNavigate);
@@ -1624,7 +1525,7 @@ export class UserAgentApplication {
    * Check if ADAL id_token exists and return if exists.
    *
    */
-  private extractADALIdToken(): any {
+  public extractADALIdToken(): any {
     const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
     if (!Utils.isEmpty(adalIdToken)) {
         return Utils.extractIdToken(adalIdToken);
@@ -2097,7 +1998,7 @@ export class UserAgentApplication {
    * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
    * @ignore
    */
-  private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
+  public validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
     if (!scopes) {
       if (scopesRequired) {
         throw ClientConfigurationError.createScopesRequiredError(scopes);
@@ -2147,7 +2048,7 @@ export class UserAgentApplication {
    * Appends extraScopesToConsent if passed
    * @param {@link AuthenticationParameters}
    */
-  private appendScopes(request: AuthenticationParameters): Array<string> {
+  public appendScopes(request: AuthenticationParameters): Array<string> {
 
     let scopes: Array<string>;
 
@@ -2470,7 +2371,7 @@ export class UserAgentApplication {
    * @hidden
    * @ignore
    */
-  private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
+  public updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
     // Cache account and authority
     if (loginStartPage) {
       // Cache the state, nonce, and login request data
@@ -2519,7 +2420,7 @@ export class UserAgentApplication {
    * @param extraQueryParameters
    * @hidden
    */
-  private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
+  public buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 
     let tokenRequest: AuthenticationParameters = {
       scopes: [this.clientId],
@@ -2539,7 +2440,7 @@ export class UserAgentApplication {
    * @param request
    * @param serverAuthenticationRequest
    */
-  private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
+  public populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
 
     let queryParameters: StringDict = {};
 
@@ -2644,4 +2545,19 @@ export class UserAgentApplication {
     };
     return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
   }
-}
+
+  public redirectCallbacksAreSet(): boolean  {
+    return this.redirectCallbacksSet;
+  }
+
+  public loginIsInProgress(): boolean {
+    return this.loginInProgress;
+  }
+
+  public setSilentLogin(silentLogin: boolean) {
+    this.silentLogin = silentLogin;
+  }
+
+  public setLoginInProgress(loginInProgress: boolean) {
+    this.loginInProgress = loginInProgress;
+  }
