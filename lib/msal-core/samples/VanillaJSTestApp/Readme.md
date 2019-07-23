@@ -19,3 +19,11 @@ Running the sample
 - Navigate to http://localhost:1530 with the browser of your choice
 
 - In the web page, click on the “Login” button
+
+
+Library Usage:
+---------------
+Storage:
+Cookies:
+
+

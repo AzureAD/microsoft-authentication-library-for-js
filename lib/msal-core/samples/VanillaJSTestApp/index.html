@@ -19,23 +19,27 @@
         </div>
     </div>
     <script>
-    /*var applicationConfig = {
-            clientID: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
-            authority: "https://login.microsoftonline.com/common",
-            graphScopes: ["user.read", "Mail.Send"],
-            graphEndpoint: "https://graph.microsoft.com/v1.0/me",
-            loginType: 'POPUP'
-    };*/
+
+    // initialize the logger options for debug
+    var logger = new Msal.Logger(loggerCallback, { level: Msal.LogLevel.Verbose, correlationId: '12345' });
+
+    function loggerCallback(logLevel, message, piiEnabled) {
+        console.log(message);
+    }
 
     var msalConfig = {
         auth: {
+            // clientId: 'Enter_the_Application_Id_here', //This is your client ID
+            // authority: "https://login.microsoftonline.com/Enter_the_Tenant_Info_Here" //This is your tenant info
             clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
             authority: "https://login.microsoftonline.com/common",
-            validateAuthority: true
         },
         cache: {
             cacheLocation: "localStorage",
             storeAuthStateInCookie: true
+        },
+        system: {
+            logger: logger
         }
     };
 
