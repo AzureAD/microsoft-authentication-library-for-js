@@ -18,4 +18,8 @@ export abstract class Authority {
     public get authorizationEndpoint(): string {
        return `${this.canonicalAuthority}oauth2/v2.0/authorize?`;
     }
+
+    public get tokenEndpoint(): string {
+        return `${this.canonicalAuthority}oauth2/v2.0/token?`;
+    }
 }

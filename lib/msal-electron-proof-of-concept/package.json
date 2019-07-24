@@ -42,6 +42,7 @@
         "electron": "5.x"
     },
     "dependencies": {
+        "request-promise": "^4.2.4",
         "typescript": "^3.5.2"
     }
 }
