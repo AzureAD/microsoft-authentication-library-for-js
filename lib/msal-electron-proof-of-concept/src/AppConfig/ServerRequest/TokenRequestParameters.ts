@@ -55,7 +55,8 @@ export class TokenRequestParameters extends ServerRequestParameters {
                 grant_type: 'authorization_code',
                 code: authCode,
                 scope
-            }
+            },
+            json: true
         };
      }
 

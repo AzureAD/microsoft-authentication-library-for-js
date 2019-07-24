@@ -11,4 +11,5 @@ export type TokenRequestOptions = {
     uri: string;
     method: string;
     form: TokenRequestForm;
+    json: boolean;
 };
