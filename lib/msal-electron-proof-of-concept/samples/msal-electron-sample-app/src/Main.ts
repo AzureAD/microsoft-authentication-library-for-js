@@ -57,7 +57,7 @@ export default class Main {
 
     // Sets a listener for the AcquireToken event that when triggered
     // performs the authorization code grant flow
-    private static async listenForAcquireToken(): Promise<void> {
+    private static listenForAcquireToken(): void {
         ipcMain.on('AcquireToken', () => {
             const tokenRequest = {
                 scopes: ['user.read', 'mail.read'],

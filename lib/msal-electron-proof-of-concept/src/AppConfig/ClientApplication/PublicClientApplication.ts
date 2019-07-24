@@ -87,12 +87,7 @@ export class PublicClientApplication extends ClientApplication {
 
         // Build navigate URL for Auth Code request
         const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes);
-
-        try {
-            return await this.listenForAuthCode(navigateUrl);
-        } catch (error) {
-            throw error;
-        }
+        return await this.listenForAuthCode(navigateUrl);
     }
 
     /**
