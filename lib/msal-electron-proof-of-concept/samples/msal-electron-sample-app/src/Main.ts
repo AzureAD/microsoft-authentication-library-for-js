@@ -62,13 +62,11 @@ export default class Main {
             const tokenRequest = {
                 scopes: ['user.read', 'mail.read'],
             };
-            try {
-                this.msalApp.acquireToken(tokenRequest).then((accessToken) => {
-                    console.log(accessToken);
-                });
-            } catch (error) {
+            this.msalApp.acquireToken(tokenRequest).then((accessToken) => {
+                console.log(accessToken);
+            }).catch((error) => {
                 console.error(error);
-            }
+            });
         });
     }
 }
