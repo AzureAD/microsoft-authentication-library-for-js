@@ -89,16 +89,8 @@ export class PublicClientApplication extends ClientApplication {
 
         // Build navigate URL for Auth Code request
         const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes);
-<<<<<<< HEAD
-        return await this.listenForAuthCode(navigateUrl);
-=======
-
-        try {
-            const authCode = await this.listenForAuthCode(navigateUrl);
-            return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode);
-        } catch (error) {
-            throw error;
-        }
+        const authCode = await this.listenForAuthCode(navigateUrl);
+        return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode);
     }
 
     /**
@@ -117,7 +109,6 @@ export class PublicClientApplication extends ClientApplication {
         } catch (error) {
             throw error;
         }
->>>>>>> d0b8de624ce9b8f8ff506576df02e06e2877b0d4
     }
 
     private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string): TokenRequestParameters {
@@ -187,9 +178,9 @@ export class PublicClientApplication extends ClientApplication {
             height: DEFAULT_POPUP_HEIGHT,
             width: DEFAULT_POPUP_WIDTH,
             alwaysOnTop: true,
-            webPreferences: {
-                contextIsolation: true
-            }
+            webPreferences: { 
+                contextIsolation: true,
+            },
         });
 
         // Nullify the authWindow member when the browser window is closed
