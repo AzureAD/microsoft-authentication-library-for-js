@@ -26,11 +26,6 @@ export class AuthorizationCodeRequestError extends AuthError {
         return new AuthorizationCodeRequestError(errorMessage.code, `${errorMessage.description}`);
     }
 
-    private static buildAuthorizationCodeRequestScopesError(errorMessage, scopes: string[]): AuthorizationCodeRequestError {
-        return new AuthorizationCodeRequestError(errorMessage.code,
-            `${errorMessage.description} Given value: ${scopes}`);
-    }
-
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = 'AuthorizationCodeRequestError';

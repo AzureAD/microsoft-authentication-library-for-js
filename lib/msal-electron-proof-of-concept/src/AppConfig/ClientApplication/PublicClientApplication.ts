@@ -8,15 +8,13 @@ import { AuthOptions } from '../AuthOptions';
 import { AadAuthority } from '../Authority/AadAuthority';
 import { Authority } from '../Authority/Authority';
 import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
-import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
-import { ServerResponse } from '../ServerResponse/ServerResponse';
+import { AuthCodeReponse } from '../ServerResponse/AuthCodeResponse';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
 import { BrowserWindow } from 'electron';
-import * as url from 'url';
 
 /**
  * PublicClientApplication class
@@ -89,7 +87,12 @@ export class PublicClientApplication extends ClientApplication {
 
         // Build navigate URL for Auth Code request
         const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes);
-        return await this.listenForAuthCode(navigateUrl);
+
+        try {
+            return await this.listenForAuthCode(navigateUrl);
+        } catch (error) {
+            throw error;
+        }
     }
 
     /**
@@ -119,16 +122,17 @@ export class PublicClientApplication extends ClientApplication {
         // Open PopUp window and load the navigate URL
         this.openAuthWindow();
         this.authWindow.loadURL(navigateUrl);
+
+        // Listen for 'will-redirect' BrowserWindow event
         return new Promise((resolve, reject) => {
             this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                const response = url.parse(responseUrl, true);
-                const servResp = new ServerResponse(responseUrl);
-                if (response.query.error) {
-                    const errorDescription = response.query.error_description as string;
-                    const authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(errorDescription);
-                    reject(authError);
+                const authCodeResponse = new AuthCodeReponse(responseUrl);
+                if (authCodeResponse.error) {
+                    reject(authCodeResponse.error);
+                } else {
+                    resolve(authCodeResponse.code);
                 }
-                resolve(response.query.code as string);
+                // Close authWindow and Auth Code Listener
                 this.authWindow.close();
                 this.authCodeListener.close();
             });
@@ -136,10 +140,10 @@ export class PublicClientApplication extends ClientApplication {
     }
 
     /**
-     * This mehtod opens a PopUp browser window that will
+     * This method opens a PopUp browser window that will
      * be used to authenticate the user.
      */
-    private openAuthWindow() {
+    private openAuthWindow(): void {
         this.authWindow = new BrowserWindow({
             height: DEFAULT_POPUP_HEIGHT,
             width: DEFAULT_POPUP_WIDTH,
@@ -148,6 +152,8 @@ export class PublicClientApplication extends ClientApplication {
                 contextIsolation: true
             }
         });
+
+        // Nullify the authWindow member when the browser window is closed
         this.authWindow.on('closed', () => {
             this.authWindow = null;
         });
