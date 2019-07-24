@@ -9,20 +9,20 @@ import { Authority } from '../Authority/Authority';
  */
 export abstract class ServerRequestParameters {
     private authorityInstance: Authority;
-    private clientId: string;
+    private clientIdentifier: string;
     private redirectUri: string;
     private scopes: string[];
 
     /**
      * Constructor
-     * @param authority
-     * @param clientId
-     * @param scope
-     * @param redirectUri
+     * @param authorityInstance - An instance of any Authority subclass to get authority URL and endpoint URLs
+     * @param clientId - Client ID of the app registered in the application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
+     * @param scope - An array of scopes that the application is requesting authorization for
+     * @param redirectUri - URI addres on which to listen for redirect responses
      */
     constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[]) {
         this.authorityInstance = authorityInstance;
-        this.clientId = clientId;
+        this.clientIdentifier = clientId;
         this.redirectUri = redirectUri;
         this.scopes = scopes;
     }
@@ -31,16 +31,16 @@ export abstract class ServerRequestParameters {
         return this.authorityInstance;
     }
 
-    /**
-     * Returns an array of URI-encoded query parameter string elements
-     * that correspond to universal MSAL server request parameters.
-     */
-    public buildQueryParameters(): string[] {
-        const params: string[] = [];
-        const scope = this.scopes.join(' ');
-        params.push(`client_Id=${encodeURIComponent(this.clientId)}`);
-        params.push(`redirect_uri=${encodeURIComponent(this.redirectUri)}`);
-        params.push(`scope=${encodeURIComponent(scope)}`);
-        return params;
+    public get clientId(): string {
+        return this.clientIdentifier;
     }
+
+    public get redirectUrl(): string {
+        return this.redirectUri;
+    }
+
+    public get urlScopes(): string {
+        return this.scopes.join(' ');
+    }
+
 }

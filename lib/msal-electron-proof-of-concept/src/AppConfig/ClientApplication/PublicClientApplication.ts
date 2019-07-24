@@ -3,6 +3,7 @@
 
 import { AuthCodeListener } from '../../AuthCodeListener/AuthCodeListener';
 import { CustomFileProtocolListener } from '../../AuthCodeListener/CustomFileProtocolListener';
+import { CryptoUtils } from '../../Utils/CryptoUtils';
 import { AuthenticationParameters } from '../AuthenticationParameters';
 import { AuthOptions } from '../AuthOptions';
 import { AadAuthority } from '../Authority/AadAuthority';
@@ -10,12 +11,13 @@ import { Authority } from '../Authority/Authority';
 import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
+import { TokenRequestParameters } from '../ServerRequest/TokenRequestParameters';
 import { AuthCodeReponse } from '../ServerResponse/AuthCodeResponse';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
 import { BrowserWindow } from 'electron';
-
+import * as rp from 'request-promise';
 /**
  * PublicClientApplication class
  *
@@ -45,9 +47,9 @@ export class PublicClientApplication extends ClientApplication {
                 const authorityUrl = request.authority ? request.authority : this.authorityUrl;
                 // Create Authority Instance
                 const authorityInstance = new AadAuthority(authorityUrl);
-                // Get Authorization Code
-                const authCode = this.retrieveAuthCode(authorityInstance, request.scopes);
-                resolve(authCode);
+                // Get AccessToken
+                const accessToken = this.acquireTokenWithAuthCode(authorityInstance, request.scopes);
+                resolve(accessToken);
             } catch (error) {
                 return reject(error);
             }
@@ -75,24 +77,61 @@ export class PublicClientApplication extends ClientApplication {
     }
 
     /**
-     * This method is responsible for requesting and returning an authorization code
-     * from the authorization endpoint of the authorization server.
+     * This method is responsible for getting an authorization code
+     * from the authorization endpoint of the authorization server
+     * and exchanging it for an access token with the token endpoint.
      * @param authorityInstance
      * @param scopes
      */
-    private async retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
+    private async acquireTokenWithAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
         // Register custom protocol to listen for auth code response
         this.authCodeListener = new CustomFileProtocolListener('msal');
         this.authCodeListener.start();
 
+        // Generate State ID
+        const stateId = CryptoUtils.generateStateId();
+
         // Build navigate URL for Auth Code request
-        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes);
+        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes, stateId);
 
         try {
-            return await this.listenForAuthCode(navigateUrl);
+            const authCode = await this.listenForAuthCode(navigateUrl);
+            return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode);
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * Trades authorization code for an access token
+     * with the token endpoint of the authorization server
+     * @param authorityInstance
+     * @param scopes
+     * @param authCode
+     */
+    private async tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string): Promise<string> {
+        // Build token request URL
+        const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode);
+        try {
+            const tokenResponse = await rp(tokenRequest.body);
+            return JSON.parse(tokenResponse).access_token;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string): TokenRequestParameters {
+        // Build Server Token Request
+        const tokenRequestParameters = new TokenRequestParameters(
+            authorityInstance,
+            this.clientId,
+            this.redirectUri,
+            scopes,
+            authCode
+        );
+
+        // Create request URI string from request parameters
+        return tokenRequestParameters;
     }
 
     /**
@@ -100,13 +139,14 @@ export class PublicClientApplication extends ClientApplication {
      * @param authorityInstance
      * @param scopes
      */
-    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[]): string {
-        // Build Server Authentication Request
+    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[], state: string): string {
+        // Build Server Authorization Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
             authorityInstance,
             this.clientId,
             this.redirectUri,
-            scopes
+            scopes,
+            state
         );
 
         // Create navigate URL string from request parameters

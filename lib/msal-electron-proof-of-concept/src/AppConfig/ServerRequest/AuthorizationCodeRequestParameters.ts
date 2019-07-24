@@ -1,17 +1,19 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License
+
 import { Authority } from '../Authority/Authority';
 import { ServerRequestParameters } from './ServerRequestParameters';
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 /**
  * The AuthorizationCodeRequestParameters class is used to build
  * Authorization Code Request navigation URls.
  */
-
 export class AuthorizationCodeRequestParameters extends ServerRequestParameters {
-    constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[]) {
+    private state: string;
+
+    constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[], state: string) {
       super(authorityInstance, clientId, redirectUri, scopes);
+      this.state = state;
     }
 
     /**
@@ -35,7 +37,11 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
      * Auth Code request specific query paramters to the query parameters array.
      */
     public buildQueryParameters(): string[] {
-        const queryParams = super.buildQueryParameters();
+        const queryParams: string[] = [];
+        queryParams.push(`client_Id=${encodeURIComponent(this.clientId)}`);
+        queryParams.push(`redirect_uri=${encodeURIComponent(this.redirectUrl)}`);
+        queryParams.push(`scope=${encodeURIComponent(this.urlScopes)}`);
+        queryParams.push(`state=${encodeURIComponent(this.state)}`);
         queryParams.push('response_type=code');
         queryParams.push('response_mode=query');
         // TODO: Add state and PKCE Code Challenge/Verifier to requests for security
