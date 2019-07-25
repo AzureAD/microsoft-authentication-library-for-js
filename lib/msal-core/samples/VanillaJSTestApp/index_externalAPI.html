@@ -11,7 +11,7 @@
     <div class="container">
         <div class="leftContainer">
             <p id="WelcomeMessage">Welcome to the Microsoft Authentication Library For Javascript Quickstart</p>
-            <button id="SignIn" onclick="signInR()">Sign In</button>
+            <button id="SignIn" onclick="signIn()">Sign In</button>
             <button id="ReadMail" onclick="readMail()">Read Email</button>
         </div>
         <div class="rightContainer">
@@ -30,7 +30,7 @@
 
     var msalConfig = {
         auth: {
-            clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
+            clientId: "Enter_your_client_ID",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true
         },
@@ -88,7 +88,7 @@
         acquireTokensRedirectAndCallMSGraph(loginRequest);
     }
 
-    function acquireTokensPopupAndCallMSGraph(request) {
+    function acquireTokensPopupAndCallMSGraph(endpoint, request) {
         //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
         /*
         let tokenRequest = {
@@ -180,15 +180,15 @@
             console.log("ID Token Response: " + JSON.stringify(response));
             console.log("ID Token Scopes: " + response.scopes);
             showWelcomeMessage();
-            // acquireTokensRedirectAndCallMSGraph(graphTokenRequest);
+            acquireTokensRedirectAndCallMSGraph(graphTokenRequest);
         } else if (response.tokenType === "access_token") {
-            // callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, graphAPICallback);
+            callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, graphAPICallback);
             console.log("Access Token Response: " + JSON.stringify(response));
             console.log("Access Token Scopes: " + response.scopes);
         } else {
             console.error("token type is:" + response.tokenType);
         }
-    } 
+    }
 
     function requiresInteraction(errorMessage) {
         if (!errorMessage || !errorMessage.length) {
@@ -211,20 +211,20 @@
 
     //If you support IE, our recommendation is that you sign-in using Redirect APIs
     //If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
-    if (false) {
+    if (true) {
         if (myMSALObj.getAccount()) {// avoid duplicate code execution on page load in case of iframe and popup window.
             showWelcomeMessage();
             acquireTokensPopupAndCallMSGraph(graphConfig.graphMeEndpoint, loginRequest);
         }
     }
     else {
-        // document.getElementById("SignIn").onclick = function () {
-        //     myMSALObj.loginRedirect(loginRequest);
-        // };
+        document.getElementById("SignIn").onclick = function () {
+            myMSALObj.loginRedirect(loginRequest);
+        };
 
-        // document.getElementById("ReadMail").onclick = function () {
-        //     readMail();
-        // };
+        document.getElementById("ReadMail").onclick = function () {
+            readMail();
+        };
 
         if (myMSALObj.getAccount() && !myMSALObj.isCallback(window.location.hash)) {// avoid duplicate code execution on page load in case of iframe and popup window.
             showWelcomeMessage();

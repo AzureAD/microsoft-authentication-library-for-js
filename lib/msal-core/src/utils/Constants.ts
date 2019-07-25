@@ -149,5 +149,5 @@ export const PromptState = {
  * @hidden
  */
 export const Library = {
-  version: "1.0.2"
+  version: "1.1.1"
 };
