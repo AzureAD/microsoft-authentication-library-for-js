@@ -44,7 +44,7 @@ export class TokenProcessor {
     }
     try {
       const base64IdToken = decodedToken.JWSPayload;
-      const base64Decoded = Utils.base64DecodeStringUrlSafe(base64IdToken);
+      const base64Decoded = Utils.base64Decode(base64IdToken);
       if (!base64Decoded) {
         //this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
         return null;

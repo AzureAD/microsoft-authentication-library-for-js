@@ -36,14 +36,17 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
     };
 }
 
-export function setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
-  var response = { ...originalResponse };
-  response.idToken = idToken;
-  if (response.idToken.objectId) {
-    response.uniqueId = response.idToken.objectId;
-  } else {
-    response.uniqueId = response.idToken.subject;
-  }
-  response.tenantId = response.idToken.tenantId;
-  return response;
+export function setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
+    let exp = Number(idTokenObj.expiration);
+    if (exp && !originalResponse.expiresOn) {
+        originalResponse.expiresOn = new Date(exp * 1000);
+    }
+
+    return {
+      ...originalResponse,
+      idToken: idTokenObj,
+      idTokenClaims: idTokenObj.claims,
+      uniqueId: idTokenObj.objectId || idTokenObj.subject,
+      tenantId: idTokenObj.tenantId,
+    };
 }
