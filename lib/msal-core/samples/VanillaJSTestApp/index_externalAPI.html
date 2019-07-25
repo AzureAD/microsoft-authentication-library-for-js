@@ -88,7 +88,7 @@
         acquireTokensRedirectAndCallMSGraph(loginRequest);
     }
 
-    function acquireTokensPopupAndCallMSGraph(request) {
+    function acquireTokensPopupAndCallMSGraph(endpoint, request) {
         //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
         /*
         let tokenRequest = {
@@ -188,7 +188,7 @@
         } else {
             console.error("token type is:" + response.tokenType);
         }
-    } 
+    }
 
     function requiresInteraction(errorMessage) {
         if (!errorMessage || !errorMessage.length) {
