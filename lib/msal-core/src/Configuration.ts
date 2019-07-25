@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { Logger } from "./Logger";
-import { UrlProcessor } from "./UrlProcessor";
+import { UrlUtils } from "./utils/UrlUtils";
 import { TelemetryEmitter } from "./telemetry/TelemetryTypes"
 
 /**
@@ -114,8 +114,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
   clientId: "",
   authority: null,
   validateAuthority: true,
-  redirectUri: () => UrlProcessor.getDefaultRedirectUri(),
-  postLogoutRedirectUri: () => UrlProcessor.getDefaultRedirectUri(),
+  redirectUri: () => UrlUtils.getDefaultRedirectUri(),
+  postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
   navigateToLoginRequestUrl: true
 };
 

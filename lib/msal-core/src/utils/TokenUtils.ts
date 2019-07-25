@@ -6,7 +6,7 @@ import { Utils } from "./Utils";
 /**
  * @hidden
  */
-export class TokenProcessor {
+export class TokenUtils {
 
   /**
    * decode a JWT

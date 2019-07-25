@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Utils } from "../src/Utils";
+import { Utils } from "../../src/utils/Utils";
 
 describe("Utils.ts class", () => {
 

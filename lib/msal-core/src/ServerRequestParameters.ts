@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { Authority } from "./Authority";
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken

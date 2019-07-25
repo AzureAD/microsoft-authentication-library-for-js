@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
 import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
-import { Utils } from "../src/Utils";
+import { Utils } from "../src/utils/Utils";
 import { TEST_DATA_CLIENT_INFO } from "./TestConstants";
 
 describe("Client Info", function () {

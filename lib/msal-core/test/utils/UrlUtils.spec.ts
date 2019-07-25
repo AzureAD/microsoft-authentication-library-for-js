@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { UrlProcessor } from "../src/UrlProcessor"
+import { UrlUtils } from "../../src/utils/UrlUtils"
 
-describe("UrlProcessor.ts class", () => {
+describe("UrlUtils.ts class", () => {
 
     const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
     + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
@@ -18,26 +18,26 @@ describe("UrlProcessor.ts class", () => {
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
     it("replaceTenantPath", () => {
-        console.log(UrlProcessor.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
-        console.log(UrlProcessor.replaceTenantPath("http://a.com/common/", "1234-56778"));
-        console.log(UrlProcessor.replaceTenantPath("http://a.com/common", "1234-5678"));
+        console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
+        console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
+        console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
     });
 
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
-        const hash = UrlProcessor.getHashFromUrl(TEST_URL_HASH_SINGLE_CHAR);
+        const hash = UrlUtils.getHashFromUrl(TEST_URL_HASH_SINGLE_CHAR);
 
         expect(hash).to.be.equal(TEST_SUCCESS_PARAMS);
     });
 
     it("test getHashFromUrl returns hash from url if hash is two character", () => {
-        const hash = UrlProcessor.getHashFromUrl(TEST_URL_HASH_TWO_CHAR);
+        const hash = UrlUtils.getHashFromUrl(TEST_URL_HASH_TWO_CHAR);
 
         expect(hash).to.be.equal(TEST_SUCCESS_PARAMS);
     });
 
     it("test getHashFromUrl returns original url from url if no hash is present", () => {
-        const hash = UrlProcessor.getHashFromUrl(TEST_URL_NO_HASH);
+        const hash = UrlUtils.getHashFromUrl(TEST_URL_NO_HASH);
 
         expect(hash).to.be.equal(TEST_URL_NO_HASH);
     });

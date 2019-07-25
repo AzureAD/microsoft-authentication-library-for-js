@@ -4,20 +4,20 @@
 /**
  * @hidden
  */
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { UrlProcessor } from "./UrlProcessor";
+import { UrlUtils } from "./utils/UrlUtils";
 
 export class AuthorityFactory {
     /**
     * Parse the url and determine the type of authority
     */
     private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
-        authorityUrl = UrlProcessor.CanonicalizeUri(authorityUrl);
-        const components = UrlProcessor.GetUrlComponents(authorityUrl);
+        authorityUrl = UrlUtils.CanonicalizeUri(authorityUrl);
+        const components = UrlUtils.GetUrlComponents(authorityUrl);
         const pathSegments = components.PathSegments;
         switch (pathSegments[0]) {
             case "tfp":

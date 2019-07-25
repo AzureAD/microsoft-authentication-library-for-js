@@ -4,7 +4,7 @@
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { UrlProcessor } from "./UrlProcessor";
+import { UrlUtils } from "./utils/UrlUtils";
 
 /**
  * @hidden
@@ -13,7 +13,7 @@ export class B2cAuthority extends AadAuthority {
   public static B2C_PREFIX: String = "tfp";
   public constructor(authority: string, validateAuthority: boolean) {
     super(authority, validateAuthority);
-    const urlComponents = UrlProcessor.GetUrlComponents(authority);
+    const urlComponents = UrlUtils.GetUrlComponents(authority);
 
     const pathSegments = urlComponents.PathSegments;
     if (pathSegments.length < 3) {

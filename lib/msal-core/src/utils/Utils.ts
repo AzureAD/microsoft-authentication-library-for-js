@@ -1,13 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Account } from "./Account";
-import {Constants, SSOTypes, PromptState} from "./Constants";
-import { AuthenticationParameters } from "./AuthenticationParameters";
-import { AuthResponse } from "./AuthResponse";
-import { IdToken } from "./IdToken";
-import { Library } from "./Constants";
-import { StringDict } from "./MsalTypes";
+import { Account } from "../Account";
+import { Constants, SSOTypes, Library } from "./Constants";
+import { AuthenticationParameters } from "../AuthenticationParameters";
+import { StringDict } from "../MsalTypes";
 
 /**
  * @hidden

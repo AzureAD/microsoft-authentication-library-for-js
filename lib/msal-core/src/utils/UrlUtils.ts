@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { IUri } from "./IUri";
-import {Constants, SSOTypes, PromptState} from "./Constants";
+import { IUri } from "../IUri";
+import { Constants, SSOTypes } from "./Constants";
 import { Utils } from "./Utils";
 
 /**
  * @hidden
  */
-export class UrlProcessor {
+export class UrlUtils {
 
   /**
    * Returns current window URL as redirect uri
@@ -76,7 +76,7 @@ export class UrlProcessor {
       url = url.toLowerCase();
     }
 
-    if (url && !UrlProcessor.endsWith(url, "/")) {
+    if (url && !UrlUtils.endsWith(url, "/")) {
       url += "/";
     }
 

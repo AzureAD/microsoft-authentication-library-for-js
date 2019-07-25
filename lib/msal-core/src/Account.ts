@@ -3,7 +3,7 @@
 
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 import { StringDict } from "./MsalTypes";
 
 /**
