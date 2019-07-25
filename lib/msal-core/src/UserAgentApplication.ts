@@ -16,6 +16,7 @@ import { Utils } from "./utils/Utils";
 import { TokenUtils } from "./utils/TokenUtils";
 import { ScopeSet } from "./ScopeSet";
 import { UrlUtils } from "./utils/UrlUtils";
+import { ResponseUtils } from "./utils/ResponseUtils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
@@ -25,7 +26,7 @@ import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 import { ServerError } from "./error/ServerError";
 import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
-import { AuthResponse, buildResponseStateOnly, setResponseIdToken } from "./AuthResponse";
+import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
  // default authority
@@ -1400,7 +1401,7 @@ export class UserAgentApplication {
           account: account,
           accountState: aState,
         };
-        setResponseIdToken(response, idTokenObj);
+        ResponseUtils.setResponseIdToken(response, idTokenObj);
         return response;
       } else {
         this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
@@ -1665,7 +1666,7 @@ export class UserAgentApplication {
             response.idTokenClaims = idTokenObj.claims;
           } else {
             idTokenObj = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));
-            response = setResponseIdToken(response, idTokenObj);
+            response = ResponseUtils.setResponseIdToken(response, idTokenObj);
           }
 
           // retrieve the authority from cache and replace with tenantID
@@ -1727,7 +1728,7 @@ export class UserAgentApplication {
             // set the idToken
             idTokenObj = new IdToken(hashParams[Constants.idToken]);
 
-            response = setResponseIdToken(response, idTokenObj);
+            response = ResponseUtils.setResponseIdToken(response, idTokenObj);
             if (hashParams.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = hashParams[Constants.clientInfo];
             } else {

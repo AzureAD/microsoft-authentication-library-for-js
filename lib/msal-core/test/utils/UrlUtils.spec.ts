@@ -17,7 +17,7 @@ describe("UrlUtils.ts class", () => {
     const TEST_URL_HASH_SINGLE_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_1}`;
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
-    it("replaceTenantPath", () => {
+    it("replaceTenantPath replaces tenant parameter correctly (Need to add better tests here)", () => {
         console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
         console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
         console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
