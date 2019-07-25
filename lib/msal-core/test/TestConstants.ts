@@ -1,4 +1,4 @@
-import { Utils } from "../src/Utils";
+import { Utils } from "../src/utils/Utils";
 
 // Test Tokens
 export const TEST_TOKENS = {

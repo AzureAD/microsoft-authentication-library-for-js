@@ -5,7 +5,7 @@ import { IUri } from "./IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 import { XhrClient } from "./XHRClient";
-import { UrlProcessor } from "./UrlProcessor";
+import { UrlUtils } from "./utils/UrlUtils";
 
 /**
  * @hidden
@@ -66,7 +66,7 @@ export abstract class Authority {
   }
 
   public set CanonicalAuthority(url: string) {
-    this.canonicalAuthority = UrlProcessor.CanonicalizeUri(url);
+    this.canonicalAuthority = UrlUtils.CanonicalizeUri(url);
     this.canonicalAuthorityUrlComponents = null;
   }
 
@@ -75,7 +75,7 @@ export abstract class Authority {
 
   public get CanonicalAuthorityUrlComponents(): IUri {
     if (!this.canonicalAuthorityUrlComponents) {
-      this.canonicalAuthorityUrlComponents = UrlProcessor.GetUrlComponents(this.CanonicalAuthority);
+      this.canonicalAuthorityUrlComponents = UrlUtils.GetUrlComponents(this.CanonicalAuthority);
     }
 
     return this.canonicalAuthorityUrlComponents;

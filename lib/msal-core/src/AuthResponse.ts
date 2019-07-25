@@ -5,9 +5,6 @@ import { Account } from "./Account";
 import { IdToken } from "./IdToken";
 import { StringDict } from "./MsalTypes";
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 export type AuthResponse = {
     uniqueId: string;
     tenantId: string;
@@ -34,16 +31,4 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         account: null,
         accountState: state
     };
-}
-
-export function setResponseIdToken(originalResponse: AuthResponse, idToken: IdToken) : AuthResponse {
-  var response = { ...originalResponse };
-  response.idToken = idToken;
-  if (response.idToken.objectId) {
-    response.uniqueId = response.idToken.objectId;
-  } else {
-    response.uniqueId = response.idToken.subject;
-  }
-  response.tenantId = response.idToken.tenantId;
-  return response;
 }

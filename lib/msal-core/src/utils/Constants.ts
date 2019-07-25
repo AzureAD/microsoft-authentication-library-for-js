@@ -1,5 +1,4 @@
-import { CacheLocation } from "./Configuration";
-import { InteractionRequiredAuthErrorMessage as InteractionError } from "./error/InteractionRequiredAuthError";
+import { CacheLocation } from "../Configuration";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.

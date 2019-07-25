@@ -1,5 +1,5 @@
 import TelemetryEvent from "./TelemetryEvent";
-import { Utils } from "../Utils";
+import { Utils } from "../utils/Utils";
 import { scrubTenantFromUri, prependEventNamePrefix } from "./TelemetryUtils";
 
 export const EVENT_KEYS = {

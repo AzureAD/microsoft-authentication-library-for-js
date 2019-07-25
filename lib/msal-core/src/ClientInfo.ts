@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
 
 /**

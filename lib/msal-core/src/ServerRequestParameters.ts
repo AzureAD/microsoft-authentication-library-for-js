@@ -2,10 +2,11 @@
 // Licensed under the MIT License.
 
 import { Authority } from "./Authority";
-import { Utils } from "./Utils";
-import { QPDict, AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { Utils } from "./utils/Utils";
+import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { StringDict } from "./MsalTypes"
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, BlacklistedEQParams } from "./Constants";
+import { SSOTypes, Constants, PromptState, BlacklistedEQParams } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { Logger } from "./Logger";
 
@@ -78,7 +79,7 @@ export class ServerRequestParameters {
    * @param serverAuthenticationRequest
    */
   populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: any): void {
-    let queryParameters: QPDict = {};
+    let queryParameters: StringDict = {};
 
     if (request) {
       // add the prompt parameter to serverRequestParameters if passed
@@ -108,7 +109,7 @@ export class ServerRequestParameters {
     queryParameters = this.addHintParameters(account, queryParameters);
 
     // sanity check for developer passed extraQueryParameters
-    let eQParams: QPDict;
+    let eQParams: StringDict;
     if (request) {
       eQParams = this.sanitizeEQParams(request);
     }
@@ -142,12 +143,12 @@ export class ServerRequestParameters {
    * @param loginHint
    */
   //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-  private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): QPDict {
+  private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
 
     // preference order: account > sid > login_hint
     let ssoType;
     let ssoData;
-    let serverReqParam: QPDict = {};
+    let serverReqParam: StringDict = {};
     // if account info is passed, account.sid > account.login_hint
     if (request) {
       if (request.account) {
@@ -208,7 +209,7 @@ export class ServerRequestParameters {
    * @param {@link ServerRequestParameters}
    * @ignore
    */
-  private addHintParameters(account: Account, qParams: QPDict): QPDict {
+  private addHintParameters(account: Account, qParams: StringDict): StringDict {
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
     // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
     if (account && !qParams[SSOTypes.SID]) {
@@ -238,7 +239,7 @@ export class ServerRequestParameters {
    * Add SID to extraQueryParameters
    * @param sid
    */
-  private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: QPDict): QPDict {
+  private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
     if (!ssoParam) {
       ssoParam = {};
     }
@@ -271,8 +272,8 @@ export class ServerRequestParameters {
       }
       case SSOTypes.HOMEACCOUNT_ID: {
         let homeAccountId = ssoData.split(".");
-        const uid = Utils.base64DecodeStringUrlSafe(homeAccountId[0]);
-        const utid = Utils.base64DecodeStringUrlSafe(homeAccountId[1]);
+        const uid = Utils.base64Decode(homeAccountId[0]);
+        const utid = Utils.base64Decode(homeAccountId[1]);
 
         // TODO: domain_req and login_req are not needed according to eSTS team
         ssoParam[SSOTypes.LOGIN_REQ] = uid;
@@ -305,8 +306,8 @@ export class ServerRequestParameters {
    * Removes unnecessary or duplicate query parameters from extraQueryParameters
    * @param request
    */
-  private sanitizeEQParams(request: AuthenticationParameters) : QPDict {
-    let eQParams : QPDict = request.extraQueryParameters;
+  private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
+    let eQParams : StringDict = request.extraQueryParameters;
     if (!eQParams) {
       return null;
     }
@@ -327,7 +328,7 @@ export class ServerRequestParameters {
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  private generateQueryParametersString(queryParameters: QPDict): string {
+  private generateQueryParametersString(queryParameters: StringDict): string {
     let paramsString: string = null;
 
     if (queryParameters) {
