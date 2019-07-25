@@ -1,6 +1,5 @@
 import { Authority } from '../Authority/Authority';
 import { ServerRequestParameters } from './ServerRequestParameters';
-import { CryptoUtils } from '../../Utils/CryptoUtils';
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -39,10 +38,8 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
      */
     public buildQueryParameters(): string[] {
         const queryParams = super.buildQueryParameters();
-        this.stateId = CryptoUtils.generateStateId();
         queryParams.push('response_type=code');
         queryParams.push('response_mode=query');
-        queryParams.push(`state=${encodeURIComponent(this.stateId)}`);
         return queryParams;
     }
 
