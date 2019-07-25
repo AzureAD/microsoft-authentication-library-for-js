@@ -107,7 +107,7 @@ export class PublicClientApplication extends ClientApplication {
     private tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string): Promise<string> {
         // Build token request URL
         const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode);
-        return rp(tokenRequest.body, ).then((body) => {
+        return rp(tokenRequest.body).then((body) => {
             const tokenResponse = new TokenResponse(body);
             return tokenResponse.accessToken;
         }).catch((responseError) => {
