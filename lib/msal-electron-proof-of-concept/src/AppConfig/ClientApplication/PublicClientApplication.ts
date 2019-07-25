@@ -15,7 +15,7 @@ import { AuthCodeReponse } from '../ServerResponse/AuthCodeResponse';
 import { TokenResponse } from '../ServerResponse/TokenResponse';
 import { ClientApplication } from './ClientApplication';
 
-import { strict as assert, rejects } from 'assert';
+import { strict as assert } from 'assert';
 import { BrowserWindow } from 'electron';
 import * as rp from 'request-promise';
 import { TokenRequestError } from '../Error/TokenRequestError';
