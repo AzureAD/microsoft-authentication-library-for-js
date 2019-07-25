@@ -163,7 +163,7 @@ Defaults to `window.location.href`.
 
 * **validateAuthority** : Validate the issuer of tokens. Default is true.
 
-* **cacheLocation** : Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+* **cacheLocation** : Sets browser storage to either `localStorage` or `sessionStorage`. Defaults to `sessionStorage`.
 
 * **postLogoutRedirectUri** : Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
 
