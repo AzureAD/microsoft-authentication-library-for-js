@@ -10,8 +10,6 @@ import { ServerRequestParameters } from './ServerRequestParameters';
  */
 
 export class AuthorizationCodeRequestParameters extends ServerRequestParameters {
-    private stateId: string;
-
     constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[]) {
       super(authorityInstance, clientId, redirectUri, scopes);
     }
