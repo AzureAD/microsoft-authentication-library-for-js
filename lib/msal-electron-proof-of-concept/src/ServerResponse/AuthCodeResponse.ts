@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { AuthorizationCodeRequestError } from '../ServerRequest/Error/AuthorizationCodeRequestError';
+import { AuthorizationCodeRequestError } from './Error/AuthorizationCodeRequestError';
 import { QueryParameters } from './QueryParameters';
 
 import * as url from 'url';
@@ -17,17 +17,28 @@ export class AuthCodeReponse {
     private authorizationCode?: string;
     private authError?: AuthorizationCodeRequestError;
 
-    constructor(rawUrl: string) {
+    constructor(rawUrl: string, state: string) {
         this.url = url.parse(rawUrl, true);
         this.query = this.url.query;
+        const responseIsValid = this.isValidResponse(this.query, state);
+        this.authorizationCode = this.query.code;
+    }
 
-        if (this.query.error) {
-            this.authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(
-                this.query.error_description
-            );
+    private isValidResponse(query: QueryParameters, state: string): boolean {
+        let isValid = false;
+
+        // If response contained an error
+        if (query.error) {
+            this.authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(this.query.error_description);
+        // If response state doesn't match request state
+        } else if (query.state !== state) {
+            this.authError = AuthorizationCodeRequestError.createNonMatchingStateError();
+        // Otherwise, response is valid, safe to assume it contains an authorization code
         } else {
-            this.authorizationCode = this.query.code;
+            isValid = true;
         }
+
+        return isValid;
     }
 
     public get code(): string {

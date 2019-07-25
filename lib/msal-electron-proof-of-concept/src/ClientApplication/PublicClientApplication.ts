@@ -95,6 +95,7 @@ export class PublicClientApplication extends ClientApplication {
         const stateId = CryptoUtils.generateStateId();
         // Build navigate URL for auth code request
         const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes, stateId);
+        console.log(navigateUrl);
         // Retrieve auth code
         const authCode = await this.listenForAuthCode(navigateUrl, stateId);
         // Get and return access token
@@ -133,7 +134,7 @@ export class PublicClientApplication extends ClientApplication {
         // Listen for 'will-redirect' BrowserWindow event
         return new Promise((resolve, reject) => {
             this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                const authCodeResponse = new AuthCodeReponse(responseUrl);
+                const authCodeResponse = new AuthCodeReponse(responseUrl, state + 'x');
                 if (authCodeResponse.error) {
                     reject(authCodeResponse.error);
                 } else {
