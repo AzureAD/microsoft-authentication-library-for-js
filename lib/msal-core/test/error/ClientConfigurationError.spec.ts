@@ -205,6 +205,27 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.stack).to.include("ClientConfigurationError.spec.js");
   });
 
+  it("createTelemetryConfigError creates a ClientConfigurationError object", () => {
+
+    const telemConfigErr: ClientConfigurationError = ClientConfigurationError.createTelemetryConfigError({
+      applicationName: "missing something"
+    });
+    let err: ClientConfigurationError;
+
+    try {
+      throw telemConfigErr;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.telemetryConfigError.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.telemetryConfigError.desc);
+    expect(err.errorMessage).to.include("applicationVersion");
+    expect(err.message).to.include(ClientConfigurationErrorMessage.telemetryConfigError.desc);
+    expect(err.name).to.equal("ClientConfigurationError");
+    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+  });
+
 });
 
 

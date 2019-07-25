@@ -1,3 +1,30 @@
+# 1.1.1
+* Fixed an issue where cacheLocation was no longer accepting string values (#862)
+
+# 1.1.0
+* Core 
+    * idTokenClaims has been added to the API surface in AuthResponse and Account (#804)
+    * Added forceRefresh parameter to request object, which will force acquireTokenSilent to fetch tokens from cache (#823)
+    * Added scaffolding for telemetry (#737, #802, #840)
+        * The full telemetry feature will be available in a future release
+    * Fixed issue where server was sending a null errorDesc which caused a problem in error response processing (#811)
+        * MSAL.js now throws a ServerError when the user chooses not to grant consent or clicks back in multi-account selection
+    * Updating the comments in Configuration.ts to show the correct parameters (#780)
+    * CacheLocation changed to enum to avoid type widening (#851)
+    * MSAL.js sends log messages when removing sid and login_hint from extraQueryParameters (#781)
+    * Improved formatting and docs in README and issue template (#789, #793, #795)
+    * Fixed bug where expiresIn was not calculating correctly (#799)
+    * Fixed issue where errors did not display for failed redirect login attempts in the React sample. (#820)
+    * Fixed `npm audit` security warnings (#828)
+    * Updated references to `cloud.microsoft.com` since domain no longer works properly (#830)
+    * AcquireToken APIs throw empty request errors when given null or empty request objects (#831)
+    * Switched from tslint to eslint for linting configuration (#849)
+    * Removed dependency on base64-js package due to incompatability with ES modules, removed unused encoding functions (#826)
+    * Refactoring (#792)
+
+* Other Updates
+    * Fixed issues with Angular and Angular-JS samples (#813)
+
 # 1.0.2
 * Fixed broken link in docs for error message and module docs (#731)
 * Fix typo in README (#743, #749)
