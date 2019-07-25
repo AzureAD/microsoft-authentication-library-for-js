@@ -25,6 +25,7 @@ export function loggerCallback(logLevel, message, piiEnabled) {
 
 export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoservice.azurewebsites.net/api/todolist',['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']] , ['https://graph.microsoft.com/v1.0/me', ['user.read']] ];
 
+const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
 
 @NgModule({
   declarations: [
@@ -41,15 +42,16 @@ export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoserv
         validateAuthority: true,
         redirectUri: "http://localhost:4200/",
         cacheLocation : "localStorage",
+        storeAuthStateInCookie: isIE, // set to true for IE 11
         postLogoutRedirectUri: "http://localhost:4200/",
         navigateToLoginRequestUrl: true,
-        popUp: false,
-        consentScopes: [ "user.read", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
+        popUp: !isIE,
+        consentScopes: [ "user.read", "openid", "profile", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
         unprotectedResources: ["https://www.microsoft.com/en-us/"],
         protectedResourceMap: protectedResourceMap,
         logger: loggerCallback,
         correlationId: '1234',
-        level: LogLevel.Info,
+        level: LogLevel.Verbose,
         piiLoggingEnabled: true
       }
     ),

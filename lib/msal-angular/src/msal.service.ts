@@ -29,6 +29,7 @@ export class MsalService extends UserAgentApplication {
             {
                 validateAuthority: config.validateAuthority,
                 cacheLocation: config.cacheLocation,
+                storeAuthStateInCookie: config.storeAuthStateInCookie,
                 redirectUri: config.redirectUri,
                 postLogoutRedirectUri: config.postLogoutRedirectUri,
                 logger: new Logger(config.logger, { correlationId: config.correlationId, level :config.level  ,piiLoggingEnabled: config.piiLoggingEnabled}),
@@ -36,10 +37,10 @@ export class MsalService extends UserAgentApplication {
                 navigateToLoginRequestUrl: config.navigateToLoginRequestUrl,
                 isAngular: true,
                 unprotectedResources: config.unprotectedResources,
-                protectedResourceMap: new Map(config.protectedResourceMap),
+                protectedResourceMap: new Map(config.protectedResourceMap)
             });
 
-        this.loginScopes = [this.clientId];
+        this.loginScopes = [this.clientId, "openid", "profile", "user.read"];
         this.updateDataFromCache(this.loginScopes);
         var urlHash = window.location.hash;
         this.processHash(urlHash);
@@ -290,19 +291,19 @@ export class MsalService extends UserAgentApplication {
 
     public loginPopup(consentScopes?: string[], extraQueryParameters?: string): Promise<any> {
         this._logger.verbose("login popup flow");
-        return new Promise((resolve, reject) => {
-            super.loginPopup(consentScopes, extraQueryParameters).then((idToken) => {
+        return super.loginPopup(consentScopes, extraQueryParameters)
+            .then((idToken) => {
                 var authenticationResult = new AuthenticationResult(idToken, "idToken");
                 this.broadcastService.broadcast("msal:loginSuccess", authenticationResult);
-                resolve(idToken);
+                return idToken;
             }, (error: any) => {
                 var errorParts = error.split('|');
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._logger.error("Error during login:\n" + error);
                 this.broadcastService.broadcast("msal:loginFailure", msalError);
-                reject( error);
+                throw error;
             });
-        });
+
     }
 
     public logout(): void {
@@ -315,40 +316,37 @@ export class MsalService extends UserAgentApplication {
     }
 
     public acquireTokenSilent(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
+        return super.acquireTokenSilent(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 var authenticationResult = new AuthenticationResult(token);
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
-                resolve(token);
+                return token;
             }, (error: any) => {
                 var errorParts = error.split('|');
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;
                 this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
                 this._logger.error('Error when acquiring token for scopes: ' + scopes + " " + error);
-                reject(error);
-            })
-        });
+
+                throw error;
+            });
 
     }
 
     public acquireTokenPopup(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            super.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
+        return super.acquireTokenPopup(scopes, authority, user, extraQueryParameters).then((token: any) => {
                 this._renewActive = false;
                 var authenticationResult = new AuthenticationResult(token);
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', authenticationResult);
-                resolve(token);
+                return token;
             }, (error: any) => {
                 var errorParts = error.split('|');
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this._renewActive = false;
                 this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
                 this._logger.error('Error when acquiring token for scopes : ' + scopes +" "+  error);
-                reject(error);
-            })
-        });
+                throw error;
+            });
     }
 
     public acquireTokenRedirect(scopes: Array<string>, authority?: string, user?: User, extraQueryParameters?: string) {

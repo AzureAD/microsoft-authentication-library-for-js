@@ -137,6 +137,7 @@ Besides the required clientID, you can optionally pass the following config opti
                   redirectUri: "http://localhost:4200/",
                   validateAuthority : true,
                   cacheLocation : "localStorage",
+                  storeAuthStateInCookie: false, // dynamically set to true when IE11
                   postLogoutRedirectUri: "http://localhost:4200/",
                   navigateToLoginRequestUrl : true,
                   popUp: true,
@@ -164,6 +165,8 @@ Defaults to `window.location.href`.
 * **validateAuthority** : Validate the issuer of tokens. Default is true.
 
 * **cacheLocation** : Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+
+* **storeAuthStateInCookie** : Stores auth state in a browser cookie instead of local storage. Needs to be set to true when a user is on IE11, which may clear local storage contents when redirecting between websites in different zones. Defaults is `false`.
 
 * **postLogoutRedirectUri** : Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
 

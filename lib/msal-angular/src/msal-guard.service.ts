@@ -24,7 +24,7 @@ export class MsalGuard implements CanActivate {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
         this.authService.updateDataFromCache([this.config.clientID]);
-        if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
+        if (!this.authService._oauthData.isAuthenticated && this.isObjectEmpty(this.authService._oauthData.idToken)) {
             if (state.url) {
 
                 if (!this.authService._renewActive && !this.authService.loginInProgress()) {
@@ -34,13 +34,12 @@ export class MsalGuard implements CanActivate {
                         this.authService.getCacheStorage().setItem(Constants.angularLoginRequest, loginStartPage);
                     }
                     if (this.config.popUp) {
-                        return new Promise((resolve, reject) => {
-                            this.authService.loginPopup(this.config.consentScopes, this.config.extraQueryParameters).then(function (token) {
-                                resolve(true);
+                        return this.authService.loginPopup(this.config.consentScopes, this.config.extraQueryParameters)
+                            .then(function (token) {
+                               return true;
                             }, function (error) {
-                                reject(false);
-                            })
-                        });
+                                return false;
+                            });
                     }
                     else {
                         this.authService.loginRedirect(this.config.consentScopes, this.config.extraQueryParameters);
@@ -49,22 +48,22 @@ export class MsalGuard implements CanActivate {
             }
         }
         //token is expired/deleted but userdata still exists in _oauthData object
-        else if (!this.authService._oauthData.isAuthenticated && this.authService._oauthData.userName) {
-            return new Promise((resolve, reject) => {
-                this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
+        else if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
+            return this.authService.acquireTokenSilent([this.config.clientID])
+                .then((token: any) => {
                     if (token) {
                         this.authService._oauthData.isAuthenticated = true;
                         var authenticationResult = new AuthenticationResult(token );
                         this.broadcastService.broadcast("msal:loginSuccess",  authenticationResult);
-                        resolve (true);
+                        return true;
                     }
+
                 }, (error: any) => {
                     var errorParts = error.split('|');
                     var msalError = new MSALError(errorParts[0], errorParts[1], "");
                     this.broadcastService.broadcast("msal:loginFailure", msalError);
-                    resolve(false);
+                    return false;
                 });
-            });
         }
         else {
             return true;

@@ -259,3 +259,5 @@ lib-es6/
 lib/msal-core/lib-commonjs
 lib/msal-core/lib-es6
 .vscode
+*.tgz
+*.zip
