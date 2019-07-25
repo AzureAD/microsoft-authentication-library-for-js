@@ -33,7 +33,7 @@ export default class HttpEvent extends TelemetryEvent {
     }
 
     public set queryParams(queryParams: any) {
-        this.event[EVENT_KEYS.QUERY_PARAMETERS] = Utils.generateQueryParametersString(queryParams);
+        // this.event[EVENT_KEYS.QUERY_PARAMETERS] = Utils.generateQueryParametersString(queryParams);
     }
 
     public set apiVersion(apiVersion: string) {
