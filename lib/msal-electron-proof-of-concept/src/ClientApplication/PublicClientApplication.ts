@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { AuthCodeListener } from '../../AuthCodeListener/AuthCodeListener';
-import { CustomFileProtocolListener } from '../../AuthCodeListener/CustomFileProtocolListener';
-import { CryptoUtils } from '../../Utils/CryptoUtils';
-import { AuthenticationParameters } from '../AuthenticationParameters';
-import { AuthOptions } from '../AuthOptions';
-import { AadAuthority } from '../Authority/AadAuthority';
-import { Authority } from '../Authority/Authority';
-import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
-import { ClientConfigurationError } from '../Error/ClientConfigurationError';
-import { TokenRequestError } from '../Error/TokenRequestError';
+import { AuthenticationParameters } from '../AppConfig/AuthenticationParameters';
+import { AuthOptions } from '../AppConfig/AuthOptions';
+import { AadAuthority } from '../AppConfig/Authority/AadAuthority';
+import { Authority } from '../AppConfig/Authority/Authority';
+import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../AppConfig/DefaultConstants';
+import { ClientConfigurationError } from '../AppConfig/Error/ClientConfigurationError';
+import { AuthCodeListener } from '../AuthCodeListener/AuthCodeListener';
+import { CustomFileProtocolListener } from '../AuthCodeListener/CustomFileProtocolListener';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
+import { TokenRequestError } from '../ServerRequest/Error/TokenRequestError';
 import { TokenRequestParameters } from '../ServerRequest/TokenRequestParameters';
 import { AuthCodeReponse } from '../ServerResponse/AuthCodeResponse';
 import { TokenResponse } from '../ServerResponse/TokenResponse';
+import { CryptoUtils } from '../Utils/CryptoUtils';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';

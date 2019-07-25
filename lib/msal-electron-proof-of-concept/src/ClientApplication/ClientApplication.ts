@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { ApplicationConfiguration } from '../ApplicationConfiguration';
-import { AuthOptions } from '../AuthOptions';
+import { ApplicationConfiguration } from '../AppConfig/ApplicationConfiguration';
+import { AuthOptions } from '../AppConfig/AuthOptions';
 
 /**
  * ClientApplication abstract class

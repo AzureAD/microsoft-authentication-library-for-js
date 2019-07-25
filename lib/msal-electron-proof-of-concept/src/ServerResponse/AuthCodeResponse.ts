@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
+import { AuthorizationCodeRequestError } from '../ServerRequest/Error/AuthorizationCodeRequestError';
 import { QueryParameters } from './QueryParameters';
 
 import * as url from 'url';

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Authority } from '../Authority/Authority';
+import { Authority } from '../AppConfig/Authority/Authority';
 import { ServerRequestParameters } from './ServerRequestParameters';
 import { TokenRequestOptions } from './TokenRequestOptions';
 
