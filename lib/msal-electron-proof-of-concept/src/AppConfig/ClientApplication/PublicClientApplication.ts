@@ -10,14 +10,17 @@ import { AadAuthority } from '../Authority/AadAuthority';
 import { Authority } from '../Authority/Authority';
 import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
 import { ClientConfigurationError } from '../Error/ClientConfigurationError';
+import { TokenRequestError } from '../Error/TokenRequestError';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
 import { TokenRequestParameters } from '../ServerRequest/TokenRequestParameters';
 import { AuthCodeReponse } from '../ServerResponse/AuthCodeResponse';
+import { TokenResponse } from '../ServerResponse/TokenResponse';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
 import { BrowserWindow } from 'electron';
 import * as rp from 'request-promise';
+
 /**
  * PublicClientApplication class
  *
@@ -90,48 +93,12 @@ export class PublicClientApplication extends ClientApplication {
 
         // Generate State ID
         const stateId = CryptoUtils.generateStateId();
-
-        // Build navigate URL for Auth Code request
+        // Build navigate URL for auth code request
         const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes, stateId);
-
-        try {
-            const authCode = await this.listenForAuthCode(navigateUrl);
-            return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    /**
-     * Trades authorization code for an access token
-     * with the token endpoint of the authorization server
-     * @param authorityInstance
-     * @param scopes
-     * @param authCode
-     */
-    private async tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string): Promise<string> {
-        // Build token request URL
-        const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode);
-        try {
-            const tokenResponse = await rp(tokenRequest.body);
-            return JSON.parse(tokenResponse).access_token;
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string): TokenRequestParameters {
-        // Build Server Token Request
-        const tokenRequestParameters = new TokenRequestParameters(
-            authorityInstance,
-            this.clientId,
-            this.redirectUri,
-            scopes,
-            authCode
-        );
-
-        // Create request URI string from request parameters
-        return tokenRequestParameters;
+        // Retrieve auth code
+        const authCode = await this.listenForAuthCode(navigateUrl, stateId);
+        // Get and return access token
+        return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode);
     }
 
     /**
@@ -158,7 +125,7 @@ export class PublicClientApplication extends ClientApplication {
      * auth window and returns the authorization code from the
      * server's response.
      */
-    private async listenForAuthCode(navigateUrl: string): Promise<string> {
+    private async listenForAuthCode(navigateUrl: string, state: string): Promise<string> {
         // Open PopUp window and load the navigate URL
         this.openAuthWindow();
         this.authWindow.loadURL(navigateUrl);
@@ -180,6 +147,45 @@ export class PublicClientApplication extends ClientApplication {
     }
 
     /**
+     * Trades authorization code for an access token
+     * with the token endpoint of the authorization server
+     * @param authorityInstance
+     * @param scopes
+     * @param authCode
+     */
+    private tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string): Promise<string> {
+        // Build token request URL
+        const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode);
+        return rp(tokenRequest.body).then((body) => {
+            const tokenResponse = new TokenResponse(body);
+            return tokenResponse.accessToken;
+        }).catch((responseError) => {
+            const tokenError = JSON.parse(responseError.error);
+            throw new TokenRequestError(tokenError.error, tokenError.error_description);
+        });
+    }
+
+    /**
+     * Builds request options for a token endpoint request
+     * @param authorityInstance
+     * @param scopes
+     * @param authCode
+     */
+    private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string): TokenRequestParameters {
+        // Build Server Token Request
+        const tokenRequestParameters = new TokenRequestParameters(
+            authorityInstance,
+            this.clientId,
+            this.redirectUri,
+            scopes,
+            authCode
+        );
+
+        // Create request URI string from request parameters
+        return tokenRequestParameters;
+    }
+
+    /**
      * This method opens a PopUp browser window that will
      * be used to authenticate the user.
      */
@@ -189,8 +195,8 @@ export class PublicClientApplication extends ClientApplication {
             width: DEFAULT_POPUP_WIDTH,
             alwaysOnTop: true,
             webPreferences: {
-                contextIsolation: true
-            }
+                contextIsolation: true,
+            },
         });
 
         // Nullify the authWindow member when the browser window is closed

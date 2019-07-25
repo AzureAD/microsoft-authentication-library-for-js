@@ -5,10 +5,13 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { PublicClientApplication } from 'msal-electron-poc';
 import * as path from 'path';
 
+import { Graph } from './Graph';
+
 export default class Main {
     static application: Electron.App;
     static mainWindow: Electron.BrowserWindow;
     static msalApp: PublicClientApplication;
+    static accessToken: string;
 
     static main(): void {
         Main.application = app;
@@ -34,17 +37,19 @@ export default class Main {
 
         // Listen for AcquireToken button call
         Main.listenForAcquireToken();
+        // Listen for UserInfo button call
+        Main.listenForUserInfo();
     }
 
+    // Creates main application window
     private static createMainWindow(): void {
         this.mainWindow = new BrowserWindow({
             width: 800,
-            height: 400,
+            height: 800,
             webPreferences: {
                 nodeIntegration: true,
             },
         });
-        this.mainWindow.webContents.openDevTools();
     }
 
     // This is where MSAL set up and configuration happens.
@@ -57,16 +62,48 @@ export default class Main {
 
     // Sets a listener for the AcquireToken event that when triggered
     // performs the authorization code grant flow
-    private static async listenForAcquireToken(): Promise<void> {
+    private static listenForAcquireToken(): void {
         ipcMain.on('AcquireToken', () => {
-            const tokenRequest = {
-                scopes: ['user.read', 'mail.read'],
-            };
-            this.msalApp.acquireToken(tokenRequest).then((accessToken) => {
-                console.log(accessToken);
-            }).catch((error) => {
-                console.error(error);
-            });
+            Main.getAccessToken();
         });
+    }
+
+    // Uses MSAL PublicClientApplication object to obtain an access
+    // token for Microsoft Graph API access
+    private static async getAccessToken(): Promise<void> {
+        const tokenRequest = {
+            scopes: ['user.read', 'mail.read'],
+        };
+
+        try {
+            Main.accessToken = await this.msalApp.acquireToken(tokenRequest);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Sets a listener for the UserInfo event that when triggered
+    // requests user info from Graph API
+    private static listenForUserInfo(): void {
+        ipcMain.on('UserInfo', () => {
+            if (Main.accessToken) {
+                Main.showUserInfo();
+            } else {
+                Main.showTokenRequiredMessage();
+            }
+        });
+    }
+
+    private static async showUserInfo(): Promise<void> {
+        const userInfo = await this.getUserInfoFromGraph(Main.accessToken);
+        this.mainWindow.webContents.send('UserInfo', userInfo);
+    }
+
+    private static async getUserInfoFromGraph(accessToken: string): Promise<any> {
+        return await Graph.fetchUserData(accessToken);
+    }
+
+    private static showTokenRequiredMessage(): void {
+        this.mainWindow.webContents.send('UserInfo', 'You must acquire a Token first.');
     }
 }
