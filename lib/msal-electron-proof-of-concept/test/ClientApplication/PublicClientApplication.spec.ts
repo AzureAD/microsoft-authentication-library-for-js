@@ -3,13 +3,11 @@
 
 import { expect } from 'chai';
 import * as Mocha from 'mocha';
-import * as sinon from 'sinon';
 
-import { PublicClientApplication } from '../../../src';
-import { AuthError } from '../../../src/AppConfig/Error/AuthError';
-import { AuthorizationCodeRequestErrorMessage } from '../../../src/AppConfig/Error/AuthorizationCodeRequestError';
-import { ClientConfigurationErrorMessage } from '../../../src/AppConfig/Error/ClientConfigurationError';
-import { TEST_VALID_AUTH_CONFIGURATION } from '../../testConstants';
+import { PublicClientApplication } from '../../src';
+import { AuthError } from '../../src/AppConfig/Error/AuthError';
+import { ClientConfigurationErrorMessage } from '../../src/AppConfig/Error/ClientConfigurationError';
+import { TEST_VALID_AUTH_CONFIGURATION } from '../testConstants';
 
 describe('PublicClientApplication.ts class', () => {
     // Test MSAL config params
@@ -76,23 +74,6 @@ describe('PublicClientApplication.ts class', () => {
             expect(authError.errorMessage).to.contain(emptyInputScopesErrorMessage.description);
             expect(authError.message).to.contain(emptyInputScopesErrorMessage.description);
             expect(authError.name).to.equal('ClientConfigurationError');
-        });
-
-        // User cancels authorization
-        it('should throw AuthorizationCodeRequestError auth_code_access_denied_error when user cancels authorization after authenticating', async () => {
-            const accessDeniedErrorMessage = AuthorizationCodeRequestErrorMessage.accessDenied;
-            const validTokenRequest = { scopes: ['user.read'] };
-            const stub = sinon.stub(msalApp as any, 'retrieveAuthCode').throws();
-            try {
-                await msalApp.acquireToken(validTokenRequest);
-            } catch (error) {
-                authError = error;
-            }
-
-            expect(authError.errorCode).to.equal(accessDeniedErrorMessage.code);
-            expect(authError.errorMessage).to.contain(accessDeniedErrorMessage.description);
-            expect(authError.message).to.contain(accessDeniedErrorMessage.description);
-            expect(authError.name).to.equal('AuthorizationCodeRequestErrror');
         });
     });
 });

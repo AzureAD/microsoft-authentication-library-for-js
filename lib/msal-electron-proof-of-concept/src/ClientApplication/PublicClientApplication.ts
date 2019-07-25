@@ -1,20 +1,25 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { AuthCodeListener } from '../../AuthCodeListener/AuthCodeListener';
-import { CustomFileProtocolListener } from '../../AuthCodeListener/CustomFileProtocolListener';
-import { AuthenticationParameters } from '../AuthenticationParameters';
-import { AuthOptions } from '../AuthOptions';
-import { AadAuthority } from '../Authority/AadAuthority';
-import { Authority } from '../Authority/Authority';
-import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../DefaultConstants';
-import { ClientConfigurationError } from '../Error/ClientConfigurationError';
+import { AuthenticationParameters } from '../AppConfig/AuthenticationParameters';
+import { AuthOptions } from '../AppConfig/AuthOptions';
+import { AadAuthority } from '../AppConfig/Authority/AadAuthority';
+import { Authority } from '../AppConfig/Authority/Authority';
+import { DEFAULT_POPUP_HEIGHT, DEFAULT_POPUP_WIDTH } from '../AppConfig/DefaultConstants';
+import { ClientConfigurationError } from '../AppConfig/Error/ClientConfigurationError';
+import { AuthCodeListener } from '../AuthCodeListener/AuthCodeListener';
+import { CustomFileProtocolListener } from '../AuthCodeListener/CustomFileProtocolListener';
 import { AuthorizationCodeRequestParameters } from '../ServerRequest/AuthorizationCodeRequestParameters';
+import { TokenRequestError } from '../ServerRequest/Error/TokenRequestError';
+import { TokenRequestParameters } from '../ServerRequest/TokenRequestParameters';
 import { AuthCodeReponse } from '../ServerResponse/AuthCodeResponse';
+import { TokenResponse } from '../ServerResponse/TokenResponse';
+import { CryptoUtils } from '../Utils/CryptoUtils';
 import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
 import { BrowserWindow } from 'electron';
+import * as rp from 'request-promise';
 
 /**
  * PublicClientApplication class
@@ -45,9 +50,9 @@ export class PublicClientApplication extends ClientApplication {
                 const authorityUrl = request.authority ? request.authority : this.authorityUrl;
                 // Create Authority Instance
                 const authorityInstance = new AadAuthority(authorityUrl);
-                // Get Authorization Code
-                const authCode = this.retrieveAuthCode(authorityInstance, request.scopes);
-                resolve(authCode);
+                // Get AccessToken
+                const accessToken = this.acquireTokenWithAuthCode(authorityInstance, request.scopes);
+                resolve(accessToken);
             } catch (error) {
                 return reject(error);
             }
@@ -75,33 +80,47 @@ export class PublicClientApplication extends ClientApplication {
     }
 
     /**
-     * This method is responsible for requesting and returning an authorization code
-     * from the authorization endpoint of the authorization server.
+     * This method is responsible for getting an authorization code
+     * from the authorization endpoint of the authorization server
+     * and exchanging it for an access token with the token endpoint.
      * @param authorityInstance
      * @param scopes
      */
-    private async retrieveAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
+    private async acquireTokenWithAuthCode(authorityInstance: Authority, scopes: string[]): Promise<string> {
         // Register custom protocol to listen for auth code response
         this.authCodeListener = new CustomFileProtocolListener('msal');
         this.authCodeListener.start();
 
-        // Build navigate URL for Auth Code request
-        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes);
-        return await this.listenForAuthCode(navigateUrl);
+        // Generate State ID
+        const stateId = CryptoUtils.generateStateId();
+
+        // Generate PKCE Codes
+        const pkceCodes = CryptoUtils.generatePKCECodes();
+
+        // Build navigate URL for auth code request
+        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes, stateId, pkceCodes.challenge);
+        // Retrieve auth code
+        const authCode = await this.listenForAuthCode(navigateUrl, stateId);
+        // Get and return access token
+        return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode, pkceCodes.verifier);
     }
 
     /**
      * Builds URL for auth code authorization request
      * @param authorityInstance
      * @param scopes
+     * @param state
+     * @param codeChallenge
      */
-    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[]): string {
-        // Build Server Authentication Request
+    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[], state: string, codeChallenge: string): string {
+        // Build Server Authorization Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
             authorityInstance,
             this.clientId,
             this.redirectUri,
-            scopes
+            scopes,
+            state,
+            codeChallenge
         );
 
         // Create navigate URL string from request parameters
@@ -113,7 +132,7 @@ export class PublicClientApplication extends ClientApplication {
      * auth window and returns the authorization code from the
      * server's response.
      */
-    private async listenForAuthCode(navigateUrl: string): Promise<string> {
+    private async listenForAuthCode(navigateUrl: string, state: string): Promise<string> {
         // Open PopUp window and load the navigate URL
         this.openAuthWindow();
         this.authWindow.loadURL(navigateUrl);
@@ -121,7 +140,7 @@ export class PublicClientApplication extends ClientApplication {
         // Listen for 'will-redirect' BrowserWindow event
         return new Promise((resolve, reject) => {
             this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                const authCodeResponse = new AuthCodeReponse(responseUrl);
+                const authCodeResponse = new AuthCodeReponse(responseUrl, state);
                 if (authCodeResponse.error) {
                     reject(authCodeResponse.error);
                 } else {
@@ -135,6 +154,47 @@ export class PublicClientApplication extends ClientApplication {
     }
 
     /**
+     * Trades authorization code for an access token
+     * with the token endpoint of the authorization server
+     * @param authorityInstance
+     * @param scopes
+     * @param authCode
+     */
+    private tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string, verifier: string): Promise<string> {
+        // Build token request URL
+        const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode, verifier);
+        return rp(tokenRequest.body).then((body) => {
+            const tokenResponse = new TokenResponse(body);
+            return tokenResponse.accessToken;
+        }).catch((responseError) => {
+            const tokenError = JSON.parse(responseError.error);
+            throw new TokenRequestError(tokenError.error, tokenError.error_description);
+        });
+    }
+
+    /**
+     * Builds request options for a token endpoint request
+     * @param authorityInstance
+     * @param scopes
+     * @param authCode
+     * @param verifier
+     */
+    private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string, verifier: string): TokenRequestParameters {
+        // Build Server Token Request
+        const tokenRequestParameters = new TokenRequestParameters(
+            authorityInstance,
+            this.clientId,
+            this.redirectUri,
+            scopes,
+            authCode,
+            verifier
+        );
+
+        // Create request URI string from request parameters
+        return tokenRequestParameters;
+    }
+
+    /**
      * This method opens a PopUp browser window that will
      * be used to authenticate the user.
      */
@@ -144,8 +204,8 @@ export class PublicClientApplication extends ClientApplication {
             width: DEFAULT_POPUP_WIDTH,
             alwaysOnTop: true,
             webPreferences: {
-                contextIsolation: true
-            }
+                contextIsolation: true,
+            },
         });
 
         // Nullify the authWindow member when the browser window is closed
