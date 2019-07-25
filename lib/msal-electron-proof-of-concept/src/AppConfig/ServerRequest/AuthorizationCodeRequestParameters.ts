@@ -1,5 +1,6 @@
 import { Authority } from '../Authority/Authority';
 import { ServerRequestParameters } from './ServerRequestParameters';
+import { CryptoUtils } from '../../Utils/CryptoUtils';
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -10,6 +11,8 @@ import { ServerRequestParameters } from './ServerRequestParameters';
  */
 
 export class AuthorizationCodeRequestParameters extends ServerRequestParameters {
+    private stateId: string;
+
     constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[]) {
       super(authorityInstance, clientId, redirectUri, scopes);
     }
@@ -36,9 +39,14 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
      */
     public buildQueryParameters(): string[] {
         const queryParams = super.buildQueryParameters();
+        this.stateId = CryptoUtils.generateStateId();
         queryParams.push('response_type=code');
         queryParams.push('response_mode=query');
-        // TODO: Add state and PKCE Code Challenge/Verifier to requests for security
+        queryParams.push(`state=${encodeURIComponent(this.stateId)}`);
         return queryParams;
+    }
+
+    public get state(): string {
+        return this.stateId;
     }
 }
