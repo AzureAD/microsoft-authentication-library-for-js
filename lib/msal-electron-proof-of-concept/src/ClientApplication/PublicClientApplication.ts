@@ -93,29 +93,36 @@ export class PublicClientApplication extends ClientApplication {
 
         // Generate State ID
         const stateId = CryptoUtils.generateStateId();
+
+        // Generate PKCE Codes
+        const pkceCodes = CryptoUtils.generatePKCECodes();
+
         // Build navigate URL for auth code request
-        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes, stateId);
-        console.log(navigateUrl);
+        const navigateUrl = this.buildAuthCodeUrl(authorityInstance, scopes, stateId, pkceCodes.challenge);
         // Retrieve auth code
         const authCode = await this.listenForAuthCode(navigateUrl, stateId);
         // Get and return access token
-        return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode);
+        return await this.tradeAuthCodeForAccessToken(authorityInstance, scopes, authCode, pkceCodes.verifier);
     }
 
     /**
      * Builds URL for auth code authorization request
      * @param authorityInstance
      * @param scopes
+     * @param state
+     * @param codeChallenge
      */
-    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[], state: string): string {
+    private buildAuthCodeUrl(authorityInstance: Authority, scopes: string[], state: string, codeChallenge: string): string {
         // Build Server Authorization Request
         const authCodeRequestParameters = new AuthorizationCodeRequestParameters(
             authorityInstance,
             this.clientId,
             this.redirectUri,
             scopes,
-            state
+            state,
+            codeChallenge
         );
+        console.log(authCodeRequestParameters.buildRequestUrl());
 
         // Create navigate URL string from request parameters
         return authCodeRequestParameters.buildRequestUrl();
@@ -134,7 +141,7 @@ export class PublicClientApplication extends ClientApplication {
         // Listen for 'will-redirect' BrowserWindow event
         return new Promise((resolve, reject) => {
             this.authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                const authCodeResponse = new AuthCodeReponse(responseUrl, state + 'x');
+                const authCodeResponse = new AuthCodeReponse(responseUrl, state);
                 if (authCodeResponse.error) {
                     reject(authCodeResponse.error);
                 } else {
@@ -154,9 +161,9 @@ export class PublicClientApplication extends ClientApplication {
      * @param scopes
      * @param authCode
      */
-    private tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string): Promise<string> {
+    private tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string, verifier: string): Promise<string> {
         // Build token request URL
-        const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode);
+        const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode, verifier);
         return rp(tokenRequest.body).then((body) => {
             const tokenResponse = new TokenResponse(body);
             return tokenResponse.accessToken;
@@ -171,16 +178,19 @@ export class PublicClientApplication extends ClientApplication {
      * @param authorityInstance
      * @param scopes
      * @param authCode
+     * @param verifier
      */
-    private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string): TokenRequestParameters {
+    private buildTokenRequest(authorityInstance: Authority, scopes: string[], authCode: string, verifier: string): TokenRequestParameters {
         // Build Server Token Request
         const tokenRequestParameters = new TokenRequestParameters(
             authorityInstance,
             this.clientId,
             this.redirectUri,
             scopes,
-            authCode
+            authCode,
+            verifier
         );
+        console.log(tokenRequestParameters.body);
 
         // Create request URI string from request parameters
         return tokenRequestParameters;

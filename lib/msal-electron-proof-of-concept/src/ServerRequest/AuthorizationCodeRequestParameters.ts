@@ -10,10 +10,12 @@ import { ServerRequestParameters } from './ServerRequestParameters';
  */
 export class AuthorizationCodeRequestParameters extends ServerRequestParameters {
     private state: string;
+    private codeChallenge: string;
 
-    constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[], state: string) {
+    constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[], state: string, codeChallenge: string) {
       super(authorityInstance, clientId, redirectUri, scopes);
       this.state = state;
+      this.codeChallenge = codeChallenge;
     }
 
     /**
@@ -39,9 +41,11 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
     public buildQueryParameters(): string[] {
         const queryParams: string[] = [];
         queryParams.push(`client_Id=${encodeURIComponent(this.clientId)}`);
+        queryParams.push(`code_challenge=${encodeURIComponent(this.codeChallenge)}`);
         queryParams.push(`redirect_uri=${encodeURIComponent(this.redirectUrl)}`);
         queryParams.push(`scope=${encodeURIComponent(this.urlScopes)}`);
         queryParams.push(`state=${encodeURIComponent(this.state)}`);
+        queryParams.push('code_challenge_method=S256');
         queryParams.push('response_type=code');
         queryParams.push('response_mode=query');
         // TODO: Add state and PKCE Code Challenge/Verifier to requests for security
