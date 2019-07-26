@@ -655,6 +655,7 @@ export class UserAgentApplication {
               // App uses idToken to send to api endpoints
               // Default scope is tracked as clientId to store this token
               this.logger.verbose("renewing idToken");
+              this.silentLogin = true;
               this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
             } else {
               // renew access token
