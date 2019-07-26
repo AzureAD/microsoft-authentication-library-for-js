@@ -57,7 +57,7 @@ export class ServerRequestParameters {
     if (!scope) {
       this.scopes = [clientId];
     } else {
-      this.scopes = scope.slice(0);
+      this.scopes = scope.slice();
     }
 
     this.nonce = Utils.createNewGuid();
