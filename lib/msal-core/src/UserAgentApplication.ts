@@ -593,6 +593,7 @@ export class UserAgentApplication {
         this.getRedirectUri(),
         request && request.state
       );
+
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
       if (ServerRequestParameters.isSSOParam(request) || account) {
         serverAuthenticationRequest.populateQueryParams(account, request);

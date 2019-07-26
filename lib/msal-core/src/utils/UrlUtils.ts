@@ -36,6 +36,9 @@ export class UrlUtils {
    */
   static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
     let scopes = serverRequestParams.scopes;
+    if (!scopes) {
+      scopes = [serverRequestParams.clientId];
+    }
 
     if (scopes.indexOf(serverRequestParams.clientId) === -1) {
       scopes.push(serverRequestParams.clientId);
