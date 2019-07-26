@@ -54,7 +54,11 @@ export class ServerRequestParameters {
   constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string) {
     this.authorityInstance = authority;
     this.clientId = clientId;
-    this.scopes = scope;
+    if (!scope) {
+      this.scopes = [clientId];
+    } else {
+      this.scopes = scope.slice(0);
+    }
 
     this.nonce = Utils.createNewGuid();
     this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
