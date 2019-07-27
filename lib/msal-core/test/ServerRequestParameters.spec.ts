@@ -3,8 +3,46 @@ import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { Authority } from "../src";
 import { AuthorityFactory } from "../src/AuthorityFactory";
 import { UrlUtils } from "../src/utils/UrlUtils";
+import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "./TestConstants";
+import sinon from "sinon";
 
 describe("ServerRequestParameters.ts Class", function () {
+
+    describe("Object creation", function () {
+
+        it("Scope array pointer is not passed into constructor", function () {
+            let scopes = ["S1"];
+            let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
+            let req = new ServerRequestParameters(
+                authority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                scopes,
+                TEST_RESPONSE_TYPE.token,
+                TEST_URIS.TEST_REDIR_URI,
+                TEST_CONFIG.STATE
+            );
+            expect(req.scopes).to.not.be.equal(scopes);
+            expect(req.scopes.length).to.be.eql(1);
+            expect(scopes.length).to.be.eql(1);
+        });
+
+        it("Scopes are set to client id if null or empty scopes object passed", function () {
+            let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
+            let req = new ServerRequestParameters(
+                authority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                null,
+                TEST_RESPONSE_TYPE.token,
+                TEST_URIS.TEST_REDIR_URI,
+                TEST_CONFIG.STATE
+            );
+            expect(req.scopes).to.be.eql([TEST_CONFIG.MSAL_CLIENT_ID]);
+            expect(req.scopes.length).to.be.eql(1);
+        });
+
+    });
 
     describe("State Generation", function () {
 
