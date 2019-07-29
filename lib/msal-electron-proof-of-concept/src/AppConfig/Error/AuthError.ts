@@ -5,13 +5,13 @@
  * General error class thrown by MSAL Electron
  */
 
-export class AuthErrorBase extends Error {
+export class AuthError extends Error {
     errorCode: string;
     errorMessage: string;
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorMessage);
-        Object.setPrototypeOf(this, AuthErrorBase.prototype);
+        Object.setPrototypeOf(this, AuthError.prototype);
 
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;

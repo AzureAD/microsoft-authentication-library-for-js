@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
-import { AuthErrorBase } from './AuthError';
+import { AuthError } from './AuthError';
 
 /**
  * The ClientConfigurationMessage object holds all
@@ -18,8 +18,8 @@ export const ClientConfigurationErrorMessage = {
         code: 'nonarray_input_scopes_error',
         description: 'Scopes cannot be passed as non-array.',
     },
-    emptyScopes: {
-        code: 'empty_input_scopes_error',
+    emptyScopesArray: {
+        code: 'empty_input_scopes_array_error',
         description: 'Scopes cannot be passed as empty array.',
     },
 };
@@ -30,9 +30,9 @@ export const ClientConfigurationErrorMessage = {
  * for ClientApplication objects in the authorization
  * flow.
  */
-export class ClientConfigurationError extends AuthErrorBase {
+export class ClientConfigurationError extends AuthError {
     static createEmptyScopesArrayError(scopes: any): ClientConfigurationError {
-        const errorMessage = ClientConfigurationErrorMessage.emptyScopes;
+        const errorMessage = ClientConfigurationErrorMessage.emptyScopesArray;
         return this.buildClientConfigurationScopesError(errorMessage, scopes);
     }
 

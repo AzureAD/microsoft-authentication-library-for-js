@@ -3,7 +3,7 @@ export const TEST_URIS = {
     DEFAULT_INSTANCE: 'https://login.microsoftonline.com/',
     DEFAULT_INSTANCE_NO_SLASH: 'https://login.microsoftonline.com',
     DEFAULT_INSTANCE_UPCASE:  'HTTPS://LOGIN.MICROSOFTONLINE.COM/',
-    REDIRECT_URI: 'msalElectron://auth/',
+    REDIRECT_URI: 'msal://auth/',
 };
 
 // Test Configuration

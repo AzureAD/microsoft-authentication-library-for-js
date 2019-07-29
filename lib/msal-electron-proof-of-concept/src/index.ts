@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License
 
-export { PublicClientApplication } from './AppConfig/PublicClientApplication';
+export { PublicClientApplication } from './AppConfig/ClientApplication/PublicClientApplication';
 export { ApplicationConfiguration } from './AppConfig/ApplicationConfiguration';

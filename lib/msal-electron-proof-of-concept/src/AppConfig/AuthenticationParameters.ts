@@ -8,5 +8,6 @@
  * a PublicClientApplication.
  */
 export type AuthenticationParameters = {
+    authority?: string;
     scopes?: string[];
 };
