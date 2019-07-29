@@ -7,7 +7,7 @@ import { UriUtils } from '../../Utils/UriUtils';
  * @hidden
  */
 export abstract class Authority {
-    private canonicalAuthority: string;
+    protected canonicalAuthority: string;
     private tenantId?: string;
 
     constructor(authorityUrl: string, tenantId?: string) {
@@ -15,11 +15,6 @@ export abstract class Authority {
         this.tenantId = tenantId;
     }
 
-    public get authorizationEndpoint(): string {
-       return `${this.canonicalAuthority}oauth2/v2.0/authorize?`;
-    }
-
-    public get tokenEndpoint(): string {
-        return `${this.canonicalAuthority}oauth2/v2.0/token?`;
-    }
+    public abstract get authorizationEndpoint(): string;
+    public abstract get tokenEndpoint(): string;
 }
