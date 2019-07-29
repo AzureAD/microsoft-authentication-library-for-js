@@ -40,8 +40,4 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
         queryParams.push('response_mode=query');
         return queryParams;
     }
-
-    public get state(): string {
-        return this.stateId;
-    }
 }
