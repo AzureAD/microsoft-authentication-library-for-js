@@ -38,7 +38,6 @@ export class AuthorizationCodeRequestParameters extends ServerRequestParameters 
         const queryParams = super.buildQueryParameters();
         queryParams.push('response_type=code');
         queryParams.push('response_mode=query');
-        // TODO: Add state and PKCE Code Challenge/Verifier to requests for security
         return queryParams;
     }
 }
