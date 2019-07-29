@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
+import { TokenUtils } from "./utils/TokenUtils";
 import { StringDict } from "./MsalTypes";
 
 /**
@@ -30,7 +31,7 @@ export class IdToken {
     }
     try {
       this.rawIdToken = rawIdToken;
-      this.claims = Utils.extractIdToken(rawIdToken);
+      this.claims = TokenUtils.extractIdToken(rawIdToken);
       if (this.claims) {
         if (this.claims.hasOwnProperty("iss")) {
           this.issuer = this.claims["iss"];

@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { ClientInfo } from "../src/ClientInfo";
 import { IdToken } from "../src/IdToken";
 import { Account } from "../src/Account";
-import { Utils } from "../src/Utils";
+import { Utils } from "../src/utils/Utils";
 import { StringDict } from "../src/MsalTypes";
 import { TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
 
