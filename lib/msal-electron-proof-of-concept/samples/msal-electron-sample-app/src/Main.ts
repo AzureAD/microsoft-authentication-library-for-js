@@ -89,8 +89,7 @@ export default class Main {
             if (Main.accessToken) {
                 Main.showUserInfo();
             } else {
-        this.mainWindow.webContents.send('UserInfo', 'You must acquire a Token first.');
-
+                this.mainWindow.webContents.send('UserInfo', 'You must acquire a Token first.');
             }
         });
     }
@@ -98,7 +97,7 @@ export default class Main {
     // Gets user info from Graph API and sends it to the renderer
     // for display
     private static async showUserInfo(): Promise<void> {
-        const userInfo = await Graph.fetchUserData(Main.accessToken);;
+        const userInfo = await Graph.fetchUserData(Main.accessToken);
         this.mainWindow.webContents.send('UserInfo', userInfo);
     }
 }
