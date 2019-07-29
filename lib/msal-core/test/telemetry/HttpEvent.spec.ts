@@ -1,10 +1,10 @@
-import { v4 as uuid } from "uuid";
 import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
+import { Utils } from '../../src/Utils';
 
 describe("HttpEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = uuid();
+        const correlationId = Utils.createNewGuid();
 
         const event = new HttpEvent(correlationId).get();
 
@@ -13,7 +13,7 @@ describe("HttpEvent", () => {
     });
 
     it("sets simply set values", () => {
-        const correlationId = uuid();
+        const correlationId = Utils.createNewGuid();
 
         const httpEvent = new HttpEvent(correlationId);
 
@@ -51,7 +51,7 @@ describe("HttpEvent", () => {
     });
 
     it("sets values that are changed", () => {
-        const correlationId = uuid();
+        const correlationId = Utils.createNewGuid();
 
         const httpEvent = new HttpEvent(correlationId);
 
