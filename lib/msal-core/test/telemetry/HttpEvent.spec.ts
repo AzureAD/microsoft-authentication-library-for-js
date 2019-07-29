@@ -50,7 +50,7 @@ describe("HttpEvent", () => {
         expect(event[EVENT_KEYS.SERVER_SUB_ERROR_CODE]).to.eq(fakeSubErrorCode);
     });
 
-    it.skip("sets values that are changed", () => {
+    it("sets values that are changed", () => {
         const correlationId = uuid();
 
         const httpEvent = new HttpEvent(correlationId);

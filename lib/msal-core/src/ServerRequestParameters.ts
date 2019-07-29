@@ -115,8 +115,8 @@ export class ServerRequestParameters {
     }
 
     // Populate the extraQueryParameters to be sent to the server
-    this.queryParameters = this.generateQueryParametersString(queryParameters);
-    this.extraQueryParameters = this.generateQueryParametersString(eQParams);
+    this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
+    this.extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams);
   }
 
   //#region QueryParam helpers
@@ -328,7 +328,7 @@ export class ServerRequestParameters {
    * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
    * @param extraQueryParameters
    */
-  private generateQueryParametersString(queryParameters: StringDict): string {
+  static generateQueryParametersString(queryParameters: StringDict): string {
     let paramsString: string = null;
 
     if (queryParameters) {
