@@ -7,6 +7,10 @@ export const DEFAULT_REDIRECT_URI = 'msal://auth/';
 // Default AAD Authority
 export const DEFAULT_AUTHORITY = 'https://login.microsoftonline.com/common/';
 
+// AAD V2 Endpoints
+export const DEFAULT_AUTH_ENDPOINT_PATH = 'oauth2/v2.0/authorize?';
+export const DEFAULT_TOKEN_ENDPOINT_PATH = 'oauth2/v2.0/token?';
+
 // PopUp Window Defaults
-export const DEFAULT_POPUP_HEIGHT = 400;
-export const DEFAULT_POPUP_WIDTH = 800;
+export const DEFAULT_POPUP_HEIGHT = 600;
+export const DEFAULT_POPUP_WIDTH = 500;

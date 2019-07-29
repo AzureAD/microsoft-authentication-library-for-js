@@ -2,25 +2,31 @@
 // Licensed under the MIT License.
 
 import { AuthorizationCodeRequestError } from '../Error/AuthorizationCodeRequestError';
-import { ServerResponse } from './ServerResponse';
+import { QueryParameters } from './QueryParameters';
+
+import * as url from 'url';
 
 /**
  * The AuthCodeResponse class is used to expose
  * the relevant elements of the authorization endpoint's
  * response when an authorization code request has taken place.
  */
-export class AuthCodeReponse extends ServerResponse {
+export class AuthCodeReponse {
+    private url: url.UrlWithParsedQuery;
+    private query: QueryParameters;
     private authorizationCode?: string;
     private authError?: AuthorizationCodeRequestError;
 
     constructor(rawUrl: string) {
-        super(rawUrl);
-        if (this.queryParams.error) {
+        this.url = url.parse(rawUrl, true);
+        this.query = this.url.query;
+
+        if (this.query.error) {
             this.authError = AuthorizationCodeRequestError.createAuthCodeAccessDeniedError(
-                this.queryParams.error_description
+                this.query.error_description
             );
         } else {
-            this.authorizationCode = this.queryParams.code;
+            this.authorizationCode = this.query.code;
         }
     }
 

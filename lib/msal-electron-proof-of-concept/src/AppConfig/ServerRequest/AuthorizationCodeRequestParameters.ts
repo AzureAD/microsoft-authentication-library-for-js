@@ -1,8 +1,8 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License
+
 import { Authority } from '../Authority/Authority';
 import { ServerRequestParameters } from './ServerRequestParameters';
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 /**
  * The AuthorizationCodeRequestParameters class is used to build
