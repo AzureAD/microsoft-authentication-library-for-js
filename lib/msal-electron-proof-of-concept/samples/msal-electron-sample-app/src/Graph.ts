@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import * as rp from 'request-promise';
+import * as request from 'request-promise';
 
 export class Graph {
     static async fetchUserData(accessToken: string): Promise<any> {
@@ -12,8 +12,6 @@ export class Graph {
             },
             json: true
         };
-        return rp(graphUrl, options).then((body) => {
-            return body;
-        });
+        return request(graphUrl, options);
     }
 }

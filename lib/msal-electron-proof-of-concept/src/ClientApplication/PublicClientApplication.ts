@@ -19,7 +19,8 @@ import { ClientApplication } from './ClientApplication';
 
 import { strict as assert } from 'assert';
 import { BrowserWindow } from 'electron';
-import * as rp from 'request-promise';
+
+import * as requestPromise from 'request-promise';
 
 /**
  * PublicClientApplication class
@@ -122,7 +123,6 @@ export class PublicClientApplication extends ClientApplication {
             state,
             codeChallenge
         );
-        console.log(authCodeRequestParameters.buildRequestUrl());
 
         // Create navigate URL string from request parameters
         return authCodeRequestParameters.buildRequestUrl();
@@ -164,7 +164,7 @@ export class PublicClientApplication extends ClientApplication {
     private tradeAuthCodeForAccessToken(authorityInstance: Authority, scopes: string[], authCode: string, verifier: string): Promise<string> {
         // Build token request URL
         const tokenRequest = this.buildTokenRequest(authorityInstance, scopes, authCode, verifier);
-        return rp(tokenRequest.body).then((body) => {
+        return requestPromise(tokenRequest.body).then((body) => {
             const tokenResponse = new TokenResponse(body);
             return tokenResponse.accessToken;
         }).catch((responseError) => {
@@ -190,7 +190,6 @@ export class PublicClientApplication extends ClientApplication {
             authCode,
             verifier
         );
-        console.log(tokenRequestParameters.body);
 
         // Create request URI string from request parameters
         return tokenRequestParameters;
