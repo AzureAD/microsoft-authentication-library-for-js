@@ -7,12 +7,16 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./authority/Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType } from "./Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
 import { Account } from "./Account";
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
+import { TokenUtils } from "./utils/TokenUtils";
+import { ScopeSet } from "./ScopeSet";
+import { UrlUtils } from "./utils/UrlUtils";
+import { ResponseUtils } from "./utils/ResponseUtils";
 import { AuthorityFactory } from "./authority/AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
@@ -596,7 +600,7 @@ export class UserAgentApplication {
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
       else if (!account && !Utils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
-        const adalIdTokenObject = Utils.extractIdToken(adalIdToken);
+        const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
         serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
       }
@@ -1237,7 +1241,7 @@ export class UserAgentApplication {
    * @param hash
    */
   private deserializeHash(urlFragment: string) {
-    const hash = Utils.getHashFromUrl(urlFragment);
+    let hash = UrlUtils.getHashFromUrl(urlFragment);
     return Utils.deserialize(hash);
   }
 
@@ -1324,7 +1328,7 @@ export class UserAgentApplication {
       for (let i = 0; i < tokenCacheItems.length; i++) {
         const cacheItem = tokenCacheItems[i];
         const cachedScopes = cacheItem.key.scopes.split(" ");
-        if (Utils.containsScope(cachedScopes, scopes)) {
+        if (ScopeSet.containsScope(cachedScopes, scopes)) {
           filteredItems.push(cacheItem);
         }
       }
@@ -1354,7 +1358,7 @@ export class UserAgentApplication {
       for (let i = 0; i < tokenCacheItems.length; i++) {
         const cacheItem = tokenCacheItems[i];
         const cachedScopes = cacheItem.key.scopes.split(" ");
-        if (Utils.containsScope(cachedScopes, scopes) && Utils.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
+        if (ScopeSet.containsScope(cachedScopes, scopes) && UrlUtils.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
           filteredItems.push(cacheItem);
         }
       }
@@ -1397,7 +1401,7 @@ export class UserAgentApplication {
           account: account,
           accountState: aState,
         };
-        Utils.setResponseIdToken(response, idTokenObj);
+        ResponseUtils.setResponseIdToken(response, idTokenObj);
         return response;
       } else {
         this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
@@ -1434,7 +1438,7 @@ export class UserAgentApplication {
   private extractADALIdToken(): any {
     const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
     if (!Utils.isEmpty(adalIdToken)) {
-        return Utils.extractIdToken(adalIdToken);
+      return TokenUtils.extractIdToken(adalIdToken);
     }
     return null;
   }
@@ -1453,7 +1457,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = Utils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
 
     window.renewStates.push(serverAuthenticationRequest.state);
     window.requestType = Constants.renewToken;
@@ -1478,7 +1482,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = Utils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
 
     if (this.silentLogin) {
         window.requestType = Constants.login;
@@ -1528,7 +1532,7 @@ export class UserAgentApplication {
 
         if (accessTokenCacheItem.key.homeAccountIdentifier === response.account.homeAccountIdentifier) {
           const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
-          if (Utils.isIntersectingScopes(cachedScopes, consentedScopes)) {
+          if (ScopeSet.isIntersectingScopes(cachedScopes, consentedScopes)) {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
           }
         }
@@ -1662,7 +1666,7 @@ export class UserAgentApplication {
             response.idTokenClaims = idTokenObj.claims;
           } else {
             idTokenObj = new IdToken(this.cacheStorage.getItem(Constants.idTokenKey));
-            response = Utils.setResponseIdToken(response, idTokenObj);
+            response = ResponseUtils.setResponseIdToken(response, idTokenObj);
           }
 
           // retrieve the authority from cache and replace with tenantID
@@ -1670,7 +1674,7 @@ export class UserAgentApplication {
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
           if (!Utils.isEmpty(authority)) {
-            authority = Utils.replaceTenantPath(authority, response.tenantId);
+            authority = UrlUtils.replaceTenantPath(authority, response.tenantId);
           }
 
           // retrieve client_info - if it is not found, generate the uid and utid from idToken
@@ -1724,7 +1728,7 @@ export class UserAgentApplication {
             // set the idToken
             idTokenObj = new IdToken(hashParams[Constants.idToken]);
 
-            response = Utils.setResponseIdToken(response, idTokenObj);
+            response = ResponseUtils.setResponseIdToken(response, idTokenObj);
             if (hashParams.hasOwnProperty(Constants.clientInfo)) {
               clientInfo = hashParams[Constants.clientInfo];
             } else {
@@ -1735,7 +1739,7 @@ export class UserAgentApplication {
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
             if (!Utils.isEmpty(authority)) {
-              authority = Utils.replaceTenantPath(authority, idTokenObj.tenantId);
+              authority = UrlUtils.replaceTenantPath(authority, idTokenObj.tenantId);
             }
 
             this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
@@ -2251,7 +2255,7 @@ export class UserAgentApplication {
   private setAuthorityCache(state: string, authority: string) {
     // Cache authorityKey
     const authorityKey = Storage.generateAuthorityKey(state);
-    this.cacheStorage.setItem(authorityKey, Utils.CanonicalizeUri(authority), this.inCookie);
+    this.cacheStorage.setItem(authorityKey, UrlUtils.CanonicalizeUri(authority), this.inCookie);
   }
 
   /**

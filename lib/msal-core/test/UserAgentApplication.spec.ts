@@ -19,8 +19,8 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { Storage } from "../src/Storage";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
-import { Utils } from "../src/Utils";
-import { SSOTypes } from "../src/Constants";
+import { Utils } from "../src/utils/Utils";
+import { SSOTypes } from "../src/utils/Constants";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";

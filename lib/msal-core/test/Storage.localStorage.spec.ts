@@ -2,7 +2,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { Storage } from "../src/Storage";
 import { Constants } from "../src";
-import { CacheKeys } from "../src/Constants";
+import { CacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
 import { Account } from "../src/Account";

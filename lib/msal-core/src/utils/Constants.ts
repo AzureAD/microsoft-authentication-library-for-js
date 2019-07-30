@@ -1,5 +1,4 @@
-import { CacheLocation } from "./Configuration";
-import { InteractionRequiredAuthErrorMessage as InteractionError } from "./error/InteractionRequiredAuthError";
+import { CacheLocation } from "../Configuration";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -150,5 +149,5 @@ export const PromptState = {
  * @hidden
  */
 export const Library = {
-  version: "1.0.2"
+  version: "1.1.1"
 };

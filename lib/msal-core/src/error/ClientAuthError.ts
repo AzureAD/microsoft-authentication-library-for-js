@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { AuthError } from "./AuthError";
-import { Utils } from "../Utils";
+import { Utils } from "../utils/Utils";
 import { IdToken } from "../IdToken";
 
 export const ClientAuthErrorMessage = {

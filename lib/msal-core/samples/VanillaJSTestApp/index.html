@@ -29,7 +29,7 @@
 
     var msalConfig = {
         auth: {
-            clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
+            clientId: "Enter_your_client_id",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true
         },
@@ -146,7 +146,10 @@
         if (error) {
             console.log(error);
         } else {
-            if (response.tokenType === "access_token") {
+            if (response.tokenType === "id_token") {
+                showWelcomeMessage();
+                acquireTokenRedirectAndCallMSGraph(graphConfig.graphMeEndpoint, loginRequest);
+            } else if (response.tokenType === "access_token") {
                 callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, graphAPICallback);
             } else {
                 console.log("token type is:" + response.tokenType);
