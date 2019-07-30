@@ -27,19 +27,19 @@ export class AadAuthority extends Authority {
    * Returns a promise which resolves to the OIDC endpoint
    * Only responds with the endpoint
    */
-  public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
-      const resultPromise: Promise<string> = new Promise<string>((resolve, reject) =>
-      resolve(this.DefaultOpenIdConfigurationEndpoint));
-
+  public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+    // for all B2C
     if (!this.IsValidationEnabled) {
-      return resultPromise;
+      return this.DefaultOpenIdConfigurationEndpoint;
     }
 
+    // trusted host whitelist
     let host: string = this.CanonicalAuthorityUrlComponents.HostNameAndPort;
     if (this.IsInTrustedHostList(host)) {
-      return resultPromise;
+      return this.DefaultOpenIdConfigurationEndpoint;
     }
 
+    // for custom domains in AAD where we query the service for the Instance discovery
     let client: XhrClient = new XhrClient();
 
     return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)

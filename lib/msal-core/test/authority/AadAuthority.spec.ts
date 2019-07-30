@@ -1,8 +1,7 @@
 import { expect } from "chai";
 import { AuthorityType, Authority } from "../../src/authority/Authority";
 import { AadAuthority } from "../../src/authority/AadAuthority";
-import { IdToken } from "../../src/IdToken";
-
+import { ITenantDiscoveryResponse} from "../../src/authority/ITenantDiscoveryResponse"
 
 describe("AadAuthority.ts class", () => {
 
@@ -10,6 +9,15 @@ describe("AadAuthority.ts class", () => {
     const AAD_INSTANCE_DISCOVERY_ENDPOINT = "https://login.microsoftonline.com/common/discovery/instance";
     const AAD_INSTANCE_DISCOVERY_ENDPOINT_URL = `${AAD_INSTANCE_DISCOVERY_ENDPOINT}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
 
+    const TEST_TENANT = "8e1a1629-b777-48a8-8a36-1db8500190bd";
+    const testTenantDiscoveryResponse: ITenantDiscoveryResponse  = {
+        AuthorizationEndpoint: "string",
+        EndSessionEndpoint: "string",
+        Issuer: "string"
+    }
+
+
+    // AAD authority instantiation
     const aadAuthority = new AadAuthority(DEFAULT_AUTHORITY, true);
 
     it("verifies Authority type", function () {
@@ -27,6 +35,11 @@ describe("AadAuthority.ts class", () => {
         expect(isValidHostInList).to.equal(true);
         expect(isInvalidHostInList).to.equal(false);
     });
+
+
+
+
+
 
     it("verfiies openIdConfiguration Endpoint", function () {
         console.log("canonicalAuth:", aadAuthority.CanonicalAuthority);
