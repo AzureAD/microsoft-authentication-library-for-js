@@ -51,4 +51,19 @@ export class ScopeSet {
   static removeElement(scopes: Array<string>, scope: string): Array<string> {
     return scopes.filter(value => value !== scope);
   }
+
+  /**
+   * Parse the scopes into a formatted scopeList
+   * @param scopes
+   */
+  static parseScope(scopes: Array<string>): string {
+    let scopeList: string = "";
+    if (scopes) {
+        for (let i: number = 0; i < scopes.length; ++i) {
+        scopeList += (i !== scopes.length - 1) ? scopes[i] + " " : scopes[i];
+      }
+    }
+
+    return scopeList;
+  }
 }

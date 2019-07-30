@@ -29,6 +29,7 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
+
  // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
 
@@ -417,7 +418,7 @@ export class UserAgentApplication {
     const account: Account = (request && request.account && !isLoginCall) ? request.account : this.getAccount();
 
     // If no session exists, prompt the user to login.
-    if (!account && !Utils.isSSOParam(request)) {
+    if (!account && !ServerRequestParameters.isSSOParam(request)) {
       if (isLoginCall) {
         // extract ADAL id_token if exists
         let adalIdToken = this.extractADALIdToken();
@@ -515,10 +516,10 @@ export class UserAgentApplication {
       this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
+      serverAuthenticationRequest.populateQueryParams(account, request);
 
-      // Construct url to navigate to
-      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
+      // Construct urlNavigate
+      let urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
 
       // set state in cache
       if (interactionType === Constants.interactionTypeRedirect) {
@@ -594,15 +595,15 @@ export class UserAgentApplication {
       );
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (Utils.isSSOParam(request) || account) {
-        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
+      if (ServerRequestParameters.isSSOParam(request) || account) {
+        serverAuthenticationRequest.populateQueryParams(account, request);
       }
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
       else if (!account && !Utils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
         const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-        serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
+        serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject);
       }
       const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
@@ -910,49 +911,6 @@ export class UserAgentApplication {
   //#endregion
 
   //#region General Helpers
-
-  /**
-   * @hidden
-   *
-   * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
-   * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
-   * domain_req utid received as part of the clientInfo
-   * login_req uid received as part of clientInfo
-   * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
-   *
-   * @param {@link Account} account - Account for which the token is requested
-   * @param queryparams
-   * @param {@link ServerRequestParameters}
-   * @ignore
-   */
-  private addHintParameters(accountObj: Account, qParams: StringDict, serverReqParams: ServerRequestParameters): StringDict {
-
-    const account: Account = accountObj || this.getAccount();
-
-    // This is a final check for all queryParams added so far; preference order: sid > login_hint
-    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
-    if (account && !qParams[SSOTypes.SID]) {
-      // sid - populate only if login_hint is not already populated and the account has sid
-      const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && serverReqParams.promptValue === PromptState.NONE;
-      if (populateSID) {
-          qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
-      }
-      // login_hint - account.userName
-      else {
-        const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName);
-        if (populateLoginHint) {
-          qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
-        }
-      }
-
-      const populateReqParams = !qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ];
-      if (populateReqParams) {
-        qParams = Utils.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, account.homeAccountIdentifier, qParams);
-      }
-    }
-
-    return qParams;
-  }
 
   /**
    * @hidden
@@ -1457,7 +1415,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
 
     window.renewStates.push(serverAuthenticationRequest.state);
     window.requestType = Constants.renewToken;
@@ -1482,7 +1440,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
 
     if (this.silentLogin) {
         window.requestType = Constants.login;
@@ -2325,95 +2283,6 @@ export class UserAgentApplication {
     return tokenRequest;
   }
 
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
-   * @param request
-   * @param serverAuthenticationRequest
-   */
-  private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
-
-    let queryParameters: StringDict = {};
-
-    if (request) {
-      // add the prompt parameter to serverRequestParameters if passed
-      if (request.prompt) {
-        this.validatePromptParameter(request.prompt);
-        serverAuthenticationRequest.promptValue = request.prompt;
-      }
-
-      // Add claims challenge to serverRequestParameters if passed
-      if (request.claimsRequest) {
-        validateClaimsRequest(request);
-        serverAuthenticationRequest.claimsValue = request.claimsRequest;
-      }
-
-      // if the developer provides one of these, give preference to developer choice
-      if (Utils.isSSOParam(request)) {
-        queryParameters = Utils.constructUnifiedCacheQueryParameter(request, null);
-      }
-    }
-
-    if (adalIdTokenObject) {
-      queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
-    }
-
-    // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
-    this.logger.verbose("Calling addHint parameters");
-    queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
-
-    // sanity check for developer passed extraQueryParameters
-    let eQParams: StringDict;
-    if (request) {
-      eQParams = this.sanitizeEQParams(request);
-    }
-
-    // Populate the extraQueryParameters to be sent to the server
-    serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
-    serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(eQParams);
-
-    return serverAuthenticationRequest;
-  }
-
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to test if valid prompt value is passed in the request
-   * @param request
-   */
-  private validatePromptParameter (prompt: string) {
-    if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
-        throw ClientConfigurationError.createInvalidPromptError(prompt);
-    }
-  }
-
-  /**
-   * @hidden
-   * @ignore
-
-   * Removes unnecessary or duplicate query parameters from extraQueryParameters
-   * @param request
-   */
-  private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
-    let eQParams : StringDict = request.extraQueryParameters;
-    if (!eQParams) {
-      return null;
-    }
-    if (request.claimsRequest) {
-      this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-      delete eQParams[Constants.claims];
-    }
-    BlacklistedEQParams.forEach(param => {
-      if (eQParams[param]) {
-        this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
-        delete eQParams[param];
-      }
-    });
-    return eQParams;
-  }
  //#endregion
 
   private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
