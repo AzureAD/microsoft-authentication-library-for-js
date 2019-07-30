@@ -26,7 +26,8 @@ export const TEST_URIS = {
     DEFAULT_INSTANCE: "https://login.microsoftonline.com/",
     ALTERNATE_INSTANCE: "https://login.windows.net/",
     TEST_REDIR_URI: "https://localhost:8081/redirect.html",
-    TEST_LOGOUT_URI: "https://localhost:8081/logout.html"
+    TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
+    TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 };
 
 // Test Expiration Vals
@@ -58,8 +59,13 @@ export const TEST_CONFIG = {
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     applicationName: "msal.js-tests",
-    applicationVersion: "msal.js-tests.1.0.fake"
+    applicationVersion: "msal.js-tests.1.0.fake",
+    STATE: "1234"
 };
 
-
+export const TEST_RESPONSE_TYPE = {
+    id_token: "id_token",
+    token: "token",
+    id_token_token: "id_token token"
+}
 
