@@ -2,13 +2,13 @@
 // Licensed under the MIT License.
 
 import { Authority } from "./Authority";
-import { Utils } from "./utils/Utils";
+import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes"
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, BlacklistedEQParams } from "./utils/Constants";
+import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-import { Logger } from "./Logger";
+import { StringUtils } from "./utils/StringUtils";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -60,15 +60,15 @@ export class ServerRequestParameters {
       this.scopes = [ ...scope ];
     }
 
-    this.nonce = Utils.createNewGuid();
-    this.state = state && !Utils.isEmpty(state) ?  Utils.createNewGuid() + "|" + state   : Utils.createNewGuid();
+    this.nonce = CryptoUtils.createNewGuid();
+    this.state = state && !StringUtils.isEmpty(state) ?  CryptoUtils.createNewGuid() + "|" + state   : CryptoUtils.createNewGuid();
 
     // TODO: Change this to user passed vs generated with the new PR
-    this.correlationId = Utils.createNewGuid();
+    this.correlationId = CryptoUtils.createNewGuid();
 
     // telemetry information
     this.xClientSku = "MSAL.JS";
-    this.xClientVer = Utils.getLibraryVersion();
+    this.xClientVer = libraryVersion();
 
     this.responseType = responseType;
     this.redirectUri = redirectUri;
@@ -224,7 +224,7 @@ export class ServerRequestParameters {
       }
       // login_hint - account.userName
       else {
-        const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName);
+        const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !StringUtils.isEmpty(account.userName);
         if (populateLoginHint) {
           qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
         }
@@ -276,8 +276,8 @@ export class ServerRequestParameters {
       }
       case SSOTypes.HOMEACCOUNT_ID: {
         let homeAccountId = ssoData.split(".");
-        const uid = Utils.base64Decode(homeAccountId[0]);
-        const utid = Utils.base64Decode(homeAccountId[1]);
+        const uid = CryptoUtils.base64Decode(homeAccountId[0]);
+        const utid = CryptoUtils.base64Decode(homeAccountId[1]);
 
         // TODO: domain_req and login_req are not needed according to eSTS team
         ssoParam[SSOTypes.LOGIN_REQ] = uid;

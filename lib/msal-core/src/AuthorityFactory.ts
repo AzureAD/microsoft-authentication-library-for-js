@@ -4,12 +4,12 @@
 /**
  * @hidden
  */
-import { Utils } from "./utils/Utils";
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 import { UrlUtils } from "./utils/UrlUtils";
+import { StringUtils } from "./utils/StringUtils";
 
 export class AuthorityFactory {
     /**
@@ -34,7 +34,7 @@ export class AuthorityFactory {
     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
     */
     public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
-        if (Utils.isEmpty(authorityUrl)) {
+        if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
         const type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);

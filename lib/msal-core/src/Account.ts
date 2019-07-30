@@ -3,7 +3,8 @@
 
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
-import { Utils } from "./utils/Utils";
+import { CryptoUtils } from "./utils/CryptoUtils";
+import { StringUtils } from "./utils/StringUtils";
 import { StringDict } from "./MsalTypes";
 
 /**
@@ -64,9 +65,27 @@ export class Account {
         const utid: string = clientInfo ? clientInfo.utid : "";
 
         let homeAccountIdentifier: string;
-        if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-            homeAccountIdentifier = Utils.base64Encode(uid) + "." + Utils.base64Encode(utid);
+        if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
+            homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
         return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
+    }
+
+    /**
+     * Utils function to compare two Account objects - used to check if the same user account is logged in
+     *
+     * @param a1: Account object
+     * @param a2: Account object
+     */
+    static compareAccounts(a1: Account, a2: Account): boolean {
+        if (!a1 || !a2) {
+            return false;
+        }
+        if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
+        if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
+            return true;
+        }
+        }
+        return false;
     }
 }
