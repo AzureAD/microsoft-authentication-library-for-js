@@ -3,7 +3,6 @@
 
 import { IUri } from "../IUri";
 import { Constants, SSOTypes } from "./Constants";
-import { Utils } from "./Utils";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from './StringUtils';
