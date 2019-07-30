@@ -103,6 +103,7 @@ export class UrlUtils {
    * @param url
    * @param name
    */
+  // TODO: Should we also add 'sid' here?
   static urlRemoveQueryStringParameter(url: string, name: string): string {
     if (Utils.isEmpty(url)) {
       return url;
