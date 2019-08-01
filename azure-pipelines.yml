@@ -1,0 +1,39 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- master
+
+pool:
+  name: Hosted VS2017
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: 'lib/msal-core'
+    verbose: true
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
+    customCommand: 'run build'
+
+- task: PoliCheck@1
+  inputs:
+    inputType: 'Basic'
+    targetType: 'F'
+    targetArgument: 'lib/msal-core'
+    result: 'PoliCheck.xml'
+
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+  inputs:
+    scanFolder: 'lib/msal-core'
