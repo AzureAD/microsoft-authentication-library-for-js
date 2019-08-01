@@ -26,14 +26,3 @@ steps:
     command: 'custom'
     workingDir: 'lib/msal-core'
     customCommand: 'run build'
-
-- task: PoliCheck@1
-  inputs:
-    inputType: 'Basic'
-    targetType: 'F'
-    targetArgument: 'lib/msal-core'
-    result: 'PoliCheck.xml'
-
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
-  inputs:
-    scanFolder: 'lib/msal-core'
