@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { Utils } from "../../src/utils/Utils";
 import { UrlUtils } from "../../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/AuthorityFactory";
@@ -22,39 +21,10 @@ describe("UrlUtils.ts class", () => {
     const TEST_URL_HASH_SINGLE_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_1}`;
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
-    it("get getLibraryVersion()", () => {
-        const version: string = Utils.getLibraryVersion();
-
-        expect(version).to.be.string;
-        expect(version.split(".").length).to.be.greaterThan(2);
-    });
-
     it("replaceTenantPath", () => {
         console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
         console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
         console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
-    });
-
-    describe("test Base64 encode decode", () => {
-        it('english', () => {
-            expect(Utils.base64Encode("msaljs")).to.be.equal("bXNhbGpz");
-            expect(Utils.base64Decode("bXNhbGpz")).to.be.equal("msaljs");
-        });
-
-        it('Icelandic', () => {
-            expect(Utils.base64Encode("Björn Ironside")).to.be.equal("QmrDtnJuIElyb25zaWRl");
-            expect(Utils.base64Decode("QmrDtnJuIElyb25zaWRl")).to.be.equal("Björn Ironside");
-        });
-
-        it('hebrew', () => {
-            expect(Utils.base64Encode("בְּצַלְאֵל")).to.be.equal("15HWvNaw16bWt9ec1rDXkNa115w=");
-            expect(Utils.base64Decode("15HWvNaw16bWt9ec1rDXkNa115w=")).to.be.equal("בְּצַלְאֵל");
-        });
-
-        it('spanish', () => {
-            expect(Utils.base64Encode("Avrán")).to.be.equal("QXZyw6Fu");
-            expect(Utils.base64Decode("QXZyw6Fu")).to.be.equal("Avrán");
-        });
     });
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {

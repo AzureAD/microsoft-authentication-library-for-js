@@ -1,4 +1,4 @@
-import { Utils } from "../src/utils/Utils";
+import { TimeUtils } from "../src/utils/TimeUtils";
 
 // Test Tokens
 export const TEST_TOKENS = {
@@ -33,7 +33,7 @@ export const TEST_URIS = {
 // Test Expiration Vals
 export const TEST_TOKEN_LIFETIMES = {
     DEFAULT_EXPIRES_IN: 3599,
-    BASELINE_DATE_CHECK: Utils.now(),
+    BASELINE_DATE_CHECK: TimeUtils.now(),
     TEST_ID_TOKEN_EXP: 1536361411,
     TEST_ACCESS_TOKEN_EXP: 1537234948
 };

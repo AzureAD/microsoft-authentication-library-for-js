@@ -1,7 +1,7 @@
 import { B2cAuthority } from "../B2cAuthority";
 import { AADTrustedHostList } from "../utils/Constants";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
-import { Utils } from "../utils/Utils";
+import { CryptoUtils } from "../utils/CryptoUtils";
 import { UrlUtils } from "../utils/UrlUtils";
 
 export const scrubTenantFromUri = (uri: string): String => {
@@ -30,7 +30,7 @@ export const hashPersonalIdentifier = (valueToHash: string) => {
     // TODO sha256 this
     // Current test runner is being funny with node libs that are webpacked anyway
     // need a different solution
-    return Utils.base64Encode(valueToHash);
+    return CryptoUtils.base64Encode(valueToHash);
 };
 
 export const prependEventNamePrefix = (suffix: string): string => `${EVENT_NAME_PREFIX}${suffix || ""}`;
