@@ -1,17 +1,17 @@
 import UiEvent, { EVENT_KEYS } from "../../src/telemetry/UiEvent";
-import { v4 as uuid } from "uuid";
+import { Utils } from '../../src/Utils';
 import { expect } from "chai";
 
 describe("UiEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = uuid();
+        const correlationId = Utils.createNewGuid();
         const event = new UiEvent(correlationId).get();
         expect(event["msal.event_name"]).to.eq("msal.ui_event");
         expect(event["msal.elapsed_time"]).to.eq(-1);
     });
 
     it("sets values", () =>{
-        const correlationId = uuid();
+        const correlationId = Utils.createNewGuid();
         const uiEvent = new UiEvent(correlationId);
 
         const fakeUserCancelled = true;
