@@ -30,6 +30,7 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
+import { EnvironmentError } from "./error/EnvironmentError";
 
 
  // default authority
@@ -110,27 +111,6 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
  * @returns {string} account state
  */
 export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
-
-/**
- * @hidden
- * @ignore
- * A wrapper to handle the token response/error within the iFrame always
- *
- * @param target
- * @param propertyKey
- * @param descriptor
- */
-const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-  const tokenAcquisitionMethod = descriptor.value;
-  descriptor.value = function (...args: any[]) {
-      return this.isInIframe()
-          ? new Promise(() => {
-            return;
-          })
-          : tokenAcquisitionMethod.apply(this, args);
-  };
-  return descriptor;
-};
 
 /**
  * UserAgentApplication class
@@ -561,13 +541,14 @@ export class UserAgentApplication {
    * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
    *
    */
-  @resolveTokenOnlyIfOutOfIframe
   acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
     if (!request) {
       throw ClientConfigurationError.createEmptyRequestError();
     }
     return new Promise<AuthResponse>((resolve, reject) => {
-
+      if (this.isInIframe()) {
+        reject(EnvironmentError.createNoResolveInIframeError());
+      }
       // Validate and filter scopes (the validate function will throw if validation fails)
       this.validateInputScope(request.scopes, true);
 

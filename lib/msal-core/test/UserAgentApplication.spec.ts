@@ -27,6 +27,7 @@ import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
 import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
+import { EnvironmentError } from "../src/error/EnvironmentError";
 
 type kv = {
     [key: string]: string;
@@ -1416,4 +1417,29 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
     });
+
+
+    describe("iframe resolution of silent token request", () => {
+        beforeEach(function() {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+        });
+        it("throws an EnvironmentError if rendred in an iframe", done => {
+            sinon.stub(msal, "isInIframe").returns(true);
+            msal.acquireTokenSilent({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]})
+            .then(() => {
+                done("acquireTokenSilent Should not resolve if rendered in an iframe");``
+            })
+            .catch((err) => {
+                expect(err).to.be.instanceOf(EnvironmentError);
+                done();
+            });
+        });
+    });
 });
+
