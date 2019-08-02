@@ -2,9 +2,9 @@ import { expect } from "chai";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig, TelemetryPlatform } from "../../src/telemetry/TelemetryTypes";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
-import { Utils } from '../../src/Utils';
+import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
-const TEST_CLIENT_ID = Utils.createNewGuid();
+const TEST_CLIENT_ID = CryptoUtils.createNewGuid();
 const TEST_PLATFORM: TelemetryPlatform = {
     applicationName: "testApp",
     applicationVersion: "12.0.1",
@@ -31,7 +31,7 @@ describe("TelemetryManager", () => {
             platform: TEST_PLATFORM,
             onlySendFailureTelemetry: false
         };
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const eventHandler = events => {
             expect(events).to.have.length(2);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
@@ -62,7 +62,7 @@ describe("TelemetryManager", () => {
             platform: TEST_PLATFORM,
             onlySendFailureTelemetry: false
         };
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const eventHandler = events => {
             expect(events).to.have.length(4);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
@@ -106,7 +106,7 @@ describe("TelemetryManager", () => {
             platform: TEST_PLATFORM,
             onlySendFailureTelemetry: false
         };
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const eventHandler = events => {
             expect(events).to.have.length(4);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
@@ -149,7 +149,7 @@ describe("TelemetryManager", () => {
             platform: TEST_PLATFORM,
             onlySendFailureTelemetry: false
         };
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
         let calledOnce = false;
         const eventHandler = events => {
             // if calledOnce is already true we shouldnt ever get back to this callback.

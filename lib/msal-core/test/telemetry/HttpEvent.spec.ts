@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
-import { Utils } from '../../src/Utils';
+import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
 describe("HttpEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
 
         const event = new HttpEvent(correlationId).get();
 
@@ -13,7 +13,7 @@ describe("HttpEvent", () => {
     });
 
     it("sets simply set values", () => {
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
 
         const httpEvent = new HttpEvent(correlationId);
 
@@ -51,7 +51,7 @@ describe("HttpEvent", () => {
     });
 
     it("sets values that are changed", () => {
-        const correlationId = Utils.createNewGuid();
+        const correlationId = CryptoUtils.createNewGuid();
 
         const httpEvent = new HttpEvent(correlationId);
 
