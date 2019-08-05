@@ -12,7 +12,3 @@ pool:
 steps:
   - template: build/sdl-tasks.yml
   - template: build/npm-build-steps.yml
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)\lib\msal-core'
-      ArtifactName: msalJS-release
