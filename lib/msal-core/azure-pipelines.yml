@@ -3,12 +3,12 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
- trigger:
-- dev
+trigger:
+  - dev
 
- pool:
+pool:
   name: Hosted VS2017
 
- steps:
+steps:
   - template: build/sdl-tasks.yml
   - template: build/npm-build-steps.yml
