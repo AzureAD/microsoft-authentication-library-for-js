@@ -14,5 +14,5 @@ steps:
   - template: build/npm-build-steps.yml
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)\dist'
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)\msal-core'
       ArtifactName: msalJS-release
