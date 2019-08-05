@@ -1,0 +1,20 @@
+# Steps to run SDL tasks 
+steps:
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
+  displayName: 'Run PoliCheck'
+  inputs:
+    targetType: F
+    optionsFTPATH: 'build/policheck_filetypes.xml'
+  continueOnError: true
+
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+  displayName: 'Run CredScan'
+  inputs:
+    suppressionsFile: 'build/credscan-exclusion.json'
+    debugMode: false
+
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
+  displayName: 'Post Analysis'
+  inputs:
+    CredScan: true
+    PoliCheck: true
