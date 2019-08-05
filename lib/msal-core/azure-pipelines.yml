@@ -10,4 +10,4 @@ pool:
   name: Hosted VS2017
 
 steps:
-  template: build/npm-build-steps.yml
+  - template: build/npm-build-steps.yml
