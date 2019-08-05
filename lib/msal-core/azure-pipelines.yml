@@ -4,18 +4,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- master
+- dev
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: Hosted VS2017
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
-
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+template: build/npm-build-steps.yml
