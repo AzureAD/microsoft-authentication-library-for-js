@@ -15,7 +15,7 @@ steps:
   - template: build/npm-build-steps.yml
   - task: ArchiveFiles@2
     inputs:
-      rootFolderOrFile: '../..'
+      rootFolderOrFile: 'msal-core'
       includeRootFolder: true
       archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
