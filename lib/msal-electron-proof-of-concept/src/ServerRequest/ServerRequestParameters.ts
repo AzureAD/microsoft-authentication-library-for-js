@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Authority } from '../Authority/Authority';
+import { Authority } from '../AppConfig/Authority/Authority';
 
 /**
  * ServerRequestParamters is the base class from which AuthorizationCodeRequestParameters
@@ -9,7 +9,7 @@ import { Authority } from '../Authority/Authority';
  */
 export abstract class ServerRequestParameters {
     private authorityInstance: Authority;
-    private clientId: string;
+    private clientIdentifier: string;
     private redirectUri: string;
     private scopes: string[];
 
@@ -22,7 +22,7 @@ export abstract class ServerRequestParameters {
      */
     constructor(authorityInstance: Authority, clientId: string, redirectUri: string, scopes: string[]) {
         this.authorityInstance = authorityInstance;
-        this.clientId = clientId;
+        this.clientIdentifier = clientId;
         this.redirectUri = redirectUri;
         this.scopes = scopes;
     }
@@ -31,16 +31,16 @@ export abstract class ServerRequestParameters {
         return this.authorityInstance;
     }
 
-    /**
-     * Returns an array of URI-encoded query parameter string elements
-     * that correspond to universal MSAL server request parameters.
-     */
-    public buildQueryParameters(): string[] {
-        const params: string[] = [];
-        const scope = this.scopes.join(' ');
-        params.push(`client_Id=${encodeURIComponent(this.clientId)}`);
-        params.push(`redirect_uri=${encodeURIComponent(this.redirectUri)}`);
-        params.push(`scope=${encodeURIComponent(scope)}`);
-        return params;
+    public get clientId(): string {
+        return this.clientIdentifier;
     }
+
+    public get redirectUrl(): string {
+        return this.redirectUri;
+    }
+
+    public get urlScopes(): string {
+        return this.scopes.join(' ');
+    }
+
 }

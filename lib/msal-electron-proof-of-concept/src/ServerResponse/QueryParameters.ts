@@ -7,6 +7,7 @@
  */
 export type QueryParameters = {
     code?: string;
+    state?: string;
     error?: string;
     error_description?: string;
 };

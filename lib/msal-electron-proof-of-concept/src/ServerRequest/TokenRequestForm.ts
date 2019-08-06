@@ -7,4 +7,5 @@ export type TokenRequestForm = {
     redirect_uri: string;
     grant_type: string;
     code: string;
+    code_verifier: string;
 };

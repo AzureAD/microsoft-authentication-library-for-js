@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { TokenRequestError } from '../Error/TokenRequestError';
+import { TokenRequestError } from '../ServerRequest/Error/TokenRequestError';
 
 /**
  * The TokenResponse class is used to expose
