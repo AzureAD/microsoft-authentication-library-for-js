@@ -4,19 +4,25 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
-trigger:
-  - dev
+jobs:
+  - job: rolling_VS2017_build
+    displayName: 'Build Job for JS (VS2017)'
+    pool:
+      name: Hosted VS2017
+    steps:
+      - template: build/sdl-tasks.yml
+      - template: build/npm-build-steps.yml
 
-pool:
-  name: Hosted VS2017
-
-steps:
-  - template: build/sdl-tasks.yml
-  - template: build/npm-build-steps.yml
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: 'lib/msal-core'
-      includeRootFolder: false
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-      replaceExistingArchive: true
+  - job: release_VS2017_build
+    displayName: 'Release Job for JS (VS2017)'
+    pool:
+      name: Hosted VS2017
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    steps:
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: '../msal-core'
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          replaceExistingArchive: true
