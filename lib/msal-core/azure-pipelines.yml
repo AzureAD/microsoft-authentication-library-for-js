@@ -17,7 +17,7 @@ jobs:
     displayName: 'Release Job for JS (VS2017)'
     pool:
       name: Hosted VS2017
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    condition: and(succeeded(), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/master'))
     steps:
       - task: ArchiveFiles@2
         inputs:
