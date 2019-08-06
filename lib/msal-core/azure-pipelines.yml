@@ -6,7 +6,6 @@
 
 jobs:
   - job: rolling_VS2017_build
-    displayName: 'Build Job for JS (VS2017)'
     pool:
       name: Hosted VS2017
     steps:
@@ -14,14 +13,13 @@ jobs:
       - template: build/npm-build-steps.yml
 
   - job: release_VS2017_build
-    displayName: 'Release Job for JS (VS2017)'
     pool:
       name: Hosted VS2017
-    condition: and(succeeded(), eq(variables['System.PullRequest.TargetBranch'], 'master'))
+    condition: and(succeeded('rolling_VS2017_build'), eq(variables['System.PullRequest.TargetBranch'], 'master'))
     steps:
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: '../msal-core'
+          rootFolderOrFile: 'lib/msal-core'
           includeRootFolder: false
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
