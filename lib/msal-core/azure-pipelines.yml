@@ -6,6 +6,7 @@
 
 jobs:
   - job: rolling_VS2017_build
+    displayName: 'Build Job for JS (VS2017)'
     pool:
       name: Hosted VS2017
     steps:
@@ -13,8 +14,10 @@ jobs:
       - template: build/npm-build-steps.yml
 
   - job: release_VS2017_build
+    displayName: 'Release Job for JS (VS2017)'
     pool:
       name: Hosted VS2017
+    dependsOn: rolling_VS2017_build
     condition: and(succeeded('rolling_VS2017_build'), eq(variables['System.PullRequest.TargetBranch'], 'master'))
     steps:
       - task: ArchiveFiles@2
