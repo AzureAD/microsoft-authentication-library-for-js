@@ -1,0 +1,20 @@
+# Steps to build and test npm project
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
+    customCommand: 'ci'
+    verbose: true
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
+    customCommand: 'run build'
