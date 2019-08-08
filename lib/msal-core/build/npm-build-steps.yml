@@ -8,7 +8,7 @@ steps:
 
 - task: Npm@1
   inputs:
-    command: 'install'
+    command: 'ci'
     workingDir: 'lib/msal-core'
     verbose: true
 
