@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
 
 /**
@@ -35,7 +35,7 @@ export class ClientInfo {
     }
 
     try {
-      const decodedClientInfo: string = Utils.base64DecodeStringUrlSafe(rawClientInfo);
+      const decodedClientInfo: string = Utils.base64Decode(rawClientInfo);
       const clientInfo: ClientInfo = <ClientInfo>JSON.parse(decodedClientInfo);
       if (clientInfo) {
         if (clientInfo.hasOwnProperty("uid")) {

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./Utils";
+import { Utils } from "./utils/Utils";
 
 export interface ILoggerCallback {
   (level: LogLevel, message: string, containsPii: boolean): void;
@@ -142,5 +142,9 @@ export class Logger {// Singleton Class
    */
   verbosePii(message: string): void {
     this.logMessage(LogLevel.Verbose, message, true);
+  }
+
+  isPiiLoggingEnabled(): boolean {
+    return this.piiLoggingEnabled;
   }
 }

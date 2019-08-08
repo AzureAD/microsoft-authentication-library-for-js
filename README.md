@@ -6,7 +6,7 @@ Microsoft Authentication Library for JavaScript (MSAL.js)
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://cloud.microsoft.com) services such as [Microsoft Graph](https://graph.microsoft.io).
+The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
 
@@ -47,6 +47,12 @@ These security concerns are mitigated per standard practices such as- use of sho
 
 We offer two methods of storage for Msal, `localStorage` and `sessionStorage`.  Our recommendation is to use `sessionStorage` because it is more secure in storing tokens that are acquired by your users, but `localStorage` will give you Single Sign On across tabs and user sessions.  We encourage you to explore the options and make the best decision for your application.
 
+### Use forceRefresh to skip cache
+If you would like to skip a cached token and go to the server, please pass in the boolean `forceRefresh` into the `AuthenticationParameters` object used to make a login / token request. 
+
+**WARNING:** `forceRefresh` should not be used by default, because of the performance impact on your application.  Relying on the cache will give your users a better experience. Skipping cache should only be used in scenarios where you know the current cached data does not have up to date information. Example: Admin tool to add roles to a user that needs to get a new token with updated roles.
+
+
 ## Usage
 The example below walks you through how to login a user and acquire a token to be used for Microsoft's Graph Api.
 
@@ -61,18 +67,17 @@ Before using MSAL.js you will need to [register an application in Azure AD](http
 After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 ```JavaScript
-    var msalConfig = {
-        auth: {
-            clientId: 'your_client_id'
-        }
-    };
+var msalConfig = {
+	auth: {
+		clientId: 'your_client_id'
+	}
+};
 
-    var msalInstance = new Msal.UserAgentApplication(msalConfig);
+var msalInstance = new Msal.UserAgentApplication(msalConfig);
 
-    msalInstance.handleRedirectCallback((error, response) => {
-        // handle redirect response or error
-    });
-
+msalInstance.handleRedirectCallback((error, response) => {
+	// handle redirect response or error
+});
 ```
 
 For details on the configuration options, read [Initializing client applications with MSAL.js](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications).
@@ -91,18 +96,17 @@ AAD will only allow you to get consent for 3 resources at a time, although you c
 When the user makes a login request, you can pass in multiple resources and their corresponding scopes because AAD issues an idToken pre consenting those scopes. However acquireToken calls are valid only for one resource / multiple scopes. If you need to access multiple resources, please make separate acquireToken calls per resource.
 
 ```JavaScript
-   var loginRequest = {
-       scopes: ["user.read", "mail.send"] // optional Array<string>
-   };
+var loginRequest = {
+   scopes: ["user.read", "mail.send"] // optional Array<string>
+};
 
-    msalInstance.loginPopup(loginRequest)
-        .then(response => {
-            // handle response
-        })
-        .catch(err => {
-            // handle error
-        });
-
+msalInstance.loginPopup(loginRequest)
+	.then(response => {
+		// handle response
+	})
+	.catch(err => {
+		// handle error
+	});
 ```
 
 #### 3. Get an access token to call an API
@@ -118,68 +122,50 @@ If the `acquireTokenSilent` call fails with an error of type `InteractionRequire
 See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#signing-in-and-getting-tokens-with-msaljs) for reference.
 
 ```JavaScript
-    // if the user is already logged in you can acquire a token
-    if (msalInstance.getAccount()) {
-        var tokenRequest = {
-            scopes: ["user.read", "mail.send"]
-        };
-        msalInstance.acquireTokenSilent(tokenRequest)
-            .then(response => {
-                // get access token from response
-                // response.accessToken
-            })
-            .catch(err => {
-                // could also check if err instance of InteractionRequiredAuthError if you can import the class.
-                if (err.name === "InteractionRequiredAuthError") {
-                    return msalInstance.acquireTokenPopup(tokenRequest)
-                        .then(response => {
-                            // get access token from response
-                            // response.accessToken
-                        })
-                        .catch(err => {
-                            // handle error
-                        });
-                }
-            });
-    } else {
-        // user is not logged in, you will need to log them in to acquire a token
-    }
+// if the user is already logged in you can acquire a token
+if (msalInstance.getAccount()) {
+	var tokenRequest = {
+		scopes: ["user.read", "mail.send"]
+	};
+	msalInstance.acquireTokenSilent(tokenRequest)
+		.then(response => {
+			// get access token from response
+			// response.accessToken
+		})
+		.catch(err => {
+			// could also check if err instance of InteractionRequiredAuthError if you can import the class.
+			if (err.name === "InteractionRequiredAuthError") {
+				return msalInstance.acquireTokenPopup(tokenRequest)
+					.then(response => {
+						// get access token from response
+						// response.accessToken
+					})
+					.catch(err => {
+						// handle error
+					});
+			}
+		});
+} else {
+	// user is not logged in, you will need to log them in to acquire a token
+}
 ```
 
 #### 4. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API
 
 ```JavaScript
-    var headers = new Headers();
-    var bearer = "Bearer " + token;
-    headers.append("Authorization", bearer);
-    var options = {
-         method: "GET",
-         headers: headers
-    };
-    var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
+var headers = new Headers();
+var bearer = "Bearer " + token;
+headers.append("Authorization", bearer);
+var options = {
+	 method: "GET",
+	 headers: headers
+};
+var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
 
-    fetch(graphEndpoint, options)
-        .then(resp => {
-             //do something with response
-        });
-```
-
-You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
-
-```JavaScript
-    var headers = new Headers();
-    var bearer = "Bearer " + token;
-    headers.append("Authorization", bearer);
-    var options = {
-         method: "GET",
-         headers: headers
-    };
-    var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
-
-    fetch(graphEndpoint, options)
-        .then(resp => {
-             //do something with response
-        });
+fetch(graphEndpoint, options)
+	.then(resp => {
+		 //do something with response
+	});
 ```
 
 You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).

@@ -2,7 +2,8 @@
 // Licensed under the MIT License.
 
 import { Logger } from "./Logger";
-import { Utils } from "./Utils";
+import { UrlUtils } from "./utils/UrlUtils";
+import { TelemetryEmitter } from "./telemetry/TelemetryTypes"
 
 /**
  * Cache location options supported by MSAL are:
@@ -27,7 +28,6 @@ const NAVIGATE_FRAME_WAIT = 500;
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
- *  - state                       - Use to send the state parameter with authentication request
  *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
  *
  */
@@ -52,18 +52,32 @@ export type CacheOptions = {
 };
 
 /**
+ * Telemetry Config Options
+ * - applicationName              - Name of the consuming apps application
+ * - applicationVersion           - Verison of the consuming application
+ * - telemetryEmitter             - Function where telemetry events are flushed to
+ */
+export type TelemetryOptions = {
+  applicationName: string;
+  applicationVersion: string;
+  telemetryEmitter: TelemetryEmitter
+ //TODO, add onlyAddFailureTelemetry option
+};
+
+/**
  * Library Specific Options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- *
+ * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
   logger?: Logger;
   loadFrameTimeout?: number;
   tokenRenewalOffsetSeconds?: number;
   navigateFrameWait?: number;
+  telemetry?: TelemetryOptions
 };
 
 /**
@@ -100,8 +114,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
   clientId: "",
   authority: null,
   validateAuthority: true,
-  redirectUri: () => Utils.getDefaultRedirectUri(),
-  postLogoutRedirectUri: () => Utils.getDefaultRedirectUri(),
+  redirectUri: () => UrlUtils.getDefaultRedirectUri(),
+  postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
   navigateToLoginRequestUrl: true
 };
 

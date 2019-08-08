@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { AuthError } from "./AuthError";
-import { Utils } from "../Utils";
+import { Utils } from "../utils/Utils";
 import { IdToken } from "../IdToken";
 
 export const ClientAuthErrorMessage = {
@@ -82,6 +82,10 @@ export const ClientAuthErrorMessage = {
     tokenEncodingError: {
         code: "token_encoding_error",
         desc: "The token to be decoded is not encoded correctly."
+    },
+    invalidInteractionType: {
+        code: "invalid_interaction_type",
+        desc: "The interaction type passed to the handler was incorrect or unknown"
     }
 };
 
@@ -198,5 +202,10 @@ export class ClientAuthError extends AuthError {
     static createTokenEncodingError(incorrectlyEncodedToken: string) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenEncodingError.code,
             `${ClientAuthErrorMessage.tokenEncodingError.desc} Attempted to decode: ${incorrectlyEncodedToken}`);
+    }
+
+    static createInvalidInteractionTypeError() : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidInteractionType.code,
+            ClientAuthErrorMessage.invalidInteractionType.desc);
     }
 }
