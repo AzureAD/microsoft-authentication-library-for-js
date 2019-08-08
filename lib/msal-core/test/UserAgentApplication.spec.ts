@@ -290,7 +290,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
 
-        it.only("Test authority is set as per the user set value", (done) => {
+        it("Test authority is set as per the user set value", (done) => {
             // restore
             sinon.restore;
 
