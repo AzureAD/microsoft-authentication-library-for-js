@@ -24,7 +24,7 @@ export class MsalGuard implements CanActivate {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
         this.authService.updateDataFromCache([this.config.clientID]);
-        if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
+        if (!this.authService._oauthData.isAuthenticated && this.isObjectEmpty(this.authService._oauthData.idToken)) {
             if (state.url) {
 
                 if (!this.authService._renewActive && !this.authService.loginInProgress()) {
@@ -49,7 +49,7 @@ export class MsalGuard implements CanActivate {
             }
         }
         //token is expired/deleted but userdata still exists in _oauthData object
-        else if (!this.authService._oauthData.isAuthenticated && this.authService._oauthData.userName) {
+        else if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
             return new Promise((resolve, reject) => {
                 this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
                     if (token) {
