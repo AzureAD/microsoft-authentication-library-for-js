@@ -1,8 +1,13 @@
+# 1.1.3
+* Introduction of Azure Pipelines (#912)
+* Removing uuid library that is incompatible with ES6 modules (#878)
+* Update lerna dependency to resolve to safe version of lodash (#910)
+* Refactoring (#886)
+
 # 1.1.2
 * Minor fixes to docs and samples (#859, #857, #757)
 * Fixes issue where scope object was being mutated (#875)
 * Fixes issue where token type wasn't being set correctly when renewing id token (#873)
-* Removing uuid library that is incompatible with ES6 modules (#878)
 * Refactoring (#805, #806)
 
 # 1.1.1
