@@ -1,6 +1,6 @@
 import TelemetryEvent from "./TelemetryEvent";
-import { Utils } from "../Utils";
 import { scrubTenantFromUri, prependEventNamePrefix } from "./TelemetryUtils";
+import { ServerRequestParameters } from "../ServerRequestParameters";
 
 export const EVENT_KEYS = {
     HTTP_PATH: prependEventNamePrefix("http_path"),
@@ -33,7 +33,7 @@ export default class HttpEvent extends TelemetryEvent {
     }
 
     public set queryParams(queryParams: any) {
-        this.event[EVENT_KEYS.QUERY_PARAMETERS] = Utils.generateQueryParametersString(queryParams);
+        this.event[EVENT_KEYS.QUERY_PARAMETERS] = ServerRequestParameters.generateQueryParametersString(queryParams);
     }
 
     public set apiVersion(apiVersion: string) {

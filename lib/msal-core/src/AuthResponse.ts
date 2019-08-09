@@ -5,9 +5,6 @@ import { Account } from "./Account";
 import { IdToken } from "./IdToken";
 import { StringDict } from "./MsalTypes";
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 export type AuthResponse = {
     uniqueId: string;
     tenantId: string;

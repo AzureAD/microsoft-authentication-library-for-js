@@ -1,7 +1,11 @@
 import { expect } from "chai";
-import { Utils } from "../src/Utils";
+import sinon from "sinon";
+import { UrlUtils } from "../../src/utils/UrlUtils";
+import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
+import { AuthorityFactory } from "../../src/AuthorityFactory";
+import { ServerRequestParameters } from "../../src/ServerRequestParameters";
 
-describe("Utils.ts class", () => {
+describe("UrlUtils.ts class", () => {
 
     const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
     + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTMxMTI4MTk3MCwKICJpYXQiOiAxMzExMjgwOTcwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
@@ -17,56 +21,47 @@ describe("Utils.ts class", () => {
     const TEST_URL_HASH_SINGLE_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_1}`;
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
-    it("get getLibraryVersion()", () => {
-        const version: string = Utils.getLibraryVersion();
-
-        expect(version).to.be.string;
-        expect(version.split(".").length).to.be.greaterThan(2);
-    });
-
     it("replaceTenantPath", () => {
-        console.log(Utils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
-        console.log(Utils.replaceTenantPath("http://a.com/common/", "1234-56778"));
-        console.log(Utils.replaceTenantPath("http://a.com/common", "1234-5678"));
-    });
-
-    describe("test Base64 encode decode", () => {
-        it('english', () => {
-            expect(Utils.base64Encode("msaljs")).to.be.equal("bXNhbGpz");
-            expect(Utils.base64Decode("bXNhbGpz")).to.be.equal("msaljs");
-        });
-
-        it('Icelandic', () => {
-            expect(Utils.base64Encode("Björn Ironside")).to.be.equal("QmrDtnJuIElyb25zaWRl");
-            expect(Utils.base64Decode("QmrDtnJuIElyb25zaWRl")).to.be.equal("Björn Ironside");
-        });
-
-        it('hebrew', () => {
-            expect(Utils.base64Encode("בְּצַלְאֵל")).to.be.equal("15HWvNaw16bWt9ec1rDXkNa115w=");
-            expect(Utils.base64Decode("15HWvNaw16bWt9ec1rDXkNa115w=")).to.be.equal("בְּצַלְאֵל");
-        });
-
-        it('spanish', () => {
-            expect(Utils.base64Encode("Avrán")).to.be.equal("QXZyw6Fu");
-            expect(Utils.base64Decode("QXZyw6Fu")).to.be.equal("Avrán");
-        });
+        console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
+        console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
+        console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
     });
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
-        const hash = Utils.getHashFromUrl(TEST_URL_HASH_SINGLE_CHAR);
+        const hash = UrlUtils.getHashFromUrl(TEST_URL_HASH_SINGLE_CHAR);
 
         expect(hash).to.be.equal(TEST_SUCCESS_PARAMS);
     });
 
     it("test getHashFromUrl returns hash from url if hash is two character", () => {
-        const hash = Utils.getHashFromUrl(TEST_URL_HASH_TWO_CHAR);
+        const hash = UrlUtils.getHashFromUrl(TEST_URL_HASH_TWO_CHAR);
 
         expect(hash).to.be.equal(TEST_SUCCESS_PARAMS);
     });
 
     it("test getHashFromUrl returns original url from url if no hash is present", () => {
-        const hash = Utils.getHashFromUrl(TEST_URL_NO_HASH);
+        const hash = UrlUtils.getHashFromUrl(TEST_URL_NO_HASH);
 
         expect(hash).to.be.equal(TEST_URL_NO_HASH);
     });
+
+    it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
+        let scopes = ["S1"];
+        let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+        sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
+        let req = new ServerRequestParameters(
+            authority,
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            scopes,
+            TEST_RESPONSE_TYPE.token,
+            TEST_URIS.TEST_REDIR_URI,
+            TEST_CONFIG.STATE
+        );
+        let uriString = UrlUtils.createNavigateUrl(req);
+
+        expect(req.scopes).to.not.be.equal(scopes);
+        expect(req.scopes.length).to.be.eql(3);
+        expect(scopes.length).to.be.eql(1);
+    });
+
 });

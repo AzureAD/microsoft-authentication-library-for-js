@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 import { AadAuthority } from "./AadAuthority";
-import { Authority, AuthorityType } from "./Authority";
+import { AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { Utils } from "./Utils";
+import { UrlUtils } from "./utils/UrlUtils";
 
 /**
  * @hidden
@@ -13,7 +13,7 @@ export class B2cAuthority extends AadAuthority {
   public static B2C_PREFIX: String = "tfp";
   public constructor(authority: string, validateAuthority: boolean) {
     super(authority, validateAuthority);
-    const urlComponents = Utils.GetUrlComponents(authority);
+    const urlComponents = UrlUtils.GetUrlComponents(authority);
 
     const pathSegments = urlComponents.PathSegments;
     if (pathSegments.length < 3) {

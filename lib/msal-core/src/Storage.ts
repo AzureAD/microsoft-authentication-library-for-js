@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Constants } from "./Constants";
+import { Constants, CacheKeys } from "./utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "./Configuration";
-import { CacheKeys } from "./Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 /**
