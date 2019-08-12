@@ -30,6 +30,7 @@
     "doc": "typedoc --mode modules --excludePrivate --excludeProtected --out ./docs ./src/ --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
+    "test-mocha": "mocha -r jsdom-global/register --require ts-node/register ./test/*.spec.ts",
     "test": "karma start --single-run --browsers PhantomJS karma.conf.js",
     "lint": "eslint src/**/*.ts --quiet",
     "build:webpack": "webpack",
