@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./utils/Utils";
+import { CryptoUtils } from "./utils/CryptoUtils";
 import { ClientAuthError } from "./error/ClientAuthError";
+import { StringUtils } from "./utils/StringUtils";
 
 /**
  * @hidden
@@ -28,14 +29,14 @@ export class ClientInfo {
   }
 
   constructor(rawClientInfo: string) {
-    if (!rawClientInfo || Utils.isEmpty(rawClientInfo)) {
+    if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
       this.uid = "";
       this.utid = "";
       return;
     }
 
     try {
-      const decodedClientInfo: string = Utils.base64Decode(rawClientInfo);
+      const decodedClientInfo: string = CryptoUtils.base64Decode(rawClientInfo);
       const clientInfo: ClientInfo = <ClientInfo>JSON.parse(decodedClientInfo);
       if (clientInfo) {
         if (clientInfo.hasOwnProperty("uid")) {

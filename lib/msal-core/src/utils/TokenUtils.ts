@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./Utils";
+import { CryptoUtils } from "./CryptoUtils";
+import { StringUtils } from './StringUtils';
 
 /**
  * @hidden
@@ -14,7 +15,7 @@ export class TokenUtils {
    * @param jwtToken
    */
   static decodeJwt(jwtToken: string): any {
-    if (Utils.isEmpty(jwtToken)) {
+    if (StringUtils.isEmpty(jwtToken)) {
       return null;
     }
     const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
@@ -44,7 +45,7 @@ export class TokenUtils {
     }
     try {
       const base64IdToken = decodedToken.JWSPayload;
-      const base64Decoded = Utils.base64Decode(base64IdToken);
+      const base64Decoded = CryptoUtils.base64Decode(base64IdToken);
       if (!base64Decoded) {
         //this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
         return null;

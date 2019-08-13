@@ -1,4 +1,3 @@
-import { v4 as uuid } from "uuid";
 import ApiEvent, {
     API_EVENT_IDENTIFIER,
     API_CODE,
@@ -8,10 +7,11 @@ import { Logger } from "../../src";
 import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
+import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
 describe("ApiEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = uuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
 
         const event = new ApiEvent(correlationId, logger).get();
@@ -21,7 +21,7 @@ describe("ApiEvent", () => {
     });
 
     it("sets simple values on event", () => {
-        const correlationId = uuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
 
         const apiEvent = new ApiEvent(correlationId, logger);
@@ -49,7 +49,7 @@ describe("ApiEvent", () => {
     });
 
     it("sets values on event that are scrubbed or altered", () => {
-        const correlationId = uuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
 
         const apiEvent = new ApiEvent(correlationId, logger);
@@ -65,15 +65,15 @@ describe("ApiEvent", () => {
     });
 
     it("doesn't set private alues on event if pii is not enabled", () => {
-        const correlationId = uuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { }, {
             piiLoggingEnabled: false //defaults to false
         });
 
         const apiEvent = new ApiEvent(correlationId, logger);
 
-        const fakeTenantId = uuid();
-        const fakeAccountId = uuid();
+        const fakeTenantId = CryptoUtils.createNewGuid();
+        const fakeAccountId = CryptoUtils.createNewGuid();
         const fakeLoginHint = "fakeHint";
 
         apiEvent.tenantId = fakeTenantId;
@@ -88,16 +88,16 @@ describe("ApiEvent", () => {
     });
 
     it("sets and hashes private values on event if pii is enabled", () => {
-        const correlationId = uuid();
+        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { }, {
             piiLoggingEnabled: true
         });
 
         const apiEvent = new ApiEvent(correlationId, logger);
 
-        const fakeTenantId = uuid();
+        const fakeTenantId = CryptoUtils.createNewGuid();
         const fakeExpectedTenantId = hashPersonalIdentifier(fakeTenantId);
-        const fakeAccountId = uuid();
+        const fakeAccountId = CryptoUtils.createNewGuid();
         const fakeExpectedAccountId = hashPersonalIdentifier(fakeAccountId);
         const fakeLoginHint = "fakeHint";
         const fakeExpectedHint = hashPersonalIdentifier(fakeLoginHint);

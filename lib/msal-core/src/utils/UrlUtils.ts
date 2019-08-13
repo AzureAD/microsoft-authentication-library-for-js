@@ -3,9 +3,9 @@
 
 import { IUri } from "../IUri";
 import { Constants, SSOTypes } from "./Constants";
-import { Utils } from "./Utils";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
+import { StringUtils } from './StringUtils';
 
 /**
  * @hidden
@@ -185,7 +185,7 @@ export class UrlUtils {
    * @param name
    */
   static urlRemoveQueryStringParameter(url: string, name: string): string {
-    if (Utils.isEmpty(url)) {
+    if (StringUtils.isEmpty(url)) {
       return url;
     }
 

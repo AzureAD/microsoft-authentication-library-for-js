@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./utils/Utils";
+import { StringUtils } from "./utils/StringUtils";
+import { libraryVersion } from "./utils/Constants";
 
 export interface ILoggerCallback {
   (level: LogLevel, message: string, containsPii: boolean): void;
@@ -70,11 +71,11 @@ export class Logger {// Singleton Class
     }
     const timestamp = new Date().toUTCString();
     let log: string;
-    if (!Utils.isEmpty(this.correlationId)) {
-      log = timestamp + ":" + this.correlationId + "-" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+    if (!StringUtils.isEmpty(this.correlationId)) {
+      log = timestamp + ":" + this.correlationId + "-" + libraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
     }
     else {
-      log = timestamp + ":" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+      log = timestamp + ":" + libraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
     }
     this.executeCallback(logLevel, log, containsPii);
   }

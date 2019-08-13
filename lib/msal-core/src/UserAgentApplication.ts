@@ -7,20 +7,21 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType } from "./utils/Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType, libraryVersion } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
 import { Account } from "./Account";
-import { Utils } from "./utils/Utils";
-import { TokenUtils } from "./utils/TokenUtils";
 import { ScopeSet } from "./ScopeSet";
+import { StringUtils } from "./utils/StringUtils";
+import { CryptoUtils } from "./utils/CryptoUtils";
+import { TokenUtils } from "./utils/TokenUtils";
+import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
 import { ResponseUtils } from "./utils/ResponseUtils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
-import { StringDict } from "./MsalTypes";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -29,6 +30,7 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
+
 
  // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -578,7 +580,7 @@ export class UserAgentApplication {
       const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
       //if there is no account logged in and no login_hint/sid is passed in the request
-      if (!account && !(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
+      if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
         this.logger.info("User login is required");
         return reject(ClientAuthError.createUserLoginRequiredError());
       }
@@ -598,7 +600,7 @@ export class UserAgentApplication {
         serverAuthenticationRequest.populateQueryParams(account, request);
       }
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
-      else if (!account && !Utils.isEmpty(adalIdToken)) {
+      else if (!account && !StringUtils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
         const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
@@ -919,7 +921,7 @@ export class UserAgentApplication {
    */
   private navigateWindow(urlNavigate: string, popupWindow?: Window) {
     // Navigate if valid URL
-    if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
+    if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
       let navigateWindow: Window = popupWindow ? popupWindow : window;
       let logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
       this.logger.infoPii(logMessage);
@@ -1200,7 +1202,7 @@ export class UserAgentApplication {
    */
   private deserializeHash(urlFragment: string) {
     let hash = UrlUtils.getHashFromUrl(urlFragment);
-    return Utils.deserialize(hash);
+    return CryptoUtils.deserialize(hash);
   }
 
   /**
@@ -1338,7 +1340,7 @@ export class UserAgentApplication {
       let expired = Number(accessTokenCacheItem.value.expiresIn);
       // If expiration is within offset, it will force renew
       const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
-      if (expired && (expired > Utils.now() + offset)) {
+      if (expired && (expired > TimeUtils.now() + offset)) {
         let idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
         if (!account) {
           account = this.getAccount();
@@ -1395,7 +1397,7 @@ export class UserAgentApplication {
    */
   private extractADALIdToken(): any {
     const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
-    if (!Utils.isEmpty(adalIdToken)) {
+    if (!StringUtils.isEmpty(adalIdToken)) {
       return TokenUtils.extractIdToken(adalIdToken);
     }
     return null;
@@ -1497,8 +1499,8 @@ export class UserAgentApplication {
       }
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const expiresIn = Utils.parseExpiresIn(parameters[Constants.expiresIn]);
-      expiration = Utils.now() + expiresIn;
+      const expiresIn = TimeUtils.parseExpiresIn(parameters[Constants.expiresIn]);
+      expiration = TimeUtils.now() + expiresIn;
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
       const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 
@@ -1579,7 +1581,7 @@ export class UserAgentApplication {
         const account: Account = this.getAccount();
         let accountId;
 
-        if (account && !Utils.isEmpty(account.homeAccountIdentifier)) {
+        if (account && !StringUtils.isEmpty(account.homeAccountIdentifier)) {
             accountId = account.homeAccountIdentifier;
         }
         else {
@@ -1631,7 +1633,7 @@ export class UserAgentApplication {
           const authorityKey = Storage.generateAuthorityKey(stateInfo.state);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
-          if (!Utils.isEmpty(authority)) {
+          if (!StringUtils.isEmpty(authority)) {
             authority = UrlUtils.replaceTenantPath(authority, response.tenantId);
           }
 
@@ -1646,7 +1648,7 @@ export class UserAgentApplication {
           response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
 
           let accountKey: string;
-          if (response.account && !Utils.isEmpty(response.account.homeAccountIdentifier)) {
+          if (response.account && !StringUtils.isEmpty(response.account.homeAccountIdentifier)) {
             accountKey = response.account.homeAccountIdentifier;
           }
           else {
@@ -1660,9 +1662,9 @@ export class UserAgentApplication {
           let acquireTokenAccount: Account;
 
           // Check with the account in the Cache
-          if (!Utils.isEmpty(cachedAccount)) {
+          if (!StringUtils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
-            if (response.account && acquireTokenAccount && Utils.compareAccounts(response.account, acquireTokenAccount)) {
+            if (response.account && acquireTokenAccount && Account.compareAccounts(response.account, acquireTokenAccount)) {
               response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
@@ -1671,7 +1673,7 @@ export class UserAgentApplication {
                 "The account object created from the response is not the same as the one passed in the acquireToken request");
             }
           }
-          else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
+          else if (!StringUtils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
             response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
           }
         }
@@ -1696,7 +1698,7 @@ export class UserAgentApplication {
             authorityKey = Storage.generateAuthorityKey(stateInfo.state);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
-            if (!Utils.isEmpty(authority)) {
+            if (!StringUtils.isEmpty(authority)) {
               authority = UrlUtils.replaceTenantPath(authority, idTokenObj.tenantId);
             }
 
@@ -1781,7 +1783,7 @@ export class UserAgentApplication {
     const rawIdToken = this.cacheStorage.getItem(Constants.idTokenKey);
     const rawClientInfo = this.cacheStorage.getItem(Constants.msalClientInfo);
 
-    if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
+    if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
       const idToken = new IdToken(rawIdToken);
       const clientInfo = new ClientInfo(rawClientInfo);
       this.account = Account.createAccount(idToken, clientInfo);
@@ -2160,7 +2162,7 @@ export class UserAgentApplication {
 
     // acquireTokenSilent
     if (silentCall) {
-      if (Utils.compareAccounts(accountObject, this.getAccount())) {
+      if (Account.compareAccounts(accountObject, this.getAccount())) {
         tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
       }
       else {
@@ -2171,7 +2173,7 @@ export class UserAgentApplication {
     }
     // all other cases
     else {
-      if (!Utils.compareAccounts(accountObject, this.getAccount())) {
+      if (!Account.compareAccounts(accountObject, this.getAccount())) {
         tokenType = ResponseTypes.id_token_token;
       }
       else {
@@ -2253,7 +2255,7 @@ export class UserAgentApplication {
   private getAccountId(account: Account): any {
     //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
     let accountId: string;
-    if (!Utils.isEmpty(account.homeAccountIdentifier)) {
+    if (!StringUtils.isEmpty(account.homeAccountIdentifier)) {
          accountId = account.homeAccountIdentifier;
     }
     else {
@@ -2297,7 +2299,7 @@ export class UserAgentApplication {
     // if valid then construct
     const telemetryPlatform: TelemetryPlatform = {
       sdk: "msal.js", // TODO need to be able to override this for angular, react, etc
-      sdkVersion: Utils.getLibraryVersion(),
+      sdkVersion: libraryVersion(),
       applicationName,
       applicationVersion
     };

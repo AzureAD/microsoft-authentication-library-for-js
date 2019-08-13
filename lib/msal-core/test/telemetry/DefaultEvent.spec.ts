@@ -1,12 +1,12 @@
 import { expect } from "chai";
-import { v4 as uuid } from "uuid";
 import DefaultEvent from "../../src/telemetry/DefaultEvent";
 import { TelemetryPlatform, EventCount } from "../../src/telemetry/TelemetryTypes";
+import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
 describe("DefaultEvent", () => {
     it("DefaultEvent constructs and carries expected  values", () => {
-        const correlationId = uuid();
-        const clientId = uuid();
+        const correlationId = CryptoUtils.createNewGuid();
+        const clientId = CryptoUtils.createNewGuid();
         const eventCount: EventCount = {
             "msal.ui_event": 100,
             "msal.http_event": 200
