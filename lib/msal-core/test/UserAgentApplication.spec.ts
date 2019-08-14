@@ -65,6 +65,7 @@ describe("UserAgentApplication.ts Class", function () {
         Issuer: `https://fakeIssuer`
     };
 
+
     let msal: UserAgentApplication;
 
     const authCallback = function (error, response) {
