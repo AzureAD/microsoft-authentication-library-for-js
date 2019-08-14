@@ -550,7 +550,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
-                msal.acquireTokenRedirect({});
+                msal.acquireTokenRedirect();
             } catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
                 correctError = true;
@@ -1370,7 +1370,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
-                msal.acquireTokenPopup({});
+                msal.acquireTokenPopup();
             } catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
                 correctError = true;
@@ -1407,7 +1407,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
-                msal.acquireTokenSilent({});
+                msal.acquireTokenSilent();
             } catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
                 correctError = true;
