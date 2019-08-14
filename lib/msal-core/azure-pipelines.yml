@@ -18,7 +18,7 @@ jobs:
     pool:
       name: Hosted VS2017
     dependsOn: rolling_VS2017_build
-    condition: and(succeeded('rolling_VS2017_build'), eq(variables['System.PullRequest.TargetBranch'], 'master'))
+    condition: and(succeeded('rolling_VS2017_build'), eq(variables['Build.SourceBranch'], 'master'))
     steps:
       - task: ArchiveFiles@2
         inputs:
