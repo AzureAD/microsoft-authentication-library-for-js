@@ -69,3 +69,19 @@ export const TEST_RESPONSE_TYPE = {
     id_token_token: "id_token token"
 }
 
+export const TEST_CLAIMS_REQ = {
+    "userinfo": {
+        "given_name": {
+            "essential": true
+        }
+    },
+    "id_token": {
+        "auth_time": {
+            "essential": true
+        },
+        "sub": {
+            "essential": true,
+            "value": "234514353589"
+        }
+    }
+}

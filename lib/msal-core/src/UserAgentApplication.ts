@@ -21,7 +21,7 @@ import { UrlUtils } from "./utils/UrlUtils";
 import { ResponseUtils } from "./utils/ResponseUtils";
 import { AuthorityFactory } from "./AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
-import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";

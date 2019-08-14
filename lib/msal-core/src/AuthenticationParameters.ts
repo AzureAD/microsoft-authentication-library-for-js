@@ -31,8 +31,7 @@ export function validateClaimsRequest(request: AuthenticationParameters) {
     try {
         claims = JSON.parse(request.claimsRequest);
     } catch (e) {
-        throw ClientConfigurationError.createClaimsRequestParsingError(e);
+        throw ClientConfigurationError.createClaimsRequestParsingError(e, request.claimsRequest);
     }
 
-    // TODO: More validation will be added when the server team tells us how they have actually implemented claims
 }

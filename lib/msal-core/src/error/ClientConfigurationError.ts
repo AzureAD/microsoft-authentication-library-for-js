@@ -142,9 +142,9 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
     }
 
-    static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
+    static createClaimsRequestParsingError(claimsRequestParseError: string, claims: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
-            `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
+            `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Error Value: ${claimsRequestParseError}. Given value: ${claims}`);
     }
 
     static createEmptyRequestError(): ClientConfigurationError {
