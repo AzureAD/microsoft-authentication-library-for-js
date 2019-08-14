@@ -59,7 +59,6 @@ describe("UserAgentApplication.ts Class", function () {
 
     // Sample OpenId Configurations
     const validOpenIdConfigString = `{"authorization_endpoint":"${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
-
     const  validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
         AuthorizationEndpoint: `${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize`,
         EndSessionEndpoint: `https://end_session_endpoint`,
