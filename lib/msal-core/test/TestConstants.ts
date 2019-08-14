@@ -56,11 +56,8 @@ export const TEST_CONFIG = {
     TENANT: "common",
     MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
-    MSAL_VALID_TENANT_ID: "72f988bf-86f1-41af-91ab-2d7cd011db47",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
-    // userAuthority: TEST_URIS.DEFAULT_INSTANCE + "72f988bf-86f1-41af-91ab-2d7cd011db47",
-    userAuthority: TEST_URIS.DEFAULT_INSTANCE + "3338040d-6c67-4c5b-b112-36a304b66dad",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
     STATE: "1234"

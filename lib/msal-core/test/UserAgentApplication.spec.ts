@@ -66,13 +66,6 @@ describe("UserAgentApplication.ts Class", function () {
         Issuer: `https://fakeIssuer`
     };
 
-    const  validOpenIdConfigurationResponse_userAuthority: ITenantDiscoveryResponse = {
-        AuthorizationEndpoint: `${TEST_CONFIG.userAuthority}/oauth2/v2.0/authorize`,
-        EndSessionEndpoint: `https://end_session_endpoint`,
-        Issuer: `https://fakeIssuer`
-    };
-
-
     let msal: UserAgentApplication;
 
     const authCallback = function (error, response) {
@@ -102,18 +95,6 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
-        sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
-        sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
-        sinon.stub(msal, "isInIframe").returns(false);
-    };
-
-    const setAuthInstanceStubs_userAuthority = function () {
-        sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () : Promise<Authority> {
-            return new Promise((resolve, reject) => {
-                return resolve(msal.getAuthorityInstance());
-            });
-        });
-        sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse_userAuthority.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
         sinon.stub(msal, "isInIframe").returns(false);
@@ -286,38 +267,6 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
 
             let request: AuthenticationParameters = { prompt: "none" };
-            msal.loginRedirect(request);
-        });
-
-
-        it("Test authority is set as per the user set value", (done) => {
-            // restore
-            sinon.restore;
-
-            // set stubs to specific tenant id
-            const config: Configuration = {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    redirectUri: TEST_URIS.TEST_REDIR_URI
-                }
-            };
-            msal = new UserAgentApplication(config);
-            setAuthInstanceStubs_userAuthority();
-
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                console.log(url);
-                expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_VALID_TENANT_ID + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include("&state");
-                expect(url).to.include("&client_info=1");
-                done();
-            });
-
-            msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
-
-            let request: AuthenticationParameters = { authority: TEST_CONFIG.userAuthority};
             msal.loginRedirect(request);
         });
 
