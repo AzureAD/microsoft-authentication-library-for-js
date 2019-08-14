@@ -22,8 +22,7 @@ export class Account {
     homeAccountIdentifier: string;
     userName: string;
     name: string;
-    // will be deprecated soon
-    idToken: StringDict;
+    idToken: StringDict; // will be deprecated soon
     idTokenClaims: StringDict;
     sid: string;
     environment: string;
