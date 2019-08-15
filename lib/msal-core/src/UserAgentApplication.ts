@@ -481,16 +481,6 @@ export class UserAgentApplication {
     let serverAuthenticationRequest: ServerRequestParameters;
     const acquireTokenAuthority = (!isLoginCall && request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
-    let popUpWindow: Window;
-    if (interactionType === Constants.interactionTypePopup) {
-      // Generate a popup window
-      popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
-      if (!popUpWindow) {
-        // We pass reject in openWindow, we reject there during an error
-        return;
-      }
-    }
-
     acquireTokenAuthority.resolveEndpointsAsync().then(() => {
       // On Fulfillment
       const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, scopes, false);
@@ -538,14 +528,22 @@ export class UserAgentApplication {
         throw ClientAuthError.createInvalidInteractionTypeError();
       }
 
-      // prompt user for interaction
-      this.navigateWindow(urlNavigate, popUpWindow);
+      let popUpWindow: Window;
+      if (interactionType === Constants.interactionTypePopup) {
+        // Generate a popup window
+        popUpWindow = this.openWindow(urlNavigate, "_blank", 1, this, resolve, reject);
+        if (!popUpWindow) {
+          // We pass reject in openWindow, we reject there during an error
+          return;
+        }
+      }
+      else {
+        // prompt user for interaction
+        this.navigateWindow(urlNavigate, popUpWindow);
+      }
     }).catch((err) => {
       this.logger.warning("could not resolve endpoints");
       this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
-      if (popUpWindow) {
-        popUpWindow.close();
-      }
     });
   }
 
