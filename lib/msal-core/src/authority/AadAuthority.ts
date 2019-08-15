@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import { Authority, AuthorityType } from "./Authority";
-import { XhrClient } from "./XHRClient";
+import { XhrClient } from "./../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
 
 /**

@@ -61,5 +61,11 @@ export const TEST_CONFIG = {
     applicationVersion: "msal.js-tests.1.0.fake"
 };
 
+// Test OpenID config response
+export const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
+    AuthorizationEndpoint: `${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize`,
+    EndSessionEndpoint: `https://end_session_endpoint`,
+    Issuer: `https://fakeIssuer`
+};
 
 
