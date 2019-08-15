@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 import { AuthError } from "./AuthError";
-import { Utils } from "../utils/Utils";
 import { IdToken } from "../IdToken";
+import { StringUtils } from "../utils/StringUtils";
 
 export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
@@ -103,7 +103,7 @@ export class ClientAuthError extends AuthError {
 
     static createEndpointResolutionError(errDetail?: string): ClientAuthError {
         let errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
-        if (errDetail && !Utils.isEmpty(errDetail)) {
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
             errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
@@ -121,7 +121,7 @@ export class ClientAuthError extends AuthError {
 
     static createPopupWindowError(errDetail?: string): ClientAuthError {
         var errorMessage = ClientAuthErrorMessage.popUpWindowError.desc;
-        if (errDetail && !Utils.isEmpty(errDetail)) {
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
             errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code, errorMessage);

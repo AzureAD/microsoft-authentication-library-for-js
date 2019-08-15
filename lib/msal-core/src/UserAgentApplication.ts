@@ -7,20 +7,21 @@ import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./authority/Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType } from "./utils/Constants";
+import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType, libraryVersion } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
 import { Account } from "./Account";
-import { Utils } from "./utils/Utils";
-import { TokenUtils } from "./utils/TokenUtils";
 import { ScopeSet } from "./ScopeSet";
+import { StringUtils } from "./utils/StringUtils";
+import { CryptoUtils } from "./utils/CryptoUtils";
+import { TokenUtils } from "./utils/TokenUtils";
+import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
 import { ResponseUtils } from "./utils/ResponseUtils";
 import { AuthorityFactory } from "./authority/AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
-import { StringDict } from "./MsalTypes";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -29,6 +30,8 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from './telemetry/TelemetryTypes';
+
+
  // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
 
@@ -417,7 +420,7 @@ export class UserAgentApplication {
     const account: Account = (request && request.account && !isLoginCall) ? request.account : this.getAccount();
 
     // If no session exists, prompt the user to login.
-    if (!account && !Utils.isSSOParam(request)) {
+    if (!account && !ServerRequestParameters.isSSOParam(request)) {
       if (isLoginCall) {
         // extract ADAL id_token if exists
         let adalIdToken = this.extractADALIdToken();
@@ -515,10 +518,10 @@ export class UserAgentApplication {
       this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
 
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
+      serverAuthenticationRequest.populateQueryParams(account, request);
 
-      // Construct url to navigate to
-      let urlNavigate = serverAuthenticationRequest.createNavigateUrl(scopes) + Constants.response_mode_fragment;
+      // Construct urlNavigate
+      let urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
 
       // set state in cache
       if (interactionType === Constants.interactionTypeRedirect) {
@@ -577,7 +580,7 @@ export class UserAgentApplication {
       const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
       //if there is no account logged in and no login_hint/sid is passed in the request
-      if (!account && !(request.sid  || request.loginHint) && Utils.isEmpty(adalIdToken) ) {
+      if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
         this.logger.info("User login is required");
         return reject(ClientAuthError.createUserLoginRequiredError());
       }
@@ -592,17 +595,16 @@ export class UserAgentApplication {
         this.getRedirectUri(),
         request && request.state
       );
-
       // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-      if (Utils.isSSOParam(request) || account) {
-        serverAuthenticationRequest = this.populateQueryParams(account, request, serverAuthenticationRequest);
+      if (ServerRequestParameters.isSSOParam(request) || account) {
+        serverAuthenticationRequest.populateQueryParams(account, request);
       }
       //if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
-      else if (!account && !Utils.isEmpty(adalIdToken)) {
+      else if (!account && !StringUtils.isEmpty(adalIdToken)) {
         // if adalIdToken exists, extract the SSO info from the same
         const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
         this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-        serverAuthenticationRequest = this.populateQueryParams(account, null, serverAuthenticationRequest, adalIdTokenObject);
+        serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject);
       }
       const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
@@ -659,6 +661,7 @@ export class UserAgentApplication {
               // App uses idToken to send to api endpoints
               // Default scope is tracked as clientId to store this token
               this.logger.verbose("renewing idToken");
+              this.silentLogin = true;
               this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
             } else {
               // renew access token
@@ -913,55 +916,12 @@ export class UserAgentApplication {
 
   /**
    * @hidden
-   *
-   * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
-   * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
-   * domain_req utid received as part of the clientInfo
-   * login_req uid received as part of clientInfo
-   * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
-   *
-   * @param {@link Account} account - Account for which the token is requested
-   * @param queryparams
-   * @param {@link ServerRequestParameters}
-   * @ignore
-   */
-  private addHintParameters(accountObj: Account, qParams: StringDict, serverReqParams: ServerRequestParameters): StringDict {
-
-    const account: Account = accountObj || this.getAccount();
-
-    // This is a final check for all queryParams added so far; preference order: sid > login_hint
-    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
-    if (account && !qParams[SSOTypes.SID]) {
-      // sid - populate only if login_hint is not already populated and the account has sid
-      const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && serverReqParams.promptValue === PromptState.NONE;
-      if (populateSID) {
-          qParams = Utils.addSSOParameter(SSOTypes.SID, account.sid, qParams);
-      }
-      // login_hint - account.userName
-      else {
-        const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !Utils.isEmpty(account.userName);
-        if (populateLoginHint) {
-          qParams = Utils.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
-        }
-      }
-
-      const populateReqParams = !qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ];
-      if (populateReqParams) {
-        qParams = Utils.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, account.homeAccountIdentifier, qParams);
-      }
-    }
-
-    return qParams;
-  }
-
-  /**
-   * @hidden
    * Used to redirect the browser to the STS authorization endpoint
    * @param {string} urlNavigate - URL of the authorization endpoint
    */
   private navigateWindow(urlNavigate: string, popupWindow?: Window) {
     // Navigate if valid URL
-    if (urlNavigate && !Utils.isEmpty(urlNavigate)) {
+    if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
       let navigateWindow: Window = popupWindow ? popupWindow : window;
       let logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
       this.logger.infoPii(logMessage);
@@ -1242,7 +1202,7 @@ export class UserAgentApplication {
    */
   private deserializeHash(urlFragment: string) {
     let hash = UrlUtils.getHashFromUrl(urlFragment);
-    return Utils.deserialize(hash);
+    return CryptoUtils.deserialize(hash);
   }
 
   /**
@@ -1380,7 +1340,7 @@ export class UserAgentApplication {
       let expired = Number(accessTokenCacheItem.value.expiresIn);
       // If expiration is within offset, it will force renew
       const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
-      if (expired && (expired > Utils.now() + offset)) {
+      if (expired && (expired > TimeUtils.now() + offset)) {
         let idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
         if (!account) {
           account = this.getAccount();
@@ -1437,7 +1397,7 @@ export class UserAgentApplication {
    */
   private extractADALIdToken(): any {
     const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
-    if (!Utils.isEmpty(adalIdToken)) {
+    if (!StringUtils.isEmpty(adalIdToken)) {
       return TokenUtils.extractIdToken(adalIdToken);
     }
     return null;
@@ -1457,7 +1417,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
 
     window.renewStates.push(serverAuthenticationRequest.state);
     window.requestType = Constants.renewToken;
@@ -1482,7 +1442,7 @@ export class UserAgentApplication {
     this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
     // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(serverAuthenticationRequest.createNavigateUrl(scopes), Constants.prompt) + Constants.prompt_none;
+    let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
 
     if (this.silentLogin) {
         window.requestType = Constants.login;
@@ -1539,8 +1499,8 @@ export class UserAgentApplication {
       }
 
       // Generate and cache accessTokenKey and accessTokenValue
-      const expiresIn = Utils.parseExpiresIn(parameters[Constants.expiresIn]);
-      expiration = Utils.now() + expiresIn;
+      const expiresIn = TimeUtils.parseExpiresIn(parameters[Constants.expiresIn]);
+      expiration = TimeUtils.now() + expiresIn;
       const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
       const accessTokenValue = new AccessTokenValue(parameters[Constants.accessToken], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 
@@ -1621,7 +1581,7 @@ export class UserAgentApplication {
         const account: Account = this.getAccount();
         let accountId;
 
-        if (account && !Utils.isEmpty(account.homeAccountIdentifier)) {
+        if (account && !StringUtils.isEmpty(account.homeAccountIdentifier)) {
             accountId = account.homeAccountIdentifier;
         }
         else {
@@ -1673,7 +1633,7 @@ export class UserAgentApplication {
           const authorityKey = Storage.generateAuthorityKey(stateInfo.state);
           let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
-          if (!Utils.isEmpty(authority)) {
+          if (!StringUtils.isEmpty(authority)) {
             authority = UrlUtils.replaceTenantPath(authority, response.tenantId);
           }
 
@@ -1688,7 +1648,7 @@ export class UserAgentApplication {
           response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
 
           let accountKey: string;
-          if (response.account && !Utils.isEmpty(response.account.homeAccountIdentifier)) {
+          if (response.account && !StringUtils.isEmpty(response.account.homeAccountIdentifier)) {
             accountKey = response.account.homeAccountIdentifier;
           }
           else {
@@ -1702,9 +1662,9 @@ export class UserAgentApplication {
           let acquireTokenAccount: Account;
 
           // Check with the account in the Cache
-          if (!Utils.isEmpty(cachedAccount)) {
+          if (!StringUtils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
-            if (response.account && acquireTokenAccount && Utils.compareAccounts(response.account, acquireTokenAccount)) {
+            if (response.account && acquireTokenAccount && Account.compareAccounts(response.account, acquireTokenAccount)) {
               response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
               this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
@@ -1713,7 +1673,7 @@ export class UserAgentApplication {
                 "The account object created from the response is not the same as the one passed in the acquireToken request");
             }
           }
-          else if (!Utils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
+          else if (!StringUtils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
             response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
           }
         }
@@ -1738,7 +1698,7 @@ export class UserAgentApplication {
             authorityKey = Storage.generateAuthorityKey(stateInfo.state);
             let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
-            if (!Utils.isEmpty(authority)) {
+            if (!StringUtils.isEmpty(authority)) {
               authority = UrlUtils.replaceTenantPath(authority, idTokenObj.tenantId);
             }
 
@@ -1823,7 +1783,7 @@ export class UserAgentApplication {
     const rawIdToken = this.cacheStorage.getItem(Constants.idTokenKey);
     const rawClientInfo = this.cacheStorage.getItem(Constants.msalClientInfo);
 
-    if (!Utils.isEmpty(rawIdToken) && !Utils.isEmpty(rawClientInfo)) {
+    if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
       const idToken = new IdToken(rawIdToken);
       const clientInfo = new ClientInfo(rawClientInfo);
       this.account = Account.createAccount(idToken, clientInfo);
@@ -2202,7 +2162,7 @@ export class UserAgentApplication {
 
     // acquireTokenSilent
     if (silentCall) {
-      if (Utils.compareAccounts(accountObject, this.getAccount())) {
+      if (Account.compareAccounts(accountObject, this.getAccount())) {
         tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
       }
       else {
@@ -2213,7 +2173,7 @@ export class UserAgentApplication {
     }
     // all other cases
     else {
-      if (!Utils.compareAccounts(accountObject, this.getAccount())) {
+      if (!Account.compareAccounts(accountObject, this.getAccount())) {
         tokenType = ResponseTypes.id_token_token;
       }
       else {
@@ -2295,7 +2255,7 @@ export class UserAgentApplication {
   private getAccountId(account: Account): any {
     //return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
     let accountId: string;
-    if (!Utils.isEmpty(account.homeAccountIdentifier)) {
+    if (!StringUtils.isEmpty(account.homeAccountIdentifier)) {
          accountId = account.homeAccountIdentifier;
     }
     else {
@@ -2325,95 +2285,6 @@ export class UserAgentApplication {
     return tokenRequest;
   }
 
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
-   * @param request
-   * @param serverAuthenticationRequest
-   */
-  private populateQueryParams(account: Account, request: AuthenticationParameters, serverAuthenticationRequest: ServerRequestParameters, adalIdTokenObject?: any): ServerRequestParameters {
-
-    let queryParameters: StringDict = {};
-
-    if (request) {
-      // add the prompt parameter to serverRequestParameters if passed
-      if (request.prompt) {
-        this.validatePromptParameter(request.prompt);
-        serverAuthenticationRequest.promptValue = request.prompt;
-      }
-
-      // Add claims challenge to serverRequestParameters if passed
-      if (request.claimsRequest) {
-        validateClaimsRequest(request);
-        serverAuthenticationRequest.claimsValue = request.claimsRequest;
-      }
-
-      // if the developer provides one of these, give preference to developer choice
-      if (Utils.isSSOParam(request)) {
-        queryParameters = Utils.constructUnifiedCacheQueryParameter(request, null);
-      }
-    }
-
-    if (adalIdTokenObject) {
-      queryParameters = Utils.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
-    }
-
-    // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
-    this.logger.verbose("Calling addHint parameters");
-    queryParameters = this.addHintParameters(account, queryParameters, serverAuthenticationRequest);
-
-    // sanity check for developer passed extraQueryParameters
-    let eQParams: StringDict;
-    if (request) {
-      eQParams = this.sanitizeEQParams(request);
-    }
-
-    // Populate the extraQueryParameters to be sent to the server
-    serverAuthenticationRequest.queryParameters = Utils.generateQueryParametersString(queryParameters);
-    serverAuthenticationRequest.extraQueryParameters = Utils.generateQueryParametersString(eQParams);
-
-    return serverAuthenticationRequest;
-  }
-
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to test if valid prompt value is passed in the request
-   * @param request
-   */
-  private validatePromptParameter (prompt: string) {
-    if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
-        throw ClientConfigurationError.createInvalidPromptError(prompt);
-    }
-  }
-
-  /**
-   * @hidden
-   * @ignore
-
-   * Removes unnecessary or duplicate query parameters from extraQueryParameters
-   * @param request
-   */
-  private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
-    let eQParams : StringDict = request.extraQueryParameters;
-    if (!eQParams) {
-      return null;
-    }
-    if (request.claimsRequest) {
-      this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-      delete eQParams[Constants.claims];
-    }
-    BlacklistedEQParams.forEach(param => {
-      if (eQParams[param]) {
-        this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
-        delete eQParams[param];
-      }
-    });
-    return eQParams;
-  }
  //#endregion
 
   private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
@@ -2428,7 +2299,7 @@ export class UserAgentApplication {
     // if valid then construct
     const telemetryPlatform: TelemetryPlatform = {
       sdk: "msal.js", // TODO need to be able to override this for angular, react, etc
-      sdkVersion: Utils.getLibraryVersion(),
+      sdkVersion: libraryVersion(),
       applicationName,
       applicationVersion
     };

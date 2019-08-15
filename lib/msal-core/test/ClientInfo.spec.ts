@@ -3,8 +3,8 @@ import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
 import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
-import { Utils } from "../src/utils/Utils";
 import { TEST_DATA_CLIENT_INFO } from "./TestConstants";
+import { CryptoUtils } from "../src/utils/CryptoUtils";
 
 describe("Client Info", function () {
 
@@ -70,7 +70,7 @@ describe("Client Info", function () {
         });
 
         it("throws an error if the decoded string is not a valid JSON object.", function () {
-            sinon.stub(Utils, "base64Decode").returns(TEST_DATA_CLIENT_INFO.TEST_INVALID_JSON_CLIENT_INFO);
+            sinon.stub(CryptoUtils, "base64Decode").returns(TEST_DATA_CLIENT_INFO.TEST_INVALID_JSON_CLIENT_INFO);
             let authErr : AuthError;
             try {
                 // What we pass in here doesn't matter since we are stubbing
@@ -88,7 +88,7 @@ describe("Client Info", function () {
         });
 
         it("correct sets uid and utid if parsing is done correctly", function () {
-            sinon.stub(Utils, "base64Decode").returns(TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO);
+            sinon.stub(CryptoUtils, "base64Decode").returns(TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO);
             // What we pass in here doesn't matter since we are stubbing
             clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(clientInfoObj).to.not.be.null;

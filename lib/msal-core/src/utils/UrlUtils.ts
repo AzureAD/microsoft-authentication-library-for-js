@@ -3,12 +3,93 @@
 
 import { IUri } from "../IUri";
 import { Constants, SSOTypes } from "./Constants";
-import { Utils } from "./Utils";
+import { ServerRequestParameters } from "../ServerRequestParameters";
+import { ScopeSet } from "../ScopeSet";
+import { StringUtils } from './StringUtils';
 
 /**
  * @hidden
  */
 export class UrlUtils {
+
+  /**
+   * generates the URL with QueryString Parameters
+   * @param scopes
+   */
+  static createNavigateUrl(serverRequestParams: ServerRequestParameters): string {
+    const str = this.createNavigationUrlString(serverRequestParams);
+    let authEndpoint: string = serverRequestParams.authorityInstance.AuthorizationEndpoint;
+    // if the endpoint already has queryparams, lets add to it, otherwise add the first one
+    if (authEndpoint.indexOf("?") < 0) {
+      authEndpoint += "?";
+    } else {
+      authEndpoint += "&";
+    }
+
+    const requestUrl: string = `${authEndpoint}${str.join("&")}`;
+    return requestUrl;
+  }
+
+  /**
+   * Generate the array of all QueryStringParams to be sent to the server
+   * @param scopes
+   */
+  static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
+    let scopes = serverRequestParams.scopes;
+
+    if (scopes.indexOf(serverRequestParams.clientId) === -1) {
+      scopes.push(serverRequestParams.clientId);
+    }
+    const str: Array<string> = [];
+    str.push("response_type=" + serverRequestParams.responseType);
+
+    this.translateclientIdUsedInScope(scopes, serverRequestParams.clientId);
+    str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(scopes)));
+    str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
+    str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
+
+    str.push("state=" + encodeURIComponent(serverRequestParams.state));
+    str.push("nonce=" + encodeURIComponent(serverRequestParams.nonce));
+
+    str.push("client_info=1");
+    str.push(`x-client-SKU=${serverRequestParams.xClientSku}`);
+    str.push(`x-client-Ver=${serverRequestParams.xClientVer}`);
+    if (serverRequestParams.promptValue) {
+      str.push("prompt=" + encodeURIComponent(serverRequestParams.promptValue));
+    }
+
+    if (serverRequestParams.claimsValue) {
+      str.push("claims=" + encodeURIComponent(serverRequestParams.claimsValue));
+    }
+
+    if (serverRequestParams.queryParameters) {
+      str.push(serverRequestParams.queryParameters);
+    }
+
+    if (serverRequestParams.extraQueryParameters) {
+      str.push(serverRequestParams.extraQueryParameters);
+    }
+
+    str.push("client-request-id=" + encodeURIComponent(serverRequestParams.correlationId));
+    return str;
+  }
+
+  /**
+   * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+   * @param scopes
+   */
+  private static translateclientIdUsedInScope(scopes: Array<string>, clientId: string): void {
+    const clientIdIndex: number = scopes.indexOf(clientId);
+    if (clientIdIndex >= 0) {
+      scopes.splice(clientIdIndex, 1);
+      if (scopes.indexOf("openid") === -1) {
+        scopes.push("openid");
+      }
+      if (scopes.indexOf("profile") === -1) {
+        scopes.push("profile");
+      }
+    }
+  }
 
   /**
    * Returns current window URL as redirect uri
@@ -105,7 +186,7 @@ export class UrlUtils {
    */
   // TODO: Should we also add 'sid' here?
   static urlRemoveQueryStringParameter(url: string, name: string): string {
-    if (Utils.isEmpty(url)) {
+    if (StringUtils.isEmpty(url)) {
       return url;
     }
 

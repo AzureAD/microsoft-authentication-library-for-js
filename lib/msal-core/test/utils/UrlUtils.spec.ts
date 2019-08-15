@@ -1,5 +1,9 @@
 import { expect } from "chai";
-import { UrlUtils } from "../../src/utils/UrlUtils"
+import sinon from "sinon";
+import { UrlUtils } from "../../src/utils/UrlUtils";
+import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
+import { AuthorityFactory } from "../../src/AuthorityFactory";
+import { ServerRequestParameters } from "../../src/ServerRequestParameters";
 
 describe("UrlUtils.ts class", () => {
 
@@ -17,12 +21,11 @@ describe("UrlUtils.ts class", () => {
     const TEST_URL_HASH_SINGLE_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_1}`;
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
-    it("replaceTenantPath replaces tenant parameter correctly (Need to add better tests here)", () => {
+    it("replaceTenantPath", () => {
         console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
         console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
         console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
     });
-
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
         const hash = UrlUtils.getHashFromUrl(TEST_URL_HASH_SINGLE_CHAR);
@@ -41,4 +44,24 @@ describe("UrlUtils.ts class", () => {
 
         expect(hash).to.be.equal(TEST_URL_NO_HASH);
     });
+
+    it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
+        let scopes = ["S1"];
+        let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+        sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
+        let req = new ServerRequestParameters(
+            authority,
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            scopes,
+            TEST_RESPONSE_TYPE.token,
+            TEST_URIS.TEST_REDIR_URI,
+            TEST_CONFIG.STATE
+        );
+        let uriString = UrlUtils.createNavigateUrl(req);
+
+        expect(req.scopes).to.not.be.equal(scopes);
+        expect(req.scopes.length).to.be.eql(3);
+        expect(scopes.length).to.be.eql(1);
+    });
+
 });

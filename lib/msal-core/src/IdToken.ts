@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { Utils } from "./utils/Utils";
 import { ClientAuthError } from "./error/ClientAuthError";
 import { TokenUtils } from "./utils/TokenUtils";
 import { StringDict } from "./MsalTypes";
+import { StringUtils } from "./utils/StringUtils";
 
 /**
  * @hidden
@@ -26,7 +26,7 @@ export class IdToken {
   sid: string;
   /* tslint:disable:no-string-literal */
   constructor(rawIdToken: string) {
-    if (Utils.isEmpty(rawIdToken)) {
+    if (StringUtils.isEmpty(rawIdToken)) {
       throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken);
     }
     try {

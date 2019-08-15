@@ -19,14 +19,15 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { Storage } from "../src/Storage";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
-import { Utils } from "../src/utils/Utils";
 import { SSOTypes } from "../src/utils/Constants";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";
+import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
 import { IdToken } from "../src/IdToken";
 import { validOpenIdConfigurationResponse } from "./TestConstants";
+import { TimeUtils } from "../src/utils/TimeUtils";
 
 type kv = {
     [key: string]: string;
@@ -96,8 +97,8 @@ describe("UserAgentApplication.ts Class", function () {
     };
 
     const setUtilUnifiedCacheQPStubs = function (params: kv) {
-        sinon.stub(Utils, "constructUnifiedCacheQueryParameter").returns(params);
-        sinon.stub(Utils, "addSSOParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, <any>"constructUnifiedCacheQueryParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, <any>"addSSOParameter").returns(params);
     };
 
     let cacheStorage: Storage;
@@ -1027,7 +1028,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that expiresIn returns the correct date for access tokens", function (done) {
-            sinon.stub(Utils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
+            sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
             let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             let successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;

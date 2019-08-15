@@ -3,9 +3,8 @@ import { expect } from "chai";
 import { ClientInfo } from "../src/ClientInfo";
 import { IdToken } from "../src/IdToken";
 import { Account } from "../src/Account";
-import { Utils } from "../src/utils/Utils";
-import { StringDict } from "../src/MsalTypes";
 import { TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
+import { CryptoUtils } from "../src/utils/CryptoUtils";
 
 
 describe("Account.ts Class", function() {
@@ -23,7 +22,7 @@ describe("Account.ts Class", function() {
     it("verifies homeAccountIdentifier matches", function () {
 
         const account = Account.createAccount(idToken, clientInfo);
-        const homeAccountIdentifier = Utils.base64Encode(TEST_DATA_CLIENT_INFO.TEST_UID) + "." + Utils.base64Encode(TEST_DATA_CLIENT_INFO.TEST_UTID);
+        const homeAccountIdentifier = CryptoUtils.base64Encode(TEST_DATA_CLIENT_INFO.TEST_UID) + "." + CryptoUtils.base64Encode(TEST_DATA_CLIENT_INFO.TEST_UTID);
 
         expect(account.homeAccountIdentifier).to.equal(homeAccountIdentifier);
     });
