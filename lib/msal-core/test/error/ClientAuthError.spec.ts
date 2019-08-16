@@ -24,7 +24,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createEndpointResolutionError creates a ClientAuthError object", () => {
@@ -44,7 +44,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(ERROR_DETAIL);
     expect(err.message).to.include(ClientAuthErrorMessage.endpointResolutionError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
 
   });
 
@@ -66,7 +66,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(`${errorDetail} ${scope}`);
     expect(err.message).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createMultipleAuthoritiesInCacheError creates a ClientAuthError object", () => {
@@ -87,7 +87,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(`${errorDetail} ${scope}`);
     expect(err.message).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createPopupWindowError creates a ClientAuthError object", () => {
@@ -107,7 +107,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(ERROR_DETAIL);
     expect(err.message).to.include(ClientAuthErrorMessage.popUpWindowError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createTokenRenewalTimeoutError creates a ClientAuthError object", () => {
@@ -125,7 +125,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientAuthErrorMessage.tokenRenewalError.desc);
     expect(err.message).to.equal(ClientAuthErrorMessage.tokenRenewalError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   // TODO: Cklarify if we want to throw decoded idToken back to the client?
@@ -148,7 +148,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(ClientAuthErrorMessage.invalidIdToken.desc);
     expect(err.message).to.include(ClientAuthErrorMessage.invalidIdToken.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createInvalidStateError creates a ClientAuthError object", () => {
@@ -169,7 +169,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(`${invalidState}, state expected : ${state}.`);
     expect(err.message).to.include(ClientAuthErrorMessage.invalidStateError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createNonceMismatchError creates a ClientAuthError object", () => {
@@ -190,7 +190,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(`${invalidNonce}, nonce expected : ${nonce}.`);
     expect(err.message).to.include(ClientAuthErrorMessage.nonceMismatchError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createLoginInProgressError creates a ClientAuthError object", () => {
@@ -208,7 +208,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
     expect(err.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createAcquireTokenInProgressError creates a ClientAuthError object", () => {
@@ -226,7 +226,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
     expect(err.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createUserCancelledError creates a ClientAuthError object", () => {
@@ -244,7 +244,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientAuthErrorMessage.userCancelledError.desc);
     expect(err.message).to.equal(ClientAuthErrorMessage.userCancelledError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createErrorInCallbackFunction creates a ClientAuthError object", () => {
@@ -264,7 +264,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(ClientAuthErrorMessage.callbackError.desc);
     expect(err.message).to.include(`${ERROR_DESC}`);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createUserLoginRequiredError creates a ClientAuthError object", () => {
@@ -282,7 +282,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientAuthErrorMessage.userLoginRequiredError.desc);
     expect(err.message).to.equal(ClientAuthErrorMessage.userLoginRequiredError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createUserDoesNotExistError creates a ClientAuthError object", () => {
@@ -300,7 +300,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientAuthErrorMessage.userDoesNotExistError.desc);
     expect(err.message).to.equal(ClientAuthErrorMessage.userDoesNotExistError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createClientInfoDecodingError creates a ClientAuthError object", () => {
@@ -320,7 +320,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(caughtErrorString);
     expect(err.message).to.include(ClientAuthErrorMessage.clientInfoDecodingError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createClientInfoNotPopulatedError creates a ClientAuthError object", () => {
@@ -340,7 +340,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(caughtErrorString);
     expect(err.message).to.include(ClientAuthErrorMessage.clientInfoNotPopulatedError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createIdTokenNullOrEmptyError creates a ClientAuthError object", () => {
@@ -360,7 +360,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(invalidRawIdToken);
     expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createIdTokenParsingError creates a ClientAuthError object", () => {
@@ -380,7 +380,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(invalidIdToken);
     expect(err.message).to.include(ClientAuthErrorMessage.idTokenNotParsed.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
   it("createTokenEncodingError creates a ClientAuthError object", () => {
@@ -400,7 +400,7 @@ describe("ClientAuthError.ts Class", () => {
     expect(err.errorMessage).to.include(incorrectlyEncodedToken);
     expect(err.message).to.include(ClientAuthErrorMessage.tokenEncodingError.desc);
     expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.js");
+    expect(err.stack).to.include("ClientAuthError.spec.ts");
   });
 
 });

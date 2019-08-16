@@ -68,7 +68,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     let msal: UserAgentApplication;
 
-    const authCallback = function (error, response) {
+    const authCallback = function (error: AuthError, response: AuthResponse) {
         if (error) {
             throw error;
         } else {
@@ -76,11 +76,11 @@ describe("UserAgentApplication.ts Class", function () {
         }
     };
 
-    const tokenReceivedCallback = function (response) {
+    const tokenReceivedCallback = function (response: AuthResponse) {
         console.log(response);
     };
 
-    const errorReceivedCallback = function (error, state) {
+    const errorReceivedCallback = function (error: AuthError, state: string) {
         if (error) {
             throw error;
         } else {
@@ -156,6 +156,7 @@ describe("UserAgentApplication.ts Class", function () {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
+                    // @ts-ignore
                     telemetry: {
                         applicationName: TEST_CONFIG.applicationName,
                         applicationVersion: TEST_CONFIG.applicationVersion,
@@ -178,7 +179,9 @@ describe("UserAgentApplication.ts Class", function () {
                     }
                 }
             });
+            // @ts-ignore
             expect(msal.telemetryManager).to.not.be.undefined;
+            // @ts-ignore
             expect(msal.telemetryManager).to.not.be.null;
         });
         it("telemetry manager doesn't exis in UAA when not configured", () => {
@@ -187,6 +190,7 @@ describe("UserAgentApplication.ts Class", function () {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
+            // @ts-ignore
             expect(msal.telemetryManager).to.be.null;
         });
     });
@@ -305,7 +309,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that claims is added to the url when passed in request object", function (done) {
-            let claimsRequestObj = {
+            let claimsRequestObj: any = {
                 "accessToken": {
                     "test": null
                 }
@@ -328,7 +332,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that claims is added to the url when passed in extraQueryParameters", function (done) {
-            let claimsRequestObj = {
+            let claimsRequestObj: any = {
                 "accessToken": {
                     "test": null
                 }
@@ -353,12 +357,12 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("removes claims from extraQueryParameters when passed in extraQueryParameters and request object", function (done) {
-            let claimsRequestObj = {
+            let claimsRequestObj: any = {
                 "accessToken": {
                     "test": null
                 }
             };
-            let claimsRequestObj2 = {
+            let claimsRequestObj2: any = {
                 "accessToken": {
                     "test2": null
                 }
@@ -491,7 +495,7 @@ describe("UserAgentApplication.ts Class", function () {
             // expect(authErr.errorMessage).to.contain(tokenRequest.prompt);
             // expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidPrompt.desc);
             // expect(authErr.name).to.equal("ClientConfigurationError");
-            // expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            // expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
         });
 
@@ -507,7 +511,7 @@ describe("UserAgentApplication.ts Class", function () {
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
         });
 
@@ -525,7 +529,7 @@ describe("UserAgentApplication.ts Class", function () {
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
         });
 
@@ -543,13 +547,14 @@ describe("UserAgentApplication.ts Class", function () {
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
         });
 
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
+                // @ts-ignore
                 msal.acquireTokenRedirect();
             } catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
@@ -584,7 +589,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.errorCode).to.include(TEST_ERROR_CODE);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(tokenReceivedCallback, checkErrorFromServer);
@@ -689,7 +694,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                expect(err.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             });
         });
@@ -716,7 +721,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
                 expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
                 expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                expect(err.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             });
         });
@@ -789,7 +794,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                expect(err.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             });
         });
@@ -860,7 +865,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken is skipped when claims are passed in", function (done) {
-            let claimsRequestObj = {
+            let claimsRequestObj: any = {
                 "accessToken": {
                     "test": null
                 }
@@ -981,7 +986,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.errorCode).to.include(TEST_ERROR_CODE);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -996,7 +1001,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
                 expect(error.errorCode).to.include(TEST_ACCESS_DENIED);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1102,7 +1107,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1120,7 +1125,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
                 expect(error.message).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1136,7 +1141,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1154,7 +1159,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
                 expect(error.message).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1170,7 +1175,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1188,7 +1193,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
                 expect(error.message).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -1370,6 +1375,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
+                // @ts-ignore
                 msal.acquireTokenPopup();
             } catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
@@ -1407,6 +1413,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
+                // @ts-ignore
                 msal.acquireTokenSilent();
             } catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);

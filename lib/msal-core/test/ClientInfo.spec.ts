@@ -66,7 +66,7 @@ describe("Client Info", function () {
             expect(authErr.errorMessage).to.contain(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(authErr.message).to.contain(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(authErr.name).to.equal("ClientAuthError");
-            expect(authErr.stack).to.include("ClientInfo.spec.js");
+            expect(authErr.stack).to.include("ClientInfo.spec.ts");
         });
 
         it("throws an error if the decoded string is not a valid JSON object.", function () {
@@ -84,7 +84,7 @@ describe("Client Info", function () {
             expect(authErr.errorMessage).to.contain(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(authErr.message).to.contain(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(authErr.name).to.equal("ClientAuthError");
-            expect(authErr.stack).to.include("ClientInfo.spec.js");
+            expect(authErr.stack).to.include("ClientInfo.spec.ts");
         });
 
         it("correct sets uid and utid if parsing is done correctly", function () {

@@ -39,7 +39,8 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             accountIdentifier: TEST_ACCOUNT_ID,
             environment: "js",
             homeAccountIdentifier: "1234",
-            idToken: "idToken",
+            idToken: {},
+            idTokenClaims: {},
             name: "Test Account",
             sid: "123451435",
             userName: "TestAccount"
