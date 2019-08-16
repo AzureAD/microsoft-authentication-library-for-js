@@ -32,12 +32,12 @@ const NAVIGATE_FRAME_WAIT = 500;
  *
  */
 export type AuthOptions = {
-  clientId: string;
-  authority?: string;
-  validateAuthority?: boolean;
-  redirectUri?: string | (() => string);
-  postLogoutRedirectUri?: string | (() => string);
-  navigateToLoginRequestUrl?: boolean;
+    clientId: string;
+    authority?: string;
+    validateAuthority?: boolean;
+    redirectUri?: string | (() => string);
+    postLogoutRedirectUri?: string | (() => string);
+    navigateToLoginRequestUrl?: boolean;
 };
 
 /**
@@ -47,8 +47,8 @@ export type AuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-  cacheLocation?: CacheLocation;
-  storeAuthStateInCookie?: boolean;
+    cacheLocation?: CacheLocation;
+    storeAuthStateInCookie?: boolean;
 };
 
 /**
@@ -58,10 +58,10 @@ export type CacheOptions = {
  * - telemetryEmitter             - Function where telemetry events are flushed to
  */
 export type TelemetryOptions = {
-  applicationName: string;
-  applicationVersion: string;
-  telemetryEmitter: TelemetryEmitter
- //TODO, add onlyAddFailureTelemetry option
+    applicationName: string;
+    applicationVersion: string;
+    telemetryEmitter: TelemetryEmitter
+    //TODO, add onlyAddFailureTelemetry option
 };
 
 /**
@@ -73,11 +73,11 @@ export type TelemetryOptions = {
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
-  logger?: Logger;
-  loadFrameTimeout?: number;
-  tokenRenewalOffsetSeconds?: number;
-  navigateFrameWait?: number;
-  telemetry?: TelemetryOptions
+    logger?: Logger;
+    loadFrameTimeout?: number;
+    tokenRenewalOffsetSeconds?: number;
+    navigateFrameWait?: number;
+    telemetry?: TelemetryOptions
 };
 
 /**
@@ -89,9 +89,9 @@ export type SystemOptions = {
  *
  */
 export type FrameworkOptions = {
-  isAngular?: boolean;
-  unprotectedResources?: Array<string>;
-  protectedResourceMap?: Map<string, Array<string>>;
+    isAngular?: boolean;
+    unprotectedResources?: Array<string>;
+    protectedResourceMap?: Map<string, Array<string>>;
 };
 
 /**
@@ -104,37 +104,37 @@ export type FrameworkOptions = {
  * - framework: this is where you can configure the running mode of angular. More to come here soon.
  */
 export type Configuration = {
-  auth: AuthOptions,
-  cache?: CacheOptions,
-  system?: SystemOptions,
-  framework?: FrameworkOptions
+    auth: AuthOptions,
+    cache?: CacheOptions,
+    system?: SystemOptions,
+    framework?: FrameworkOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
-  clientId: "",
-  authority: null,
-  validateAuthority: true,
-  redirectUri: () => UrlUtils.getDefaultRedirectUri(),
-  postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
-  navigateToLoginRequestUrl: true
+    clientId: "",
+    authority: null,
+    validateAuthority: true,
+    redirectUri: () => UrlUtils.getDefaultRedirectUri(),
+    postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
+    navigateToLoginRequestUrl: true
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-  cacheLocation: "sessionStorage",
-  storeAuthStateInCookie: false
+    cacheLocation: "sessionStorage",
+    storeAuthStateInCookie: false
 };
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-  logger: new Logger(null),
-  loadFrameTimeout: FRAME_TIMEOUT,
-  tokenRenewalOffsetSeconds: OFFSET,
-  navigateFrameWait: NAVIGATE_FRAME_WAIT
+    logger: new Logger(null),
+    loadFrameTimeout: FRAME_TIMEOUT,
+    tokenRenewalOffsetSeconds: OFFSET,
+    navigateFrameWait: NAVIGATE_FRAME_WAIT
 };
 
 const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
-  isAngular: false,
-  unprotectedResources: new Array<string>(),
-  protectedResourceMap: new Map<string, Array<string>>()
+    isAngular: false,
+    unprotectedResources: new Array<string>(),
+    protectedResourceMap: new Map<string, Array<string>>()
 };
 
 /**
@@ -149,12 +149,12 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
  */
 
 export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
-  const overlayedConfig: Configuration = {
-    auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-    cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-    system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-    framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
-  };
-  return overlayedConfig;
+    const overlayedConfig: Configuration = {
+        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+        cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
+    };
+    return overlayedConfig;
 }
 

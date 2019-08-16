@@ -9,11 +9,11 @@ import { AccessTokenValue } from "./AccessTokenValue";
  */
 export class AccessTokenCacheItem {
 
-  key: AccessTokenKey;
-  value: AccessTokenValue;
+    key: AccessTokenKey;
+    value: AccessTokenValue;
 
-  constructor(key: AccessTokenKey, value: AccessTokenValue) {
-    this.key = key;
-    this.value = value;
-  }
+    constructor(key: AccessTokenKey, value: AccessTokenValue) {
+        this.key = key;
+        this.value = value;
+    }
 }
