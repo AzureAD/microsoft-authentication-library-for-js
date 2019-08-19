@@ -35,7 +35,7 @@ export class UrlUtils {
    * @param scopes
    */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
-        let scopes = serverRequestParams.scopes;
+        const scopes = serverRequestParams.scopes;
 
         if (scopes.indexOf(serverRequestParams.clientId) === -1) {
             scopes.push(serverRequestParams.clientId);
@@ -135,7 +135,7 @@ export class UrlUtils {
             throw "Valid url required";
         }
 
-        let urlComponents = <IUri>{
+        const urlComponents = <IUri>{
             Protocol: match[1],
             HostNameAndPort: match[4],
             AbsolutePath: match[5]

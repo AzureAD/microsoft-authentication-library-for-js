@@ -275,7 +275,7 @@ export class ServerRequestParameters {
                 break;
             }
             case SSOTypes.HOMEACCOUNT_ID: {
-                let homeAccountId = ssoData.split(".");
+                const homeAccountId = ssoData.split(".");
                 const uid = CryptoUtils.base64Decode(homeAccountId[0]);
                 const utid = CryptoUtils.base64Decode(homeAccountId[1]);
 
@@ -311,7 +311,7 @@ export class ServerRequestParameters {
    * @param request
    */
     private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
-        let eQParams : StringDict = request.extraQueryParameters;
+        const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
             return null;
         }

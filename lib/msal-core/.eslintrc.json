@@ -27,7 +27,7 @@
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/type-annotation-spacing": 0,
         "no-var": 0,
-        "prefer-const": 0,
+        "prefer-const": 2,
         "quotes": [2, "double"]
     }
 }
