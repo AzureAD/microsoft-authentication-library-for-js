@@ -105,8 +105,8 @@ export class UrlUtils {
    */
     static replaceTenantPath(url: string, tenantId: string): string {
         url = url.toLowerCase();
-        var urlObject = this.GetUrlComponents(url);
-        var pathArray = urlObject.PathSegments;
+        const urlObject = this.GetUrlComponents(url);
+        const pathArray = urlObject.PathSegments;
         if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
             pathArray[0] = tenantId;
         }
@@ -127,9 +127,9 @@ export class UrlUtils {
         }
 
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
-        var regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+        const regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
 
-        var match = url.match(regEx);
+        const match = url.match(regEx);
 
         if (!match || match.length < 6) {
             throw "Valid url required";
@@ -189,7 +189,7 @@ export class UrlUtils {
             return url;
         }
 
-        var regex = new RegExp("(\\&" + name + "=)[^\&]+");
+        let regex = new RegExp("(\\&" + name + "=)[^\&]+");
         url = url.replace(regex, "");
         // name=value&
         regex = new RegExp("(" + name + "=)[^\&]+&");
