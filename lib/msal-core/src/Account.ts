@@ -38,15 +38,15 @@ export class Account {
      * @param environment
      */
     constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idTokenClaims: StringDict, sid: string,  environment: string) {
-      this.accountIdentifier = accountIdentifier;
-      this.homeAccountIdentifier = homeAccountIdentifier;
-      this.userName = userName;
-      this.name = name;
-      // will be deprecated soon
-      this.idToken = idTokenClaims;
-      this.idTokenClaims = idTokenClaims;
-      this.sid = sid;
-      this.environment = environment;
+        this.accountIdentifier = accountIdentifier;
+        this.homeAccountIdentifier = homeAccountIdentifier;
+        this.userName = userName;
+        this.name = name;
+        // will be deprecated soon
+        this.idToken = idTokenClaims;
+        this.idTokenClaims = idTokenClaims;
+        this.sid = sid;
+        this.environment = environment;
     }
 
     /**
@@ -81,9 +81,9 @@ export class Account {
             return false;
         }
         if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
-        if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
-            return true;
-        }
+            if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
+                return true;
+            }
         }
         return false;
     }
