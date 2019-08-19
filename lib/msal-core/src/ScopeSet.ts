@@ -1,69 +1,175 @@
+import { StringUtils } from "./utils/StringUtils";
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
+import { ResponseTypes } from "./utils/Constants";
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 export class ScopeSet {
 
+    private scopes: Set<string>;
+    private originalScopes: Set<string>;
+    private clientId: string;
+    private scopesRequired: boolean;
+
+    constructor(inputScopes: Array<string>, appClientId: string, isLoginCall: boolean) {
+        this.scopesRequired = !isLoginCall;
+        this.clientId = appClientId;
+        this.validateInputScopes(inputScopes);
+        this.scopes = this.originalScopes = new Set<string>(StringUtils.convertArrayEntriesToLowerCase(inputScopes));
+    }
+
     /**
-   * Check if there are dup scopes in a given request
-   *
-   * @param cachedScopes
-   * @param scopes
-   */
-    // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
-    static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
-        for (let i = 0; i < scopes.length; i++) {
-            if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
-                return true;
+     * Factory method to create ScopeSet from string
+     * 
+     * @param inputScopeString 
+     * @param appClientId 
+     * @param isLoginCall 
+     */
+    static fromString(inputScopeString: string, appClientId: string, isLoginCall: boolean): ScopeSet {
+        const inputScopes: Array<string> = inputScopeString.split(" ");
+        return new ScopeSet(inputScopes, appClientId, isLoginCall);
+    }
+
+    /**
+     * @hidden
+     *
+     * Used to validate the scopes input parameter requested  by the developer.
+     * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+     * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
+     * @ignore
+     */
+    private validateInputScopes(inputScopes: Array<string>): void {
+        if (!inputScopes) {
+            if (this.scopesRequired) {
+                throw ClientConfigurationError.createScopesRequiredError(inputScopes);
+            } else {
+                return;
             }
         }
-        return false;
+
+        // Check that scopes is an array object (also throws error if scopes == null)
+        if (!Array.isArray(inputScopes)) {
+            throw ClientConfigurationError.createScopesNonArrayError(inputScopes);
+        }
+
+        // Check that scopes is not an empty array
+        if (inputScopes.length < 1) {
+            throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes.toString());
+        }
+
+        // Check that clientId is passed as single scope
+        if (inputScopes.indexOf(this.clientId) > -1) {
+            if (inputScopes.length > 1) {
+                throw ClientConfigurationError.createClientIdSingleScopeError(inputScopes.toString());
+            }
+        }
     }
 
     /**
-   * Check if a given scope is present in the request
-   *
-   * @param cachedScopes
-   * @param scopes
-   */
-    static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
-        return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
+     * Check if scopes intersect between this set and another.
+     *
+     * @param otherScopes
+     */
+    intersectingScopeArrays(otherScopes: Array<string>): boolean {
+        return this.unionScopeSets(otherScopes).size < this.scopes.size + otherScopes.length;
     }
 
     /**
-   * toLower
-   *
-   * @param scopes
-   */
-    // TODO: Rename this, too generic name for a function that only deals with scopes
-    static convertToLowerCase(scopes: Array<string>): Array<string> {
-        return scopes.map(scope => scope.toLowerCase());
+     * 
+     * @param otherScopes 
+     */
+    unionScopeSets(otherScopes: Array<string>): Set<string> {
+        return new Set<string>([ ...StringUtils.convertArrayEntriesToLowerCase(otherScopes), ...Array.from(this.scopes) ]);
     }
 
     /**
-   * remove one element from a scope array
-   *
-   * @param scopes
-   * @param scope
-   */
-    // TODO: Rename this, too generic name for a function that only deals with scopes
-    static removeElement(scopes: Array<string>, scope: string): Array<string> {
-        return scopes.filter(value => value !== scope);
+     * Check if a given scope is present in the request
+     *
+     * @param cachedScopes
+     * @param scopes
+     */
+    containsScope(scope: string): boolean {
+        return this.scopes.has(scope);
     }
 
     /**
-   * Parse the scopes into a formatted scopeList
-   * @param scopes
-   */
-    static parseScope(scopes: Array<string>): string {
+     * @ignore
+     * Appends extraScopesToConsent if passed
+     * @param {@link AuthenticationParameters}
+     */
+    appendExtraScopes(newScopes: Array<string>): void {
+        this.validateInputScopes(newScopes);
+        this.scopes = this.unionScopeSets(newScopes);
+    }
+
+    /**
+     * remove one element from set of scopes
+     *
+     * @param scope
+     */
+    removeElement(scope: string): void {
+        this.scopes.delete(scope);
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     *
+     * ScopeSet helper to 
+     * @param matchingAccount boolean telling whether account object matches value in cache
+     * @param silentCall boolean telling whether or not silent call
+     *
+     * @returns {string} token type: id_token or access_token
+     *
+     */
+    getTokenType(matchingAccount: boolean, silentCall: boolean): string {
+        // if account is passed and matches the account object/or set to getAccount() from cache
+        // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
+        if (!matchingAccount) {
+            return silentCall && this.isLoginCall() ? ResponseTypes.id_token : ResponseTypes.id_token_token;           
+        } else {
+            return this.isLoginCall ? ResponseTypes.id_token : ResponseTypes.token;
+        }
+    }
+
+    /**
+     * ScopeSet helper which will tell whether set of scopes is being used for login calls.
+     */
+    isLoginCall(): boolean {
+        return this.originalScopes && this.originalScopes.has(this.clientId) && this.originalScopes.size === 1
+    }
+
+    /**
+     * @hidden
+     *
+     * Extracts scope value from the state sent with the authentication request.
+     * 
+     * Note: This function was removed from the current implementation of MSAL.js.
+     * @param {string} state
+     * @returns {string} scope.
+     * @ignore
+     */
+    // private getScopeFromState(state: string): string;
+
+    /**
+     * Returns the scopes as an array of string values.
+     */
+    asArray(): Array<string> {
+        return Array.from(this.scopes);
+    }
+
+    /**
+     * Print the scopes into a space-delimited string.
+     */
+    printScopes(): string {
         let scopeList: string = "";
-        if (scopes) {
-            for (let i: number = 0; i < scopes.length; ++i) {
-                scopeList += (i !== scopes.length - 1) ? scopes[i] + " " : scopes[i];
+        if (this.scopes) {
+            for (const scope in this.scopes) {
+                scopeList += scope + " ";
             }
         }
 
-        return scopeList;
+        return scopeList.substring(0, scopeList.length);
     }
 }

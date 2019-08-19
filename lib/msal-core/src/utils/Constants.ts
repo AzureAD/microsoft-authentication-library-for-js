@@ -124,6 +124,20 @@ export const SSOTypes = {
 
 /**
  * @hidden
+ * @ignore
+ * response_type from OpenIDConnect
+ * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
+ * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
+ *
+ */
+export const ResponseTypes = {
+    id_token: "id_token",
+    token: "token",
+    id_token_token: "id_token token"
+};
+
+/**
+ * @hidden
  */
 export const BlacklistedEQParams = [
     SSOTypes.SID,

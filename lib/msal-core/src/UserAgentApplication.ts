@@ -55,20 +55,6 @@ declare global {
 /**
  * @hidden
  * @ignore
- * response_type from OpenIDConnect
- * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
- * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
- *
- */
-const ResponseTypes = {
-    id_token: "id_token",
-    token: "token",
-    id_token_token: "id_token token"
-};
-
-/**
- * @hidden
- * @ignore
  */
 export interface CacheResult {
     errorDesc: string;
@@ -493,7 +479,7 @@ export class UserAgentApplication {
 
         acquireTokenAuthority.resolveEndpointsAsync().then(() => {
             // On Fulfillment
-            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, scopes, false);
+            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(Account.compareAccounts(account, this.getAccount()), false);
             let loginStartPage: string;
 
             if (isLoginCall) {
@@ -1855,87 +1841,6 @@ export class UserAgentApplication {
 
   //#endregion
 
-  //#region Scopes (Extract to Scopes.ts)
-
-  // Note: "this" dependency in this section is minimal.
-  // If pCacheStorage is separated from the class object, or passed as a fn param, scopesUtils.ts can be created
-
-  /**
-   * @hidden
-   *
-   * Used to validate the scopes input parameter requested  by the developer.
-   * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
-   * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-   * @ignore
-   */
-  private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
-      if (!scopes) {
-          if (scopesRequired) {
-              throw ClientConfigurationError.createScopesRequiredError(scopes);
-          } else {
-              return;
-          }
-      }
-
-      // Check that scopes is an array object (also throws error if scopes == null)
-      if (!Array.isArray(scopes)) {
-          throw ClientConfigurationError.createScopesNonArrayError(scopes);
-      }
-
-      // Check that scopes is not an empty array
-      if (scopes.length < 1) {
-          throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
-      }
-
-      // Check that clientId is passed as single scope
-      if (scopes.indexOf(this.clientId) > -1) {
-          if (scopes.length > 1) {
-              throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
-          }
-      }
-  }
-
-  /**
-   * @hidden
-   *
-   * Extracts scope value from the state sent with the authentication request.
-   * @param {string} state
-   * @returns {string} scope.
-   * @ignore
-   */
-  private getScopeFromState(state: string): string {
-      if (state) {
-          const splitIndex = state.indexOf("|");
-          if (splitIndex > -1 && splitIndex + 1 < state.length) {
-              return state.substring(splitIndex + 1);
-          }
-      }
-      return "";
-  }
-
-  /**
-   * @ignore
-   * Appends extraScopesToConsent if passed
-   * @param {@link AuthenticationParameters}
-   */
-  private appendScopes(request: AuthenticationParameters): Array<string> {
-
-      let scopes: Array<string>;
-
-      if (request && request.scopes) {
-          if (request.extraScopesToConsent) {
-              scopes = [...request.scopes, ...request.extraScopesToConsent];
-          }
-          else {
-              scopes = request.scopes;
-          }
-      }
-
-      return scopes;
-  }
-
-  //#endregion
-
   //#region Angular
 
   /**
@@ -2140,49 +2045,6 @@ export class UserAgentApplication {
       let extractedUri = String(uri).replace(/^(https?:)\/\//, "");
       extractedUri = extractedUri.split("/")[0];
       return extractedUri;
-  }
-
-  /**
-   * @hidden
-   * @ignore
-   *
-   * Utils function to create the Authentication
-   * @param {@link account} account object
-   * @param scopes
-   * @param silentCall
-   *
-   * @returns {string} token type: id_token or access_token
-   *
-   */
-  private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
-
-      // if account is passed and matches the account object/or set to getAccount() from cache
-      // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
-      let tokenType: string;
-
-      // acquireTokenSilent
-      if (silentCall) {
-          if (Account.compareAccounts(accountObject, this.getAccount())) {
-              tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-          }
-          else {
-              tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-          }
-
-          return tokenType;
-      }
-      // all other cases
-      else {
-          if (!Account.compareAccounts(accountObject, this.getAccount())) {
-              tokenType = ResponseTypes.id_token_token;
-          }
-          else {
-              tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-          }
-
-          return tokenType;
-      }
-
   }
 
   /**
