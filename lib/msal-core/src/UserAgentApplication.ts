@@ -423,12 +423,12 @@ export class UserAgentApplication {
         if (!account && !ServerRequestParameters.isSSOParam(request)) {
             if (isLoginCall) {
                 // extract ADAL id_token if exists
-                let adalIdToken = this.extractADALIdToken();
+                const adalIdToken = this.extractADALIdToken();
 
                 // silent login if ADAL id_token is retrieved successfully - SSO
                 if (adalIdToken && !scopes) {
                     this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-                    let tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
+                    const tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
                     this.silentLogin = true;
                     this.acquireTokenSilent(tokenRequest).then(response => {
@@ -521,7 +521,7 @@ export class UserAgentApplication {
             serverAuthenticationRequest.populateQueryParams(account, request);
 
             // Construct urlNavigate
-            let urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
+            const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
 
             // set state in cache
             if (interactionType === Constants.interactionTypeRedirect) {
@@ -587,7 +587,7 @@ export class UserAgentApplication {
 
             const responseType = this.getTokenType(account, request.scopes, true);
 
-            let serverAuthenticationRequest = new ServerRequestParameters(
+            const serverAuthenticationRequest = new ServerRequestParameters(
                 AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
                 this.clientId,
                 request.scopes,
@@ -922,8 +922,8 @@ export class UserAgentApplication {
   private navigateWindow(urlNavigate: string, popupWindow?: Window) {
       // Navigate if valid URL
       if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
-          let navigateWindow: Window = popupWindow ? popupWindow : window;
-          let logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
+          const navigateWindow: Window = popupWindow ? popupWindow : window;
+          const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
           this.logger.infoPii(logMessage);
           navigateWindow.location.replace(urlNavigate);
       }
@@ -1029,7 +1029,7 @@ export class UserAgentApplication {
   protected clearCacheForScope(accessToken: string) {
       const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
       for (let i = 0; i < accessTokenItems.length; i++) {
-          let token = accessTokenItems[i];
+          const token = accessTokenItems[i];
           if (token.value.accessToken === accessToken) {
               this.cacheStorage.removeItem(JSON.stringify(token.key));
           }
@@ -1201,7 +1201,7 @@ export class UserAgentApplication {
    * @param hash
    */
   private deserializeHash(urlFragment: string) {
-      let hash = UrlUtils.getHashFromUrl(urlFragment);
+      const hash = UrlUtils.getHashFromUrl(urlFragment);
       return CryptoUtils.deserialize(hash);
   }
 
@@ -1337,11 +1337,11 @@ export class UserAgentApplication {
       }
 
       if (accessTokenCacheItem != null) {
-          let expired = Number(accessTokenCacheItem.value.expiresIn);
+          const expired = Number(accessTokenCacheItem.value.expiresIn);
           // If expiration is within offset, it will force renew
           const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
           if (expired && (expired > TimeUtils.now() + offset)) {
-              let idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
+              const idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
               if (!account) {
                   account = this.getAccount();
                   if (!account) {
@@ -1349,7 +1349,7 @@ export class UserAgentApplication {
                   }
               }
               const aState = this.getAccountState(serverAuthenticationRequest.state);
-              let response : AuthResponse = {
+              const response : AuthResponse = {
                   uniqueId: "",
                   tenantId: "",
                   tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? Constants.idToken : Constants.accessToken,
@@ -1417,7 +1417,7 @@ export class UserAgentApplication {
       this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
       // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-      let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+      const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
 
       window.renewStates.push(serverAuthenticationRequest.state);
       window.requestType = Constants.renewToken;
@@ -1442,7 +1442,7 @@ export class UserAgentApplication {
       this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
       // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-      let urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+      const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
 
       if (this.silentLogin) {
           window.requestType = Constants.login;
@@ -1474,7 +1474,7 @@ export class UserAgentApplication {
   /* tslint:disable:no-string-literal */
   private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
       let scope: string;
-      let accessTokenResponse = { ...response };
+      const accessTokenResponse = { ...response };
       const clientObj: ClientInfo = new ClientInfo(clientInfo);
       let expiration: number;
 
@@ -1658,7 +1658,7 @@ export class UserAgentApplication {
                   acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
                   const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
 
-                  let cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
+                  const cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
                   let acquireTokenAccount: Account;
 
                   // Check with the account in the Cache
@@ -2002,7 +2002,7 @@ export class UserAgentApplication {
 
       // process all protected resources and send the matched one
       if (this.config.framework.protectedResourceMap.size > 0) {
-          for (let key of Array.from(this.config.framework.protectedResourceMap.keys())) {
+          for (const key of Array.from(this.config.framework.protectedResourceMap.keys())) {
               // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
               if (endpoint.indexOf(key) > -1) {
                   return this.config.framework.protectedResourceMap.get(key);
@@ -2197,7 +2197,7 @@ export class UserAgentApplication {
   private setAccountCache(account: Account, state: string) {
 
       // Cache acquireTokenAccountKey
-      let accountId = account ? this.getAccountId(account) : Constants.no_account;
+      const accountId = account ? this.getAccountId(account) : Constants.no_account;
 
       const acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, state);
       this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
@@ -2275,7 +2275,7 @@ export class UserAgentApplication {
    */
   private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 
-      let tokenRequest: AuthenticationParameters = {
+      const tokenRequest: AuthenticationParameters = {
           scopes: [this.clientId],
           authority: this.authority,
           account: this.getAccount(),

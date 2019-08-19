@@ -35,12 +35,12 @@ export class AadAuthority extends Authority {
             return resultPromise;
         }
 
-        let host: string = this.CanonicalAuthorityUrlComponents.HostNameAndPort;
+        const host: string = this.CanonicalAuthorityUrlComponents.HostNameAndPort;
         if (this.IsInTrustedHostList(host)) {
             return resultPromise;
         }
 
-        let client: XhrClient = new XhrClient();
+        const client: XhrClient = new XhrClient();
 
         return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
             .then((response) => {

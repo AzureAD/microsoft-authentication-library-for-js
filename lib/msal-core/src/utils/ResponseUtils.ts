@@ -16,7 +16,7 @@ export class ResponseUtils {
             return originalResponse;
         }
 
-        let exp = Number(idTokenObj.expiration);
+        const exp = Number(idTokenObj.expiration);
         if (exp && !originalResponse.expiresOn) {
             originalResponse.expiresOn = new Date(exp * 1000);
         }
