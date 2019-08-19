@@ -5,5 +5,5 @@
  * @hidden
  */
 export interface IInstanceDiscoveryResponse {
-  TenantDiscoveryEndpoint: string;
+    TenantDiscoveryEndpoint: string;
 }

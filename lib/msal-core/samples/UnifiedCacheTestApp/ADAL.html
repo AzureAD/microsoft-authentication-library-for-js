@@ -31,6 +31,7 @@
                 authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/"
             };
 
+            // initialize logger object
             window.Logging = {
                 piiLoggingEnabled: true,
                 level: 3,
@@ -39,12 +40,14 @@
                 }
             };
 
+            // app context for auth
             var authContext = new AuthenticationContext({
                 clientId: applicationConfig.clientID,
                 cacheLocation: 'localStorage'
 
             });
 
+            // on a redirect(302) from the service, call ADAL to handle the response
             if (authContext.isCallback(window.location.hash)) {
                 // Handle redirect after token requests
                 authContext.handleWindowCallback();
@@ -53,6 +56,7 @@
                 if (err) {
                     document.getElementById('api_response').textContent = 'ERROR:\n\n' + err;
                 }
+            //
             } else {
                 // If logged in, get access token and make an API request
                 var user = authContext.getCachedUser();
@@ -60,24 +64,26 @@
                 if (user) {
                     document.getElementById('logout_button').style.display = "block";
                     document.getElementById('username').textContent = 'Signed in as: ' + user.userName;
-                   // document.getElementById('api_response').textContent = 'Calling Graph API...';
-                // get access token for graph
-               /* authContext.acquireToken('https://graph.microsoft.com', function(a, access_token, c) {
-                    var xhr = new XMLHttpRequest();
 
-                    xhr.open('GET', 'https://graph.microsoft.com/v1.0/me', true);
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+                    document.getElementById('api_response').textContent = 'Calling Graph API...';
 
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === 4 && xhr.status === 200) {
-                            document.getElementById('api_response').textContent = JSON.stringify(JSON.parse(xhr.responseText), null, '  ');
-                        } else {
-                            document.getElementById('api_response').textContent = 'ERROR:\n\n' + xhr.responseText;
-                        }
-                    };
+                    // get access token for graph
+                    authContext.acquireToken('https://graph.microsoft.com', function(a, access_token, c) {
+                        var xhr = new XMLHttpRequest();
 
-                    xhr.send();
-                }); */
+                        xhr.open('GET', 'https://graph.microsoft.com/v1.0/me', true);
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                document.getElementById('api_response').textContent = JSON.stringify(JSON.parse(xhr.responseText), null, '  ');
+                            } else {
+                                document.getElementById('api_response').textContent = 'ERROR:\n\n' + xhr.responseText;
+                            }
+                        };
+
+                        xhr.send();
+                    });
                 } else {
                     document.getElementById('login_button').style.display = "block";
                     document.getElementById('username').textContent = 'Not signed in.';

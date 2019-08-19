@@ -22,11 +22,11 @@ export class ResponseUtils {
         }
     
         return {
-          ...originalResponse,
-          idToken: idTokenObj,
-          idTokenClaims: idTokenObj.claims,
-          uniqueId: idTokenObj.objectId || idTokenObj.subject,
-          tenantId: idTokenObj.tenantId,
+            ...originalResponse,
+            idToken: idTokenObj,
+            idTokenClaims: idTokenObj.claims,
+            uniqueId: idTokenObj.objectId || idTokenObj.subject,
+            tenantId: idTokenObj.tenantId,
         };
     }
 }

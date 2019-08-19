@@ -34,18 +34,18 @@ export class CryptoUtils {
 
         const cryptoObj: Crypto = window.crypto; // for IE 11
         if (cryptoObj && cryptoObj.getRandomValues) {
-        const buffer: Uint8Array = new Uint8Array(16);
-        cryptoObj.getRandomValues(buffer);
+            const buffer: Uint8Array = new Uint8Array(16);
+            cryptoObj.getRandomValues(buffer);
 
-        //buffer[6] and buffer[7] represents the time_hi_and_version field. We will set the four most significant bits (4 through 7) of buffer[6] to represent decimal number 4 (UUID version number).
-        buffer[6] |= 0x40; //buffer[6] | 01000000 will set the 6 bit to 1.
-        buffer[6] &= 0x4f; //buffer[6] & 01001111 will set the 4, 5, and 7 bit to 0 such that bits 4-7 == 0100 = "4".
+            //buffer[6] and buffer[7] represents the time_hi_and_version field. We will set the four most significant bits (4 through 7) of buffer[6] to represent decimal number 4 (UUID version number).
+            buffer[6] |= 0x40; //buffer[6] | 01000000 will set the 6 bit to 1.
+            buffer[6] &= 0x4f; //buffer[6] & 01001111 will set the 4, 5, and 7 bit to 0 such that bits 4-7 == 0100 = "4".
 
-        //buffer[8] represents the clock_seq_hi_and_reserved field. We will set the two most significant bits (6 and 7) of the clock_seq_hi_and_reserved to zero and one, respectively.
-        buffer[8] |= 0x80; //buffer[8] | 10000000 will set the 7 bit to 1.
-        buffer[8] &= 0xbf; //buffer[8] & 10111111 will set the 6 bit to 0.
+            //buffer[8] represents the clock_seq_hi_and_reserved field. We will set the two most significant bits (6 and 7) of the clock_seq_hi_and_reserved to zero and one, respectively.
+            buffer[8] |= 0x80; //buffer[8] | 10000000 will set the 7 bit to 1.
+            buffer[8] &= 0xbf; //buffer[8] & 10111111 will set the 6 bit to 0.
 
-        return CryptoUtils.decimalToHex(buffer[0]) + CryptoUtils.decimalToHex(buffer[1])
+            return CryptoUtils.decimalToHex(buffer[0]) + CryptoUtils.decimalToHex(buffer[1])
             + CryptoUtils.decimalToHex(buffer[2]) + CryptoUtils.decimalToHex(buffer[3])
             + "-" + CryptoUtils.decimalToHex(buffer[4]) + CryptoUtils.decimalToHex(buffer[5])
             + "-" + CryptoUtils.decimalToHex(buffer[6]) + CryptoUtils.decimalToHex(buffer[7])
@@ -55,27 +55,27 @@ export class CryptoUtils {
             + CryptoUtils.decimalToHex(buffer[14]) + CryptoUtils.decimalToHex(buffer[15]);
         }
         else {
-        const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
-        const hex: string = "0123456789abcdef";
-        let r: number = 0;
-        let guidResponse: string = "";
-        for (let i: number = 0; i < 36; i++) {
-            if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
-            // each x and y needs to be random
-            r = Math.random()  * 16 | 0;
+            const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+            const hex: string = "0123456789abcdef";
+            let r: number = 0;
+            let guidResponse: string = "";
+            for (let i: number = 0; i < 36; i++) {
+                if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
+                    // each x and y needs to be random
+                    r = Math.random()  * 16 | 0;
+                }
+                if (guidHolder[i] === "x") {
+                    guidResponse += hex[r];
+                } else if (guidHolder[i] === "y") {
+                    // clock-seq-and-reserved first hex is filtered and remaining hex values are random
+                    r &= 0x3; // bit and with 0011 to set pos 2 to zero ?0??
+                    r |= 0x8; // set pos 3 to 1 as 1???
+                    guidResponse += hex[r];
+                } else {
+                    guidResponse += guidHolder[i];
+                }
             }
-            if (guidHolder[i] === "x") {
-            guidResponse += hex[r];
-            } else if (guidHolder[i] === "y") {
-            // clock-seq-and-reserved first hex is filtered and remaining hex values are random
-            r &= 0x3; // bit and with 0011 to set pos 2 to zero ?0??
-            r |= 0x8; // set pos 3 to 1 as 1???
-            guidResponse += hex[r];
-            } else {
-            guidResponse += guidHolder[i];
-            }
-        }
-        return guidResponse;
+            return guidResponse;
         }
     }
 
@@ -87,7 +87,7 @@ export class CryptoUtils {
     static decimalToHex(num: number): string {
         var hex: string = num.toString(16);
         while (hex.length < 2) {
-        hex = "0" + hex;
+            hex = "0" + hex;
         }
         return hex;
     }
@@ -104,7 +104,7 @@ export class CryptoUtils {
         return btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g,
             function toSolidBytes(match, p1) {
                 return String.fromCharCode(Number("0x" + p1));
-        }));
+            }));
     }
 
     /**
@@ -131,8 +131,8 @@ export class CryptoUtils {
         const obj: {} = {};
         match = search.exec(query);
         while (match) {
-        obj[decode(match[1])] = decode(match[2]);
-        match = search.exec(query);
+            obj[decode(match[1])] = decode(match[2]);
+            match = search.exec(query);
         }
         return obj;
     }

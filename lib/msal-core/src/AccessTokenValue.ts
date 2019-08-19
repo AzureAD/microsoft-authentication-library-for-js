@@ -6,15 +6,15 @@
  */
 export class AccessTokenValue {
 
-  accessToken: string;
-  idToken: string;
-  expiresIn: string;
-  homeAccountIdentifier: string;
+    accessToken: string;
+    idToken: string;
+    expiresIn: string;
+    homeAccountIdentifier: string;
 
-  constructor(accessToken: string, idToken: string, expiresIn: string, homeAccountIdentifier: string) {
-    this.accessToken = accessToken;
-    this.idToken = idToken;
-    this.expiresIn = expiresIn;
-    this.homeAccountIdentifier = homeAccountIdentifier;
-  }
+    constructor(accessToken: string, idToken: string, expiresIn: string, homeAccountIdentifier: string) {
+        this.accessToken = accessToken;
+        this.idToken = idToken;
+        this.expiresIn = expiresIn;
+        this.homeAccountIdentifier = homeAccountIdentifier;
+    }
 }
