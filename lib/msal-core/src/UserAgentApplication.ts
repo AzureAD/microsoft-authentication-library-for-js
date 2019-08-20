@@ -842,7 +842,7 @@ export class UserAgentApplication {
       this.loadFrame(urlNavigate, frameName);
       setTimeout(() => {
           if (this.cacheStorage.getItem(Constants.renewStatus + expectedState) === Constants.tokenRenewStatusInProgress) {
-              // fail the iframe session if it"s in pending state
+              // fail the iframe session if it's in pending state
               this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
               // Error after timeout
               if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
@@ -953,7 +953,7 @@ export class UserAgentApplication {
       // indexing on the current state, push the callback params to callbacks mapped
       window.promiseMappedToRenewStates[expectedState].push({ resolve: resolve, reject: reject });
 
-      // Store the server esponse in the current window??
+      // Store the server response in the current window??
       if (!window.callbackMappedToRenewStates[expectedState]) {
           window.callbackMappedToRenewStates[expectedState] =
       (response: AuthResponse, error: AuthError) => {
@@ -1331,7 +1331,7 @@ export class UserAgentApplication {
               accessTokenCacheItem = filteredItems[0];
           }
           else {
-              // if more than cached token is found
+              // if more than one cached token is found
               throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
           }
       }
@@ -1374,7 +1374,7 @@ export class UserAgentApplication {
 
   /**
    * @hidden
-   * Used to get a unique list of authoritues from the cache
+   * Used to get a unique list of authorities from the cache
    * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems - accessTokenCacheItems saved in the cache
    * @ignore
    */
@@ -1429,7 +1429,7 @@ export class UserAgentApplication {
 
   /**
    * @hidden
-   * Renews idtoken for app"s own backend when clientId is passed as a single scope in the scopes array.
+   * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
    * @ignore
    */
   private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
