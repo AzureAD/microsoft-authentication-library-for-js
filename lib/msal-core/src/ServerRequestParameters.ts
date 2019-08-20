@@ -6,9 +6,10 @@ import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes"
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
+import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion, ResponseTypes, InteractionType } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { StringUtils } from "./utils/StringUtils";
+import { ScopeSet } from "./ScopeSet";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -17,9 +18,14 @@ import { StringUtils } from "./utils/StringUtils";
  */
 export class ServerRequestParameters {
 
+    authRequest: AuthenticationParameters;
+    isLoginCall: boolean;
+    interactionType: InteractionType;
+
     authorityInstance: Authority;
     clientId: string;
-    scopes: Array<string>;
+    scopes: ScopeSet;
+    account: Account;
 
     nonce: string;
     state: string;
@@ -43,25 +49,31 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Constructor
-   * @param authority
-   * @param clientId
-   * @param scope
-   * @param responseType
-   * @param redirectUri
-   * @param state
-   */
-    constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string) {
+     * Constructor
+     * @param authority
+     * @param clientId
+     * @param request
+     * @param cachedAccount
+     * @param redirectUri
+     * @param isLoginCall
+     */
+    constructor (authority: Authority, clientId: string, request: AuthenticationParameters, cachedAccount: Account, redirectUri: string, isLoginCall: boolean, interactionType: InteractionType) {
+        this.authRequest = request;
+        this.isLoginCall = isLoginCall;
+        this.interactionType = interactionType;
+
         this.authorityInstance = authority;
         this.clientId = clientId;
-        if (!scope) {
-            this.scopes = [clientId];
-        } else {
-            this.scopes = [ ...scope ];
+        this.scopes = new ScopeSet(request.scopes, clientId, isLoginCall);
+        this.account = (request && request.account && !isLoginCall) ? request.account : cachedAccount;
+
+        // if extraScopesToConsent is passed in loginCall, append them to the login request
+        if (isLoginCall && request.extraScopesToConsent) {
+            this.scopes.appendExtraScopes(request.extraScopesToConsent);
         }
 
         this.nonce = CryptoUtils.createNewGuid();
-        this.state = state && !StringUtils.isEmpty(state) ?  CryptoUtils.createNewGuid() + "|" + state   : CryptoUtils.createNewGuid();
+        this.state = request.state && !StringUtils.isEmpty(request.state) ?  CryptoUtils.createNewGuid() + "|" + request.state   : CryptoUtils.createNewGuid();
 
         // TODO: Change this to user passed vs generated with the new PR
         this.correlationId = CryptoUtils.createNewGuid();
@@ -70,37 +82,47 @@ export class ServerRequestParameters {
         this.xClientSku = "MSAL.JS";
         this.xClientVer = libraryVersion();
 
-        this.responseType = responseType;
+        this.responseType = isLoginCall ? ResponseTypes.id_token : this.scopes.getTokenType(Account.compareAccounts(request.account, cachedAccount), false);
         this.redirectUri = redirectUri;
     }
 
     /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
-   * @param request
-   * @param serverAuthenticationRequest
-   */
-    populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: any): void {
+     * Check to see if there are SSO params set in the Request
+     * @param request
+     */
+    isSSOParam() {
+        return this.authRequest && (this.authRequest.account || this.authRequest.sid || this.authRequest.loginHint);
+    }
+
+    //#region QueryParam helpers
+
+    /**
+     * @hidden
+     * @ignore
+     *
+     * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
+     * @param request
+     * @param serverAuthenticationRequest
+     */
+    populateQueryParams(adalIdTokenObject?: any): void {
         let queryParameters: StringDict = {};
 
-        if (request) {
+        if (this.authRequest) {
             // add the prompt parameter to serverRequestParameters if passed
-            if (request.prompt) {
-                this.validatePromptParameter(request.prompt);
-                this.promptValue = request.prompt;
+            if (this.authRequest.prompt) {
+                this.validatePromptParameter(this.authRequest.prompt);
+                this.promptValue = this.authRequest.prompt;
             }
 
             // Add claims challenge to serverRequestParameters if passed
-            if (request.claimsRequest) {
-                validateClaimsRequest(request);
-                this.claimsValue = request.claimsRequest;
+            if (this.authRequest.claimsRequest) {
+                validateClaimsRequest(this.authRequest);
+                this.claimsValue = this.authRequest.claimsRequest;
             }
 
             // if the developer provides one of these, give preference to developer choice
-            if (ServerRequestParameters.isSSOParam(request)) {
-                queryParameters = this.constructUnifiedCacheQueryParameter(request, null);
+            if (this.isSSOParam()) {
+                queryParameters = this.constructUnifiedCacheQueryParameter(this.authRequest, null);
             }
         }
 
@@ -110,28 +132,26 @@ export class ServerRequestParameters {
 
         // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
         // this.logger.verbose("Calling addHint parameters");
-        queryParameters = this.addHintParameters(account, queryParameters);
+        queryParameters = this.addHintParameters(this.account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
         let eQParams: StringDict;
-        if (request) {
-            eQParams = this.sanitizeEQParams(request);
+        if (this.authRequest) {
+            eQParams = this.sanitizeEQParams(this.authRequest);
         }
 
         // Populate the extraQueryParameters to be sent to the server
-        this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
-        this.extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams);
+        this.queryParameters = this.generateQueryParametersString(queryParameters);
+        this.extraQueryParameters = this.generateQueryParametersString(eQParams);
     }
 
-    //#region QueryParam helpers
-
     /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to test if valid prompt value is passed in the request
-   * @param request
-   */
+     * @hidden
+     * @ignore
+     *
+     * Utility to test if valid prompt value is passed in the request
+     * @param request
+     */
     private validatePromptParameter (prompt: string) {
         if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
@@ -139,13 +159,13 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
-   * in any login() or acquireToken() calls
-   * @param idTokenObject
-   * @param extraQueryParameters
-   * @param sid
-   * @param loginHint
-   */
+     * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
+     * in any login() or acquireToken() calls
+     * @param idTokenObject
+     * @param extraQueryParameters
+     * @param sid
+     * @param loginHint
+     */
     //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
     private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
 
@@ -200,19 +220,19 @@ export class ServerRequestParameters {
     }
 
     /**
-   * @hidden
-   *
-   * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
-   * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
-   * domain_req utid received as part of the clientInfo
-   * login_req uid received as part of clientInfo
-   * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
-   *
-   * @param {@link Account} account - Account for which the token is requested
-   * @param queryparams
-   * @param {@link ServerRequestParameters}
-   * @ignore
-   */
+     * @hidden
+     *
+     * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
+     * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
+     * domain_req utid received as part of the clientInfo
+     * login_req uid received as part of clientInfo
+     * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
+     *
+     * @param {@link Account} account - Account for which the token is requested
+     * @param queryparams
+     * @param {@link ServerRequestParameters}
+     * @ignore
+     */
     private addHintParameters(account: Account, qParams: StringDict): StringDict {
     // This is a final check for all queryParams added so far; preference order: sid > login_hint
     // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
@@ -240,9 +260,9 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Add SID to extraQueryParameters
-   * @param sid
-   */
+     * Add SID to extraQueryParameters
+     * @param sid
+     */
     private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
         if (!ssoParam) {
             ssoParam = {};
@@ -305,11 +325,11 @@ export class ServerRequestParameters {
     }
 
     /**
-   * @hidden
-   * @ignore
-   * Removes unnecessary or duplicate query parameters from extraQueryParameters
-   * @param request
-   */
+     * @hidden
+     * @ignore
+     * Removes unnecessary or duplicate query parameters from extraQueryParameters
+     * @param request
+     */
     private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
         const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
@@ -329,10 +349,10 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
-   * @param extraQueryParameters
-   */
-    static generateQueryParametersString(queryParameters: StringDict): string {
+     * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
+     * @param extraQueryParameters
+     */
+    private generateQueryParametersString(queryParameters: StringDict): string {
         let paramsString: string = null;
 
         if (queryParameters) {
@@ -352,10 +372,75 @@ export class ServerRequestParameters {
     //#endregion
 
     /**
-   * Check to see if there are SSO params set in the Request
-   * @param request
-   */
-    static isSSOParam(request: AuthenticationParameters) {
-        return request && (request.account || request.sid || request.loginHint);
+     * generates the URL with QueryString Parameters
+     * @param scopes
+     */
+    createNavigateUrl(): string {
+        const str = this.createNavigationUrlString();
+        let authEndpoint: string = this.authorityInstance.AuthorizationEndpoint;
+        // if the endpoint already has queryparams, lets add to it, otherwise add the first one
+        if (authEndpoint.indexOf("?") < 0) {
+            authEndpoint += "?";
+        } else {
+            authEndpoint += "&";
+        }
+
+        const requestUrl: string = `${authEndpoint}${str.join("&")}`;
+        return requestUrl;
+    }
+
+    /**
+     * Generate the array of all QueryStringParams to be sent to the server
+     * @param scopes
+     */
+    createNavigationUrlString(): Array<string> {
+        if (!this.scopes.containsScope(this.clientId)) {
+            this.scopes.appendExtraScope(this.clientId);
+        }
+        const str: Array<string> = [];
+        str.push("response_type=" + this.responseType);
+
+        this.appendDefaultScopes();
+        str.push("scope=" + encodeURIComponent(this.scopes.printScopes()));
+        str.push("client_id=" + encodeURIComponent(this.clientId));
+        str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
+
+        str.push("state=" + encodeURIComponent(this.state));
+        str.push("nonce=" + encodeURIComponent(this.nonce));
+
+        str.push("client_info=1");
+        str.push(`x-client-SKU=${this.xClientSku}`);
+        str.push(`x-client-Ver=${this.xClientVer}`);
+        if (this.promptValue) {
+            str.push("prompt=" + encodeURIComponent(this.promptValue));
+        }
+
+        if (this.claimsValue) {
+            str.push("claims=" + encodeURIComponent(this.claimsValue));
+        }
+
+        if (this.queryParameters) {
+            str.push(this.queryParameters);
+        }
+
+        if (this.extraQueryParameters) {
+            str.push(this.extraQueryParameters);
+        }
+
+        str.push("client-request-id=" + encodeURIComponent(this.correlationId));
+        return str;
+    }
+
+    /**
+     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+     * @param scopes
+     */
+    private appendDefaultScopes(): void {
+        if (!this.scopes.containsScope("openid")) {
+            this.scopes.appendExtraScope("openid");
+        }
+        if (!this.scopes.containsScope("profile")) {
+            this.scopes.appendExtraScope("profile");
+        }
     }
 }

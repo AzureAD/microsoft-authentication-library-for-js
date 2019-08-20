@@ -15,8 +15,13 @@ export class ScopeSet {
     constructor(inputScopes: Array<string>, appClientId: string, isLoginCall: boolean) {
         this.scopesRequired = !isLoginCall;
         this.clientId = appClientId;
+        // Validate and filter scopes (the validate function will throw if validation fails)
         this.validateInputScopes(inputScopes);
-        this.scopes = this.originalScopes = new Set<string>(StringUtils.convertArrayEntriesToLowerCase(inputScopes));
+        if (!inputScopes) {
+            this.scopes = this.originalScopes = new Set<string>(StringUtils.convertArrayEntriesToLowerCase([this.clientId]));
+        } else {
+            this.scopes = this.originalScopes = new Set<string>(StringUtils.convertArrayEntriesToLowerCase(inputScopes));
+        }
     }
 
     /**
@@ -91,6 +96,15 @@ export class ScopeSet {
      */
     containsScope(scope: string): boolean {
         return this.scopes.has(scope);
+    }
+
+    /**
+     * @ignore
+     * Appends extraScopesToConsent if passed
+     * @param {@link AuthenticationParameters}
+     */
+    appendExtraScope(newScope: string): void {
+        this.scopes.add(newScope);
     }
 
     /**
