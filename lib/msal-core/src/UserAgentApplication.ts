@@ -484,7 +484,7 @@ export class UserAgentApplication {
         let popUpWindow: Window;
         if (interactionType === Constants.interactionTypePopup) {
             // Generate a popup window
-            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, scope, resolve, reject);
             if (!popUpWindow) {
                 // We pass reject in openWindow, we reject there during an error
                 return;
@@ -696,7 +696,7 @@ export class UserAgentApplication {
    * @param reject
    * @ignore
    */
-  private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): Window {
+  private openWindow(urlNavigate: string, title: string, interval: number, instance: this, scope: string, resolve?: Function, reject?: Function): Window {
       // Generate a popup window
       var popupWindow: Window;
       try {
@@ -720,7 +720,10 @@ export class UserAgentApplication {
       const pollTimer = window.setInterval(() => {
       // If popup closed or login in progress, cancel login
           if (popupWindow && popupWindow.closed && (instance.loginInProgress || instance.acquireTokenInProgress)) {
-              if (reject) {
+              const expectedState = window.activeRenewals[scope];
+              if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
+                  window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createUserCancelledError());
+              } else if (reject) {
                   reject(ClientAuthError.createUserCancelledError());
               }
               window.clearInterval(pollTimer);
