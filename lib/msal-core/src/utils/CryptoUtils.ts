@@ -85,7 +85,7 @@ export class CryptoUtils {
      * @param num
      */
     static decimalToHex(num: number): string {
-        var hex: string = num.toString(16);
+        let hex: string = num.toString(16);
         while (hex.length < 2) {
             hex = "0" + hex;
         }

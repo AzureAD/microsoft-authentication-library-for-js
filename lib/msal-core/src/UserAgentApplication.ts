@@ -698,7 +698,7 @@ export class UserAgentApplication {
    */
   private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): Window {
       // Generate a popup window
-      var popupWindow: Window;
+      let popupWindow: Window;
       try {
           popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
       } catch (e) {

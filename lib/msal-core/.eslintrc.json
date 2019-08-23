@@ -26,7 +26,7 @@
         "@typescript-eslint/no-object-literal-type-assertion": 0,
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/type-annotation-spacing": 0,
-        "no-var": 0,
+        "no-var": 2,
         "prefer-const": 2,
         "quotes": [2, "double"]
     }
