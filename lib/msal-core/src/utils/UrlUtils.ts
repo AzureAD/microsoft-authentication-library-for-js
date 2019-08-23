@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { IUri } from "../IUri";
 import { Constants, SSOTypes } from "./Constants";
@@ -13,9 +15,9 @@ import { StringUtils } from "./StringUtils";
 export class UrlUtils {
 
     /**
-   * generates the URL with QueryString Parameters
-   * @param scopes
-   */
+     * generates the URL with QueryString Parameters
+     * @param scopes
+     */
     static createNavigateUrl(serverRequestParams: ServerRequestParameters): string {
         const str = this.createNavigationUrlString(serverRequestParams);
         let authEndpoint: string = serverRequestParams.authorityInstance.AuthorizationEndpoint;
@@ -31,9 +33,9 @@ export class UrlUtils {
     }
 
     /**
-   * Generate the array of all QueryStringParams to be sent to the server
-   * @param scopes
-   */
+     * Generate the array of all QueryStringParams to be sent to the server
+     * @param scopes
+     */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
         const scopes = serverRequestParams.scopes;
 
@@ -75,9 +77,9 @@ export class UrlUtils {
     }
 
     /**
-   * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
-   * @param scopes
-   */
+     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+     * @param scopes
+     */
     private static translateclientIdUsedInScope(scopes: Array<string>, clientId: string): void {
         const clientIdIndex: number = scopes.indexOf(clientId);
         if (clientIdIndex >= 0) {
@@ -92,17 +94,17 @@ export class UrlUtils {
     }
 
     /**
-   * Returns current window URL as redirect uri
-   */
+     * Returns current window URL as redirect uri
+     */
     static getDefaultRedirectUri(): string {
         return window.location.href.split("?")[0].split("#")[0];
     }
 
     /**
-   * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-   * @param href The url
-   * @param tenantId The tenant id to replace
-   */
+     * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
+     * @param href The url
+     * @param tenantId The tenant id to replace
+     */
     static replaceTenantPath(url: string, tenantId: string): string {
         url = url.toLowerCase();
         const urlObject = this.GetUrlComponents(url);
@@ -118,9 +120,9 @@ export class UrlUtils {
     }
 
     /**
-   * Parses out the components from a url string.
-   * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
-   */
+     * Parses out the components from a url string.
+     * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
+     */
     static GetUrlComponents(url: string): IUri {
         if (!url) {
             throw "Url required";
@@ -148,10 +150,10 @@ export class UrlUtils {
     }
 
     /**
-   * Given a url or path, append a trailing slash if one doesnt exist
-   *
-   * @param url
-   */
+     * Given a url or path, append a trailing slash if one doesnt exist
+     *
+     * @param url
+     */
     static CanonicalizeUri(url: string): string {
         if (url) {
             url = url.toLowerCase();
@@ -165,11 +167,11 @@ export class UrlUtils {
     }
 
     /**
-   * Checks to see if the url ends with the suffix
-   * Required because we are compiling for es5 instead of es6
-   * @param url
-   * @param str
-   */
+     * Checks to see if the url ends with the suffix
+     * Required because we are compiling for es5 instead of es6
+     * @param url
+     * @param str
+     */
     // TODO: Rename this, not clear what it is supposed to do
     static endsWith(url: string, suffix: string): boolean {
         if (!url || !suffix) {
@@ -180,10 +182,10 @@ export class UrlUtils {
     }
 
     /**
-   * Utils function to remove the login_hint and domain_hint from the i/p extraQueryParameters
-   * @param url
-   * @param name
-   */
+     * Utils function to remove the login_hint and domain_hint from the i/p extraQueryParameters
+     * @param url
+     * @param name
+     */
     static urlRemoveQueryStringParameter(url: string, name: string): string {
         if (StringUtils.isEmpty(url)) {
             return url;
@@ -201,11 +203,11 @@ export class UrlUtils {
     }
 
     /**
-   * @hidden
-   * @ignore
-   *
-   * Returns the anchor part(#) of the URL
-   */
+     * @hidden
+     * @ignore
+     *
+     * Returns the anchor part(#) of the URL
+     */
     static getHashFromUrl(urlStringOrFragment: string): string {
         const hashIndex1 = urlStringOrFragment.indexOf("#");
         const hashIndex2 = urlStringOrFragment.indexOf("#/");

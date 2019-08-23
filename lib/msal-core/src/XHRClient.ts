@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 /**
  * XHR client for JSON endpoints
@@ -10,10 +12,12 @@ export class XhrClient {
     public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
         return new Promise<string>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
-            xhr.open(method, url, /*async: */ true);
+            xhr.open(method, url, /* async: */ true);
             if (enableCaching) {
-                // TODO: (shivb) ensure that this can be cached
-                // xhr.setRequestHeader("Cache-Control", "Public");
+                /*
+                 * TODO: (shivb) ensure that this can be cached
+                 * xhr.setRequestHeader("Cache-Control", "Public");
+                 */
             }
 
             xhr.onload = (ev) => {

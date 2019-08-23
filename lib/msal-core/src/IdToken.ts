@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { ClientAuthError } from "./error/ClientAuthError";
 import { TokenUtils } from "./utils/TokenUtils";
@@ -79,8 +81,10 @@ export class IdToken {
                 /* tslint:enable:no-string-literal */
             }
         } catch (e) {
-            // TODO: This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
-            // Need to add better error handling here to account for being unable to decode jwts.
+            /*
+             * TODO: This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
+             * Need to add better error handling here to account for being unable to decode jwts.
+             */
             throw ClientAuthError.createIdTokenParsingError(e);
         }
     }

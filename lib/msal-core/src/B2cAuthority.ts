@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./Authority";
@@ -28,8 +30,8 @@ export class B2cAuthority extends AadAuthority {
     }
 
     /**
-   * Returns a promise with the TenantDiscoveryEndpoint
-   */
+     * Returns a promise with the TenantDiscoveryEndpoint
+     */
     public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
         const resultPromise = new Promise<string>((resolve, reject) =>
             resolve(this.DefaultOpenIdConfigurationEndpoint));
