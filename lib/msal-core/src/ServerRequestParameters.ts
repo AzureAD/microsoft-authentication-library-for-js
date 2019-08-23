@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Authority } from "./Authority";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
-import { StringDict } from "./MsalTypes"
+import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
@@ -43,14 +45,14 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Constructor
-   * @param authority
-   * @param clientId
-   * @param scope
-   * @param responseType
-   * @param redirectUri
-   * @param state
-   */
+     * Constructor
+     * @param authority
+     * @param clientId
+     * @param scope
+     * @param responseType
+     * @param redirectUri
+     * @param state
+     */
     constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
@@ -75,13 +77,13 @@ export class ServerRequestParameters {
     }
 
     /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
-   * @param request
-   * @param serverAuthenticationRequest
-   */
+     * @hidden
+     * @ignore
+     *
+     * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
+     * @param request
+     * @param serverAuthenticationRequest
+     */
     populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: any): void {
         let queryParameters: StringDict = {};
 
@@ -108,8 +110,10 @@ export class ServerRequestParameters {
             queryParameters = this.constructUnifiedCacheQueryParameter(null, adalIdTokenObject);
         }
 
-        // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
-        // this.logger.verbose("Calling addHint parameters");
+        /*
+         * adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
+         * this.logger.verbose("Calling addHint parameters");
+         */
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
@@ -123,15 +127,15 @@ export class ServerRequestParameters {
         this.extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams);
     }
 
-    //#region QueryParam helpers
+    // #region QueryParam helpers
 
     /**
-   * @hidden
-   * @ignore
-   *
-   * Utility to test if valid prompt value is passed in the request
-   * @param request
-   */
+     * @hidden
+     * @ignore
+     *
+     * Utility to test if valid prompt value is passed in the request
+     * @param request
+     */
     private validatePromptParameter (prompt: string) {
         if (!([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) >= 0)) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
@@ -139,14 +143,14 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
-   * in any login() or acquireToken() calls
-   * @param idTokenObject
-   * @param extraQueryParameters
-   * @param sid
-   * @param loginHint
-   */
-    //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
+     * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
+     * in any login() or acquireToken() calls
+     * @param idTokenObject
+     * @param extraQueryParameters
+     * @param sid
+     * @param loginHint
+     */
+    // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
     private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
 
         // preference order: account > sid > login_hint
@@ -200,22 +204,24 @@ export class ServerRequestParameters {
     }
 
     /**
-   * @hidden
-   *
-   * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
-   * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
-   * domain_req utid received as part of the clientInfo
-   * login_req uid received as part of clientInfo
-   * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
-   *
-   * @param {@link Account} account - Account for which the token is requested
-   * @param queryparams
-   * @param {@link ServerRequestParameters}
-   * @ignore
-   */
+     * @hidden
+     *
+     * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
+     * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
+     * domain_req utid received as part of the clientInfo
+     * login_req uid received as part of clientInfo
+     * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
+     *
+     * @param {@link Account} account - Account for which the token is requested
+     * @param queryparams
+     * @param {@link ServerRequestParameters}
+     * @ignore
+     */
     private addHintParameters(account: Account, qParams: StringDict): StringDict {
-    // This is a final check for all queryParams added so far; preference order: sid > login_hint
-    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
+    /*
+     * This is a final check for all queryParams added so far; preference order: sid > login_hint
+     * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
+     */
         if (account && !qParams[SSOTypes.SID]) {
             // sid - populate only if login_hint is not already populated and the account has sid
             const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
@@ -240,9 +246,9 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Add SID to extraQueryParameters
-   * @param sid
-   */
+     * Add SID to extraQueryParameters
+     * @param sid
+     */
     private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
         if (!ssoParam) {
             ssoParam = {};
@@ -305,11 +311,11 @@ export class ServerRequestParameters {
     }
 
     /**
-   * @hidden
-   * @ignore
-   * Removes unnecessary or duplicate query parameters from extraQueryParameters
-   * @param request
-   */
+     * @hidden
+     * @ignore
+     * Removes unnecessary or duplicate query parameters from extraQueryParameters
+     * @param request
+     */
     private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
         const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
@@ -329,9 +335,9 @@ export class ServerRequestParameters {
     }
 
     /**
-   * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
-   * @param extraQueryParameters
-   */
+     * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
+     * @param extraQueryParameters
+     */
     static generateQueryParametersString(queryParameters: StringDict): string {
         let paramsString: string = null;
 
@@ -349,12 +355,12 @@ export class ServerRequestParameters {
         return paramsString;
     }
 
-    //#endregion
+    // #endregion
 
     /**
-   * Check to see if there are SSO params set in the Request
-   * @param request
-   */
+     * Check to see if there are SSO params set in the Request
+     * @param request
+     */
     static isSSOParam(request: AuthenticationParameters) {
         return request && (request.account || request.sid || request.loginHint);
     }

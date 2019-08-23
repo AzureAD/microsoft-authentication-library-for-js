@@ -27,7 +27,7 @@ export default class TelemetryManager {
     // correlation id to map of eventname to count
     private eventCountByCorrelationId: EventCountByCorrelationId = {};
 
-    //Implement after API EVENT
+    // Implement after API EVENT
     private onlySendFailureTelemetry: boolean = false;
     private telemetryPlatform: TelemetryPlatform;
     private clientId: string;
@@ -38,9 +38,11 @@ export default class TelemetryManager {
         this.telemetryPlatform = config.platform;
         this.clientId = config.clientId;
         this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
-        // TODO, when i get to wiring this through, think about what it means if
-        // a developer does not implement telem at all, we still instrument, but telemetryEmitter can be
-        // optional?
+        /*
+         * TODO, when i get to wiring this through, think about what it means if
+         * a developer does not implement telem at all, we still instrument, but telemetryEmitter can be
+         * optional?
+         */
         this.telemetryEmitter = telemetryEmitter;
     }
 
@@ -104,8 +106,10 @@ export default class TelemetryManager {
     }
 
     private incrementEventCount(event: TelemetryEvent): void {
-        // TODO, name cache event different?
-        // if type is cache event, change name
+        /*
+         * TODO, name cache event different?
+         * if type is cache event, change name
+         */
         const eventName = event.eventName;
         const eventCount = this.eventCountByCorrelationId[event.telemetryCorrelationId];
         if (!eventCount) {

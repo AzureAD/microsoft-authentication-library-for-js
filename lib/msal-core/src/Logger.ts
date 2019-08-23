@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { StringUtils } from "./utils/StringUtils";
 import { libraryVersion } from "./utils/Constants";
@@ -18,29 +20,29 @@ export enum LogLevel {
 export class Logger {// Singleton Class
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     // TODO: This does not seem to be a singleton!! Change or Delete.
     private static instance: Logger;
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     private correlationId: string;
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     private level: LogLevel = LogLevel.Info;
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     private piiLoggingEnabled: boolean;
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     private localCallback: ILoggerCallback;
 
     constructor(localCallback: ILoggerCallback,
@@ -63,8 +65,8 @@ export class Logger {// Singleton Class
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
         if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
             return;
@@ -81,8 +83,8 @@ export class Logger {// Singleton Class
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     executeCallback(level: LogLevel, message: string, containsPii: boolean) {
         if (this.localCallback) {
             this.localCallback(level, message, containsPii);
@@ -90,57 +92,57 @@ export class Logger {// Singleton Class
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     error(message: string): void {
         this.logMessage(LogLevel.Error, message, false);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     errorPii(message: string): void {
         this.logMessage(LogLevel.Error, message, true);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     warning(message: string): void {
         this.logMessage(LogLevel.Warning, message, false);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     warningPii(message: string): void {
         this.logMessage(LogLevel.Warning, message, true);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     info(message: string): void {
         this.logMessage(LogLevel.Info, message, false);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     infoPii(message: string): void {
         this.logMessage(LogLevel.Info, message, true);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     verbose(message: string): void {
         this.logMessage(LogLevel.Verbose, message, false);
     }
 
     /**
-   * @hidden
-   */
+     * @hidden
+     */
     verbosePii(message: string): void {
         this.logMessage(LogLevel.Verbose, message, true);
     }
