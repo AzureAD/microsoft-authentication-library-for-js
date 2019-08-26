@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { IUri } from "./IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
@@ -59,8 +61,8 @@ export abstract class Authority {
     }
 
     /**
-   * A URL that is the authority set by the developer
-   */
+     * A URL that is the authority set by the developer
+     */
     public get CanonicalAuthority(): string {
         return this.canonicalAuthority;
     }
@@ -82,15 +84,15 @@ export abstract class Authority {
     }
 
     /**
-   * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-   */
+     * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+     */
     protected get DefaultOpenIdConfigurationEndpoint(): string {
         return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
 
     /**
-   * Given a string, validate that it is of the form https://domain/path
-   */
+     * Given a string, validate that it is of the form https://domain/path
+     */
     private validateAsUri() {
         let components;
         try {
@@ -109,11 +111,11 @@ export abstract class Authority {
     }
 
     /**
-   * Calls the OIDC endpoint and returns the response
-   */
+     * Calls the OIDC endpoint and returns the response
+     */
     private DiscoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
-        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /*enableCaching: */ true)
+        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /* enableCaching: */ true)
             .then((response: any) => {
                 return <ITenantDiscoveryResponse>{
                     AuthorizationEndpoint: response.authorization_endpoint,
@@ -124,11 +126,11 @@ export abstract class Authority {
     }
 
     /**
-   * Returns a promise.
-   * Checks to see if the authority is in the cache
-   * Discover endpoints via openid-configuration
-   * If successful, caches the endpoint for later use in OIDC
-   */
+     * Returns a promise.
+     * Checks to see if the authority is in the cache
+     * Discover endpoints via openid-configuration
+     * If successful, caches the endpoint for later use in OIDC
+     */
     public resolveEndpointsAsync(): Promise<Authority> {
         let openIdConfigurationEndpoint = "";
         return this.GetOpenIdConfigurationEndpointAsync().then(openIdConfigurationEndpointResponse => {
@@ -141,7 +143,7 @@ export abstract class Authority {
     }
 
     /**
-   * Returns a promise with the TenantDiscoveryEndpoint
-   */
+     * Returns a promise with the TenantDiscoveryEndpoint
+     */
     public abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;
 }
