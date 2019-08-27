@@ -1360,6 +1360,7 @@ export class UserAgentApplication {
                   expiresOn: new Date(expired * 1000),
                   account: account,
                   accountState: aState,
+                  authority: this.setAuthority(aState, this.inCookie, this.cacheStorage, idTokenObj)
               };
               ResponseUtils.setResponseIdToken(response, idTokenObj);
               return response;
@@ -1551,7 +1552,8 @@ export class UserAgentApplication {
           scopes: [],
           expiresOn: null,
           account: null,
-          accountState: ""
+          accountState: "",
+          authority: ""
       };
 
       let error: AuthError;
@@ -1631,6 +1633,7 @@ export class UserAgentApplication {
 
                   // set authority in response
                   const authority: string = this.setAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
+                  response.authority = authority;
 
                   // retrieve client_info - if it is not found, generate the uid and utid from idToken
                   if (hashParams.hasOwnProperty(Constants.clientInfo)) {
@@ -1692,6 +1695,7 @@ export class UserAgentApplication {
 
                   // set authority in response
                   const authority: string = this.setAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
+                  response.authority = authority;
 
                   this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
                   response.account = this.account;
