@@ -104,6 +104,7 @@ export class UrlUtils {
    * @param tenantId The tenant id to replace
    */
     static replaceTenantPath(url: string, tenantId: string): string {
+        console.log("URL passed", url);
         url = url.toLowerCase();
         var urlObject = this.GetUrlComponents(url);
         var pathArray = urlObject.PathSegments;

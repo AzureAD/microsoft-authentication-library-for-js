@@ -1,5 +1,8 @@
 import { AuthResponse } from "../AuthResponse";
 import { IdToken } from "../IdToken";
+import { Storage } from "../Storage";
+import { UrlUtils } from "./UrlUtils";
+import { StringUtils } from "./StringUtils";
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -9,6 +12,11 @@ import { IdToken } from "../IdToken";
  */
 export class ResponseUtils {
 
+    /**
+     * Set the Response from the idToken Object Data
+     * @param originalResponse
+     * @param idTokenObj
+     */
     static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
         if (!originalResponse) {
             return null;
@@ -20,7 +28,7 @@ export class ResponseUtils {
         if (exp && !originalResponse.expiresOn) {
             originalResponse.expiresOn = new Date(exp * 1000);
         }
-    
+
         return {
             ...originalResponse,
             idToken: idTokenObj,

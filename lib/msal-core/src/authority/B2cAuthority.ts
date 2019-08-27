@@ -3,8 +3,8 @@
 
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { UrlUtils } from "./utils/UrlUtils";
+import { ClientConfigurationErrorMessage }  from "../error/ClientConfigurationError";
+import { UrlUtils } from "../utils/UrlUtils";
 
 /**
  * @hidden
@@ -30,19 +30,11 @@ export class B2cAuthority extends AadAuthority {
     /**
    * Returns a promise with the TenantDiscoveryEndpoint
    */
-    public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
-        const resultPromise = new Promise<string>((resolve, reject) =>
-            resolve(this.DefaultOpenIdConfigurationEndpoint));
-
-        if (!this.IsValidationEnabled) {
-            return resultPromise;
+    public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+        if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
+            return this.DefaultOpenIdConfigurationEndpoint;
         }
 
-        if (this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
-            return resultPromise;
-        }
-
-        return new Promise<string>((resolve, reject) =>
-            reject(ClientConfigurationErrorMessage.unsupportedAuthorityValidation));
+        throw ClientConfigurationErrorMessage.unsupportedAuthorityValidation;
     }
 }

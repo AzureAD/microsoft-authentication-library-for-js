@@ -15,7 +15,7 @@ import {
     InteractionRequiredAuthError
 } from "../src/index";
 import sinon from "sinon";
-import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
+import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
 import { Storage } from "../src/Storage";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
@@ -932,8 +932,6 @@ describe("UserAgentApplication.ts Class", function () {
             }).catch(done);
         });
     });
-
-
 
     describe("Processing Authentication Responses", function() {
 

@@ -6,10 +6,10 @@
  */
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
-import { Authority, AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { UrlUtils } from "./utils/UrlUtils";
-import { StringUtils } from "./utils/StringUtils";
+import { Authority, AuthorityType} from "./Authority";
+import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { UrlUtils } from "../utils/UrlUtils";
+import { StringUtils } from "../utils/StringUtils";
 
 export class AuthorityFactory {
     /**
@@ -22,8 +22,6 @@ export class AuthorityFactory {
         switch (pathSegments[0]) {
             case "tfp":
                 return AuthorityType.B2C;
-            case "adfs":
-                return AuthorityType.Adfs;
             default:
                 return AuthorityType.Aad;
         }
