@@ -64,7 +64,7 @@ After instantiating your instance, if you plan on using a redirect flow (`loginR
 
 ```JavaScript
     import * as Msal from "msal";
-    // if using cdn version, 'Msal; will be available in the global scope
+    // if using cdn version, 'Msal' will be available in the global scope
     
     const msalConfig = {
         auth: {
