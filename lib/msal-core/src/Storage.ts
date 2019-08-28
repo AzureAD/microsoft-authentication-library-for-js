@@ -28,7 +28,6 @@ export class Storage {// Singleton
     if (!this.localStorageSupported && !this.sessionStorageSupported) {
       throw ClientConfigurationError.createNoStorageSupportedError();
     }
-    console.log("CacheLocation: " + cacheLocation);
 
     return Storage.instance;
   }

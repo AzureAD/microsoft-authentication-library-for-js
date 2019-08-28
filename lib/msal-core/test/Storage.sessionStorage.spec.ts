@@ -62,7 +62,6 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             cacheStorage = new Storage("sessionStorage");
             sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             cacheStorage.setItem(TEST_KEY, TEST_VALUE);
-            console.log(window.sessionStorage);
             expect(window.sessionStorage.getItem(TEST_KEY)).to.be.eq(TEST_VALUE);
         });
 

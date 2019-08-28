@@ -25,7 +25,7 @@ export const TEST_DATA_CLIENT_INFO = {
 export const TEST_URIS = {
     DEFAULT_INSTANCE: "https://login.microsoftonline.com/",
     ALTERNATE_INSTANCE: "https://login.windows.net/",
-    TEST_REDIR_URI: "https://localhost:8081/redirect.html",
+    TEST_REDIR_URI: "https://localhost:8081/index.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 };
