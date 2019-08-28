@@ -1630,7 +1630,7 @@ export class UserAgentApplication {
                   }
 
                   // set authority in response
-                  const authority: string = this.setAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
+                  const authority: string = this.populateAuthtority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
 
                   // retrieve client_info - if it is not found, generate the uid and utid from idToken
                   if (hashParams.hasOwnProperty(Constants.clientInfo)) {
@@ -1691,7 +1691,7 @@ export class UserAgentApplication {
                   }
 
                   // set authority in response
-                  const authority: string = this.setAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
+                  const authority: string = this.populateAuthtority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
 
                   this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
                   response.account = this.account;
@@ -1761,18 +1761,13 @@ export class UserAgentApplication {
      * @param idTokenObj
      * @param response
      */
-  private setAuthority(state: string, inCookie: boolean, cacheStorage: Storage, idTokenObj: IdToken): string {
+  private populateAuthtority(state: string, inCookie: boolean, cacheStorage: Storage, idTokenObj: IdToken): string {
+
       const authorityKey: string = Storage.generateAuthorityKey(state);
       const cachedAuthority: string = cacheStorage.getItem(authorityKey, inCookie);
 
-      let specificAuthority: string = cachedAuthority;
-
       // retrieve the authority from cache and replace with tenantID
-      if (!StringUtils.isEmpty(cachedAuthority)) {
-          specificAuthority = UrlUtils.replaceTenantPath(cachedAuthority, idTokenObj.tenantId);
-      }
-
-      return specificAuthority;
+      return StringUtils.isEmpty(cachedAuthority) ? cachedAuthority : UrlUtils.replaceTenantPath(cachedAuthority, idTokenObj.tenantId);;
   }
   /* tslint:enable:no-string-literal */
 
