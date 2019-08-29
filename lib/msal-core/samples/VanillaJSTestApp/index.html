@@ -19,17 +19,12 @@
         </div>
     </div>
     <script>
-    /*var applicationConfig = {
-            clientID: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
-            authority: "https://login.microsoftonline.com/common",
-            graphScopes: ["user.read", "Mail.Send"],
-            graphEndpoint: "https://graph.microsoft.com/v1.0/me",
-            loginType: 'POPUP'
-    };*/
 
+    // initialize MSAL
     var msalConfig = {
         auth: {
             clientId: "Enter_your_client_id",
+            // clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true
         },
@@ -47,19 +42,20 @@
         scopes: ["Mail.Read"]
     };
 
+    // resource endpoints
     var graphConfig = {
         graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
         graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
     };
 
-
+    // instantiate MSAL
     var myMSALObj = new Msal.UserAgentApplication(msalConfig);
+
+    // register callback for redirect usecases
     myMSALObj.handleRedirectCallback(authRedirectCallBack);
 
+    // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
     function signIn() {
-        /*let loginRequest = {
-            scopes: graphConfig.loginScopes
-        };*/
         myMSALObj.loginPopup(loginRequest).then(function (loginResponse) {
             //Login Success
             console.log(loginResponse);
@@ -70,13 +66,9 @@
         });
     }
 
+    // Call to the resource acquiring a token to a specific scope set
     function acquireTokenPopupAndCallMSGraph(endpoint, request) {
         //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
-        /*
-        let tokenRequest = {
-            scopes: applicationConfig.graphScopes
-        };
-        */
         myMSALObj.acquireTokenSilent(request).then(function (tokenResponse) {
             console.log("acquireTokenSilent scopes: ", tokenResponse.scopes);
             callMSGraph(endpoint, tokenResponse.accessToken, graphAPICallback);
@@ -93,6 +85,7 @@
         });
     }
 
+    // Call Graph to fetch data
     function callMSGraph(theUrl, accessToken, callback) {
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function () {
@@ -120,6 +113,7 @@
         acquireTokenPopupAndCallMSGraph(graphConfig.graphMailEndpoint, tokenRequest);
     }
 
+    // signout
     function signOut() {
         myMSALObj.logout();
     }
@@ -127,9 +121,6 @@
    // This function can be removed if you do not need to support IE
    function acquireTokenRedirectAndCallMSGraph(endpoint, request) {
         //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
-        /*let tokenRequest = {
-            scopes: graphConfig.scopes
-        };*/
         myMSALObj.acquireTokenSilent(request).then(function (tokenResponse) {
             callMSGraph(endpoint, tokenResponse.accessToken, graphAPICallback);
         }).catch(function (error) {
@@ -142,6 +133,7 @@
         });
     }
 
+    // redirect call back
     function authRedirectCallBack(error, response) {
         if (error) {
             console.log(error);
@@ -157,6 +149,7 @@
         }
     }
 
+    // utils to handle standard error set that would need user interaction
     function requiresInteraction(errorMessage) {
         if (!errorMessage || !errorMessage.length) {
             return false;
