@@ -7,7 +7,8 @@
     "lib": [ "es2015", "dom", "es2015.promise" ],
     "outDir": "lib-commonjs",
     "allowUnusedLabels": false,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "esModuleInterop": true
   },
   "files": [
     "./src/index.ts"

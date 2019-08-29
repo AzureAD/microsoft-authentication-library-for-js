@@ -32,7 +32,7 @@ describe("TelemetryManager", () => {
             onlySendFailureTelemetry: false
         };
         const correlationId = CryptoUtils.createNewGuid();
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(2);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
             expect(events[1]['msal.event_name']).to.eq("msal.default_event");
@@ -63,7 +63,7 @@ describe("TelemetryManager", () => {
             onlySendFailureTelemetry: false
         };
         const correlationId = CryptoUtils.createNewGuid();
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(4);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
             expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
@@ -107,7 +107,7 @@ describe("TelemetryManager", () => {
             onlySendFailureTelemetry: false
         };
         const correlationId = CryptoUtils.createNewGuid();
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(4);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
             expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
@@ -151,7 +151,7 @@ describe("TelemetryManager", () => {
         };
         const correlationId = CryptoUtils.createNewGuid();
         let calledOnce = false;
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             // if calledOnce is already true we shouldnt ever get back to this callback.
             expect(calledOnce).to.be.false;
             expect(events).to.have.length(4);

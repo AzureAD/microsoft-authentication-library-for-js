@@ -21,7 +21,7 @@ describe("TelemetryUtils", () => {
     });
     it("TelemetryUtils.hashPersonalIdentifier produces a result", () => {
         const result = hashPersonalIdentifier("test");
-        expect(result).to.be.a.string;
+        expect(result).to.be.string;
     });
     it("TelemetryUtils.hashPersonalIdentifier produces a consistent result", () => {
         const result = hashPersonalIdentifier("test");
@@ -44,6 +44,7 @@ describe("TelemetryUtils", () => {
     it("TelemetryUtils.prependEventNamePrefix handles non / empty strings", () => {
         const result = prependEventNamePrefix("");
         const result2 = prependEventNamePrefix(null);
+        // @ts-ignore
         const result3 = prependEventNamePrefix(44);
         expect(result).to.eql(`${EVENT_NAME_PREFIX}`);
         expect(result2).to.eql(`${EVENT_NAME_PREFIX}`);
