@@ -21,7 +21,7 @@
     <script>
 
     // initialize MSAL
-    var msalConfig = {
+    const msalConfig = {
         auth: {
             clientId: "Enter_your_client_id",
             // clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
@@ -34,22 +34,22 @@
         }
     };
 
-    var loginRequest = {
+    const loginRequest = {
         scopes: ["openid", "profile", "User.Read"]
     }
 
-    var tokenRequest = {
+    const tokenRequest = {
         scopes: ["Mail.Read"]
     };
 
     // resource endpoints
-    var graphConfig = {
+    const graphConfig = {
         graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
         graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
     };
 
     // instantiate MSAL
-    var myMSALObj = new Msal.UserAgentApplication(msalConfig);
+    const myMSALObj = new Msal.UserAgentApplication(msalConfig);
 
     // register callback for redirect usecases
     myMSALObj.handleRedirectCallback(authRedirectCallBack);
@@ -162,12 +162,12 @@
     }
 
     // Browser check variables
-    var ua = window.navigator.userAgent;
-    var msie = ua.indexOf('MSIE ');
-    var msie11 = ua.indexOf('Trident/');
-    var msedge = ua.indexOf('Edge/');
-    var isIE = msie > 0 || msie11 > 0;
-    var isEdge = msedge > 0;
+    const ua = window.navigator.userAgent;
+    const msie = ua.indexOf('MSIE ');
+    const msie11 = ua.indexOf('Trident/');
+    const msedge = ua.indexOf('Edge/');
+    const isIE = msie > 0 || msie11 > 0;
+    const isEdge = msedge > 0;
 
     //If you support IE, our recommendation is that you sign-in using Redirect APIs
     //If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
