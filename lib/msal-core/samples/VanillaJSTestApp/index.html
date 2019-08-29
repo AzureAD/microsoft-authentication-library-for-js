@@ -29,7 +29,7 @@
 
     var msalConfig = {
         auth: {
-            clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
+            clientId: "Enter_your_client_id",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true
         },
@@ -44,15 +44,7 @@
     }
 
     var tokenRequest = {
-        scopes: ["Mail.Read"],
-        claimsRequest: {
-            "idToken": [
-                {
-                    "name": "auth_time",
-                    "essential": false
-                }
-            ]
-        }
+        scopes: ["Mail.Read"]
     };
 
     var graphConfig = {

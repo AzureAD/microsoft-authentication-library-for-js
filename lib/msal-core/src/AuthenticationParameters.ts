@@ -28,8 +28,6 @@ export function validateClaimsRequest(request: AuthenticationParameters) {
         return;
     }
     let claims;
-    console.log("Claims Req: ");
-    console.log(request.claimsRequest);
     try {
         claims = JSON.parse(request.claimsRequest);
     } catch (e) {
