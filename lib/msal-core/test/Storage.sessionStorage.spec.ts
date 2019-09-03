@@ -2,7 +2,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { Storage } from "../src/Storage";
 import { Constants } from "../src";
-import { CacheKeys } from "../src/Constants";
+import { CacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
 import { Account } from "../src/Account";
@@ -39,7 +39,8 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             accountIdentifier: TEST_ACCOUNT_ID,
             environment: "js",
             homeAccountIdentifier: "1234",
-            idToken: "idToken",
+            idToken: {},
+            idTokenClaims: {},
             name: "Test Account",
             sid: "123451435",
             userName: "TestAccount"
@@ -57,15 +58,11 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             sinon.restore();
         });
 
-        it("parses the cache location correctly", function (done) {
+        it("parses the cache location correctly", function () {
             cacheStorage = new Storage("sessionStorage");
             sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
-            sinon.stub(window.sessionStorage, "setItem").callsFake(function (key, value) {
-                expect(key).to.be.eq(TEST_KEY);
-                expect(value).to.be.eq(TEST_VALUE);
-                done();
-            });
             cacheStorage.setItem(TEST_KEY, TEST_VALUE);
+            expect(window.sessionStorage.getItem(TEST_KEY)).to.be.eq(TEST_VALUE);
         });
 
         it("throws error if cache location is not supported", function () {
@@ -85,12 +82,14 @@ describe("CacheStorage.ts Class - Session Storage", function () {
 
         beforeEach(function () {
             cacheStorage = new Storage("sessionStorage");
+            sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             setTestCacheItems();
         });
 
         afterEach(function () {
             cacheStorage.clear();
             cacheStorage = null;
+            sinon.restore();
         });
 
         it("tests setItem works", function () {
@@ -110,10 +109,10 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         });
 
         it("tests clear works", function () {
-            let clearSpy = sinon.spy(window.sessionStorage, "clear");
             window.sessionStorage.setItem(JSON.stringify(ACCESS_TOKEN_KEY), JSON.stringify(ACCESS_TOKEN_VALUE));
+            expect(window.sessionStorage.length).to.be.eq(1);
             cacheStorage.clear();
-            expect(clearSpy.calledOnce).to.be.true;
+            expect(window.sessionStorage.length).to.be.eq(0);
         });
 
         it("tests setItemCookie works", function () {
@@ -159,6 +158,7 @@ describe("CacheStorage.ts Class - Session Storage", function () {
 
         beforeEach(function () {
             cacheStorage = new Storage("sessionStorage");
+            sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             setTestCacheItems();
         });
 

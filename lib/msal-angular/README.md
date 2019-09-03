@@ -164,7 +164,7 @@ Defaults to `window.location.href`.
 
 * **validateAuthority** : Validate the issuer of tokens. Default is true.
 
-* **cacheLocation** : Sets browser storage to either 'localStorage' or sessionStorage'. Defaults is 'sessionStorage'.
+* **cacheLocation** : Sets browser storage to either `localStorage` or `sessionStorage`. Defaults to `sessionStorage`.
 
 * **storeAuthStateInCookie** : Stores auth state in a browser cookie instead of local storage. Needs to be set to true when a user is on IE11, which may clear local storage contents when redirecting between websites in different zones. Defaults is `false`.
 

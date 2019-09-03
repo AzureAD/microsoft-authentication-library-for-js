@@ -76,7 +76,7 @@ describe("IdToken.ts Class", function() {
             expect(authErr.errorMessage).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
             expect(authErr.message).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
             expect(authErr.name).to.equal("ClientAuthError");
-            expect(authErr.stack).to.include("IdToken.spec.js");
+            expect(authErr.stack).to.include("IdToken.spec.ts");
         });
 
         it("throws an error if an empty string is passed", function () {
@@ -93,7 +93,7 @@ describe("IdToken.ts Class", function() {
             expect(authErr.errorMessage).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
             expect(authErr.message).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
             expect(authErr.name).to.equal("ClientAuthError");
-            expect(authErr.stack).to.include("IdToken.spec.js");
+            expect(authErr.stack).to.include("IdToken.spec.ts");
         });
 
     });

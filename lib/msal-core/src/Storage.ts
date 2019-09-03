@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-import { Constants } from "./Constants";
+import { Constants, CacheKeys } from "./utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "./Configuration";
-import { CacheKeys } from "./Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 
 /**
@@ -12,26 +13,26 @@ import { ClientConfigurationError } from "./error/ClientConfigurationError";
  */
 export class Storage {// Singleton
 
-  private static instance: Storage;
-  private localStorageSupported: boolean;
-  private sessionStorageSupported: boolean;
-  private cacheLocation: CacheLocation;
+    private static instance: Storage;
+    private localStorageSupported: boolean;
+    private sessionStorageSupported: boolean;
+    private cacheLocation: CacheLocation;
 
-  constructor(cacheLocation: CacheLocation) {
-    if (Storage.instance) {
-      return Storage.instance;
+    constructor(cacheLocation: CacheLocation) {
+        if (Storage.instance) {
+            return Storage.instance;
+        }
+
+        this.cacheLocation = cacheLocation;
+        this.localStorageSupported = typeof window[this.cacheLocation] !== "undefined" && window[this.cacheLocation] != null;
+        this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
+        Storage.instance = this;
+        if (!this.localStorageSupported && !this.sessionStorageSupported) {
+            throw ClientConfigurationError.createNoStorageSupportedError();
+        }
+
+        return Storage.instance;
     }
-
-    this.cacheLocation = cacheLocation;
-    this.localStorageSupported = typeof window[this.cacheLocation] !== "undefined" && window[this.cacheLocation] != null;
-    this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-    Storage.instance = this;
-    if (!this.localStorageSupported && !this.sessionStorageSupported) {
-      throw ClientConfigurationError.createNoStorageSupportedError();
-    }
-
-    return Storage.instance;
-  }
 
     // add value to storage
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {

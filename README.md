@@ -47,6 +47,12 @@ These security concerns are mitigated per standard practices such as- use of sho
 
 We offer two methods of storage for Msal, `localStorage` and `sessionStorage`.  Our recommendation is to use `sessionStorage` because it is more secure in storing tokens that are acquired by your users, but `localStorage` will give you Single Sign On across tabs and user sessions.  We encourage you to explore the options and make the best decision for your application.
 
+### Use forceRefresh to skip cache
+If you would like to skip a cached token and go to the server, please pass in the boolean `forceRefresh` into the `AuthenticationParameters` object used to make a login / token request. 
+
+**WARNING:** `forceRefresh` should not be used by default, because of the performance impact on your application.  Relying on the cache will give your users a better experience. Skipping cache should only be used in scenarios where you know the current cached data does not have up to date information. Example: Admin tool to add roles to a user that needs to get a new token with updated roles.
+
+
 ## Usage
 The example below walks you through how to login a user and acquire a token to be used for Microsoft's Graph Api.
 
@@ -61,13 +67,16 @@ Before using MSAL.js you will need to [register an application in Azure AD](http
 After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 ```JavaScript
-var msalConfig = {
+import * as Msal from "msal";
+// if using cdn version, 'Msal' will be available in the global scope
+
+const msalConfig = {
 	auth: {
 		clientId: 'your_client_id'
 	}
 };
 
-var msalInstance = new Msal.UserAgentApplication(msalConfig);
+const msalInstance = new Msal.UserAgentApplication(msalConfig);
 
 msalInstance.handleRedirectCallback((error, response) => {
 	// handle redirect response or error

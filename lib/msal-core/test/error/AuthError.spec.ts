@@ -20,7 +20,7 @@ describe("AuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
     expect(err.name).to.equal("AuthError");
-    expect(err.stack).to.include("AuthError.spec.js");
+    expect(err.stack).to.include("AuthError.spec.ts");
   });
 
   it("createUnexpectedError creates a AuthError object", () => {
@@ -40,7 +40,7 @@ describe("AuthError.ts Class", () => {
     expect(err.errorMessage).to.contain(ERROR_DESC);
     expect(err.message).to.contain(AuthErrorMessage.unexpectedError.desc);
     expect(err.name).to.equal("AuthError");
-    expect(err.stack).to.include("AuthError.spec.js");
+    expect(err.stack).to.include("AuthError.spec.ts");
   });
 
 });

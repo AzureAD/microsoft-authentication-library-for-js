@@ -1,11 +1,12 @@
 import { B2cAuthority } from "../B2cAuthority";
-import { AADTrustedHostList } from "../Constants";
+import { AADTrustedHostList } from "../utils/Constants";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
-import { Utils } from "../Utils";
+import { CryptoUtils } from "../utils/CryptoUtils";
+import { UrlUtils } from "../utils/UrlUtils";
 
 export const scrubTenantFromUri = (uri: string): String => {
 
-    const url = Utils.GetUrlComponents(uri);
+    const url = UrlUtils.GetUrlComponents(uri);
 
     // validate trusted host
     if (!AADTrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
@@ -26,10 +27,12 @@ export const scrubTenantFromUri = (uri: string): String => {
 };
 
 export const hashPersonalIdentifier = (valueToHash: string) => {
-    // TODO sha256 this
-    // Current test runner is being funny with node libs that are webpacked anyway
-    // need a different solution
-    return Utils.base64Encode(valueToHash);
+    /*
+     * TODO sha256 this
+     * Current test runner is being funny with node libs that are webpacked anyway
+     * need a different solution
+     */
+    return CryptoUtils.base64Encode(valueToHash);
 };
 
 export const prependEventNamePrefix = (suffix: string): string => `${EVENT_NAME_PREFIX}${suffix || ""}`;

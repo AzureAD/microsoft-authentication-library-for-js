@@ -1,5 +1,3 @@
-
-import { v4 as uuid } from "uuid";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import {
     EVENT_NAME_KEY,
@@ -7,6 +5,7 @@ import {
     ELAPSED_TIME_KEY
 } from "./TelemetryConstants";
 import { prependEventNamePrefix } from "./TelemetryUtils";
+import { CryptoUtils } from "../utils/CryptoUtils";
 
 export default class TelemetryEvent {
 
@@ -17,7 +16,7 @@ export default class TelemetryEvent {
     constructor(eventName: string, correlationId: string) {
 
         this.startTimestamp = Date.now();
-        this.eventId = uuid();
+        this.eventId = CryptoUtils.createNewGuid();
         this.event = {
             [prependEventNamePrefix(EVENT_NAME_KEY)]: eventName,
             [prependEventNamePrefix(START_TIME_KEY)]: this.startTimestamp,

@@ -1,9 +1,12 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
-import { Utils } from "./Utils";
+import { CryptoUtils } from "./utils/CryptoUtils";
+import { StringUtils } from "./utils/StringUtils";
 import { StringDict } from "./MsalTypes";
 
 /**
@@ -21,8 +24,7 @@ export class Account {
     homeAccountIdentifier: string;
     userName: string;
     name: string;
-    // will be deprecated soon
-    idToken: StringDict;
+    idToken: StringDict; // will be deprecated soon
     idTokenClaims: StringDict;
     sid: string;
     environment: string;
@@ -38,15 +40,15 @@ export class Account {
      * @param environment
      */
     constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idTokenClaims: StringDict, sid: string,  environment: string) {
-      this.accountIdentifier = accountIdentifier;
-      this.homeAccountIdentifier = homeAccountIdentifier;
-      this.userName = userName;
-      this.name = name;
-      // will be deprecated soon
-      this.idToken = idTokenClaims;
-      this.idTokenClaims = idTokenClaims;
-      this.sid = sid;
-      this.environment = environment;
+        this.accountIdentifier = accountIdentifier;
+        this.homeAccountIdentifier = homeAccountIdentifier;
+        this.userName = userName;
+        this.name = name;
+        // will be deprecated soon
+        this.idToken = idTokenClaims;
+        this.idTokenClaims = idTokenClaims;
+        this.sid = sid;
+        this.environment = environment;
     }
 
     /**
@@ -64,9 +66,27 @@ export class Account {
         const utid: string = clientInfo ? clientInfo.utid : "";
 
         let homeAccountIdentifier: string;
-        if (!Utils.isEmpty(uid) && !Utils.isEmpty(utid)) {
-            homeAccountIdentifier = Utils.base64Encode(uid) + "." + Utils.base64Encode(utid);
+        if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
+            homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
         return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
+    }
+
+    /**
+     * Utils function to compare two Account objects - used to check if the same user account is logged in
+     *
+     * @param a1: Account object
+     * @param a2: Account object
+     */
+    static compareAccounts(a1: Account, a2: Account): boolean {
+        if (!a1 || !a2) {
+            return false;
+        }
+        if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
+            if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
+                return true;
+            }
+        }
+        return false;
     }
 }
