@@ -15,7 +15,7 @@ import {
     InteractionRequiredAuthError
 } from "../src/index";
 import sinon from "sinon";
-import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
+import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
 import { Storage } from "../src/Storage";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
@@ -203,7 +203,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
-            
+
             delete window.location;
         });
 
@@ -535,7 +535,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             history.pushState(null, null, "/new_pushstate_uri");
-            
+
             msal.handleRedirectCallback(authCallback);
             msal.loginRedirect({});
         });
@@ -1452,9 +1452,9 @@ describe("UserAgentApplication.ts Class", function () {
     });
 
     describe("Popup Flow", function () {
-        
+
         let oldWindow = window;
-        
+
         beforeEach(function() {
             const config: Configuration = {
                 auth: {
