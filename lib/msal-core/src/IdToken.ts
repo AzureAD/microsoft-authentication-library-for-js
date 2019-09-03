@@ -81,7 +81,7 @@ export class IdToken {
                 }
 
                 if (this.claims.hasOwnProperty("cloud_instance_host_name")) {
-                    this.cloudInstance = this.claims["cloudInstance"];
+                    this.cloudInstance = this.claims["cloud_instance_host_name"];
                 }
                 /* tslint:enable:no-string-literal */
             }
