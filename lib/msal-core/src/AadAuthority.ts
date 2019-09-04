@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Authority, AuthorityType } from "./Authority";
 import { XhrClient } from "./XHRClient";
@@ -24,9 +26,9 @@ export class AadAuthority extends Authority {
     }
 
     /**
-   * Returns a promise which resolves to the OIDC endpoint
-   * Only responds with the endpoint
-   */
+     * Returns a promise which resolves to the OIDC endpoint
+     * Only responds with the endpoint
+     */
     public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
         const resultPromise: Promise<string> = new Promise<string>((resolve, reject) =>
             resolve(this.DefaultOpenIdConfigurationEndpoint));
@@ -49,9 +51,9 @@ export class AadAuthority extends Authority {
     }
 
     /**
-   * Checks to see if the host is in a list of trusted hosts
-   * @param {string} The host to look up
-   */
+     * Checks to see if the host is in a list of trusted hosts
+     * @param {string} The host to look up
+     */
     public IsInTrustedHostList(host: string): boolean {
         return AADTrustedHostList[host.toLowerCase()];
     }

@@ -26,7 +26,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createInvalidCacheLocationConfigError creates a ClientConfigurationError object", () => {
@@ -46,7 +46,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(givenCacheLocation);
     expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createNoStorageSupportError creates a ClientConfigurationError object", () => {
@@ -64,7 +64,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.noStorageSupported.desc);
     expect(err.message).to.include(ClientConfigurationErrorMessage.noStorageSupported.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createRedirectCallbacksNotSetError creates a ClientConfigurationError object", () => {
@@ -82,7 +82,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.equal(ClientConfigurationErrorMessage.noRedirectCallbacksSet.desc);
     expect(err.message).to.equal(ClientConfigurationErrorMessage.noRedirectCallbacksSet.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createInvalidCallbackObjectError creates a ClientConfigurationError object", () => {
@@ -102,7 +102,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(`Given value for callback function: ${callbackFunction}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCallbackObject.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createEmptyScopesArrayError creates a ClientConfigurationError object", () => {
@@ -122,7 +122,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.emptyScopes.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createScopesNonArrayError creates a ClientConfigurationError object", () => {
@@ -142,7 +142,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.nonArrayScopes.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createClientIdSingleScopeError creates a ClientConfigurationError object", () => {
@@ -162,7 +162,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.clientScope.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createScopesRequiredError creates a ClientConfigurationError object", () => {
@@ -182,7 +182,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.scopesRequired.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createInvalidPromptError creates a ClientConfigurationError object", () => {
@@ -202,11 +202,11 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include(`Given value: ${promptValue}`);
     expect(err.message).to.include(ClientConfigurationErrorMessage.invalidPrompt.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
   it("createTelemetryConfigError creates a ClientConfigurationError object", () => {
-
+    // @ts-ignore
     const telemConfigErr: ClientConfigurationError = ClientConfigurationError.createTelemetryConfigError({
       applicationName: "missing something"
     });
@@ -223,7 +223,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.errorMessage).to.include("applicationVersion");
     expect(err.message).to.include(ClientConfigurationErrorMessage.telemetryConfigError.desc);
     expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.js");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
 });

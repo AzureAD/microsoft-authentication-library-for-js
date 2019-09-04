@@ -1,8 +1,8 @@
 
-import { Authority, AuthorityType } from '../../src/Authority';
-import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { Authority, AuthorityType } from '../src/Authority';
+import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 
-import { AuthorityFactory } from "../../src/AuthorityFactory";
+import { AuthorityFactory } from "../src/AuthorityFactory";
 
 describe("Authority", () => {
     const validOpenIdConfigurationResponse = '{"authorization_endpoint":"https://authorization_endpoint","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}';

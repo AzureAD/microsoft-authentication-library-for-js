@@ -27,9 +27,11 @@ export class IframeUtils {
             const intervalId = setInterval(() => {
                 let href;
                 try {
-                    // Will throw if cross origin,
-                    // which should be caught and ignored
-                    // since we need the interval to keep running while on STS UI.
+                    /*
+                     * Will throw if cross origin,
+                     * which should be caught and ignored
+                     * since we need the interval to keep running while on STS UI.
+                     */
                     href = contentWindow.location.href;
                 } catch (e) {}
 
@@ -55,13 +57,15 @@ export class IframeUtils {
     }
 
     /**
-   * @hidden
-   * Loads iframe with authorization endpoint URL
-   * @ignore
-   */
+     * @hidden
+     * Loads iframe with authorization endpoint URL
+     * @ignore
+     */
     static loadFrame(urlNavigate: string, frameName: string, timeoutMs: number, logger: Logger): Promise<HTMLIFrameElement> {
-        // This trick overcomes iframe navigation in IE
-        // IE does not load the page consistently in iframe
+        /*
+         * This trick overcomes iframe navigation in IE
+         * IE does not load the page consistently in iframe
+         */
         logger.info("LoadFrame: " + frameName);
         const frameCheck = frameName;
 
