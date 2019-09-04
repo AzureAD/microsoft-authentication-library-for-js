@@ -15,7 +15,7 @@ export default class DefaultEvent extends TelemetryEvent {
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.UiEventCountTelemetryBatchKey}`] = this.getEventCount(prependEventNamePrefix("ui_event"), eventCount);
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.HttpEventCountTelemetryBatchKey}`] = this.getEventCount(prependEventNamePrefix("http_event"), eventCount);
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.CacheEventCountConstStrKey}`] = this.getEventCount(prependEventNamePrefix("cache_event"), eventCount);
-        /// Device id?
+        // / Device id?
     }
 
     private getEventCount(eventName: string, eventCount: EventCount): number {

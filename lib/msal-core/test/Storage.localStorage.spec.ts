@@ -39,7 +39,8 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             accountIdentifier: TEST_ACCOUNT_ID,
             environment: "js",
             homeAccountIdentifier: "1234",
-            idToken: "idToken",
+            idToken: {},
+            idTokenClaims: {},
             name: "Test Account",
             sid: "123451435",
             userName: "TestAccount"
@@ -54,17 +55,12 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
         afterEach(function () {
             cacheStorage = null;
-            sinon.restore();
         });
 
-        it("parses the cache location correctly", function (done) {
+        it("parses the cache location correctly", function () {
             cacheStorage = new Storage("localStorage");
-            sinon.stub(window.localStorage, "setItem").callsFake(function (key, value) {
-                expect(key).to.be.eq(TEST_KEY);
-                expect(value).to.be.eq(TEST_VALUE);
-                done();
-            });
             cacheStorage.setItem(TEST_KEY, TEST_VALUE);
+            expect(window.localStorage.getItem(TEST_KEY)).to.be.eq(TEST_VALUE);
         });
 
         it("throws error if cache location is not supported", function () {
@@ -90,6 +86,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
         afterEach(function () {
             cacheStorage.clear();
             cacheStorage = null;
+            sinon.restore();
         });
 
         it("tests setItem works", function () {
@@ -109,10 +106,10 @@ describe("CacheStorage.ts Class - Local Storage", function () {
         });
 
         it("tests clear works", function () {
-            let clearSpy = sinon.spy(window.localStorage, "clear");
             window.localStorage.setItem(JSON.stringify(ACCESS_TOKEN_KEY), JSON.stringify(ACCESS_TOKEN_VALUE));
+            expect(window.localStorage.length).to.be.eq(1);
             cacheStorage.clear();
-            expect(clearSpy.calledOnce).to.be.true;
+            expect(window.localStorage.length).to.be.eq(0);
         });
 
         it("tests setItemCookie works", function () {
@@ -163,7 +160,6 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
         afterEach(function () {
             cacheStorage.clear();
-            sinon.restore();
         });
 
         it("getAllAccessTokens returns all accessTokens in cache", function () {

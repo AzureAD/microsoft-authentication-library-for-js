@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Logger } from "./Logger";
 import { UrlUtils } from "./utils/UrlUtils";
-import { TelemetryEmitter } from "./telemetry/TelemetryTypes"
+import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
  * Cache location options supported by MSAL are:
@@ -18,7 +20,6 @@ export type CacheLocation = "localStorage" | "sessionStorage";
 const FRAME_TIMEOUT = 6000;
 const OFFSET = 300;
 const NAVIGATE_FRAME_WAIT = 500;
-
 
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
@@ -61,7 +62,7 @@ export type TelemetryOptions = {
     applicationName: string;
     applicationVersion: string;
     telemetryEmitter: TelemetryEmitter
-    //TODO, add onlyAddFailureTelemetry option
+    // TODO, add onlyAddFailureTelemetry option
 };
 
 /**

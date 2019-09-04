@@ -1,8 +1,10 @@
 import { AuthResponse } from "../AuthResponse";
 import { IdToken } from "../IdToken";
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 /**
  * @hidden
@@ -16,7 +18,7 @@ export class ResponseUtils {
             return originalResponse;
         }
 
-        let exp = Number(idTokenObj.expiration);
+        const exp = Number(idTokenObj.expiration);
         if (exp && !originalResponse.expiresOn) {
             originalResponse.expiresOn = new Date(exp * 1000);
         }

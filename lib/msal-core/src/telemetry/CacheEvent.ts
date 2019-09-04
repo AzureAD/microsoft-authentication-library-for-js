@@ -17,7 +17,6 @@ export enum TOKEN_TYPES {
     ACCOUNT = "account"
 }
 
-
 export const TOKEN_TYPE_KEY = prependEventNamePrefix("token_type");
 
 export default class CacheEvent extends TelemetryEvent {
