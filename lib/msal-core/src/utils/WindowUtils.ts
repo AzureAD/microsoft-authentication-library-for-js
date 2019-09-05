@@ -2,16 +2,20 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 
-export class IframeUtils {
-    private static POLLING_INTERAL_MS = 50;
+export class WindowUtils {
+    private static POLLING_INTERVAL_MS = 50;
 
     /**
      * @hidden
      * Checks if the current page is running in an iframe.
      * @ignore
      */
-    static isInIframe() {
+    static isInIframe(): boolean {
         return window.parent !== window;
+    }
+
+    static isInPopup(): boolean {
+        return !!(window.opener && window.opener !== window);
     }
 
     /**
@@ -21,7 +25,7 @@ export class IframeUtils {
      */
     static monitorWindowForHash(contentWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            const maxTicks = timeout / IframeUtils.POLLING_INTERAL_MS;
+            const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
             const intervalId = setInterval(() => {
@@ -40,19 +44,19 @@ export class IframeUtils {
                     return;
                 }
 
-                // Only start clock when we are on same domain
+                // Only run clock when we are on same domain
                 ticks++;
 
-                if (contentWindow.closed) {
-                    clearInterval(intervalId);
-                } else if (UrlUtils.urlContainsHash(href)) {
+                if (UrlUtils.urlContainsHash(href)) {
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
+                } else if (contentWindow.closed) {
+                    clearInterval(intervalId);
                 } else if (ticks > maxTicks) {
                     clearInterval(intervalId);
                     reject(ClientAuthError.createTokenRenewalTimeoutError()); // better error?
                 }
-            }, IframeUtils.POLLING_INTERAL_MS);
+            }, WindowUtils.POLLING_INTERVAL_MS);
         });
     }
 
@@ -67,11 +71,16 @@ export class IframeUtils {
          * IE does not load the page consistently in iframe
          */
         logger.info("LoadFrame: " + frameName);
-        const frameCheck = frameName;
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             setTimeout(() => {
-                const frameHandle = IframeUtils.addHiddenIFrame(frameCheck, logger);
+                const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+
+                if (!frameHandle) {
+                    reject();
+                    return;
+                }
+
                 if (frameHandle.src === "" || frameHandle.src === "about:blank") {
                     frameHandle.src = urlNavigate;
                     logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
@@ -104,16 +113,50 @@ export class IframeUtils {
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
                 ifr.style.border = "0";
+                ifr.setAttribute("sandbox", "allow-same-origin");
                 adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
             } else if (document.body && document.body.insertAdjacentHTML) {
                 document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
-            }
-
-            if (window.frames && window.frames[iframeId]) {
-                adalFrame = window.frames[iframeId];
             }
         }
 
         return adalFrame;
     }
+
+    static getIframeWithHash(hash: string) {
+        return Array.from(document.getElementsByTagName("iframe")).find(iframe => {
+            try {
+                return iframe.contentWindow.location.hash === hash;
+            } catch (e) {
+                return false;
+            }
+        });
+    }
+
+    static getPopups(): Array<Window> {
+        if (!window.openedWindows) {
+            window.openedWindows = [];
+        }
+
+        return window.openedWindows;
+    }
+
+    static getPopUpWithHash(hash: string) {
+        return WindowUtils.getPopups().find(popup => {
+            try {
+                return popup.location.hash === hash;
+            } catch (e) {
+                return false;
+            }
+        });
+    }
+
+    static trackPopup(popup: Window) {
+        WindowUtils.getPopups().push(popup);
+    }
+
+    static closePopups() {
+        WindowUtils.getPopups().forEach(popup => popup.close());
+    }
+
 }

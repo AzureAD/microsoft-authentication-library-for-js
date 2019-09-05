@@ -16,7 +16,7 @@ import { Storage } from "./Storage";
 import { Account } from "./Account";
 import { ScopeSet } from "./ScopeSet";
 import { StringUtils } from "./utils/StringUtils";
-import { IframeUtils } from "./utils/IframeUtils";
+import { WindowUtils } from "./utils/WindowUtils";
 import { TokenUtils } from "./utils/TokenUtils";
 import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
@@ -124,7 +124,7 @@ export type errorReceivedCallback = (authErr: AuthError, accountState: string) =
 const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
     const tokenAcquisitionMethod = descriptor.value;
     descriptor.value = function (...args: any[]) {
-        return IframeUtils.isInIframe()
+        return WindowUtils.isInIframe()
             ? new Promise(() => {
                 return;
             })
@@ -245,7 +245,6 @@ export class UserAgentApplication {
         }
 
         // Initialize window handling code
-        window.openedWindows = [];
         window.activeRenewals = {};
         window.renewStates = [];
         window.callbackMappedToRenewStates = { };
@@ -256,7 +255,7 @@ export class UserAgentApplication {
         const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
 
         // On the server 302 - Redirect, handle this
-        if (!this.config.framework.isAngular && urlContainsHash && !IframeUtils.isInIframe()) {
+        if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
             this.handleAuthenticationResponse(urlHash);
         }
     }
@@ -540,8 +539,11 @@ export class UserAgentApplication {
             // prompt user for interaction
             this.navigateWindow(urlNavigate, popUpWindow);
 
-            const hash = await IframeUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
-            this.handleAuthenticationResponse(hash);
+            // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
+            if (popUpWindow) {
+                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+                this.handleAuthenticationResponse(hash);
+            }
         }).catch((err) => {
             this.logger.warning("could not resolve endpoints");
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
@@ -721,7 +723,7 @@ export class UserAgentApplication {
         }
 
         // Push popup window handle onto stack for tracking
-        window.openedWindows.push(popupWindow);
+        WindowUtils.trackPopup(popupWindow);
 
         const pollTimer = window.setInterval(() => {
             // If popup closed or login in progress, cancel login
@@ -750,9 +752,7 @@ export class UserAgentApplication {
                     // TODO: Check how this can be extracted for any framework specific code?
                     if (this.config.framework.isAngular) {
                         this.broadcast("msal:popUpHashChanged", popUpWindowLocation.hash);
-                        for (let i = 0; i < window.openedWindows.length; i++) {
-                            window.openedWindows[i].close();
-                        }
+                        WindowUtils.closePopups();
                     }
                 }
             } catch (e) {
@@ -843,8 +843,8 @@ export class UserAgentApplication {
             }
         }, this.config.system.loadFrameTimeout);
 
-        const iframe = await IframeUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
-        const hash = await IframeUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
+        const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
+        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
         this.handleAuthenticationResponse(hash);
     }
 
@@ -1056,18 +1056,13 @@ export class UserAgentApplication {
         // retrieve the hash
         const locationHash = hash || window.location.hash;
 
-        let isPopupOrIframe = false;
-
         // Check if the current flow is popup or hidden iframe
-        try {
-            isPopupOrIframe = !!(window.openedWindows.find(openedWindow => openedWindow.location.hash === locationHash));
-        } catch (err) {
-            // err = SecurityError: Blocked a frame with origin "[url]" from accessing a cross-origin frame.
-            isPopupOrIframe = false;
-        }
+        const iframeWithHash = WindowUtils.getIframeWithHash(locationHash);
+        const popUpWithHash = WindowUtils.getPopUpWithHash(locationHash);
+        const isPopupOrIframe = !!(iframeWithHash || popUpWithHash);
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
-        const stateInfo = this.getResponseState(hash);
+        const stateInfo = this.getResponseState(locationHash);
 
         let tokenResponseCallback: (response: AuthResponse, error: AuthError) => void = null;
 
@@ -1086,10 +1081,6 @@ export class UserAgentApplication {
                 }
                 return;
             }
-            // Current window is window opener (popup)
-            else if (isPopupOrIframe) {
-                tokenResponseCallback = window.opener.callbackMappedToRenewStates[stateInfo.state];
-            }
 
             if (!this.redirectCallbacksSet) {
                 // We reached this point too early - cache hash, return and process in handleRedirectCallbacks
@@ -1102,7 +1093,7 @@ export class UserAgentApplication {
 
         // If current window is opener, close all windows
         if (isPopupOrIframe) {
-            window.openedWindows.forEach(openedWindow => openedWindow.close());
+            WindowUtils.closePopups();
         }
     }
 
@@ -1314,8 +1305,9 @@ export class UserAgentApplication {
     private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         const scope = scopes.join(" ").toLowerCase();
         this.logger.verbose("renewToken is called for scope:" + scope);
-        const frameHandle = IframeUtils.addHiddenIFrame("msalRenewFrame" + scope, this.logger);
-        window.openedWindows.push(frameHandle.contentWindow);
+
+        const frameName = `msalRenewFrame${scope}`;
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
@@ -1328,7 +1320,7 @@ export class UserAgentApplication {
         this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
+        this.loadIframeTimeout(urlNavigate, frameName, scope);
     }
 
     /**
@@ -1337,10 +1329,9 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-
         this.logger.info("renewidToken is called");
-        const frameHandle = IframeUtils.addHiddenIFrame("msalIdTokenFrame", this.logger);
-        window.openedWindows.push(frameHandle.contentWindow);
+        const frameName = "msalIdTokenFrame";
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
 
@@ -1361,7 +1352,7 @@ export class UserAgentApplication {
         this.registerCallback(serverAuthenticationRequest.state, this.clientId, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+        this.loadIframeTimeout(urlNavigate, frameName, this.clientId);
     }
 
     /**
