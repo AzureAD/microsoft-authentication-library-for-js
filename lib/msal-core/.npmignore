@@ -251,6 +251,9 @@ paket-files/
 .idea/
 *.sln.iml
 
+# Istanbul Code Coverage
+.nyc_output/
+
 # MSAL specific ignore files
 samples/
 node_modules/
