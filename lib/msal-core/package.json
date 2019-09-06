@@ -25,25 +25,13 @@
   "engines": {
     "node": ">=0.8.0"
   },
-  "nyc": {
-    "extension": [
-      ".ts",
-      ".tsx"
-    ],
-    "include": [
-      "src"
-    ],
-    "exclude": [
-      "**/*.d.ts"
-    ],
-    "all": true  
-  },
   "scripts": {
     "clean": "shx rm -rf dist docs lib-commonjs lib-es6",
     "doc": "typedoc --mode modules --excludePrivate --excludeProtected --out ./docs ./src/ --gitRevision dev",
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
-    "test": "nyc mocha -r test/setup.js -r ts-node/register -r source-map-support/register ./test/**/*.spec.ts",
+    "test": "mocha -r test/setup.js -r ts-node/register -r source-map-support/register ./test/**/*.spec.ts",
+    "test:coverage": "nyc mocha -r test/setup.js -r ts-node/register -r source-map-support/register ./test/**/*.spec.ts",
     "lint": "eslint src --ext .ts",
     "build:webpack": "webpack",
     "prepack": "npm run build"
