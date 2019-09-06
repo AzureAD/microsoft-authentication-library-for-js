@@ -3,6 +3,11 @@ import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 
 export class WindowUtils {
+    /**
+     * @hidden
+     * Interval in milliseconds that we poll a window
+     * @ignore
+     */
     private static POLLING_INTERVAL_MS = 50;
 
     /**
@@ -14,6 +19,11 @@ export class WindowUtils {
         return window.parent !== window;
     }
 
+    /**
+     * @hidden
+     * Check if the current page is running in a popup.
+     * @ignore
+     */
     static isInPopup(): boolean {
         return !!(window.opener && window.opener !== window);
     }
@@ -123,6 +133,11 @@ export class WindowUtils {
         return adalFrame;
     }
 
+    /**
+     * @hidden
+     * Find and return the iframe element with the given hash
+     * @ignore
+     */
     static getIframeWithHash(hash: string) {
         return Array.from(document.getElementsByTagName("iframe")).find(iframe => {
             try {
@@ -133,6 +148,11 @@ export class WindowUtils {
         });
     }
 
+    /**
+     * @hidden
+     * Returns an array of all the popups opened by MSAL
+     * @ignore
+     */
     static getPopups(): Array<Window> {
         if (!window.openedWindows) {
             window.openedWindows = [];
@@ -141,6 +161,11 @@ export class WindowUtils {
         return window.openedWindows;
     }
 
+    /**
+     * @hidden
+     * Find and return the popup with the given hash
+     * @ignore
+     */
     static getPopUpWithHash(hash: string) {
         return WindowUtils.getPopups().find(popup => {
             try {
@@ -151,10 +176,20 @@ export class WindowUtils {
         });
     }
 
+    /**
+     * @hidden
+     * Add the popup to the known list of popups
+     * @ignore
+     */
     static trackPopup(popup: Window) {
         WindowUtils.getPopups().push(popup);
     }
 
+    /**
+     * @hidden
+     * Close all popups
+     * @ignore
+     */
     static closePopups() {
         WindowUtils.getPopups().forEach(popup => popup.close());
     }
