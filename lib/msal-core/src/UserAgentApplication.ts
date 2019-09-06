@@ -1777,7 +1777,7 @@ export class UserAgentApplication {
         const cachedAuthority: string = cacheStorage.getItem(authorityKey, inCookie);
 
         // retrieve the authority from cache and replace with tenantID
-        return StringUtils.isEmpty(cachedAuthority) ? cachedAuthority : UrlUtils.replaceTenantPath(cachedAuthority, idTokenObj.tenantId);;
+        return StringUtils.isEmpty(cachedAuthority) ? cachedAuthority : UrlUtils.replaceTenantPath(cachedAuthority, idTokenObj.tenantId);
     }
 
     /* tslint:enable:no-string-literal */
