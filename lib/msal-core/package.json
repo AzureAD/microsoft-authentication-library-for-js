@@ -31,7 +31,7 @@
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6",
     "build:modules:watch": "tsc -m es6 --outDir lib-es6 --watch",
     "build": "npm run clean && npm run doc && npm run build:modules && npm run lint && npm run build:webpack && npm test",
-    "test": "mocha -r test/setup.js -r ts-node/register ./test/**/*.spec.ts",
+    "test": "mocha -r test/setup.js -r ts-node/register ./test/*.spec.ts ./test/**/*.spec.ts",
     "lint": "eslint src --ext .ts",
     "build:webpack": "webpack",
     "prepack": "npm run build"

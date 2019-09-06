@@ -14,6 +14,15 @@ export class WindowUtils {
         return window.parent !== window;
     }
 
+    /**
+     * @hidden
+     * Checks if the current page is running in an iframe.
+     * @ignore
+     */
+    static isWindowOnTop(): boolean {
+        return window.top === window;
+    }
+
     static isInPopup(): boolean {
         return !!(window.opener && window.opener !== window);
     }

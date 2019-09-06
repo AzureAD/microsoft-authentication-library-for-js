@@ -113,27 +113,6 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
 export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
 
 /**
- * @hidden
- * @ignore
- * A wrapper to handle the token response/error within the iFrame always
- *
- * @param target
- * @param propertyKey
- * @param descriptor
- */
-const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const tokenAcquisitionMethod = descriptor.value;
-    descriptor.value = function (...args: any[]) {
-        return WindowUtils.isInIframe()
-            ? new Promise(() => {
-                return;
-            })
-            : tokenAcquisitionMethod.apply(this, args);
-    };
-    return descriptor;
-};
-
-/**
  * UserAgentApplication class
  *
  * Object Instance that the developer can use to make loginXX OR acquireTokenXX functions
@@ -244,6 +223,9 @@ export class UserAgentApplication {
             throw ClientConfigurationError.createInvalidCacheLocationConfigError(this.config.cache.cacheLocation);
         }
 
+        // TODO:REDIRECT_IFRAMES: Listener
+        window.addEventListener("message", this.receiveMessage, false);
+
         // Initialize window handling code
         window.activeRenewals = {};
         window.renewStates = [];
@@ -256,7 +238,51 @@ export class UserAgentApplication {
 
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
-            this.handleAuthenticationResponse(urlHash);
+            // TODO:REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
+            if(WindowUtils.isWindowOnTop() && true) { // replace true with a cache check for onbehalf
+                this.cacheStorage.setItem("iframedAppHash", urlHash);
+                this.navigateWindow(this.cacheStorage.getItem("topFrameURI"));
+            }
+            else {
+                this.handleAuthenticationResponse(urlHash);
+            }
+        }
+    }
+
+    /**
+     * TODO:REDIRECT_IFRAMES: Parse the messages
+     * This will be a unique handler per message, we will allow only one active request at a time
+     * @param event
+     */
+    private receiveMessage(event: any) {
+        // parse event.data
+
+        // topframed application
+        if(WindowUtils.isWindowOnTop() ) {
+            // acknowlege the redirect on behalf of the iframed app by sending the current location
+            if(event.data.redirectRequest) {
+                event.source.postMessage({"topFrameURI": window.location.href}, UrlUtils.getDefaultUri());
+            }
+
+            // redirect on behalf of the iframed app
+            if(event.data.urlNavigate) {
+                this.navigateWindow(event.data.urlNavigate);
+            }
+        }
+
+        // iframed application
+        if(WindowUtils.isInIframe()) {
+            // check the origin, should match window.top always
+            if(event.origin != window.top) {
+                this.logger.warning("The message origin is not verified");
+                return;
+            }
+
+            // record the ack from the top frame - store the URL
+            if(event.data.cacheURL) {
+                this.cacheStorage.setItem("topFrameURI", event.data.topFrameURI);
+                event.source.postMessage({"urlNavigate": this.cacheStorage.getItem("urlNavigate")}, UrlUtils.getDefaultUri());
+            }
         }
     }
 
@@ -565,7 +591,6 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    @resolveTokenOnlyIfOutOfIframe
     acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
@@ -863,7 +888,16 @@ export class UserAgentApplication {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
             const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
             this.logger.infoPii(logMessage);
-            navigateWindow.location.replace(urlNavigate);
+
+            // TODO: IFRAMEDAPPS:
+            if(WindowUtils.isInIframe()) {
+                // posting up to redirect on the iframed app's behalf
+                this.cacheStorage.setItem("urlNavigate", urlNavigate);
+                window.top.postMessage("{redirectRequest: yes}", window.location.href);
+            }
+            else {
+                navigateWindow.location.replace(urlNavigate);
+            }
         }
         else {
             this.logger.info("Navigate url is empty");
