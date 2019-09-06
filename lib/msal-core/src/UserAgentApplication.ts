@@ -239,13 +239,17 @@ export class UserAgentApplication {
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
             // TODO:REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
-            if(WindowUtils.isWindowOnTop() && true) { // replace true with a cache check for onbehalf
+            if(WindowUtils.isWindowOnTop() && this.cacheStorage.getItem("topFrameURI")) { // replace with a cache check for onbehalf that is more apt if needed
                 this.cacheStorage.setItem("iframedAppHash", urlHash);
+                this.cacheStorage.removeItem("topFrameURI");
                 this.navigateWindow(this.cacheStorage.getItem("topFrameURI"));
             }
             else {
                 this.handleAuthenticationResponse(urlHash);
             }
+        }
+        else if (this.cacheStorage.getItem("iframedAppHash")) {
+            this.handleAuthenticationResponse(this.cacheStorage.getItem("iframedAppHash"));
         }
     }
 
