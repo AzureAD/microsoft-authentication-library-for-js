@@ -1081,6 +1081,9 @@ export class UserAgentApplication {
                 }
                 return;
             }
+            else {
+                window.location.hash = "";
+            }
 
             if (!this.redirectCallbacksSet) {
                 // We reached this point too early - cache hash, return and process in handleRedirectCallbacks

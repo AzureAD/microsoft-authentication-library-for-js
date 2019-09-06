@@ -87,7 +87,7 @@ export class WindowUtils {
                 const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
 
                 if (!frameHandle) {
-                    reject();
+                    reject(`Unable to load iframe with name: ${frameName}`);
                     return;
                 }
 
@@ -127,6 +127,10 @@ export class WindowUtils {
                 adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
             } else if (document.body && document.body.insertAdjacentHTML) {
                 document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
+            }
+
+            if (window.frames && window.frames[iframeId]) {
+                adalFrame = window.frames[iframeId];
             }
         }
 
