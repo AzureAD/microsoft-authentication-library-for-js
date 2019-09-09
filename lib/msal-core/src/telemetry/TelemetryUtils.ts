@@ -1,4 +1,4 @@
-import { B2cAuthority } from "../B2cAuthority";
+import { B2cAuthority } from "../authority/B2cAuthority";
 import { AADTrustedHostList } from "../utils/Constants";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";

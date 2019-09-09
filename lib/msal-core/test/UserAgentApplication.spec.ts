@@ -15,7 +15,7 @@ import {
     InteractionRequiredAuthError
 } from "../src/index";
 import sinon from "sinon";
-import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
+import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
 import { Storage } from "../src/Storage";
 import { AccessTokenKey } from "../src/AccessTokenKey";
 import { AccessTokenValue } from "../src/AccessTokenValue";
@@ -1457,7 +1457,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     describe("Popup Flow", function () {
 
-        const oldWindow = window;
+        let oldWindow = window;
 
         beforeEach(function() {
             const config: Configuration = {
