@@ -40,7 +40,7 @@
             console.log(message);
         }
 
-        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: true , navigateToLoginRequestUrl: false});// cacheLocation defaults to sessionStorage if not set in the constructor
+        var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, 'https://login.microsoftonline.com/microsoft.onmicrosoft.com/', authCallback, { cacheLocation: 'localStorage', logger: logger, storeAuthStateInCookie: false , navigateToLoginRequestUrl: false});// cacheLocation defaults to sessionStorage if not set in the constructor
 
         function authCallback(errorDesc, token, error, tokenType) {
             console.log(" token " + token);
