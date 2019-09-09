@@ -113,27 +113,6 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
 export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
 
 /**
- * @hidden
- * @ignore
- * A wrapper to handle the token response/error within the iFrame always
- *
- * @param target
- * @param propertyKey
- * @param descriptor
- */
-const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const tokenAcquisitionMethod = descriptor.value;
-    descriptor.value = function (...args: any[]) {
-        return WindowUtils.isInIframe()
-            ? new Promise(() => {
-                return;
-            })
-            : tokenAcquisitionMethod.apply(this, args);
-    };
-    return descriptor;
-};
-
-/**
  * UserAgentApplication class
  *
  * Object Instance that the developer can use to make loginXX OR acquireTokenXX functions
@@ -567,7 +546,6 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    @resolveTokenOnlyIfOutOfIframe
     acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
