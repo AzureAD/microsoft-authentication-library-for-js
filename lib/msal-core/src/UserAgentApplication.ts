@@ -235,21 +235,24 @@ export class UserAgentApplication {
 
         const urlHash = window.location.hash;
         const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
+        const savedURLHash = this.cacheStorage.getItem("iframedAppHash");
+        const topFrameURI = this.cacheStorage.getItem("topFrameURI");
 
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
             // TODO:REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
-            if(WindowUtils.isWindowOnTop() && this.cacheStorage.getItem("topFrameURI")) { // replace with a cache check for onbehalf that is more apt if needed
+            if(topFrameURI) {
                 this.cacheStorage.setItem("iframedAppHash", urlHash);
                 this.cacheStorage.removeItem("topFrameURI");
-                this.navigateWindow(this.cacheStorage.getItem("topFrameURI"));
+                this.navigateWindow(topFrameURI);
             }
             else {
                 this.handleAuthenticationResponse(urlHash);
             }
         }
-        else if (this.cacheStorage.getItem("iframedAppHash")) {
-            this.handleAuthenticationResponse(this.cacheStorage.getItem("iframedAppHash"));
+        // check if the topframe redirected on the iframed app's behalf
+        else if (WindowUtils.isInIframe() && savedURLHash) {
+            this.handleAuthenticationResponse(savedURLHash);
         }
     }
 
@@ -265,19 +268,20 @@ export class UserAgentApplication {
         if(WindowUtils.isWindowOnTop() ) {
             // acknowlege the redirect on behalf of the iframed app by sending the current location
             if(event.data.redirectRequest) {
-                event.source.postMessage({"topFrameURI": window.location.href}, UrlUtils.getDefaultUri());
+                event.source.postMessage({"topFrameURI": window.location.href});
             }
 
             // redirect on behalf of the iframed app
             if(event.data.urlNavigate) {
+                // add a call back for Parent application's page; get ack
                 this.navigateWindow(event.data.urlNavigate);
             }
         }
 
         // iframed application
         if(WindowUtils.isInIframe()) {
-            // check the origin, should match window.top always
-            if(event.origin != window.top) {
+            // check the origin, should match window.top always; message channel may be more secure
+            if(window.top != event.source) {
                 this.logger.warning("The message origin is not verified");
                 return;
             }
@@ -285,7 +289,7 @@ export class UserAgentApplication {
             // record the ack from the top frame - store the URL
             if(event.data.cacheURL) {
                 this.cacheStorage.setItem("topFrameURI", event.data.topFrameURI);
-                event.source.postMessage({"urlNavigate": this.cacheStorage.getItem("urlNavigate")}, UrlUtils.getDefaultUri());
+                event.source.postMessage({"urlNavigate": this.cacheStorage.getItem("urlNavigate")});
             }
         }
     }
@@ -566,14 +570,23 @@ export class UserAgentApplication {
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
-            // prompt user for interaction
-            this.navigateWindow(urlNavigate, popUpWindow);
-
-            // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
-            if (popUpWindow) {
-                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
-                this.handleAuthenticationResponse(hash);
+            // TODO: IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
+            if(WindowUtils.isInIframe() && !popUpWindow) {
+                // posting up to redirect on the iframed app's behalf
+                this.cacheStorage.setItem("urlNavigate", urlNavigate);
+                window.top.postMessage("{redirectRequest: yes}", window.location.href);
             }
+            else {
+                // prompt user for interaction
+                this.navigateWindow(urlNavigate, popUpWindow);
+
+                // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
+                if (popUpWindow) {
+                    const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+                    this.handleAuthenticationResponse(hash);
+                }
+            }
+
         }).catch((err) => {
             this.logger.warning("could not resolve endpoints");
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
@@ -892,16 +905,7 @@ export class UserAgentApplication {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
             const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
             this.logger.infoPii(logMessage);
-
-            // TODO: IFRAMEDAPPS:
-            if(WindowUtils.isInIframe()) {
-                // posting up to redirect on the iframed app's behalf
-                this.cacheStorage.setItem("urlNavigate", urlNavigate);
-                window.top.postMessage("{redirectRequest: yes}", window.location.href);
-            }
-            else {
-                navigateWindow.location.replace(urlNavigate);
-            }
+            navigateWindow.location.replace(urlNavigate);
         }
         else {
             this.logger.info("Navigate url is empty");
