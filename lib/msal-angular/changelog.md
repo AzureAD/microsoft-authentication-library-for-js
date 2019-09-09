@@ -2,7 +2,7 @@
 
 ## 0.1.4
 * Fix msal-angular to transpile for IE11 compatibility: https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/868
-* Upgrade to msal-core version 0.2.2
+* Upgrade to msal-core version 0.2.2, namely including support for `storeAuthStateInCookie` for IE11.
 
 ## 0.1.3
 * Fix msal-angular exports to properly support IE11: https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/785
