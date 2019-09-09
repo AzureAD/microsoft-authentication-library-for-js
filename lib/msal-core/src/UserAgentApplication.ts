@@ -542,7 +542,9 @@ export class UserAgentApplication {
             // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
             if (popUpWindow) {
                 const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
-                this.handleAuthenticationResponse(hash);
+                if (hash) {
+                    this.handleAuthenticationResponse(hash);
+                }
             }
         }).catch((err) => {
             this.logger.warning("could not resolve endpoints");
@@ -845,7 +847,9 @@ export class UserAgentApplication {
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
         const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
-        this.handleAuthenticationResponse(hash);
+        if (hash) {
+            this.handleAuthenticationResponse(hash);
+        }
     }
 
     // #endregion

@@ -62,6 +62,7 @@ export class WindowUtils {
                     resolve(contentWindow.location.hash);
                 } else if (contentWindow.closed) {
                     clearInterval(intervalId);
+                    resolve();
                 } else if (ticks > maxTicks) {
                     clearInterval(intervalId);
                     reject(ClientAuthError.createTokenRenewalTimeoutError()); // better error?

@@ -4,6 +4,7 @@ import { UrlUtils } from "../../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
+import { Constants } from "../../src/utils/Constants";
 
 describe("UrlUtils.ts class", () => {
 
@@ -17,7 +18,7 @@ describe("UrlUtils.ts class", () => {
     const TEST_SUCCESS_PARAMS = `id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
     const TEST_SUCCESS_HASH_1 = `#${TEST_SUCCESS_PARAMS}`;
     const TEST_SUCCESS_HASH_2 = `#/${TEST_SUCCESS_PARAMS}`;
-    const TEST_URL_NO_HASH = `http://localhost:3000/`;
+    const TEST_URL_NO_HASH = "http://localhost:3000/";
     const TEST_URL_HASH_SINGLE_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_1}`;
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
@@ -46,10 +47,10 @@ describe("UrlUtils.ts class", () => {
     });
 
     it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
-        let scopes = ["S1"];
-        let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+        const scopes = ["S1"];
+        const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
-        let req = new ServerRequestParameters(
+        const req = new ServerRequestParameters(
             authority,
             TEST_CONFIG.MSAL_CLIENT_ID,
             scopes,
@@ -57,11 +58,40 @@ describe("UrlUtils.ts class", () => {
             TEST_URIS.TEST_REDIR_URI,
             TEST_CONFIG.STATE
         );
-        let uriString = UrlUtils.createNavigateUrl(req);
+        const uriString = UrlUtils.createNavigateUrl(req);
 
         expect(req.scopes).to.not.be.equal(scopes);
         expect(req.scopes.length).to.be.eql(3);
         expect(scopes.length).to.be.eql(1);
+    });
+
+    describe("urlContainsHash", () => {
+        it(Constants.errorDescription, () => {
+            const urlString = `http://localhost:3000/#/${Constants.errorDescription}=hello`;
+
+            expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
+        });
+        it(Constants.error, () => {
+            const urlString = `http://localhost:3000/#/${Constants.error}=hello`;
+
+            expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
+        });
+        it(Constants.accessToken, () => {
+            const urlString = `http://localhost:3000/#/${Constants.accessToken}=hello`;
+
+            expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
+        });
+        it(Constants.idToken, () => {
+            const urlString = `http://localhost:3000/#/${Constants.idToken}=hello`;
+
+            expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
+        });
+
+        it("no hash", () => {
+            const urlString = "http://localhost:3000/#/";
+
+            expect(UrlUtils.urlContainsHash(urlString)).to.be.false;
+        });
     });
 
 });
