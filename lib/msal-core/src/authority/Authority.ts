@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { IUri } from "./IUri";
+import { IUri } from "../IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
-import { XhrClient } from "./XHRClient";
-import { UrlUtils } from "./utils/UrlUtils";
+import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { XhrClient } from "../XHRClient";
+import { UrlUtils } from "../utils/UrlUtils";
 
 /**
  * @hidden
@@ -131,15 +131,11 @@ export abstract class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public resolveEndpointsAsync(): Promise<Authority> {
-        let openIdConfigurationEndpoint = "";
-        return this.GetOpenIdConfigurationEndpointAsync().then(openIdConfigurationEndpointResponse => {
-            openIdConfigurationEndpoint = openIdConfigurationEndpointResponse;
-            return this.DiscoverEndpoints(openIdConfigurationEndpoint);
-        }).then((tenantDiscoveryResponse: ITenantDiscoveryResponse) => {
-            this.tenantDiscoveryResponse = tenantDiscoveryResponse;
-            return this;
-        });
+    public async resolveEndpointsAsync(): Promise<Authority> {
+        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpointAsync();
+        this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse);
+
+        return this;
     }
 
     /**

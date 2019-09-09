@@ -32,7 +32,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("createLoginRequiredAuthError creates a ServerError object", () => {
@@ -50,7 +50,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("createInteractionRequiredAuthError creates a ServerError object", () => {
@@ -68,7 +68,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("createConsentRequiredAuthError creates a ServerError object", () => {
@@ -86,7 +86,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("isInteractionRequiredError function correctly detects _required strings", () => {

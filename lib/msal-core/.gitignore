@@ -254,6 +254,9 @@ coverage/
 .idea/
 *.sln.iml
 
+# Istanbul Code Coverage
+.nyc_output/
+
 # MSAL specific ignore files
 node_modules/
 typings/
