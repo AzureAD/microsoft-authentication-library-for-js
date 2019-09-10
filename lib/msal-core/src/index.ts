@@ -3,7 +3,7 @@ export { Logger } from "./Logger";
 export { LogLevel } from "./Logger";
 export { Account } from "./Account";
 export { Constants } from "./utils/Constants";
-export { Authority } from "./Authority";
+export { Authority } from "./authority/Authority";
 export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, Configuration } from "./Configuration";
 export { AuthenticationParameters } from "./AuthenticationParameters";

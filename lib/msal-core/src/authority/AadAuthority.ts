@@ -4,8 +4,8 @@
  */
 
 import { Authority, AuthorityType } from "./Authority";
-import { XhrClient } from "./XHRClient";
-import { AADTrustedHostList } from "./utils/Constants";
+import { XhrClient } from "../XHRClient";
+import { AADTrustedHostList } from "../utils/Constants";
 
 /**
  * @hidden
@@ -29,19 +29,12 @@ export class AadAuthority extends Authority {
      * Returns a promise which resolves to the OIDC endpoint
      * Only responds with the endpoint
      */
-    public GetOpenIdConfigurationEndpointAsync(): Promise<string> {
-        const resultPromise: Promise<string> = new Promise<string>((resolve, reject) =>
-            resolve(this.DefaultOpenIdConfigurationEndpoint));
-
-        if (!this.IsValidationEnabled) {
-            return resultPromise;
+    public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+        if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
+            return this.DefaultOpenIdConfigurationEndpoint;
         }
 
-        const host: string = this.CanonicalAuthorityUrlComponents.HostNameAndPort;
-        if (this.IsInTrustedHostList(host)) {
-            return resultPromise;
-        }
-
+        // for custom domains in AAD where we query the service for the Instance discovery
         const client: XhrClient = new XhrClient();
 
         return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)

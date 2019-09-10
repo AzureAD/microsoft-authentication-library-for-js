@@ -7,9 +7,9 @@ import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
-import { Authority } from "./Authority";
+import { Authority } from "./authority/Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType, libraryVersion } from "./utils/Constants";
+import { Constants, InteractionType, libraryVersion } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { Storage } from "./Storage";
@@ -21,9 +21,9 @@ import { TokenUtils } from "./utils/TokenUtils";
 import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
 import { ResponseUtils } from "./utils/ResponseUtils";
-import { AuthorityFactory } from "./AuthorityFactory";
+import { AuthorityFactory } from "./authority/AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
-import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters } from "./AuthenticationParameters";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { AuthError } from "./error/AuthError";
 import { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -1238,7 +1238,7 @@ export class UserAgentApplication {
                     scopes: accessTokenCacheItem.key.scopes.split(" "),
                     expiresOn: new Date(expired * 1000),
                     account: account,
-                    accountState: aState,
+                    accountState: aState
                 };
                 ResponseUtils.setResponseIdToken(response, idTokenObj);
                 return response;
@@ -1510,13 +1510,8 @@ export class UserAgentApplication {
                         response = ResponseUtils.setResponseIdToken(response, idTokenObj);
                     }
 
-                    // retrieve the authority from cache and replace with tenantID
-                    const authorityKey = Storage.generateAuthorityKey(stateInfo.state);
-                    let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
-
-                    if (!StringUtils.isEmpty(authority)) {
-                        authority = UrlUtils.replaceTenantPath(authority, response.tenantId);
-                    }
+                    // set authority
+                    const authority: string = this.populateAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
 
                     // retrieve client_info - if it is not found, generate the uid and utid from idToken
                     if (hashParams.hasOwnProperty(Constants.clientInfo)) {
@@ -1576,12 +1571,8 @@ export class UserAgentApplication {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }
 
-                    authorityKey = Storage.generateAuthorityKey(stateInfo.state);
-                    let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
-
-                    if (!StringUtils.isEmpty(authority)) {
-                        authority = UrlUtils.replaceTenantPath(authority, idTokenObj.tenantId);
-                    }
+                    // set authority
+                    const authority: string = this.populateAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
 
                     this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
                     response.account = this.account;
@@ -1642,6 +1633,23 @@ export class UserAgentApplication {
         }
         return response;
     }
+
+    /**
+     * Set Authority when saving Token from the hash
+     * @param state
+     * @param inCookie
+     * @param cacheStorage
+     * @param idTokenObj
+     * @param response
+     */
+    private populateAuthority(state: string, inCookie: boolean, cacheStorage: Storage, idTokenObj: IdToken): string {
+        const authorityKey: string = Storage.generateAuthorityKey(state);
+        const cachedAuthority: string = cacheStorage.getItem(authorityKey, inCookie);
+
+        // retrieve the authority from cache and replace with tenantID
+        return StringUtils.isEmpty(cachedAuthority) ? cachedAuthority : UrlUtils.replaceTenantPath(cachedAuthority, idTokenObj.tenantId);
+    }
+
     /* tslint:enable:no-string-literal */
 
     // #endregion

@@ -26,6 +26,7 @@ export class IdToken {
     rawIdToken: string;
     claims: StringDict;
     sid: string;
+    cloudInstance: string;
     /* tslint:disable:no-string-literal */
     constructor(rawIdToken: string) {
         if (StringUtils.isEmpty(rawIdToken)) {
@@ -77,6 +78,10 @@ export class IdToken {
 
                 if (this.claims.hasOwnProperty("sid")) {
                     this.sid = this.claims["sid"];
+                }
+
+                if (this.claims.hasOwnProperty("cloud_instance_host_name")) {
+                    this.cloudInstance = this.claims["cloud_instance_host_name"];
                 }
                 /* tslint:enable:no-string-literal */
             }
