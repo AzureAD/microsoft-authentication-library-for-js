@@ -7,6 +7,7 @@ export class MsalConfig {
     tokenReceivedCallback?: boolean;
     validateAuthority ? = true;
     cacheLocation? = "sessionStorage";
+    storeAuthStateInCookie? = false;
     redirectUri?: string;
     postLogoutRedirectUri?: string;
     logger?: ILoggerCallback;
