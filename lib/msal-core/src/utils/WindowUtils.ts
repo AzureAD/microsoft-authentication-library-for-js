@@ -171,7 +171,7 @@ export class WindowUtils {
      * Find and return the popup with the given hash
      * @ignore
      */
-    static getPopUpWithHash(hash: string) {
+    static getPopUpWithHash(hash: string): Window {
         return WindowUtils.getPopups().find(popup => {
             try {
                 return popup.location.hash === hash;
@@ -186,7 +186,7 @@ export class WindowUtils {
      * Add the popup to the known list of popups
      * @ignore
      */
-    static trackPopup(popup: Window) {
+    static trackPopup(popup: Window): void {
         WindowUtils.getPopups().push(popup);
     }
 
@@ -195,7 +195,7 @@ export class WindowUtils {
      * Close all popups
      * @ignore
      */
-    static closePopups() {
+    static closePopups(): void {
         WindowUtils.getPopups().forEach(popup => popup.close());
     }
 
