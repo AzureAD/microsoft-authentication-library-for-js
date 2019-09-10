@@ -12,7 +12,7 @@ import { ClientInfo } from "./ClientInfo";
 import { Constants, SSOTypes, PromptState, BlacklistedEQParams, InteractionType, libraryVersion } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
-import { Storage } from "./Storage";
+import { AuthStorage } from "./cache/AuthStorage";
 import { Account } from "./Account";
 import { ScopeSet } from "./ScopeSet";
 import { StringUtils } from "./utils/StringUtils";
@@ -155,7 +155,7 @@ export class UserAgentApplication {
     private telemetryManager: TelemetryManager;
 
     // Cache and Account info referred across token grant flow
-    protected cacheStorage: Storage;
+    protected cacheStorage: AuthStorage;
     private account: Account;
 
     // state variables
@@ -239,7 +239,7 @@ export class UserAgentApplication {
 
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
         try {
-            this.cacheStorage = new Storage(this.config.cache.cacheLocation);
+            this.cacheStorage = new AuthStorage(this.config.cache.cacheLocation);
         } catch (e) {
             throw ClientConfigurationError.createInvalidCacheLocationConfigError(this.config.cache.cacheLocation);
         }
@@ -1581,13 +1581,13 @@ export class UserAgentApplication {
             if (stateInfo.requestType === Constants.login) {
                 this.loginInProgress = false;
                 this.cacheStorage.setItem(Constants.loginError, hashParams[Constants.errorDescription] + ":" + hashParams[Constants.error]);
-                authorityKey = Storage.generateAuthorityKey(stateInfo.state);
+                authorityKey = AuthStorage.generateAuthorityKey(stateInfo.state);
             }
 
             // acquireToken
             if (stateInfo.requestType === Constants.renewToken) {
                 this.acquireTokenInProgress = false;
-                authorityKey = Storage.generateAuthorityKey(stateInfo.state);
+                authorityKey = AuthStorage.generateAuthorityKey(stateInfo.state);
 
                 const account: Account = this.getAccount();
                 let accountId;
@@ -1599,7 +1599,7 @@ export class UserAgentApplication {
                     accountId = Constants.no_account;
                 }
 
-                acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
+                acquireTokenAccountKey = AuthStorage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
             }
 
             const {
@@ -1641,7 +1641,7 @@ export class UserAgentApplication {
                     }
 
                     // retrieve the authority from cache and replace with tenantID
-                    const authorityKey = Storage.generateAuthorityKey(stateInfo.state);
+                    const authorityKey = AuthStorage.generateAuthorityKey(stateInfo.state);
                     let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
                     if (!StringUtils.isEmpty(authority)) {
@@ -1666,8 +1666,8 @@ export class UserAgentApplication {
                         accountKey = Constants.no_account;
                     }
 
-                    acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
-                    const acquireTokenAccountKey_noaccount = Storage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
+                    acquireTokenAccountKey = AuthStorage.generateAcquireTokenAccountKey(accountKey, stateInfo.state);
+                    const acquireTokenAccountKey_noaccount = AuthStorage.generateAcquireTokenAccountKey(Constants.no_account, stateInfo.state);
 
                     const cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
                     let acquireTokenAccount: Account;
@@ -1706,7 +1706,7 @@ export class UserAgentApplication {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }
 
-                    authorityKey = Storage.generateAuthorityKey(stateInfo.state);
+                    authorityKey = AuthStorage.generateAuthorityKey(stateInfo.state);
                     let authority: string = this.cacheStorage.getItem(authorityKey, this.inCookie);
 
                     if (!StringUtils.isEmpty(authority)) {
@@ -2218,7 +2218,7 @@ export class UserAgentApplication {
         // Cache acquireTokenAccountKey
         const accountId = account ? this.getAccountId(account) : Constants.no_account;
 
-        const acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, state);
+        const acquireTokenAccountKey = AuthStorage.generateAcquireTokenAccountKey(accountId, state);
         this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
     }
 
@@ -2233,7 +2233,7 @@ export class UserAgentApplication {
      */
     private setAuthorityCache(state: string, authority: string) {
         // Cache authorityKey
-        const authorityKey = Storage.generateAuthorityKey(state);
+        const authorityKey = AuthStorage.generateAuthorityKey(state);
         this.cacheStorage.setItem(authorityKey, UrlUtils.CanonicalizeUri(authority), this.inCookie);
     }
 

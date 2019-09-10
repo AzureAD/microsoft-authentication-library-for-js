@@ -93,8 +93,9 @@ export class Constants {
  * CacheKeys for 'authority' and 'account'
  */
 export const CacheKeys = {
-    AUTHORITY: "msal.authority",
-    ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
+    AUTHORITY: "authority",
+    ACQUIRE_TOKEN_ACCOUNT: "acquireTokenAccount",
+    ADAL_ID_TOKEN: "adal.idtoken"
 };
 
 export const AADTrustedHostList =  {
