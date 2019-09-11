@@ -549,10 +549,12 @@ export class UserAgentApplication {
             else {
                 // prompt user for interaction
                 WindowUtils.navigateWindow(urlNavigate, this.logger, popUpWindow);
+            }
 
-                // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
-                if (popUpWindow) {
-                    const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+            // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
+            if (popUpWindow) {
+                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+                if (hash) {
                     this.handleAuthenticationResponse(hash);
                 }
             }
@@ -857,7 +859,9 @@ export class UserAgentApplication {
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
         const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
-        this.handleAuthenticationResponse(hash);
+        if (hash) {
+            this.handleAuthenticationResponse(hash);
+        }
     }
 
     // #endregion
@@ -1073,6 +1077,9 @@ export class UserAgentApplication {
                     window.location.href = this.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
                 }
                 return;
+            }
+            else {
+                window.location.hash = "";
             }
 
             if (!this.redirectCallbacksSet) {

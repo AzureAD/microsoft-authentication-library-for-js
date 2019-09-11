@@ -220,6 +220,11 @@ export class UrlUtils {
         return urlStringOrFragment;
     }
 
+    /**
+     * @hidden
+     * Check if the url contains a hash with known properties
+     * @ignore
+     */
     static urlContainsHash(urlString: string): boolean {
         const parameters = UrlUtils.deserializeHash(urlString);
         return (
@@ -230,6 +235,11 @@ export class UrlUtils {
         );
     }
 
+    /**
+     * @hidden
+     * Returns deserialized portion of URL hash
+     * @ignore
+     */
     static deserializeHash(urlFragment: string) {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
