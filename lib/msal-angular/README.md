@@ -137,6 +137,7 @@ Besides the required clientID, you can optionally pass the following config opti
                   redirectUri: "http://localhost:4200/",
                   validateAuthority : true,
                   cacheLocation : "localStorage",
+                  storeAuthStateInCookie: false, // dynamically set to true when IE11
                   postLogoutRedirectUri: "http://localhost:4200/",
                   navigateToLoginRequestUrl : true,
                   popUp: true,
@@ -164,6 +165,8 @@ Defaults to `window.location.href`.
 * **validateAuthority** : Validate the issuer of tokens. Default is true.
 
 * **cacheLocation** : Sets browser storage to either `localStorage` or `sessionStorage`. Defaults to `sessionStorage`.
+
+* **storeAuthStateInCookie** : Stores auth state in a browser cookie instead of local storage. Needs to be set to true when a user is on IE11, which may clear local storage contents when redirecting between websites in different zones. Defaults is `false`.
 
 * **postLogoutRedirectUri** : Redirects the user to postLogoutRedirectUri after logout. Defaults is 'redirectUri'.
 
@@ -246,10 +249,27 @@ export const protectedResourceMap:[string, string[]][]=[ ['https://buildtodoserv
 
 In your API project, you need to enable CORS API requests to receive flight requests.
 
-> Note: The Iframe needs to access the cookies for the same domain that you did the initial sign in on. IE does not allow to access cookies in Iframe for localhost. Your URL needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
+#### Internet Explorer support
 
-#### Trusted Site settings in IE
-If you put your site in the trusted site list, cookies are not accessible for Iframe requests. You need to remove protected mode for Internet zone or add the authority URL for the login to the trusted sites as well.
+This library supports Internet Explorer 11 with the following configuration:
+
+- For CORS API calls, the Iframe needs to access the cookies for the same domain that you did the initial sign in on. IE does not allow to access cookies in Iframe for localhost. Your URL needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
+- If you put your site in the trusted site list, cookies are not accessible for Iframe requests. You need to remove protected mode for Internet zone or add the authority URL for the login to the trusted sites as well.
+- IE may clear local storage when navigating between websites in different zones (e.g. your app and the login authority), which results in a broken experience when returning from the login page. To fix, set `storeAuthStateInCookie` to `true`.
+- There are known issues with popups in IE. We recommend using redirect flows by setting `popUp` to `false`.
+
+It is recommended that these properties are set dynamically based on the user's browser.
+
+```js
+const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
+
+MsalModule.forRoot({
+    // ...
+    popUp: !isIE,
+    storeAuthStateInCookie: ieIE
+});
+
+```
 
 ## Samples
 
