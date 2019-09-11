@@ -1457,7 +1457,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     describe("Popup Flow", function () {
 
-        let oldWindow = window;
+        const oldWindow = window;
 
         beforeEach(function() {
             const config: Configuration = {
