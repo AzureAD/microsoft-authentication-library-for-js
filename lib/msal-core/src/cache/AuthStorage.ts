@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
+import { Constants, CacheKeys } from "../utils/Constants";
 import { CacheLocation } from "../Configuration";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
@@ -74,7 +74,7 @@ export class AuthStorage {// Singleton
             let key: string;
             for (key in storage) {
                 if (storage.hasOwnProperty(key)) {
-                    if (key.indexOf(Constants.msal) !== -1) {
+                    if (key.indexOf(CacheKeys.PREFIX) !== -1) {
                         this.removeItem(key);
                     }
                 }

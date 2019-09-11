@@ -8,8 +8,6 @@ import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { AuthStorage } from "./AuthStorage";
 
-const PREFIX = "msal";
-
 /**
  * @hidden
  */
@@ -17,14 +15,47 @@ export class MsalStorage extends AuthStorage {// Singleton
     
     private clientId: string;
     
-    constructor(clientId: string, cacheLocation: CacheLocation) {
+    constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
         this.clientId = clientId;
+        this.migrateCacheEntries(storeAuthStateInCookie);
+    }
+
+    private migrateCacheEntries(storeAuthStateInCookie: boolean) {
+        const idTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.IDTOKEN}`;
+        const clientInfoKey = `${CacheKeys.PREFIX}.${CacheKeys.CLIENT_INFO}`;
+        const errorKey = `${CacheKeys.PREFIX}.${CacheKeys.ERROR}`;
+        const errorDescKey = `${CacheKeys.PREFIX}.${CacheKeys.ERROR_DESC}`;
+        
+        const idTokenValue = super.getItem(idTokenKey);
+        const clientInfoValue = super.getItem(clientInfoKey);
+        const errorValue = super.getItem(errorKey);
+        const errorDescValue = super.getItem(errorDescKey);
+        const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
+        const keysToMigrate = [CacheKeys.IDTOKEN, CacheKeys.CLIENT_INFO, CacheKeys.ERROR, CacheKeys.ERROR_DESC];
+
+        let index = 0;
+        for (const cacheKey in keysToMigrate) {
+            this.replaceCacheEntry(`${CacheKeys.PREFIX}.${cacheKey}`, cacheKey, values[index], storeAuthStateInCookie);
+            index++;
+        }
+    }
+
+    private replaceCacheEntry(oldKey: string, newKey: string, value: string, storeAuthStateInCookie?: boolean) {
+        if (value) {
+            super.removeItem(oldKey);
+            this.setItem(newKey, value, storeAuthStateInCookie);
+        }
     }
 
     // Prepend msal.<client-id> to each key
     private generateCacheKey(key: string): string {
-        return `${PREFIX}.${this.clientId}.${key}`;
+        try {
+            JSON.parse(key);
+            return key;
+        } catch (e) {
+            return `${CacheKeys.PREFIX}.${this.clientId}.${key}`;
+        }
     }
 
     // add value to storage
@@ -94,9 +125,9 @@ export class MsalStorage extends AuthStorage {// Singleton
                         }
                         if (state && !this.tokenRenewalInProgress(state)) {
                             this.removeItem(key);
-                            this.removeItem(Constants.renewStatus + state);
-                            this.removeItem(Constants.stateLogin);
-                            this.removeItem(Constants.stateAcquireToken);
+                            this.removeItem(CacheKeys.RENEW_STATUS + state);
+                            this.removeItem(CacheKeys.STATE_LOGIN);
+                            this.removeItem(CacheKeys.STATE_ACQ_TOKEN);
                             this.setItemCookie(key, "", -1);
                         }
                     }
@@ -109,15 +140,15 @@ export class MsalStorage extends AuthStorage {// Singleton
 
     private tokenRenewalInProgress(stateValue: string): boolean {
         const storage = window[this.cacheLocation];
-        const renewStatus = storage[Constants.renewStatus + stateValue];
+        const renewStatus = storage[CacheKeys.RENEW_STATUS + stateValue];
         return !(!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress);
     }
 
     public clearMsalCookie(): void {
-        this.setItemCookie(Constants.nonceIdToken, "", -1);
-        this.setItemCookie(Constants.stateLogin, "", -1);
-        this.setItemCookie(Constants.loginRequest, "", -1);
-        this.setItemCookie(Constants.stateAcquireToken, "", -1);
+        this.setItemCookie(CacheKeys.NONCE_IDTOKEN, "", -1);
+        this.setItemCookie(CacheKeys.STATE_LOGIN, "", -1);
+        this.setItemCookie(CacheKeys.LOGIN_REQUEST, "", -1);
+        this.setItemCookie(CacheKeys.STATE_ACQ_TOKEN, "", -1);
     }
 
     /**

@@ -10,40 +10,10 @@ import { CacheLocation } from "../Configuration";
  * Constants
  */
 export class Constants {
-    static get errorDescription(): string { return "error_description"; }
-    static get error(): string { return "error"; }
-
-    static get scope(): string { return "scope"; }
-    static get clientInfo(): string { return "client_info"; }
+    static get claims(): string { return "claims"; }
     static get clientId(): string { return "clientId"; }
 
-    static get idToken(): string { return "id_token"; }
     static get adalIdToken(): string { return "adal.idtoken"; }
-    static get accessToken(): string { return "access_token"; }
-    static get expiresIn(): string { return "expires_in"; }
-    static get sessionState(): string { return "session_state"; }
-    static get claims(): string { return "claims"; }
-
-    static get msalClientInfo(): string { return "msal.client.info"; }
-    static get msalError(): string { return "msal.error"; }
-    static get msalErrorDescription(): string { return "msal.error.description"; }
-
-    static get msalSessionState(): string { return "msal.session.state"; }
-    static get tokenKeys(): string { return "msal.token.keys"; }
-    static get accessTokenKey(): string { return "msal.access.token.key"; }
-    static get expirationKey(): string { return "msal.expiration.key"; }
-    static get stateLogin(): string { return "msal.state.login"; }
-    static get stateAcquireToken(): string { return "msal.state.acquireToken"; }
-    static get stateRenew(): string { return "msal.state.renew"; }
-    static get nonceIdToken(): string { return "msal.nonce.idtoken"; }
-    static get userName(): string { return "msal.username"; }
-    static get idTokenKey(): string { return "msal.idtoken"; }
-    static get loginRequest(): string { return "msal.login.request"; }
-    static get loginError(): string { return "msal.login.error"; }
-    static get renewStatus(): string { return "msal.token.renew.status"; }
-    static get urlHash(): string { return "msal.urlHash"; }
-    static get angularLoginRequest(): string { return "msal.angular.login.request"; }
-    static get msal(): string { return "msal"; }
 
     static get no_account(): string { return "NO_ACCOUNT"; }
     static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
@@ -89,13 +59,42 @@ export class Constants {
 }
 
 /**
+ * Keys in the hashParams
+ */
+export const ServerHashParamKeys = {
+    scope: "scope",
+    errorDescription: "error_description",
+    error: "error",
+    accessToken: "access_token",
+    idToken: "id_token",
+    expiresIn: "expires_in",
+    sessionState: "session_state",
+    clientInfo: "client_info"
+};
+
+/**
  * @hidden
  * CacheKeys for 'authority' and 'account'
  */
 export const CacheKeys = {
+    PREFIX: "msal",
     AUTHORITY: "authority",
     ACQUIRE_TOKEN_ACCOUNT: "acquireTokenAccount",
-    ADAL_ID_TOKEN: "adal.idtoken"
+    ADAL_ID_TOKEN: "adal.idtoken",
+    CLIENT_INFO: "client.info",
+    ERROR: "error",
+    ERROR_DESC: "error.description",
+    LOGIN_ERROR: "login.error",
+    SESSION_STATE: "session.state",
+    STATE_LOGIN: "state.login",
+    STATE_ACQ_TOKEN: "state.acquireToken",
+    STATE_RENEW: "state.renew",
+    NONCE_IDTOKEN: "nonce.idtoken",
+    IDTOKEN: "idtoken",
+    LOGIN_REQUEST: "login.request",
+    RENEW_STATUS: "token.renew.status",
+    URL_HASH: "urlHash",
+    ANGULAR_LOGIN_REQUEST: "angular.login.request"
 };
 
 export const AADTrustedHostList =  {
