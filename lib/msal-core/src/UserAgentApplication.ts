@@ -542,9 +542,7 @@ export class UserAgentApplication {
 
             // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
             if(WindowUtils.isInIframe() && !popUpWindow) {
-                // posting up to redirect on the iframed app's behalf
-                this.messageCache.write(message_content.URL_NAVIGATE, urlNavigate);
-                window.top.postMessage("{redirectRequest: yes}", window.location.href);
+                MessageHelper.redirectDelegationRequest(this.messageCache, urlNavigate);
             }
             else {
                 // prompt user for interaction
