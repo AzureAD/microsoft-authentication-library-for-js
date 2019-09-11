@@ -32,6 +32,9 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
+import { message_content, MessageHelper } from "./message/MessageHelper";
+import { MessageCache } from "./message/MessageCache";
+import { MessageListener } from "./message/MessageListener";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -144,6 +147,10 @@ export class UserAgentApplication {
     private silentLogin: boolean;
     private redirectCallbacksSet: boolean;
 
+    // message interface
+    private messageCache: MessageCache;
+    private messageListener: MessageListener;
+
     // Authority Functionality
     protected authorityInstance: Authority;
 
@@ -223,8 +230,9 @@ export class UserAgentApplication {
             throw ClientConfigurationError.createInvalidCacheLocationConfigError(this.config.cache.cacheLocation);
         }
 
-        // TODO:REDIRECT_IFRAMES: Listener
-        window.addEventListener("message", this.receiveMessage, false);
+        // initialize the message interface
+        this.messageCache = new MessageCache(this.cacheStorage);
+        this.messageListener = new MessageListener(this.messageCache, this.logger);
 
         // Initialize window handling code
         window.activeRenewals = {};
@@ -235,62 +243,24 @@ export class UserAgentApplication {
 
         const urlHash = window.location.hash;
         const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
-        const savedURLHash = this.cacheStorage.getItem("iframedAppHash");
-        const topFrameURI = this.cacheStorage.getItem("topFrameURI");
+
+        // read the hash stored through the topframe in redirect by delegation flow
+        const urlTopFrame = this.messageCache.read(message_content.URL_TOP_FRAME);
+        const savedUrlHash = this.messageCache.read(message_content.URL_HASH);
 
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
-            // TODO:REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
-            if(topFrameURI) {
-                this.cacheStorage.setItem("iframedAppHash", urlHash);
-                this.cacheStorage.removeItem("topFrameURI");
-                this.navigateWindow(topFrameURI);
+            // REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
+            if(urlTopFrame) {
+                MessageHelper.handleTopFrameRedirect(this.messageCache, urlTopFrame, urlHash, this.logger);
             }
             else {
                 this.handleAuthenticationResponse(urlHash);
             }
         }
-        // check if the topframe redirected on the iframed app's behalf
-        else if (WindowUtils.isInIframe() && savedURLHash) {
-            this.handleAuthenticationResponse(savedURLHash);
-        }
-    }
-
-    /**
-     * TODO:REDIRECT_IFRAMES: Parse the messages
-     * This will be a unique handler per message, we will allow only one active request at a time
-     * @param event
-     */
-    private receiveMessage(event: any) {
-        // parse event.data
-
-        // topframed application
-        if(WindowUtils.isWindowOnTop() ) {
-            // acknowlege the redirect on behalf of the iframed app by sending the current location
-            if(event.data.redirectRequest) {
-                event.source.postMessage({"topFrameURI": window.location.href});
-            }
-
-            // redirect on behalf of the iframed app
-            if(event.data.urlNavigate) {
-                // add a call back for Parent application's page; get ack
-                this.navigateWindow(event.data.urlNavigate);
-            }
-        }
-
-        // iframed application
-        if(WindowUtils.isInIframe()) {
-            // check the origin, should match window.top always; message channel may be more secure
-            if(window.top != event.source) {
-                this.logger.warning("The message origin is not verified");
-                return;
-            }
-
-            // record the ack from the top frame - store the URL
-            if(event.data.cacheURL) {
-                this.cacheStorage.setItem("topFrameURI", event.data.topFrameURI);
-                event.source.postMessage({"urlNavigate": this.cacheStorage.getItem("urlNavigate")});
-            }
+        // REDIRECT_IFRAMES: check if the topframe redirected on the iframed app's behalf
+        else if (WindowUtils.isInIframe() && savedUrlHash) {
+            this.handleAuthenticationResponse(savedUrlHash);
         }
     }
 
@@ -570,15 +540,15 @@ export class UserAgentApplication {
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
-            // TODO: IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
+            // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
             if(WindowUtils.isInIframe() && !popUpWindow) {
                 // posting up to redirect on the iframed app's behalf
-                this.cacheStorage.setItem("urlNavigate", urlNavigate);
+                this.messageCache.write(message_content.URL_NAVIGATE, urlNavigate);
                 window.top.postMessage("{redirectRequest: yes}", window.location.href);
             }
             else {
                 // prompt user for interaction
-                this.navigateWindow(urlNavigate, popUpWindow);
+                WindowUtils.navigateWindow(urlNavigate, this.logger, popUpWindow);
 
                 // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
                 if (popUpWindow) {
@@ -896,25 +866,6 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * Used to redirect the browser to the STS authorization endpoint
-     * @param {string} urlNavigate - URL of the authorization endpoint
-     */
-    private navigateWindow(urlNavigate: string, popupWindow?: Window) {
-        // Navigate if valid URL
-        if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
-            const navigateWindow: Window = popupWindow ? popupWindow : window;
-            const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
-            this.logger.infoPii(logMessage);
-            navigateWindow.location.replace(urlNavigate);
-        }
-        else {
-            this.logger.info("Navigate url is empty");
-            throw AuthError.createUnexpectedError("Navigate url is empty");
-        }
-    }
-
-    /**
-     * @hidden
      * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
      * @param {string} expectedState - Unique state identifier (guid).
      * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
@@ -981,7 +932,7 @@ export class UserAgentApplication {
             const urlNavigate = authority.EndSessionEndpoint
                 ? `${authority.EndSessionEndpoint}?${logout}`
                 : `${this.authority}oauth2/v2.0/logout?${logout}`;
-            this.navigateWindow(urlNavigate);
+            WindowUtils.navigateWindow(urlNavigate, this.logger);
         });
     }
 
