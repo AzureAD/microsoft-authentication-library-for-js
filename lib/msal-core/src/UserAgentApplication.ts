@@ -258,7 +258,7 @@ export class UserAgentApplication {
                 this.handleAuthenticationResponse(urlHash);
             }
         }
-        // REDIRECT_IFRAMES: check if the topframe redirected on the iframed app's behalf
+        // REDIRECT_IFRAMES: Handle the auth response on reload if the topframe redirected on the iframed app's behalf and saved the hash
         else if (WindowUtils.isInIframe() && savedUrlHash) {
             this.handleAuthenticationResponse(savedUrlHash);
         }
