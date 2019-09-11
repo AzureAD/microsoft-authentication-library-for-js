@@ -32,9 +32,9 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
-import { message_content, MessageHelper } from "./message/MessageHelper";
-import { MessageCache } from "./message/MessageCache";
-import { MessageListener } from "./message/MessageListener";
+import { message_content, MessageHelper } from "./messaging/MessageHelper";
+import { MessageCache } from "./messaging/MessageCache";
+import { MessageListener } from "./messaging/MessageListener";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
