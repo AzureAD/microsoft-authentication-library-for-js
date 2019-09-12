@@ -34,11 +34,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [CacheKeys.IDTOKEN, CacheKeys.CLIENT_INFO, CacheKeys.ERROR, CacheKeys.ERROR_DESC];
 
-        let index = 0;
-        for (const cacheKey in keysToMigrate) {
-            this.replaceCacheEntry(`${CacheKeys.PREFIX}.${cacheKey}`, cacheKey, values[index], storeAuthStateInCookie);
-            index++;
-        }
+        keysToMigrate.forEach((cacheKey, index) => this.replaceCacheEntry(`${CacheKeys.PREFIX}.${cacheKey}`, cacheKey, values[index], storeAuthStateInCookie));
     }
 
     private replaceCacheEntry(oldKey: string, newKey: string, value: string, storeAuthStateInCookie?: boolean) {
