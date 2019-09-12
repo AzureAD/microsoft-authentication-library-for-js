@@ -6,12 +6,12 @@
 import { Constants, CacheKeys } from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
-import { AuthStorage } from "./AuthStorage";
+import { BrowserStorage } from "./BrowserStorage";
 
 /**
  * @hidden
  */
-export class MsalStorage extends AuthStorage {// Singleton
+export class AuthCache extends BrowserStorage {// Singleton
     
     private clientId: string;
     

@@ -10,27 +10,27 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 /**
  * @hidden
  */
-export class AuthStorage {// Singleton
+export class BrowserStorage {// Singleton
 
-    private static instance: AuthStorage;
+    private static instance: BrowserStorage;
     private localStorageSupported: boolean;
     private sessionStorageSupported: boolean;
     protected cacheLocation: CacheLocation;
 
     constructor(cacheLocation: CacheLocation) {
-        if (AuthStorage.instance) {
-            return AuthStorage.instance;
+        if (BrowserStorage.instance) {
+            return BrowserStorage.instance;
         }
 
         this.cacheLocation = cacheLocation;
         this.localStorageSupported = typeof window[this.cacheLocation] !== "undefined" && window[this.cacheLocation] != null;
         this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-        AuthStorage.instance = this;
+        BrowserStorage.instance = this;
         if (!this.localStorageSupported && !this.sessionStorageSupported) {
             throw ClientConfigurationError.createNoStorageSupportedError();
         }
 
-        return AuthStorage.instance;
+        return BrowserStorage.instance;
     }
 
     // add value to storage

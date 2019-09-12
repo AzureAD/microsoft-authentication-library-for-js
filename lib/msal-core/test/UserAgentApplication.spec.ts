@@ -16,7 +16,7 @@ import {
 } from "../src/index";
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
-import { MsalStorage } from "../src/cache/MsalStorage";
+import { AuthCache } from "../src/cache/AuthCache";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
 import { SSOTypes, CacheKeys, ServerHashParamKeys } from "../src/utils/Constants";
@@ -103,7 +103,7 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(ServerRequestParameters.prototype, <any>"addSSOParameter").returns(params);
     };
 
-    let cacheStorage: MsalStorage;
+    let cacheStorage: AuthCache;
     let accessTokenKey : AccessTokenKey;
     let accessTokenValue : AccessTokenValue;
     let account : Account;
@@ -646,7 +646,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("Different Callback Signatures", function () {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -710,7 +710,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("Cache Storage Unit Tests", function () {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1020,7 +1020,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("Processing Authentication Responses", function() {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1115,7 +1115,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests that expiresIn returns the correct date for access tokens", function (done) {
             sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
-            let acquireTokenAccountKey = MsalStorage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             let successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
             cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
@@ -1135,7 +1135,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that expiresIn returns the correct date for id tokens", function (done) {
-            let acquireTokenAccountKey = MsalStorage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             let successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
@@ -1157,7 +1157,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("InteractionRequired Error Types", function () {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1280,7 +1280,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("Logout functionality", function () {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1377,7 +1377,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("State Handling", function () {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1413,7 +1413,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("Cache Location", function () {
 
         beforeEach(function () {
-            cacheStorage = new MsalStorage(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             setAuthInstanceStubs();
             setTestCacheItems();
         });

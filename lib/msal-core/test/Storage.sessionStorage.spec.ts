@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { AuthStorage } from "../src/cache/AuthStorage";
-import { MsalStorage } from "../src/cache/MsalStorage";
+import { BrowserStorage } from "../src/cache/BrowserStorage";
+import { AuthCache } from "../src/cache/AuthCache";
 import { Constants } from "../src";
 import { CacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
@@ -14,7 +14,7 @@ describe("CacheStorage.ts Class - Session Storage", function () {
     let TEST_ACCOUNT_ID = "1234";
     let TEST_STATE = "state5678";
     let TEST_STATE2 = "state9012";
-    let cacheStorage : AuthStorage;
+    let cacheStorage : BrowserStorage;
     let ACCESS_TOKEN_KEY : AccessTokenKey;
     let ACCESS_TOKEN_VALUE : AccessTokenValue;
     let ACCOUNT : Account;
@@ -60,7 +60,7 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         });
 
         it("parses the cache location correctly", function () {
-            cacheStorage = new AuthStorage("sessionStorage");
+            cacheStorage = new BrowserStorage("sessionStorage");
             sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             cacheStorage.setItem(TEST_KEY, TEST_VALUE);
             expect(window.sessionStorage.getItem(TEST_KEY)).to.be.eq(TEST_VALUE);
@@ -72,8 +72,8 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         });
 
         it("uses previous storage instance if one already exists", function () {
-            let oldCacheStorage = new AuthStorage(Constants.cacheLocationSession);
-            cacheStorage = new AuthStorage(Constants.cacheLocationLocal);
+            let oldCacheStorage = new BrowserStorage(Constants.cacheLocationSession);
+            cacheStorage = new BrowserStorage(Constants.cacheLocationLocal);
             expect(cacheStorage).to.deep.eq(oldCacheStorage);
         });
 
@@ -82,7 +82,7 @@ describe("CacheStorage.ts Class - Session Storage", function () {
     describe("sessionStorage access functions", function () {
 
         beforeEach(function () {
-            cacheStorage = new AuthStorage("sessionStorage");
+            cacheStorage = new BrowserStorage("sessionStorage");
             sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             setTestCacheItems();
         });
@@ -172,10 +172,10 @@ describe("CacheStorage.ts Class - Session Storage", function () {
 
     describe("MSAL Cache Item Management", function () {
 
-        let msalCacheStorage: MsalStorage;
+        let msalCacheStorage: AuthCache;
 
         beforeEach(function () {
-            msalCacheStorage = new MsalStorage(MSAL_CLIENT_ID, "sessionStorage", true);
+            msalCacheStorage = new AuthCache(MSAL_CLIENT_ID, "sessionStorage", true);
             sinon.stub(cacheStorage, <any>"cacheLocation").value("sessionStorage");
             setTestCacheItems();
         });
@@ -219,8 +219,8 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         });
 
         it("removeAcquireTokenEntries removes any acquireToken or authorityKey entries in the cache", function () {
-            let acquireTokenAccountKey = MsalStorage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
-            let authorityKey = MsalStorage.generateAuthorityKey(TEST_STATE);
+            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
+            let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
             window.sessionStorage.setItem(acquireTokenAccountKey, JSON.stringify(ACCOUNT));
             window.sessionStorage.setItem(authorityKey, validAuthority);
 
@@ -234,11 +234,11 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         });
 
         it("removeAcquireTokenEntries removes specific acquireToken or authorityKey entries in the cache", function () {
-            let acquireTokenAccountKey = MsalStorage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
-            let authorityKey = MsalStorage.generateAuthorityKey(TEST_STATE);
+            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
+            let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
 
-            let acquireTokenAccountKey2 = MsalStorage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE2);
-            let authorityKey2 = MsalStorage.generateAuthorityKey(TEST_STATE2);
+            let acquireTokenAccountKey2 = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE2);
+            let authorityKey2 = AuthCache.generateAuthorityKey(TEST_STATE2);
             window.sessionStorage.setItem(acquireTokenAccountKey, JSON.stringify(ACCOUNT));
             window.sessionStorage.setItem(authorityKey, validAuthority);
             window.sessionStorage.setItem(acquireTokenAccountKey2, JSON.stringify(ACCOUNT));
@@ -280,14 +280,14 @@ describe("CacheStorage.ts Class - Session Storage", function () {
     describe("static key generators", function () {
 
         it("generates acquireToken account key", function () {
-            let acquireTokenAccountKey = MsalStorage.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
+            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             expect(acquireTokenAccountKey).to.include(TEST_ACCOUNT_ID);
             expect(acquireTokenAccountKey).to.include(TEST_STATE);
             expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_ACCOUNT);
         });
 
         it("generates authority key", function () {
-            let authorityKey = MsalStorage.generateAuthorityKey(TEST_STATE);
+            let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
             expect(authorityKey).to.include(TEST_STATE);
             expect(authorityKey).to.include(CacheKeys.AUTHORITY);
         });
