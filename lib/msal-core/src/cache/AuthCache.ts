@@ -141,10 +141,10 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     public clearMsalCookie(): void {
-        this.setItemCookie(CacheKeys.NONCE_IDTOKEN, "", -1);
-        this.setItemCookie(CacheKeys.STATE_LOGIN, "", -1);
-        this.setItemCookie(CacheKeys.LOGIN_REQUEST, "", -1);
-        this.setItemCookie(CacheKeys.STATE_ACQ_TOKEN, "", -1);
+        this.clearItemCookie(CacheKeys.NONCE_IDTOKEN);
+        this.clearItemCookie(CacheKeys.STATE_LOGIN);
+        this.clearItemCookie(CacheKeys.LOGIN_REQUEST);
+        this.clearItemCookie(CacheKeys.STATE_ACQ_TOKEN);
     }
 
     /**

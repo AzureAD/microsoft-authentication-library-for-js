@@ -94,6 +94,10 @@ export class BrowserStorage {// Singleton
         return "";
     }
 
+    clearItemCookie(cName: string) {
+        this.setItemCookie(cName, "", -1);
+    }
+
     getCookieExpirationTime(cookieLifeDays: number): string {
         const today = new Date();
         const expr = new Date(today.getTime() + cookieLifeDays * 24 * 60 * 60 * 1000);
