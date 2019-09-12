@@ -7,6 +7,10 @@ export const AuthErrorMessage = {
     unexpectedError: {
         code: "unexpected_error",
         desc: "Unexpected error in authentication."
+    },
+    noWindowObjectError: {
+        code: "no_window_object",
+        desc: "No window object available. Details:"
     }
 };
 
@@ -29,5 +33,9 @@ export class AuthError extends Error {
 
     static createUnexpectedError(errDesc: string) {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
+    }
+
+    static createNoWindowObjectError(errDesc: string) {
+        return new AuthError(AuthErrorMessage.noWindowObjectError.code, `${AuthErrorMessage.noWindowObjectError.desc} ${errDesc}`);
     }
 }

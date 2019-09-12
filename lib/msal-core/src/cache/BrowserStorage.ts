@@ -6,38 +6,34 @@
 import { Constants, CacheKeys } from "../utils/Constants";
 import { CacheLocation } from "../Configuration";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { AuthError } from "../error/AuthError";
 
 /**
  * @hidden
  */
 export class BrowserStorage {// Singleton
 
-    private static instance: BrowserStorage;
     private localStorageSupported: boolean;
     private sessionStorageSupported: boolean;
     protected cacheLocation: CacheLocation;
 
     constructor(cacheLocation: CacheLocation) {
-        if (BrowserStorage.instance) {
-            return BrowserStorage.instance;
+        if (!window) {
+            throw AuthError.createNoWindowObjectError("Browser storage class could not find window object");
         }
 
         this.cacheLocation = cacheLocation;
         this.localStorageSupported = typeof window[this.cacheLocation] !== "undefined" && window[this.cacheLocation] != null;
         this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-        BrowserStorage.instance = this;
+
         if (!this.localStorageSupported && !this.sessionStorageSupported) {
             throw ClientConfigurationError.createNoStorageSupportedError();
         }
-
-        return BrowserStorage.instance;
     }
 
     // add value to storage
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
-        if (window[this.cacheLocation]) {
-            window[this.cacheLocation].setItem(key, value);
-        }
+        window[this.cacheLocation].setItem(key, value);
         if (enableCookieStorage) {
             this.setItemCookie(key, value);
         }
@@ -48,35 +44,26 @@ export class BrowserStorage {// Singleton
         if (enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
         }
-        if (window[this.cacheLocation]) {
-            return window[this.cacheLocation].getItem(key);
-        }
-        return null;
+        return window[this.cacheLocation].getItem(key);
     }
 
     // remove value from storage
     removeItem(key: string): void {
-        if (window[this.cacheLocation]) {
-            return window[this.cacheLocation].removeItem(key);
-        }
+        return window[this.cacheLocation].removeItem(key);
     }
 
     // clear storage (remove all items from it)
     clear(): void {
-        if (window[this.cacheLocation]) {
-            return window[this.cacheLocation].clear();
-        }
+        return window[this.cacheLocation].clear();
     }
 
     resetCacheItems(): void {
         const storage = window[this.cacheLocation];
-        if (storage) {
-            let key: string;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if (key.indexOf(CacheKeys.PREFIX) !== -1) {
-                        this.removeItem(key);
-                    }
+        let key: string;
+        for (key in storage) {
+            if (storage.hasOwnProperty(key)) {
+                if (key.indexOf(CacheKeys.PREFIX) !== -1) {
+                    this.removeItem(key);
                 }
             }
         }
