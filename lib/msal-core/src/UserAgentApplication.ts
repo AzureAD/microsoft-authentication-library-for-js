@@ -1064,10 +1064,10 @@ export class UserAgentApplication {
     private urlContainsHash(urlString: string): boolean {
         const parameters = this.deserializeHash(urlString);
         return (
-            parameters.hasOwnProperty(ServerHashParamKeys.errorDescription) ||
-            parameters.hasOwnProperty(ServerHashParamKeys.error) ||
-            parameters.hasOwnProperty(ServerHashParamKeys.accessToken) ||
-            parameters.hasOwnProperty(ServerHashParamKeys.idToken)
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)
         );
     }
 
@@ -1106,10 +1106,10 @@ export class UserAgentApplication {
                     } else {
                         this.logger.verbose("acquiring token interactive in progress");
                     }
-                    response.tokenType = ServerHashParamKeys.accessToken;
+                    response.tokenType = ServerHashParamKeys.ACCESS_TOKEN;
                 }
                 else if (stateInfo.requestType === Constants.login) {
-                    response.tokenType = ServerHashParamKeys.idToken;
+                    response.tokenType = ServerHashParamKeys.ID_TOKEN;
                 }
                 if (!parentCallback) {
                     this.authResponseHandler(Constants.interactionTypeRedirect, response);
@@ -1363,7 +1363,7 @@ export class UserAgentApplication {
                 const response : AuthResponse = {
                     uniqueId: "",
                     tenantId: "",
-                    tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? ServerHashParamKeys.idToken : ServerHashParamKeys.accessToken,
+                    tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? ServerHashParamKeys.ID_TOKEN : ServerHashParamKeys.ACCESS_TOKEN,
                     idToken: idTokenObj,
                     idTokenClaims: idTokenObj.claims,
                     accessToken: accessTokenCacheItem.value.accessToken,
@@ -1490,9 +1490,9 @@ export class UserAgentApplication {
         let expiration: number;
 
         // if the response contains "scope"
-        if (parameters.hasOwnProperty(ServerHashParamKeys.scope)) {
+        if (parameters.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
             // read the scopes
-            scope = parameters[ServerHashParamKeys.scope];
+            scope = parameters[ServerHashParamKeys.SCOPE];
             const consentedScopes = scope.split(" ");
 
             // retrieve all access tokens from the cache, remove the dup scores
@@ -1510,14 +1510,14 @@ export class UserAgentApplication {
             }
 
             // Generate and cache accessTokenKey and accessTokenValue
-            const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.expiresIn]);
+            const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
             expiration = TimeUtils.now() + expiresIn;
             const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.accessToken], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
+            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
-            accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.accessToken];
+            accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
             accessTokenResponse.scopes = consentedScopes;
         }
         // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
@@ -1527,10 +1527,10 @@ export class UserAgentApplication {
             // Generate and cache accessTokenKey and accessTokenValue
             const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
             expiration = Number(idTokenObj.expiration);
-            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.idToken], parameters[ServerHashParamKeys.idToken], expiration.toString(), clientInfo);
+            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo);
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenResponse.scopes = [scope];
-            accessTokenResponse.accessToken = parameters[ServerHashParamKeys.idToken];
+            accessTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
         }
 
         if (expiration) {
@@ -1572,15 +1572,15 @@ export class UserAgentApplication {
         let idTokenObj: IdToken = null;
 
         // If server returns an error
-        if (hashParams.hasOwnProperty(ServerHashParamKeys.errorDescription) || hashParams.hasOwnProperty(ServerHashParamKeys.error)) {
-            this.logger.infoPii("Error :" + hashParams[ServerHashParamKeys.error] + "; Error description:" + hashParams[ServerHashParamKeys.errorDescription]);
-            this.cacheStorage.setItem(CacheKeys.ERROR, hashParams[ServerHashParamKeys.error]);
-            this.cacheStorage.setItem(CacheKeys.ERROR_DESC, hashParams[ServerHashParamKeys.errorDescription]);
+        if (hashParams.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) || hashParams.hasOwnProperty(ServerHashParamKeys.ERROR)) {
+            this.logger.infoPii("Error :" + hashParams[ServerHashParamKeys.ERROR] + "; Error description:" + hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
+            this.cacheStorage.setItem(CacheKeys.ERROR, hashParams[ServerHashParamKeys.ERROR]);
+            this.cacheStorage.setItem(CacheKeys.ERROR_DESC, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
 
             // login
             if (stateInfo.requestType === Constants.login) {
                 this.loginInProgress = false;
-                this.cacheStorage.setItem(CacheKeys.LOGIN_ERROR, hashParams[ServerHashParamKeys.errorDescription] + ":" + hashParams[ServerHashParamKeys.error]);
+                this.cacheStorage.setItem(CacheKeys.LOGIN_ERROR, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION] + ":" + hashParams[ServerHashParamKeys.ERROR]);
                 authorityKey = AuthCache.generateAuthorityKey(stateInfo.state);
             }
 
@@ -1603,14 +1603,14 @@ export class UserAgentApplication {
             }
 
             const {
-                [ServerHashParamKeys.error]: hashErr,
-                [ServerHashParamKeys.errorDescription]: hashErrDesc
+                [ServerHashParamKeys.ERROR]: hashErr,
+                [ServerHashParamKeys.ERROR_DESCRIPTION]: hashErrDesc
             } = hashParams;
             if (InteractionRequiredAuthError.isInteractionRequiredError(hashErr) ||
         InteractionRequiredAuthError.isInteractionRequiredError(hashErrDesc)) {
-                error = new InteractionRequiredAuthError(hashParams[ServerHashParamKeys.error], hashParams[ServerHashParamKeys.errorDescription]);
+                error = new InteractionRequiredAuthError(hashParams[ServerHashParamKeys.ERROR], hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
             } else {
-                error = new ServerError(hashParams[ServerHashParamKeys.error], hashParams[ServerHashParamKeys.errorDescription]);
+                error = new ServerError(hashParams[ServerHashParamKeys.ERROR], hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
             }
         }
         // If the server returns "Success"
@@ -1618,21 +1618,21 @@ export class UserAgentApplication {
             // Verify the state from redirect and record tokens to storage if exists
             if (stateInfo.stateMatch) {
                 this.logger.info("State is right");
-                if (hashParams.hasOwnProperty(ServerHashParamKeys.sessionState)) {
-                    this.cacheStorage.setItem(CacheKeys.SESSION_STATE, hashParams[ServerHashParamKeys.sessionState]);
+                if (hashParams.hasOwnProperty(ServerHashParamKeys.SESSION_STATE)) {
+                    this.cacheStorage.setItem(CacheKeys.SESSION_STATE, hashParams[ServerHashParamKeys.SESSION_STATE]);
                 }
                 response.accountState = this.getAccountState(stateInfo.state);
 
                 let clientInfo: string = "";
 
                 // Process access_token
-                if (hashParams.hasOwnProperty(ServerHashParamKeys.accessToken)) {
+                if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
                     this.logger.info("Fragment has access token");
                     this.acquireTokenInProgress = false;
 
                     // retrieve the id_token from response if present
-                    if (hashParams.hasOwnProperty(ServerHashParamKeys.idToken)) {
-                        idTokenObj = new IdToken(hashParams[ServerHashParamKeys.idToken]);
+                    if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
+                        idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
                         response.idToken = idTokenObj;
                         response.idTokenClaims = idTokenObj.claims;
                     } else {
@@ -1649,8 +1649,8 @@ export class UserAgentApplication {
                     }
 
                     // retrieve client_info - if it is not found, generate the uid and utid from idToken
-                    if (hashParams.hasOwnProperty(ServerHashParamKeys.clientInfo)) {
-                        clientInfo = hashParams[ServerHashParamKeys.clientInfo];
+                    if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
+                        clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                         throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
@@ -1690,18 +1690,18 @@ export class UserAgentApplication {
                 }
 
                 // Process id_token
-                if (hashParams.hasOwnProperty(ServerHashParamKeys.idToken)) {
+                if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
                     this.logger.info("Fragment has id token");
 
                     // login no longer in progress
                     this.loginInProgress = false;
 
                     // set the idToken
-                    idTokenObj = new IdToken(hashParams[ServerHashParamKeys.idToken]);
+                    idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
 
                     response = ResponseUtils.setResponseIdToken(response, idTokenObj);
-                    if (hashParams.hasOwnProperty(ServerHashParamKeys.clientInfo)) {
-                        clientInfo = hashParams[ServerHashParamKeys.clientInfo];
+                    if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
+                        clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }
@@ -1726,7 +1726,7 @@ export class UserAgentApplication {
                         }
                         // Save the token
                         else {
-                            this.cacheStorage.setItem(CacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.idToken]);
+                            this.cacheStorage.setItem(CacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
                             this.cacheStorage.setItem(CacheKeys.CLIENT_INFO, clientInfo);
 
                             // Save idToken as access token for app itself

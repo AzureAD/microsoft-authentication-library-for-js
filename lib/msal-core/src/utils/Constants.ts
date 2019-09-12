@@ -61,40 +61,40 @@ export class Constants {
 /**
  * Keys in the hashParams
  */
-export const ServerHashParamKeys = {
-    scope: "scope",
-    errorDescription: "error_description",
-    error: "error",
-    accessToken: "access_token",
-    idToken: "id_token",
-    expiresIn: "expires_in",
-    sessionState: "session_state",
-    clientInfo: "client_info"
+export enum ServerHashParamKeys {
+    SCOPE = "scope",
+    ERROR = "error",
+    ERROR_DESCRIPTION = "error_description",
+    ACCESS_TOKEN = "access_token",
+    ID_TOKEN = "id_token",
+    EXPIRES_IN = "expires_in",
+    SESSION_STATE = "session_state",
+    CLIENT_INFO = "client_info"
 };
 
 /**
  * @hidden
  * CacheKeys for 'authority' and 'account'
  */
-export const CacheKeys = {
-    PREFIX: "msal",
-    AUTHORITY: "authority",
-    ACQUIRE_TOKEN_ACCOUNT: "acquireTokenAccount",
-    ADAL_ID_TOKEN: "adal.idtoken",
-    CLIENT_INFO: "client.info",
-    ERROR: "error",
-    ERROR_DESC: "error.description",
-    LOGIN_ERROR: "login.error",
-    SESSION_STATE: "session.state",
-    STATE_LOGIN: "state.login",
-    STATE_ACQ_TOKEN: "state.acquireToken",
-    STATE_RENEW: "state.renew",
-    NONCE_IDTOKEN: "nonce.idtoken",
-    IDTOKEN: "idtoken",
-    LOGIN_REQUEST: "login.request",
-    RENEW_STATUS: "token.renew.status",
-    URL_HASH: "urlHash",
-    ANGULAR_LOGIN_REQUEST: "angular.login.request"
+export enum CacheKeys {
+    PREFIX = "msal",
+    AUTHORITY = "authority",
+    ACQUIRE_TOKEN_ACCOUNT = "acquireTokenAccount",
+    ADAL_ID_TOKEN = "adal.idtoken",
+    CLIENT_INFO = "client.info",
+    ERROR = "error",
+    ERROR_DESC = "error.description",
+    LOGIN_ERROR = "login.error",
+    SESSION_STATE = "session.state",
+    STATE_LOGIN = "state.login",
+    STATE_ACQ_TOKEN = "state.acquireToken",
+    STATE_RENEW = "state.renew",
+    NONCE_IDTOKEN = "nonce.idtoken",
+    IDTOKEN = "idtoken",
+    LOGIN_REQUEST = "login.request",
+    RENEW_STATUS = "token.renew.status",
+    URL_HASH = "urlHash",
+    ANGULAR_LOGIN_REQUEST = "angular.login.request"
 };
 
 export const AADTrustedHostList =  {
@@ -110,18 +110,18 @@ export const AADTrustedHostList =  {
  * @hidden
  * SSO Types - generated to populate hints
  */
-export const SSOTypes = {
-    ACCOUNT: "account",
-    SID: "sid",
-    LOGIN_HINT: "login_hint",
-    ID_TOKEN: "id_token",
-    DOMAIN_HINT: "domain_hint",
-    ORGANIZATIONS: "organizations",
-    CONSUMERS: "consumers",
-    ACCOUNT_ID: "accountIdentifier",
-    HOMEACCOUNT_ID: "homeAccountIdentifier",
-    LOGIN_REQ: "login_req",
-    DOMAIN_REQ: "domain_req"
+export enum SSOTypes {
+    ACCOUNT = "account",
+    SID = "sid",
+    LOGIN_HINT = "login_hint",
+    ID_TOKEN ="id_token",
+    DOMAIN_HINT = "domain_hint",
+    ORGANIZATIONS = "organizations",
+    CONSUMERS = "consumers",
+    ACCOUNT_ID = "accountIdentifier",
+    HOMEACCOUNT_ID = "homeAccountIdentifier",
+    LOGIN_REQ = "login_req",
+    DOMAIN_REQ = "domain_req"
 };
 
 /**
@@ -140,11 +140,11 @@ export type InteractionType = "redirectInteraction" | "popupInteraction";
  * internal partners too, hence the choice of generic "string" type instead of the "enum"
  * @hidden
  */
-export const PromptState = {
-    LOGIN: "login",
-    SELECT_ACCOUNT: "select_account",
-    CONSENT: "consent",
-    NONE: "none",
+export enum PromptState {
+    LOGIN = "login",
+    SELECT_ACCOUNT = "select_account",
+    CONSENT = "consent",
+    NONE = "none",
 };
 
 /**
