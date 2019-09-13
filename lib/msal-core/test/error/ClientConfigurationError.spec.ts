@@ -29,29 +29,9 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
-  it("createInvalidCacheLocationConfigError creates a ClientConfigurationError object", () => {
-
-    const givenCacheLocation = "mock_storage";
-    const invalidCacheError = ClientConfigurationError.createInvalidCacheLocationConfigError(givenCacheLocation);
-    let err: ClientConfigurationError;
-
-    try {
-      throw invalidCacheError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidCacheLocation.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
-    expect(err.errorMessage).to.include(givenCacheLocation);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCacheLocation.desc);
-    expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
-  });
-
   it("createNoStorageSupportError creates a ClientConfigurationError object", () => {
 
-    const noStorageSupportError = ClientConfigurationError.createNoStorageSupportedError();
+    const noStorageSupportError = ClientConfigurationError.createStorageNotSupportedError("randomCacheLocation");
     let err: ClientConfigurationError;
 
     try {
@@ -60,9 +40,11 @@ describe("ClientConfigurationError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.noStorageSupported.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.noStorageSupported.desc);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.noStorageSupported.desc);
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.storageNotSupported.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.storageNotSupported.desc);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.storageNotSupported.desc);
+    expect(err.errorMessage).to.include("randomCacheLocation");
+    expect(err.message).to.include("randomCacheLocation");
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });

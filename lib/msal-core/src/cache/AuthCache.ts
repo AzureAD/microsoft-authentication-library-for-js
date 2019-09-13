@@ -50,7 +50,12 @@ export class AuthCache extends BrowserStorage {// Singleton
             JSON.parse(key);
             return key;
         } catch (e) {
-            return `${CacheKeys.PREFIX}.${this.clientId}.${key}`;
+            if (key.startsWith(`${CacheKeys.PREFIX}.${this.clientId}`)) {
+                return key;
+            } else {
+                return `${CacheKeys.PREFIX}.${this.clientId}.${key}`;
+            }
+            
         }
     }
 
@@ -109,23 +114,21 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     removeAcquireTokenEntries(state?: string): void {
         const storage = window[this.cacheLocation];
-        if (storage) {
-            let key: string;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if ((key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || key.indexOf(state) !== -1)) {
-                        const splitKey = key.split(Constants.resourceDelimiter);
-                        let state;
-                        if (splitKey.length > 1) {
-                            state = splitKey[1];
-                        }
-                        if (state && !this.tokenRenewalInProgress(state)) {
-                            this.removeItem(key);
-                            this.removeItem(CacheKeys.RENEW_STATUS + state);
-                            this.removeItem(CacheKeys.STATE_LOGIN);
-                            this.removeItem(CacheKeys.STATE_ACQ_TOKEN);
-                            this.setItemCookie(key, "", -1);
-                        }
+        let key: string;
+        for (key in storage) {
+            if (storage.hasOwnProperty(key)) {
+                if ((key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || key.indexOf(state) !== -1)) {
+                    const resourceDelimSplitKey = key.split(Constants.resourceDelimiter);
+                    let keyState;
+                    if (resourceDelimSplitKey.length > 1) {
+                        keyState = resourceDelimSplitKey[resourceDelimSplitKey.length-1];
+                    }
+                    if (keyState && !this.tokenRenewalInProgress(keyState)) {
+                        this.removeItem(key);
+                        this.removeItem(CacheKeys.RENEW_STATUS + state);
+                        this.removeItem(CacheKeys.STATE_LOGIN);
+                        this.removeItem(CacheKeys.STATE_ACQ_TOKEN);
+                        this.setItemCookie(key, "", -1);
                     }
                 }
             }

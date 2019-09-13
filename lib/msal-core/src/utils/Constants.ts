@@ -51,9 +51,6 @@ export class Constants {
     static get openidScope(): string { return "openid"; }
     static get profileScope(): string { return "profile"; }
 
-    static get cacheLocationLocal(): CacheLocation { return "localStorage"; }
-    static get cacheLocationSession(): CacheLocation { return "sessionStorage"; }
-
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
 }
@@ -140,11 +137,11 @@ export type InteractionType = "redirectInteraction" | "popupInteraction";
  * internal partners too, hence the choice of generic "string" type instead of the "enum"
  * @hidden
  */
-export enum PromptState {
-    LOGIN = "login",
-    SELECT_ACCOUNT = "select_account",
-    CONSENT = "consent",
-    NONE = "none",
+export const PromptState = {
+    LOGIN: "login",
+    SELECT_ACCOUNT: "select_account",
+    CONSENT: "consent",
+    NONE: "none",
 };
 
 /**

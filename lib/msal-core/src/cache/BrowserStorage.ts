@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, CacheKeys } from "../utils/Constants";
+import { CacheKeys } from "../utils/Constants";
 import { CacheLocation } from "../Configuration";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { AuthError } from "../error/AuthError";
@@ -13,8 +13,6 @@ import { AuthError } from "../error/AuthError";
  */
 export class BrowserStorage {// Singleton
 
-    private localStorageSupported: boolean;
-    private sessionStorageSupported: boolean;
     protected cacheLocation: CacheLocation;
 
     constructor(cacheLocation: CacheLocation) {
@@ -22,13 +20,11 @@ export class BrowserStorage {// Singleton
             throw AuthError.createNoWindowObjectError("Browser storage class could not find window object");
         }
 
-        this.cacheLocation = cacheLocation;
-        this.localStorageSupported = typeof window[this.cacheLocation] !== "undefined" && window[this.cacheLocation] != null;
-        this.sessionStorageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
-
-        if (!this.localStorageSupported && !this.sessionStorageSupported) {
-            throw ClientConfigurationError.createNoStorageSupportedError();
+        const storageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
+        if (!storageSupported) {
+            throw ClientConfigurationError.createStorageNotSupportedError(cacheLocation);
         }
+        this.cacheLocation = cacheLocation;
     }
 
     // add value to storage

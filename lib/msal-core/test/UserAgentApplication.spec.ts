@@ -682,7 +682,7 @@ describe("UserAgentApplication.ts Class", function () {
             const checkResponseFromServer = function(response: AuthResponse) {
                 expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.idToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
@@ -698,7 +698,7 @@ describe("UserAgentApplication.ts Class", function () {
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.idToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
@@ -743,7 +743,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
                 expect(response.account).to.be.eq(account);
                 expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.accessToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err) {
                 // Won't happen
@@ -832,7 +832,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
                 expect(response.accessToken).to.eql(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.accessToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
@@ -844,7 +844,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
                 expect(response.accessToken).to.include("accessToken2");
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.accessToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -1044,7 +1044,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(CacheKeys.URL_HASH, successHash);
             let checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.idToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
                 expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
@@ -1118,13 +1118,13 @@ describe("UserAgentApplication.ts Class", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             let successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(CacheKeys.STATE_ACQ_TOKEN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, TEST_NONCE);
             cacheStorage.setItem(CacheKeys.URL_HASH, successHash);
 
             let checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.accessToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
                 expect(response.expiresOn.getTime()).to.be.eq((TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000);
@@ -1143,7 +1143,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(CacheKeys.URL_HASH, successHash);
             let checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.idToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
                 expect(response.expiresOn.getTime()).to.be.eq(TEST_TOKEN_LIFETIMES.TEST_ID_TOKEN_EXP * 1000);

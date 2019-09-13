@@ -2,18 +2,21 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { BrowserStorage } from "../src/cache/BrowserStorage";
 import { AuthCache } from "../src/cache/AuthCache";
-import { Constants } from "../src";
+import { Constants, AuthError } from "../src";
 import { CacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
 import { Account } from "../src/Account";
+import { AuthErrorMessage } from "../src/error/AuthError";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../src/error/ClientConfigurationError";
 
 describe("CacheStorage.ts Class - Local Storage", function () {
-    let TEST_KEY = "test_key";
-    let TEST_VALUE = "test value";
-    let TEST_ACCOUNT_ID = "1234";
-    let TEST_STATE = "state5678";
-    let TEST_STATE2 = "state9012";
+    const TEST_KEY = "test_key";
+    const TEST_VALUE = "test value";
+    const TEST_ACCOUNT_ID = "1234";
+    const TEST_STATE = "state5678";
+    const TEST_STATE2 = "state9012";
+    const LOCAL_STORAGE = "localStorage";
     let cacheStorage : BrowserStorage;
     let ACCESS_TOKEN_KEY : AccessTokenKey;
     let ACCESS_TOKEN_VALUE : AccessTokenValue;
@@ -59,29 +62,58 @@ describe("CacheStorage.ts Class - Local Storage", function () {
         });
 
         it("parses the cache location correctly", function () {
-            cacheStorage = new BrowserStorage("localStorage");
+            cacheStorage = new BrowserStorage(LOCAL_STORAGE);
             cacheStorage.setItem(TEST_KEY, TEST_VALUE);
             expect(window.localStorage.getItem(TEST_KEY)).to.be.eq(TEST_VALUE);
         });
 
         it("throws error if cache location is not supported", function () {
-            // Cannot test with current tooling - will need to take a look
-            // Possibly wrapple as an option here? https://github.com/mroderick/wrapple
+            sinon.stub(window, LOCAL_STORAGE).value(null);
+            console.log(window.localStorage);
+            let authErr;
+            try {
+                cacheStorage = new BrowserStorage(LOCAL_STORAGE);
+            } catch (e) {
+                authErr = e;
+            }
+            expect(authErr instanceof ClientConfigurationError).to.be.true;
+            expect(authErr instanceof Error).to.be.true;
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.storageNotSupported.code);
+            expect(authErr.errorMessage).to.include(ClientConfigurationErrorMessage.storageNotSupported.desc);
+            expect(authErr.message).to.include(ClientConfigurationErrorMessage.storageNotSupported.desc);
+            expect(authErr.errorMessage).to.include(LOCAL_STORAGE);
+            expect(authErr.message).to.include(LOCAL_STORAGE);
+            expect(authErr.name).to.equal("ClientConfigurationError");
+            expect(authErr.stack).to.include("Storage.localStorage.spec.ts");
+            sinon.restore();
         });
 
-        it("uses previous storage instance if one already exists", function () {
-            let oldCacheStorage = new BrowserStorage(Constants.cacheLocationLocal);
-            cacheStorage = new BrowserStorage(Constants.cacheLocationSession);
-            expect(cacheStorage).to.deep.eq(oldCacheStorage);
-        });
-
+        it("throws error if window object does not exist", function () {
+            let authErr;
+            const oldWindow = window;
+            window = null;
+            try {
+                cacheStorage = new BrowserStorage(LOCAL_STORAGE);
+            } catch (e) {
+                authErr = e;
+            }
+            expect(authErr instanceof AuthError).to.be.true;
+            expect(authErr instanceof Error).to.be.true;
+            expect(authErr.errorCode).to.equal(AuthErrorMessage.noWindowObjectError.code);
+            expect(authErr.errorMessage).to.include(AuthErrorMessage.noWindowObjectError.desc);
+            expect(authErr.message).to.include(AuthErrorMessage.noWindowObjectError.desc);
+            expect(authErr.name).to.equal("AuthError");
+            expect(authErr.stack).to.include("Storage.localStorage.spec.ts");
+            window = oldWindow;
+        })
     });
 
     describe("localStorage access functions", function () {
 
         beforeEach(function () {
-            cacheStorage = new BrowserStorage("localStorage");
+            cacheStorage = new BrowserStorage(LOCAL_STORAGE);
             setTestCacheItems();
+            document.cookie = "";
         });
 
         afterEach(function () {
@@ -118,6 +150,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             cacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
             expect(document.cookie).to.include(CacheKeys.NONCE_IDTOKEN);
             expect(document.cookie).to.include(idTokenNonceString);
+            cacheStorage.clearItemCookie(CacheKeys.NONCE_IDTOKEN);
         });
 
         it("tests getItemCookie ", function () {
@@ -125,6 +158,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             cacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
             let retrievedItem = cacheStorage.getItemCookie(CacheKeys.NONCE_IDTOKEN);
             expect(retrievedItem).to.include(idTokenNonceString);
+            cacheStorage.clearItemCookie(CacheKeys.NONCE_IDTOKEN);
         });
 
         it("tests getCookieExpirationTime", function () {
@@ -173,8 +207,9 @@ describe("CacheStorage.ts Class - Local Storage", function () {
         let msalCacheStorage: AuthCache;
 
         beforeEach(function () {
-            msalCacheStorage = new AuthCache(MSAL_CLIENT_ID,"localStorage", true);
+            msalCacheStorage = new AuthCache(MSAL_CLIENT_ID,LOCAL_STORAGE, true);
             setTestCacheItems();
+            document.cookie = "";
         });
 
         afterEach(function () {
@@ -217,8 +252,9 @@ describe("CacheStorage.ts Class - Local Storage", function () {
         it("removeAcquireTokenEntries removes any acquireToken or authorityKey entries in the cache", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
-            window.localStorage.setItem(acquireTokenAccountKey, JSON.stringify(ACCOUNT));
-            window.localStorage.setItem(authorityKey, validAuthority);
+
+            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey}`, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${authorityKey}`, validAuthority);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
@@ -235,10 +271,10 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
             let acquireTokenAccountKey2 = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE2);
             let authorityKey2 = AuthCache.generateAuthorityKey(TEST_STATE2);
-            window.localStorage.setItem(acquireTokenAccountKey, JSON.stringify(ACCOUNT));
-            window.localStorage.setItem(authorityKey, validAuthority);
-            window.localStorage.setItem(acquireTokenAccountKey2, JSON.stringify(ACCOUNT));
-            window.localStorage.setItem(authorityKey2, validAuthority);
+            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey}`, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${authorityKey}`, validAuthority);
+            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey2}`, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${authorityKey2}`, validAuthority);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
@@ -263,11 +299,17 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             let stateLoginString = "stateLogin";
             let loginRequestString = "loginRequest";
             let stateAcquireTokenString = "stateAcquireToken";
+            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
+            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.STATE_LOGIN, stateLoginString);
+            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.LOGIN_REQUEST, loginRequestString);
+            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.STATE_ACQ_TOKEN, stateAcquireTokenString);
+            console.log(document.cookie);
             msalCacheStorage.clearMsalCookie();
+            console.log(document.cookie);
             expect(document.cookie).to.be.empty;
         });
 

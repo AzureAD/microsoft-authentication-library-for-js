@@ -238,11 +238,7 @@ export class UserAgentApplication {
         this.acquireTokenInProgress = false;
 
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
-        try {
-            this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
-        } catch (e) {
-            throw ClientConfigurationError.createInvalidCacheLocationConfigError(this.config.cache.cacheLocation);
-        }
+        this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
         // Initialize window handling code
         window.openedWindows = [];
