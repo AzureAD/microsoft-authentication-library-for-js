@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { MESSAGE_SCHEMA } from "./MessageHelper";
+import { PAYLOAD } from "./MessageHelper";
 
 export class MessageDispatcher {
 
-    static dispatchMessage(target: Window, message: MESSAGE_SCHEMA, originCheck?: string) {
+    static dispatchMessage(target: Window, message: PAYLOAD, originCheck?: string) {
         originCheck ? target.postMessage(message, originCheck): target.postMessage(message, "*");
     }
 }

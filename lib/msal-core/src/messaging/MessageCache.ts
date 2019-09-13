@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { message_content } from "./MessageHelper";
+import { MessageType } from "./MessageHelper";
 import { Storage } from "../Storage";
 
 /**
@@ -27,7 +27,7 @@ export class MessageCache {
      * @param key
      * @param data
      */
-    write(key: message_content, data: string) {
+    write(key: MessageType, data: string) {
         this.storage.setItem(key, data);
     }
 
@@ -35,7 +35,7 @@ export class MessageCache {
      * retrieves the message from the cache
      * @param key
      */
-    read(key: message_content) {
+    read(key: MessageType) {
         return this.storage.getItem(key);
     }
 
@@ -43,7 +43,7 @@ export class MessageCache {
      * erase the message from the cache
      * @param key
      */
-    erase(key: message_content) {
+    erase(key: MessageType) {
         this.storage.removeItem(key);
     }
 

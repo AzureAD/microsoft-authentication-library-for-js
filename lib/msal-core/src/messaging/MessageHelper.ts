@@ -8,27 +8,20 @@ import { MessageCache } from "./MessageCache";
 import { Logger } from "./../Logger";
 import { MessageDispatcher } from "./MessageDispatcher";
 
-export enum message_content {
+export enum MessageType {
     REDIRECT_REQUEST = "REDIRECT_REQUEST",
-    URL_HASH = "URL_HASH",
+    HASH = "HASH",
     URL_TOP_FRAME = "URL_TOP_FRAME",
     URL_NAVIGATE = "URL_NAVIGATE"
 };
 
-export enum message_type {
-    REDIRECT_REQUEST = "REDIRECT_REQUEST",
-    URL = "URL",
-    HASH = "HASH"
-};
-
-export enum window_type {
+export enum WindowType {
     TOP_FRAME,
     IFRAME
 };
 
-export type MESSAGE_SCHEMA = {
-    type: message_type,
-    content?: message_content,
+export type PAYLOAD = {
+    type: MessageType,
     data?: string
 };
 
@@ -37,12 +30,12 @@ export class MessageHelper {
     /**
      * returns the current window type: Top Frame app or Iframed app
      */
-    static currentWindow(): window_type {
+    static currentWindow(): WindowType {
         if(WindowUtils.isWindowOnTop()) {
-            return window_type.TOP_FRAME;
+            return WindowType.TOP_FRAME;
         }
         else if(WindowUtils.isInIframe()) {
-            return window_type.IFRAME;
+            return WindowType.IFRAME;
         }
         else
             return null;
@@ -55,11 +48,10 @@ export class MessageHelper {
      * @param contentType
      * @param messageData
      */
-    static buildMessage(messageType: message_type, contentType?: message_content, messageData?: string): MESSAGE_SCHEMA {
+    static buildMessage(messageType: MessageType, messageData?: string): PAYLOAD {
 
-        const message: MESSAGE_SCHEMA = {
+        const message: PAYLOAD = {
             type: messageType,
-            content: contentType,
             data: messageData
         };
 
@@ -77,8 +69,8 @@ export class MessageHelper {
     static handleTopFrameRedirect(messageCache: MessageCache, urlTopFrame: string, urlHash: string, logger: Logger) {
 
         // write the hash to the cache of the redirect URI, clear the cache(and hence the state) for the Top Frame delegation indication
-        messageCache.write(message_content.URL_HASH, urlHash);
-        messageCache.erase(message_content.URL_TOP_FRAME);
+        messageCache.write(MessageType.HASH, urlHash);
+        messageCache.erase(MessageType.URL_TOP_FRAME);
 
         // navigate to the saved URL
         WindowUtils.navigateWindow(urlTopFrame, logger);
@@ -92,10 +84,10 @@ export class MessageHelper {
      */
     static redirectDelegationRequest(messageCache: MessageCache, urlNavigate: string) {
         // save the URL to navigate in the cache and send a request to the topframe
-        messageCache.write(message_content.URL_NAVIGATE, urlNavigate);
+        messageCache.write(MessageType.URL_NAVIGATE, urlNavigate);
 
         // dispatch the message to the top window to start redirect flow by delegation
-        const message = MessageHelper.buildMessage(message_type.REDIRECT_REQUEST, message_content.REDIRECT_REQUEST, "true");
+        const message = MessageHelper.buildMessage(MessageType.REDIRECT_REQUEST);
         const targetWindow = window.top;
         MessageDispatcher.dispatchMessage(targetWindow, message);
     }

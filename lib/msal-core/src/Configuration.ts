@@ -115,8 +115,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
-    redirectUri: () => UrlUtils.getDefaultUri(),
-    postLogoutRedirectUri: () => UrlUtils.getDefaultUri(),
+    redirectUri: () => UrlUtils.getCurrentUri(),
+    postLogoutRedirectUri: () => UrlUtils.getCurrentUri(),
     navigateToLoginRequestUrl: true
 };
 

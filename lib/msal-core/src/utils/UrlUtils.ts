@@ -97,7 +97,7 @@ export class UrlUtils {
     /**
      * Returns current window URL as redirect uri
      */
-    static getDefaultUri(): string {
+    static getCurrentUri(): string {
         return window.location.href.split("?")[0].split("#")[0];
     }
 

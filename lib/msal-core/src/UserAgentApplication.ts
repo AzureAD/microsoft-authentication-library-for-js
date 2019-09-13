@@ -32,7 +32,7 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
-import { message_content, MessageHelper } from "./messaging/MessageHelper";
+import { MessageType, MessageHelper } from "./messaging/MessageHelper";
 import { MessageCache } from "./messaging/MessageCache";
 import { MessageListener } from "./messaging/MessageListener";
 
@@ -245,8 +245,8 @@ export class UserAgentApplication {
         const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
 
         // read the hash stored through the topframe in redirect by delegation flow
-        const urlTopFrame = this.messageCache.read(message_content.URL_TOP_FRAME);
-        const savedUrlHash = this.messageCache.read(message_content.URL_HASH);
+        const urlTopFrame = this.messageCache.read(MessageType.URL_TOP_FRAME);
+        const cachedUrlHash = this.messageCache.read(MessageType.HASH);
 
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
@@ -259,8 +259,8 @@ export class UserAgentApplication {
             }
         }
         // REDIRECT_IFRAMES: Handle the auth response on reload if the topframe redirected on the iframed app's behalf and saved the hash
-        else if (WindowUtils.isInIframe() && savedUrlHash) {
-            this.handleAuthenticationResponse(savedUrlHash);
+        else if (WindowUtils.isInIframe() && cachedUrlHash) {
+            this.handleAuthenticationResponse(cachedUrlHash);
         }
     }
 
