@@ -1549,8 +1549,6 @@ export class UserAgentApplication {
      */
     protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
         this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
-        this.cacheStorage.setItem(Constants.msalError, "");
-        this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
         let response : AuthResponse = {
             uniqueId: "",
