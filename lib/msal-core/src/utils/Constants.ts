@@ -25,6 +25,7 @@ export class Constants {
 
     static get response_mode_fragment(): string { return "&response_mode=fragment"; }
     static get resourceDelimiter(): string { return "|"; }
+    static get cacheDelimiter(): string { return "."; }
 
     static get tokenRenewStatusCancelled(): string { return "Canceled"; }
     static get tokenRenewStatusCompleted(): string { return "Completed"; }

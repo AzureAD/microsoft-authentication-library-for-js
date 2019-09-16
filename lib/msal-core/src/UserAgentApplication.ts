@@ -2168,7 +2168,6 @@ export class UserAgentApplication {
      *
      */
     private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
-
         /*
          * if account is passed and matches the account object/or set to getAccount() from cache
          * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)

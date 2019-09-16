@@ -53,18 +53,6 @@ export class BrowserStorage {// Singleton
         return window[this.cacheLocation].clear();
     }
 
-    resetCacheItems(): void {
-        const storage = window[this.cacheLocation];
-        let key: string;
-        for (key in storage) {
-            if (storage.hasOwnProperty(key)) {
-                if (key.indexOf(CacheKeys.PREFIX) !== -1) {
-                    this.removeItem(key);
-                }
-            }
-        }
-    }
-
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         let cookieStr = cName + "=" + cValue + ";";
         if (expires) {

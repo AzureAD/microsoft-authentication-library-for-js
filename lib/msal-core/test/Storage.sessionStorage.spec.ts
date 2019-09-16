@@ -170,35 +170,6 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             expect(actualNextDayUTC).to.be.eq(nextDayUTC.toUTCString());
             expect(actualDayAfterUTC).to.be.eq(dayAfterUTC.toUTCString());
         });
-
-        
-        it("resetCacheItems deletes all msal related cache items", function () {
-            let clientInfoKey = `${CacheKeys.PREFIX}.${CacheKeys.CLIENT_INFO}`;
-            let stateLoginKey = `${CacheKeys.PREFIX}.${CacheKeys.STATE_LOGIN}`;
-            let idTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.IDTOKEN}`;
-            let nonceIdTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.NONCE_IDTOKEN}`;
-            let renewStatusKey = `${CacheKeys.PREFIX}.${CacheKeys.RENEW_STATUS}` + "|RANDOM_GUID";
-
-            window.sessionStorage.setItem(clientInfoKey, "clientInfo");
-            window.sessionStorage.setItem(stateLoginKey, "stateLogin");
-            window.sessionStorage.setItem(idTokenKey, "idToken1");
-            window.sessionStorage.setItem(nonceIdTokenKey, "idTokenNonce");
-            window.sessionStorage.setItem(renewStatusKey, "Completed");
-
-            expect(cacheStorage.getItem(clientInfoKey)).to.be.eq("clientInfo");
-            expect(cacheStorage.getItem(stateLoginKey)).to.be.eq("stateLogin");
-            expect(cacheStorage.getItem(idTokenKey)).to.be.eq("idToken1");
-            expect(cacheStorage.getItem(nonceIdTokenKey)).to.be.eq("idTokenNonce");
-            expect(cacheStorage.getItem(renewStatusKey)).to.be.eq("Completed");
-
-            cacheStorage.resetCacheItems();
-
-            expect(cacheStorage.getItem(clientInfoKey)).to.be.null;
-            expect(cacheStorage.getItem(stateLoginKey)).to.be.null;
-            expect(cacheStorage.getItem(idTokenKey)).to.be.null;
-            expect(cacheStorage.getItem(nonceIdTokenKey)).to.be.null;
-            expect(cacheStorage.getItem(renewStatusKey)).to.be.null;
-        });
     });
 
     describe("MSAL Cache Item Management", function () {
@@ -298,20 +269,43 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             let stateLoginString = "stateLogin";
             let loginRequestString = "loginRequest";
             let stateAcquireTokenString = "stateAcquireToken";
-            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
-            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.STATE_LOGIN, stateLoginString);
-            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.LOGIN_REQUEST, loginRequestString);
-            console.log(document.cookie);
             msalCacheStorage.setItemCookie(CacheKeys.STATE_ACQ_TOKEN, stateAcquireTokenString);
-            console.log(document.cookie);
             msalCacheStorage.clearMsalCookie();
-            console.log(document.cookie);
             expect(document.cookie).to.be.empty;
         });
 
+        it("resetCacheItems deletes msal related cache items", function () {
+            let clientInfoKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.CLIENT_INFO}`;
+            let stateLoginKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.STATE_LOGIN}`;
+            let idTokenKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.IDTOKEN}`;
+            let nonceIdTokenKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.NONCE_IDTOKEN}`;
+            let renewStatusKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.RENEW_STATUS}` + "|RANDOM_GUID";
+
+            window.sessionStorage.setItem(clientInfoKey, "clientInfo");
+            window.sessionStorage.setItem(stateLoginKey, "stateLogin");
+            window.sessionStorage.setItem(idTokenKey, "idToken1");
+            window.sessionStorage.setItem(nonceIdTokenKey, "idTokenNonce");
+            window.sessionStorage.setItem(renewStatusKey, "Completed");
+
+            expect(msalCacheStorage.getItem(CacheKeys.CLIENT_INFO)).to.be.eq("clientInfo");
+            expect(msalCacheStorage.getItem(CacheKeys.STATE_LOGIN)).to.be.eq("stateLogin");
+            expect(msalCacheStorage.getItem(CacheKeys.IDTOKEN)).to.be.eq("idToken1");
+            expect(msalCacheStorage.getItem(CacheKeys.NONCE_IDTOKEN)).to.be.eq("idTokenNonce");
+            expect(msalCacheStorage.getItem(CacheKeys.RENEW_STATUS + "|RANDOM_GUID")).to.be.eq("Completed");
+
+            msalCacheStorage.resetCacheItems();
+
+            expect(msalCacheStorage.getItem(CacheKeys.CLIENT_INFO)).to.be.null;
+            expect(msalCacheStorage.getItem(CacheKeys.STATE_LOGIN)).to.be.null;
+            expect(msalCacheStorage.getItem(CacheKeys.IDTOKEN)).to.be.null;
+            expect(msalCacheStorage.getItem(CacheKeys.NONCE_IDTOKEN)).to.be.null;
+            expect(msalCacheStorage.getItem(CacheKeys.RENEW_STATUS + "|RANDOM_GUID")).to.be.null;
+        });
+
+        it.skip("tests that resetCacheItems only deletes instance-specific cache items");
     });
 
     describe("static key generators", function () {
