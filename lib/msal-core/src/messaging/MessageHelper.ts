@@ -8,6 +8,7 @@ import { MessageCache } from "./MessageCache";
 import { Logger } from "./../Logger";
 import { MessageDispatcher } from "./MessageDispatcher";
 
+// type of the message
 export enum MessageType {
     REDIRECT_REQUEST = "REDIRECT_REQUEST",
     HASH = "HASH",
@@ -15,11 +16,13 @@ export enum MessageType {
     URL_NAVIGATE = "URL_NAVIGATE"
 };
 
+// helps differentiate topframe and iframe context
 export enum WindowType {
     TOP_FRAME,
     IFRAME
 };
 
+// message payload
 export type PAYLOAD = {
     type: MessageType,
     data?: string
@@ -49,7 +52,6 @@ export class MessageHelper {
      * @param messageData
      */
     static buildMessage(messageType: MessageType, messageData?: string): PAYLOAD {
-
         const message: PAYLOAD = {
             type: messageType,
             data: messageData
@@ -67,7 +69,6 @@ export class MessageHelper {
      * @param logger
      */
     static handleTopFrameRedirect(messageCache: MessageCache, urlTopFrame: string, urlHash: string, logger: Logger) {
-
         // write the hash to the cache of the redirect URI, clear the cache(and hence the state) for the Top Frame delegation indication
         messageCache.write(MessageType.HASH, urlHash);
         messageCache.erase(MessageType.URL_TOP_FRAME);
@@ -82,14 +83,14 @@ export class MessageHelper {
      * @param messageCache
      * @param urlNavigate
      */
-    static redirectDelegationRequest(messageCache: MessageCache, urlNavigate: string) {
+    static redirectDelegationRequest(messageCache: MessageCache, urlNavigate: string, topFrameOrigin: string) {
         // save the URL to navigate in the cache and send a request to the topframe
         messageCache.write(MessageType.URL_NAVIGATE, urlNavigate);
 
         // dispatch the message to the top window to start redirect flow by delegation
         const message = MessageHelper.buildMessage(MessageType.REDIRECT_REQUEST);
         const targetWindow = window.top;
-        MessageDispatcher.dispatchMessage(targetWindow, message);
+        MessageDispatcher.dispatchMessage(targetWindow, message, topFrameOrigin);
     }
 }
 

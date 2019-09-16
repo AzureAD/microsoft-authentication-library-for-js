@@ -149,7 +149,7 @@ export class UserAgentApplication {
 
     // message interface
     private messageCache: MessageCache;
-    private messageListener: MessageListener;
+    private messageListener: MessageListener;;
 
     // Authority Functionality
     protected authorityInstance: Authority;
@@ -232,7 +232,7 @@ export class UserAgentApplication {
 
         // initialize the message interface
         this.messageCache = new MessageCache(this.cacheStorage);
-        this.messageListener = new MessageListener(this.messageCache, this.logger);
+        this.messageListener = new MessageListener(this.messageCache, this.logger, this.config.broker.embeddedFrameOrigin);
 
         // Initialize window handling code
         window.activeRenewals = {};
@@ -542,7 +542,7 @@ export class UserAgentApplication {
 
             // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
             if(WindowUtils.isInIframe() && !popUpWindow) {
-                MessageHelper.redirectDelegationRequest(this.messageCache, urlNavigate);
+                MessageHelper.redirectDelegationRequest(this.messageCache, urlNavigate, this.config.broker.topFrameOrigin);
             }
             else {
                 // prompt user for interaction

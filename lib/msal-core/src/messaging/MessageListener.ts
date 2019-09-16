@@ -15,13 +15,18 @@ export class MessageListener {
 
     private messageCache: MessageCache;
     private logger: Logger;
+    private topFrameOrigin: string;
+    private embeddedFrameOrigin: string;
 
     /**
      * initialize the message listener, and register the callback to process messages
      */
-    constructor(messageCache: MessageCache, logger: Logger) {
+    constructor(messageCache: MessageCache, logger: Logger, topFrameOrigin?: string, embeddedFrameOrigin?: string) {
         this.messageCache = messageCache;
         this.logger = logger;
+        this.topFrameOrigin = topFrameOrigin;
+        this.embeddedFrameOrigin = embeddedFrameOrigin;
+
         // listen to all incoming messages
         window.addEventListener("message", this.receiveMessage, false);
     }
@@ -45,7 +50,7 @@ export class MessageListener {
                     case MessageType.REDIRECT_REQUEST: {
                         // acknowlege the redirect on behalf of the iframed app by sending the current location
                         const message = MessageHelper.buildMessage(MessageType.URL_TOP_FRAME, window.location.href);
-                        MessageDispatcher.dispatchMessage(event.source, message);
+                        MessageDispatcher.dispatchMessage(event.source, message, this.embeddedFrameOrigin);
                         break;
                     }
 
@@ -76,7 +81,7 @@ export class MessageListener {
                     // respond with the URL to navigate for token acquisition
                     const urlNavigate = this.messageCache.read(MessageType.URL_NAVIGATE);
                     const message = MessageHelper.buildMessage(MessageType.URL_NAVIGATE, urlNavigate);
-                    MessageDispatcher.dispatchMessage(event.source, message);
+                    MessageDispatcher.dispatchMessage(event.source, message, this.topFrameOrigin);
                 }
 
                 break;
