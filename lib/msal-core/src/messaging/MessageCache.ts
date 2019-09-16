@@ -4,7 +4,7 @@
  */
 
 import { MessageType } from "./MessageHelper";
-import { Storage } from "../Storage";
+import { AuthCache } from "./../cache/AuthCache";
 
 /**
  * Handles Message cache operations
@@ -12,13 +12,13 @@ import { Storage } from "../Storage";
  */
 export class MessageCache {
 
-    private storage: Storage = null;
+    private storage: AuthCache = null;
 
     /**
      * initialize the class with Storage type
      * @param cacheStorage
      */
-    constructor(cacheStorage: Storage) {
+    constructor(cacheStorage: AuthCache) {
         this.storage = cacheStorage;
     }
 
