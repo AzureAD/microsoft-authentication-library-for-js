@@ -39,6 +39,11 @@ export class WindowUtils {
             let ticks = 0;
 
             const intervalId = setInterval(() => {
+                if (contentWindow.closed) {
+                    clearInterval(intervalId);
+                    resolve();
+                }
+
                 let href;
                 try {
                     /*
@@ -60,9 +65,6 @@ export class WindowUtils {
                 if (UrlUtils.urlContainsHash(href)) {
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
-                } else if (contentWindow.closed) {
-                    clearInterval(intervalId);
-                    resolve();
                 } else if (ticks > maxTicks) {
                     clearInterval(intervalId);
                     reject(ClientAuthError.createTokenRenewalTimeoutError()); // better error?
