@@ -486,9 +486,24 @@ export class UserAgentApplication {
         let popUpWindow: Window;
         if (interactionType === Constants.interactionTypePopup) {
             // Generate a popup window
-            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+            try {
+                popUpWindow = this.openPopup("about:blank", "msal", Constants.popUpWidth, Constants.popUpHeight);
+
+                // Push popup window handle onto stack for tracking
+                WindowUtils.trackPopup(popUpWindow);
+            } catch (e) {
+                this.loginInProgress = false;
+                this.acquireTokenInProgress = false;
+
+                this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
+                this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.popUpWindowError.code);
+                this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.popUpWindowError.desc);
+                if (reject) {
+                    reject(ClientAuthError.createPopupWindowError());
+                }
+            }
+
             if (!popUpWindow) {
-                // We pass reject in openWindow, we reject there during an error
                 return;
             }
         }
@@ -553,7 +568,31 @@ export class UserAgentApplication {
             if (popUpWindow) {
                 const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
                 if (hash) {
+                    // Hash found
                     this.handleAuthenticationResponse(hash);
+
+                    this.loginInProgress = false;
+                    this.acquireTokenInProgress = false;
+                    this.logger.info("Closing popup window");
+
+                    // TODO: Check how this can be extracted for any framework specific code?
+                    if (this.config.framework.isAngular) {
+                        this.broadcast("msal:popUpHashChanged", hash);
+                        WindowUtils.closePopups();
+                    }
+                } else {
+                    // Window closed
+                    if (reject) {
+                        reject(ClientAuthError.createUserCancelledError());
+                    }
+
+                    if (this.config.framework.isAngular) {
+                        this.broadcast("msal:popUpClosed", ClientAuthErrorMessage.userCancelledError.code + Constants.resourceDelimiter + ClientAuthErrorMessage.userCancelledError.desc);
+                        return;
+                    }
+
+                    this.loginInProgress = false;
+                    this.acquireTokenInProgress = false;
                 }
             }
 
@@ -701,84 +740,6 @@ export class UserAgentApplication {
     // #endregion
 
     // #region Popup Window Creation
-
-    /**
-     * @hidden
-     *
-     * Used to send the user to the redirect_uri after authentication is complete. The user's bearer token is attached to the URI fragment as an id_token/access_token field.
-     * This function also closes the popup window after redirection.
-     *
-     * @param urlNavigate
-     * @param title
-     * @param interval
-     * @param instance
-     * @param resolve
-     * @param reject
-     * @ignore
-     */
-    private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): Window {
-    // Generate a popup window
-        let popupWindow: Window;
-        try {
-            popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
-        } catch (e) {
-            instance.loginInProgress = false;
-            instance.acquireTokenInProgress = false;
-
-            this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
-            this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.popUpWindowError.code);
-            this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.popUpWindowError.desc);
-            if (reject) {
-                reject(ClientAuthError.createPopupWindowError());
-            }
-            return null;
-        }
-
-        // Push popup window handle onto stack for tracking
-        WindowUtils.trackPopup(popupWindow);
-
-        const pollTimer = window.setInterval(() => {
-            // If popup closed or login in progress, cancel login
-            if (popupWindow && popupWindow.closed && (instance.loginInProgress || instance.acquireTokenInProgress)) {
-                if (reject) {
-                    reject(ClientAuthError.createUserCancelledError());
-                }
-                window.clearInterval(pollTimer);
-                if (this.config.framework.isAngular) {
-                    this.broadcast("msal:popUpClosed", ClientAuthErrorMessage.userCancelledError.code + Constants.resourceDelimiter + ClientAuthErrorMessage.userCancelledError.desc);
-                    return;
-                }
-                instance.loginInProgress = false;
-                instance.acquireTokenInProgress = false;
-            }
-
-            try {
-                const popUpWindowLocation = popupWindow.location;
-
-                // If the popup hash changes, close the popup window
-                if (popUpWindowLocation.href.indexOf(this.getRedirectUri()) !== -1) {
-                    window.clearInterval(pollTimer);
-                    instance.loginInProgress = false;
-                    instance.acquireTokenInProgress = false;
-                    this.logger.info("Closing popup window");
-                    // TODO: Check how this can be extracted for any framework specific code?
-                    if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpHashChanged", popUpWindowLocation.hash);
-                        WindowUtils.closePopups();
-                    }
-                }
-            } catch (e) {
-            /*
-             * Cross Domain url check error.
-             * Will be thrown until AAD redirects the user back to the app"s root page with the token.
-             * No need to log or throw this error as it will create unnecessary traffic.
-             */
-            }
-        },
-        interval);
-
-        return popupWindow;
-    }
 
     /**
      * @hidden
