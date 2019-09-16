@@ -15,6 +15,9 @@ describe("CryptoUtils.ts class", () => {
     const ES_PLAINTEXT = "Avrán";
     const ES_B64_ENCODED = "QXZyw6Fu";
 
+    const JA_PLAINTEXT = "日本語憂鬱髙";
+    const JA_B64_ENCODED = "5pel5pys6Kqe5oaC6ayx6auZ";
+
     describe("test Base64 encode decode", () => {
         it('english', () => {
             expect(CryptoUtils.base64Encode(EN_PLAINTEXT)).to.be.equal(EN_B64_ENCODED);
@@ -34,6 +37,11 @@ describe("CryptoUtils.ts class", () => {
         it('spanish', () => {
             expect(CryptoUtils.base64Encode(ES_PLAINTEXT)).to.be.equal(ES_B64_ENCODED);
             expect(CryptoUtils.base64Decode(ES_B64_ENCODED)).to.be.equal(ES_PLAINTEXT);
+        });
+
+        it('japanese', () => {
+            expect(CryptoUtils.base64Encode(JA_PLAINTEXT)).to.be.equal(JA_B64_ENCODED);
+            expect(CryptoUtils.base64Decode(JA_B64_ENCODED)).to.be.equal(JA_PLAINTEXT);
         });
     });
 });

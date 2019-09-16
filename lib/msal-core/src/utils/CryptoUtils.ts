@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
+import { Base64 } from "js-base64";
 /**
  * @hidden
  */
@@ -104,10 +104,7 @@ export class CryptoUtils {
      * @param input
      */
     static base64Encode(input: string): string {
-        return btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g,
-            function toSolidBytes(match, p1) {
-                return String.fromCharCode(Number("0x" + p1));
-            }));
+        return Base64.encode(input);
     }
 
     /**
@@ -116,9 +113,7 @@ export class CryptoUtils {
      * @param base64IdToken
      */
     static base64Decode(input: string): string {
-        return decodeURIComponent(atob(input).split("").map(function(c) {
-            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(""));
+        return Base64.decode(input);
     }
 
     /**
