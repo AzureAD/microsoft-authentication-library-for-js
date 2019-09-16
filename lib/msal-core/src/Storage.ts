@@ -108,6 +108,8 @@ export class Storage {// Singleton
                             this.removeItem(Constants.renewStatus + state);
                             this.removeItem(Constants.stateLogin);
                             this.removeItem(Constants.stateAcquireToken);
+                            this.removeItem(Constants.nonceIdToken);
+                            this.removeItem(Constants.loginRequest);
                             this.setItemCookie(key, "", -1);
                         }
                     }

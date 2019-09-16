@@ -1432,8 +1432,6 @@ export class UserAgentApplication {
      */
     protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
         this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
-        this.cacheStorage.setItem(Constants.msalError, "");
-        this.cacheStorage.setItem(Constants.msalErrorDescription, "");
 
         let response : AuthResponse = {
             uniqueId: "",
@@ -2140,12 +2138,7 @@ export class UserAgentApplication {
         if (loginStartPage) {
             // Cache the state, nonce, and login request data
             this.cacheStorage.setItem(Constants.loginRequest, loginStartPage, this.inCookie);
-            this.cacheStorage.setItem(Constants.loginError, "");
-
             this.cacheStorage.setItem(Constants.stateLogin, serverAuthenticationRequest.state, this.inCookie);
-
-            this.cacheStorage.setItem(Constants.msalError, "");
-            this.cacheStorage.setItem(Constants.msalErrorDescription, "");
         } else {
             this.setAccountCache(account, serverAuthenticationRequest.state);
         }
