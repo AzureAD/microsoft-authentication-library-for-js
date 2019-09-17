@@ -93,4 +93,3 @@ export class MessageHelper {
         MessageDispatcher.dispatchMessage(targetWindow, message, topFrameOrigin);
     }
 }
-

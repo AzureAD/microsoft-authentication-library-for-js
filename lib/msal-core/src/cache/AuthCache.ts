@@ -147,6 +147,8 @@ export class AuthCache extends BrowserStorage {// Singleton
                         super.removeItem(CacheKeys.RENEW_STATUS + state);
                         super.removeItem(CacheKeys.STATE_LOGIN);
                         super.removeItem(CacheKeys.STATE_ACQ_TOKEN);
+                        super.removeItem(CacheKeys.LOGIN_REQUEST);
+                        super.removeItem(CacheKeys.NONCE_IDTOKEN);
                         this.setItemCookie(key, "", -1);
                     }
                 }
