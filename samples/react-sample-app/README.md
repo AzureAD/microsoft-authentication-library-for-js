@@ -6,8 +6,8 @@ This sample was built using [Create React App](https://github.com/facebook/creat
 
 ## Instructions
 
-1. Build the [msal-core](../../) project (by running `npm install` and `npm run build:modules` in its directory).
-2. Change directories back to this folder, and then run `npm install` and then `npm start`.
+1. Run `npm install` in the root of the repo, which will bootstrap and build all the libraries and samples.
+2. Change directories to this folder, and then run `npm start`.
 3. This will launch the sample application in your browser (if not, navigate to [http://localhost:3000](http://localhost:3000)).
 
 ## Patterns

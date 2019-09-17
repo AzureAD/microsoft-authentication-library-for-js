@@ -10,13 +10,10 @@ How to run this AzureAD B2C sample
 ----------------------------------
 Pre-requisite
 - Install node.js if needed (https://nodejs.org/en/)
-- Build the `msal-core` project.
-
-Resolving the server.js references
-- In a command prompt, run npm install
+- Run `npm install` from the root of the repository to bootstrap and buildes all the samples and libraries.
 
 Running the sample
-- In a command prompt, run “node server.js”
+- In a command prompt, `cd` to this folder and run `npm start`
 
 - Navigate to http://localhost:6420 with the browser of your choice
 
