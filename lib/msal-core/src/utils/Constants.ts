@@ -28,10 +28,6 @@ export class Constants {
     static get resourceDelimiter(): string { return "|"; }
     static get cacheDelimiter(): string { return "."; }
 
-    static get tokenRenewStatusCancelled(): string { return "Canceled"; }
-    static get tokenRenewStatusCompleted(): string { return "Completed"; }
-    static get tokenRenewStatusInProgress(): string { return "In Progress"; }
-
     private static _popUpWidth: number = 483;
     static get popUpWidth(): number { return this._popUpWidth; }
     static set popUpWidth(width: number) {
@@ -56,6 +52,15 @@ export class Constants {
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
 }
+
+/**
+ * Status of the current token request
+ */
+export enum RequestStatus {
+    CANCELLED = "Cancelled",
+    COMPLETED = "Completed",
+    IN_PROGRESS = "InProgress"
+};
 
 /**
  * Keys in the hashParams
@@ -86,7 +91,8 @@ export enum TemporaryCacheKeys {
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    ANGULAR_LOGIN_REQUEST = "angular.login.request"
+    ANGULAR_LOGIN_REQUEST = "angular.login.request",
+    INTERACTION_STATUS = "interaction.status"
 }
 
 export enum PersistentCacheKeys {

@@ -9,7 +9,7 @@ import { AccessTokenValue } from "./cache/AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./authority/Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, ServerHashParamKeys, InteractionType, libraryVersion, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+import { Constants, ServerHashParamKeys, InteractionType, libraryVersion, TemporaryCacheKeys, PersistentCacheKeys, RequestStatus } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { AuthCache } from "./cache/AuthCache";
@@ -141,8 +141,6 @@ export class UserAgentApplication {
     private account: Account;
 
     // state variables
-    private loginInProgress: boolean;
-    private acquireTokenInProgress: boolean;
     private silentAuthenticationState: string;
     private silentLogin: boolean;
     private redirectCallbacksSet: boolean;
@@ -218,10 +216,6 @@ export class UserAgentApplication {
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
-
-        // track login and acquireToken in progress
-        this.loginInProgress = false;
-        this.acquireTokenInProgress = false;
 
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
@@ -397,9 +391,11 @@ export class UserAgentApplication {
      */
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
 
+        const interactionProgress = this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS);
+
         // If already in progress, do not proceed
-        if (this.loginInProgress || this.acquireTokenInProgress) {
-            const thrownError = this.loginInProgress ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
+        if (interactionProgress === RequestStatus.IN_PROGRESS) {
+            const thrownError = isLoginCall ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
             const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request && request.state));
             this.authErrorHandler(interactionType,
                 thrownError,
@@ -467,13 +463,8 @@ export class UserAgentApplication {
      *
      */
     private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, scopes?: Array<string>, resolve?: any, reject?: any): void {
-    // Track the acquireToken progress
-        if (isLoginCall) {
-            this.loginInProgress = true;
-        } else {
-            this.acquireTokenInProgress = true;
-        }
-
+        // Track the acquireToken progress
+        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
         const scope = scopes ? scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
@@ -488,8 +479,7 @@ export class UserAgentApplication {
                 // Push popup window handle onto stack for tracking
                 WindowUtils.trackPopup(popUpWindow);
             } catch (e) {
-                this.loginInProgress = false;
-                this.acquireTokenInProgress = false;
+                this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.CANCELLED);
 
                 this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
                 this.cacheStorage.setItem(PersistentCacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
@@ -567,8 +557,8 @@ export class UserAgentApplication {
                     // Hash found
                     this.handleAuthenticationResponse(hash);
 
-                    this.loginInProgress = false;
-                    this.acquireTokenInProgress = false;
+                    // Request completed successfully, set to completed
+                    this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
                     this.logger.info("Closing popup window");
 
                     // TODO: Check how this can be extracted for any framework specific code?
@@ -587,8 +577,8 @@ export class UserAgentApplication {
                         return;
                     }
 
-                    this.loginInProgress = false;
-                    this.acquireTokenInProgress = false;
+                    // Request failed, set to canceled
+                    this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.CANCELLED);
                 }
             }
 
@@ -778,8 +768,7 @@ export class UserAgentApplication {
             return popupWindow;
         } catch (e) {
             this.logger.error("error opening popup " + e.message);
-            this.loginInProgress = false;
-            this.acquireTokenInProgress = false;
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.CANCELLED);
             throw ClientAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -798,9 +787,9 @@ export class UserAgentApplication {
         // set iframe session to pending
         const expectedState = window.activeRenewals[scope];
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
-        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, Constants.tokenRenewStatusInProgress);
+        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, RequestStatus.IN_PROGRESS);
         setTimeout(() => {
-            if (this.cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + expectedState) === Constants.tokenRenewStatusInProgress) {
+            if (this.cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + expectedState) === RequestStatus.IN_PROGRESS) {
                 // fail the iframe session if it's in pending state
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
@@ -808,7 +797,7 @@ export class UserAgentApplication {
                     window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
                 }
 
-                this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, Constants.tokenRenewStatusCancelled);
+                this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, RequestStatus.CANCELLED);
             }
         }, this.config.system.loadFrameTimeout);
 
@@ -1417,14 +1406,12 @@ export class UserAgentApplication {
 
             // login
             if (stateInfo.requestType === Constants.login) {
-                this.loginInProgress = false;
                 this.cacheStorage.setItem(PersistentCacheKeys.LOGIN_ERROR, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION] + ":" + hashParams[ServerHashParamKeys.ERROR]);
                 authorityKey = AuthCache.generateAuthorityKey(stateInfo.state);
             }
 
             // acquireToken
             if (stateInfo.requestType === Constants.renewToken) {
-                this.acquireTokenInProgress = false;
                 authorityKey = AuthCache.generateAuthorityKey(stateInfo.state);
 
                 const account: Account = this.getAccount();
@@ -1466,7 +1453,6 @@ export class UserAgentApplication {
                 // Process access_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
                     this.logger.info("Fragment has access token");
-                    this.acquireTokenInProgress = false;
 
                     // retrieve the id_token from response if present
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
@@ -1526,9 +1512,6 @@ export class UserAgentApplication {
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
                     this.logger.info("Fragment has id token");
 
-                    // login no longer in progress
-                    this.loginInProgress = false;
-
                     // set the idToken
                     idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
 
@@ -1585,7 +1568,6 @@ export class UserAgentApplication {
             }
         }
 
-        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, Constants.tokenRenewStatusCompleted);
         this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
         // this is required if navigateToLoginRequestUrl=false
         if (this.inCookie) {
@@ -1593,12 +1575,18 @@ export class UserAgentApplication {
             this.cacheStorage.clearMsalCookie(stateInfo.state);
         }
         if (error) {
+            // Error case, set status to cancelled
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.CANCELLED);
+            this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.CANCELLED);
             throw error;
         }
 
         if (!response) {
             throw AuthError.createUnexpectedError("Response is null");
         }
+        // Set status to completed
+        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
+        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.COMPLETED);
         return response;
     }
 
@@ -1894,12 +1882,12 @@ export class UserAgentApplication {
      * Return boolean flag to developer to help inform if login is in progress
      * @returns {boolean} true/false
      */
-    public getLoginInProgress(): boolean {
+    public isInteractionInProgress(): boolean {
         const pendingCallback = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
         if (pendingCallback) {
             return true;
         }
-        return this.loginInProgress;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === RequestStatus.IN_PROGRESS;
     }
 
     /**
@@ -1908,28 +1896,12 @@ export class UserAgentApplication {
      *
      * @param loginInProgress
      */
-    protected setloginInProgress(loginInProgress : boolean) {
-        this.loginInProgress = loginInProgress;
-    }
-
-    /**
-     * @hidden
-     * @ignore
-     *
-     * returns the status of acquireTokenInProgress
-     */
-    protected getAcquireTokenInProgress(): boolean {
-        return this.acquireTokenInProgress;
-    }
-
-    /**
-     * @hidden
-     * @ignore
-     *
-     * @param acquireTokenInProgress
-     */
-    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
-        this.acquireTokenInProgress = acquireTokenInProgress;
+    protected setInteractionInProgress(inProgress: boolean) {
+        if (inProgress) {
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
+        } else {
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
+        }
     }
 
     /**

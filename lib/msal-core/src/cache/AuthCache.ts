@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, RequestStatus } from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -157,9 +157,8 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     private tokenRenewalInProgress(stateValue: string): boolean {
-        const storage = window[this.cacheLocation];
-        const renewStatus = storage[TemporaryCacheKeys.RENEW_STATUS + stateValue];
-        return !(!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress);
+        const renewStatus = this.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
+        return !!(renewStatus && renewStatus === RequestStatus.IN_PROGRESS);
     }
 
     public clearMsalCookie(state?: string): void {

@@ -19,7 +19,7 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { AuthCache } from "../src/cache/AuthCache";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
-import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys } from "../src/utils/Constants";
+import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys, RequestStatus } from "../src/utils/Constants";
 import { WindowUtils } from "../src/utils/WindowUtils";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
@@ -197,6 +197,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -205,11 +206,14 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
+            setTestCacheItems();
 
             delete window.location;
         });
 
         afterEach(function () {
+            cacheStorage.clear();
+            sinon.restore();
             window.location = oldWindowLocation;
         });
 
@@ -541,8 +545,8 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect({});
         });
 
-        it("exits login function with error if loginInProgress is true", function (done) {
-            sinon.stub(msal, <any>"loginInProgress").value(true);
+        it("exits login function with error if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
@@ -661,6 +665,11 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
             setTestCacheItems();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
         });
 
         it("Calls the error callback if two callbacks are sent", function (done) {
