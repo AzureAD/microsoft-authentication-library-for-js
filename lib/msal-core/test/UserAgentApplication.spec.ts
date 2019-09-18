@@ -19,7 +19,7 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { AuthCache } from "../src/cache/AuthCache";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
-import { SSOTypes, CacheKeys, ServerHashParamKeys } from "../src/utils/Constants";
+import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys } from "../src/utils/Constants";
 import { WindowUtils } from "../src/utils/WindowUtils";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
@@ -664,10 +664,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the error callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, accountState: string) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
                 expect(error.errorCode).to.include(TEST_ERROR_CODE);
@@ -680,12 +680,12 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the token callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, TEST_NONCE);
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
             const checkResponseFromServer = function(response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
@@ -696,12 +696,12 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the response callback if single callback is sent", function (done) {
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, TEST_NONCE);
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
@@ -1044,25 +1044,25 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of response", function(done) {
             const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, TEST_NONCE);
-            cacheStorage.setItem(CacheKeys.URL_HASH, successHash);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
             const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
                 expect(error.errorCode).to.include(TEST_ERROR_CODE);
@@ -1076,10 +1076,10 @@ describe("UserAgentApplication.ts Class", function () {
 
         // TEST_SERVER_ERROR_SUBCODE_CANCEL
         it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
                 expect(error.errorCode).to.include(TEST_ACCESS_DENIED);
@@ -1090,8 +1090,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
@@ -1100,8 +1100,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_URL);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_URL);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_URL);
                 done();
@@ -1123,9 +1123,9 @@ describe("UserAgentApplication.ts Class", function () {
             const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             const successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(CacheKeys.STATE_ACQ_TOKEN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, TEST_NONCE);
-            cacheStorage.setItem(CacheKeys.URL_HASH, successHash);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_ACQ_TOKEN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
 
             const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
@@ -1133,7 +1133,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
                 expect(response.expiresOn.getTime()).to.be.eq((TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000);
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
@@ -1143,16 +1143,16 @@ describe("UserAgentApplication.ts Class", function () {
             const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, TEST_NONCE);
-            cacheStorage.setItem(CacheKeys.URL_HASH, successHash);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
             const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
                 expect(response.expiresOn.getTime()).to.be.eq(TEST_TOKEN_LIFETIMES.TEST_ID_TOKEN_EXP * 1000);
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
@@ -1180,10 +1180,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of interaction_required error code", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
@@ -1196,10 +1196,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of interaction_required error code and description", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
@@ -1214,10 +1214,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of login_required error code", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
@@ -1230,10 +1230,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of login_required error code and description", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
@@ -1248,10 +1248,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of consent_required error code", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
@@ -1264,10 +1264,10 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of consent_required error code and description", function(done) {
-            cacheStorage.setItem(CacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(CacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(CacheKeys.URL_HASH)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
@@ -1307,8 +1307,8 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("clears cache and account object", function (done) {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            cacheStorage.setItem(CacheKeys.IDTOKEN, "idTokenKey");
-            cacheStorage.setItem(CacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED);
+            cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, "idTokenKey");
+            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED);
             sinon.stub(Account, "createAccount").returns(account);
             window.location = {
                 ...oldWindowLocation,

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { CacheKeys } from "../utils/Constants";
 import { CacheLocation } from "../Configuration";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { AuthError } from "../error/AuthError";

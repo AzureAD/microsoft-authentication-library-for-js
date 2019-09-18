@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { BrowserStorage } from "../src/cache/BrowserStorage";
 import { AuthCache } from "../src/cache/AuthCache";
 import { Constants, AuthError } from "../src";
-import { CacheKeys } from "../src/utils/Constants";
+import { PersistentCacheKeys, TemporaryCacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
 import { Account } from "../src/Account";
@@ -147,18 +147,18 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
         it("tests setItemCookie works", function () {
             let idTokenNonceString = "idTokenNonce";
-            cacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
-            expect(document.cookie).to.include(CacheKeys.NONCE_IDTOKEN);
+            cacheStorage.setItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN, idTokenNonceString);
+            expect(document.cookie).to.include(TemporaryCacheKeys.NONCE_IDTOKEN);
             expect(document.cookie).to.include(idTokenNonceString);
-            cacheStorage.clearItemCookie(CacheKeys.NONCE_IDTOKEN);
+            cacheStorage.clearItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN);
         });
 
         it("tests getItemCookie ", function () {
             let idTokenNonceString = "idTokenNonce";
-            cacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
-            let retrievedItem = cacheStorage.getItemCookie(CacheKeys.NONCE_IDTOKEN);
+            cacheStorage.setItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN, idTokenNonceString);
+            let retrievedItem = cacheStorage.getItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN);
             expect(retrievedItem).to.include(idTokenNonceString);
-            cacheStorage.clearItemCookie(CacheKeys.NONCE_IDTOKEN);
+            cacheStorage.clearItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN);
         });
 
         it("tests getCookieExpirationTime", function () {
@@ -224,13 +224,13 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
 
-            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey}`, JSON.stringify(ACCOUNT));
-            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${authorityKey}`, validAuthority);
+            window.localStorage.setItem(`${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey}`, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(`${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${authorityKey}`, validAuthority);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
 
-            msalCacheStorage.removeAcquireTokenEntries();
+            msalCacheStorage.removeAcquireTokenEntries(TEST_STATE);
             
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
@@ -242,10 +242,10 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
             let acquireTokenAccountKey2 = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE2);
             let authorityKey2 = AuthCache.generateAuthorityKey(TEST_STATE2);
-            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey}`, JSON.stringify(ACCOUNT));
-            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${authorityKey}`, validAuthority);
-            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey2}`, JSON.stringify(ACCOUNT));
-            window.localStorage.setItem(`${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${authorityKey2}`, validAuthority);
+            window.localStorage.setItem(`${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey}`, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(`${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${authorityKey}`, validAuthority);
+            window.localStorage.setItem(`${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${acquireTokenAccountKey2}`, JSON.stringify(ACCOUNT));
+            window.localStorage.setItem(`${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${authorityKey2}`, validAuthority);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
@@ -270,20 +270,20 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             let stateLoginString = "stateLogin";
             let loginRequestString = "loginRequest";
             let stateAcquireTokenString = "stateAcquireToken";
-            msalCacheStorage.setItemCookie(CacheKeys.NONCE_IDTOKEN, idTokenNonceString);
-            msalCacheStorage.setItemCookie(CacheKeys.STATE_LOGIN, stateLoginString);
-            msalCacheStorage.setItemCookie(CacheKeys.LOGIN_REQUEST, loginRequestString);
-            msalCacheStorage.setItemCookie(CacheKeys.STATE_ACQ_TOKEN, stateAcquireTokenString);
+            msalCacheStorage.setItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN, idTokenNonceString);
+            msalCacheStorage.setItemCookie(TemporaryCacheKeys.STATE_LOGIN, stateLoginString);
+            msalCacheStorage.setItemCookie(TemporaryCacheKeys.LOGIN_REQUEST, loginRequestString);
+            msalCacheStorage.setItemCookie(TemporaryCacheKeys.STATE_ACQ_TOKEN, stateAcquireTokenString);
             msalCacheStorage.clearMsalCookie();
             expect(document.cookie).to.be.empty;
         });
 
         it("resetCacheItems deletes msal related cache items", function () {
-            let clientInfoKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.CLIENT_INFO}`;
-            let stateLoginKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.STATE_LOGIN}`;
-            let idTokenKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.IDTOKEN}`;
-            let nonceIdTokenKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.NONCE_IDTOKEN}`;
-            let renewStatusKey = `${CacheKeys.PREFIX}.${MSAL_CLIENT_ID}.${CacheKeys.RENEW_STATUS}` + "|RANDOM_GUID";
+            let clientInfoKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${PersistentCacheKeys.CLIENT_INFO}`;
+            let stateLoginKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${TemporaryCacheKeys.STATE_LOGIN}`;
+            let idTokenKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${PersistentCacheKeys.IDTOKEN}`;
+            let nonceIdTokenKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}`;
+            let renewStatusKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${TemporaryCacheKeys.RENEW_STATUS}` + "|RANDOM_GUID";
 
             window.localStorage.setItem(clientInfoKey, "clientInfo");
             window.localStorage.setItem(stateLoginKey, "stateLogin");
@@ -291,19 +291,19 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             window.localStorage.setItem(nonceIdTokenKey, "idTokenNonce");
             window.localStorage.setItem(renewStatusKey, "Completed");
 
-            expect(msalCacheStorage.getItem(CacheKeys.CLIENT_INFO)).to.be.eq("clientInfo");
-            expect(msalCacheStorage.getItem(CacheKeys.STATE_LOGIN)).to.be.eq("stateLogin");
-            expect(msalCacheStorage.getItem(CacheKeys.IDTOKEN)).to.be.eq("idToken1");
-            expect(msalCacheStorage.getItem(CacheKeys.NONCE_IDTOKEN)).to.be.eq("idTokenNonce");
-            expect(msalCacheStorage.getItem(CacheKeys.RENEW_STATUS + "|RANDOM_GUID")).to.be.eq("Completed");
+            expect(msalCacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO)).to.be.eq("clientInfo");
+            expect(msalCacheStorage.getItem(TemporaryCacheKeys.STATE_LOGIN)).to.be.eq("stateLogin");
+            expect(msalCacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.be.eq("idToken1");
+            expect(msalCacheStorage.getItem(TemporaryCacheKeys.NONCE_IDTOKEN)).to.be.eq("idTokenNonce");
+            expect(msalCacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + "|RANDOM_GUID")).to.be.eq("Completed");
 
             msalCacheStorage.resetCacheItems();
 
-            expect(msalCacheStorage.getItem(CacheKeys.CLIENT_INFO)).to.be.null;
-            expect(msalCacheStorage.getItem(CacheKeys.STATE_LOGIN)).to.be.null;
-            expect(msalCacheStorage.getItem(CacheKeys.IDTOKEN)).to.be.null;
-            expect(msalCacheStorage.getItem(CacheKeys.NONCE_IDTOKEN)).to.be.null;
-            expect(msalCacheStorage.getItem(CacheKeys.RENEW_STATUS + "|RANDOM_GUID")).to.be.null;
+            expect(msalCacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO)).to.be.null;
+            expect(msalCacheStorage.getItem(TemporaryCacheKeys.STATE_LOGIN)).to.be.null;
+            expect(msalCacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.be.null;
+            expect(msalCacheStorage.getItem(TemporaryCacheKeys.NONCE_IDTOKEN)).to.be.null;
+            expect(msalCacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + "|RANDOM_GUID")).to.be.null;
         });
 
         it.skip("tests that resetCacheItems only deletes instance-specific cache items");
@@ -315,13 +315,13 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             expect(acquireTokenAccountKey).to.include(TEST_ACCOUNT_ID);
             expect(acquireTokenAccountKey).to.include(TEST_STATE);
-            expect(acquireTokenAccountKey).to.include(CacheKeys.ACQUIRE_TOKEN_ACCOUNT);
+            expect(acquireTokenAccountKey).to.include(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT);
         });
 
         it("generates authority key", function () {
             let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
             expect(authorityKey).to.include(TEST_STATE);
-            expect(authorityKey).to.include(CacheKeys.AUTHORITY);
+            expect(authorityKey).to.include(TemporaryCacheKeys.AUTHORITY);
         });
     });
 
