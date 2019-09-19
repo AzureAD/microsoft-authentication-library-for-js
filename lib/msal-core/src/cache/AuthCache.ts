@@ -52,7 +52,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${Constants.cachePrefix}.${this.clientId}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
+            if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
             } else {
                 return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
@@ -147,6 +147,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                         this.removeItem(TemporaryCacheKeys.STATE_LOGIN);
                         this.removeItem(TemporaryCacheKeys.STATE_ACQ_TOKEN);
                         this.removeItem(TemporaryCacheKeys.LOGIN_REQUEST);
+                        this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
                         this.removeItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
                         this.setItemCookie(key, "", -1);
                         this.clearMsalCookie(state);
