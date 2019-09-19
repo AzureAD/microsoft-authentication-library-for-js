@@ -1567,7 +1567,10 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, error.errorMessage);
             }
         }
-
+        
+        // Set status to completed
+        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
+        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.COMPLETED);
         this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
         // this is required if navigateToLoginRequestUrl=false
         if (this.inCookie) {
@@ -1578,15 +1581,14 @@ export class UserAgentApplication {
             // Error case, set status to cancelled
             this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.CANCELLED);
             this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.CANCELLED);
+            this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
             throw error;
         }
 
         if (!response) {
             throw AuthError.createUnexpectedError("Response is null");
         }
-        // Set status to completed
-        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
-        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.COMPLETED);
+        
         return response;
     }
 
@@ -1900,7 +1902,7 @@ export class UserAgentApplication {
         if (inProgress) {
             this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
         } else {
-            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         }
     }
 
