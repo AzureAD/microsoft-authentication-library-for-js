@@ -934,7 +934,7 @@ export class UserAgentApplication {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
             const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
             this.logger.infoPii(logMessage);
-            navigateWindow.location.replace(urlNavigate);
+            navigateWindow.location.assign(urlNavigate);
         }
         else {
             this.logger.info("Navigate url is empty");
