@@ -1,10 +1,12 @@
 {
+  "name": "microsoft-authentication-libraries-for-js",
+  "private": true,
   "devDependencies": {
-    "lerna": "^2.11.0"
+    "lerna": "^3.16.4"
   },
   "scripts": {
-    "test": "cd lib/msal-core && npm install && npm run build && cd ../msal-angular && npm install && npm run ngcompile && npm run test && cd ../msal-angularjs && npm install && npm rebuild && npm run test",
-    "endToEnd": "cd lib/msal-core/tests/endToEndTests && npm install && npm run endToEnd && cd ../../../msal-angular/tests/endToEndTests && npm install &&  npm run endToEnd && cd ../../../msal-angularjs/tests/endToEndTests && npm install &&  npm run test"
+    "postinstall": "lerna bootstrap && lerna run build:modules --no-private",
+    "clean": "lerna run clean --no-private && lerna clean"
   },
   "dependencies": {}
 }
