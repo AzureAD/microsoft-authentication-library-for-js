@@ -16,7 +16,7 @@ import { Storage } from "./Storage";
 import { Account } from "./Account";
 import { ScopeSet } from "./ScopeSet";
 import { StringUtils } from "./utils/StringUtils";
-import { CryptoUtils } from "./utils/CryptoUtils";
+import { WindowUtils } from "./utils/WindowUtils";
 import { TokenUtils } from "./utils/TokenUtils";
 import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
@@ -111,27 +111,6 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
  * @returns {string} account state
  */
 export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
-
-/**
- * @hidden
- * @ignore
- * A wrapper to handle the token response/error within the iFrame always
- *
- * @param target
- * @param propertyKey
- * @param descriptor
- */
-const resolveTokenOnlyIfOutOfIframe = (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const tokenAcquisitionMethod = descriptor.value;
-    descriptor.value = function (...args: any[]) {
-        return this.isInIframe()
-            ? new Promise(() => {
-                return;
-            })
-            : tokenAcquisitionMethod.apply(this, args);
-    };
-    return descriptor;
-};
 
 /**
  * UserAgentApplication class
@@ -245,7 +224,6 @@ export class UserAgentApplication {
         }
 
         // Initialize window handling code
-        window.openedWindows = [];
         window.activeRenewals = {};
         window.renewStates = [];
         window.callbackMappedToRenewStates = { };
@@ -253,13 +231,11 @@ export class UserAgentApplication {
         window.msal = this;
 
         const urlHash = window.location.hash;
-        const urlContainsHash = this.urlContainsHash(urlHash);
+        const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
 
         // On the server 302 - Redirect, handle this
-        if (!this.config.framework.isAngular) {
-            if (urlContainsHash) {
-                this.handleAuthenticationResponse(urlHash);
-            }
+        if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
+            this.handleAuthenticationResponse(urlHash);
         }
     }
 
@@ -485,14 +461,29 @@ export class UserAgentApplication {
         let popUpWindow: Window;
         if (interactionType === Constants.interactionTypePopup) {
             // Generate a popup window
-            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+            try {
+                popUpWindow = this.openPopup("about:blank", "msal", Constants.popUpWidth, Constants.popUpHeight);
+
+                // Push popup window handle onto stack for tracking
+                WindowUtils.trackPopup(popUpWindow);
+            } catch (e) {
+                this.loginInProgress = false;
+                this.acquireTokenInProgress = false;
+
+                this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
+                this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.popUpWindowError.code);
+                this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.popUpWindowError.desc);
+                if (reject) {
+                    reject(ClientAuthError.createPopupWindowError());
+                }
+            }
+
             if (!popUpWindow) {
-                // We pass reject in openWindow, we reject there during an error
                 return;
             }
         }
 
-        acquireTokenAuthority.resolveEndpointsAsync().then(() => {
+        acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, scopes, false);
             let loginStartPage: string;
@@ -541,6 +532,38 @@ export class UserAgentApplication {
 
             // prompt user for interaction
             this.navigateWindow(urlNavigate, popUpWindow);
+
+            // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
+            if (popUpWindow) {
+                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+                if (hash) {
+                    // Hash found
+                    this.handleAuthenticationResponse(hash);
+
+                    this.loginInProgress = false;
+                    this.acquireTokenInProgress = false;
+                    this.logger.info("Closing popup window");
+
+                    // TODO: Check how this can be extracted for any framework specific code?
+                    if (this.config.framework.isAngular) {
+                        this.broadcast("msal:popUpHashChanged", hash);
+                        WindowUtils.closePopups();
+                    }
+                } else {
+                    // Window closed
+                    if (reject) {
+                        reject(ClientAuthError.createUserCancelledError());
+                    }
+
+                    if (this.config.framework.isAngular) {
+                        this.broadcast("msal:popUpClosed", ClientAuthErrorMessage.userCancelledError.code + Constants.resourceDelimiter + ClientAuthErrorMessage.userCancelledError.desc);
+                        return;
+                    }
+
+                    this.loginInProgress = false;
+                    this.acquireTokenInProgress = false;
+                }
+            }
         }).catch((err) => {
             this.logger.warning("could not resolve endpoints");
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
@@ -562,7 +585,6 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    @resolveTokenOnlyIfOutOfIframe
     acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
@@ -690,86 +712,6 @@ export class UserAgentApplication {
     /**
      * @hidden
      *
-     * Used to send the user to the redirect_uri after authentication is complete. The user's bearer token is attached to the URI fragment as an id_token/access_token field.
-     * This function also closes the popup window after redirection.
-     *
-     * @param urlNavigate
-     * @param title
-     * @param interval
-     * @param instance
-     * @param resolve
-     * @param reject
-     * @ignore
-     */
-    private openWindow(urlNavigate: string, title: string, interval: number, instance: this, resolve?: Function, reject?: Function): Window {
-    // Generate a popup window
-        let popupWindow: Window;
-        try {
-            popupWindow = this.openPopup(urlNavigate, title, Constants.popUpWidth, Constants.popUpHeight);
-        } catch (e) {
-            instance.loginInProgress = false;
-            instance.acquireTokenInProgress = false;
-
-            this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
-            this.cacheStorage.setItem(Constants.msalError, ClientAuthErrorMessage.popUpWindowError.code);
-            this.cacheStorage.setItem(Constants.msalErrorDescription, ClientAuthErrorMessage.popUpWindowError.desc);
-            if (reject) {
-                reject(ClientAuthError.createPopupWindowError());
-            }
-            return null;
-        }
-
-        // Push popup window handle onto stack for tracking
-        window.openedWindows.push(popupWindow);
-
-        const pollTimer = window.setInterval(() => {
-            // If popup closed or login in progress, cancel login
-            if (popupWindow && popupWindow.closed && (instance.loginInProgress || instance.acquireTokenInProgress)) {
-                if (reject) {
-                    reject(ClientAuthError.createUserCancelledError());
-                }
-                window.clearInterval(pollTimer);
-                if (this.config.framework.isAngular) {
-                    this.broadcast("msal:popUpClosed", ClientAuthErrorMessage.userCancelledError.code + Constants.resourceDelimiter + ClientAuthErrorMessage.userCancelledError.desc);
-                    return;
-                }
-                instance.loginInProgress = false;
-                instance.acquireTokenInProgress = false;
-            }
-
-            try {
-                const popUpWindowLocation = popupWindow.location;
-
-                // If the popup hash changes, close the popup window
-                if (popUpWindowLocation.href.indexOf(this.getRedirectUri()) !== -1) {
-                    window.clearInterval(pollTimer);
-                    instance.loginInProgress = false;
-                    instance.acquireTokenInProgress = false;
-                    this.logger.info("Closing popup window");
-                    // TODO: Check how this can be extracted for any framework specific code?
-                    if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpHashChanged", popUpWindowLocation.hash);
-                        for (let i = 0; i < window.openedWindows.length; i++) {
-                            window.openedWindows[i].close();
-                        }
-                    }
-                }
-            } catch (e) {
-            /*
-             * Cross Domain url check error.
-             * Will be thrown until AAD redirects the user back to the app"s root page with the token.
-             * No need to log or throw this error as it will create unnecessary traffic.
-             */
-            }
-        },
-        interval);
-
-        return popupWindow;
-    }
-
-    /**
-     * @hidden
-     *
      * Configures popup window for login.
      *
      * @param urlNavigate
@@ -820,33 +762,15 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * Returns whether current window is in ifram for token renewal
-     * @ignore
-     */
-    public isInIframe() {
-        return window.parent !== window;
-    }
-
-    /**
-     * @hidden
-     * Returns whether parent window exists and has msal
-     */
-    private parentIsMsal() {
-        return window.parent !== window && window.parent.msal;
-    }
-
-    /**
-     * @hidden
      * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
      * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
      * @ignore
      */
-    private loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): void {
+    private async loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): Promise<void> {
         // set iframe session to pending
         const expectedState = window.activeRenewals[scope];
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
         this.cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusInProgress);
-        this.loadFrame(urlNavigate, frameName);
         setTimeout(() => {
             if (this.cacheStorage.getItem(Constants.renewStatus + expectedState) === Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it's in pending state
@@ -859,64 +783,12 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(Constants.renewStatus + expectedState, Constants.tokenRenewStatusCancelled);
             }
         }, this.config.system.loadFrameTimeout);
-    }
 
-    /**
-     * @hidden
-     * Loads iframe with authorization endpoint URL
-     * @ignore
-     */
-    private loadFrame(urlNavigate: string, frameName: string): void {
-        /*
-         * This trick overcomes iframe navigation in IE
-         * IE does not load the page consistently in iframe
-         */
-        this.logger.info("LoadFrame: " + frameName);
-        const frameCheck = frameName;
-
-        setTimeout(() => {
-            const frameHandle = this.addHiddenIFrame(frameCheck);
-            if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-                frameHandle.src = urlNavigate;
-                this.logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
-            }
-        },
-        this.config.system.navigateFrameWait);
-    }
-
-    /**
-     * @hidden
-     * Adds the hidden iframe for silent token renewal.
-     * @ignore
-     */
-    private addHiddenIFrame(iframeId: string): HTMLIFrameElement {
-        if (typeof iframeId === "undefined") {
-            return null;
+        const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
+        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
+        if (hash) {
+            this.handleAuthenticationResponse(hash);
         }
-
-        this.logger.info("Add msal frame to document:" + iframeId);
-        let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
-        if (!adalFrame) {
-            if (document.createElement &&
-        document.documentElement &&
-        (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
-                const ifr = document.createElement("iframe");
-                ifr.setAttribute("id", iframeId);
-                ifr.style.visibility = "hidden";
-                ifr.style.position = "absolute";
-                ifr.style.width = ifr.style.height = "0";
-                ifr.style.border = "0";
-                adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
-            } else if (document.body && document.body.insertAdjacentHTML) {
-                document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
-            }
-
-            if (window.frames && window.frames[iframeId]) {
-                adalFrame = window.frames[iframeId];
-            }
-        }
-
-        return adalFrame;
     }
 
     // #endregion
@@ -1058,17 +930,7 @@ export class UserAgentApplication {
      */
     isCallback(hash: string): boolean {
         this.logger.info("isCallback will be deprecated in favor of urlContainsHash in MSAL.js v2.0.");
-        return this.urlContainsHash(hash);
-    }
-
-    private urlContainsHash(urlString: string): boolean {
-        const parameters = this.deserializeHash(urlString);
-        return (
-            parameters.hasOwnProperty(Constants.errorDescription) ||
-      parameters.hasOwnProperty(Constants.error) ||
-      parameters.hasOwnProperty(Constants.accessToken) ||
-      parameters.hasOwnProperty(Constants.idToken)
-        );
+        return UrlUtils.urlContainsHash(hash);
     }
 
     /**
@@ -1135,83 +997,50 @@ export class UserAgentApplication {
      */
     private handleAuthenticationResponse(hash: string): void {
         // retrieve the hash
-        if (hash == null) {
-            hash = window.location.hash;
-        }
+        const locationHash = hash || window.location.hash;
 
-        let self = null;
-        let isPopup: boolean = false;
-        let isWindowOpenerMsal = false;
-
-        // Check if the current window opened the iFrame/popup
-        try {
-            isWindowOpenerMsal = window.opener && window.opener.msal && window.opener.msal !== window.msal;
-        } catch (err) {
-            // err = SecurityError: Blocked a frame with origin "[url]" from accessing a cross-origin frame.
-            isWindowOpenerMsal = false;
-        }
-
-        // Set the self to the window that created the popup/iframe
-        if (isWindowOpenerMsal) {
-            self = window.opener.msal;
-            isPopup = true;
-        } else if (window.parent && window.parent.msal) {
-            self = window.parent.msal;
-        }
+        // Check if the current flow is popup or hidden iframe
+        const iframeWithHash = WindowUtils.getIframeWithHash(locationHash);
+        const popUpWithHash = WindowUtils.getPopUpWithHash(locationHash);
+        const isPopupOrIframe = !!(iframeWithHash || popUpWithHash);
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
-        const stateInfo = self.getResponseState(hash);
+        const stateInfo = this.getResponseState(locationHash);
 
         let tokenResponseCallback: (response: AuthResponse, error: AuthError) => void = null;
 
-        self.logger.info("Returned from redirect url");
+        this.logger.info("Returned from redirect url");
         // If parent window is the msal instance which opened the current window (iframe)
-        if (this.parentIsMsal()) {
-            tokenResponseCallback = window.parent.callbackMappedToRenewStates[stateInfo.state];
-        }
-        // Current window is window opener (popup)
-        else if (isWindowOpenerMsal) {
-            tokenResponseCallback = window.opener.callbackMappedToRenewStates[stateInfo.state];
-        }
-        // Redirect cases
-        else {
+        if (isPopupOrIframe) {
+            tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
+        } else {
+            // Redirect cases
             tokenResponseCallback = null;
             // if set to navigate to loginRequest page post login
-            if (self.config.auth.navigateToLoginRequestUrl) {
-                self.cacheStorage.setItem(Constants.urlHash, hash);
-                if (window.parent === window && !isPopup) {
-                    window.location.href = self.cacheStorage.getItem(Constants.loginRequest, self.inCookie);
+            if (this.config.auth.navigateToLoginRequestUrl) {
+                this.cacheStorage.setItem(Constants.urlHash, locationHash);
+                if (window.parent === window) {
+                    window.location.href = this.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
                 }
                 return;
             }
             else {
                 window.location.hash = "";
             }
+
             if (!this.redirectCallbacksSet) {
                 // We reached this point too early - cache hash, return and process in handleRedirectCallbacks
-                self.cacheStorage.setItem(Constants.urlHash, hash);
+                this.cacheStorage.setItem(Constants.urlHash, locationHash);
                 return;
             }
         }
 
-        self.processCallBack(hash, stateInfo, tokenResponseCallback);
+        this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
 
         // If current window is opener, close all windows
-        if (isWindowOpenerMsal) {
-            for (let i = 0; i < window.opener.openedWindows.length; i++) {
-                window.opener.openedWindows[i].close();
-            }
+        if (isPopupOrIframe) {
+            WindowUtils.closePopups();
         }
-    }
-
-    /**
-     * @hidden
-     * Returns deserialized portion of URL hash
-     * @param hash
-     */
-    private deserializeHash(urlFragment: string) {
-        const hash = UrlUtils.getHashFromUrl(urlFragment);
-        return CryptoUtils.deserialize(hash);
     }
 
     /**
@@ -1222,7 +1051,7 @@ export class UserAgentApplication {
      * @ignore
      */
     protected getResponseState(hash: string): ResponseStateInfo {
-        const parameters = this.deserializeHash(hash);
+        const parameters = UrlUtils.deserializeHash(hash);
         let stateResponse: ResponseStateInfo;
         if (!parameters) {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
@@ -1422,7 +1251,9 @@ export class UserAgentApplication {
     private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         const scope = scopes.join(" ").toLowerCase();
         this.logger.verbose("renewToken is called for scope:" + scope);
-        const frameHandle = this.addHiddenIFrame("msalRenewFrame" + scope);
+
+        const frameName = `msalRenewFrame${scope}`;
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
@@ -1435,7 +1266,7 @@ export class UserAgentApplication {
         this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, "msalRenewFrame" + scope, scope);
+        this.loadIframeTimeout(urlNavigate, frameName, scope);
     }
 
     /**
@@ -1444,9 +1275,9 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-
         this.logger.info("renewidToken is called");
-        const frameHandle = this.addHiddenIFrame("msalIdTokenFrame");
+        const frameName = "msalIdTokenFrame";
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
 
@@ -1467,7 +1298,7 @@ export class UserAgentApplication {
         this.registerCallback(serverAuthenticationRequest.state, this.clientId, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, "msalIdTokenFrame", this.clientId);
+        this.loadIframeTimeout(urlNavigate, frameName, this.clientId);
     }
 
     /**
@@ -1564,7 +1395,7 @@ export class UserAgentApplication {
         };
 
         let error: AuthError;
-        const hashParams = this.deserializeHash(hash);
+        const hashParams = UrlUtils.deserializeHash(hash);
         let authorityKey: string = "";
         let acquireTokenAccountKey: string = "";
         let idTokenObj: IdToken = null;

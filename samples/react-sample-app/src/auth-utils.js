@@ -69,5 +69,8 @@ export const msalApp = new UserAgentApplication({
     cache: {
         cacheLocation: "sessionStorage",
         storeAuthStateInCookie: isIE()
+    },
+    system: {
+        navigateFrameWait: 0
     }
 });
