@@ -47,6 +47,12 @@ and start hacking:
 $ git checkout -b my-feature-branch
 ```
 
+### BOOTSTRAP
+
+After you have cloned the repository, run `npm install` in the root folder. This will install the depedencies for all of the libraries and samples in the repo, create linkages between packages that have depedencies on each other, and run the build process for each of the libraries.
+
+To reset each of the libraries, run `npm run clean` in the root folder, which will remove the `node_modules` folders and built files for each repo and sample.
+
 ### PRE COMMIT
 
 We will automatically run lint as our pre-commit command. Failing to pass linting will prevent you from pushing up code which will break the build.

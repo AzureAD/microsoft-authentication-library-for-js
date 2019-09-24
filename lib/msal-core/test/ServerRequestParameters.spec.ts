@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { Authority } from "../src";
-import { AuthorityFactory } from "../src/AuthorityFactory";
+import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "./TestConstants";
 import sinon from "sinon";
