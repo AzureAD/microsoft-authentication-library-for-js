@@ -65,7 +65,7 @@ After instantiating your instance, if you plan on using a redirect flow (`loginR
 ```JavaScript
     import * as Msal from "msal";
     // if using cdn version, 'Msal' will be available in the global scope
-    
+
     const msalConfig = {
         auth: {
             clientId: 'your_client_id'
@@ -188,26 +188,6 @@ You can learn further details about MSAL.js functionality documented in the [MSA
 ```
 
 You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
-
-## Community Help and Support
-
-- [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs) for access to our frequently asked questions
-
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using "msal" and "msal.js" tag.
-
-We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-
-- [GitHub Issues](../../issues) for reporting a bug or feature requests
-
-- [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
-
-## Contribute
-
-We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.
-
-## Security Library
-
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use [semantic versioning](http://semver.org) so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.
 
 ## Security Reporting
 
