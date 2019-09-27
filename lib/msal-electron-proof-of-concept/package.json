@@ -1,6 +1,7 @@
 {
     "name": "msal-electron-poc",
     "version": "0.1.0",
+    "private": true,
     "description": "Microsoft Authentication Library for Electron Proof of Concept",
     "main": "dist/index.js",
     "scripts": {

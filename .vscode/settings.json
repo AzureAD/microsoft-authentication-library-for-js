@@ -7,5 +7,6 @@
         { "language": "typescript", "autoFix": true }
     ],
     "eslint.quiet": true,
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "github-pr.targetBranch": "dev"
 }
