@@ -18,13 +18,30 @@ Via NPM:
 Via CDN:
 
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.js"></script>
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.min.js"></script>
+    <script type="text/javascript" src="https://{CDN-URL}/msal.js" integrity="sha{alg}-{checksum}" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://{CDN-URL}/msal.min.js" integrity="sha{alg}-{checksum}" crossorigin="anonymous"></script>
+
+Latest Microsoft CDN Version:
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js" integrity="sha384-3cT22wEPS/umVHpe5hGwbRF8PLObcSXaaFncKfbzutTBzn/aEMQ6aIlxaa6J2TG1" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-3cT22wEPS/umVHpe5hGwbRF8PLObcSXaaFncKfbzutTBzn/aEMQ6aIlxaa6J2TG1" crossorigin="anonymous"></script>
+
+Note: We recommend including the [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) Hash with all script tags when using `msal.js` or `msal.min.js`. When providing the SRI Hash, you *must* also provide the `crossorigin="anonymous"` field in the same tag.
 
 Internet Explorer does not have native `Promise` support, and so you will need to include a polyfill for promises such as `bluebird`.
 
     <!-- IE support: add promises polyfill before msal.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
+
+CDN Resilience:
+
+If you would like to utilize resilient import from Microsoft's CDN, you can include the following tags as below in your code:
+
+    <script type="text/javascript" src="https://alcdn.msauth.net/lib/{version}/js/msal.js" integrity="sha{alg}-{checksum}" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+    if(typeof##MSAL##=='undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/{version}/js/msal.js' type='text/javascript' integrity='sha{alg}-{checksum}' crossorigin='anonymous'%3E%3C/script%3E"));
+    </script>
 
 See here for more details on [supported browsers and known compatability issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs#q4-what-browsers-is-msaljs-supported-on).
 
