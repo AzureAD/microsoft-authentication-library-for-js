@@ -25,7 +25,7 @@ Latest Microsoft CDN Version:
 
     <!-- Latest compiled and minified JavaScript -->
     <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js" integrity="sha384-3cT22wEPS/umVHpe5hGwbRF8PLObcSXaaFncKfbzutTBzn/aEMQ6aIlxaa6J2TG1" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-3cT22wEPS/umVHpe5hGwbRF8PLObcSXaaFncKfbzutTBzn/aEMQ6aIlxaa6J2TG1" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-kYijiCrNWywvKX1VI7259ktIf0ebXhlDeVD2dBEX+GeVbmY1GEboq3dsDDvYuDP/" crossorigin="anonymous"></script>
 
 Note: We recommend including the [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) Hash with all script tags when using `msal.js` or `msal.min.js`. When providing the SRI Hash, you *must* also provide the `crossorigin="anonymous"` field in the same tag.
 
