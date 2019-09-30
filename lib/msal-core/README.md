@@ -18,22 +18,27 @@ The MSAL library for JavaScript enables client-side JavaScript web applications,
 ### Via Latest Microsoft CDN Version:
 
     <!-- Latest compiled and minified JavaScript -->
+    <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js"></script>
+    <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js"></script>
+    
+    <!-- Alternate region URLs -->
+    <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.js"></script>
+    <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.min.js"></script>
+
+### Via Latest Microsoft CDN Version (with SRI Hash):
+
+    <!-- Latest compiled and minified JavaScript -->
     <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js" integrity="sha384-3cT22wEPS/umVHpe5hGwbRF8PLObcSXaaFncKfbzutTBzn/aEMQ6aIlxaa6J2TG1" crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-kYijiCrNWywvKX1VI7259ktIf0ebXhlDeVD2dBEX+GeVbmY1GEboq3dsDDvYuDP/" crossorigin="anonymous"></script>
 
+    <!-- Alternate region URLs -->
+    <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.js" integrity="sha384-3cT22wEPS/umVHpe5hGwbRF8PLObcSXaaFncKfbzutTBzn/aEMQ6aIlxaa6J2TG1" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-kYijiCrNWywvKX1VI7259ktIf0ebXhlDeVD2dBEX+GeVbmY1GEboq3dsDDvYuDP/" crossorigin="anonymous"></script>
+
 #### Notes: 
-- [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) hashes are optional fields in the MSAL library.
-- All hashes are unique to the version of MSAL. You can find the previous hashes on the [MSAL Wiki page]().
-- We recommend including the SRI Hash with all script tags when using `msal.js` or `msal.min.js`. When providing the SRI Hash, you *must* also provide the `crossorigin="anonymous"` field in the same tag.
-
-### CDN Resilience:
-
-If you would like to utilize resilient import from Microsoft's CDN, you can include the following tags as below in your code:
-
-    <script type="text/javascript" src="https://alcdn.msauth.net/lib/{version}/js/msal.js" integrity="sha{alg}-{checksum}" crossorigin="anonymous"></script>
-    <script type="text/javascript">
-    if(typeof Msal ==='undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/{version}/js/msal.js' type='text/javascript' integrity='sha{alg}-{checksum}' crossorigin='anonymous'%3E%3C/script%3E"));
-    </script>
+- [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) attributes are optional in the script tag.
+- All hashes are unique to the version of MSAL. You can find the previous hashes on the [MSAL Wiki page](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-JS-CDN-URL-and-SRI-Hash).
+- We recommend including the SRI Hash with all script tags when using `msal.js` or `msal.min.js` (including when using a third-party CDN). When providing the SRI Hash, you *must* also provide the `crossorigin="anonymous"` field in the same tag.
 
 Internet Explorer does not have native `Promise` support, and so you will need to include a polyfill for promises such as `bluebird`.
 
