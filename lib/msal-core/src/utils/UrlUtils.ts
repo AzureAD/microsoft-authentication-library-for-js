@@ -4,7 +4,7 @@
  */
 
 import { IUri } from "../IUri";
-import { Constants, SSOTypes, CacheKeys, ServerHashParamKeys } from "./Constants";
+import { Constants, SSOTypes, ServerHashParamKeys } from "./Constants";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";

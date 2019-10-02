@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { CacheKeys } from "../utils/Constants";
 import { CacheLocation } from "../Configuration";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { AuthError } from "../error/AuthError";
@@ -27,7 +26,12 @@ export class BrowserStorage {// Singleton
         this.cacheLocation = cacheLocation;
     }
 
-    // add value to storage
+    /**
+     * add value to storage
+     * @param key
+     * @param value
+     * @param enableCookieStorage
+     */
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         window[this.cacheLocation].setItem(key, value);
         if (enableCookieStorage) {
@@ -35,7 +39,11 @@ export class BrowserStorage {// Singleton
         }
     }
 
-    // get one item by key from storage
+    /**
+     * get one item by key from storage
+     * @param key
+     * @param enableCookieStorage
+     */
     getItem(key: string, enableCookieStorage?: boolean): string {
         if (enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
@@ -43,16 +51,27 @@ export class BrowserStorage {// Singleton
         return window[this.cacheLocation].getItem(key);
     }
 
-    // remove value from storage
+    /**
+     * remove value from storage
+     * @param key
+     */
     removeItem(key: string): void {
         return window[this.cacheLocation].removeItem(key);
     }
 
-    // clear storage (remove all items from it)
+    /**
+     * clear storage (remove all items from it)
+     */
     clear(): void {
         return window[this.cacheLocation].clear();
     }
 
+    /**
+     * add value to cookies
+     * @param cName
+     * @param cValue
+     * @param expires
+     */
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         let cookieStr = cName + "=" + cValue + ";";
         if (expires) {
@@ -63,6 +82,10 @@ export class BrowserStorage {// Singleton
         document.cookie = cookieStr;
     }
 
+    /**
+     * get one item by key from cookies
+     * @param cName
+     */
     getItemCookie(cName: string): string {
         const name = cName + "=";
         const ca = document.cookie.split(";");
@@ -78,10 +101,18 @@ export class BrowserStorage {// Singleton
         return "";
     }
 
+    /**
+     * Clear an item in the cookies by key
+     * @param cName
+     */
     clearItemCookie(cName: string) {
         this.setItemCookie(cName, "", -1);
     }
 
+    /**
+     * Get cookie expiration time
+     * @param cookieLifeDays
+     */
     getCookieExpirationTime(cookieLifeDays: number): string {
         const today = new Date();
         const expr = new Date(today.getTime() + cookieLifeDays * 24 * 60 * 60 * 1000);

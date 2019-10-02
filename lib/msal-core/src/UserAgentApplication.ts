@@ -9,7 +9,7 @@ import { AccessTokenValue } from "./cache/AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "./authority/Authority";
 import { ClientInfo } from "./ClientInfo";
-import { Constants, ServerHashParamKeys, InteractionType, libraryVersion, CacheKeys } from "./utils/Constants";
+import { Constants, ServerHashParamKeys, InteractionType, libraryVersion, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
 import { AuthCache } from "./cache/AuthCache";
@@ -265,7 +265,7 @@ export class UserAgentApplication {
 
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular) {
-            const cachedHash = this.cacheStorage.getItem(CacheKeys.URL_HASH);
+            const cachedHash = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
             if (cachedHash) {
                 this.processCallBack(cachedHash, null);
             }
@@ -467,8 +467,8 @@ export class UserAgentApplication {
                 this.acquireTokenInProgress = false;
 
                 this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
-                this.cacheStorage.setItem(CacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
-                this.cacheStorage.setItem(CacheKeys.ERROR_DESC, ClientAuthErrorMessage.popUpWindowError.desc);
+                this.cacheStorage.setItem(PersistentCacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
+                this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, ClientAuthErrorMessage.popUpWindowError.desc);
                 if (reject) {
                     reject(ClientAuthError.createPopupWindowError());
                 }
@@ -486,11 +486,11 @@ export class UserAgentApplication {
 
             if (isLoginCall) {
                 // if the user sets the login start page - angular only??
-                loginStartPage = this.cacheStorage.getItem(CacheKeys.ANGULAR_LOGIN_REQUEST);
+                loginStartPage = this.cacheStorage.getItem(TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST);
                 if (!loginStartPage || loginStartPage === "") {
                     loginStartPage = window.location.href;
                 } else {
-                    this.cacheStorage.setItem(CacheKeys.ANGULAR_LOGIN_REQUEST, "");
+                    this.cacheStorage.setItem(TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST, "");
                 }
             }
 
@@ -514,7 +514,7 @@ export class UserAgentApplication {
             // set state in cache
             if (interactionType === Constants.interactionTypeRedirect) {
                 if (!isLoginCall) {
-                    this.cacheStorage.setItem(CacheKeys.STATE_ACQ_TOKEN, serverAuthenticationRequest.state, this.inCookie);
+                    this.cacheStorage.setItem(TemporaryCacheKeys.STATE_ACQ_TOKEN, serverAuthenticationRequest.state, this.inCookie);
                 }
             } else if (interactionType === Constants.interactionTypePopup) {
                 window.renewStates.push(serverAuthenticationRequest.state);
@@ -766,9 +766,9 @@ export class UserAgentApplication {
         // set iframe session to pending
         const expectedState = window.activeRenewals[scope];
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
-        this.cacheStorage.setItem(CacheKeys.RENEW_STATUS + expectedState, Constants.tokenRenewStatusInProgress);
+        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, Constants.tokenRenewStatusInProgress);
         setTimeout(() => {
-            if (this.cacheStorage.getItem(CacheKeys.RENEW_STATUS + expectedState) === Constants.tokenRenewStatusInProgress) {
+            if (this.cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + expectedState) === Constants.tokenRenewStatusInProgress) {
                 // fail the iframe session if it's in pending state
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
@@ -776,7 +776,7 @@ export class UserAgentApplication {
                     window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
                 }
 
-                this.cacheStorage.setItem(CacheKeys.RENEW_STATUS + expectedState, Constants.tokenRenewStatusCancelled);
+                this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, Constants.tokenRenewStatusCancelled);
             }
         }, this.config.system.loadFrameTimeout);
 
@@ -951,7 +951,7 @@ export class UserAgentApplication {
         }
 
         // remove hash from the cache
-        this.cacheStorage.removeItem(CacheKeys.URL_HASH);
+        this.cacheStorage.removeItem(TemporaryCacheKeys.URL_HASH);
 
         try {
             // Clear the cookie in the hash
@@ -1014,9 +1014,9 @@ export class UserAgentApplication {
             tokenResponseCallback = null;
             // if set to navigate to loginRequest page post login
             if (this.config.auth.navigateToLoginRequestUrl) {
-                this.cacheStorage.setItem(CacheKeys.URL_HASH, locationHash);
+                this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
                 if (window.parent === window) {
-                    window.location.href = this.cacheStorage.getItem(CacheKeys.LOGIN_REQUEST, this.inCookie);
+                    window.location.href = this.cacheStorage.getItem(TemporaryCacheKeys.LOGIN_REQUEST, this.inCookie);
                 }
                 return;
             }
@@ -1026,7 +1026,7 @@ export class UserAgentApplication {
 
             if (!this.redirectCallbacksSet) {
                 // We reached this point too early - cache hash, return and process in handleRedirectCallbacks
-                this.cacheStorage.setItem(CacheKeys.URL_HASH, locationHash);
+                this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
                 return;
             }
         }
@@ -1067,13 +1067,13 @@ export class UserAgentApplication {
          */
 
         // loginRedirect
-        if (stateResponse.state === this.cacheStorage.getItem(CacheKeys.STATE_LOGIN, this.inCookie) || stateResponse.state === this.silentAuthenticationState) { // loginRedirect
+        if (stateResponse.state === this.cacheStorage.getItem(TemporaryCacheKeys.STATE_LOGIN, this.inCookie) || stateResponse.state === this.silentAuthenticationState) { // loginRedirect
             stateResponse.requestType = Constants.login;
             stateResponse.stateMatch = true;
             return stateResponse;
         }
         // acquireTokenRedirect
-        else if (stateResponse.state === this.cacheStorage.getItem(CacheKeys.STATE_ACQ_TOKEN, this.inCookie)) { // acquireTokenRedirect
+        else if (stateResponse.state === this.cacheStorage.getItem(TemporaryCacheKeys.STATE_ACQ_TOKEN, this.inCookie)) { // acquireTokenRedirect
             stateResponse.requestType = Constants.renewToken;
             stateResponse.stateMatch = true;
             return stateResponse;
@@ -1399,13 +1399,13 @@ export class UserAgentApplication {
         // If server returns an error
         if (hashParams.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) || hashParams.hasOwnProperty(ServerHashParamKeys.ERROR)) {
             this.logger.infoPii("Error :" + hashParams[ServerHashParamKeys.ERROR] + "; Error description:" + hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
-            this.cacheStorage.setItem(CacheKeys.ERROR, hashParams[ServerHashParamKeys.ERROR]);
-            this.cacheStorage.setItem(CacheKeys.ERROR_DESC, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
+            this.cacheStorage.setItem(PersistentCacheKeys.ERROR, hashParams[ServerHashParamKeys.ERROR]);
+            this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
 
             // login
             if (stateInfo.requestType === Constants.login) {
                 this.loginInProgress = false;
-                this.cacheStorage.setItem(CacheKeys.LOGIN_ERROR, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION] + ":" + hashParams[ServerHashParamKeys.ERROR]);
+                this.cacheStorage.setItem(PersistentCacheKeys.LOGIN_ERROR, hashParams[ServerHashParamKeys.ERROR_DESCRIPTION] + ":" + hashParams[ServerHashParamKeys.ERROR]);
                 authorityKey = AuthCache.generateAuthorityKey(stateInfo.state);
             }
 
@@ -1444,7 +1444,7 @@ export class UserAgentApplication {
             if (stateInfo.stateMatch) {
                 this.logger.info("State is right");
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.SESSION_STATE)) {
-                    this.cacheStorage.setItem(CacheKeys.SESSION_STATE, hashParams[ServerHashParamKeys.SESSION_STATE]);
+                    this.cacheStorage.setItem(TemporaryCacheKeys.SESSION_STATE, hashParams[ServerHashParamKeys.SESSION_STATE]);
                 }
                 response.accountState = this.getAccountState(stateInfo.state);
 
@@ -1461,7 +1461,7 @@ export class UserAgentApplication {
                         response.idToken = idTokenObj;
                         response.idTokenClaims = idTokenObj.claims;
                     } else {
-                        idTokenObj = new IdToken(this.cacheStorage.getItem(CacheKeys.IDTOKEN));
+                        idTokenObj = new IdToken(this.cacheStorage.getItem(PersistentCacheKeys.IDTOKEN));
                         response = ResponseUtils.setResponseIdToken(response, idTokenObj);
                     }
 
@@ -1534,16 +1534,16 @@ export class UserAgentApplication {
 
                     if (idTokenObj && idTokenObj.nonce) {
                         // check nonce integrity if idToken has nonce - throw an error if not matched
-                        if (idTokenObj.nonce !== this.cacheStorage.getItem(CacheKeys.NONCE_IDTOKEN, this.inCookie)) {
+                        if (idTokenObj.nonce !== this.cacheStorage.getItem(TemporaryCacheKeys.NONCE_IDTOKEN, this.inCookie)) {
                             this.account = null;
-                            this.cacheStorage.setItem(CacheKeys.LOGIN_ERROR, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(CacheKeys.NONCE_IDTOKEN, this.inCookie) + "," + "Actual Nonce: " + idTokenObj.nonce);
-                            this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(CacheKeys.NONCE_IDTOKEN, this.inCookie) + "," + "Actual Nonce: " + idTokenObj.nonce);
-                            error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(CacheKeys.NONCE_IDTOKEN, this.inCookie), idTokenObj.nonce);
+                            this.cacheStorage.setItem(PersistentCacheKeys.LOGIN_ERROR, "Nonce Mismatch. Expected Nonce: " + this.cacheStorage.getItem(TemporaryCacheKeys.NONCE_IDTOKEN, this.inCookie) + "," + "Actual Nonce: " + idTokenObj.nonce);
+                            this.logger.error("Nonce Mismatch.Expected Nonce: " + this.cacheStorage.getItem(TemporaryCacheKeys.NONCE_IDTOKEN, this.inCookie) + "," + "Actual Nonce: " + idTokenObj.nonce);
+                            error = ClientAuthError.createNonceMismatchError(this.cacheStorage.getItem(TemporaryCacheKeys.NONCE_IDTOKEN, this.inCookie), idTokenObj.nonce);
                         }
                         // Save the token
                         else {
-                            this.cacheStorage.setItem(CacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
-                            this.cacheStorage.setItem(CacheKeys.CLIENT_INFO, clientInfo);
+                            this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
+                            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo);
 
                             // Save idToken as access token for app itself
                             this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
@@ -1554,8 +1554,8 @@ export class UserAgentApplication {
 
                         this.logger.error("Invalid id_token received in the response");
                         error = ClientAuthError.createInvalidIdTokenError(idTokenObj);
-                        this.cacheStorage.setItem(CacheKeys.ERROR, error.errorCode);
-                        this.cacheStorage.setItem(CacheKeys.ERROR_DESC, error.errorMessage);
+                        this.cacheStorage.setItem(PersistentCacheKeys.ERROR, error.errorCode);
+                        this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, error.errorMessage);
                     }
                 }
             }
@@ -1564,15 +1564,15 @@ export class UserAgentApplication {
                 authorityKey = stateInfo.state;
                 acquireTokenAccountKey = stateInfo.state;
 
-                const expectedState = this.cacheStorage.getItem(CacheKeys.STATE_LOGIN, this.inCookie);
+                const expectedState = this.cacheStorage.getItem(TemporaryCacheKeys.STATE_LOGIN, this.inCookie);
                 this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + stateInfo.state);
                 error = ClientAuthError.createInvalidStateError(stateInfo.state, expectedState);
-                this.cacheStorage.setItem(CacheKeys.ERROR, error.errorCode);
-                this.cacheStorage.setItem(CacheKeys.ERROR_DESC, error.errorMessage);
+                this.cacheStorage.setItem(PersistentCacheKeys.ERROR, error.errorCode);
+                this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, error.errorMessage);
             }
         }
 
-        this.cacheStorage.setItem(CacheKeys.RENEW_STATUS + stateInfo.state, Constants.tokenRenewStatusCompleted);
+        this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, Constants.tokenRenewStatusCompleted);
         this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
         // this is required if navigateToLoginRequestUrl=false
         if (this.inCookie) {
@@ -1624,8 +1624,8 @@ export class UserAgentApplication {
         }
 
         // frame is used to get idToken and populate the account for the given session
-        const rawIdToken = this.cacheStorage.getItem(CacheKeys.IDTOKEN);
-        const rawClientInfo = this.cacheStorage.getItem(CacheKeys.CLIENT_INFO);
+        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.IDTOKEN);
+        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
 
         if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
             const idToken = new IdToken(rawIdToken);
@@ -1882,7 +1882,7 @@ export class UserAgentApplication {
      * @returns {boolean} true/false
      */
     public getLoginInProgress(): boolean {
-        const pendingCallback = this.cacheStorage.getItem(CacheKeys.URL_HASH);
+        const pendingCallback = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
         if (pendingCallback) {
             return true;
         }
@@ -2080,8 +2080,8 @@ export class UserAgentApplication {
         // Cache account and authority
         if (loginStartPage) {
             // Cache the state, nonce, and login request data
-            this.cacheStorage.setItem(CacheKeys.LOGIN_REQUEST, loginStartPage, this.inCookie);
-            this.cacheStorage.setItem(CacheKeys.STATE_LOGIN, serverAuthenticationRequest.state, this.inCookie);
+            this.cacheStorage.setItem(TemporaryCacheKeys.LOGIN_REQUEST, loginStartPage, this.inCookie);
+            this.cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, serverAuthenticationRequest.state, this.inCookie);
         } else {
             this.setAccountCache(account, serverAuthenticationRequest.state);
         }
@@ -2089,7 +2089,7 @@ export class UserAgentApplication {
         this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authority);
 
         // Cache nonce
-        this.cacheStorage.setItem(CacheKeys.NONCE_IDTOKEN, serverAuthenticationRequest.nonce, this.inCookie);
+        this.cacheStorage.setItem(TemporaryCacheKeys.NONCE_IDTOKEN, serverAuthenticationRequest.nonce, this.inCookie);
     }
 
     /**

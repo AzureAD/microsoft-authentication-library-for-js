@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, CacheKeys } from "../utils/Constants";
+import { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -12,10 +12,10 @@ import { BrowserStorage } from "./BrowserStorage";
  * @hidden
  */
 export class AuthCache extends BrowserStorage {// Singleton
-    
+
     private clientId: string;
     private rollbackEnabled: boolean;
-    
+
     constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
         this.clientId = clientId;
@@ -24,43 +24,64 @@ export class AuthCache extends BrowserStorage {// Singleton
         this.migrateCacheEntries(storeAuthStateInCookie);
     }
 
+    /**
+     * Support roll back to old cache schema until the next major release: true by default now
+     * @param storeAuthStateInCookie
+     */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
-        const idTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.IDTOKEN}`;
-        const clientInfoKey = `${CacheKeys.PREFIX}.${CacheKeys.CLIENT_INFO}`;
-        const errorKey = `${CacheKeys.PREFIX}.${CacheKeys.ERROR}`;
-        const errorDescKey = `${CacheKeys.PREFIX}.${CacheKeys.ERROR_DESC}`;
-        
+
+        const idTokenKey = `${Constants.cachePrefix}.${PersistentCacheKeys.IDTOKEN}`;
+        const clientInfoKey = `${Constants.cachePrefix}.${PersistentCacheKeys.CLIENT_INFO}`;
+        const errorKey = `${Constants.cachePrefix}.${PersistentCacheKeys.ERROR}`;
+        const errorDescKey = `${Constants.cachePrefix}.${PersistentCacheKeys.ERROR_DESC}`;
+
         const idTokenValue = super.getItem(idTokenKey);
         const clientInfoValue = super.getItem(clientInfoKey);
         const errorValue = super.getItem(errorKey);
         const errorDescValue = super.getItem(errorDescKey);
+
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
-        const keysToMigrate = [CacheKeys.IDTOKEN, CacheKeys.CLIENT_INFO, CacheKeys.ERROR, CacheKeys.ERROR_DESC];
+        const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
 
         keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
     }
 
+    /**
+     * Utility function to help with roll back keys
+     * @param newKey
+     * @param value
+     * @param storeAuthStateInCookie
+     */
     private duplicateCacheEntry(newKey: string, value: string, storeAuthStateInCookie?: boolean) {
         if (value) {
             this.setItem(newKey, value, storeAuthStateInCookie);
         }
     }
 
-    // Prepend msal.<client-id> to each key
+    /**
+     * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
+     * @param key
+     * @param addInstanceId
+     */
     private generateCacheKey(key: string, addInstanceId: boolean): string {
         try {
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${CacheKeys.PREFIX}.${this.clientId}`)) {
+            if (key.startsWith(`${Constants.cachePrefix}.${this.clientId}`)) {
                 return key;
             } else {
-                return addInstanceId ? `${CacheKeys.PREFIX}.${this.clientId}.${key}` : `${CacheKeys.PREFIX}.${key}`;
+                return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
             }
         }
     }
 
-    // add value to storage
+    /**
+     * add value to storage
+     * @param key
+     * @param value
+     * @param enableCookieStorage
+     */
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         super.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
 
@@ -69,12 +90,19 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
-    // get one item by key from storage
+    /**
+     * get one item by key from storage
+     * @param key
+     * @param enableCookieStorage
+     */
     getItem(key: string, enableCookieStorage?: boolean): string {
         return super.getItem(this.generateCacheKey(key, true), enableCookieStorage);
     }
 
-    // remove value from storage
+    /**
+     * remove value from storage
+     * @param key
+     */
     removeItem(key: string): void {
         super.removeItem(this.generateCacheKey(key, true));
         if (this.rollbackEnabled) {
@@ -82,6 +110,9 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * Reset the cache items
+     */
     resetCacheItems(): void {
         const storage = window[this.cacheLocation];
         let key: string;
@@ -89,7 +120,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         for (key in storage) {
             if (storage.hasOwnProperty(key)) {
                 // Check if key contains msal prefix
-                if (key.indexOf(CacheKeys.PREFIX) !== -1) {
+                if (key.indexOf(Constants.cachePrefix) !== -1) {
                     // For now, we are clearing all cache items created by MSAL.js
                     super.removeItem(key);
                     // TODO: Clear cache based on client id (clarify use cases where this is needed)
@@ -98,6 +129,12 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * Set cookies for IE
+     * @param cName
+     * @param cValue
+     * @param expires
+     */
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         super.setItemCookie(this.generateCacheKey(cName, true), cValue, expires);
         if (this.rollbackEnabled) {
@@ -105,38 +142,45 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * get one item by key from cookies
+     * @param cName
+     */
     getItemCookie(cName: string): string {
         return super.getItemCookie(this.generateCacheKey(cName, true));
     }
 
+    /**
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
+     */
     getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
-        const results: Array<AccessTokenCacheItem> = [];
-        let accessTokenCacheItem: AccessTokenCacheItem;
-        const storage = window[this.cacheLocation];
-        if (storage) {
-            let key: string;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if (key.match(clientId) && key.match(homeAccountIdentifier)) {
-                        const value = this.getItem(key);
-                        if (value) {
-                            accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-                            results.push(accessTokenCacheItem);
-                        }
-                    }
+        const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
+            if ( window[this.cacheLocation].hasOwnProperty(key) && key.match(clientId) && key.match(homeAccountIdentifier)) {
+                const value = this.getItem(key);
+                if (value) {
+                    const newAccessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                    return tokens.concat([ newAccessTokenCacheItem ]);
                 }
             }
-        }
+
+            return tokens;
+        }, []);
 
         return results;
     }
 
+    /**
+     * Remove all temporary cache entries
+     * @param state
+     */
     removeAcquireTokenEntries(state?: string): void {
         const storage = window[this.cacheLocation];
         let key: string;
         for (key in storage) {
             if (storage.hasOwnProperty(key)) {
-                if ((key.indexOf(CacheKeys.AUTHORITY) !== -1 || key.indexOf(CacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || key.indexOf(state) !== -1)) {
+                if ((key.indexOf(TemporaryCacheKeys.AUTHORITY) !== -1 || key.indexOf(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || key.indexOf(state) !== -1)) {
                     const resourceDelimSplitKey = key.split(Constants.resourceDelimiter);
                     let keyState;
                     if (resourceDelimSplitKey.length > 1) {
@@ -144,9 +188,11 @@ export class AuthCache extends BrowserStorage {// Singleton
                     }
                     if (keyState && !this.tokenRenewalInProgress(keyState)) {
                         super.removeItem(key);
-                        super.removeItem(CacheKeys.RENEW_STATUS + state);
-                        super.removeItem(CacheKeys.STATE_LOGIN);
-                        super.removeItem(CacheKeys.STATE_ACQ_TOKEN);
+                        super.removeItem(TemporaryCacheKeys.RENEW_STATUS + state);
+                        super.removeItem(TemporaryCacheKeys.STATE_LOGIN);
+                        super.removeItem(TemporaryCacheKeys.STATE_ACQ_TOKEN);
+                        super.removeItem(TemporaryCacheKeys.NONCE_IDTOKEN);
+                        super.removeItem(TemporaryCacheKeys.LOGIN_REQUEST);
                         this.setItemCookie(key, "", -1);
                     }
                 }
@@ -156,17 +202,24 @@ export class AuthCache extends BrowserStorage {// Singleton
         this.clearMsalCookie();
     }
 
+    /**
+     * Return if the token renewal is still in progress
+     * @param stateValue
+     */
     private tokenRenewalInProgress(stateValue: string): boolean {
         const storage = window[this.cacheLocation];
-        const renewStatus = storage[CacheKeys.RENEW_STATUS + stateValue];
+        const renewStatus = storage[TemporaryCacheKeys.RENEW_STATUS + stateValue];
         return !(!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress);
     }
 
+    /**
+     * Clear all cookies
+     */
     public clearMsalCookie(): void {
-        this.clearItemCookie(CacheKeys.NONCE_IDTOKEN);
-        this.clearItemCookie(CacheKeys.STATE_LOGIN);
-        this.clearItemCookie(CacheKeys.LOGIN_REQUEST);
-        this.clearItemCookie(CacheKeys.STATE_ACQ_TOKEN);
+        this.clearItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN);
+        this.clearItemCookie(TemporaryCacheKeys.STATE_LOGIN);
+        this.clearItemCookie(TemporaryCacheKeys.LOGIN_REQUEST);
+        this.clearItemCookie(TemporaryCacheKeys.STATE_ACQ_TOKEN);
     }
 
     /**
@@ -175,7 +228,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return CacheKeys.ACQUIRE_TOKEN_ACCOUNT + Constants.resourceDelimiter +
+        return TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT + Constants.resourceDelimiter +
             `${accountId}` + Constants.resourceDelimiter  + `${state}`;
     }
 
@@ -184,6 +237,6 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAuthorityKey(state: string): string {
-        return CacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;
+        return TemporaryCacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;
     }
 }

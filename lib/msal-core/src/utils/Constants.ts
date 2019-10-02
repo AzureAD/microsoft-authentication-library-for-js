@@ -13,6 +13,7 @@ export class Constants {
     static get claims(): string { return "claims"; }
     static get clientId(): string { return "clientId"; }
 
+    static get cachePrefix(): string { return "msal"; }
     static get adalIdToken(): string { return "adal.idtoken"; }
 
     static get no_account(): string { return "NO_ACCOUNT"; }
@@ -74,25 +75,31 @@ export enum ServerHashParamKeys {
  * @hidden
  * CacheKeys for 'authority' and 'account'
  */
-export enum CacheKeys {
-    PREFIX = "msal",
+export enum TemporaryCacheKeys {
     AUTHORITY = "authority",
     ACQUIRE_TOKEN_ACCOUNT = "acquireTokenAccount",
-    ADAL_ID_TOKEN = "adal.idtoken",
-    CLIENT_INFO = "client.info",
-    ERROR = "error",
-    ERROR_DESC = "error.description",
-    LOGIN_ERROR = "login.error",
     SESSION_STATE = "session.state",
     STATE_LOGIN = "state.login",
     STATE_ACQ_TOKEN = "state.acquireToken",
     STATE_RENEW = "state.renew",
     NONCE_IDTOKEN = "nonce.idtoken",
-    IDTOKEN = "idtoken",
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     ANGULAR_LOGIN_REQUEST = "angular.login.request"
+};
+
+/**
+ * @hidden
+ * CacheKeys for 'authority' and 'account'
+ */
+export enum PersistentCacheKeys {
+    IDTOKEN = "idtoken",
+    ADAL_ID_TOKEN = "adal.idtoken",
+    CLIENT_INFO = "client.info",
+    ERROR = "error",
+    ERROR_DESC = "error.description",
+    LOGIN_ERROR = "login.error",
 };
 
 export const AADTrustedHostList =  {
