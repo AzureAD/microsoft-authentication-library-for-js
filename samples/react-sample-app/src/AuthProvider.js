@@ -59,25 +59,31 @@ export default C =>
 
                 const tokenResponse = await this.acquireToken(
                     GRAPH_REQUESTS.LOGIN
-                );
-
-                const graphProfile = await fetchMsGraph(
-                    GRAPH_ENDPOINTS.ME,
-                    tokenResponse.accessToken
-                ).catch(() => {
+                ).catch(error => {
                     this.setState({
-                        error: "Unable to fetch Graph profile."
+                        error: error.message
                     });
                 });
 
-                if (graphProfile) {
-                    this.setState({
-                        graphProfile
+                if (tokenResponse) {
+                    const graphProfile = await fetchMsGraph(
+                        GRAPH_ENDPOINTS.ME,
+                        tokenResponse.accessToken
+                    ).catch(() => {
+                        this.setState({
+                            error: "Unable to fetch Graph profile."
+                        });
                     });
-                }
 
-                if (tokenResponse.scopes.includes(GRAPH_SCOPES.MAIL_READ)) {
-                    return this.readMail(tokenResponse.accessToken);
+                    if (graphProfile) {
+                        this.setState({
+                            graphProfile
+                        });
+                    }
+
+                    if (tokenResponse.scopes.includes(GRAPH_SCOPES.MAIL_READ)) {
+                        return this.readMail(tokenResponse.accessToken);
+                    }
                 }
             }
         }
