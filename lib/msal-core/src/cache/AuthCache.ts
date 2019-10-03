@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, RequestStatus } from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -12,10 +12,10 @@ import { BrowserStorage } from "./BrowserStorage";
  * @hidden
  */
 export class AuthCache extends BrowserStorage {// Singleton
-
+    
     private clientId: string;
     private rollbackEnabled: boolean;
-
+    
     constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
         this.clientId = clientId;
@@ -68,7 +68,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${Constants.cachePrefix}.${this.clientId}`)) {
+            if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
             } else {
                 return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
@@ -116,7 +116,6 @@ export class AuthCache extends BrowserStorage {// Singleton
     resetCacheItems(): void {
         const storage = window[this.cacheLocation];
         let key: string;
-        this.removeAcquireTokenEntries();
         for (key in storage) {
             if (storage.hasOwnProperty(key)) {
                 // Check if key contains msal prefix
@@ -186,20 +185,20 @@ export class AuthCache extends BrowserStorage {// Singleton
                     if (resourceDelimSplitKey.length > 1) {
                         keyState = resourceDelimSplitKey[resourceDelimSplitKey.length-1];
                     }
-                    if (keyState && !this.tokenRenewalInProgress(keyState)) {
-                        super.removeItem(key);
-                        super.removeItem(TemporaryCacheKeys.RENEW_STATUS + state);
-                        super.removeItem(TemporaryCacheKeys.STATE_LOGIN);
-                        super.removeItem(TemporaryCacheKeys.STATE_ACQ_TOKEN);
-                        super.removeItem(TemporaryCacheKeys.NONCE_IDTOKEN);
-                        super.removeItem(TemporaryCacheKeys.LOGIN_REQUEST);
+                    if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
+                        this.removeItem(key);
+                        this.removeItem(TemporaryCacheKeys.RENEW_STATUS + state);
+                        this.removeItem(TemporaryCacheKeys.STATE_LOGIN);
+                        this.removeItem(TemporaryCacheKeys.STATE_ACQ_TOKEN);
+                        this.removeItem(TemporaryCacheKeys.LOGIN_REQUEST);
+                        this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                        this.removeItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
                         this.setItemCookie(key, "", -1);
+                        this.clearMsalCookie(state);
                     }
                 }
             }
         }
-
-        this.clearMsalCookie();
     }
 
     /**
@@ -207,16 +206,16 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param stateValue
      */
     private tokenRenewalInProgress(stateValue: string): boolean {
-        const storage = window[this.cacheLocation];
-        const renewStatus = storage[TemporaryCacheKeys.RENEW_STATUS + stateValue];
-        return !(!renewStatus || renewStatus !== Constants.tokenRenewStatusInProgress);
+        const renewStatus = this.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
+        return !!(renewStatus && renewStatus === RequestStatus.IN_PROGRESS);
     }
 
     /**
      * Clear all cookies
      */
-    public clearMsalCookie(): void {
-        this.clearItemCookie(TemporaryCacheKeys.NONCE_IDTOKEN);
+    public clearMsalCookie(state?: string): void {
+        const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
+        this.clearItemCookie(nonceKey);
         this.clearItemCookie(TemporaryCacheKeys.STATE_LOGIN);
         this.clearItemCookie(TemporaryCacheKeys.LOGIN_REQUEST);
         this.clearItemCookie(TemporaryCacheKeys.STATE_ACQ_TOKEN);

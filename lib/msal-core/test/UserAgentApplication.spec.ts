@@ -19,7 +19,7 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { AuthCache } from "../src/cache/AuthCache";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
-import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys , ServerHashParamKeys } from "../src/utils/Constants";
+import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys, RequestStatus } from "../src/utils/Constants";
 import { WindowUtils } from "../src/utils/WindowUtils";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
@@ -197,6 +197,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -205,11 +206,14 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
+            setTestCacheItems();
 
             delete window.location;
         });
 
         afterEach(function () {
+            cacheStorage.clear();
+            sinon.restore();
             window.location = oldWindowLocation;
         });
 
@@ -541,8 +545,8 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect({});
         });
 
-        it("exits login function with error if loginInProgress is true", function (done) {
-            sinon.stub(msal, <any>"loginInProgress").value(true);
+        it("exits login function with error if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
@@ -663,6 +667,11 @@ describe("UserAgentApplication.ts Class", function () {
             setTestCacheItems();
         });
 
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
         it("Calls the error callback if two callbacks are sent", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
             cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
@@ -681,7 +690,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Calls the token callback if two callbacks are sent", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_NONCE);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
             const checkResponseFromServer = function(response: AuthResponse) {
@@ -697,7 +706,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Calls the response callback if single callback is sent", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_NONCE);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
@@ -1043,11 +1052,11 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of response", function(done) {
-            let successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+            const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_NONCE);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
-            let checkRespFromServer = function(response: AuthResponse) {
+            const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
@@ -1120,11 +1129,11 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests that expiresIn returns the correct date for access tokens", function (done) {
             sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
-            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
-            let successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
+            const successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
             cacheStorage.setItem(TemporaryCacheKeys.STATE_ACQ_TOKEN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_NONCE);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
 
             const checkRespFromServer = function(response: AuthResponse) {
@@ -1140,13 +1149,13 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that expiresIn returns the correct date for id tokens", function (done) {
-            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
-            let successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+            const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_NONCE);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
-            let checkRespFromServer = function(response: AuthResponse) {
+            const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
                 expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);

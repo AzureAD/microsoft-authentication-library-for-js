@@ -13,8 +13,8 @@ export class Constants {
     static get claims(): string { return "claims"; }
     static get clientId(): string { return "clientId"; }
 
-    static get cachePrefix(): string { return "msal"; }
     static get adalIdToken(): string { return "adal.idtoken"; }
+    static get cachePrefix(): string { return "msal"; }
 
     static get no_account(): string { return "NO_ACCOUNT"; }
     static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
@@ -27,10 +27,6 @@ export class Constants {
     static get response_mode_fragment(): string { return "&response_mode=fragment"; }
     static get resourceDelimiter(): string { return "|"; }
     static get cacheDelimiter(): string { return "."; }
-
-    static get tokenRenewStatusCancelled(): string { return "Canceled"; }
-    static get tokenRenewStatusCompleted(): string { return "Completed"; }
-    static get tokenRenewStatusInProgress(): string { return "In Progress"; }
 
     private static _popUpWidth: number = 483;
     static get popUpWidth(): number { return this._popUpWidth; }
@@ -58,6 +54,15 @@ export class Constants {
 }
 
 /**
+ * Status of the current token request
+ */
+export enum RequestStatus {
+    CANCELLED = "Cancelled",
+    COMPLETED = "Completed",
+    IN_PROGRESS = "InProgress"
+};
+
+/**
  * Keys in the hashParams
  */
 export enum ServerHashParamKeys {
@@ -73,7 +78,7 @@ export enum ServerHashParamKeys {
 
 /**
  * @hidden
- * CacheKeys for 'authority' and 'account'
+ * CacheKeys for MSAL
  */
 export enum TemporaryCacheKeys {
     AUTHORITY = "authority",
@@ -86,21 +91,18 @@ export enum TemporaryCacheKeys {
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    ANGULAR_LOGIN_REQUEST = "angular.login.request"
-};
+    ANGULAR_LOGIN_REQUEST = "angular.login.request",
+    INTERACTION_STATUS = "interaction.status"
+}
 
-/**
- * @hidden
- * CacheKeys for 'authority' and 'account'
- */
 export enum PersistentCacheKeys {
     IDTOKEN = "idtoken",
-    ADAL_ID_TOKEN = "adal.idtoken",
     CLIENT_INFO = "client.info",
+    ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
     ERROR_DESC = "error.description",
-    LOGIN_ERROR = "login.error",
-};
+    LOGIN_ERROR = "login.error"
+}
 
 export const AADTrustedHostList =  {
     "login.windows.net": "login.windows.net",

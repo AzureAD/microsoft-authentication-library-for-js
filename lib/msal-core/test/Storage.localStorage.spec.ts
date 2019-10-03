@@ -230,7 +230,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
 
-            msalCacheStorage.removeAcquireTokenEntries();
+            msalCacheStorage.removeAcquireTokenEntries(TEST_STATE);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
