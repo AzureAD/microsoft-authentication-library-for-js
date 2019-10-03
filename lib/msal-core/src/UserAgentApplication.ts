@@ -482,15 +482,17 @@ export class UserAgentApplication {
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
+
         let popUpWindow: Window;
-        if (interactionType === Constants.interactionTypePopup) {
-            // Generate a popup window
-            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
-            if (!popUpWindow) {
-                // We pass reject in openWindow, we reject there during an error
-                return;
-            }
-        }
+//         if (interactionType === Constants.interactionTypePopup) {
+//             // Generate a popup window
+//             popUpWindow = this.openWindow(urlNavigate, "_blank", 1, this, resolve, reject);
+// //            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+//             if (!popUpWindow) {
+//                 // We pass reject in openWindow, we reject there during an error
+//                 return;
+//             }
+//         }
 
         acquireTokenAuthority.resolveEndpointsAsync().then(() => {
             // On Fulfillment
@@ -523,7 +525,15 @@ export class UserAgentApplication {
 
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
-
+            if (interactionType === Constants.interactionTypePopup) {
+                // Generate a popup window
+                popUpWindow = this.openWindow(urlNavigate, "_blank", 1, this, resolve, reject);
+//            popUpWindow = this.openWindow("about:blank", "_blank", 1, this, resolve, reject);
+                if (!popUpWindow) {
+                    // We pass reject in openWindow, we reject there during an error
+                    return;
+                }
+            }
             // set state in cache
             if (interactionType === Constants.interactionTypeRedirect) {
                 if (!isLoginCall) {
@@ -540,7 +550,7 @@ export class UserAgentApplication {
             }
 
             // prompt user for interaction
-            this.navigateWindow(urlNavigate, popUpWindow);
+            //this.navigateWindow(urlNavigate, popUpWindow);
         }).catch((err) => {
             this.logger.warning("could not resolve endpoints");
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
@@ -934,7 +944,7 @@ export class UserAgentApplication {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
             const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
             this.logger.infoPii(logMessage);
-            navigateWindow.location.replace(urlNavigate);
+            navigateWindow.location.assign(urlNavigate);
         }
         else {
             this.logger.info("Navigate url is empty");
@@ -2021,8 +2031,8 @@ export class UserAgentApplication {
 
         // process all protected resources and send the matched one
         if (this.config.framework.protectedResourceMap.size > 0) {
-            for (const key of Array.from(this.config.framework.protectedResourceMap.keys())) {
-                // configEndpoint is like /api/Todo requested endpoint can be /api/Todo/1
+            for (let i = 0; i < this.config.framework.protectedResourceMap.size; i++) {
+                const key = this.config.framework.protectedResourceMap[i];
                 if (endpoint.indexOf(key) > -1) {
                     return this.config.framework.protectedResourceMap.get(key);
                 }
