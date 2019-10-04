@@ -45,12 +45,26 @@ The MSAL library for JavaScript enables client-side JavaScript web applications,
 ```
 
 #### Alternate region URLs
+
+To help ensure reliability, Microsoft provides a second CDN:
+
 ```html
 <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.js" integrity="sha384-m/3NDUcz4krpIIiHgpeO0O8uxSghb+lfBTngquAo2Zuy2fEF+YgFeP08PWFo5FiJ" crossorigin="anonymous"></script>
 ```
 ```html
 <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-dA0Vw9s8Y8YiIYiE44WOORFrt3cwi0rYXwpetCRnFYziAtXEZ4miG8TMSGo8BIyL" crossorigin="anonymous"></script>
 ```
+
+Below is an example of how to use one CDN as a fallback when the other CDN is not working:
+
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js"></script>
+<script type="text/javascript">
+    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.1.3/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
+</script>
+```
+
+**Note:** This method of using `document.write` may be blocked in certain browsers in certain situations. More information can be found [here](https://www.chromestatus.com/feature/5718547946799104).
 
 #### Notes:
 - [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) attributes are optional in the script tag.
