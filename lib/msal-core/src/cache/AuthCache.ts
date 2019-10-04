@@ -12,10 +12,10 @@ import { BrowserStorage } from "./BrowserStorage";
  * @hidden
  */
 export class AuthCache extends BrowserStorage {// Singleton
-    
+
     private clientId: string;
     private rollbackEnabled: boolean;
-    
+
     constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
         this.clientId = clientId;
@@ -70,9 +70,8 @@ export class AuthCache extends BrowserStorage {// Singleton
         } catch (e) {
             if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
-            } else {
-                return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
             }
+            return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
         }
     }
 
@@ -117,13 +116,10 @@ export class AuthCache extends BrowserStorage {// Singleton
         const storage = window[this.cacheLocation];
         let key: string;
         for (key in storage) {
-            if (storage.hasOwnProperty(key)) {
-                // Check if key contains msal prefix
-                if (key.indexOf(Constants.cachePrefix) !== -1) {
-                    // For now, we are clearing all cache items created by MSAL.js
-                    super.removeItem(key);
-                    // TODO: Clear cache based on client id (clarify use cases where this is needed)
-                }
+            // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
+            if (storage.hasOwnProperty(key) && (key.indexOf(Constants.cachePrefix) !== -1)) {
+                super.removeItem(key);
+                // TODO: Clear cache based on client id (clarify use cases where this is needed)
             }
         }
     }
@@ -227,8 +223,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT + Constants.resourceDelimiter +
-            `${accountId}` + Constants.resourceDelimiter  + `${state}`;
+        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${state}`;
     }
 
     /**
@@ -236,6 +231,6 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAuthorityKey(state: string): string {
-        return TemporaryCacheKeys.AUTHORITY + Constants.resourceDelimiter + `${state}`;
+        return `${TemporaryCacheKeys.AUTHORITY}${Constants.resourceDelimiter}${state}`;
     }
 }
