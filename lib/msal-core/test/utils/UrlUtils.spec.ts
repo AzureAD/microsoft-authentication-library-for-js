@@ -4,7 +4,7 @@ import { UrlUtils } from "../../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
-import { Constants, ServerHashParamKeys } from "../../src/utils/Constants";
+import { ServerHashParamKeys } from "../../src/utils/Constants";
 
 describe("UrlUtils.ts class", () => {
 

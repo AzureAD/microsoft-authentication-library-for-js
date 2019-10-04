@@ -12,10 +12,10 @@ import { BrowserStorage } from "./BrowserStorage";
  * @hidden
  */
 export class AuthCache extends BrowserStorage {// Singleton
-    
+
     private clientId: string;
     private rollbackEnabled: boolean;
-    
+
     constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
         this.clientId = clientId;
@@ -24,29 +24,44 @@ export class AuthCache extends BrowserStorage {// Singleton
         this.migrateCacheEntries(storeAuthStateInCookie);
     }
 
+    /**
+     * Support roll back to old cache schema until the next major release: true by default now
+     * @param storeAuthStateInCookie
+     */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
         const idTokenKey = `${Constants.cachePrefix}.${PersistentCacheKeys.IDTOKEN}`;
         const clientInfoKey = `${Constants.cachePrefix}.${PersistentCacheKeys.CLIENT_INFO}`;
         const errorKey = `${Constants.cachePrefix}.${PersistentCacheKeys.ERROR}`;
         const errorDescKey = `${Constants.cachePrefix}.${PersistentCacheKeys.ERROR_DESC}`;
-        
+
         const idTokenValue = super.getItem(idTokenKey);
         const clientInfoValue = super.getItem(clientInfoKey);
         const errorValue = super.getItem(errorKey);
         const errorDescValue = super.getItem(errorDescKey);
+
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
 
         keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
     }
 
+    /**
+     * Utility function to help with roll back keys
+     * @param newKey
+     * @param value
+     * @param storeAuthStateInCookie
+     */
     private duplicateCacheEntry(newKey: string, value: string, storeAuthStateInCookie?: boolean) {
         if (value) {
             this.setItem(newKey, value, storeAuthStateInCookie);
         }
     }
 
-    // Prepend msal.<client-id> to each key
+    /**
+     * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
+     * @param key
+     * @param addInstanceId
+     */
     private generateCacheKey(key: string, addInstanceId: boolean): string {
         try {
             JSON.parse(key);
@@ -60,7 +75,12 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
-    // add value to storage
+    /**
+     * add value to storage
+     * @param key
+     * @param value
+     * @param enableCookieStorage
+     */
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         super.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
 
@@ -69,12 +89,19 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
-    // get one item by key from storage
+    /**
+     * get one item by key from storage
+     * @param key
+     * @param enableCookieStorage
+     */
     getItem(key: string, enableCookieStorage?: boolean): string {
         return super.getItem(this.generateCacheKey(key, true), enableCookieStorage);
     }
 
-    // remove value from storage
+    /**
+     * remove value from storage
+     * @param key
+     */
     removeItem(key: string): void {
         super.removeItem(this.generateCacheKey(key, true));
         if (this.rollbackEnabled) {
@@ -82,6 +109,9 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * Reset the cache items
+     */
     resetCacheItems(): void {
         const storage = window[this.cacheLocation];
         let key: string;
@@ -97,6 +127,12 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * Set cookies for IE
+     * @param cName
+     * @param cValue
+     * @param expires
+     */
     setItemCookie(cName: string, cValue: string, expires?: number): void {
         super.setItemCookie(this.generateCacheKey(cName, true), cValue, expires);
         if (this.rollbackEnabled) {
@@ -104,33 +140,40 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * get one item by key from cookies
+     * @param cName
+     */
     getItemCookie(cName: string): string {
         return super.getItemCookie(this.generateCacheKey(cName, true));
     }
 
+    /**
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
+     */
     getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
-        const results: Array<AccessTokenCacheItem> = [];
-        let accessTokenCacheItem: AccessTokenCacheItem;
-        const storage = window[this.cacheLocation];
-        if (storage) {
-            let key: string;
-            for (key in storage) {
-                if (storage.hasOwnProperty(key)) {
-                    if (key.match(clientId) && key.match(homeAccountIdentifier)) {
-                        const value = this.getItem(key);
-                        if (value) {
-                            accessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-                            results.push(accessTokenCacheItem);
-                        }
-                    }
+        const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
+            if ( window[this.cacheLocation].hasOwnProperty(key) && key.match(clientId) && key.match(homeAccountIdentifier)) {
+                const value = this.getItem(key);
+                if (value) {
+                    const newAccessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                    return tokens.concat([ newAccessTokenCacheItem ]);
                 }
             }
-        }
+
+            return tokens;
+        }, []);
 
         return results;
     }
 
-    removeAcquireTokenEntries(state: string): void {
+    /**
+     * Remove all temporary cache entries
+     * @param state
+     */
+    removeAcquireTokenEntries(state?: string): void {
         const storage = window[this.cacheLocation];
         let key: string;
         for (key in storage) {
@@ -157,11 +200,18 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
     }
 
+    /**
+     * Return if the token renewal is still in progress
+     * @param stateValue
+     */
     private tokenRenewalInProgress(stateValue: string): boolean {
         const renewStatus = this.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
         return !!(renewStatus && renewStatus === RequestStatus.IN_PROGRESS);
     }
 
+    /**
+     * Clear all cookies
+     */
     public clearMsalCookie(state?: string): void {
         const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
         this.clearItemCookie(nonceKey);

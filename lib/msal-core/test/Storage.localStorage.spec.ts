@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { BrowserStorage } from "../src/cache/BrowserStorage";
 import { AuthCache } from "../src/cache/AuthCache";
 import { Constants, AuthError } from "../src";
-import { PersistentCacheKeys, TemporaryCacheKeys } from "../src/utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
 import { Account } from "../src/Account";
@@ -174,7 +174,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
     });
 
     describe("MSAL Cache Item Management", function () {
-        
+
         let msalCacheStorage: AuthCache;
 
         beforeEach(function () {
@@ -231,7 +231,6 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
 
             msalCacheStorage.removeAcquireTokenEntries(TEST_STATE);
-            
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
         });
@@ -253,7 +252,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(msalCacheStorage.getItem(authorityKey2)).to.be.eq(validAuthority);
 
             msalCacheStorage.removeAcquireTokenEntries(TEST_STATE);
-            
+
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
             expect(msalCacheStorage.getItem(acquireTokenAccountKey2)).to.be.eq(JSON.stringify(ACCOUNT));

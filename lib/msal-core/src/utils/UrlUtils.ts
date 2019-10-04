@@ -228,8 +228,8 @@ export class UrlUtils {
     static urlContainsHash(urlString: string): boolean {
         const parameters = UrlUtils.deserializeHash(urlString);
         return (
-            parameters.hasOwnProperty(ServerHashParamKeys.ERROR) ||
             parameters.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR) ||
             parameters.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN) ||
             parameters.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)
         );

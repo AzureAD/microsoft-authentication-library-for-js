@@ -463,7 +463,7 @@ export class UserAgentApplication {
      *
      */
     private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, scopes?: Array<string>, resolve?: any, reject?: any): void {
-        // Track the acquireToken progress
+    // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
         const scope = scopes ? scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
@@ -1567,7 +1567,7 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, error.errorMessage);
             }
         }
-        
+
         // Set status to completed
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
         this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.COMPLETED);
@@ -1588,7 +1588,7 @@ export class UserAgentApplication {
         if (!response) {
             throw AuthError.createUnexpectedError("Response is null");
         }
-        
+
         return response;
     }
 
@@ -1884,7 +1884,7 @@ export class UserAgentApplication {
      * Return boolean flag to developer to help inform if login is in progress
      * @returns {boolean} true/false
      */
-    public isInteractionInProgress(): boolean {
+    public getLoginInProgress(): boolean {
         const pendingCallback = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
         if (pendingCallback) {
             return true;
