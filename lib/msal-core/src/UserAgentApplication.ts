@@ -1923,7 +1923,7 @@ export class UserAgentApplication {
      * @hidden
      * @ignore
      *
-     * @param loginInProgress
+     * @param inProgress
      */
     protected setInteractionInProgress(inProgress: boolean) {
         if (inProgress) {
@@ -1931,6 +1931,36 @@ export class UserAgentApplication {
         } else {
             this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         }
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     *
+     * @param loginInProgress
+     */
+    protected setloginInProgress(loginInProgress : boolean) {
+        this.setInteractionInProgress(loginInProgress);
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     *
+     * returns the status of acquireTokenInProgress
+     */
+    protected getAcquireTokenInProgress(): boolean {
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === RequestStatus.IN_PROGRESS;
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     *
+     * @param acquireTokenInProgress
+     */
+    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
+        this.setInteractionInProgress(acquireTokenInProgress);
     }
 
     /**
