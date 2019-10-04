@@ -138,8 +138,6 @@ export class UserAgentApplication {
     private account: Account;
 
     // state variables
-    private loginInProgress: boolean;
-    private acquireTokenInProgress: boolean;
     private silentAuthenticationState: string;
     private silentLogin: boolean;
     private redirectCallbacksSet: boolean;
@@ -1556,7 +1554,7 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(PersistentCacheKeys.ERROR_DESC, error.errorMessage);
             }
         }
-        
+
         // Set status to completed
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.COMPLETED);
         this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + stateInfo.state, RequestStatus.COMPLETED);
@@ -1577,7 +1575,7 @@ export class UserAgentApplication {
         if (!response) {
             throw AuthError.createUnexpectedError("Response is null");
         }
-        
+
         return response;
     }
 
@@ -1878,7 +1876,21 @@ export class UserAgentApplication {
         if (pendingCallback) {
             return true;
         }
-        return this.loginInProgress;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === RequestStatus.IN_PROGRESS;
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     *
+     * @param loginInProgress
+     */
+    protected setInteractionInProgress(inProgress: boolean) {
+        if (inProgress) {
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
+        } else {
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        }
     }
 
     /**
@@ -1888,7 +1900,7 @@ export class UserAgentApplication {
      * @param loginInProgress
      */
     protected setloginInProgress(loginInProgress : boolean) {
-        this.loginInProgress = loginInProgress;
+        this.setInteractionInProgress(loginInProgress);
     }
 
     /**
@@ -1898,7 +1910,7 @@ export class UserAgentApplication {
      * returns the status of acquireTokenInProgress
      */
     protected getAcquireTokenInProgress(): boolean {
-        return this.acquireTokenInProgress;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === RequestStatus.IN_PROGRESS;
     }
 
     /**
@@ -1908,7 +1920,7 @@ export class UserAgentApplication {
      * @param acquireTokenInProgress
      */
     protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
-        this.acquireTokenInProgress = acquireTokenInProgress;
+        this.setInteractionInProgress(acquireTokenInProgress);
     }
 
     /**
