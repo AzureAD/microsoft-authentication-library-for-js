@@ -88,8 +88,8 @@ export class MessageHelper {
         messageCache.write(MessageType.URL_NAVIGATE, urlNavigate);
 
         // dispatch the message to the top window to start redirect flow by delegation
-        const message = MessageHelper.buildMessage(MessageType.REDIRECT_REQUEST);
         const targetWindow = window.top;
+        const message: PAYLOAD = MessageHelper.buildMessage(MessageType.REDIRECT_REQUEST);
         MessageDispatcher.dispatchMessage(targetWindow, message, topFrameOrigin);
     }
 }

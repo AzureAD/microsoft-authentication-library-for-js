@@ -105,7 +105,6 @@ export type FrameworkOptions = {
 export type BrokerOptions = {
     topFrameOrigin?: string;
     embeddedFrameOrigin?: string;
-    consentNeeded?: boolean;
 };
 
 /**
@@ -156,7 +155,6 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
 const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
     topFrameOrigin: null,
     embeddedFrameOrigin: null,
-    consentNeeded: false
 };
 
 /**

@@ -116,6 +116,14 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
 export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
 
 /**
+ * A type alias for a iframeRedirectCallback function.
+ * {@link (iframeRedirectCallback:type)}
+ * @returns response of type {@link (Message:string)}
+ * The function the top framed application listens to for a message from iframed application when consent is mandated.
+ */
+export type iframeRedirectCallback = (message: string, url: string) => void;
+
+/**
  * UserAgentApplication class
  *
  * Object Instance that the developer can use to make loginXX OR acquireTokenXX functions
@@ -147,7 +155,8 @@ export class UserAgentApplication {
 
     // message interface
     private messageCache: MessageCache;
-    private messageListener: MessageListener;;
+    private messageListener: MessageListener;
+    private iframeRedirectCallback: iframeRedirectCallback = null;
 
     // Authority Functionality
     protected authorityInstance: Authority;
@@ -317,6 +326,24 @@ export class UserAgentApplication {
         } else {
             throw ClientAuthError.createInvalidInteractionTypeError();
         }
+    }
+
+    /**
+     * Call back registered by the top frame to notify the user for iframed application redirect requests
+     * @param iframeRedirectCallback
+     */
+    handleRedirectInIframes(iframeRedirectCallback: iframeRedirectCallback) {
+        if(iframeRedirectCallback) {
+            this.messageListener.setCallBack(true, iframeRedirectCallback);
+        }
+    }
+
+    /**
+     * top frame application calls this function to ack to proceed
+     * @param message
+     */
+    processIframeRedirectCallback(url: string) {
+        WindowUtils.navigateWindow(url, this.logger);
     }
 
     // #endregion

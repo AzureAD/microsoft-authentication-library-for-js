@@ -8,8 +8,8 @@ import { WindowUtils } from "./../utils/WindowUtils";
 import { MessageType, PAYLOAD } from "./MessageHelper";
 import { MessageCache } from "./MessageCache";
 import { MessageDispatcher } from "./MessageDispatcher";
-
 import { Logger } from "./../Logger";
+import { iframeRedirectCallback } from "./../UserAgentApplication";
 
 export class MessageListener {
 
@@ -17,6 +17,8 @@ export class MessageListener {
     private logger: Logger;
     private topFrameOrigin: string;
     private embeddedFrameOrigin: string;
+    private consentNeeded: boolean;
+    private iframeRedirectCallback: iframeRedirectCallback;
 
     /**
      * initialize the message listener, and register the callback to process messages
@@ -29,6 +31,11 @@ export class MessageListener {
 
         // listen to all incoming messages
         window.addEventListener("message", this.receiveMessage, false);
+    }
+
+    public setCallBack(consentNeeded: boolean, callback: iframeRedirectCallback) {
+        this.consentNeeded = consentNeeded;
+        this.iframeRedirectCallback = callback;
     }
 
     /**
@@ -47,6 +54,7 @@ export class MessageListener {
             case WindowType.TOP_FRAME: {
 
                 switch(receivedMessage.type) {
+
                     case MessageType.REDIRECT_REQUEST: {
                         // acknowlege the redirect on behalf of the iframed app by sending the current location
                         const message = MessageHelper.buildMessage(MessageType.URL_TOP_FRAME, window.location.href);
@@ -58,7 +66,13 @@ export class MessageListener {
                         // if the response is the URL to navigate for token acquisition, navigate to STS
                         if (receivedMessage.type === MessageType.URL_NAVIGATE) {
                             this.logger.info("navigating to the Service on behalf of the iframed app");
-                            WindowUtils.navigateWindow(receivedMessage.data, this.logger);
+
+                            if(this.consentNeeded) {
+                                this.iframeRedirectCallback("redirectURL", receivedMessage.data);
+                            }
+                            else {
+                                WindowUtils.navigateWindow(receivedMessage.data, this.logger);
+                            }
                         }
                         break;
                     }
