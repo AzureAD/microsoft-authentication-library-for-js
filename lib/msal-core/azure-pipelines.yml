@@ -18,7 +18,7 @@ jobs:
     pool:
       name: Hosted VS2017
     dependsOn: rolling_VS2017_build
-    condition: and(succeeded('rolling_VS2017_build'), eq(variables['System.PullRequest.TargetBranch'], 'master'))
+    condition: and(succeeded('rolling_VS2017_build'), eq(variables['Build.SourceBranchName'], 'master'))
     steps:
       - task: ArchiveFiles@2
         inputs:
@@ -27,3 +27,8 @@ jobs:
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
           replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'

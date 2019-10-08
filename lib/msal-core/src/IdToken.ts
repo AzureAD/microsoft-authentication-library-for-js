@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { ClientAuthError } from "./error/ClientAuthError";
 import { TokenUtils } from "./utils/TokenUtils";
@@ -24,6 +26,7 @@ export class IdToken {
     rawIdToken: string;
     claims: StringDict;
     sid: string;
+    cloudInstance: string;
     /* tslint:disable:no-string-literal */
     constructor(rawIdToken: string) {
         if (StringUtils.isEmpty(rawIdToken)) {
@@ -76,11 +79,17 @@ export class IdToken {
                 if (this.claims.hasOwnProperty("sid")) {
                     this.sid = this.claims["sid"];
                 }
+
+                if (this.claims.hasOwnProperty("cloud_instance_host_name")) {
+                    this.cloudInstance = this.claims["cloud_instance_host_name"];
+                }
                 /* tslint:enable:no-string-literal */
             }
         } catch (e) {
-            // TODO: This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
-            // Need to add better error handling here to account for being unable to decode jwts.
+            /*
+             * TODO: This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
+             * Need to add better error handling here to account for being unable to decode jwts.
+             */
             throw ClientAuthError.createIdTokenParsingError(e);
         }
     }

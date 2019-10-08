@@ -1,11 +1,14 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { IUri } from "../IUri";
 import { Constants, SSOTypes } from "./Constants";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
+import { CryptoUtils } from "./CryptoUtils";
 
 /**
  * @hidden
@@ -26,8 +29,8 @@ export class UrlUtils {
      */
     static replaceTenantPath(url: string, tenantId: string): string {
         url = url.toLowerCase();
-        var urlObject = this.GetUrlComponents(url);
-        var pathArray = urlObject.PathSegments;
+        const urlObject = this.GetUrlComponents(url);
+        const pathArray = urlObject.PathSegments;
         if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
             pathArray[0] = tenantId;
         }
@@ -48,9 +51,9 @@ export class UrlUtils {
         }
 
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
-        var regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+        const regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
 
-        var match = url.match(regEx);
+        const match = url.match(regEx);
 
         if (!match || match.length < 6) {
             throw "Valid url required";
@@ -110,7 +113,7 @@ export class UrlUtils {
             return url;
         }
 
-        var regex = new RegExp("(\\&" + name + "=)[^\&]+");
+        let regex = new RegExp("(\\&" + name + "=)[^\&]+");
         url = url.replace(regex, "");
         // name=value&
         regex = new RegExp("(" + name + "=)[^\&]+&");
@@ -136,5 +139,30 @@ export class UrlUtils {
             return urlStringOrFragment.substring(hashIndex1 + 1);
         }
         return urlStringOrFragment;
+    }
+
+    /**
+     * @hidden
+     * Check if the url contains a hash with known properties
+     * @ignore
+     */
+    static urlContainsHash(urlString: string): boolean {
+        const parameters = UrlUtils.deserializeHash(urlString);
+        return (
+            parameters.hasOwnProperty(Constants.errorDescription) ||
+            parameters.hasOwnProperty(Constants.error) ||
+            parameters.hasOwnProperty(Constants.accessToken) ||
+            parameters.hasOwnProperty(Constants.idToken)
+        );
+    }
+
+    /**
+     * @hidden
+     * Returns deserialized portion of URL hash
+     * @ignore
+     */
+    static deserializeHash(urlFragment: string) {
+        const hash = UrlUtils.getHashFromUrl(urlFragment);
+        return CryptoUtils.deserialize(hash);
     }
 }

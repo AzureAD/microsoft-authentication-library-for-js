@@ -1,9 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { StringUtils } from "./utils/StringUtils";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { ResponseTypes } from "./utils/Constants";
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 export class ScopeSet {
 
@@ -77,7 +79,7 @@ export class ScopeSet {
      * @param otherScopes
      */
     intersectingScopeArrays(otherScopes: Array<string>): boolean {
-        return this.unionScopeSets(otherScopes).size < this.scopes.size + otherScopes.length;
+        return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.length);
     }
 
     /**
@@ -89,13 +91,30 @@ export class ScopeSet {
     }
 
     /**
-     * Check if a given scope is present in the request
+     * Check if a given scope is present in this set of scopes
      *
      * @param cachedScopes
      * @param scopes
      */
     containsScope(scope: string): boolean {
         return this.scopes.has(scope);
+    }
+
+    /**
+     * Check if a set of scopes is present in this set of scopes
+     * @param newScope 
+     */
+    containsScopeSet(scopeSet: ScopeSet): boolean {
+        if (this.scopes.size < scopeSet.scopes.size) {
+            return false;
+        } else {
+            for (const elem in scopeSet.scopes) {
+                if (!this.containsScope(elem)) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     /**
@@ -126,6 +145,10 @@ export class ScopeSet {
         this.scopes.delete(scope);
     }
 
+    getScopeCount(): number {
+        return this.scopes.size;
+    }
+
     /**
      * @hidden
      * @ignore
@@ -139,8 +162,8 @@ export class ScopeSet {
      */
     getTokenType(matchingAccount: boolean, silentCall: boolean): string {
         // if account is passed and matches the account object/or set to getAccount() from cache
-        // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
         if (!matchingAccount) {
+            // if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
             return silentCall && this.isLoginCall() ? ResponseTypes.id_token : ResponseTypes.id_token_token;           
         } else {
             return this.isLoginCall ? ResponseTypes.id_token : ResponseTypes.token;
@@ -151,7 +174,7 @@ export class ScopeSet {
      * ScopeSet helper which will tell whether set of scopes is being used for login calls.
      */
     isLoginCall(): boolean {
-        return this.originalScopes && this.originalScopes.has(this.clientId) && this.originalScopes.size === 1
+        return this.originalScopes && this.originalScopes.has(this.clientId) && this.originalScopes.size === 1;
     }
 
     /**

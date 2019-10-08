@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Constants, CacheKeys } from "./utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
@@ -106,6 +108,8 @@ export class Storage {// Singleton
                             this.removeItem(Constants.renewStatus + state);
                             this.removeItem(Constants.stateLogin);
                             this.removeItem(Constants.stateAcquireToken);
+                            this.removeItem(Constants.nonceIdToken);
+                            this.removeItem(Constants.loginRequest);
                             this.setItemCookie(key, "", -1);
                         }
                     }

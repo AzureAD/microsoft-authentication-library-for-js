@@ -1,4 +1,4 @@
-import { B2cAuthority } from "../B2cAuthority";
+import { B2cAuthority } from "../authority/B2cAuthority";
 import { AADTrustedHostList } from "../utils/Constants";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";
@@ -27,9 +27,11 @@ export const scrubTenantFromUri = (uri: string): String => {
 };
 
 export const hashPersonalIdentifier = (valueToHash: string) => {
-    // TODO sha256 this
-    // Current test runner is being funny with node libs that are webpacked anyway
-    // need a different solution
+    /*
+     * TODO sha256 this
+     * Current test runner is being funny with node libs that are webpacked anyway
+     * need a different solution
+     */
     return CryptoUtils.base64Encode(valueToHash);
 };
 

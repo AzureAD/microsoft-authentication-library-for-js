@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-import { Authority } from "./Authority";
+import { Authority } from "./authority/Authority";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
-import { StringDict } from "./MsalTypes"
+import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion, ResponseTypes, InteractionType } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
@@ -94,7 +96,7 @@ export class ServerRequestParameters {
         return this.authRequest && (this.authRequest.account || this.authRequest.sid || this.authRequest.loginHint);
     }
 
-    //#region QueryParam helpers
+    // #region QueryParam helpers
 
     /**
      * @hidden
@@ -131,8 +133,8 @@ export class ServerRequestParameters {
         }
 
         // adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
-        // this.logger.verbose("Calling addHint parameters");
         queryParameters = this.addHintParameters(this.account, queryParameters);
+        // this.logger.verbose("Calling addHint parameters");
 
         // sanity check for developer passed extraQueryParameters
         let eQParams: StringDict;
@@ -166,7 +168,7 @@ export class ServerRequestParameters {
      * @param sid
      * @param loginHint
      */
-    //TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
+    // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
     private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
 
         // preference order: account > sid > login_hint
@@ -234,8 +236,10 @@ export class ServerRequestParameters {
      * @ignore
      */
     private addHintParameters(account: Account, qParams: StringDict): StringDict {
-    // This is a final check for all queryParams added so far; preference order: sid > login_hint
-    // sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
+    /*
+     * This is a final check for all queryParams added so far; preference order: sid > login_hint
+     * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
+     */
         if (account && !qParams[SSOTypes.SID]) {
             // sid - populate only if login_hint is not already populated and the account has sid
             const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
@@ -369,7 +373,7 @@ export class ServerRequestParameters {
         return paramsString;
     }
 
-    //#endregion
+    // #endregion
 
     /**
      * generates the URL with QueryString Parameters

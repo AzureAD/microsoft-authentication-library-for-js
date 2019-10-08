@@ -22,7 +22,6 @@ export default class HttpEvent extends TelemetryEvent {
         super(prependEventNamePrefix("http_event"), correlationId);
     }
 
-
     // Believe this should be whole url, not just a path
     public set httpPath(httpPath: string) {
         this.event[EVENT_KEYS.HTTP_PATH] = scrubTenantFromUri(httpPath).toLowerCase();
@@ -56,9 +55,11 @@ export default class HttpEvent extends TelemetryEvent {
         this.event[EVENT_KEYS.REQUEST_ID_HEADER] = requestIdHeader;
     }
 
-    ///  Indicates whether the request was executed on a ring serving SPE traffic.
-    ///  An empty string indicates this occurred on an outer ring, and the string "I"
-    ///  indicates the request occurred on the inner ring
+    /**
+     * Indicates whether the request was executed on a ring serving SPE traffic.
+     * An empty string indicates this occurred on an outer ring, and the string "I"
+     * indicates the request occurred on the inner ring
+     */
     public set speInfo(speInfo: string) {
         this.event[EVENT_KEYS.SPE_INFO] = speInfo;
     }

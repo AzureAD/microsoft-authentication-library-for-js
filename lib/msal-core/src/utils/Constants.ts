@@ -1,7 +1,9 @@
 import { CacheLocation } from "../Configuration";
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 /**
  * @hidden
@@ -144,7 +146,7 @@ export const BlacklistedEQParams = [
     SSOTypes.LOGIN_HINT
 ];
 
-export type InteractionType = "redirectInteraction" | "popupInteraction";
+export type InteractionType = "redirectInteraction" | "popupInteraction" | "noInteraction";
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of

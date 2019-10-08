@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 export const AuthErrorMessage = {
     unexpectedError: {
@@ -9,8 +11,8 @@ export const AuthErrorMessage = {
 };
 
 /**
-* General error class thrown by the MSAL.js library.
-*/
+ * General error class thrown by the MSAL.js library.
+ */
 export class AuthError extends Error {
 
     errorCode: string;
