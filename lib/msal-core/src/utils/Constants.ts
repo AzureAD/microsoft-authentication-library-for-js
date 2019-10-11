@@ -1,5 +1,3 @@
-import { CacheLocation } from "../Configuration";
-
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -91,18 +89,21 @@ export enum TemporaryCacheKeys {
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    ANGULAR_LOGIN_REQUEST = "angular.login.request",
-    INTERACTION_STATUS = "interaction.status"
+    ANGULAR_LOGIN_REQUEST = "angular.login.request"
 }
 
 export enum PersistentCacheKeys {
     IDTOKEN = "idtoken",
-    CLIENT_INFO = "client.info",
-    ADAL_ID_TOKEN = "adal.idtoken",
-    ERROR = "error",
-    ERROR_DESC = "error.description",
-    LOGIN_ERROR = "login.error"
+    CLIENT_INFO = "client.info"
 }
+
+export enum ErrorCacheKeys {
+    LOGIN_ERROR = "login.error",
+    ERROR = "error",
+    ERROR_DESC = "error.description"
+}
+
+export const INTERACTION_STATUS = "interaction.status";
 
 export const AADTrustedHostList =  {
     "login.windows.net": "login.windows.net",

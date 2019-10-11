@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, TemporaryCacheKeys, RequestStatus } from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, INTERACTION_STATUS, RequestStatus } from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -29,21 +29,12 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
+        const pCacheSet = Object.keys(PersistentCacheKeys).map(key => super.getItem(`msal.${PersistentCacheKeys[key]}`));
+        const eCacheSet = Object.keys(ErrorCacheKeys).map(key => super.getItem(`msal.${ErrorCacheKeys[key]}`));
 
-        const idTokenKey = `${Constants.cachePrefix}.${PersistentCacheKeys.IDTOKEN}`;
-        const clientInfoKey = `${Constants.cachePrefix}.${PersistentCacheKeys.CLIENT_INFO}`;
-        const errorKey = `${Constants.cachePrefix}.${PersistentCacheKeys.ERROR}`;
-        const errorDescKey = `${Constants.cachePrefix}.${PersistentCacheKeys.ERROR_DESC}`;
-
-        const idTokenValue = super.getItem(idTokenKey);
-        const clientInfoValue = super.getItem(clientInfoKey);
-        const errorValue = super.getItem(errorKey);
-        const errorDescValue = super.getItem(errorDescKey);
-
-        const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
-        const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
-
-        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        const cacheSet = pCacheSet.concat(eCacheSet);
+        const keysToMigrate = Object.keys(cacheSet);
+        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, cacheSet[index], storeAuthStateInCookie));
     }
 
     /**
@@ -68,7 +59,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
+            if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(Constants.adalIdToken)) {
                 return key;
             }
             return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
@@ -120,6 +111,20 @@ export class AuthCache extends BrowserStorage {// Singleton
             if (storage.hasOwnProperty(key) && (key.indexOf(Constants.cachePrefix) !== -1)) {
                 super.removeItem(key);
                 // TODO: Clear cache based on client id (clarify use cases where this is needed)
+            }
+        }
+    }
+
+    /**
+     * Reset all temporary cache items
+     */
+    resetTempCacheItems(): void {
+        const storage = window[this.cacheLocation];
+        let key: string;
+        for (key in storage) {
+            // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
+            if (storage.hasOwnProperty(key) && (Object.keys(TemporaryCacheKeys).indexOf(key) > -1)) {
+                super.removeItem(key);
             }
         }
     }
@@ -187,7 +192,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                         this.removeItem(TemporaryCacheKeys.STATE_LOGIN);
                         this.removeItem(TemporaryCacheKeys.STATE_ACQ_TOKEN);
                         this.removeItem(TemporaryCacheKeys.LOGIN_REQUEST);
-                        this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                        this.removeItem(INTERACTION_STATUS);
                         this.removeItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
                         this.setItemCookie(key, "", -1);
                         this.clearMsalCookie(state);
