@@ -116,12 +116,18 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
 export type errorReceivedCallback = (authErr: AuthError, accountState: string) => void;
 
 /**
+ * top frame application calls this function to ack to proceed
+ * @param message
+ */
+export type processIframeRedirectCallback = (url: string) => void;
+
+/**
  * A type alias for a iframeRedirectCallback function.
  * {@link (iframeRedirectCallback:type)}
- * @returns response of type {@link (Message:string)}
+ * @returns response of type {@link (callback function)}
  * The function the top framed application listens to for a message from iframed application when consent is mandated.
  */
-export type iframeRedirectCallback = (message: string, url: string) => void;
+export type iframeRedirectCallback = (callback: processIframeRedirectCallback) => void;
 
 /**
  * UserAgentApplication class
@@ -336,14 +342,6 @@ export class UserAgentApplication {
         if(iframeRedirectCallback) {
             this.messageListener.setCallBack(true, iframeRedirectCallback);
         }
-    }
-
-    /**
-     * top frame application calls this function to ack to proceed
-     * @param message
-     */
-    processIframeRedirectCallback(url: string) {
-        WindowUtils.navigateWindow(url, this.logger);
     }
 
     // #endregion

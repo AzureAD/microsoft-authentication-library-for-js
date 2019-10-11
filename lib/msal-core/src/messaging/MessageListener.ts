@@ -39,6 +39,14 @@ export class MessageListener {
     }
 
     /**
+     * top frame application calls this function to ack to proceed
+     * @param message
+     */
+    processIframeRedirectCallback(url: string) {
+        return () => WindowUtils.navigateWindow(url, this.logger);
+    }
+
+    /**
      * Parses the messages receieved
      * This will be a unique handler per message, we will allow only one active request at a time
      * @param event
@@ -68,7 +76,7 @@ export class MessageListener {
                             this.logger.info("navigating to the Service on behalf of the iframed app");
 
                             if(this.consentNeeded) {
-                                this.iframeRedirectCallback("redirectURL", receivedMessage.data);
+                                this.iframeRedirectCallback(this.processIframeRedirectCallback(receivedMessage.data));
                             }
                             else {
                                 WindowUtils.navigateWindow(receivedMessage.data, this.logger);
