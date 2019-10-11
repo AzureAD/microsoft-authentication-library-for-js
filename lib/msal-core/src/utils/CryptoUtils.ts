@@ -50,13 +50,13 @@ export class CryptoUtils {
             buffer[8] &= 0xbf; // buffer[8] & 10111111 will set the 6 bit to 0.
 
             return CryptoUtils.decimalToHex(buffer[0]) + CryptoUtils.decimalToHex(buffer[1])
-            + CryptoUtils.decimalToHex(buffer[2]) + CryptoUtils.decimalToHex(buffer[3])
-            + "-" + CryptoUtils.decimalToHex(buffer[4]) + CryptoUtils.decimalToHex(buffer[5])
-            + "-" + CryptoUtils.decimalToHex(buffer[6]) + CryptoUtils.decimalToHex(buffer[7])
-            + "-" + CryptoUtils.decimalToHex(buffer[8]) + CryptoUtils.decimalToHex(buffer[9])
-            + "-" + CryptoUtils.decimalToHex(buffer[10]) + CryptoUtils.decimalToHex(buffer[11])
-            + CryptoUtils.decimalToHex(buffer[12]) + CryptoUtils.decimalToHex(buffer[13])
-            + CryptoUtils.decimalToHex(buffer[14]) + CryptoUtils.decimalToHex(buffer[15]);
+                + CryptoUtils.decimalToHex(buffer[2]) + CryptoUtils.decimalToHex(buffer[3])
+                + "-" + CryptoUtils.decimalToHex(buffer[4]) + CryptoUtils.decimalToHex(buffer[5])
+                + "-" + CryptoUtils.decimalToHex(buffer[6]) + CryptoUtils.decimalToHex(buffer[7])
+                + "-" + CryptoUtils.decimalToHex(buffer[8]) + CryptoUtils.decimalToHex(buffer[9])
+                + "-" + CryptoUtils.decimalToHex(buffer[10]) + CryptoUtils.decimalToHex(buffer[11])
+                + CryptoUtils.decimalToHex(buffer[12]) + CryptoUtils.decimalToHex(buffer[13])
+                + CryptoUtils.decimalToHex(buffer[14]) + CryptoUtils.decimalToHex(buffer[15]);
         }
         else {
             const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
@@ -66,7 +66,7 @@ export class CryptoUtils {
             for (let i: number = 0; i < 36; i++) {
                 if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
                     // each x and y needs to be random
-                    r = Math.random()  * 16 | 0;
+                    r = Math.random() * 16 | 0;
                 }
                 if (guidHolder[i] === "x") {
                     guidResponse += hex[r];
@@ -95,7 +95,7 @@ export class CryptoUtils {
         }
         return hex;
     }
-    
+
     // See: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#Solution_4_%E2%80%93_escaping_the_string_before_encoding_it
 
     /**
@@ -111,12 +111,26 @@ export class CryptoUtils {
     }
 
     /**
-     * decoding base64 token - platform specific check
+     * Decodes a base64 encoded string.
      *
-     * @param base64IdToken
+     * @param input
      */
     static base64Decode(input: string): string {
-        return decodeURIComponent(atob(input).split("").map(function(c) {
+        let encodedString = input.replace(/-/g, "+").replace(/_/g, "/");
+        switch (encodedString.length % 4) {
+            case 0:
+                break;
+            case 2:
+                encodedString += "==";
+                break;
+            case 3:
+                encodedString += "=";
+                break;
+            default:
+                throw new Error("Invalid base64 string");
+        }
+
+        return decodeURIComponent(atob(encodedString).split("").map(function (c) {
             return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(""));
     }
