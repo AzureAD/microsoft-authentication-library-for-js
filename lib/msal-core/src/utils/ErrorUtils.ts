@@ -10,8 +10,8 @@ import { AuthError } from "../error/AuthError";
  */
 export class ErrorUtils {
 
-    static errorHandler(storage: AuthCache, errorFunc: AuthError): AuthError {
+    static throwErrorAndClearTempCache(storage: AuthCache, error: AuthError): AuthError {
         storage.resetTempCacheItems();
-        return errorFunc;
+        return error;
     }
 }

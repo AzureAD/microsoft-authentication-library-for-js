@@ -29,10 +29,10 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
-        const pCacheSet = Object.keys(PersistentCacheKeys).map(key => super.getItem(`msal.${PersistentCacheKeys[key]}`));
-        const eCacheSet = Object.keys(ErrorCacheKeys).map(key => super.getItem(`msal.${ErrorCacheKeys[key]}`));
+        const persistentCacheSet = Object.keys(PersistentCacheKeys).map(key => super.getItem(`msal.${PersistentCacheKeys[key]}`));
+        const errorCacheSet = Object.keys(ErrorCacheKeys).map(key => super.getItem(`msal.${ErrorCacheKeys[key]}`));
 
-        const cacheSet = pCacheSet.concat(eCacheSet);
+        const cacheSet = persistentCacheSet.concat(errorCacheSet);
         const keysToMigrate = Object.keys(cacheSet);
         keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, cacheSet[index], storeAuthStateInCookie));
     }
@@ -123,7 +123,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         let key: string;
         for (key in storage) {
             // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
-            if (storage.hasOwnProperty(key) && (Object.keys(TemporaryCacheKeys).indexOf(key) > -1)) {
+            if (Object.keys(TemporaryCacheKeys).indexOf(key) > -1) {
                 super.removeItem(key);
             }
         }
