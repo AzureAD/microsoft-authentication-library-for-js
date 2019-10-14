@@ -1020,7 +1020,15 @@ export class UserAgentApplication {
             if (this.config.auth.navigateToLoginRequestUrl) {
                 this.cacheStorage.setItem(Constants.urlHash, locationHash);
                 if (window.parent === window) {
-                    window.location.href = this.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
+                    const loginRequestUrl = this.cacheStorage.getItem(Constants.loginRequest, this.inCookie);
+
+                    // Redirect to home page if login request url is null (real null or the string null)
+                    if (!loginRequestUrl || loginRequestUrl === "null") {
+                        this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
+                        window.location.href = "/";
+                    } else {
+                        window.location.href = loginRequestUrl;
+                    }
                 }
                 return;
             }
