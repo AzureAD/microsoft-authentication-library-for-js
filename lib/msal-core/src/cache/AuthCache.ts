@@ -65,6 +65,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     private generateCacheKey(key: string, addInstanceId: boolean): string {
         try {
+            // Defined schemas do not need the key appended
             JSON.parse(key);
             return key;
         } catch (e) {
