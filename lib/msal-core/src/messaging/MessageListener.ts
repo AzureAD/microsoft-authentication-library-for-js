@@ -17,7 +17,6 @@ export class MessageListener {
     private logger: Logger;
     private topFrameOrigin: string;
     private embeddedFrameOrigin: string;
-    private consentNeeded: boolean;
     private iframeRedirectCallback: iframeRedirectCallback;
 
     /**
@@ -33,8 +32,7 @@ export class MessageListener {
         window.addEventListener("message", this.receiveMessage, false);
     }
 
-    public setCallBack(consentNeeded: boolean, callback: iframeRedirectCallback) {
-        this.consentNeeded = consentNeeded;
+    public setCallBack(callback: iframeRedirectCallback) {
         this.iframeRedirectCallback = callback;
     }
 
@@ -72,15 +70,13 @@ export class MessageListener {
 
                     case MessageType.URL_NAVIGATE: {
                         // if the response is the URL to navigate for token acquisition, navigate to STS
-                        if (receivedMessage.type === MessageType.URL_NAVIGATE) {
-                            this.logger.info("navigating to the Service on behalf of the iframed app");
+                        this.logger.info("navigating to the Service on behalf of the iframed app");
 
-                            if(this.consentNeeded) {
-                                this.iframeRedirectCallback(this.processIframeRedirectCallback(receivedMessage.data));
-                            }
-                            else {
-                                WindowUtils.navigateWindow(receivedMessage.data, this.logger);
-                            }
+                        if(this.iframeRedirectCallback) {
+                            this.iframeRedirectCallback(this.processIframeRedirectCallback(receivedMessage.data));
+                        }
+                        else {
+                            WindowUtils.navigateWindow(receivedMessage.data, this.logger);
                         }
                         break;
                     }
@@ -91,21 +87,23 @@ export class MessageListener {
             case WindowType.IFRAME: {
 
                 // check the origin, should match window.top always; message channel may be more secure
-                if (window.top != event.source) {
+                if (window.top !== event.source) {
                     this.logger.warning("The message origin is not verified");
                     return;
                 }
 
-                if (receivedMessage.type === MessageType.URL_TOP_FRAME) {
-                    // record the ack from the top frame - store the URL
-                    this.messageCache.write(MessageType.URL_TOP_FRAME, receivedMessage.data);
+                switch(receivedMessage.type) {
+                    case MessageType.URL_TOP_FRAME: {
+                        // record the ack from the top frame - store the URL
+                        this.messageCache.write(MessageType.URL_TOP_FRAME, receivedMessage.data);
 
-                    // respond with the URL to navigate for token acquisition
-                    const urlNavigate = this.messageCache.read(MessageType.URL_NAVIGATE);
-                    const message = MessageHelper.buildMessage(MessageType.URL_NAVIGATE, urlNavigate);
-                    MessageDispatcher.dispatchMessage(event.source, message, this.topFrameOrigin);
+                        // respond with the URL to navigate for token acquisition
+                        const urlNavigate = this.messageCache.read(MessageType.URL_NAVIGATE);
+                        const message = MessageHelper.buildMessage(MessageType.URL_NAVIGATE, urlNavigate);
+                        MessageDispatcher.dispatchMessage(event.source, message, this.topFrameOrigin);
+                        break;
+                    }
                 }
-
                 break;
             }
         }

@@ -119,7 +119,7 @@ export type errorReceivedCallback = (authErr: AuthError, accountState: string) =
  * top frame application calls this function to ack to proceed
  * @param message
  */
-export type processIframeRedirectCallback = (url: string) => void;
+export type processIframeRedirectCallback = (url: string) => any;
 
 /**
  * A type alias for a iframeRedirectCallback function.
@@ -340,7 +340,7 @@ export class UserAgentApplication {
      */
     handleRedirectInIframes(iframeRedirectCallback: iframeRedirectCallback) {
         if(iframeRedirectCallback) {
-            this.messageListener.setCallBack(true, iframeRedirectCallback);
+            this.messageListener.setCallBack(iframeRedirectCallback);
         }
     }
 

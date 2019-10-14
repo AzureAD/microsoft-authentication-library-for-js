@@ -100,7 +100,7 @@ export type FrameworkOptions = {
  * Options to specify communication between embedded (iframed) apps and the Top Frame
  *
  * - topFrameOrigin             - origin check to restrict messages to the top frame origin only
- * - consentNeeded              - indicates if the library needs consent from the topframe to delegate interaction from the embedded (iframe) application
+ * - embeddedFrameOrigin        - origin check to restrict messages to the top frame origin only
  */
 export type BrokerOptions = {
     topFrameOrigin?: string;

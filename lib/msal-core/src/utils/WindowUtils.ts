@@ -219,7 +219,7 @@ export class WindowUtils {
      */
     static navigateWindow(urlNavigate: string, logger: Logger, popupWindow?: Window) {
         // Navigate if valid URL
-        if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
+        if (!StringUtils.isEmpty(urlNavigate)) {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
             const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
             logger.infoPii(logMessage);
