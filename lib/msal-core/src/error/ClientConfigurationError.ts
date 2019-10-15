@@ -12,13 +12,9 @@ export const ClientConfigurationErrorMessage = {
         code: "no_config_set",
         desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
     },
-    invalidCacheLocation: {
-        code: "invalid_cache_location",
-        desc: "The cache location provided is not valid."
-    },
-    noStorageSupported: {
-        code: "browser_storage_not_supported",
-        desc: "localStorage and sessionStorage are not supported."
+    storageNotSupported: {
+        code: "storage_not_supported",
+        desc: "The value for the cacheLocation is not supported."
     },
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
@@ -100,14 +96,9 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.configurationNotSet.desc}`);
     }
 
-    static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCacheLocation.code,
-            `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
-    }
-
-    static createNoStorageSupportedError() : ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.noStorageSupported.code,
-            ClientConfigurationErrorMessage.noStorageSupported.desc);
+    static createStorageNotSupportedError(givenCacheLocation: string) : ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.storageNotSupported.code,
+            `${ClientConfigurationErrorMessage.storageNotSupported.desc} Given location: ${givenCacheLocation}`);
     }
 
     static createRedirectCallbacksNotSetError(): ClientConfigurationError {

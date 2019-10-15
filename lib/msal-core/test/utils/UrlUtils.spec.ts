@@ -4,7 +4,7 @@ import { UrlUtils } from "../../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
-import { Constants } from "../../src/utils/Constants";
+import { ServerHashParamKeys } from "../../src/utils/Constants";
 
 describe("UrlUtils.ts class", () => {
 
@@ -66,23 +66,23 @@ describe("UrlUtils.ts class", () => {
     });
 
     describe("urlContainsHash", () => {
-        it(Constants.errorDescription, () => {
-            const urlString = `http://localhost:3000/#/${Constants.errorDescription}=hello`;
+        it(ServerHashParamKeys.ERROR_DESCRIPTION, () => {
+            const urlString = `http://localhost:3000/#/${ServerHashParamKeys.ERROR_DESCRIPTION}=hello`;
 
             expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
         });
-        it(Constants.error, () => {
-            const urlString = `http://localhost:3000/#/${Constants.error}=hello`;
+        it(ServerHashParamKeys.ERROR, () => {
+            const urlString = `http://localhost:3000/#/${ServerHashParamKeys.ERROR}=hello`;
 
             expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
         });
-        it(Constants.accessToken, () => {
-            const urlString = `http://localhost:3000/#/${Constants.accessToken}=hello`;
+        it(ServerHashParamKeys.ACCESS_TOKEN, () => {
+            const urlString = `http://localhost:3000/#/${ServerHashParamKeys.ACCESS_TOKEN}=hello`;
 
             expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
         });
-        it(Constants.idToken, () => {
-            const urlString = `http://localhost:3000/#/${Constants.idToken}=hello`;
+        it(ServerHashParamKeys.ID_TOKEN, () => {
+            const urlString = `http://localhost:3000/#/${ServerHashParamKeys.ID_TOKEN}=hello`;
 
             expect(UrlUtils.urlContainsHash(urlString)).to.be.true;
         });
