@@ -8,6 +8,6 @@ import { PAYLOAD } from "./MessageHelper";
 export class MessageDispatcher {
 
     static dispatchMessage(target: Window, message: PAYLOAD, originCheck?: string) {
-        originCheck ? target.postMessage(message, originCheck): target.postMessage(message, "*");
+        target.postMessage(message, originCheck || "*");
     }
 }

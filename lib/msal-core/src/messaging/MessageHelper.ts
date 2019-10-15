@@ -34,14 +34,13 @@ export class MessageHelper {
      * returns the current window type: Top Frame app or Iframed app
      */
     static currentWindow(): WindowType {
-        if(WindowUtils.isWindowOnTop()) {
+        if(WindowUtils.isWindowOnTop())     {
             return WindowType.TOP_FRAME;
         }
-        else if(WindowUtils.isInIframe()) {
+        else if(WindowUtils.isInIframe())   {
             return WindowType.IFRAME;
         }
-        else
-            return null;
+        return null;
     }
 
     /**
