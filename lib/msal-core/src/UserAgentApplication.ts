@@ -19,7 +19,6 @@ import { WindowUtils } from "./utils/WindowUtils";
 import { TokenUtils } from "./utils/TokenUtils";
 import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
-import { ErrorUtils } from "./utils/ErrorUtils";
 import { ResponseUtils } from "./utils/ResponseUtils";
 import { AuthorityFactory } from "./authority/AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";

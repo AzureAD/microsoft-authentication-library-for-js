@@ -28,7 +28,6 @@ import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
 import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
-import { ErrorUtils } from "../src/utils/ErrorUtils";
 
 type kv = {
     [key: string]: string;
