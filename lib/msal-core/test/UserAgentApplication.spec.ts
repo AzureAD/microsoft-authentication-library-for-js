@@ -28,6 +28,7 @@ import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
 import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
+import { ErrorUtils } from "../src/utils/ErrorUtils";
 
 type kv = {
     [key: string]: string;
@@ -150,7 +151,8 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             });
         });
-        it.skip("configure telemtry in UAA missing configuration throws config error", () => {
+        it("configure telemtry in UAA missing configuration throws config error", () => {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const configureTestCase = () => msal = new UserAgentApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,

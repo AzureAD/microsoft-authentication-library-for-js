@@ -253,7 +253,7 @@ export class UserAgentApplication {
     handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
         if (!authOrTokenCallback) {
             this.redirectCallbacksSet = false;
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createInvalidCallbackObjectError(authOrTokenCallback));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createInvalidCallbackObjectError(authOrTokenCallback));
         }
 
         // Set callbacks
@@ -286,7 +286,7 @@ export class UserAgentApplication {
         } else if (interactionType === Constants.interactionTypePopup) {
             resolve(response);
         } else {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createInvalidInteractionTypeError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createInvalidInteractionTypeError());
         }
     }
 
@@ -300,7 +300,7 @@ export class UserAgentApplication {
         } else if (interactionType === Constants.interactionTypePopup) {
             reject(authErr);
         } else {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createInvalidInteractionTypeError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createInvalidInteractionTypeError());
         }
     }
 
@@ -312,7 +312,7 @@ export class UserAgentApplication {
     loginRedirect(request?: AuthenticationParameters): void {
         // Throw error if callbacks are not set before redirect
         if (!this.redirectCallbacksSet) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createRedirectCallbacksNotSetError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createRedirectCallbacksNotSetError());
         }
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request);
     }
@@ -325,12 +325,12 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
         if (!request) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyRequestError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyRequestError());
         }
 
         // Throw error if callbacks are not set before redirect
         if (!this.redirectCallbacksSet) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createRedirectCallbacksNotSetError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createRedirectCallbacksNotSetError());
         }
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request);
     }
@@ -357,7 +357,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
         if (!request) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyRequestError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyRequestError());
         }
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -432,7 +432,7 @@ export class UserAgentApplication {
             // AcquireToken call, but no account or context given, so throw error
             else {
                 this.logger.info("User login is required");
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createUserLoginRequiredError());
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createUserLoginRequiredError());
             }
         }
         // User session exists
@@ -523,7 +523,7 @@ export class UserAgentApplication {
                 // Register callback to capture results from server
                 this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
             } else {
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createInvalidInteractionTypeError());
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createInvalidInteractionTypeError());
             }
 
             // prompt user for interaction
@@ -584,7 +584,7 @@ export class UserAgentApplication {
      */
     acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
         if (!request) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyRequestError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyRequestError());
         }
         return new Promise<AuthResponse>((resolve, reject) => {
 
@@ -738,7 +738,7 @@ export class UserAgentApplication {
             // open the window
             const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
             if (!popupWindow) {
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createPopupWindowError());
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createPopupWindowError());
             }
             if (popupWindow.focus) {
                 popupWindow.focus();
@@ -748,7 +748,7 @@ export class UserAgentApplication {
         } catch (e) {
             this.logger.error("error opening popup " + e.message);
             this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createPopupWindowError(e.toString()));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createPopupWindowError(e.toString()));
         }
     }
 
@@ -806,7 +806,7 @@ export class UserAgentApplication {
         }
         else {
             this.logger.info("Navigate url is empty");
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Navigate url is empty"));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Navigate url is empty"));
         }
     }
 
@@ -845,7 +845,7 @@ export class UserAgentApplication {
                   } else if (response) {
                       window.promiseMappedToRenewStates[expectedState][i].resolve(response);
                   } else {
-                      throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Error and response are both null"));
+                      throw this.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Error and response are both null"));
                   }
               } catch (e) {
                   this.logger.warning(e);
@@ -981,7 +981,7 @@ export class UserAgentApplication {
             parentCallback(response, authErr);
         } catch (err) {
             this.logger.error("Error occurred in token received callback function: " + err);
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createErrorInCallbackFunction(err.toString()));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createErrorInCallbackFunction(err.toString()));
         }
     }
 
@@ -1050,7 +1050,7 @@ export class UserAgentApplication {
         const parameters = UrlUtils.deserializeHash(hash);
         let stateResponse: ResponseStateInfo;
         if (!parameters) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Hash was not parsed correctly."));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Hash was not parsed correctly."));
         }
         if (parameters.hasOwnProperty("state")) {
             stateResponse = {
@@ -1059,7 +1059,7 @@ export class UserAgentApplication {
                 stateMatch: false
             };
         } else {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Hash does not contain state."));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Hash does not contain state."));
         }
         /*
          * async calls can fire iframe and login request at the same time if developer does not use the API as expected
@@ -1136,13 +1136,13 @@ export class UserAgentApplication {
             }
             // if more than one cached token is found
             else if (filteredItems.length > 1) {
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString()));
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString()));
             }
             // if no match found, check if there was a single authority used
             else {
                 const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
                 if (authorityList.length > 1) {
-                    throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString()));
+                    throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString()));
                 }
 
                 serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
@@ -1168,7 +1168,7 @@ export class UserAgentApplication {
             }
             else {
                 // if more than one cached token is found
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString()));
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString()));
             }
         }
 
@@ -1181,7 +1181,7 @@ export class UserAgentApplication {
                 if (!account) {
                     account = this.getAccount();
                     if (!account) {
-                        throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Account should not be null here."));
+                        throw this.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Account should not be null here."));
                     }
                 }
                 const aState = this.getAccountState(serverAuthenticationRequest.state);
@@ -1470,7 +1470,7 @@ export class UserAgentApplication {
                         clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
-                        throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server"));
+                        throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server"));
                     }
 
                     response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
@@ -1582,7 +1582,7 @@ export class UserAgentApplication {
         }
 
         if (!response) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Response is null"));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Response is null"));
         }
 
         return response;
@@ -1716,7 +1716,7 @@ export class UserAgentApplication {
     private validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
         if (!scopes) {
             if (scopesRequired) {
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createScopesRequiredError(scopes));
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createScopesRequiredError(scopes));
             } else {
                 return;
             }
@@ -1724,18 +1724,18 @@ export class UserAgentApplication {
 
         // Check that scopes is an array object (also throws error if scopes == null)
         if (!Array.isArray(scopes)) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createScopesNonArrayError(scopes));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createScopesNonArrayError(scopes));
         }
 
         // Check that scopes is not an empty array
         if (scopes.length < 1) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyScopesArrayError(scopes.toString()));
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createEmptyScopesArrayError(scopes.toString()));
         }
 
         // Check that clientId is passed as single scope
         if (scopes.indexOf(this.clientId) > -1) {
             if (scopes.length > 1) {
-                throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createClientIdSingleScopeError(scopes.toString()));
+                throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createClientIdSingleScopeError(scopes.toString()));
             }
         }
     }
@@ -1980,7 +1980,7 @@ export class UserAgentApplication {
      */
     public getCurrentConfiguration(): Configuration {
         if (!this.config) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createNoSetConfigurationError());
+            throw this.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createNoSetConfigurationError());
         }
         return this.config;
     }
@@ -2152,8 +2152,9 @@ export class UserAgentApplication {
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
-        if (!applicationName || !applicationVersion || ! telemetryEmitter) {
-            throw ErrorUtils.throwErrorAndClearTempCache(this.cacheStorage, ClientConfigurationError.createTelemetryConfigError(config));
+        if (!applicationName || !applicationVersion || !telemetryEmitter) {
+            console.log("Am I here");
+            throw ClientConfigurationError.createTelemetryConfigError(config);
         }
         // if valid then construct
         const telemetryPlatform: TelemetryPlatform = {
@@ -2167,5 +2168,15 @@ export class UserAgentApplication {
             clientId: clientId
         };
         return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
+    }
+
+    /**
+     * Helper function to clear the cache and throw an error
+     * @param storage
+     * @param error
+     */
+    private throwErrorAndClearTempCache(storage: AuthCache, error: AuthError): AuthError {
+        storage.resetTempCacheItems();
+        return error;
     }
 }
