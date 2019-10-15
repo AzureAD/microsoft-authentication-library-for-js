@@ -23,9 +23,9 @@ export enum WindowType {
 };
 
 // message payload
-export type PAYLOAD = {
+export type Message = {
     type: MessageType,
-    data?: string
+    payload?: string
 };
 
 export class MessageHelper {
@@ -50,10 +50,10 @@ export class MessageHelper {
      * @param contentType
      * @param messageData
      */
-    static buildMessage(messageType: MessageType, messageData?: string): PAYLOAD {
-        const message: PAYLOAD = {
+    static buildMessage(messageType: MessageType, messageData?: string): Message {
+        const message: Message = {
             type: messageType,
-            data: messageData
+            payload: messageData
         };
 
         return message;
@@ -88,7 +88,7 @@ export class MessageHelper {
 
         // dispatch the message to the top window to start redirect flow by delegation
         const targetWindow = window.top;
-        const message: PAYLOAD = MessageHelper.buildMessage(MessageType.REDIRECT_REQUEST);
+        const message: Message = MessageHelper.buildMessage(MessageType.REDIRECT_REQUEST);
         MessageDispatcher.dispatchMessage(targetWindow, message, topFrameOrigin);
     }
 }

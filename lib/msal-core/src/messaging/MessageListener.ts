@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { WindowType, MessageHelper } from "./MessageHelper";
+import { WindowType, MessageHelper, Message, MessageType } from "./MessageHelper";
 import { WindowUtils } from "./../utils/WindowUtils";
-import { MessageType, PAYLOAD } from "./MessageHelper";
 import { MessageCache } from "./MessageCache";
 import { MessageDispatcher } from "./MessageDispatcher";
 import { Logger } from "./../Logger";
@@ -52,7 +51,7 @@ export class MessageListener {
     private receiveMessage(event: any) {
 
         const windowType = MessageHelper.currentWindow();
-        const receivedMessage: PAYLOAD = { ...event.data};
+        const receivedMessage: Message = { ...event.data};
 
         switch(windowType) {
 
@@ -73,10 +72,10 @@ export class MessageListener {
                         this.logger.info("navigating to the Service on behalf of the iframed app");
 
                         if(this.iframeRedirectCallback) {
-                            this.iframeRedirectCallback(this.processIframeRedirectCallback(receivedMessage.data));
+                            this.iframeRedirectCallback(this.processIframeRedirectCallback(receivedMessage.payload));
                         }
                         else {
-                            WindowUtils.navigateWindow(receivedMessage.data, this.logger);
+                            WindowUtils.navigateWindow(receivedMessage.payload, this.logger);
                         }
                         break;
                     }
@@ -95,7 +94,7 @@ export class MessageListener {
                 switch(receivedMessage.type) {
                     case MessageType.URL_TOP_FRAME: {
                         // record the ack from the top frame - store the URL
-                        this.messageCache.write(MessageType.URL_TOP_FRAME, receivedMessage.data);
+                        this.messageCache.write(MessageType.URL_TOP_FRAME, receivedMessage.payload);
 
                         // respond with the URL to navigate for token acquisition
                         const urlNavigate = this.messageCache.read(MessageType.URL_NAVIGATE);

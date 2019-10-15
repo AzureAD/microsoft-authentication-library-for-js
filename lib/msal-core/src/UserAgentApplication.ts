@@ -246,27 +246,8 @@ export class UserAgentApplication {
         window.promiseMappedToRenewStates = { };
         window.msal = this;
 
-        const urlHash = window.location.hash;
-        const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
-
-        // read the hash stored through the topframe in redirect by delegation flow
-        const urlTopFrame = this.messageCache.read(MessageType.URL_TOP_FRAME);
-        const cachedUrlHash = this.messageCache.read(MessageType.HASH);
-
-        // On the server 302 - Redirect, handle this
-        if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
-            // REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
-            if(urlTopFrame) {
-                MessageHelper.handleTopFrameRedirect(this.messageCache, urlTopFrame, urlHash, this.logger);
-            }
-            else {
-                this.handleAuthenticationResponse(urlHash);
-            }
-        }
-        // REDIRECT_IFRAMES: Handle the auth response on reload if the topframe redirected on the iframed app's behalf and saved the hash
-        else if (WindowUtils.isInIframe() && cachedUrlHash) {
-            this.handleAuthenticationResponse(cachedUrlHash);
-        }
+        // handle the STS redirect
+        this.handleRedirectHash();
     }
 
     // #region Redirect Callbacks
@@ -341,6 +322,33 @@ export class UserAgentApplication {
     handleRedirectInIframes(iframeRedirectCallback: iframeRedirectCallback) {
         if(iframeRedirectCallback) {
             this.messageListener.setCallBack(iframeRedirectCallback);
+        }
+    }
+
+    /**
+     * helper function to handle all the various pathways when the STS redirects with the response
+     */
+    handleRedirectHash() {
+        const urlHash = window.location.hash;
+        const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
+
+        // read the hash stored through the topframe in redirect by delegation flow
+        const urlTopFrame = this.messageCache.read(MessageType.URL_TOP_FRAME);
+        const cachedUrlHash = this.messageCache.read(MessageType.HASH);
+
+        // On the server 302 - Redirect, handle this
+        if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
+            // REDIRECT_IFRAMES: if we are in topframe, store the hash in the cache
+            if(urlTopFrame) {
+                MessageHelper.handleTopFrameRedirect(this.messageCache, urlTopFrame, urlHash, this.logger);
+            }
+            else {
+                this.handleAuthenticationResponse(urlHash);
+            }
+        }
+        // REDIRECT_IFRAMES: Handle the auth response on reload if the topframe redirected on the iframed app's behalf and saved the hash
+        else if (WindowUtils.isInIframe() && cachedUrlHash) {
+            this.handleAuthenticationResponse(cachedUrlHash);
         }
     }
 
