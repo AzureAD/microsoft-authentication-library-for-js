@@ -82,7 +82,7 @@ export class MessageHelper {
      * @param messageCache
      * @param urlNavigate
      */
-    static redirectDelegationRequest(messageCache: MessageCache, urlNavigate: string, topFrameOrigin: string) {
+    static redirectDelegationRequest(messageCache: MessageCache, urlNavigate: string, topFrameOrigin?: string) {
         // save the URL to navigate in the cache and send a request to the topframe
         messageCache.write(MessageType.URL_NAVIGATE, urlNavigate);
 

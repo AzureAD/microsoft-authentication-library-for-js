@@ -574,14 +574,8 @@ export class UserAgentApplication {
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
-            // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
-            if(WindowUtils.isInIframe() && !popUpWindow) {
-                MessageHelper.redirectDelegationRequest(this.messageCache, urlNavigate, this.config.broker.topFrameOrigin);
-            }
-            else {
-                // prompt user for interaction
-                WindowUtils.navigateWindow(urlNavigate, this.logger, popUpWindow);
-            }
+            // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame; else navigate to the popup Window
+            WindowUtils.navigateHelper(popUpWindow, urlNavigate, this.messageCache, this.logger, this.config.broker.topFrameOrigin);
 
             // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
             if (popUpWindow) {

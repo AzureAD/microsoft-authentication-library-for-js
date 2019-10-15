@@ -3,6 +3,8 @@ import { UrlUtils } from "./UrlUtils";
 import { StringUtils } from "./StringUtils";
 import { Logger } from "../Logger";
 import { AuthError } from "./../error/AuthError";
+import { MessageCache } from "../messaging/MessageCache";
+import { MessageHelper } from "../messaging/MessageHelper";
 
 export class WindowUtils {
     /**
@@ -228,6 +230,25 @@ export class WindowUtils {
         else {
             logger.info("Navigate url is empty");
             throw AuthError.createUnexpectedError("Navigate url is empty");
+        }
+    }
+
+    /**
+     * IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame; else navigate to the popup Window
+     * @param popUpWindow
+     * @param urlNavigate
+     * @param messageCache
+     * @param logger
+     * @param topFrameOrigin
+     */
+    static navigateHelper(popUpWindow: Window, urlNavigate: string, messageCache: MessageCache, logger: Logger, topFrameOrigin?: string) {
+        // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
+        if(WindowUtils.isInIframe() && !popUpWindow) {
+            MessageHelper.redirectDelegationRequest(messageCache, urlNavigate, topFrameOrigin);
+        }
+        // prompt user for interaction
+        else {
+            WindowUtils.navigateWindow(urlNavigate, logger, popUpWindow);
         }
     }
 
