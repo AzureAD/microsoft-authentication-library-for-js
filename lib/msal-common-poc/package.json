@@ -30,15 +30,27 @@
     "directories": {
         "test": "test"
     },
-    "files": ["dist"],
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "clean": "shx rm -rf dist",
         "build": "rollup -c",
-        "watch": "rollup -cw"
+        "watch": "rollup -cw",
+        "lint": "eslint src --ext .ts"
     },
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^2.4.0",
+        "@typescript-eslint/eslint-plugin-tslint": "^2.4.0",
+        "@typescript-eslint/parser": "^2.4.0",
+        "eslint": "^6.5.1",
+        "husky": "^3.0.9",
         "rollup": "^1.24.0",
         "rollup-plugin-typescript2": "^0.24.3",
+        "tslint": "^5.20.0",
         "typescript": "^3.6.4"
+    },
+    "dependencies": {
+        "tslib": "^1.10.0"
     }
 }
