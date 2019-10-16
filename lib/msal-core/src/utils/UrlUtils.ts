@@ -4,7 +4,7 @@
  */
 
 import { IUri } from "../IUri";
-import { Constants, SSOTypes } from "./Constants";
+import { Constants, SSOTypes, ServerHashParamKeys } from "./Constants";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
@@ -228,10 +228,10 @@ export class UrlUtils {
     static urlContainsHash(urlString: string): boolean {
         const parameters = UrlUtils.deserializeHash(urlString);
         return (
-            parameters.hasOwnProperty(Constants.errorDescription) ||
-            parameters.hasOwnProperty(Constants.error) ||
-            parameters.hasOwnProperty(Constants.accessToken) ||
-            parameters.hasOwnProperty(Constants.idToken)
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)
         );
     }
 
