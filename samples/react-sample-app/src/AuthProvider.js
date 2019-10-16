@@ -81,7 +81,7 @@ export default C =>
                         });
                     }
 
-                    if (tokenResponse.scopes.includes(GRAPH_SCOPES.MAIL_READ)) {
+                    if (tokenResponse.scopes.indexOf(GRAPH_SCOPES.MAIL_READ) > 0) {
                         return this.readMail(tokenResponse.accessToken);
                     }
                 }
@@ -164,7 +164,7 @@ export default C =>
                         });
                     }
 
-                    if (tokenResponse.scopes.includes(GRAPH_SCOPES.MAIL_READ)) {
+                    if (tokenResponse.scopes.indexOf(GRAPH_SCOPES.MAIL_READ) > 0) {
                         return this.readMail(tokenResponse.accessToken);
                     }
                 }

@@ -126,7 +126,6 @@ export class WindowUtils {
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
                 ifr.style.border = "0";
-                ifr.setAttribute("sandbox", "allow-same-origin");
                 adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
             } else if (document.body && document.body.insertAdjacentHTML) {
                 document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
@@ -142,17 +141,29 @@ export class WindowUtils {
 
     /**
      * @hidden
+     * Removes a hidden iframe from the page.
+     * @ignore
+     */
+    static removeHiddenIframe(iframe: HTMLIFrameElement) {
+        document.body.removeChild(iframe);
+    }
+
+    /**
+     * @hidden
      * Find and return the iframe element with the given hash
      * @ignore
      */
-    static getIframeWithHash(hash: string) {
-        return Array.from(document.getElementsByTagName("iframe")).find(iframe => {
+    static getIframeWithHash(hash: string): HTMLIFrameElement {
+        const iframes = document.getElementsByTagName("iframe");
+        const iframeArray: Array<HTMLIFrameElement> = Array.apply(null, Array(iframes.length)).map((iframe: HTMLIFrameElement, index: number) => iframes.item(index)); // eslint-disable-line prefer-spread
+
+        return iframeArray.filter((iframe: HTMLIFrameElement) => {
             try {
                 return iframe.contentWindow.location.hash === hash;
             } catch (e) {
                 return false;
             }
-        });
+        })[0];
     }
 
     /**
@@ -174,13 +185,13 @@ export class WindowUtils {
      * @ignore
      */
     static getPopUpWithHash(hash: string): Window {
-        return WindowUtils.getPopups().find(popup => {
+        return WindowUtils.getPopups().filter(popup => {
             try {
                 return popup.location.hash === hash;
             } catch (e) {
                 return false;
             }
-        });
+        })[0];
     }
 
     /**
