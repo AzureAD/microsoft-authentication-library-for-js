@@ -9,6 +9,7 @@ export class UrlUtils {
      * Returns current window URL as redirect uri
      */
     static getDefaultRedirectUri(): string {
-        return "http://localhost:30662";
+        return window.location.href.split("?")[0].split("#")[0];
     }
+
 }

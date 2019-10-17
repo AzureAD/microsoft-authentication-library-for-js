@@ -4,6 +4,7 @@
  */
 
 import { UrlUtils } from "../utils/UrlUtils";
+import { ICacheStorage } from "../cache/ICacheStorage";
 
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
@@ -35,7 +36,8 @@ export type AuthOptions = {
  * - framework: this is where you can configure the running mode of angular. More to come here soon.
  */
 export type MsalConfiguration = {
-    auth: AuthOptions
+    auth: AuthOptions,
+    cache: ICacheStorage
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
@@ -59,7 +61,13 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
  */
 export function buildConfiguration({ auth }: MsalConfiguration): MsalConfiguration {
     const overlayedConfig: MsalConfiguration = {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth }
+        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+        cache: {
+            setItem: null,
+            getItem: null,
+            removeItem: null,
+            clear: null
+        }
     };
     return overlayedConfig;
 }

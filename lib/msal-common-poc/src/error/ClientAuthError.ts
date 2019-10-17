@@ -17,6 +17,10 @@ export const ClientAuthErrorMessage = {
         code: "multiple_authorities",
         desc: "Multiple authorities found in the cache. Pass authority in the API overload."
     },
+    invalidAuthorityType: {
+        code: "invalid_authority_type",
+        desc: "The given authority type is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>."
+    },
     endpointResolutionError: {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
@@ -88,6 +92,10 @@ export const ClientAuthErrorMessage = {
     invalidInteractionType: {
         code: "invalid_interaction_type",
         desc: "The interaction type passed to the handler was incorrect or unknown"
+    },
+    urlSegmentError: {
+        code: "url_segment_error",
+        desc: "The url parsed does not have the correct number of components."
     }
 };
 
@@ -101,6 +109,14 @@ export class ClientAuthError extends AuthError {
         this.name = "ClientAuthError";
 
         Object.setPrototypeOf(this, ClientAuthError.prototype);
+    }
+
+    static createInvalidAuthorityError(errDetail?: string): ClientAuthError {
+        let errorMessage = ClientAuthErrorMessage.invalidAuthorityType.desc;
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
+            errorMessage += ` Details: ${errDetail}`;
+        }
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, errorMessage);
     }
 
     static createEndpointResolutionError(errDetail?: string): ClientAuthError {
@@ -209,5 +225,13 @@ export class ClientAuthError extends AuthError {
     static createInvalidInteractionTypeError() : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidInteractionType.code,
             ClientAuthErrorMessage.invalidInteractionType.desc);
+    }
+
+    static createUrlSegmentError(errDetail?: string) : ClientAuthError {
+        let errorMessage = ClientAuthErrorMessage.urlSegmentError.desc;
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
+            errorMessage += ` Details:${errDetail}`;
+        }
+        return new ClientAuthError(ClientAuthErrorMessage.urlSegmentError.code, errorMessage);
     }
 }

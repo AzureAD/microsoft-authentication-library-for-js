@@ -9,6 +9,8 @@ import { MsalConfiguration } from "./MsalConfiguration";
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 // response
 import { AuthResponse } from "../response/AuthResponse";
+// cache
+import { ICacheStorage } from "../cache/ICacheStorage";
 
 /**
  * ImplicitAuthModule class
@@ -19,6 +21,7 @@ import { AuthResponse } from "../response/AuthResponse";
 export class ImplicitAuthModule {
 
     private config: MsalConfiguration;
+    private cacheStorage: ICacheStorage;
 
     /**
      * @constructor
@@ -44,6 +47,9 @@ export class ImplicitAuthModule {
     constructor(configuration: MsalConfiguration) {
         // Set the configuration
         this.config = configuration;
+        
+        // Set the cache
+        this.cacheStorage = this.config.cache;
     }
 
     /**
@@ -59,6 +65,7 @@ export class ImplicitAuthModule {
      * @param hash 
      */
     handleResponse(hash: string): AuthResponse {
+        
         return null;
     }
 
