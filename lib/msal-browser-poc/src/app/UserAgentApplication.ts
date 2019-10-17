@@ -4,6 +4,7 @@
  */
 
 import { Configuration } from "./Configuration";
+import * as msalAuth from "msal-common";
 
 /**
  * UserAgentApplication class
@@ -13,6 +14,7 @@ import { Configuration } from "./Configuration";
 export class UserAgentApplication {
 
     private config: Configuration;
+    private authContext: msalAuth.ImplicitAuthModule;
     
     /**
      * @constructor
@@ -37,6 +39,11 @@ export class UserAgentApplication {
      */
     constructor(configuration: Configuration) {
         this.config = configuration;
+        this.authContext = new msalAuth.ImplicitAuthModule({});
     }
     
+    async loginRedirect(request: msalAuth.AuthenticationParameters) {
+        const url = this.authContext.createAuthorizationUrl(request);
+        
+    }
 }
