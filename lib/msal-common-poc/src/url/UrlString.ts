@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorityConstants, ServerHashParamKeys } from '../utils/Constants';
+import { AuthorityConstants, ServerHashParamKeys } from "../utils/Constants";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerRequestParameters } from '../request/ServerRequestParameters';
+import { ServerRequestParameters } from "../request/ServerRequestParameters";
 import { IUri } from "./IUri";
-import { ClientAuthError } from '../error/ClientAuthError';
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -38,6 +38,23 @@ export class UrlString {
         }
 
         return url;
+    }
+
+    validateAsUri() {
+        let components;
+        try {
+            components = this.getUrlComponents();
+        } catch (e) {
+            throw ClientAuthError.createUrlSegmentError(this.urlString);
+        }
+
+        if(!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
+            throw ClientAuthError.createInsecureAuthorityUriError(this.urlString);
+        }
+
+        if (!components.PathSegments || components.PathSegments.length < 1) {
+            throw ClientAuthError.createInvalidAuthorityUriError(this.urlString);
+        }
     }
 
     /**
@@ -120,11 +137,11 @@ export class UrlString {
             throw ClientAuthError.createUrlSegmentError(this.urlString);
         }
 
-        const urlComponents = <IUri>{
+        const urlComponents = {
             Protocol: match[1],
             HostNameAndPort: match[4],
             AbsolutePath: match[5]
-        };
+        } as IUri;
 
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
@@ -164,7 +181,7 @@ export class UrlString {
      * Check if the hash of the URL string contains known properties
      * @ignore
      */
-    static urlContainsHash(url: string): boolean {
+    static hashContainsKnownProperties(url: string): boolean {
         const urlString = new UrlString(url);
         const parameters = urlString.getDeserializedHash();
         return (

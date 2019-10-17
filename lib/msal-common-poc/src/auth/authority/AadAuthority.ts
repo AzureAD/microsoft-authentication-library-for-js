@@ -4,8 +4,6 @@
  */
 
 import { Authority, AuthorityType } from "./Authority";
-import { XhrClient } from "../XHRClient";
-import { AADTrustedHostList } from "../utils/Constants";
 
 /**
  * @hidden
@@ -17,8 +15,8 @@ export class AadAuthority extends Authority {
         return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
     }
 
-    public constructor(authority: string, validateAuthority: boolean) {
-        super(authority, validateAuthority);
+    public constructor(authority: string) {
+        super(authority);
     }
 
     public get AuthorityType(): AuthorityType {

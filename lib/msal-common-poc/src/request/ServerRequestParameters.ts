@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Authority } from '../auth/authority/Authority';
+import { Authority } from "../auth/authority/Authority";
 
 export class ServerRequestParameters {
 

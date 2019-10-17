@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
- /**
+/**
  * @hidden
  * Constants File which contains string constants used by this library
  */

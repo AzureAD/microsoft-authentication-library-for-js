@@ -44,14 +44,6 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_prompt_value",
         desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'",
     },
-    authorityUriInsecure: {
-        code: "authority_uri_insecure",
-        desc: "Authority URIs must use https."
-    },
-    authorityUriInvalidPath: {
-        code: "authority_uri_invalid_path",
-        desc: "Given authority URI is invalid."
-    },
     unsupportedAuthorityValidation: {
         code: "unsupported_authority_validation",
         desc: "The authority validation is not supported for this authority type."

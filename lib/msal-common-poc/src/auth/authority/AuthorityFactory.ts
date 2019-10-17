@@ -9,18 +9,18 @@
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
-import { UrlUtils } from "../../utils/UrlUtils";
+
 import { StringUtils } from "../../utils/StringUtils";
-import { ClientAuthError } from '../../error/ClientAuthError';
+import { ClientAuthError } from "../../error/ClientAuthError";
+import { UrlString } from "../../url/UrlString";
 
 export class AuthorityFactory {
     /**
      * Parse the url and determine the type of authority
      */
-    private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
-        authorityUrl = UrlUtils.CanonicalizeUri(authorityUrl);
-        const components = UrlUtils.GetUrlComponents(authorityUrl);
+    private static DetectAuthorityFromUrl(authorityString: string): AuthorityType {
+        const authorityUrl = new UrlString(authorityString);
+        const components = authorityUrl.getUrlComponents();
         const pathSegments = components.PathSegments;
         switch (pathSegments[0]) {
             case "tfp":

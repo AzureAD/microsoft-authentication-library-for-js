@@ -96,6 +96,18 @@ export const ClientAuthErrorMessage = {
     urlSegmentError: {
         code: "url_segment_error",
         desc: "The url parsed does not have the correct number of components."
+    },
+    authorityUriInsecure: {
+        code: "authority_uri_insecure",
+        desc: "Authority URIs must use https."
+    },
+    authorityUriInvalidPath: {
+        code: "authority_uri_invalid_path",
+        desc: "Given authority URI is invalid."
+    },
+    endpointDiscoveryIncomplete: {
+        code: "endpt_discovery_incomplete",
+        desc: "Endpoint discovery has not been complete for this authority instance. Please call discoverEndpointsAsync() on this authority object."
     }
 };
 
@@ -233,5 +245,20 @@ export class ClientAuthError extends AuthError {
             errorMessage += ` Details:${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.urlSegmentError.code, errorMessage);
+    }
+
+    static createInsecureAuthorityUriError(authorityUri: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.authorityUriInsecure.code,
+            `${ClientAuthErrorMessage.authorityUriInsecure.desc} Given value: ${authorityUri}`);
+    }
+
+    static createInvalidAuthorityUriError(authorityUri: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.authorityUriInvalidPath.code,
+            `${ClientAuthErrorMessage.authorityUriInvalidPath.desc} Given value: ${authorityUri}`);
+    }
+
+    static createEndpointDiscoveryIncompleteError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.endpointDiscoveryIncomplete.code,
+            ClientAuthErrorMessage.endpointDiscoveryIncomplete.desc);
     }
 }
