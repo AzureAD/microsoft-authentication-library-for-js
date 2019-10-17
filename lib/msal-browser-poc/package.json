@@ -52,9 +52,10 @@
         "rollup-plugin-uglify": "^6.0.3",
         "shx": "^0.3.2",
         "tslint": "^5.20.0",
+        "tslib": "^1.10.0",
         "typescript": "^3.6.4"
     },
     "dependencies": {
-        "tslib": "^1.10.0"
+        
     }
 }
