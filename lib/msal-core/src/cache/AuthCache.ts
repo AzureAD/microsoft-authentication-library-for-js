@@ -69,7 +69,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
+            if (key.indexOf(`${Constants.cachePrefix}`) === 0 || key.indexOf(PersistentCacheKeys.ADAL_ID_TOKEN) === 0) {
                 return key;
             }
             return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;

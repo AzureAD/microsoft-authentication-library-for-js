@@ -774,6 +774,7 @@ export class UserAgentApplication {
         if (hash) {
             this.handleAuthenticationResponse(hash);
         }
+        WindowUtils.removeHiddenIframe(iframe);
     }
 
     // #endregion
