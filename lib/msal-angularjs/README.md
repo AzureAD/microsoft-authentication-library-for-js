@@ -84,7 +84,7 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
     };
 
     $scope.logout = function () {
-        msalService.logOut();
+        msalService.logout();
     };
 
     $scope.login = function () {
