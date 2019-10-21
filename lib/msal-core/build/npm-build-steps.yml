@@ -9,7 +9,7 @@ steps:
 - task: Npm@1
   inputs:
     command: 'custom'
-    workingDir: 'lib/msal-core'
+    workingDir: '.'
     customCommand: 'ci'
     verbose: true
 

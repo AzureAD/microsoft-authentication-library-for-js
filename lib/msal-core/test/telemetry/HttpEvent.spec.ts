@@ -1,6 +1,7 @@
+import "mocha";
 import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 
 describe("HttpEvent", () => {
     it("constructs and carries exepcted values", () => {

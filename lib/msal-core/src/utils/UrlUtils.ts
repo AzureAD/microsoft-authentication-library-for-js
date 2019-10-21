@@ -138,11 +138,11 @@ export class UrlUtils {
             throw "Valid url required";
         }
 
-        const urlComponents = <IUri>{
+        const urlComponents = {
             Protocol: match[1],
             HostNameAndPort: match[4],
             AbsolutePath: match[5]
-        };
+        } as IUri;
 
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements

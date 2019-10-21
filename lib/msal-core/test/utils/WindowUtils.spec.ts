@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { WindowUtils } from "../../src/utils/WindowUtils";

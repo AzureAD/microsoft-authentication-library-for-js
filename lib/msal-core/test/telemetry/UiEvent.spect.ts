@@ -1,5 +1,6 @@
+import "mocha";
 import UiEvent, { EVENT_KEYS } from "../../src/telemetry/UiEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { expect } from "chai";
 
 describe("UiEvent", () => {

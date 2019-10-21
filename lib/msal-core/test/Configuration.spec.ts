@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import { buildConfiguration, Configuration } from "../src/Configuration";
 import { Logger } from "../src/Logger";

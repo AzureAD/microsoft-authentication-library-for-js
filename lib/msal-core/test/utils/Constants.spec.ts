@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import { libraryVersion } from "../../src/utils/Constants";
 

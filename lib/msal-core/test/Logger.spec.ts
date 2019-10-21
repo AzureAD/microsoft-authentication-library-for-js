@@ -1,3 +1,4 @@
+import "mocha";
 import { Logger } from "../src";
 import { expect } from "chai";
 

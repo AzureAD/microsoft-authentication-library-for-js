@@ -1,17 +1,15 @@
+import "mocha";
 import { expect } from "chai";
-
 import { ClientInfo } from "../src/ClientInfo";
 import { IdToken } from "../src/IdToken";
 import { Account } from "../src/Account";
 import { TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
 import { CryptoUtils } from "../src/utils/CryptoUtils";
 
-
 describe("Account.ts Class", function() {
 
     const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
     const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-
 
     it("verifies account object is created", function () {
 
@@ -46,6 +44,5 @@ describe("Account.ts Class", function() {
         expect(account.sid).to.equal(idToken.sid);
         expect(account.environment).to.equal(idToken.issuer);
     });
-
 
 });

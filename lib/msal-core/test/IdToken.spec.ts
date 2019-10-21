@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import { IdToken } from "../src/IdToken";
 import { AuthError, ClientAuthError } from "../src";
@@ -15,18 +16,17 @@ describe("IdToken.ts Class", function() {
         expect(idToken instanceof IdToken).to.be.true;
         expect(idToken.issuer).to.equal(iss);
         expect(idToken.tenantId).to.equal(tid);
-   });
-
+    });
 
     it("verifies IdToken is constructed properly given a RAW IDTOKEN for V2", function () {
 
-         const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-         const iss: string = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
-         const exp: number = 1536361411;
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
+        const iss: string = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
+        const exp: number = 1536361411;
 
-         expect(idToken instanceof IdToken).to.be.true;
-         expect(idToken.issuer).to.equal(iss);
-         expect(idToken.expiration).to.equal(exp);
+        expect(idToken instanceof IdToken).to.be.true;
+        expect(idToken.issuer).to.equal(iss);
+        expect(idToken.expiration).to.equal(exp);
     });
 
     it("verfies the rawIdToken is saved correctly", function () {
@@ -64,7 +64,7 @@ describe("IdToken.ts Class", function() {
 
         it("throws an error if an null string is passed", function () {
             let authErr : AuthError;
-            let nullString : string = null;
+            const nullString : string = null;
             try {
                 idTokenObj = new IdToken(nullString);
             } catch (e) {
@@ -81,7 +81,7 @@ describe("IdToken.ts Class", function() {
 
         it("throws an error if an empty string is passed", function () {
             let authErr : AuthError;
-            let emptyString = "";
+            const emptyString = "";
             try {
                 idTokenObj = new IdToken(emptyString);
             } catch (e) {

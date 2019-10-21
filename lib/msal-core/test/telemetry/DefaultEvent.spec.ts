@@ -1,7 +1,8 @@
+import "mocha";
 import { expect } from "chai";
 import DefaultEvent from "../../src/telemetry/DefaultEvent";
 import { TelemetryPlatform, EventCount } from "../../src/telemetry/TelemetryTypes";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 
 describe("DefaultEvent", () => {
     it("DefaultEvent constructs and carries expected  values", () => {
@@ -16,7 +17,7 @@ describe("DefaultEvent", () => {
             sdkVersion: "1.0.0",
             applicationName: "mochaTest",
             applicationVersion: "1.22"
-        }
+        };
         const defaultEvent: DefaultEvent = new DefaultEvent(
             platformConfig,
             correlationId,

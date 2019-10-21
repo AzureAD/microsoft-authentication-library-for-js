@@ -1,6 +1,7 @@
+import "mocha";
 import { expect } from "chai";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 
 describe("TelemetryEvent", () =>{
     it("constructed with correct params", () => {

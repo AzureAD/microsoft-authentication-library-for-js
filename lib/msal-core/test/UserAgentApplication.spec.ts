@@ -1,4 +1,4 @@
-import * as Mocha from "mocha";
+import "mocha";
 import { expect } from "chai";
 import {
     UserAgentApplication,
@@ -101,8 +101,8 @@ describe("UserAgentApplication.ts Class", function () {
     };
 
     const setUtilUnifiedCacheQPStubs = function (params: kv) {
-        sinon.stub(ServerRequestParameters.prototype, <any>"constructUnifiedCacheQueryParameter").returns(params);
-        sinon.stub(ServerRequestParameters.prototype, <any>"addSSOParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, "constructUnifiedCacheQueryParameter" as any).returns(params);
+        sinon.stub(ServerRequestParameters.prototype, "addSSOParameter" as any).returns(params);
     };
 
     let cacheStorage: AuthCache;
@@ -902,7 +902,7 @@ describe("UserAgentApplication.ts Class", function () {
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+            sinon.stub(msal, "loadIframeTimeout" as any).callsFake(function (url: string, frameName: string) {
                 expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                 expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
@@ -933,7 +933,7 @@ describe("UserAgentApplication.ts Class", function () {
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+            sinon.stub(msal, "loadIframeTimeout" as any).callsFake(function (url: string, frameName: string) {
                 expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
                 expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -972,9 +972,9 @@ describe("UserAgentApplication.ts Class", function () {
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
-            const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
+            const cacheCallSpy = sinon.spy(msal, "getCachedToken" as any);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+            sinon.stub(msal, "loadIframeTimeout" as any).callsFake(function (url: string, frameName: string) {
                 expect(cacheCallSpy.notCalled).to.be.true;
                 expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -1009,9 +1009,9 @@ describe("UserAgentApplication.ts Class", function () {
             setUtilUnifiedCacheQPStubs({
                 [SSOTypes.SID]: account.sid
             });
-            const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
+            const cacheCallSpy = sinon.spy(msal, "getCachedToken" as any);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+            sinon.stub(msal, "loadIframeTimeout" as any).callsFake(function (url: string, frameName: string) {
                 expect(cacheCallSpy.notCalled).to.be.true;
                 expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -1330,7 +1330,7 @@ describe("UserAgentApplication.ts Class", function () {
                     }
                 }
             };
-            const clearCacheSpy = sinon.spy(msal, <any>"clearCache");
+            const clearCacheSpy = sinon.spy(msal, "clearCache" as any);
             expect(msal.getAccount()).to.not.be.null;
             msal.logout();
             expect(msal.getAccount()).to.be.null;

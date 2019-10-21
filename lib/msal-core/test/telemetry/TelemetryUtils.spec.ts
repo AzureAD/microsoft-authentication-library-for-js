@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "../../src/telemetry/TelemetryUtils";
 import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";

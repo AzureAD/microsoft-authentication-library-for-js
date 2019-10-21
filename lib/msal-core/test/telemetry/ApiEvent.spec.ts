@@ -1,3 +1,4 @@
+import "mocha";
 import ApiEvent, {
     API_EVENT_IDENTIFIER,
     API_CODE,
@@ -7,7 +8,7 @@ import { Logger } from "../../src";
 import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 
 describe("ApiEvent", () => {
     it("constructs and carries exepcted values", () => {
@@ -67,7 +68,7 @@ describe("ApiEvent", () => {
     it("doesn't set private alues on event if pii is not enabled", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { }, {
-            piiLoggingEnabled: false //defaults to false
+            piiLoggingEnabled: false // defaults to false
         });
 
         const apiEvent = new ApiEvent(correlationId, logger);

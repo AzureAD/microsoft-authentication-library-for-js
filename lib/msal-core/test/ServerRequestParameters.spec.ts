@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { Authority } from "../src";
@@ -11,10 +12,10 @@ describe("ServerRequestParameters.ts Class", function () {
     describe("Object creation", function () {
 
         it("Scope array pointer is not passed into constructor", function () {
-            let scopes = ["S1"];
-            let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const scopes = ["S1"];
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
-            let req = new ServerRequestParameters(
+            const req = new ServerRequestParameters(
                 authority,
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 scopes,
@@ -28,9 +29,9 @@ describe("ServerRequestParameters.ts Class", function () {
         });
 
         it("Scopes are set to client id if null or empty scopes object passed", function () {
-            let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
-            let req = new ServerRequestParameters(
+            const req = new ServerRequestParameters(
                 authority,
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 null,
@@ -47,22 +48,18 @@ describe("ServerRequestParameters.ts Class", function () {
     describe("State Generation", function () {
 
         it("tests if if authenticateRequestParameter generates state correctly, if state is a number", function () {
-            let authenticationRequestParameters: ServerRequestParameters;
-            let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-            authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
-            var result;
-            result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
+
+            const authority: Authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            const authenticationRequestParameters: ServerRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "12345");
+            const result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
             expect(decodeURIComponent(result[4])).to.include("12345");
         });
 
-        it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
-            let authenticationRequestParameters: ServerRequestParameters;
-            let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
-            authenticationRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
-            var result;
-            result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
+        it("test if authenticateRequestParameter generates state correctly, if state is a url", function () {
+
+            const authority: Authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            const authenticationRequestParameters: ServerRequestParameters = new ServerRequestParameters(authority, "0813e1d1-ad72-46a9-8665-399bba48c201", ["user.read"], "id_token", "", "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
+            const result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
             expect(decodeURIComponent(result[4])).to.include("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         });
     });

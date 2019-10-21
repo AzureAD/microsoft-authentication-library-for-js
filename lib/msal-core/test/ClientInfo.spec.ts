@@ -1,3 +1,4 @@
+import "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
@@ -42,18 +43,18 @@ describe("Client Info", function () {
         });
 
         it("sets uid and utid to empty if null or empty string is passed", function () {
-            let nullString : string = null;
+            const nullString : string = null;
             clientInfoObj = new ClientInfo(nullString);
             expect(clientInfoObj.uid).to.be.empty;
             expect(clientInfoObj.utid).to.be.empty;
-            let emptyString = "";
+            const emptyString = "";
             clientInfoObj = new ClientInfo(emptyString);
             expect(clientInfoObj.uid).to.be.empty;
             expect(clientInfoObj.utid).to.be.empty;
         });
 
         it("throws an error if invalid raw string is given", function () {
-            let invalidRawString = "youCan'tParseThis";
+            const invalidRawString = "youCan'tParseThis";
             let authErr : AuthError;
             try {
                 clientInfoObj = new ClientInfo(invalidRawString);

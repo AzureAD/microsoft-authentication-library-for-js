@@ -2,7 +2,9 @@
   "lerna": "3.16.4",
   "packages": [
     "lib/*",
-    "samples/*"
+    "samples/*",
+    "tools/*"
   ],
-  "version": "independent"
+  "version": "independent",
+  "concurrency": 2
 }

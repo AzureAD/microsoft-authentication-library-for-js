@@ -117,11 +117,11 @@ export abstract class Authority {
         const client = new XhrClient();
         return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /* enableCaching: */ true)
             .then((response: any) => {
-                return <ITenantDiscoveryResponse>{
+                return {
                     AuthorizationEndpoint: response.authorization_endpoint,
                     EndSessionEndpoint: response.end_session_endpoint,
                     Issuer: response.issuer
-                };
+                } as ITenantDiscoveryResponse;
             });
     }
 
