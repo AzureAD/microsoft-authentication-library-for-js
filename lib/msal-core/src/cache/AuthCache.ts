@@ -154,7 +154,8 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
-            if ( window[this.cacheLocation].hasOwnProperty(key) && key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes)) {
+            const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes);
+            if ( keyMatches ) {
                 const value = this.getItem(key);
                 if (value) {
                     try {
@@ -162,7 +163,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                         const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value));
                         return tokens.concat([ newAccessTokenCacheItem ]);
                     } catch (e) {
-                        throw ClientAuthError.createCacheParseError();
+                        throw ClientAuthError.createCacheParseError(key);
                     }
                 }
             }

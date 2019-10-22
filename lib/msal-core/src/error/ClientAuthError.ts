@@ -91,7 +91,7 @@ export const ClientAuthErrorMessage = {
     },
     cacheParseError: {
         code: "cannot_parse_cache",
-        desc: "The cached token key is not a JSON, cannot be parsed"
+        desc: "The cached token key is not a valid JSON and cannot be parsed"
     }
 };
 
@@ -215,9 +215,10 @@ export class ClientAuthError extends AuthError {
             ClientAuthErrorMessage.invalidInteractionType.desc);
     }
 
-    static createCacheParseError() : ClientAuthError {
+    static createCacheParseError(key: string) : ClientAuthError {
+        const errorMessage = `invalid key: ${key}, ${ClientAuthErrorMessage.cacheParseError.desc}`;
         return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code,
-            ClientAuthErrorMessage.cacheParseError.desc);
+            errorMessage);
     }
 
 }
