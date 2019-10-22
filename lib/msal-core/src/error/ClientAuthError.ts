@@ -88,6 +88,10 @@ export const ClientAuthErrorMessage = {
     invalidInteractionType: {
         code: "invalid_interaction_type",
         desc: "The interaction type passed to the handler was incorrect or unknown"
+    },
+    cacheParseError: {
+        code: "cannot_parse_cache",
+        desc: "The cached token key is not a JSON, cannot be parsed"
     }
 };
 
@@ -210,4 +214,10 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidInteractionType.code,
             ClientAuthErrorMessage.invalidInteractionType.desc);
     }
+
+    static createCacheParseError() : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code,
+            ClientAuthErrorMessage.cacheParseError.desc);
+    }
+
 }

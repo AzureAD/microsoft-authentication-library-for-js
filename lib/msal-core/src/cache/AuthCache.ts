@@ -7,6 +7,7 @@ import { Constants, PersistentCacheKeys, TemporaryCacheKeys, RequestStatus } fro
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * @hidden
@@ -153,11 +154,16 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
-            if ( window[this.cacheLocation].hasOwnProperty(key) && key.match(clientId) && key.match(homeAccountIdentifier)) {
+            if ( window[this.cacheLocation].hasOwnProperty(key) && key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes)) {
                 const value = this.getItem(key);
                 if (value) {
-                    const newAccessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
-                    return tokens.concat([ newAccessTokenCacheItem ]);
+                    try {
+                        const parseAtKey = JSON.parse(key);
+                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value));
+                        return tokens.concat([ newAccessTokenCacheItem ]);
+                    } catch (e) {
+                        throw ClientAuthError.createCacheParseError();
+                    }
                 }
             }
 
