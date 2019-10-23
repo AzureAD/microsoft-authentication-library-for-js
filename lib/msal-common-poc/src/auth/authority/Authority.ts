@@ -7,6 +7,7 @@ import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { UrlString } from "../../url/UrlString";
 import { IUri } from "../../url/IUri";
 import { ClientAuthError } from "../../error/ClientAuthError";
+import { INetworkModule } from "../../app/INetworkModule";
 
 /**
  * @hidden
@@ -22,11 +23,13 @@ export enum AuthorityType {
  */
 export abstract class Authority {
 
-    public abstract authorityType: AuthorityType;
-
     private _canonicalAuthority: UrlString;
     private _canonicalAuthorityUrlComponents: IUri;
     private tenantDiscoveryResponse: ITenantDiscoveryResponse;
+    protected networkInterface: INetworkModule;
+
+    public abstract get authorityType(): AuthorityType;
+    public abstract get isValidationEnabled(): boolean;
 
     /**
      * A URL that is the authority set by the developer
@@ -76,13 +79,36 @@ export abstract class Authority {
         }
     }
 
-    constructor(authority: string) {
+    protected get defaultOpenIdConfigurationEndpoint(): string {
+        return `${this.canonicalAuthority}v2.0/.well-known/openid-configuration`;
+    }
+
+    constructor(authority: string, networkInterface: INetworkModule) {
         this.canonicalAuthority = authority;
 
         this._canonicalAuthority.validateAsUri();
+        this.networkInterface = networkInterface;
     }
 
     private discoveryComplete() {
         return !!this.tenantDiscoveryResponse;
+    }
+
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
+        const response = await this.networkInterface.sendRequestAsync(openIdConfigurationEndpoint, "GET", true);
+        return {
+            AuthorizationEndpoint: response.authorization_endpoint,
+            EndSessionEndpoint: response.end_session_endpoint,
+            Issuer: response.issuer
+        } as ITenantDiscoveryResponse;
+    }
+
+    public abstract async getOpenIdConfigurationAsync(): Promise<string>;
+
+    public async resolveEndpointsAsync(): Promise<Authority> {
+        const openIdConfigEndpoint = await this.getOpenIdConfigurationAsync();
+        this.tenantDiscoveryResponse = await this.discoverEndpoints(openIdConfigEndpoint);
+
+        return this;
     }
 }

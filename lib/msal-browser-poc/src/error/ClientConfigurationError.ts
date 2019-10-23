@@ -44,14 +44,6 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_prompt_value",
         desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'",
     },
-    unsupportedAuthorityValidation: {
-        code: "unsupported_authority_validation",
-        desc: "The authority validation is not supported for this authority type."
-    },
-    b2cAuthorityUriInvalidPath: {
-        code: "b2c_authority_uri_invalid_path",
-        desc: "The given URI for the B2C authority is invalid."
-    },
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
         desc: "Could not parse the given claims request object."

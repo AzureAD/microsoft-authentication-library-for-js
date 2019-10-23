@@ -108,7 +108,15 @@ export const ClientAuthErrorMessage = {
     endpointDiscoveryIncomplete: {
         code: "endpt_discovery_incomplete",
         desc: "Endpoint discovery has not been complete for this authority instance. Please call discoverEndpointsAsync() on this authority object."
-    }
+    },
+    unsupportedB2CAuthorityValidation: {
+        code: "unsupported_authority_validation",
+        desc: "The authority validation is not supported for this authority type."
+    },
+    b2cAuthorityUriInvalidPath: {
+        code: "b2c_authority_uri_invalid_path",
+        desc: "The given URI for the B2C authority is invalid."
+    },
 };
 
 /**
@@ -260,5 +268,15 @@ export class ClientAuthError extends AuthError {
     static createEndpointDiscoveryIncompleteError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointDiscoveryIncomplete.code,
             ClientAuthErrorMessage.endpointDiscoveryIncomplete.desc);
+    }
+
+    static createUnsupportedB2CAuthorityValidationError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unsupportedB2CAuthorityValidation.code,
+            ClientAuthErrorMessage.unsupportedB2CAuthorityValidation.desc);
+    }
+
+    static createInvalidB2CAuthorityUriPathError(givenUri: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unsupportedB2CAuthorityValidation.code,
+            ClientAuthErrorMessage.unsupportedB2CAuthorityValidation.desc + ` Given URI: ${givenUri}`);
     }
 }

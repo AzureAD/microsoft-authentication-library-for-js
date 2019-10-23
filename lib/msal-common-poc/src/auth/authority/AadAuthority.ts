@@ -4,48 +4,52 @@
  */
 
 import { Authority, AuthorityType } from "./Authority";
+import { AADTrustedHostList } from "../../utils/Constants";
+import { INetworkModule } from "../../app/INetworkModule";
 
 /**
  * @hidden
  */
 export class AadAuthority extends Authority {
-    private static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
-
-    private get AadInstanceDiscoveryEndpointUrl(): string {
-        return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
-    }
-
-    public constructor(authority: string) {
-        super(authority);
-    }
-
-    public get AuthorityType(): AuthorityType {
+    public get authorityType(): AuthorityType {
         return AuthorityType.Aad;
+    }
+
+    public get isValidationEnabled(): boolean {
+        // Hardcoded to true for now - will change depending on requirements
+        return true;
+    }
+
+    private static readonly aadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
+
+    private get aadInstanceDiscoveryEndpointUrl(): string {
+        return `${AadAuthority.aadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.canonicalAuthority}oauth2/v2.0/authorize`;
+    }
+
+    public constructor(authority: string, networkInterface: INetworkModule) {
+        super(authority, networkInterface);
     }
 
     /**
      * Returns a promise which resolves to the OIDC endpoint
      * Only responds with the endpoint
      */
-    public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
-        if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
-            return this.DefaultOpenIdConfigurationEndpoint;
+
+    public async getOpenIdConfigurationAsync(): Promise<string> {
+        if (!this.isValidationEnabled || this.isInTrustedHostList(this.canonicalAuthorityUrlComponents.HostNameAndPort)) {
+            return this.defaultOpenIdConfigurationEndpoint;
         }
 
         // for custom domains in AAD where we query the service for the Instance discovery
-        const client: XhrClient = new XhrClient();
-
-        return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
-            .then((response) => {
-                return response.tenant_discovery_endpoint;
-            });
+        const response = await this.networkInterface.sendRequestAsync(this.aadInstanceDiscoveryEndpointUrl, "GET", true);
+        return response.tenant_discovery_endpoint;
     }
 
     /**
      * Checks to see if the host is in a list of trusted hosts
      * @param {string} The host to look up
      */
-    public IsInTrustedHostList(host: string): boolean {
+    public isInTrustedHostList(host: string): boolean {
         return AADTrustedHostList[host.toLowerCase()];
     }
 }

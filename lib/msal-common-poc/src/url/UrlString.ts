@@ -40,7 +40,10 @@ export class UrlString {
         return url;
     }
 
-    validateAsUri() {
+    /**
+     * Throws if urlString passed is not a valid URI string.
+     */
+    validateAsUri(): void {
         let components;
         try {
             components = this.getUrlComponents();
