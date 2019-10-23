@@ -231,7 +231,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("navigates user to login and prompt parameter is not passed by default", (done) => {
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -254,7 +254,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("navigates user to login and prompt=select_account parameter is passed in request", (done) => {
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -279,7 +279,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("navigates user to login and prompt=none parameter is passed in request", (done) => {
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -314,7 +314,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -353,7 +353,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -385,7 +385,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -423,7 +423,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -450,7 +450,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -478,7 +478,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -501,7 +501,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("navigates user to redirectURI passed in constructor config", (done) => {
             window.location = {
                 ...oldWindowLocation,
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
                         expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -529,7 +529,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation,
                 hash: "",
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include("&redirect_uri=" + encodeURIComponent(TEST_URIS.TEST_REDIR_URI));
                         done();
@@ -1322,7 +1322,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation,
                 hash: "",
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         done();
                     } catch (e) {
@@ -1341,7 +1341,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation,
                 hash: "",
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI));
                         done();
@@ -1356,7 +1356,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation,
                 hash: "",
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(validOpenIdConfigurationResponse.EndSessionEndpoint);
                         done();
@@ -1373,7 +1373,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation,
                 hash: "",
-                replace: function (url) {
+                assign: function (url) {
                     try {
                         expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/logout?");
                         done();
