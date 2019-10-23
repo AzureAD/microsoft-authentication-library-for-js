@@ -55,7 +55,6 @@
         "typescript": "^3.6.4"
     },
     "dependencies": {
-        "tslib": "^1.10.0",
-        "msal-common": "^0.1.0"
+        "tslib": "^1.10.0"
     }
 }

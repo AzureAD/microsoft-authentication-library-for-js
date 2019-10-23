@@ -7,7 +7,17 @@
  * Client network interface to send requests.
  * @hidden
  */
-
 export interface INetworkModule {
-    sendRequestAsync(url: string, method: string, enableCaching?:boolean): Promise<any>
+    /**
+     * Interface function for async network requests
+     * @param url 
+     * @param method 
+     * @param enableCaching 
+     */
+    sendRequestAsync(url: string, method: string, enableCaching?:boolean): Promise<any>,
+    /**
+     * Interface function for interactive requests
+     * @param url 
+     */
+    navigateBrowser(url: string): void
 }

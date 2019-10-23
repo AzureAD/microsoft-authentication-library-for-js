@@ -17,6 +17,9 @@ import { INetworkModule } from "../../app/INetworkModule";
 
 export class AuthorityFactory {
 
+    // default authority
+    public static DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
+
     /**
      * Parse the url and determine the type of authority
      */

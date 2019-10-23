@@ -11,6 +11,7 @@ import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { AuthResponse } from "../response/AuthResponse";
 // cache
 import { ICacheStorage } from "../cache/ICacheStorage";
+import { INetworkModule } from "./INetworkModule";
 
 /**
  * ImplicitAuthModule class
@@ -21,7 +22,10 @@ import { ICacheStorage } from "../cache/ICacheStorage";
 export class ImplicitAuthModule {
 
     private config: MsalConfiguration;
+
+    // Interface implementations
     private cacheStorage: ICacheStorage;
+    private networkModule: INetworkModule;
 
     /**
      * @constructor
@@ -49,15 +53,26 @@ export class ImplicitAuthModule {
         this.config = configuration;
         
         // Set the cache
-        this.cacheStorage = this.config.cache;
+        this.cacheStorage = this.config.storageInterface;
+        
+        // Set the network interface
+        this.networkModule = this.config.networkInterface;
     }
 
     /**
      * This function creates a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
      * @param request 
      */
-    createAuthorizationUrl(request: AuthenticationParameters): string {
-        return "https://authurl.login.com";
+    login(request: AuthenticationParameters): void {
+        return;
+    }
+
+    /**
+     * This function creates a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
+     * @param request 
+     */
+    acquireToken(request: AuthenticationParameters): void {
+        return;
     }
 
     /**
@@ -67,6 +82,13 @@ export class ImplicitAuthModule {
     handleResponse(hash: string): AuthResponse {
         
         return null;
+    }
+
+    /**
+     * Returns current window URL as redirect uri
+     */
+    getDefaultRedirectUri(): string {
+        return window.location.href.split("?")[0].split("#")[0];
     }
 
 }

@@ -3,8 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { UrlUtils } from "../utils/UrlUtils";
 import { ICacheStorage } from "../cache/ICacheStorage";
+import { INetworkModule } from "./INetworkModule";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
@@ -27,47 +28,97 @@ export type AuthOptions = {
 };
 
 /**
+ * @type InterfaceOptions: Use this to configure the interfaces required for implementation of storage operations
+ */
+export type StorageOptions = {
+    cacheStorageInterface: ICacheStorage
+};
+
+/**
+ * @type InterfaceOptions: Use this to configure the interfaces required for implementation of network calls
+ */
+export type NetworkOptions = {
+    networkModuleInterface: INetworkModule
+};
+
+/**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
  * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID,  authority used for authenticating against the Microsoft Identity Platform
- * - cache: this is where you configure cache location and whether to store cache in cookies
- * - system: this is where you can configure the logger, frame timeout etc.
- * - framework: this is where you can configure the running mode of angular. More to come here soon.
+ * - storage: this is where you configure storage implementation.
+ * - network: this is where you can configure network implementation.
  */
 export type MsalConfiguration = {
     auth: AuthOptions,
-    cache: ICacheStorage
+    storageInterface: ICacheStorage,
+    networkInterface: INetworkModule
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
-    redirectUri: () => UrlUtils.getDefaultRedirectUri(),
-    postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
+    redirectUri: (): string => {
+        throw ClientAuthError.createRedirectUriEmptyError();
+    },
+    postLogoutRedirectUri: () => {
+        throw ClientAuthError.createPostLogoutRedirectUriEmptyError();
+    },
     navigateToLoginRequestUrl: true
+};
+
+const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
+    clear: () => {
+        console.log("clear() has not been implemented for the cacheStorage interface.");
+    },
+    containsKey: (key: string): boolean => {
+        console.log("containsKey() has not been implemented for the cacheStorage interface.");
+        return false;
+    },
+    getItem: (key: string): string => {
+        console.log("getItem() has not been implemented for the cacheStorage interface.");
+        return "";
+    },
+    getKeys: (): string[] => {
+        console.log("getKeys() has not been implemented for the cacheStorage interface.");
+        return null;
+    },
+    removeItem: (key: string) => {
+        console.log("removeItem() has not been implemented for the cacheStorage interface.");
+        return;
+    },
+    setItem: (key: string, value: string) => {
+        console.log("setItem() has not been implemented for the cacheStorage interface.");
+        return;
+    }
+};
+
+const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
+    sendRequestAsync: (url: string, method: string, enableCaching?: boolean): Promise<any> => {
+        console.log("Network interface - sendRequestAsync() has not been implemented");
+        return null;
+    },
+    navigateBrowser: (url: string) => {
+        console.log("Network interface - navigateBrowser() has not been implemented");
+    }
 };
 
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
  * @param TAuthOptions
- * @param TCacheOptions
+ * @param TStorageOptions
  * @param TSystemOptions
  * @param TFrameworkOptions
  *
  * @returns TConfiguration object
  */
-export function buildConfiguration({ auth }: MsalConfiguration): MsalConfiguration {
+export function buildConfiguration({ auth, storageInterface, networkInterface }: MsalConfiguration): MsalConfiguration {
     const overlayedConfig: MsalConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        cache: {
-            setItem: null,
-            getItem: null,
-            removeItem: null,
-            clear: null
-        }
+        storageInterface: { ...DEFAULT_STORAGE_OPTIONS, ...storageInterface },
+        networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface }
     };
     return overlayedConfig;
 }

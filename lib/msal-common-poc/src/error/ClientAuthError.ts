@@ -117,6 +117,14 @@ export const ClientAuthErrorMessage = {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
     },
+    redirectUriNotSet: {
+        code: "redirect_uri_empty",
+        desc: "A redirect URI is required for all calls, and none has been set."
+    },
+    postLogoutUriNotSet: {
+        code: "post_logout_uri_empty",
+        desc: "A post logout redirect has not been set."
+    }
 };
 
 /**
@@ -278,5 +286,15 @@ export class ClientAuthError extends AuthError {
     static createInvalidB2CAuthorityUriPathError(givenUri: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unsupportedB2CAuthorityValidation.code,
             ClientAuthErrorMessage.unsupportedB2CAuthorityValidation.desc + ` Given URI: ${givenUri}`);
+    }
+
+    static createRedirectUriEmptyError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.redirectUriNotSet.code,
+            ClientAuthErrorMessage.redirectUriNotSet.desc);
+    }
+
+    static createPostLogoutRedirectUriEmptyError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.postLogoutUriNotSet.code,
+            ClientAuthErrorMessage.postLogoutUriNotSet.desc);
     }
 }
