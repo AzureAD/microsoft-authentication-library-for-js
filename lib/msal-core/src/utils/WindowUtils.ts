@@ -33,7 +33,7 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
@@ -67,7 +67,7 @@ export class WindowUtils {
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
                     clearInterval(intervalId);
-                    reject(ClientAuthError.createTokenRenewalTimeoutError()); // better error?
+                    reject(ClientAuthError.createTokenRenewalTimeoutError(urlNavigate)); // better error?
                 }
             }, WindowUtils.POLLING_INTERVAL_MS);
         });

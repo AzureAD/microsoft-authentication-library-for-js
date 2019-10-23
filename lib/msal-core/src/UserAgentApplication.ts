@@ -521,7 +521,7 @@ export class UserAgentApplication {
 
             // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
             if (popUpWindow) {
-                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
                 if (hash) {
                     // Hash found
                     this.handleAuthenticationResponse(hash);
@@ -762,7 +762,7 @@ export class UserAgentApplication {
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
-                    window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
+                    window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError(urlNavigate));
                 }
 
                 this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, RequestStatus.CANCELLED);
@@ -770,7 +770,7 @@ export class UserAgentApplication {
         }, this.config.system.loadFrameTimeout);
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
-        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
+        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
         if (hash) {
             this.handleAuthenticationResponse(hash);
         }
