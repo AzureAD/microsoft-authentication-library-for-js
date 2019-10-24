@@ -31,6 +31,10 @@ export class ServerRequestParameters {
     xClientSku: string;
     correlationId: string;
 
+    // MSER telemetry informatiom
+    xClientCurrentTelemetry: string;
+    xClientLastTelemetry: string;
+
     responseType: string;
     redirectUri: string;
 
@@ -74,6 +78,9 @@ export class ServerRequestParameters {
 
         this.responseType = responseType;
         this.redirectUri = redirectUri;
+
+        this.xClientCurrentTelemetry = this.xClientCurrentPayload();
+        this.xClientLastTelemetry = this.xClientLastPayload();
     }
 
     /**
@@ -363,5 +370,19 @@ export class ServerRequestParameters {
      */
     static isSSOParam(request: AuthenticationParameters) {
         return request && (request.account || request.sid || request.loginHint);
+    }
+
+    /**
+     * Returns payload for "x-client-current-telemetry"
+     */
+    xClientCurrentPayload(): string{
+        return "1|82,0|";
+    }
+
+    /**
+     *  Returns payload for "x-client-last-telemetry"
+     */
+    xClientLastPayload(): string {
+        return "1|3|300,48432850-c45c-486c-a50a-a84cdb220c06,invalid_grant,82,a4e7dfa8-5883-426a-96b5-81a325d0abd5,interaction_required|";
     }
 }

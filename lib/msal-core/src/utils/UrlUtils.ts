@@ -57,6 +57,9 @@ export class UrlUtils {
         str.push("client_info=1");
         str.push(`x-client-SKU=${serverRequestParams.xClientSku}`);
         str.push(`x-client-Ver=${serverRequestParams.xClientVer}`);
+        str.push(`x-client-current-telemetry=${serverRequestParams.xClientCurrentTelemetry}`);
+        str.push(`x-client-last-telemetry=${serverRequestParams.xClientLastTelemetry}`);
+
         if (serverRequestParams.promptValue) {
             str.push("prompt=" + encodeURIComponent(serverRequestParams.promptValue));
         }
