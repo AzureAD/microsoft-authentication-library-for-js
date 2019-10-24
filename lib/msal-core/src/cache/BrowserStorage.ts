@@ -73,7 +73,7 @@ export class BrowserStorage {// Singleton
      * @param expires
      */
     setItemCookie(cName: string, cValue: string, expires?: number): void {
-        let cookieStr = cName + "=" + cValue + ";";
+        let cookieStr = cName + "=" + cValue + ";path=/;";
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += "expires=" + expireTime + ";";
