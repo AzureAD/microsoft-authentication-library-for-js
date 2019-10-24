@@ -5,6 +5,9 @@
 
 // app
 import { MsalConfiguration } from "./MsalConfiguration";
+// authority
+import { Authority } from "../auth/authority/Authority";
+import { AuthorityFactory } from "../auth/authority/AuthorityFactory";
 // request
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 // response
@@ -25,7 +28,16 @@ export class ImplicitAuthModule {
 
     // Interface implementations
     private cacheStorage: ICacheStorage;
-    private networkModule: INetworkModule;
+    private networkClient: INetworkModule;
+
+    // Authority variables
+    private defaultAuthorityInstance: Authority;
+    public get defaultAuthorityUri(): string {
+        if (this.defaultAuthorityInstance) {
+            return this.defaultAuthorityInstance.canonicalAuthority;
+        }
+        return "";
+    }
 
     /**
      * @constructor
@@ -56,23 +68,32 @@ export class ImplicitAuthModule {
         this.cacheStorage = this.config.storageInterface;
         
         // Set the network interface
-        this.networkModule = this.config.networkInterface;
+        this.networkClient = this.config.networkInterface;
+
+        // Initialize authority
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.config.auth.authority || AuthorityFactory.DEFAULT_AUTHORITY, this.networkClient);
     }
 
     /**
-     * This function creates a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
+     * This function validates and returns a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
      * @param request 
      */
-    login(request: AuthenticationParameters): void {
-        return;
+    async createLoginUrl(request: AuthenticationParameters): Promise<string> {
+        // Initialize authority or use default, and perform discovery endpoint check
+        let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+        acquireTokenAuthority = await acquireTokenAuthority.resolveEndpointsAsync();
+
+        // 
+
+        return "";
     }
 
     /**
-     * This function creates a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
+     * This function validates and returns a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
      * @param request 
      */
-    acquireToken(request: AuthenticationParameters): void {
-        return;
+    createAcquireTokenUrl(request: AuthenticationParameters): string {
+        return "";
     }
 
     /**

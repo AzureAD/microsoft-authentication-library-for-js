@@ -98,9 +98,6 @@ const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
     sendRequestAsync: (url: string, method: string, enableCaching?: boolean): Promise<any> => {
         console.log("Network interface - sendRequestAsync() has not been implemented");
         return null;
-    },
-    navigateBrowser: (url: string) => {
-        console.log("Network interface - navigateBrowser() has not been implemented");
     }
 };
 

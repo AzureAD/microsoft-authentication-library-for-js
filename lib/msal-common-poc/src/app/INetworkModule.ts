@@ -14,10 +14,5 @@ export interface INetworkModule {
      * @param method 
      * @param enableCaching 
      */
-    sendRequestAsync(url: string, method: string, enableCaching?:boolean): Promise<any>,
-    /**
-     * Interface function for interactive requests
-     * @param url 
-     */
-    navigateBrowser(url: string): void
+    sendRequestAsync(url: string, method: string, enableCaching?:boolean): Promise<any>
 }

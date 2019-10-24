@@ -8,6 +8,10 @@ import * as msalAuth from "msal-common";
 // Configuration
 import { Configuration } from "./Configuration";
 
+// Network
+import { IXhrClient } from "../network/IXHRClient";
+import { XhrClient } from "../network/XHRClient";
+
 // Cache
 import { CacheManager } from "../cache/CacheManager";
 
@@ -45,8 +49,8 @@ export class UserAgentApplication {
     // Cache manager
     private cacheMgr: CacheManager;
 
-    // Authority variables
-    private defaultAuthorityInstance: Authority;
+    // Network Client
+    private networkClient: IXhrClient;
 
     /**
      * @constructor
@@ -76,11 +80,17 @@ export class UserAgentApplication {
         // Create browser storage
         this.cacheMgr = new CacheManager(this.config.auth.clientId, this.config.cache);
 
+        // Initialize the network module
+        this.networkClient = new XhrClient();
+
         // Create the auth module
         this.authModule = new msalAuth.ImplicitAuthModule({ 
             auth: this.config.auth,
-            cache: this.cacheMgr.storage
-        });
+            storageInterface: this.cacheMgr.storage,
+            networkInterface: {
+                sendRequestAsync: this.networkClient.sendRequestAsync
+            }
+        } as msalAuth.MsalConfiguration);
 
         // Set initial state vars
         this.redirectCallbacksSet = false;
@@ -107,7 +117,7 @@ export class UserAgentApplication {
         this.redirectCallbacksSet = true;
     }
 
-    loginRedirect(request: msalAuth.AuthenticationParameters) {
+    async loginRedirect(request: msalAuth.AuthenticationParameters) {
         // Throw error if callbacks are not set before redirect
         if (!this.redirectCallbacksSet) {
             throw ClientConfigurationError.createRedirectCallbacksNotSetError();
@@ -120,11 +130,12 @@ export class UserAgentApplication {
             this.authCallback(thrownError);
             return;
         }
+        let urlNavigate;
+        try {
+            // urlNavigate = await this.authModule.createLoginUrl(request || {});
+        } catch(e) {
 
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
-
-        const url = this.authModule.createAuthorizationUrl(request);
-        
+        }
     }
 
     private parseResponseState(state: string) {
