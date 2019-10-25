@@ -42,30 +42,30 @@ export class ClientBrowserConfigurationError extends ClientConfigurationError {
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientConfigurationError";
-        Object.setPrototypeOf(this, ClientConfigurationError.prototype);
+        Object.setPrototypeOf(this, ClientBrowserConfigurationError.prototype);
     }
 
-    static createNoSetConfigurationError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientBrowserConfigurationErrorMessage.configurationNotSet.code,
+    static createNoSetConfigurationError(): ClientBrowserConfigurationError {
+        return new ClientBrowserConfigurationError(ClientBrowserConfigurationErrorMessage.configurationNotSet.code,
             `${ClientBrowserConfigurationErrorMessage.configurationNotSet.desc}`);
     }
 
-    static createStorageNotSupportedError(givenCacheLocation: string) : ClientConfigurationError {
-        return new ClientConfigurationError(ClientBrowserConfigurationErrorMessage.storageNotSupported.code,
+    static createStorageNotSupportedError(givenCacheLocation: string) : ClientBrowserConfigurationError {
+        return new ClientBrowserConfigurationError(ClientBrowserConfigurationErrorMessage.storageNotSupported.code,
             `${ClientBrowserConfigurationErrorMessage.storageNotSupported.desc} Given location: ${givenCacheLocation}`);
     }
 
-    static createRedirectCallbacksNotSetError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientBrowserConfigurationErrorMessage.noRedirectCallbacksSet.code, ClientBrowserConfigurationErrorMessage.noRedirectCallbacksSet.desc);
+    static createRedirectCallbacksNotSetError(): ClientBrowserConfigurationError {
+        return new ClientBrowserConfigurationError(ClientBrowserConfigurationErrorMessage.noRedirectCallbacksSet.code, ClientBrowserConfigurationErrorMessage.noRedirectCallbacksSet.desc);
     }
 
-    static createInvalidCallbackObjectError(callbackObject: object): ClientConfigurationError {
-        return new ClientConfigurationError(ClientBrowserConfigurationErrorMessage.invalidCallbackObject.code,
+    static createInvalidCallbackObjectError(callbackObject: object): ClientBrowserConfigurationError {
+        return new ClientBrowserConfigurationError(ClientBrowserConfigurationErrorMessage.invalidCallbackObject.code,
             `${ClientBrowserConfigurationErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
     }
 
-    static createEmptyRequestError(): ClientConfigurationError {
+    static createEmptyRequestError(): ClientBrowserConfigurationError {
         const { code, desc } = ClientBrowserConfigurationErrorMessage.emptyRequestError;
-        return new ClientConfigurationError(code, desc);
+        return new ClientBrowserConfigurationError(code, desc);
     }
 }

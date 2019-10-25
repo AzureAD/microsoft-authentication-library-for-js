@@ -48,13 +48,13 @@
         "eslint": "^6.5.1",
         "husky": "^3.0.9",
         "rollup": "^1.24.0",
+        "rollup-plugin-node-resolve": "^5.2.0",
         "rollup-plugin-typescript2": "^0.24.3",
         "rollup-plugin-uglify": "^6.0.3",
         "shx": "^0.3.2",
+        "tslib": "^1.10.0",
         "tslint": "^5.20.0",
         "typescript": "^3.6.4"
     },
-    "dependencies": {
-        "tslib": "^1.10.0"
-    }
+    "dependencies": {}
 }

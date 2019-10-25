@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage, AuthError, CACHE_PREFIX, RESOURCE_DELIM, PersistentCacheKeys, TemporaryCacheKeys } from "msal-common";
+import { ICacheStorage, AuthError, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "msal-common";
 import { CacheLocation } from "../app/Configuration";
 import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
 
@@ -45,10 +45,10 @@ export class BrowserStorage implements ICacheStorage {
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
+            if (key.startsWith(`${Constants.CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
             }
-            return addInstanceId ? `${CACHE_PREFIX}.${this.clientId}.${key}` : `${CACHE_PREFIX}.${key}`;
+            return addInstanceId ? `${Constants.CACHE_PREFIX}.${this.clientId}.${key}` : `${Constants.CACHE_PREFIX}.${key}`;
         }
     }
 
@@ -58,7 +58,7 @@ export class BrowserStorage implements ICacheStorage {
      * @param state
      */
     public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${RESOURCE_DELIM}${accountId}${RESOURCE_DELIM}${state}`;
+        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}${Constants.RESOURCE_DELIM}${state}`;
     }
 
     /**
@@ -66,7 +66,7 @@ export class BrowserStorage implements ICacheStorage {
      * @param state
      */
     public static generateAuthorityKey(state: string): string {
-        return `${TemporaryCacheKeys.AUTHORITY}${RESOURCE_DELIM}${state}`;
+        return `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
     }
 
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
@@ -114,7 +114,7 @@ export class BrowserStorage implements ICacheStorage {
         let key: string;
         for (key in this.windowStorage) {
             // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
-            if (this.windowStorage.hasOwnProperty(key) && (key.indexOf(CACHE_PREFIX) !== -1)) {
+            if (this.windowStorage.hasOwnProperty(key) && (key.indexOf(Constants.CACHE_PREFIX) !== -1)) {
                 this.removeItem(key);
                 // TODO: Clear cache based on client id (clarify use cases where this is needed)
             }

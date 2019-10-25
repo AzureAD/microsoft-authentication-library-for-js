@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenCacheItem } from "msal-common";
+import { AccessTokenCacheItem, Constants, TemporaryCacheKeys, PersistentCacheKeys } from "msal-common";
 import { BrowserStorage } from "./BrowserStorage";
-import { CACHE_PREFIX, RESOURCE_DELIM, INTERACTION_IN_PROGRESS, PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
+import { INTERACTION_IN_PROGRESS } from "../utils/Constants";
 import { CacheOptions } from "../app/Configuration";
 
 export class CacheManager {
@@ -27,10 +27,10 @@ export class CacheManager {
      */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
 
-        const idTokenKey = `${CACHE_PREFIX}.${PersistentCacheKeys.IDTOKEN}`;
-        const clientInfoKey = `${CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
-        const errorKey = `${CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
-        const errorDescKey = `${CACHE_PREFIX}.${PersistentCacheKeys.ERROR_DESC}`;
+        const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.IDTOKEN}`;
+        const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
+        const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
+        const errorDescKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR_DESC}`;
 
         const idTokenValue = this.storage.getItem(idTokenKey);
         const clientInfoValue = this.storage.getItem(clientInfoKey);
@@ -85,7 +85,7 @@ export class CacheManager {
         for (key in this.storage.getKeys()) {
             if (this.storage.containsKey(key)) {
                 if ((key.indexOf(TemporaryCacheKeys.AUTHORITY) !== -1 || key.indexOf(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || key.indexOf(state) !== -1)) {
-                    const resourceDelimSplitKey = key.split(RESOURCE_DELIM);
+                    const resourceDelimSplitKey = key.split(Constants.RESOURCE_DELIM);
                     let keyState;
                     if (resourceDelimSplitKey.length > 1) {
                         keyState = resourceDelimSplitKey[resourceDelimSplitKey.length-1];

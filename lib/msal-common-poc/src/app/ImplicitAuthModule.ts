@@ -22,7 +22,7 @@ import { ICacheStorage } from "../cache/ICacheStorage";
 // network
 import { INetworkModule } from "./INetworkModule";
 // constants
-import { ResponseTypes, PersistentCacheKeys, TemporaryCacheKeys, RESOURCE_DELIM, NO_ACCOUNT } from "../utils/Constants";
+import { ResponseTypes, PersistentCacheKeys, TemporaryCacheKeys, Constants } from "../utils/Constants";
 // error
 import { ClientAuthError } from "../error/ClientAuthError";
 // utils
@@ -166,7 +166,7 @@ export class ImplicitAuthModule {
         // Cache acquireTokenAccountKey
         const accountId = this.getAccountId(account);
 
-        const acquireTokenAccountKey = `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${RESOURCE_DELIM}${accountId}${RESOURCE_DELIM}${state}`;
+        const acquireTokenAccountKey = `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}${Constants.RESOURCE_DELIM}${state}`;
         this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
     }
 
@@ -181,7 +181,7 @@ export class ImplicitAuthModule {
      */
     private setAuthorityCache(state: string, authority: Authority) {
         // Cache authorityKey
-        const authorityKey = `${TemporaryCacheKeys.AUTHORITY}${RESOURCE_DELIM}${state}`;
+        const authorityKey = `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
         this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
     }
 
@@ -221,7 +221,7 @@ export class ImplicitAuthModule {
             accountId = account.homeAccountIdentifier;
         }
         else {
-            accountId = NO_ACCOUNT;
+            accountId = Constants.NO_ACCOUNT;
         }
 
         return accountId;

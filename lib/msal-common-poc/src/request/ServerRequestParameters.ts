@@ -8,7 +8,7 @@ import { Account } from "../auth/Account";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
-import { ResponseTypes, PromptState, SSOTypes, UPN, CONSUMER_UTID, BlacklistedEQParams, CLAIMS, OPENID_SCOPE, PROFILE_SCOPE } from "../utils/Constants";
+import { ResponseTypes, PromptState, SSOTypes, BlacklistedEQParams, Constants } from "../utils/Constants";
 import { ScopeSet } from "../auth/ScopeSet";
 import { StringDict } from "../app/MsalTypes";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
@@ -178,8 +178,8 @@ export class ServerRequestParameters {
     private replaceDefaultScopes() {
         if (this.scopes.containsScope(this.clientId)) {
             this.scopes.removeScope(this.clientId);
-            this.scopes.appendScope(OPENID_SCOPE);
-            this.scopes.appendScope(PROFILE_SCOPE);
+            this.scopes.appendScope(Constants.OPENID_SCOPE);
+            this.scopes.appendScope(Constants.PROFILE_SCOPE);
         }
     }
 
@@ -251,7 +251,7 @@ export class ServerRequestParameters {
         }
         // adalIdToken retrieved from cache
         else if (idTokenObject) {
-            if (idTokenObject.hasOwnProperty(UPN)) {
+            if (idTokenObject.hasOwnProperty(Constants.UPN)) {
                 ssoType = SSOTypes.ID_TOKEN;
                 ssoData = idTokenObject.upn;
             }
@@ -357,7 +357,7 @@ export class ServerRequestParameters {
                 ssoParam[SSOTypes.LOGIN_REQ] = uid;
                 ssoParam[SSOTypes.DOMAIN_REQ] = utid;
 
-                if (utid === CONSUMER_UTID) {
+                if (utid === Constants.CONSUMER_UTID) {
                     ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
                 }
                 else {
@@ -391,7 +391,7 @@ export class ServerRequestParameters {
         }
         if (request.claimsRequest) {
             // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-            delete eQParams[CLAIMS];
+            delete eQParams[Constants.CLAIMS];
         }
         BlacklistedEQParams.forEach(param => {
             if (eQParams[param]) {

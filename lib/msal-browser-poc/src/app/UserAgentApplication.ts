@@ -137,10 +137,12 @@ export class UserAgentApplication {
         }
         let urlNavigate;
         try {
-            // urlNavigate = await this.authModule.createLoginUrl(request || {});
+            urlNavigate = await this.authModule.createLoginUrl(request || {});
         } catch(e) {
-
+            const stateOnlyResponse = msalAuth.buildResponseStateOnly(this.parseResponseState(request && request.state));
+            this.authCallback(new msalAuth.AuthError(e), stateOnlyResponse);
         }
+        console.log(urlNavigate);
     }
 
     private parseResponseState(state: string) {

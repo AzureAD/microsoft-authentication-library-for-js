@@ -8,33 +8,29 @@
  * Constants File which contains string constants used by this library
  */
 
-// Prefix for all library cache entries
-export const CACHE_PREFIX = "msal";
-
-// Resource delimiter - used for certain cache entries
-export const RESOURCE_DELIM = "|";
-
-// Placeholder for non-existent account ids/objects
-export const NO_ACCOUNT = "NO_ACCOUNT";
-
-// UPN
-export const UPN = "upn";
-
-// Consumter UTID
-export const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
-
-// Claims
-export const CLAIMS = "claims";
-
-// Default scopes
-export const OPENID_SCOPE = "openid";
-export const PROFILE_SCOPE = "profile";
+export const Constants = {
+    // Prefix for all library cache entries
+    CACHE_PREFIX: "msal",
+    // Resource delimiter - used for certain cache entries
+    RESOURCE_DELIM: "|",
+    // Placeholder for non-existent account ids/objects
+    NO_ACCOUNT: "NO_ACCOUNT",
+    // UPN
+    UPN: "upn",
+    // Consumter UTID
+    CONSUMER_UTID: "9188040d-6c67-4c5b-b112-36a304b66dad",
+    // Claims
+    CLAIMS: "claims",
+    // Default scopes
+    OPENID_SCOPE: "openid",
+    PROFILE_SCOPE: "profile"
+};
 
 export enum AuthorityConstants {
     COMMON = "common",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers"
-}
+};
 
 /**
  * Keys in the hashParams
@@ -90,7 +86,7 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     ANGULAR_LOGIN_REQUEST = "angular.login.request",
     INTERACTION_STATUS = "interaction.status"
-}
+};
 
 export enum PersistentCacheKeys {
     IDTOKEN = "idtoken",
