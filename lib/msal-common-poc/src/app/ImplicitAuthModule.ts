@@ -98,6 +98,7 @@ export class ImplicitAuthModule {
         // Initialize authority or use default, and perform discovery endpoint check
         let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
         acquireTokenAuthority = await acquireTokenAuthority.resolveEndpointsAsync();
+        console.log(acquireTokenAuthority);
 
         // Set the account object to the current session
         request.account = this.getAccount();
@@ -112,6 +113,7 @@ export class ImplicitAuthModule {
             this.getAccount(),
             this.getRedirectUri()
         );
+        console.log(serverRequestParameters);
 
         // if extraScopesToConsent is passed in loginCall, append them to the login request
         serverRequestParameters.appendExtraScopes();
@@ -125,7 +127,7 @@ export class ImplicitAuthModule {
         const loginStartPage = window.location.href;
 
         // Update entries for start of request event
-        this.updateCacheEntries(serverRequestParameters, request.account, loginStartPage);
+        // this.updateCacheEntries(serverRequestParameters, request.account, loginStartPage);
 
         // populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
         serverRequestParameters.populateQueryParams();

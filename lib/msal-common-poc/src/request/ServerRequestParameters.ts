@@ -41,7 +41,7 @@ export class ServerRequestParameters {
         this.scopes = new ScopeSet(request.scopes, clientId, !isLoginCall);
 
         this.request = request;
-        this.responseType = this.getResponseType(Account.compareAccounts(request.account, cachedAccount), isLoginCall, isSilentRequest);
+        this.responseType = this.getResponseType(cachedAccount, isLoginCall, isSilentRequest);
         this.redirectUri = redirectUri;
 
         this.nonce = CryptoUtils.createNewGuid();
@@ -192,6 +192,7 @@ export class ServerRequestParameters {
      */
     private validatePromptParameter (prompt: string) {
         if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
+            console.log("prompt err");
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
     }
@@ -201,9 +202,10 @@ export class ServerRequestParameters {
      * @param matchingAccount 
      * @param silentCall 
      */
-    private getResponseType(matchingAccount: boolean, isLoginCall: boolean, silentCall: boolean) {
+    private getResponseType(cachedAccount: Account, isLoginCall: boolean, silentCall: boolean) {
+        const matchingAccount = Account.compareAccounts(this.request.account, cachedAccount);
         // if account is passed and matches the account object set to getAccount() from cache
-        if (!matchingAccount) {
+        if (!matchingAccount || !this.request.account || !cachedAccount) {
             return silentCall && isLoginCall ? ResponseTypes.id_token : ResponseTypes.id_token_token;
         } else {
             return isLoginCall ? ResponseTypes.id_token : ResponseTypes.token;

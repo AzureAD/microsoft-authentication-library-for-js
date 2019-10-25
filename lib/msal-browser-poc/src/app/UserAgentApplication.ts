@@ -6,7 +6,7 @@
 import * as msalAuth from "msal-common";
 
 // Configuration
-import { Configuration } from "./Configuration";
+import { Configuration, buildConfiguration } from "./Configuration";
 
 // Network
 import { IXhrClient } from "../network/IXHRClient";
@@ -80,7 +80,7 @@ export class UserAgentApplication {
      */
     constructor(configuration: Configuration) {
         // Set the configuration
-        this.config = configuration;
+        this.config = buildConfiguration(configuration);
 
         // Create browser storage
         this.cacheMgr = new CacheManager(this.config.auth.clientId, this.config.cache);
@@ -140,7 +140,7 @@ export class UserAgentApplication {
             urlNavigate = await this.authModule.createLoginUrl(request || {});
         } catch(e) {
             const stateOnlyResponse = msalAuth.buildResponseStateOnly(this.parseResponseState(request && request.state));
-            this.authCallback(new msalAuth.AuthError(e), stateOnlyResponse);
+            this.authCallback(e, stateOnlyResponse);
         }
         console.log(urlNavigate);
     }
