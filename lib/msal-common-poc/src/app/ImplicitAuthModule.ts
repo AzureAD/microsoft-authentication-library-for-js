@@ -5,16 +5,28 @@
 
 // app
 import { MsalConfiguration } from "./MsalConfiguration";
+// auth
+import { IdToken } from "../auth/IdToken";
+import { ClientInfo } from "../auth/ClientInfo";
+import { Account } from "../auth/Account";
 // authority
 import { Authority } from "../auth/authority/Authority";
 import { AuthorityFactory } from "../auth/authority/AuthorityFactory";
 // request
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
+import { ServerRequestParameters } from "../request/ServerRequestParameters";
 // response
 import { AuthResponse } from "../response/AuthResponse";
 // cache
 import { ICacheStorage } from "../cache/ICacheStorage";
+// network
 import { INetworkModule } from "./INetworkModule";
+// constants
+import { ResponseTypes, PersistentCacheKeys, TemporaryCacheKeys, RESOURCE_DELIM, NO_ACCOUNT } from "../utils/Constants";
+// error
+import { ClientAuthError } from "../error/ClientAuthError";
+// utils
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * ImplicitAuthModule class
@@ -24,6 +36,7 @@ import { INetworkModule } from "./INetworkModule";
  */
 export class ImplicitAuthModule {
 
+    // Application config
     private config: MsalConfiguration;
 
     // Interface implementations
@@ -38,6 +51,9 @@ export class ImplicitAuthModule {
         }
         return "";
     }
+
+    // Account fields
+    private account: Account;
 
     /**
      * @constructor
@@ -83,16 +99,46 @@ export class ImplicitAuthModule {
         let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
         acquireTokenAuthority = await acquireTokenAuthority.resolveEndpointsAsync();
 
-        // 
+        // Set the account object to the current session
+        request.account = this.getAccount();
 
-        return "";
+        // Create and validate request parameters
+        const serverRequestParameters = new ServerRequestParameters(
+            acquireTokenAuthority,
+            this.config.auth.clientId,
+            request,
+            true,
+            false,
+            this.getAccount(),
+            this.getRedirectUri()
+        );
+
+        // if extraScopesToConsent is passed in loginCall, append them to the login request
+        serverRequestParameters.appendExtraScopes();
+
+        if (!serverRequestParameters.isSSOParam(request.account)) {
+            // TODO: Add ADAL Token SSO
+            return "";
+        }
+
+        // if the user sets the login start page - angular only??
+        const loginStartPage = window.location.href;
+
+        // Update entries for start of request event
+        this.updateCacheEntries(serverRequestParameters, request.account, loginStartPage);
+
+        // populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+        serverRequestParameters.populateQueryParams();
+
+        // Construct and return navigation url
+        return serverRequestParameters.createNavigateUrl();
     }
 
     /**
      * This function validates and returns a navigation uri based on a given request object. See request/AuthenticationParameters.ts for more information on how to construct the request object.
      * @param request 
      */
-    createAcquireTokenUrl(request: AuthenticationParameters): string {
+    async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         return "";
     }
 
@@ -105,11 +151,146 @@ export class ImplicitAuthModule {
         return null;
     }
 
+    // #region General Helpers
+
     /**
-     * Returns current window URL as redirect uri
+     * @hidden
+     * @ignore
+     *
+     * Sets the cachekeys for and stores the account information in cache
+     * @param account
+     * @param state
+     * @hidden
      */
-    getDefaultRedirectUri(): string {
-        return window.location.href.split("?")[0].split("#")[0];
+    private setAccountCache(account: Account, state: string) {
+        // Cache acquireTokenAccountKey
+        const accountId = this.getAccountId(account);
+
+        const acquireTokenAccountKey = `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${RESOURCE_DELIM}${accountId}${RESOURCE_DELIM}${state}`;
+        this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
     }
 
+    /**
+     * @hidden
+     * @ignore
+     *
+     * Sets the cacheKey for and stores the authority information in cache
+     * @param state
+     * @param authority
+     * @hidden
+     */
+    private setAuthorityCache(state: string, authority: Authority) {
+        // Cache authorityKey
+        const authorityKey = `${TemporaryCacheKeys.AUTHORITY}${RESOURCE_DELIM}${state}`;
+        this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
+    }
+
+    /**
+     * Updates account, authority, and nonce in cache
+     * @param serverAuthenticationRequest
+     * @param account
+     * @hidden
+     * @ignore
+     */
+    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
+        // Cache account and authority
+        if (loginStartPage) {
+            // Cache the state, nonce, and login request data
+            this.cacheStorage.setItem(TemporaryCacheKeys.LOGIN_REQUEST, loginStartPage);
+            this.cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, serverAuthenticationRequest.state);
+        } else {
+            this.setAccountCache(account, serverAuthenticationRequest.state);
+        }
+        // Cache authorityKey
+        this.setAuthorityCache(serverAuthenticationRequest.state, serverAuthenticationRequest.authorityInstance);
+
+        // Cache nonce
+        this.cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${serverAuthenticationRequest.state}`, serverAuthenticationRequest.nonce);
+    }
+
+    /**
+     * Returns the unique identifier for the logged in account
+     * @param account
+     * @hidden
+     * @ignore
+     */
+    private getAccountId(account: Account): any {
+        // return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
+        let accountId: string;
+        if (!StringUtils.isEmpty(account.homeAccountIdentifier)) {
+            accountId = account.homeAccountIdentifier;
+        }
+        else {
+            accountId = NO_ACCOUNT;
+        }
+
+        return accountId;
+    }
+
+    // #endregion
+
+    // #region Getters and setters
+
+    /**
+     * Returns the signed in account
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link Account} - the account object stored in MSAL
+     */
+    getAccount(): Account {
+        // if a session already exists, get the account from the session
+        if (this.account) {
+            return this.account;
+        }
+
+        // frame is used to get idToken and populate the account for the given session
+        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.IDTOKEN);
+        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
+
+        if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
+            const idToken = new IdToken(rawIdToken);
+            const clientInfo = new ClientInfo(rawClientInfo);
+            this.account = Account.createAccount(idToken, clientInfo);
+            return this.account;
+        }
+        // if login not yet done, return null
+        return null;
+    }
+
+    /**
+     *
+     * Use to get the redirect uri configured in MSAL or null.
+     * Evaluates redirectUri if its a function, otherwise simply returns its value.
+     * @returns {string} redirect URL
+     *
+     */
+    public getRedirectUri(): string {
+        if (this.config.auth.redirectUri) {
+            if (typeof this.config.auth.redirectUri === "function") {
+                return this.config.auth.redirectUri();
+            }
+            return this.config.auth.redirectUri;
+        } else {
+            throw ClientAuthError.createRedirectUriEmptyError();
+        }
+    }
+
+    /**
+     * Use to get the post logout redirect uri configured in MSAL or null.
+     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
+     *
+     * @returns {string} post logout redirect URL
+     */
+    public getPostLogoutRedirectUri(): string {
+        if (this.config.auth.postLogoutRedirectUri) {
+            if (typeof this.config.auth.postLogoutRedirectUri === "function") {
+                return this.config.auth.postLogoutRedirectUri();
+            }
+            return this.config.auth.postLogoutRedirectUri;
+        } else {
+            throw ClientAuthError.createPostLogoutRedirectUriEmptyError();
+        }
+    }
+
+    // #endregion
 }

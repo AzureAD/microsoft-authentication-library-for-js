@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage, AuthError } from "msal-common";
-import { CACHE_PREFIX, PersistentCacheKeys, TemporaryCacheKeys, RESOURCE_DELIM } from "../utils/Constants";
+import { ICacheStorage, AuthError, CACHE_PREFIX, RESOURCE_DELIM, PersistentCacheKeys, TemporaryCacheKeys } from "msal-common";
 import { CacheLocation } from "../app/Configuration";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
 
 /**
  * @hidden
@@ -26,7 +25,7 @@ export class BrowserStorage implements ICacheStorage {
 
         const storageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
         if (!storageSupported) {
-            throw ClientConfigurationError.createStorageNotSupportedError(cacheLocation);
+            throw ClientBrowserConfigurationError.createStorageNotSupportedError(cacheLocation);
         }
         this.cacheLocation = cacheLocation;
         this.windowStorage = window[this.cacheLocation];

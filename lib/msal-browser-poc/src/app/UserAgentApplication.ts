@@ -16,7 +16,7 @@ import { XhrClient } from "../network/XHRClient";
 import { CacheManager } from "../cache/CacheManager";
 
 // Errors
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -25,6 +25,11 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
  * @param response response containing token strings in success cases, or just state value in error cases
  */
 export type authCallback = (authErr: msalAuth.AuthError, response?: msalAuth.AuthResponse) => void;
+
+/**
+ * Key-Value type to support queryParams, extraQueryParams and claims
+ */
+export type StringDict = {[key: string]: string};
 
 /**
  * UserAgentApplication class
@@ -110,7 +115,7 @@ export class UserAgentApplication {
     handleRedirectCallback(authCallback: authCallback): void {
         if (!authCallback) {
             this.redirectCallbacksSet = false;
-            throw ClientConfigurationError.createInvalidCallbackObjectError(authCallback);
+            throw ClientBrowserConfigurationError.createInvalidCallbackObjectError(authCallback);
         }
         
         this.authCallback = authCallback;
@@ -120,14 +125,14 @@ export class UserAgentApplication {
     async loginRedirect(request: msalAuth.AuthenticationParameters) {
         // Throw error if callbacks are not set before redirect
         if (!this.redirectCallbacksSet) {
-            throw ClientConfigurationError.createRedirectCallbacksNotSetError();
+            throw ClientBrowserConfigurationError.createRedirectCallbacksNotSetError();
         }
 
         // Check if interaction is in progress
         if (this.interactionInProgress) {
             const thrownError = msalAuth.ClientAuthError.createLoginInProgressError();
             const stateOnlyResponse = msalAuth.buildResponseStateOnly(this.parseResponseState(request && request.state));
-            this.authCallback(thrownError);
+            this.authCallback(thrownError, stateOnlyResponse);
             return;
         }
         let urlNavigate;

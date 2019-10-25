@@ -17,3 +17,6 @@ export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
 // Errors
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
+export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
+// Constants
+export * from "./utils/Constants";

@@ -3,26 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ClientAuthError } from "msal-common";
+import { ClientAuthError } from "./ClientAuthError";
 
 export const ClientConfigurationErrorMessage = {
     configurationNotSet: {
         code: "no_config_set",
         desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
-    },
-    storageNotSupported: {
-        code: "storage_not_supported",
-        desc: "The value for the cacheLocation is not supported."
-    },
-    noRedirectCallbacksSet: {
-        code: "no_redirect_callbacks",
-        desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
-            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
-    },
-    invalidCallbackObject: {
-        code: "invalid_callback_object",
-        desc: "The object passed for the callback was invalid. " +
-          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     scopesRequired: {
         code: "scopes_required",
@@ -72,20 +58,6 @@ export class ClientConfigurationError extends ClientAuthError {
     static createNoSetConfigurationError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.configurationNotSet.code,
             `${ClientConfigurationErrorMessage.configurationNotSet.desc}`);
-    }
-
-    static createStorageNotSupportedError(givenCacheLocation: string) : ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.storageNotSupported.code,
-            `${ClientConfigurationErrorMessage.storageNotSupported.desc} Given location: ${givenCacheLocation}`);
-    }
-
-    static createRedirectCallbacksNotSetError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.noRedirectCallbacksSet.code, ClientConfigurationErrorMessage.noRedirectCallbacksSet.desc);
-    }
-
-    static createInvalidCallbackObjectError(callbackObject: object): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCallbackObject.code,
-            `${ClientConfigurationErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
     }
 
     static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {

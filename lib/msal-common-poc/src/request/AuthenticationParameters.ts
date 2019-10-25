@@ -5,6 +5,7 @@
 
 import { Account } from "../auth/Account";
 import { StringDict } from "../app/MsalTypes";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * @link AuthenticationParameters}AuthenticationParameters
@@ -23,3 +24,17 @@ export type AuthenticationParameters = {
     loginHint?: string;
     forceRefresh?: boolean;
 };
+
+export function validateClaimsRequest(request: AuthenticationParameters) {
+    if (!request.claimsRequest) {
+        return;
+    }
+    let claims;
+    try {
+        claims = JSON.parse(request.claimsRequest);
+    } catch (e) {
+        throw ClientConfigurationError.createClaimsRequestParsingError(e);
+    }
+
+    // TODO: More validation will be added when the server team tells us how they have actually implemented claims
+}
