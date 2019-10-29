@@ -65,7 +65,6 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
         this.state = state && !StringUtils.isEmpty(state) ?  CryptoUtils.createNewGuid() + "|" + state   : CryptoUtils.createNewGuid();
 
-        // TODO: Change this to user passed vs generated with the new PR
         this.correlationId = correlationId || CryptoUtils.createNewGuid();
 
         // telemetry information
