@@ -53,7 +53,7 @@ export class ServerRequestParameters {
      * @param redirectUri
      * @param state
      */
-    constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string) {
+    constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string, correlationId?: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
         if (!scope) {
@@ -66,7 +66,7 @@ export class ServerRequestParameters {
         this.state = state && !StringUtils.isEmpty(state) ?  CryptoUtils.createNewGuid() + "|" + state   : CryptoUtils.createNewGuid();
 
         // TODO: Change this to user passed vs generated with the new PR
-        this.correlationId = CryptoUtils.createNewGuid();
+        this.correlationId = correlationId || CryptoUtils.createNewGuid();
 
         // telemetry information
         this.xClientSku = "MSAL.JS";

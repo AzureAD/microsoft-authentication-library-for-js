@@ -490,7 +490,8 @@ export class UserAgentApplication {
                 scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state
+                request && request.state,
+                request && request.correlationId
             );
 
             this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
@@ -602,7 +603,8 @@ export class UserAgentApplication {
                 request.scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state
+                request.state,
+                request.correlationId
             );
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
@@ -1805,7 +1807,7 @@ export class UserAgentApplication {
      * @param state
      * @return {@link AuthResponse} AuthResponse
      */
-    protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string): AuthResponse {
+    protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string, correlationId?: string): AuthResponse {
         // Get the current session's account object
         const accountObject: Account = account || this.getAccount();
         if (!accountObject) {
@@ -1821,7 +1823,8 @@ export class UserAgentApplication {
             scopes,
             responseType,
             this.getRedirectUri(),
-            state
+            state,
+            correlationId
         );
 
         // get cached token
