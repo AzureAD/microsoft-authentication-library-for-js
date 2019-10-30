@@ -1600,15 +1600,13 @@ export class UserAgentApplication {
                 acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(accountId, stateInfo.state);
             }
 
-            const {
-                [Constants.error]: hashErr,
-                [Constants.errorDescription]: hashErrDesc
-            } = hashParams;
-            if (InteractionRequiredAuthError.isInteractionRequiredError(hashErr) ||
-        InteractionRequiredAuthError.isInteractionRequiredError(hashErrDesc)) {
-                error = new InteractionRequiredAuthError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
+            const hashErr = hashParams[Constants.error];
+            const hashErrDesc = hashParams[Constants.errorDescription];
+
+            if (InteractionRequiredAuthError.isInteractionRequiredError(hashErr)) {
+                error = new InteractionRequiredAuthError(hashErr, hashErrDesc);
             } else {
-                error = new ServerError(hashParams[Constants.error], hashParams[Constants.errorDescription]);
+                error = new ServerError(hashErr, hashErrDesc);
             }
         }
         // If the server returns "Success"

@@ -6,15 +6,9 @@
 import { ServerError } from "./ServerError";
 
 export const InteractionRequiredAuthErrorMessage = {
-    interactionRequired: {
-        code: "interaction_required"
-    },
-    consentRequired: {
-        code: "consent_required"
-    },
-    loginRequired: {
-        code: "login_required"
-    },
+    interactionRequired: "interaction_required",
+    consentRequired: "consent_required",
+    loginRequired: "login_required"
 };
 
 /**
@@ -30,24 +24,18 @@ export class InteractionRequiredAuthError extends ServerError {
     }
 
     static isInteractionRequiredError(errorString: string) : boolean {
-        const interactionRequiredCodes = [
-            InteractionRequiredAuthErrorMessage.interactionRequired.code,
-            InteractionRequiredAuthErrorMessage.consentRequired.code,
-            InteractionRequiredAuthErrorMessage.loginRequired.code
-        ];
-
-        return errorString && interactionRequiredCodes.indexOf(errorString) > -1;
+        return errorString && Object.values(InteractionRequiredAuthErrorMessage).includes(errorString);
     }
 
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.loginRequired.code, errorDesc);
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.loginRequired, errorDesc);
     }
 
     static createInteractionRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.interactionRequired.code, errorDesc);
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.interactionRequired, errorDesc);
     }
 
     static createConsentRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.consentRequired.code, errorDesc);
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.consentRequired, errorDesc);
     }
 }

@@ -46,7 +46,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(InteractionRequiredAuthErrorMessage.loginRequired.code);
+    expect(err.errorCode).to.equal(InteractionRequiredAuthErrorMessage.loginRequired);
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
@@ -64,7 +64,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+    expect(err.errorCode).to.equal(InteractionRequiredAuthErrorMessage.interactionRequired);
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
@@ -82,7 +82,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(InteractionRequiredAuthErrorMessage.consentRequired.code);
+    expect(err.errorCode).to.equal(InteractionRequiredAuthErrorMessage.consentRequired);
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
