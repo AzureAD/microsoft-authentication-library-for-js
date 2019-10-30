@@ -1253,7 +1253,7 @@ export class UserAgentApplication {
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = Constants.renewToken;
@@ -1278,7 +1278,7 @@ export class UserAgentApplication {
         this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         if (this.silentLogin) {
             window.requestType = Constants.login;
