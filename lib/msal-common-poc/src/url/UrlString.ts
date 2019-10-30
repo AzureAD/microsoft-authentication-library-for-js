@@ -41,7 +41,7 @@ export class UrlString {
     }
 
     /**
-     * Throws if urlString passed is not a valid URI string.
+     * Throws if urlString passed is not a valid authority URI string.
      */
     validateAsUri(): void {
         let components;

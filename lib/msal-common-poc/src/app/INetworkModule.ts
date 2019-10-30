@@ -4,7 +4,7 @@
  */
 
 /**
- * Client network interface to send requests.
+ * Client network interface to send backend requests.
  * @hidden
  */
 export interface INetworkModule {

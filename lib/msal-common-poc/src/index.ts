@@ -11,6 +11,8 @@ export { AccessTokenKey } from "./cache/AccessTokenKey";
 export { AccessTokenValue } from "./cache/AccessTokenValue";
 // Network Interface
 export { INetworkModule } from "./app/INetworkModule";
+export { IUri } from "./url/IUri";
+export { UrlString } from "./url/UrlString";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";

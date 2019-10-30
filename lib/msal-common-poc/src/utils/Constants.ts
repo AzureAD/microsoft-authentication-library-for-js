@@ -77,11 +77,9 @@ export enum TemporaryCacheKeys {
     AUTHORITY = "authority",
     ACQUIRE_TOKEN_ACCOUNT = "acquireTokenAccount",
     SESSION_STATE = "session.state",
-    STATE_LOGIN = "state.login",
-    STATE_ACQ_TOKEN = "state.acquireToken",
-    STATE_RENEW = "state.renew",
+    REQUEST_STATE = "state.request",
     NONCE_IDTOKEN = "nonce.idtoken",
-    LOGIN_REQUEST = "login.request",
+    REQUEST_URI = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     ANGULAR_LOGIN_REQUEST = "angular.login.request",
@@ -93,8 +91,7 @@ export enum PersistentCacheKeys {
     CLIENT_INFO = "client.info",
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
-    ERROR_DESC = "error.description",
-    LOGIN_ERROR = "login.error"
+    ERROR_DESC = "error.description"
 }
 
 /**

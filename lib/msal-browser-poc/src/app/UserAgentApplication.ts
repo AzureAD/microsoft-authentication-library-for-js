@@ -18,6 +18,19 @@ import { CacheManager } from "../cache/CacheManager";
 // Errors
 import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
 
+// Utils
+import { StringUtils } from "../utils/StringUtils";
+import { WindowUtils } from "../utils/WindowUtils";
+
+/**
+ * Interface to handle iFrame generation, Popup Window creation and redirect handling
+ */
+declare global {
+    interface Window {
+        openedWindows: Array<Window>;
+    }
+}
+
 /**
  * A type alias for an authResponseCallback function.
  * {@link (authResponseCallback:type)}
@@ -100,6 +113,9 @@ export class UserAgentApplication {
         // Set initial state vars
         this.redirectCallbacksSet = false;
         this.interactionInProgress = false;
+
+        // Detect hash
+        this.detectHashInResponse();
     }
 
     // #region Redirect Flow
@@ -120,6 +136,14 @@ export class UserAgentApplication {
         
         this.authCallback = authCallback;
         this.redirectCallbacksSet = true;
+
+        // On the server 302 - Redirect, handle this
+        if (!this.config.framework.isAngular) {
+            const cachedHash = this.cacheMgr.storage.getItem(msalAuth.TemporaryCacheKeys.URL_HASH);
+            if (cachedHash) {
+                this.processCallback(cachedHash);
+            }
+        }
     }
 
     async loginRedirect(request: msalAuth.AuthenticationParameters) {
@@ -138,11 +162,11 @@ export class UserAgentApplication {
         let urlNavigate;
         try {
             urlNavigate = await this.authModule.createLoginUrl(request || {});
+            this.navigateWindow(urlNavigate);
         } catch(e) {
             const stateOnlyResponse = msalAuth.buildResponseStateOnly(this.parseResponseState(request && request.state));
             this.authCallback(e, stateOnlyResponse);
         }
-        console.log(urlNavigate);
     }
 
     private parseResponseState(state: string) {
@@ -153,5 +177,71 @@ export class UserAgentApplication {
             }
         }
         return state;
+    }
+
+    private navigateWindow(urlNavigate: string) {
+        // Navigate if valid URL
+        if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
+            const urlString = new msalAuth.UrlString(urlNavigate);
+            urlString.validateAsUri();
+            window.location.replace(urlNavigate);
+        } else {
+            throw msalAuth.AuthError.createUnexpectedError("Navigate url is empty");
+        }
+    }
+
+    private detectHashInResponse() {
+        const urlHash = window.location.hash;
+        const urlIsKnownHash = msalAuth.UrlString.hashContainsKnownProperties(urlHash);
+
+        if (this.config.framework.isAngular && urlIsKnownHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
+            this.handleAuthenticationResponse(urlHash);
+        }
+    }
+
+    private handleAuthenticationResponse(urlHash: string) {
+        // Retrieve the hash
+        const locationHash = urlHash || window.location.hash;
+
+        // TODO: Check if we are currently in popup or iframe
+
+        // if navigateToLoginRequestUrl is set to true, msal will navigate before processing hash (only for redirect cases)
+        if (this.config.auth.navigateToLoginRequestUrl) {
+            // TODO: set hash to cache
+            if (window.parent === window) {
+                // TODO: Set window to url from cache
+            }
+            return;
+        }
+        else {
+            window.location.hash = "";
+        }
+
+        if (!this.redirectCallbacksSet) {
+            // We reached this point too early, return and processCallback in handleRedirectCallbacks
+            // TODO: Set hash to cache
+            return;
+        }
+
+        this.processCallback(locationHash);
+
+        // TODO: Close all open popups
+    }
+
+    private processCallback(hash: string) {
+        let response: msalAuth.AuthResponse;
+        let authErr: msalAuth.AuthError;
+        try {
+            response = this.authModule.handleResponse(hash);
+        } catch (err) {
+            authErr = err;
+        }
+
+        if (authErr) {
+            this.authCallback(null, response);
+        } else {
+            const responseState = this.authModule.extractResponseState(hash);
+            this.authCallback(authErr, msalAuth.buildResponseStateOnly(responseState.state));
+        }
     }
 }

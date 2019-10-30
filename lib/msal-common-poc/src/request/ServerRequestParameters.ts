@@ -128,6 +128,7 @@ export class ServerRequestParameters {
 
     createNavigateUrl(): string {
         const str = this.createNavigationUrlString();
+        console.log("Nav Url String: " + str);
         let authEndpoint: string = this.authorityInstance.authorizationEndpoint;
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
         if (authEndpoint.indexOf("?") < 0) {
@@ -172,6 +173,7 @@ export class ServerRequestParameters {
         }
 
         str.push("client-request-id=" + encodeURIComponent(this.correlationId));
+        str.push("response_mode=fragment");
         return str;
     }
 
