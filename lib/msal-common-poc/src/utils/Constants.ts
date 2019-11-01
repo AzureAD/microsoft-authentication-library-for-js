@@ -23,7 +23,8 @@ export const Constants = {
     CLAIMS: "claims",
     // Default scopes
     OPENID_SCOPE: "openid",
-    PROFILE_SCOPE: "profile"
+    PROFILE_SCOPE: "profile",
+    INTERACTION_IN_PROGRESS: "interaction_in_progress"
 };
 
 export enum AuthorityConstants {

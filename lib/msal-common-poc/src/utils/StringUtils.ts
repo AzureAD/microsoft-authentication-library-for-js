@@ -24,4 +24,14 @@ export class StringUtils {
     static trimAndConvertArrayEntriesToLowerCase(arr: Array<string>): Array<string> {
         return arr.map(entry => entry.toLowerCase().trim());
     }
+
+    static extractUserGivenState(stateString: string) {
+        if (stateString) {
+            const splitIndex = stateString.indexOf("|");
+            if (splitIndex > -1 && splitIndex + 1 < stateString.length) {
+                return stateString.substring(splitIndex + 1);
+            }
+        }
+        return stateString;
+    }
 }

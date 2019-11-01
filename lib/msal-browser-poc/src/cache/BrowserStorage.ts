@@ -52,23 +52,6 @@ export class BrowserStorage implements ICacheStorage {
         }
     }
 
-    /**
-     * Create acquireTokenAccountKey to cache account object
-     * @param accountId
-     * @param state
-     */
-    public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}${Constants.RESOURCE_DELIM}${state}`;
-    }
-
-    /**
-     * Create authorityKey to cache authority
-     * @param state
-     */
-    public static generateAuthorityKey(state: string): string {
-        return `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
-    }
-
     setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         this.windowStorage.setItem(this.generateCacheKey(key, true), value);
         if (this.rollbackEnabled) {
@@ -88,10 +71,13 @@ export class BrowserStorage implements ICacheStorage {
         return this.windowStorage.getItem(this.generateCacheKey(key, true));
     }
 
-    removeItem(key: string): void {
+    removeItem(key: string, enableCookieStorage?: boolean): void {
         this.windowStorage.removeItem(this.generateCacheKey(key, true));
         if (this.rollbackEnabled) {
             this.windowStorage.removeItem(this.generateCacheKey(key, false));
+        }
+        if (enableCookieStorage) {
+            this.setItemCookie(key, "", -1);
         }
     }
 

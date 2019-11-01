@@ -1,5 +1,4 @@
 import { ClientAuthError, UrlString } from "msal-common";
-import { UrlUtils } from "./UrlUtils";
 import { Logger } from "./Logger";
 
 export class WindowUtils {

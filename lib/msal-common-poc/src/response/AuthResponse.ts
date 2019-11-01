@@ -11,7 +11,7 @@ export type AuthResponse = {
     uniqueId: string;
     tenantId: string;
     tokenType: string;
-    idToken: IdToken;
+    idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
     scopes: Array<string>;

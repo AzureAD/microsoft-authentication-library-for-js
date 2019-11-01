@@ -93,9 +93,8 @@ export class CacheManager {
                     if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
                         this.storage.removeItem(key);
                         this.storage.removeItem(TemporaryCacheKeys.RENEW_STATUS + state);
-                        this.storage.removeItem(TemporaryCacheKeys.STATE_LOGIN);
-                        this.storage.removeItem(TemporaryCacheKeys.STATE_ACQ_TOKEN);
-                        this.storage.removeItem(TemporaryCacheKeys.LOGIN_REQUEST);
+                        this.storage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
+                        this.storage.removeItem(TemporaryCacheKeys.REQUEST_URI);
                         this.storage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
                         this.storage.removeItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
                         this.storage.setItemCookie(key, "", -1);
@@ -121,9 +120,8 @@ export class CacheManager {
     public clearMsalCookie(state?: string): void {
         const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
         this.storage.clearItemCookie(nonceKey);
-        this.storage.clearItemCookie(TemporaryCacheKeys.STATE_LOGIN);
-        this.storage.clearItemCookie(TemporaryCacheKeys.LOGIN_REQUEST);
-        this.storage.clearItemCookie(TemporaryCacheKeys.STATE_ACQ_TOKEN);
+        this.storage.clearItemCookie(TemporaryCacheKeys.REQUEST_STATE);
+        this.storage.clearItemCookie(TemporaryCacheKeys.REQUEST_URI);
     }
 
 }
