@@ -4,5 +4,6 @@
     "lib/*",
     "samples/*"
   ],
-  "version": "independent"
+  "version": "independent",
+  "concurrency": 2
 }
