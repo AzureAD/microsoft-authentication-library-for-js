@@ -8,6 +8,7 @@ import { Constants, TemporaryCacheKeys } from "./Constants";
 import { Authority } from "../auth/authority/Authority";
 import { ServerRequestParameters } from "../request/ServerRequestParameters";
 import { ICacheStorage } from "../cache/ICacheStorage";
+import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 
 /**
  * @hidden
@@ -84,6 +85,27 @@ export class CacheUtils {
 
         // Cache nonce
         cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${serverAuthenticationRequest.state}`, serverAuthenticationRequest.nonce);
+    }
+
+    /**
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param authorityUri
+     */
+    static getAllAccessTokens(cacheStorage: ICacheStorage, clientId: string, authorityUri: string): Array<AccessTokenCacheItem> {
+        const results = cacheStorage.getKeys().reduce((tokens, key) => {
+            if (cacheStorage.containsKey(key) && key.match(clientId) && key.match(authorityUri)) {
+                const value = cacheStorage.getItem(key);
+                if (value) {
+                    const newAccessTokenCacheItem = new AccessTokenCacheItem(JSON.parse(key), JSON.parse(value));
+                    return tokens.concat([ newAccessTokenCacheItem ]);
+                }
+            }
+
+            return tokens;
+        }, []);
+
+        return results;
     }
 
     /**

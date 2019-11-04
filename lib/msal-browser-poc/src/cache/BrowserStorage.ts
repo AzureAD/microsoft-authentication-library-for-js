@@ -4,7 +4,7 @@
  */
 
 import { ICacheStorage, AuthError, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "msal-common";
-import { CacheLocation } from "../app/Configuration";
+import { CacheLocation, CacheOptions } from "../app/Configuration";
 import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
 
 /**
@@ -18,20 +18,57 @@ export class BrowserStorage implements ICacheStorage {
     private clientId: string;
     private rollbackEnabled: boolean;
 
-    constructor(cacheLocation: CacheLocation, clientId: string, rollbackEnabled: boolean) {
-        if(!window) {
+    constructor(clientId: string, cacheConfig: CacheOptions) {
+        if (!window) {
             throw AuthError.createNoWindowObjectError("Browser storage class could not find window object");
         }
 
-        const storageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
+        const storageSupported = typeof window[cacheConfig.cacheLocation] !== "undefined" && window[cacheConfig.cacheLocation] != null;
         if (!storageSupported) {
-            throw ClientBrowserConfigurationError.createStorageNotSupportedError(cacheLocation);
+            throw ClientBrowserConfigurationError.createStorageNotSupportedError(cacheConfig.cacheLocation);
         }
-        this.cacheLocation = cacheLocation;
+        this.cacheLocation = cacheConfig.cacheLocation;
         this.windowStorage = window[this.cacheLocation];
 
         this.clientId = clientId;
-        this.rollbackEnabled = rollbackEnabled;
+        // This is hardcoded to true for now. We may make this configurable in the future
+        this.rollbackEnabled = true;
+
+        this.migrateCacheEntries(cacheConfig.storeAuthStateInCookie);
+    }
+
+    /**
+     * Support roll back to old cache schema until the next major release: true by default now
+     * @param storeAuthStateInCookie
+     */
+    private migrateCacheEntries(storeAuthStateInCookie: boolean) {
+
+        const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
+        const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
+        const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
+        const errorDescKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR_DESC}`;
+
+        const idTokenValue = this.getItem(idTokenKey);
+        const clientInfoValue = this.getItem(clientInfoKey);
+        const errorValue = this.getItem(errorKey);
+        const errorDescValue = this.getItem(errorDescKey);
+
+        const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
+        const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
+
+        keysToMigrate.forEach((cacheKey, index) => this.createCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+    }
+
+    /**
+     * Utility function to help with rollback keys
+     * @param newKey
+     * @param value
+     * @param storeAuthStateInCookie
+     */
+    private createCacheEntry(newKey: string, value: string, storeAuthStateInCookie?: boolean) {
+        if (newKey && value) {
+            this.setItem(newKey, value, storeAuthStateInCookie);
+        }
     }
 
     /**
@@ -148,6 +185,16 @@ export class BrowserStorage implements ICacheStorage {
      */
     clearItemCookie(cName: string) {
         this.setItemCookie(cName, "", -1);
+    }
+
+    /**
+     * Clear all msal cookies
+     */
+    public clearMsalCookie(state?: string): void {
+        const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
+        this.clearItemCookie(nonceKey);
+        this.clearItemCookie(TemporaryCacheKeys.REQUEST_STATE);
+        this.clearItemCookie(TemporaryCacheKeys.REQUEST_URI);
     }
 
     /**

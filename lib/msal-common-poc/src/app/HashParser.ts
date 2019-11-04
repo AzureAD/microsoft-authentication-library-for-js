@@ -18,6 +18,10 @@ import { ServerError } from "../error/ServerError";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { CacheUtils } from "../utils/CacheUtils";
 import { ScopeSet } from "../auth/ScopeSet";
+import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
+import { TimeUtils } from "../utils/TimeUtils";
+import { AccessTokenKey } from "../cache/AccessTokenKey";
+import { AccessTokenValue } from "../cache/AccessTokenValue";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -28,10 +32,12 @@ export class HashParser {
 
     private cacheStorage: ICacheStorage;
     private account: Account;
+    private clientId: string;
 
-    constructor(accountObj: Account, cacheStorageImpl: ICacheStorage) {
+    constructor(accountObj: Account, clientId: string, cacheStorageImpl: ICacheStorage) {
         this.cacheStorage = cacheStorageImpl;
         this.account = accountObj;
+        this.clientId = clientId;
     }
 
     private parseErrorInHash(errCode: string, errDesc: string): AuthError {
@@ -75,12 +81,12 @@ export class HashParser {
 
             // Process id_token
             if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
-                this.parseIdTokenFromHash(hashParams, response, responseState);
+                response = this.parseIdTokenFromHash(hashParams, response, responseState);
             }
 
             // Process access_token
             if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
-                this.parseAccessTokenFromHash(hashParams, response, responseState);
+                response = this.parseAccessTokenFromHash(hashParams, response, responseState);
             }
         }
         // State mismatch - unexpected/invalid state
@@ -96,11 +102,12 @@ export class HashParser {
     private parseIdTokenFromHash(hashParams: any, response: AuthResponse, responseState: ResponseStateInfo): AuthResponse {
         // this.logger.info("Fragment has id token");
         let clientInfo: string;
-        
-        // set the idToken
-        let idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
+        let authResponse = { ...response };
 
-        response = this.setResponseIdToken(response, idTokenObj);
+        // set the idToken
+        const idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
+
+        authResponse = this.setResponseIdToken(authResponse, idTokenObj);
         if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
             // this.logger.warning("ClientInfo not received in the response from AAD");
             throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
@@ -110,7 +117,7 @@ export class HashParser {
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
 
         this.account = Account.createAccount(idTokenObj, new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO]));
-        response.account = this.account;
+        authResponse.account = this.account;
 
         if (idTokenObj && idTokenObj.nonce) {
             // check nonce integrity if idToken has nonce - throw an error if not matched
@@ -121,27 +128,28 @@ export class HashParser {
             }
             // Save the token
             else {
-                this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
+                this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
                 this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo);
 
                 // Save idToken as access token for app itself
-                this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+                this.saveToken(authResponse, authority, hashParams, clientInfo, idTokenObj);
             }
         } else {
             // this.logger.error("Invalid id_token received in the response");
             throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
         }
-        return response;
+        return authResponse;
     }
 
     private parseAccessTokenFromHash(hashParams: any, response: AuthResponse, responseState: ResponseStateInfo): AuthResponse {
         // this.logger.info("Fragment has access token");
-        let clientInfo: string;
-        
-        // set the idToken
-        let idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
+        let authResponse = { ...response };
 
-        response = this.setResponseIdToken(response, idTokenObj);
+        // set the idToken
+        const idTokenStr = authResponse.idToken ? authResponse.idToken : this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const idTokenObj = new IdToken(idTokenStr);
+
+        authResponse = this.setResponseIdToken(authResponse, idTokenObj);
         if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
             // this.logger.warning("ClientInfo not received in the response from AAD");
             throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
@@ -151,11 +159,11 @@ export class HashParser {
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
 
         this.account = Account.createAccount(idTokenObj, new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO]));
-        response.account = this.account;
+        authResponse.account = this.account;
 
         let accountKey: string;
-        if (response.account && !StringUtils.isEmpty(response.account.homeAccountIdentifier)) {
-            accountKey = response.account.homeAccountIdentifier;
+        if (authResponse.account && !StringUtils.isEmpty(authResponse.account.homeAccountIdentifier)) {
+            accountKey = authResponse.account.homeAccountIdentifier;
         }
         else {
             accountKey = Constants.NO_ACCOUNT;
@@ -170,8 +178,8 @@ export class HashParser {
         // Check with the account in the Cache
         if (!StringUtils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
-            if (response.account && acquireTokenAccount && Account.compareAccounts(response.account, acquireTokenAccount)) {
-                response = this.saveAccessToken(response, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
+            if (authResponse.account && acquireTokenAccount && Account.compareAccounts(authResponse.account, acquireTokenAccount)) {
+                authResponse = this.saveToken(authResponse, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
                 // this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
             else {
@@ -179,9 +187,9 @@ export class HashParser {
             }
         }
         else if (!StringUtils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
-            response = this.saveAccessToken(response, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
+            authResponse = this.saveToken(authResponse, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
         }
-        return response;
+        return authResponse;
     }
 
     parseResponseFromHash(hashString: UrlString, responseState: ResponseStateInfo): AuthResponse {
@@ -192,7 +200,7 @@ export class HashParser {
 
         // If server returns an error
         if (hashParams.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) || hashParams.hasOwnProperty(ServerHashParamKeys.ERROR)) {
-            error = this.parseErrorInHash(hashParams[ServerHashParamKeys.ERROR], hashParams[ServerHashParamKeys.ERROR_DESCRIPTION], responseState);
+            error = this.parseErrorInHash(hashParams[ServerHashParamKeys.ERROR], hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
         }
         // If the server returns "Success"
         else {
@@ -232,19 +240,54 @@ export class HashParser {
      * @private
      */
     /* tslint:disable:no-string-literal */
-    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
+    private saveToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
         let scope: string;
         const accessTokenResponse = { ...response };
         const clientObj: ClientInfo = new ClientInfo(clientInfo);
         let expiration: number;
+        const accessTokenString = parameters[ServerHashParamKeys.ACCESS_TOKEN];
+        const expiresInStr = parameters[ServerHashParamKeys.EXPIRES_IN];
 
         // if the response contains "scope"
         if (parameters.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
+            scope = parameters[ServerHashParamKeys.SCOPE];
+            const consentedScopes = scope.split(" ");
+            
+            // retrieve all access tokens from the cache, remove the dupe tokens
+            const accessTokenCacheItems = CacheUtils.getAllAccessTokens(this.cacheStorage, this.clientId, authority);
 
+            for (let i = 0; i < accessTokenCacheItems.length; i++) {
+                const cacheItem = accessTokenCacheItems[i];
+
+                if (cacheItem.key.homeAccountIdentifier === response.account.homeAccountIdentifier) {
+                    const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.clientId, false);
+                    if (cachedScopes.intersectingScopeSets(consentedScopes)) {
+                        this.cacheStorage.removeItem(JSON.stringify(cacheItem.key));
+                    }
+                }
+            }
+
+            // Generate and cache access token key and value
+            expiration = TimeUtils.now() + TimeUtils.parseExpiresIn(expiresInStr);
+            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+            const accessTokenValue = new AccessTokenValue(accessTokenString, idTokenObj.rawIdToken, expiration.toString(), clientInfo);
+
+            this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            accessTokenResponse.accessToken = accessTokenString;
+            accessTokenResponse.scopes = consentedScopes;
         }
         // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
         else {
+            scope = this.clientId;
 
+            // Generate and cache access token key and value
+            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+            expiration = expiresInStr ? TimeUtils.now() + TimeUtils.parseExpiresIn(expiresInStr) : Number(idTokenObj.expiration);
+            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo);
+            this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenResponse.scopes = [scope];
+            accessTokenResponse.idToken = parameters[ServerHashParamKeys.ID_TOKEN];
         }
 
         if (expiration) {

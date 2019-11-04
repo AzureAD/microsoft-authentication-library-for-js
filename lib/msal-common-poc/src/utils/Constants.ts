@@ -88,7 +88,7 @@ export enum TemporaryCacheKeys {
 };
 
 export enum PersistentCacheKeys {
-    IDTOKEN = "idtoken",
+    ID_TOKEN = "idtoken",
     CLIENT_INFO = "client.info",
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",

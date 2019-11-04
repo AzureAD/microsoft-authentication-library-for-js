@@ -13,7 +13,7 @@ import { IXhrClient } from "../network/IXHRClient";
 import { XhrClient } from "../network/XHRClient";
 
 // Cache
-import { CacheManager } from "../cache/CacheManager";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
 // Errors
 import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
@@ -65,7 +65,7 @@ export class UserAgentApplication {
     private interactionInProgress: boolean;
 
     // Cache manager
-    private cacheMgr: CacheManager;
+    private cacheStorage: BrowserStorage;
 
     // Network Client
     private networkClient: IXhrClient;
@@ -96,7 +96,7 @@ export class UserAgentApplication {
         this.config = buildConfiguration(configuration);
 
         // Create browser storage
-        this.cacheMgr = new CacheManager(this.config.auth.clientId, this.config.cache);
+        this.cacheStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Initialize the network module
         this.networkClient = new XhrClient();
@@ -104,7 +104,7 @@ export class UserAgentApplication {
         // Create the auth module
         this.authModule = new msalAuth.ImplicitAuthModule({ 
             auth: this.config.auth,
-            storageInterface: this.cacheMgr.storage,
+            storageInterface: this.cacheStorage,
             networkInterface: {
                 sendRequestAsync: this.networkClient.sendRequestAsync
             }
@@ -139,7 +139,7 @@ export class UserAgentApplication {
 
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular) {
-            const cachedHash = this.cacheMgr.storage.getItem(msalAuth.TemporaryCacheKeys.URL_HASH);
+            const cachedHash = this.cacheStorage.getItem(msalAuth.TemporaryCacheKeys.URL_HASH);
             if (cachedHash) {
                 this.processCallback(cachedHash);
             }
@@ -194,7 +194,7 @@ export class UserAgentApplication {
         const urlHash = window.location.hash;
         const urlIsKnownHash = msalAuth.UrlString.hashContainsKnownProperties(urlHash);
 
-        if (this.config.framework.isAngular && urlIsKnownHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
+        if (!this.config.framework.isAngular && urlIsKnownHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
             this.handleAuthenticationResponse(urlHash);
         }
     }
@@ -207,7 +207,8 @@ export class UserAgentApplication {
 
         // if navigateToLoginRequestUrl is set to true, msal will navigate before processing hash (only for redirect cases)
         if (this.config.auth.navigateToLoginRequestUrl) {
-            // TODO: set hash to cache
+            // Set hash to cache
+            this.cacheStorage.setItem(msalAuth.TemporaryCacheKeys.URL_HASH, locationHash);
             if (window.parent === window) {
                 // TODO: Set window to url from cache
             }
@@ -219,7 +220,8 @@ export class UserAgentApplication {
 
         if (!this.redirectCallbacksSet) {
             // We reached this point too early, return and processCallback in handleRedirectCallbacks
-            // TODO: Set hash to cache
+            // Set hash to cache
+            this.cacheStorage.setItem(msalAuth.TemporaryCacheKeys.URL_HASH, locationHash);
             return;
         }
 
@@ -238,10 +240,10 @@ export class UserAgentApplication {
         }
 
         if (authErr) {
-            this.authCallback(null, response);
-        } else {
             const responseState = this.authModule.extractResponseState(hash);
             this.authCallback(authErr, msalAuth.buildResponseStateOnly(responseState.state));
+        } else {
+            this.authCallback(null, response);
         }
     }
 }

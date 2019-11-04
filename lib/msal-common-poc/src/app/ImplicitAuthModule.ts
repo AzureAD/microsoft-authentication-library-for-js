@@ -29,6 +29,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { AuthError } from "../error/AuthError";
+import { HashParser } from "./HashParser";
 
 /**
  * @hidden
@@ -158,10 +159,11 @@ export class ImplicitAuthModule {
      * @param hash 
      */
     handleResponse(hash: string): AuthResponse {
-        let hashString = new UrlString(hash);
-        let responseState = this.extractResponseState(hash);
+        const hashString = new UrlString(hash);
+        const responseState = this.extractResponseState(hash);
 
-        return null;
+        const responseHandler = new HashParser(this.getAccount(), this.config.auth.clientId, this.cacheStorage);
+        return responseHandler.parseResponseFromHash(hashString, responseState);
     }
 
     /**
@@ -233,7 +235,7 @@ export class ImplicitAuthModule {
         }
 
         // frame is used to get idToken and populate the account for the given session
-        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.IDTOKEN);
+        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
         const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
 
         if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
