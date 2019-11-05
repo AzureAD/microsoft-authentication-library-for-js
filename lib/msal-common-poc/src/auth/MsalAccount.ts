@@ -18,7 +18,7 @@ import { StringDict } from "../app/MsalTypes";
  * sid                     idToken.sid - session identifier
  * environment             idtoken.issuer (the authority that issues the token)
  */
-export class Account {
+export class MsalAccount {
 
     accountIdentifier: string;
     homeAccountIdentifier: string;
@@ -56,7 +56,7 @@ export class Account {
      * @param idToken
      * @param clientInfo
      */
-    static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo): MsalAccount {
 
         // create accountIdentifier
         const accountIdentifier: string = idToken.objectId ||  idToken.subject;
@@ -69,7 +69,7 @@ export class Account {
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
-        return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
+        return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
 
     /**
@@ -78,7 +78,7 @@ export class Account {
      * @param a1: Account object
      * @param a2: Account object
      */
-    static compareAccounts(a1: Account, a2: Account): boolean {
+    static compareAccounts(a1: MsalAccount, a2: MsalAccount): boolean {
         if (!a1 || !a2) {
             return false;
         }

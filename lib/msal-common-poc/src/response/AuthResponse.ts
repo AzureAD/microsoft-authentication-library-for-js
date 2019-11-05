@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Account } from "../auth/Account";
+import { MsalAccount } from "../auth/MsalAccount";
 import { IdToken } from "../auth/IdToken";
 import { StringDict } from "../app/MsalTypes";
 
@@ -16,7 +16,7 @@ export type AuthResponse = {
     accessToken: string;
     scopes: Array<string>;
     expiresOn: Date;
-    account: Account;
+    account: MsalAccount;
     state: string;
 };
 

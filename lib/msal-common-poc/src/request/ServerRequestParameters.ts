@@ -4,7 +4,7 @@
  */
 
 import { Authority } from "../auth/authority/Authority";
-import { Account } from "../auth/Account";
+import { MsalAccount } from "../auth/MsalAccount";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
@@ -34,7 +34,7 @@ export class ServerRequestParameters {
     xClientSku: string;
     correlationId: string;
     
-    constructor(authority: Authority, clientId: string, request: AuthenticationParameters, isLoginCall: boolean, isSilentRequest: boolean, cachedAccount: Account, redirectUri: string) {
+    constructor(authority: Authority, clientId: string, request: AuthenticationParameters, isLoginCall: boolean, isSilentRequest: boolean, cachedAccount: MsalAccount, redirectUri: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
 
@@ -73,7 +73,7 @@ export class ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    isSSOParam(account: Account) {
+    isSSOParam(account: MsalAccount) {
         const isSSORequest = this.request && (this.request.account || this.request.sid || this.request.loginHint);
         return account || isSSORequest;
     }
@@ -204,8 +204,8 @@ export class ServerRequestParameters {
      * @param matchingAccount 
      * @param silentCall 
      */
-    private getResponseType(cachedAccount: Account, isLoginCall: boolean, silentCall: boolean) {
-        const matchingAccount = Account.compareAccounts(this.request.account, cachedAccount);
+    private getResponseType(cachedAccount: MsalAccount, isLoginCall: boolean, silentCall: boolean) {
+        const matchingAccount = MsalAccount.compareAccounts(this.request.account, cachedAccount);
         // if account is passed and matches the account object set to getAccount() from cache
         if (!matchingAccount || !this.request.account || !cachedAccount) {
             return silentCall && isLoginCall ? ResponseTypes.id_token : ResponseTypes.id_token_token;
@@ -232,7 +232,7 @@ export class ServerRequestParameters {
         // if account info is passed, account.sid > account.login_hint
         if (this.request) {
             if (this.request.account) {
-                const account: Account = this.request.account;
+                const account: MsalAccount = this.request.account;
                 if (account.sid) {
                     ssoType = SSOTypes.SID;
                     ssoData = account.sid;

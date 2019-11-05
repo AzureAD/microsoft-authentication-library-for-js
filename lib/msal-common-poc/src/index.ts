@@ -1,5 +1,5 @@
 // App Auth Module and Configuration
-export { ImplicitAuthModule } from "./app/ImplicitAuthModule";
+export { ImplicitAuthModule } from "./app/module/ImplicitAuthModule";
 export { MsalConfiguration } from "./app/MsalConfiguration";
 // Authority
 export { Authority } from "./auth/authority/Authority";

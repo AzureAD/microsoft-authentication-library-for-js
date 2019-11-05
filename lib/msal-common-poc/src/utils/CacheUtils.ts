@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Account } from "../auth/Account";
+import { MsalAccount } from "../auth/MsalAccount";
 import { Constants, TemporaryCacheKeys } from "./Constants";
 import { Authority } from "../auth/authority/Authority";
 import { ServerRequestParameters } from "../request/ServerRequestParameters";
@@ -41,7 +41,7 @@ export class CacheUtils {
      * @param state
      * @hidden
      */
-    static setAccountCache(cacheStorage: ICacheStorage, account: Account, state: string) {
+    static setAccountCache(cacheStorage: ICacheStorage, account: MsalAccount, state: string) {
         // Cache acquireTokenAccountKey
         const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
 
@@ -71,7 +71,7 @@ export class CacheUtils {
      * @hidden
      * @ignore
      */
-    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
+    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ServerRequestParameters, account: MsalAccount, loginStartPage?: any) {
         // Cache account and authority
         if (loginStartPage) {
             // Cache the state, nonce, and login request data

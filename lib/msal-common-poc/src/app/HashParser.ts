@@ -1,11 +1,11 @@
 // App
 import { ICacheStorage } from "../cache/ICacheStorage";
-import { ResponseStateInfo } from "./ImplicitAuthModule";
+import { ResponseStateInfo } from "./module/ImplicitAuthModule";
 // Auth
 import { UrlString } from "../url/UrlString";
 import { IdToken } from "../auth/IdToken";
 import { ClientInfo } from "../auth/ClientInfo";
-import { Account } from "../auth/Account";
+import { MsalAccount } from "../auth/MsalAccount";
 // Utils
 import { StringUtils } from "../utils/StringUtils";
 import { ServerHashParamKeys, PersistentCacheKeys, Constants, TemporaryCacheKeys } from "../utils/Constants";
@@ -18,7 +18,6 @@ import { ServerError } from "../error/ServerError";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { CacheUtils } from "../utils/CacheUtils";
 import { ScopeSet } from "../auth/ScopeSet";
-import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
@@ -31,10 +30,10 @@ import { AccessTokenValue } from "../cache/AccessTokenValue";
 export class HashParser {
 
     private cacheStorage: ICacheStorage;
-    private account: Account;
+    private account: MsalAccount;
     private clientId: string;
 
-    constructor(accountObj: Account, clientId: string, cacheStorageImpl: ICacheStorage) {
+    constructor(accountObj: MsalAccount, clientId: string, cacheStorageImpl: ICacheStorage) {
         this.cacheStorage = cacheStorageImpl;
         this.account = accountObj;
         this.clientId = clientId;
@@ -116,7 +115,7 @@ export class HashParser {
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
 
-        this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
+        this.account = MsalAccount.createAccount(idTokenObj, new ClientInfo(clientInfo));
         authResponse.account = this.account;
 
         if (idTokenObj && idTokenObj.nonce) {
@@ -158,7 +157,7 @@ export class HashParser {
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
 
-        this.account = Account.createAccount(idTokenObj, new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO]));
+        this.account = MsalAccount.createAccount(idTokenObj, new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO]));
         authResponse.account = this.account;
 
         let accountKey: string;
@@ -173,12 +172,12 @@ export class HashParser {
         const acquireTokenAccountKey_noaccount = CacheUtils.generateAcquireTokenAccountKey(Constants.NO_ACCOUNT, responseState.state);
 
         const cachedAccount: string = this.cacheStorage.getItem(acquireTokenAccountKey);
-        let acquireTokenAccount: Account;
+        let acquireTokenAccount: MsalAccount;
 
         // Check with the account in the Cache
         if (!StringUtils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
-            if (authResponse.account && acquireTokenAccount && Account.compareAccounts(authResponse.account, acquireTokenAccount)) {
+            if (authResponse.account && acquireTokenAccount && MsalAccount.compareAccounts(authResponse.account, acquireTokenAccount)) {
                 authResponse = this.saveToken(authResponse, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
                 // this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
@@ -232,7 +231,7 @@ export class HashParser {
      * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
      * @param {string} authority authority received in the redirect response from AAD.
      * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-     * @param {Account} account account object for which scopes are consented for. The default account is the logged in account.
+     * @param {MsalAccount} account account object for which scopes are consented for. The default account is the logged in account.
      * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
      * @param {IdToken} idToken idToken received as part of the response.
      * @ignore

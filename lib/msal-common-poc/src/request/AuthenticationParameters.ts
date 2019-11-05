@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Account } from "../auth/Account";
+import { MsalAccount } from "../auth/MsalAccount";
 import { StringDict } from "../app/MsalTypes";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
@@ -19,7 +19,7 @@ export type AuthenticationParameters = {
     authority?: string;
     state?: string;
     correlationId?: string;
-    account?: Account;
+    account?: MsalAccount;
     sid?: string;
     loginHint?: string;
     forceRefresh?: boolean;
