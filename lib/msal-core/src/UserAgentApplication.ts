@@ -1427,7 +1427,7 @@ export class UserAgentApplication {
             const hashErrDesc = hashParams[ServerHashParamKeys.ERROR_DESCRIPTION];
 
             if (InteractionRequiredAuthError.isInteractionRequiredError(hashErr) || 
-                InteractionRequiredAuthError.isInteractionRequiredError(hashErrorDesc)) {
+                InteractionRequiredAuthError.isInteractionRequiredError(hashErrDesc)) {
                 error = new InteractionRequiredAuthError(hashErr, hashErrDesc);
             } else {
                 error = new ServerError(hashErr, hashErrDesc);
