@@ -44,7 +44,7 @@
     };
 
     // instantiate MSAL
-    const myMSALObj = new Msal.UserAgentApplication(msalConfig);
+    const myMSALObj = new Msal.PublicClientApplication(msalConfig);
 
     // register callback for redirect usecases
     myMSALObj.handleRedirectCallback(authRedirectCallBack);

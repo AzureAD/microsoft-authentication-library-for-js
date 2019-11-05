@@ -5,8 +5,19 @@
 
 // app
 import { MsalConfiguration } from "../MsalConfiguration";
+// authority
+import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
+// request
+import { AuthenticationParameters } from "../../request/AuthenticationParameters";
+import { ServerRequestParameters } from "../../request/server_request/ServerRequestParameters";
+// response
+import { AuthResponse } from "../../response/AuthResponse";
+// utils
+import { UrlString } from "../../url/UrlString";
+import { HashParser } from "../HashParser";
+import { CacheUtils } from "../../utils/CacheUtils";
 import { AuthModule } from "./AuthModule";
-
+import { CryptoUtils } from "../../utils/CryptoUtils";
 
 /**
  * @hidden
@@ -30,15 +41,17 @@ export class CodeAuthModule extends AuthModule {
         super(configuration);
     }
 
-    createLoginUrl(request: import("../..").AuthenticationParameters): Promise<string> {
+    async createLoginUrl(request: import("../..").AuthenticationParameters): Promise<string> {
+        const pkceCodes = await CryptoUtils.generatePKCECodes();
+        console.log(`PKCE Codes: ${JSON.stringify(pkceCodes)}`);
+        return null;
+    }
+
+    async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }
 
-    createAcquireTokenUrl(request: import("../..").AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
-    }
-
-    handleResponse(hash: string): import("../..").AuthResponse {
+    handleResponse(hash: string): AuthResponse {
         throw new Error("Method not implemented.");
     }
 

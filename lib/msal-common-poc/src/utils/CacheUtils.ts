@@ -6,7 +6,7 @@
 import { MsalAccount } from "../auth/MsalAccount";
 import { Constants, TemporaryCacheKeys } from "./Constants";
 import { Authority } from "../auth/authority/Authority";
-import { ServerRequestParameters } from "../request/ServerRequestParameters";
+import { ServerRequestParameters } from "../request/server_request/ServerRequestParameters";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 

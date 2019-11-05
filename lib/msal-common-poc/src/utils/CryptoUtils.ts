@@ -1,7 +1,19 @@
+import { ClientAuthError } from "../error/ClientAuthError";
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
+/**
+ * The PKCECodes type describes the structure
+ * of objects that contain PKCE code
+ * challenge and verifier pairs
+ */
+export type PKCECodes = {
+    verifier: string,
+    challenge: string
+};
 
 /**
  * @hidden
@@ -154,4 +166,61 @@ export class CryptoUtils {
         return obj;
     }
 
+    static async generatePKCECodes(): Promise<PKCECodes> {
+        const codeVerifier = this.generateCodeVerifier();
+        const codeChallenge = await this.generateCodeChallengeFromVerifier(codeVerifier);
+        return {
+            verifier: codeVerifier,
+            challenge: codeChallenge
+        };
+    }
+
+    /**
+     * Generates a random 32 byte buffer and returns the base64
+     * encoded string to be used as a PKCE Code Verifier
+     */
+    private static generateCodeVerifier(): string {
+        const cryptoObj: Crypto = window.crypto;
+        if (cryptoObj && cryptoObj.getRandomValues) {
+            // Generate random values as utf-8
+            const buffer: Uint8Array = new Uint8Array(32);
+            cryptoObj.getRandomValues(buffer);
+            console.log("Verifier rands: " + JSON.stringify(buffer));
+            // verifier as byte array
+            encodeURIComponent(buffer);
+            const pkceCodeVerifierArray = Array.from(buffer);
+            console.log("Verifier arr: " + JSON.stringify(pkceCodeVerifierArray));
+            // verifier as string
+            const pkceCodeVerifierString = pkceCodeVerifierArray.map(byte => String.fromCharCode(byte)).join("");
+            console.log("Verifier string: " + JSON.stringify(pkceCodeVerifierString));
+            // encode verifier as base64
+            const pkceCodeVerifierB64: string = CryptoUtils.base64Encode(pkceCodeVerifierString);
+            return pkceCodeVerifierB64;
+        } else {
+            throw ClientAuthError.createPKCENotGeneratedError(`window.crypto or getRandomValues does not exist. Crypto object: ${cryptoObj}`);
+        }
+    }
+
+    /**
+     * Creates a base64 encoded PKCE Code Challenge string from the
+     * hash created from the PKCE Code Verifier supplied
+     */
+    private static async generateCodeChallengeFromVerifier(pkceCodeVerifier: string): Promise<string> {
+        const cryptoObj: Crypto = window.crypto;
+        if (cryptoObj && cryptoObj.subtle) {
+            // encode verifier as utf-8
+            const pkceCodeVerifierUtf8 = new TextEncoder().encode(pkceCodeVerifier);
+            // hashed verifier
+            const pkceHashedCodeVerifier: ArrayBuffer = await cryptoObj.subtle.digest("SHA-256", pkceCodeVerifierUtf8);
+            // hash as byte array
+            const pkceHashedCVArray = Array.from(new Uint8Array(pkceHashedCodeVerifier));
+            // hash as string
+            const pkceHashedCVString = pkceHashedCVArray.map(byte => String.fromCharCode(byte)).join("");
+            // encode hash as base64
+            const pkceCodeChallenge: string = CryptoUtils.base64Encode(pkceHashedCVString);
+            return pkceCodeChallenge;
+        } else {
+            throw ClientAuthError.createPKCENotGeneratedError(`window.crypto or window.crypto.subtle does not exist. Crypto object: ${cryptoObj}`);
+        }
+    }
 }

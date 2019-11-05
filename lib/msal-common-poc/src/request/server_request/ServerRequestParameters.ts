@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { Authority } from "../auth/authority/Authority";
-import { MsalAccount } from "../auth/MsalAccount";
-import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
-import { CryptoUtils } from "../utils/CryptoUtils";
-import { StringUtils } from "../utils/StringUtils";
-import { ResponseTypes, PromptState, SSOTypes, BlacklistedEQParams, Constants } from "../utils/Constants";
-import { ScopeSet } from "../auth/ScopeSet";
-import { StringDict } from "../app/MsalTypes";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { Authority } from "../../auth/authority/Authority";
+import { MsalAccount } from "../../auth/MsalAccount";
+import { AuthenticationParameters, validateClaimsRequest } from "../AuthenticationParameters";
+import { CryptoUtils } from "../../utils/CryptoUtils";
+import { StringUtils } from "../../utils/StringUtils";
+import { ResponseTypes, PromptState, SSOTypes, BlacklistedEQParams, Constants } from "../../utils/Constants";
+import { ScopeSet } from "../../auth/ScopeSet";
+import { StringDict } from "../../app/MsalTypes";
+import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 
 export class ServerRequestParameters {
 

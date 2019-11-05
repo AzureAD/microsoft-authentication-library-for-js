@@ -93,7 +93,7 @@ export abstract class AuthModule {
      * @returns {TokenResponse} an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
      * @ignore
      */
-    protected extractResponseState(hash: string): ResponseStateInfo {
+    extractResponseState(hash: string): ResponseStateInfo {
         const hashString = new UrlString(hash);
         const parameters = hashString.getDeserializedHash();
         let responseState: ResponseStateInfo;

@@ -6,7 +6,7 @@
 import { AuthorityConstants, ServerHashParamKeys } from "../utils/Constants";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerRequestParameters } from "../request/ServerRequestParameters";
+import { ServerRequestParameters } from "../request/server_request/ServerRequestParameters";
 import { IUri } from "./IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 

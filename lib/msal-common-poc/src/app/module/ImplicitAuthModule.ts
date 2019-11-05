@@ -9,7 +9,7 @@ import { MsalConfiguration } from "../MsalConfiguration";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-import { ServerRequestParameters } from "../../request/ServerRequestParameters";
+import { ServerRequestParameters } from "../../request/server_request/ServerRequestParameters";
 // response
 import { AuthResponse } from "../../response/AuthResponse";
 // utils
