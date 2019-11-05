@@ -101,11 +101,11 @@ export class HashParser {
 
     private parseIdTokenFromHash(hashParams: any, response: AuthResponse, responseState: ResponseStateInfo): AuthResponse {
         // this.logger.info("Fragment has id token");
-        let clientInfo: string;
         let authResponse = { ...response };
 
         // set the idToken
         const idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
+        const clientInfo: string = hashParams[ServerHashParamKeys.CLIENT_INFO];
 
         authResponse = this.setResponseIdToken(authResponse, idTokenObj);
         if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
@@ -116,7 +116,7 @@ export class HashParser {
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
 
-        this.account = Account.createAccount(idTokenObj, new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO]));
+        this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
         authResponse.account = this.account;
 
         if (idTokenObj && idTokenObj.nonce) {
@@ -211,11 +211,10 @@ export class HashParser {
             }
         }
 
-        // Set status to completed
-        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-        this.cacheStorage.removeItem(TemporaryCacheKeys.RENEW_STATUS + responseState.state);
+        // Remove all temp cache entries for this request
         CacheUtils.removeAcquireTokenEntries(this.cacheStorage, responseState.state);
 
+        // Return result
         if (error) {
             throw error;
         }

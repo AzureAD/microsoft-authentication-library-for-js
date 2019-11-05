@@ -30,6 +30,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { AuthError } from "../error/AuthError";
 import { HashParser } from "./HashParser";
+import { CacheUtils } from "../utils/CacheUtils";
 
 /**
  * @hidden
@@ -137,7 +138,7 @@ export class ImplicitAuthModule {
         const loginStartPage = window.location.href;
 
         // Update entries for start of request event
-        // this.updateCacheEntries(serverRequestParameters, request.account, loginStartPage);
+        CacheUtils.updateCacheEntries(this.cacheStorage, serverRequestParameters, request.account, loginStartPage);
 
         // populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
         serverRequestParameters.populateQueryParams();

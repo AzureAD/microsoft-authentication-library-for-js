@@ -210,7 +210,8 @@ export class UserAgentApplication {
             // Set hash to cache
             this.cacheStorage.setItem(msalAuth.TemporaryCacheKeys.URL_HASH, locationHash);
             if (window.parent === window) {
-                // TODO: Set window to url from cache
+                // Set window to url from cache
+                window.location.replace(this.cacheStorage.getItem(msalAuth.TemporaryCacheKeys.ORIGIN_URI));
             }
             return;
         }
@@ -233,14 +234,17 @@ export class UserAgentApplication {
     private processCallback(hash: string) {
         let response: msalAuth.AuthResponse;
         let authErr: msalAuth.AuthError;
+        const responseState = this.authModule.extractResponseState(hash);
         try {
             response = this.authModule.handleResponse(hash);
         } catch (err) {
             authErr = err;
         }
 
+        this.cacheStorage.clearMsalCookie(responseState.state);
+
         if (authErr) {
-            const responseState = this.authModule.extractResponseState(hash);
+            
             this.authCallback(authErr, msalAuth.buildResponseStateOnly(responseState.state));
         } else {
             this.authCallback(null, response);

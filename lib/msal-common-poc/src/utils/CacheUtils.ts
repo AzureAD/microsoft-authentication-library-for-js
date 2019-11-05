@@ -75,7 +75,7 @@ export class CacheUtils {
         // Cache account and authority
         if (loginStartPage) {
             // Cache the state, nonce, and login request data
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_URI, loginStartPage);
+            cacheStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, loginStartPage);
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
         } else {
             CacheUtils.setAccountCache(cacheStorage, account, serverAuthenticationRequest.state);
@@ -113,26 +113,27 @@ export class CacheUtils {
      * @param state
      */
     static removeAcquireTokenEntries(cacheStorage: ICacheStorage, state?: string): void {
-        let key: string;
-        for (key in cacheStorage.getKeys()) {
-            if (cacheStorage.containsKey(key)) {
-                if ((key.indexOf(TemporaryCacheKeys.AUTHORITY) !== -1 || key.indexOf(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || key.indexOf(state) !== -1)) {
-                    const resourceDelimSplitKey = key.split(Constants.RESOURCE_DELIM);
+        cacheStorage.removeItem(TemporaryCacheKeys.URL_HASH);
+        cacheStorage.getKeys().forEach((cacheKey, index) => {
+            if (cacheStorage.containsKey(cacheKey)) {
+                if ((cacheKey.indexOf(TemporaryCacheKeys.AUTHORITY) !== -1 || cacheKey.indexOf(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1) && (!state || cacheKey.indexOf(state) !== -1)) {
+                    console.log("Deleting " + cacheKey);
+                    const resourceDelimSplitKey = cacheKey.split(Constants.RESOURCE_DELIM);
                     let keyState;
                     if (resourceDelimSplitKey.length > 1) {
                         keyState = resourceDelimSplitKey[resourceDelimSplitKey.length-1];
                     }
                     if (keyState === state && !CacheUtils.tokenRenewalInProgress(cacheStorage, keyState)) {
-                        cacheStorage.removeItem(key);
+                        cacheStorage.removeItem(cacheKey);
                         cacheStorage.removeItem(TemporaryCacheKeys.RENEW_STATUS + state);
                         cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
-                        cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_URI);
+                        cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
                         cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
                         cacheStorage.removeItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
                     }
                 }
             }
-        }
+        });
     }
 
     /**
@@ -142,5 +143,18 @@ export class CacheUtils {
     static tokenRenewalInProgress(cacheStorage: ICacheStorage, stateValue: string): boolean {
         const renewStatus = cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
         return !!(renewStatus && renewStatus === Constants.INTERACTION_IN_PROGRESS);
+    }
+
+    private isAcquireTokenEntry(cacheKey: string, state: string): boolean {
+        return (
+            (
+                cacheKey.indexOf(TemporaryCacheKeys.AUTHORITY) !== -1 
+                || cacheKey.indexOf(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1
+            ) 
+            &&
+            (
+                !state || cacheKey.indexOf(state) !== -1
+            )
+        );
     }
 }

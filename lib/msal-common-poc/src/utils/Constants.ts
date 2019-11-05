@@ -80,7 +80,7 @@ export enum TemporaryCacheKeys {
     SESSION_STATE = "session.state",
     REQUEST_STATE = "state.request",
     NONCE_IDTOKEN = "nonce.idtoken",
-    REQUEST_URI = "login.request",
+    ORIGIN_URI = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     ANGULAR_LOGIN_REQUEST = "angular.login.request",
@@ -93,7 +93,7 @@ export enum PersistentCacheKeys {
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
     ERROR_DESC = "error.description"
-}
+};
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of

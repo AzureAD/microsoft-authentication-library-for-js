@@ -114,12 +114,18 @@ export class BrowserStorage implements ICacheStorage {
             this.windowStorage.removeItem(this.generateCacheKey(key, false));
         }
         if (enableCookieStorage) {
-            this.setItemCookie(key, "", -1);
+            this.clearItemCookie(key);
         }
     }
 
     clear(): void {
-        this.resetCacheItems();
+        let key: string;
+        for (key in this.windowStorage) {
+            // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
+            if (this.windowStorage.hasOwnProperty(key) && (key.indexOf(Constants.CACHE_PREFIX) !== -1) && (key.indexOf(this.clientId) !== -1)) {
+                this.removeItem(key);
+            }
+        }
     }
 
     containsKey(key: string): boolean {
@@ -127,21 +133,8 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     getKeys(): string[] {
+        console.log(Object.keys(this.windowStorage));
         return Object.keys(this.windowStorage);
-    }
-
-    /**
-     * Reset the cache items relating to the current state, or all msal items.
-     */
-    resetCacheItems(state?: string): void {
-        let key: string;
-        for (key in this.windowStorage) {
-            // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
-            if (this.windowStorage.hasOwnProperty(key) && (key.indexOf(Constants.CACHE_PREFIX) !== -1)) {
-                this.removeItem(key);
-                // TODO: Clear cache based on client id (clarify use cases where this is needed)
-            }
-        }
     }
 
     /**
@@ -194,7 +187,7 @@ export class BrowserStorage implements ICacheStorage {
         const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
         this.clearItemCookie(nonceKey);
         this.clearItemCookie(TemporaryCacheKeys.REQUEST_STATE);
-        this.clearItemCookie(TemporaryCacheKeys.REQUEST_URI);
+        this.clearItemCookie(TemporaryCacheKeys.ORIGIN_URI);
     }
 
     /**
