@@ -11,6 +11,7 @@ import {
 
 // If you support IE, our recommendation is that you sign-in using Redirect APIs
 const useRedirectFlow = isIE();
+// const useRedirectFlow = true;
 
 export default C =>
     class AuthProvider extends Component {
@@ -58,21 +59,31 @@ export default C =>
 
                 const tokenResponse = await this.acquireToken(
                     GRAPH_REQUESTS.LOGIN
-                );
-
-                const graphProfile = await fetchMsGraph(
-                    GRAPH_ENDPOINTS.ME,
-                    tokenResponse.accessToken
-                ).catch(() => {
+                ).catch(error => {
                     this.setState({
-                        error: "Unable to fetch Graph profile."
+                        error: error.message
                     });
                 });
 
-                if (graphProfile) {
-                    this.setState({
-                        graphProfile
+                if (tokenResponse) {
+                    const graphProfile = await fetchMsGraph(
+                        GRAPH_ENDPOINTS.ME,
+                        tokenResponse.accessToken
+                    ).catch(() => {
+                        this.setState({
+                            error: "Unable to fetch Graph profile."
+                        });
                     });
+
+                    if (graphProfile) {
+                        this.setState({
+                            graphProfile
+                        });
+                    }
+
+                    if (tokenResponse.scopes.indexOf(GRAPH_SCOPES.MAIL_READ) > 0) {
+                        return this.readMail(tokenResponse.accessToken);
+                    }
                 }
             }
         }
@@ -153,7 +164,7 @@ export default C =>
                         });
                     }
 
-                    if (tokenResponse.scopes.includes(GRAPH_SCOPES.MAIL_READ)) {
+                    if (tokenResponse.scopes.indexOf(GRAPH_SCOPES.MAIL_READ) > 0) {
                         return this.readMail(tokenResponse.accessToken);
                     }
                 }

@@ -4,10 +4,11 @@
  */
 
 import { IUri } from "../IUri";
-import { Constants, SSOTypes } from "./Constants";
+import { Constants, SSOTypes, ServerHashParamKeys } from "./Constants";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
+import { CryptoUtils } from "./CryptoUtils";
 
 /**
  * @hidden
@@ -217,5 +218,30 @@ export class UrlUtils {
             return urlStringOrFragment.substring(hashIndex1 + 1);
         }
         return urlStringOrFragment;
+    }
+
+    /**
+     * @hidden
+     * Check if the url contains a hash with known properties
+     * @ignore
+     */
+    static urlContainsHash(urlString: string): boolean {
+        const parameters = UrlUtils.deserializeHash(urlString);
+        return (
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ERROR) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)
+        );
+    }
+
+    /**
+     * @hidden
+     * Returns deserialized portion of URL hash
+     * @ignore
+     */
+    static deserializeHash(urlFragment: string) {
+        const hash = UrlUtils.getHashFromUrl(urlFragment);
+        return CryptoUtils.deserialize(hash);
     }
 }

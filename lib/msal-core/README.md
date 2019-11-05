@@ -11,15 +11,65 @@ The MSAL library for JavaScript enables client-side JavaScript web applications,
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
 
 ## Installation
-Via NPM:
+### Via NPM:
 
     npm install msal
 
-Via CDN:
+### Via Latest Microsoft CDN Version:
 
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.js"></script>
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.min.js"></script>
+#### Latest compiled and minified JavaScript
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js"></script>
+```
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js"></script>
+````
+
+#### Alternate region URLs
+```html
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.js"></script>
+```
+```html
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.min.js"></script>
+```
+
+### Via Latest Microsoft CDN Version (with SRI Hash):
+
+#### Latest compiled and minified JavaScript
+
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js" integrity="sha384-m/3NDUcz4krpIIiHgpeO0O8uxSghb+lfBTngquAo2Zuy2fEF+YgFeP08PWFo5FiJ" crossorigin="anonymous"></script>
+```
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-dA0Vw9s8Y8YiIYiE44WOORFrt3cwi0rYXwpetCRnFYziAtXEZ4miG8TMSGo8BIyL" crossorigin="anonymous"></script>
+```
+
+#### Alternate region URLs
+
+To help ensure reliability, Microsoft provides a second CDN:
+
+```html
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.js" integrity="sha384-m/3NDUcz4krpIIiHgpeO0O8uxSghb+lfBTngquAo2Zuy2fEF+YgFeP08PWFo5FiJ" crossorigin="anonymous"></script>
+```
+```html
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.1.3/js/msal.min.js" integrity="sha384-dA0Vw9s8Y8YiIYiE44WOORFrt3cwi0rYXwpetCRnFYziAtXEZ4miG8TMSGo8BIyL" crossorigin="anonymous"></script>
+```
+
+Below is an example of how to use one CDN as a fallback when the other CDN is not working:
+
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.1.3/js/msal.js"></script>
+<script type="text/javascript">
+    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.1.3/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
+</script>
+```
+
+**Note:** This method of using `document.write` may be blocked in certain browsers in certain situations. More information can be found [here](https://www.chromestatus.com/feature/5718547946799104).
+
+#### Notes:
+- [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) attributes are optional in the script tag.
+- All hashes are unique to the version of MSAL. You can find the previous hashes on the [MSAL Wiki page](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-JS-CDN-URL-and-SRI-Hash).
+- We recommend including the SRI Hash with all script tags when using `msal.js` or `msal.min.js` (including when using a third-party CDN). When providing the SRI Hash, you *must* also provide the `crossorigin="anonymous"` field in the same tag.
 
 Internet Explorer does not have native `Promise` support, and so you will need to include a polyfill for promises such as `bluebird`.
 
@@ -28,7 +78,7 @@ Internet Explorer does not have native `Promise` support, and so you will need t
 
 See here for more details on [supported browsers and known compatability issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs#q4-what-browsers-is-msaljs-supported-on).
 
-## Roadmap and What To Expect From This Library
+## What To Expect From This Library
 Msal support on Javascript is a collection of libraries. `msal-core` or just simply `msal`, is the framework agnostic core library. Once our core 1.x+ is stabilized, we are going to bring our `msal-angular` library with the latest 1.x improvements.  We are planning to deprecate support for `msal-angularjs` based on usage trends of the framework and the library indicating increased adoption of Angular 2+ instead of Angular 1x. After our current libraries are up to standards, we will begin balancing new feature requests, with new platforms such as `react` and `node.js`.
 
 Our goal is to communicate extremely well with the community and to take their opinions into account. We would like to get to a monthly minor release schedule, with patches comming as often as needed.  The level of communication, planning, and granularity we want to get to will be a work in progress.
@@ -65,7 +115,7 @@ After instantiating your instance, if you plan on using a redirect flow (`loginR
 ```JavaScript
     import * as Msal from "msal";
     // if using cdn version, 'Msal' will be available in the global scope
-    
+
     const msalConfig = {
         auth: {
             clientId: 'your_client_id'
@@ -136,7 +186,7 @@ See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authe
             .catch(err => {
                 // could also check if err instance of InteractionRequiredAuthError if you can import the class.
                 if (err.name === "InteractionRequiredAuthError") {
-                    return msalnstance.acquireTokenPopup(tokenRequest)
+                    return msalInstance.acquireTokenPopup(tokenRequest)
                         .then(response => {
                             // get access token from response
                             // response.accessToken
@@ -188,26 +238,6 @@ You can learn further details about MSAL.js functionality documented in the [MSA
 ```
 
 You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
-
-## Community Help and Support
-
-- [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs) for access to our frequently asked questions
-
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using "msal" and "msal.js" tag.
-
-We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-
-- [GitHub Issues](../../issues) for reporting a bug or feature requests
-
-- [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
-
-## Contribute
-
-We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.
-
-## Security Library
-
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use [semantic versioning](http://semver.org) so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.
 
 ## Security Reporting
 

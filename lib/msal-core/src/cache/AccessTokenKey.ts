@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CryptoUtils } from "./utils/CryptoUtils";
-import { UrlUtils } from "./utils/UrlUtils";
+import { CryptoUtils } from "../utils/CryptoUtils";
+import { UrlUtils } from "../utils/UrlUtils";
 
 /**
  * @hidden
