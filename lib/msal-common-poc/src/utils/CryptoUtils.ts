@@ -15,6 +15,9 @@ export type PKCECodes = {
     challenge: string
 };
 
+const CV_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+const RANDOM_BYTE_ARR_LENGTH = 32;
+
 /**
  * @hidden
  */
@@ -123,6 +126,18 @@ export class CryptoUtils {
     }
 
     /**
+     * encoding string to base64 specifically for URLs
+     *
+     * @param input
+     */
+    static base64UrlEncode(input: string): string {
+        return this.base64Encode(input)
+            .replace(/=/g, '')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_');
+    }
+
+    /**
      * Decodes a base64 encoded string.
      *
      * @param input
@@ -183,22 +198,28 @@ export class CryptoUtils {
         const cryptoObj: Crypto = window.crypto;
         if (cryptoObj && cryptoObj.getRandomValues) {
             // Generate random values as utf-8
-            const buffer: Uint8Array = new Uint8Array(32);
+            const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
             cryptoObj.getRandomValues(buffer);
             console.log("Verifier rands: " + JSON.stringify(buffer));
-            // verifier as byte array
-            encodeURIComponent(buffer);
-            const pkceCodeVerifierArray = Array.from(buffer);
-            console.log("Verifier arr: " + JSON.stringify(pkceCodeVerifierArray));
             // verifier as string
-            const pkceCodeVerifierString = pkceCodeVerifierArray.map(byte => String.fromCharCode(byte)).join("");
-            console.log("Verifier string: " + JSON.stringify(pkceCodeVerifierString));
+            const pkceCodeVerifierString = this.bufferToString(buffer);
+            console.log("Verifier decoded: " + JSON.stringify(pkceCodeVerifierString));
             // encode verifier as base64
-            const pkceCodeVerifierB64: string = CryptoUtils.base64Encode(pkceCodeVerifierString);
+            const pkceCodeVerifierB64: string = CryptoUtils.base64UrlEncode(pkceCodeVerifierString);
+            console.log("Verifier string: " + JSON.stringify(pkceCodeVerifierB64));
             return pkceCodeVerifierB64;
         } else {
             throw ClientAuthError.createPKCENotGeneratedError(`window.crypto or getRandomValues does not exist. Crypto object: ${cryptoObj}`);
         }
+    }
+
+    private static bufferToString(buffer: Uint8Array): string {
+        const charArr = [];
+        for (let i = 0; i < buffer.byteLength; i += 1) {
+            const index = buffer[i] % CV_CHARSET.length;
+            charArr.push(CV_CHARSET[index]);
+        }
+        return charArr.join("");
     }
 
     /**
