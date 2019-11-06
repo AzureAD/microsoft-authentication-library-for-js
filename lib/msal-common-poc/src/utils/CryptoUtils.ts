@@ -323,6 +323,15 @@ export class CryptoUtils {
         return decodeURIComponent(this.utf8ArrToString(inputUtf8Arr));
     }
 
+    private static bufferToCVString(buffer: Uint8Array): string {
+        const charArr = [];
+        for (let i = 0; i < buffer.byteLength; i += 1) {
+            const index = buffer[i] % CV_CHARSET.length;
+            charArr.push(CV_CHARSET[index]);
+        }
+        return charArr.join("");
+    }
+
     // #endregion
 
     /**
@@ -363,26 +372,14 @@ export class CryptoUtils {
             // Generate random values as utf-8
             const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
             cryptoObj.getRandomValues(buffer);
-            console.log("Verifier rands: " + JSON.stringify(buffer));
             // verifier as string
             const pkceCodeVerifierString = this.bufferToCVString(buffer);
-            console.log("Verifier decoded: " + JSON.stringify(pkceCodeVerifierString));
             // encode verifier as base64
             const pkceCodeVerifierB64: string = CryptoUtils.base64UrlEncode(pkceCodeVerifierString);
-            console.log("Verifier string: " + JSON.stringify(pkceCodeVerifierB64));
             return pkceCodeVerifierB64;
         } else {
             throw ClientAuthError.createPKCENotGeneratedError(`window.crypto or getRandomValues does not exist. Crypto object: ${cryptoObj}`);
         }
-    }
-
-    private static bufferToCVString(buffer: Uint8Array): string {
-        const charArr = [];
-        for (let i = 0; i < buffer.byteLength; i += 1) {
-            const index = buffer[i] % CV_CHARSET.length;
-            charArr.push(CV_CHARSET[index]);
-        }
-        return charArr.join("");
     }
 
     /**
