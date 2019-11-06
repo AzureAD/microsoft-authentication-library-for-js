@@ -17,6 +17,7 @@ import { UrlString } from "../../url/UrlString";
 import { HashParser } from "../HashParser";
 import { CacheUtils } from "../../utils/CacheUtils";
 import { AuthModule } from "./AuthModule";
+import { ImplicitTokenRequestParameters } from "../../request/server_request/ImplicitTokenRequestParameters";
 
 /**
  * @hidden
@@ -74,7 +75,7 @@ export class ImplicitAuthModule extends AuthModule {
         request.account = this.getAccount();
 
         // Create and validate request parameters
-        const serverRequestParameters = new ServerRequestParameters(
+        const serverRequestParameters = new ImplicitTokenRequestParameters(
             acquireTokenAuthority,
             this.config.auth.clientId,
             request,

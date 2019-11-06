@@ -14,7 +14,7 @@ import { StringDict } from "../../app/MsalTypes";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { ICrypto } from "../../utils/crypto/ICrypto";
 
-export class ServerRequestParameters {
+export abstract class ServerRequestParameters {
 
     // Params
     authorityInstance: Authority;
@@ -27,7 +27,6 @@ export class ServerRequestParameters {
     extraQueryParameters: string;
 
     // Validity checks
-    nonce: string;
     state: string;
 
     // telemetry info
@@ -36,7 +35,7 @@ export class ServerRequestParameters {
     correlationId: string;
 
     // Crypto
-    private crypto: ICrypto;
+    protected crypto: ICrypto;
     
     constructor(authority: Authority, clientId: string, request: AuthenticationParameters, isLoginCall: boolean, isSilentRequest: boolean, cachedAccount: MsalAccount, redirectUri: string, crypto: ICrypto) {
         this.authorityInstance = authority;
@@ -48,7 +47,6 @@ export class ServerRequestParameters {
         this.responseType = this.getResponseType(cachedAccount, isLoginCall, isSilentRequest);
         this.redirectUri = redirectUri;
 
-        this.nonce = CryptoUtils.createNewGuid();
         this.state = request.state && !StringUtils.isEmpty(this.state) ? `${CryptoUtils.createNewGuid()}|${this.state}` : CryptoUtils.createNewGuid();
     
         // TODO: Change this to user passed vs generated with separate PR
@@ -130,8 +128,8 @@ export class ServerRequestParameters {
         this.extraQueryParameters = this.generateQueryParametersString(eQParams);
     }
 
-    createNavigateUrl(): string {
-        const str = this.createNavigationUrlString();
+    async createNavigateUrl(): Promise<string> {
+        const str = await this.createUrlParamString();
         console.log("Nav Url String: " + str);
         let authEndpoint: string = this.authorityInstance.authorizationEndpoint;
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
@@ -145,43 +143,9 @@ export class ServerRequestParameters {
         return requestUrl;
     }
 
-    private createNavigationUrlString(): Array<string> {
-        const str: Array<string> = [];
-        str.push("response_type=" + this.responseType);
+    protected abstract createUrlParamString(): Promise<Array<string>>;
 
-        this.replaceDefaultScopes();
-        str.push("scope=" + encodeURIComponent(this.scopes.printScopes()));
-        str.push("client_id=" + encodeURIComponent(this.clientId));
-        str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
-
-        str.push("state=" + encodeURIComponent(this.state));
-        str.push("nonce=" + encodeURIComponent(this.nonce));
-
-        str.push("client_info=1");
-        str.push(`x-client-SKU=${this.xClientSku}`);
-        str.push(`x-client-Ver=${this.xClientVer}`);
-        if (this.request.prompt) {
-            str.push("prompt=" + encodeURIComponent(this.request.prompt));
-        }
-
-        if (this.request.claimsRequest) {
-            str.push("claims=" + encodeURIComponent(this.request.claimsRequest));
-        }
-
-        if (this.queryParameters) {
-            str.push(this.queryParameters);
-        }
-
-        if (this.extraQueryParameters) {
-            str.push(this.extraQueryParameters);
-        }
-
-        str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-        str.push("response_mode=fragment");
-        return str;
-    }
-
-    private replaceDefaultScopes() {
+    protected replaceDefaultScopes() {
         if (this.scopes.containsScope(this.clientId)) {
             this.scopes.removeScope(this.clientId);
             this.scopes.appendScope(Constants.OPENID_SCOPE);
@@ -196,7 +160,7 @@ export class ServerRequestParameters {
      * Utility to test if valid prompt value is passed in the request
      * @param request
      */
-    private validatePromptParameter (prompt: string) {
+    protected validatePromptParameter (prompt: string) {
         if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
             console.log("prompt err");
             throw ClientConfigurationError.createInvalidPromptError(prompt);
@@ -208,7 +172,7 @@ export class ServerRequestParameters {
      * @param matchingAccount 
      * @param silentCall 
      */
-    private getResponseType(cachedAccount: MsalAccount, isLoginCall: boolean, silentCall: boolean) {
+    protected getResponseType(cachedAccount: MsalAccount, isLoginCall: boolean, silentCall: boolean) {
         const matchingAccount = MsalAccount.compareAccounts(this.request.account, cachedAccount);
         // if account is passed and matches the account object set to getAccount() from cache
         if (!matchingAccount || !this.request.account || !cachedAccount) {
@@ -227,7 +191,7 @@ export class ServerRequestParameters {
      * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(idTokenObject: any): StringDict {
+    protected constructUnifiedCacheQueryParameter(idTokenObject: any): StringDict {
 
         // preference order: account > sid > login_hint
         let ssoType;
@@ -293,7 +257,7 @@ export class ServerRequestParameters {
      * @param {@link ServerRequestParameters}
      * @ignore
      */
-    private addHintParameters(qParams: StringDict): StringDict {
+    protected addHintParameters(qParams: StringDict): StringDict {
         /*
          * This is a final check for all queryParams added so far; preference order: sid > login_hint
          * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
@@ -325,7 +289,7 @@ export class ServerRequestParameters {
      * Add SID to extraQueryParameters
      * @param sid
      */
-    private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
+    protected addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
         if (!ssoParam) {
             ssoParam = {};
         }
@@ -392,7 +356,7 @@ export class ServerRequestParameters {
      * Removes unnecessary or duplicate query parameters from extraQueryParameters
      * @param request
      */
-    private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
+    protected sanitizeEQParams(request: AuthenticationParameters) : StringDict {
         const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
             return null;
@@ -414,7 +378,7 @@ export class ServerRequestParameters {
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
-    private generateQueryParametersString(queryParameters: StringDict): string {
+    protected generateQueryParametersString(queryParameters: StringDict): string {
         let paramsString: string = null;
 
         if (queryParameters) {

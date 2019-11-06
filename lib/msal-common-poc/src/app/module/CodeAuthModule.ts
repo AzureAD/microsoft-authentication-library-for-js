@@ -9,7 +9,7 @@ import { MsalConfiguration } from "../MsalConfiguration";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-import { ServerRequestParameters } from "../../request/server_request/ServerRequestParameters";
+import { AuthorizationCodeRequestParameters } from "../../request/server_request/AuthorizationCodeRequestParameters";
 // response
 import { AuthResponse } from "../../response/AuthResponse";
 // utils
@@ -42,9 +42,42 @@ export class CodeAuthModule extends AuthModule {
     }
 
     async createLoginUrl(request: import("../..").AuthenticationParameters): Promise<string> {
-        const pkceCodes = await this.crypto.generatePKCECodes();
-        console.log(`PKCE Codes: ${JSON.stringify(pkceCodes)}`);
-        return null;
+        // Initialize authority or use default, and perform discovery endpoint check
+        let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+        acquireTokenAuthority = await acquireTokenAuthority.resolveEndpointsAsync();
+
+        // Set the account object to the current session
+        request.account = this.getAccount();
+
+        // Create and validate request parameters
+        const requestParameters = new AuthorizationCodeRequestParameters(
+            acquireTokenAuthority,
+            this.config.auth.clientId,
+            request,
+            true,
+            false,
+            this.getAccount(),
+            this.getRedirectUri(),
+            this.crypto
+        );
+
+        requestParameters.appendExtraScopes();
+
+        if (!requestParameters.isSSOParam(request.account)) {
+            // TODO: Add ADAL Token SSO
+        }
+
+        // if the user sets the login start page - angular only??
+        const loginStartPage = window.location.href;
+
+        // Update entries for start of request event
+        CacheUtils.updateCacheEntries(this.cacheStorage, requestParameters, request.account, loginStartPage);
+
+        // populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+        requestParameters.populateQueryParams();
+
+        // Construct and return navigation url
+        return requestParameters.createNavigateUrl();
     }
 
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
