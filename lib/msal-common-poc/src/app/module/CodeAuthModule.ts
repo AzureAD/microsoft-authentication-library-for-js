@@ -42,7 +42,7 @@ export class CodeAuthModule extends AuthModule {
     }
 
     async createLoginUrl(request: import("../..").AuthenticationParameters): Promise<string> {
-        const pkceCodes = await CryptoUtils.generatePKCECodes();
+        const pkceCodes = await this.crypto.generatePKCECodes();
         console.log(`PKCE Codes: ${JSON.stringify(pkceCodes)}`);
         return null;
     }

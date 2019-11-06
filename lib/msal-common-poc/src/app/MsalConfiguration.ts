@@ -5,6 +5,7 @@
 
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { INetworkModule } from "./INetworkModule";
+import { ICrypto, PKCECodes } from "../utils/crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
@@ -52,7 +53,8 @@ export type NetworkOptions = {
 export type MsalConfiguration = {
     auth: AuthOptions,
     storageInterface: ICacheStorage,
-    networkInterface: INetworkModule
+    networkInterface: INetworkModule,
+    cryptoInterface: ICrypto
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
@@ -101,6 +103,21 @@ const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
     }
 };
 
+const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
+    base64Decode: (input: string): string => {
+        console.log("Crypto interface - base64Decode() has not been implemented");
+        return "";
+    },
+    base64Encode: (input: string): string => {
+        console.log("Crypto interface - base64Encode() has not been implemented");
+        return "";
+    },
+    generatePKCECodes(): Promise<PKCECodes> {
+        console.log("Crypto interface - generatePKCECodes() has not been implemented");
+        return null;
+    }
+};
+
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
@@ -111,11 +128,12 @@ const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
  *
  * @returns TConfiguration object
  */
-export function buildConfiguration({ auth, storageInterface, networkInterface }: MsalConfiguration): MsalConfiguration {
+export function buildConfiguration({ auth, storageInterface, networkInterface, cryptoInterface }: MsalConfiguration): MsalConfiguration {
     const overlayedConfig: MsalConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         storageInterface: { ...DEFAULT_STORAGE_OPTIONS, ...storageInterface },
-        networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface }
+        networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface },
+        cryptoInterface: { ...DEFAULT_CRYPTO_IMPLEMENTATION, ...cryptoInterface }
     };
     return overlayedConfig;
 }

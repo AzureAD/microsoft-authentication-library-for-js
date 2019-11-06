@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CryptoUtils } from "../utils/CryptoUtils";
 import { UrlString } from "../url/UrlString";
+import { ICrypto } from "../utils/crypto/ICrypto";
 
 /**
  * @hidden
@@ -16,11 +16,11 @@ export class AccessTokenKey {
     scopes: string;
     homeAccountIdentifier: string;
 
-    constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string) {
+    constructor(authority: string, clientId: string, scopes: string, uid: string, utid: string, crypto: ICrypto) {
         const authorityUri = new UrlString(authority);
         this.authority = authorityUri.getUrlString();
         this.clientId = clientId;
         this.scopes = scopes;
-        this.homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
+        this.homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
     }
 }

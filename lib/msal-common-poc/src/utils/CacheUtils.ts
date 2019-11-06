@@ -144,17 +144,4 @@ export class CacheUtils {
         const renewStatus = cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
         return !!(renewStatus && renewStatus === Constants.INTERACTION_IN_PROGRESS);
     }
-
-    private isAcquireTokenEntry(cacheKey: string, state: string): boolean {
-        return (
-            (
-                cacheKey.indexOf(TemporaryCacheKeys.AUTHORITY) !== -1 
-                || cacheKey.indexOf(TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT) !== 1
-            ) 
-            &&
-            (
-                !state || cacheKey.indexOf(state) !== -1
-            )
-        );
-    }
 }

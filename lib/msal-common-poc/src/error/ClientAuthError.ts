@@ -124,10 +124,6 @@ export const ClientAuthErrorMessage = {
     postLogoutUriNotSet: {
         code: "post_logout_uri_empty",
         desc: "A post logout redirect has not been set."
-    },
-    pkceNotGenerated: {
-        code: "pkce_not_created",
-        desc: "The PKCE code challenge and verifier could not be generated."
     }
 };
 
@@ -300,9 +296,5 @@ export class ClientAuthError extends AuthError {
     static createPostLogoutRedirectUriEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.postLogoutUriNotSet.code,
             ClientAuthErrorMessage.postLogoutUriNotSet.desc);
-    }
-
-    static createPKCENotGeneratedError(errDetail: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.pkceNotGenerated.code, `${ClientAuthErrorMessage.pkceNotGenerated.desc} Details: ${errDetail}`);
     }
 }

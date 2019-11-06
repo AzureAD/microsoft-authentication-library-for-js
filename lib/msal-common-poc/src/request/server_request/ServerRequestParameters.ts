@@ -12,6 +12,7 @@ import { ResponseTypes, PromptState, SSOTypes, BlacklistedEQParams, Constants } 
 import { ScopeSet } from "../../auth/ScopeSet";
 import { StringDict } from "../../app/MsalTypes";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+import { ICrypto } from "../../utils/crypto/ICrypto";
 
 export class ServerRequestParameters {
 
@@ -33,11 +34,14 @@ export class ServerRequestParameters {
     xClientVer: string;
     xClientSku: string;
     correlationId: string;
+
+    // Crypto
+    private crypto: ICrypto;
     
-    constructor(authority: Authority, clientId: string, request: AuthenticationParameters, isLoginCall: boolean, isSilentRequest: boolean, cachedAccount: MsalAccount, redirectUri: string) {
+    constructor(authority: Authority, clientId: string, request: AuthenticationParameters, isLoginCall: boolean, isSilentRequest: boolean, cachedAccount: MsalAccount, redirectUri: string, crypto: ICrypto) {
         this.authorityInstance = authority;
         this.clientId = clientId;
-
+        this.crypto = crypto;
         this.scopes = new ScopeSet(request.scopes, clientId, !isLoginCall);
 
         this.request = request;
@@ -354,8 +358,8 @@ export class ServerRequestParameters {
             }
             case SSOTypes.HOMEACCOUNT_ID: {
                 const homeAccountId = ssoData.split(".");
-                const uid = CryptoUtils.base64Decode(homeAccountId[0]);
-                const utid = CryptoUtils.base64Decode(homeAccountId[1]);
+                const uid = this.crypto.base64Decode(homeAccountId[0]);
+                const utid = this.crypto.base64Decode(homeAccountId[1]);
 
                 // TODO: domain_req and login_req are not needed according to eSTS team
                 ssoParam[SSOTypes.LOGIN_REQ] = uid;

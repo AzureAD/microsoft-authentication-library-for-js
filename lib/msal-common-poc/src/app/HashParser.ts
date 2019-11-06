@@ -21,6 +21,7 @@ import { ScopeSet } from "../auth/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
+import { ICrypto } from "../utils/crypto/ICrypto";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -32,11 +33,13 @@ export class HashParser {
     private cacheStorage: ICacheStorage;
     private account: MsalAccount;
     private clientId: string;
+    private crypto: ICrypto;
 
-    constructor(accountObj: MsalAccount, clientId: string, cacheStorageImpl: ICacheStorage) {
+    constructor(accountObj: MsalAccount, clientId: string, cacheStorageImpl: ICacheStorage, crypto: ICrypto) {
         this.cacheStorage = cacheStorageImpl;
         this.account = accountObj;
         this.clientId = clientId;
+        this.crypto = crypto;
     }
 
     private parseErrorInHash(errCode: string, errDesc: string): AuthError {
@@ -103,7 +106,7 @@ export class HashParser {
         let authResponse = { ...response };
 
         // set the idToken
-        const idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
+        const idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN], this.crypto);
         const clientInfo: string = hashParams[ServerHashParamKeys.CLIENT_INFO];
 
         authResponse = this.setResponseIdToken(authResponse, idTokenObj);
@@ -114,8 +117,8 @@ export class HashParser {
 
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
-
-        this.account = MsalAccount.createAccount(idTokenObj, new ClientInfo(clientInfo));
+        const encodedClientInfo = new ClientInfo(clientInfo, this.crypto);
+        this.account = MsalAccount.createAccount(idTokenObj, encodedClientInfo, this.crypto);
         authResponse.account = this.account;
 
         if (idTokenObj && idTokenObj.nonce) {
@@ -146,7 +149,7 @@ export class HashParser {
 
         // set the idToken
         const idTokenStr = authResponse.idToken ? authResponse.idToken : this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
-        const idTokenObj = new IdToken(idTokenStr);
+        const idTokenObj = new IdToken(idTokenStr, this.crypto);
 
         authResponse = this.setResponseIdToken(authResponse, idTokenObj);
         if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
@@ -156,8 +159,8 @@ export class HashParser {
 
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
-
-        this.account = MsalAccount.createAccount(idTokenObj, new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO]));
+        const encodedClientInfo = new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO], this.crypto);
+        this.account = MsalAccount.createAccount(idTokenObj, encodedClientInfo, this.crypto);
         authResponse.account = this.account;
 
         let accountKey: string;
@@ -241,7 +244,7 @@ export class HashParser {
     private saveToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
         let scope: string;
         const accessTokenResponse = { ...response };
-        const clientObj: ClientInfo = new ClientInfo(clientInfo);
+        const clientObj: ClientInfo = new ClientInfo(clientInfo, this.crypto);
         let expiration: number;
         const accessTokenString = parameters[ServerHashParamKeys.ACCESS_TOKEN];
         const expiresInStr = parameters[ServerHashParamKeys.EXPIRES_IN];
@@ -267,7 +270,7 @@ export class HashParser {
 
             // Generate and cache access token key and value
             expiration = TimeUtils.now() + TimeUtils.parseExpiresIn(expiresInStr);
-            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid, this.crypto);
             const accessTokenValue = new AccessTokenValue(accessTokenString, idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -280,7 +283,7 @@ export class HashParser {
             scope = this.clientId;
 
             // Generate and cache access token key and value
-            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid, this.crypto);
             expiration = expiresInStr ? TimeUtils.now() + TimeUtils.parseExpiresIn(expiresInStr) : Number(idTokenObj.expiration);
             const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo);
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));

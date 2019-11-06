@@ -81,7 +81,8 @@ export class ImplicitAuthModule extends AuthModule {
             true,
             false,
             this.getAccount(),
-            this.getRedirectUri()
+            this.getRedirectUri(),
+            this.crypto
         );
 
         // if extraScopesToConsent is passed in loginCall, append them to the login request
@@ -120,7 +121,7 @@ export class ImplicitAuthModule extends AuthModule {
         const hashString = new UrlString(hash);
         const responseState = this.extractResponseState(hash);
 
-        const responseHandler = new HashParser(this.getAccount(), this.config.auth.clientId, this.cacheStorage);
+        const responseHandler = new HashParser(this.getAccount(), this.config.auth.clientId, this.cacheStorage, this.crypto);
         return responseHandler.parseResponseFromHash(hashString, responseState);
     }
 }

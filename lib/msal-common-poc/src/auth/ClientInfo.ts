@@ -6,6 +6,7 @@
 import { ClientAuthError } from "../error/ClientAuthError";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
+import { ICrypto } from "../utils/crypto/ICrypto";
 
 /**
  * @hidden
@@ -30,7 +31,7 @@ export class ClientInfo {
         this._utid = utid;
     }
 
-    constructor(rawClientInfo: string) {
+    constructor(rawClientInfo: string, crypto: ICrypto) {
         if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
             this.uid = "";
             this.utid = "";
@@ -38,7 +39,7 @@ export class ClientInfo {
         }
 
         try {
-            const decodedClientInfo: string = CryptoUtils.base64Decode(rawClientInfo);
+            const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
             const clientInfo: ClientInfo = JSON.parse(decodedClientInfo) as ClientInfo;
             if (clientInfo) {
                 if (clientInfo.hasOwnProperty("uid")) {

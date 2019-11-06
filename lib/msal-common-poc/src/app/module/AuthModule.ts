@@ -28,6 +28,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
 import { AuthError } from "../../error/AuthError";
+import { ICrypto } from "../../utils/crypto/ICrypto";
 
 /**
  * @hidden
@@ -53,6 +54,7 @@ export abstract class AuthModule {
     // Interface implementations
     protected cacheStorage: ICacheStorage;
     protected networkClient: INetworkModule;
+    protected crypto: ICrypto;
 
     // Authority variables
     protected defaultAuthorityInstance: Authority;
@@ -70,6 +72,9 @@ export abstract class AuthModule {
         // Set the configuration
         this.config = configuration;
         
+        // Initialize crypto
+        this.crypto = this.config.cryptoInterface;
+
         // Set the cache
         this.cacheStorage = this.config.storageInterface;
         
@@ -157,9 +162,9 @@ export abstract class AuthModule {
         const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
 
         if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
-            const idToken = new IdToken(rawIdToken);
-            const clientInfo = new ClientInfo(rawClientInfo);
-            this.account = MsalAccount.createAccount(idToken, clientInfo);
+            const idToken = new IdToken(rawIdToken, this.crypto);
+            const clientInfo = new ClientInfo(rawClientInfo, this.crypto);
+            this.account = MsalAccount.createAccount(idToken, clientInfo, this.crypto);
             return this.account;
         }
         // if login not yet done, return null

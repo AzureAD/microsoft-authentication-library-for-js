@@ -7,6 +7,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { TokenUtils } from "../utils/TokenUtils";
 import { StringDict } from "../app/MsalTypes";
 import { StringUtils } from "../utils/StringUtils";
+import { ICrypto } from "../utils/crypto/ICrypto";
 
 /**
  * @hidden
@@ -28,13 +29,13 @@ export class IdToken {
     sid: string;
     cloudInstance: string;
     /* tslint:disable:no-string-literal */
-    constructor(rawIdToken: string) {
+    constructor(rawIdToken: string, crypto: ICrypto) {
         if (StringUtils.isEmpty(rawIdToken)) {
             throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken);
         }
         try {
             this.rawIdToken = rawIdToken;
-            this.claims = TokenUtils.extractIdToken(rawIdToken);
+            this.claims = TokenUtils.extractIdToken(rawIdToken, crypto);
             if (this.claims) {
                 if (this.claims.hasOwnProperty("iss")) {
                     this.issuer = this.claims["iss"];

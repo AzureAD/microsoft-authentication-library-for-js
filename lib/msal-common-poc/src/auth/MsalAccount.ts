@@ -8,6 +8,7 @@ import { IdToken } from "./IdToken";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { StringDict } from "../app/MsalTypes";
+import { ICrypto } from "../utils/crypto/ICrypto";
 
 /**
  * accountIdentifier       combination of idToken.uid and idToken.utid
@@ -56,7 +57,7 @@ export class MsalAccount {
      * @param idToken
      * @param clientInfo
      */
-    static createAccount(idToken: IdToken, clientInfo: ClientInfo): MsalAccount {
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo, crypto: ICrypto): MsalAccount {
 
         // create accountIdentifier
         const accountIdentifier: string = idToken.objectId ||  idToken.subject;
@@ -67,7 +68,7 @@ export class MsalAccount {
 
         let homeAccountIdentifier: string;
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
-            homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
+            homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
         }
         return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
