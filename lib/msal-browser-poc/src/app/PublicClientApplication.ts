@@ -172,6 +172,7 @@ export class PublicClientApplication {
         let urlNavigate;
         try {
             urlNavigate = await this.authModule.createLoginUrl(request || {});
+            this.navigateWindow(urlNavigate);
         } catch(e) {
             const stateOnlyResponse = msalAuth.buildResponseStateOnly(this.parseResponseState(request && request.state));
             this.authCallback(e, stateOnlyResponse);

@@ -44,7 +44,8 @@ export enum ServerHashParamKeys {
     ID_TOKEN = "id_token",
     EXPIRES_IN = "expires_in",
     SESSION_STATE = "session_state",
-    CLIENT_INFO = "client_info"
+    CLIENT_INFO = "client_info",
+    CODE = "code"
 };
 
 export const AADTrustedHostList =  {

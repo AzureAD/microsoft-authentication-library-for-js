@@ -22,6 +22,8 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { ICrypto } from "../utils/crypto/ICrypto";
+import { TokenResponse } from "../response/TokenResponse";
+import { CodeResponse } from "../response/CodeResponse";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -59,8 +61,8 @@ export class HashParser {
         return error;
     }
 
-    private parseSuccessfulAuthResponseFromHash(hashParams: any, responseState: ResponseStateInfo): AuthResponse {
-        let response : AuthResponse = {
+    private parseSuccessfulAuthResponseFromHash(hashParams: any, responseState: ResponseStateInfo): TokenResponse {
+        let response : TokenResponse = {
             uniqueId: "",
             tenantId: "",
             tokenType: "",
@@ -81,14 +83,21 @@ export class HashParser {
             }
             response.state = StringUtils.extractUserGivenState(responseState.state);
 
-            // Process id_token
-            if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
-                response = this.parseIdTokenFromHash(hashParams, response, responseState);
-            }
+            // Process code
+            if (hashParams.hasOwnProperty(ServerHashParamKeys.CODE)) {
+                
+            } 
+            // Process tokens
+            else {
+                // Process id_token
+                if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
+                    response = this.parseIdTokenFromHash(hashParams, response, responseState);
+                }
 
-            // Process access_token
-            if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
-                response = this.parseAccessTokenFromHash(hashParams, response, responseState);
+                // Process access_token
+                if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
+                    response = this.parseAccessTokenFromHash(hashParams, response, responseState);
+                }
             }
         }
         // State mismatch - unexpected/invalid state
@@ -101,7 +110,19 @@ export class HashParser {
         return response;
     }
 
-    private parseIdTokenFromHash(hashParams: any, response: AuthResponse, responseState: ResponseStateInfo): AuthResponse {
+    private parseAuthCodeFromHash(hashParams: any, responseState: ResponseStateInfo): CodeResponse {
+        let authResponse: CodeResponse = {
+            code: "",
+            state: ""
+        };
+
+        authResponse.code = hashParams[ServerHashParamKeys.CODE];
+        authResponse.state = responseState.state;
+
+        return authResponse;
+    }
+
+    private parseIdTokenFromHash(hashParams: any, response: TokenResponse, responseState: ResponseStateInfo): TokenResponse {
         // this.logger.info("Fragment has id token");
         let authResponse = { ...response };
 
@@ -143,7 +164,7 @@ export class HashParser {
         return authResponse;
     }
 
-    private parseAccessTokenFromHash(hashParams: any, response: AuthResponse, responseState: ResponseStateInfo): AuthResponse {
+    private parseAccessTokenFromHash(hashParams: any, response: TokenResponse, responseState: ResponseStateInfo): TokenResponse {
         // this.logger.info("Fragment has access token");
         let authResponse = { ...response };
 
@@ -194,10 +215,10 @@ export class HashParser {
         return authResponse;
     }
 
-    parseResponseFromHash(hashString: UrlString, responseState: ResponseStateInfo): AuthResponse {
+    parseResponseFromHash(hashString: UrlString, responseState: ResponseStateInfo): TokenResponse {
         // this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
         let error: AuthError;
-        let response: AuthResponse;
+        let response: TokenResponse;
         const hashParams = hashString.getDeserializedHash();
 
         // If server returns an error
@@ -241,7 +262,7 @@ export class HashParser {
      * @private
      */
     /* tslint:disable:no-string-literal */
-    private saveToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
+    private saveToken(response: TokenResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): TokenResponse {
         let scope: string;
         const accessTokenResponse = { ...response };
         const clientObj: ClientInfo = new ClientInfo(clientInfo, this.crypto);
@@ -317,7 +338,7 @@ export class HashParser {
         return StringUtils.isEmpty(cachedAuthority) ? cachedAuthority : authorityString.replaceTenantPath(idTokenObj.tenantId).getUrlString();
     }
 
-    private setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
+    private setResponseIdToken(originalResponse: TokenResponse, idTokenObj: IdToken) : TokenResponse {
         if (!originalResponse) {
             return null;
         } else if (!idTokenObj) {

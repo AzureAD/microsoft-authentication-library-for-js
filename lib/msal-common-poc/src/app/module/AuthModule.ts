@@ -29,6 +29,7 @@ import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
 import { AuthError } from "../../error/AuthError";
 import { ICrypto } from "../../utils/crypto/ICrypto";
+import { HashParser } from "../HashParser";
 
 /**
  * @hidden
@@ -87,7 +88,18 @@ export abstract class AuthModule {
 
     abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
     abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
-    abstract handleResponse(hash: string): AuthResponse;
+
+    /**
+     * This function parses the response from the Microsoft STS and returns a response in the form of the AuthResponse object. See response/AuthResponse.ts for more information on that object.
+     * @param hash 
+     */
+    handleResponse(hash: string): AuthResponse {
+        const hashString = new UrlString(hash);
+        const responseState = this.extractResponseState(hash);
+
+        const responseHandler = new HashParser(this.getAccount(), this.config.auth.clientId, this.cacheStorage, this.crypto);
+        return responseHandler.parseResponseFromHash(hashString, responseState);
+    }
 
     // #region General Helpers
 

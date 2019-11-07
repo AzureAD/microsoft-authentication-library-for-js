@@ -9,15 +9,10 @@ import { MsalConfiguration } from "../MsalConfiguration";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-import { ServerRequestParameters } from "../../request/server_request/ServerRequestParameters";
-// response
-import { AuthResponse } from "../../response/AuthResponse";
+import { ImplicitTokenRequestParameters } from "../../request/server_request/ImplicitTokenRequestParameters";
 // utils
-import { UrlString } from "../../url/UrlString";
-import { HashParser } from "../HashParser";
 import { CacheUtils } from "../../utils/CacheUtils";
 import { AuthModule } from "./AuthModule";
-import { ImplicitTokenRequestParameters } from "../../request/server_request/ImplicitTokenRequestParameters";
 
 /**
  * @hidden
@@ -112,17 +107,5 @@ export class ImplicitAuthModule extends AuthModule {
      */
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         return "";
-    }
-
-    /**
-     * This function parses the response from the Microsoft STS and returns a response in the form of the AuthResponse object. See response/AuthResponse.ts for more information on that object.
-     * @param hash 
-     */
-    handleResponse(hash: string): AuthResponse {
-        const hashString = new UrlString(hash);
-        const responseState = this.extractResponseState(hash);
-
-        const responseHandler = new HashParser(this.getAccount(), this.config.auth.clientId, this.cacheStorage, this.crypto);
-        return responseHandler.parseResponseFromHash(hashString, responseState);
     }
 }

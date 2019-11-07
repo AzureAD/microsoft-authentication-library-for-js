@@ -41,7 +41,7 @@ export class CodeAuthModule extends AuthModule {
         super(configuration);
     }
 
-    async createLoginUrl(request: import("../..").AuthenticationParameters): Promise<string> {
+    async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check
         let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
         acquireTokenAuthority = await acquireTokenAuthority.resolveEndpointsAsync();
@@ -81,10 +81,6 @@ export class CodeAuthModule extends AuthModule {
     }
 
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
-    }
-
-    handleResponse(hash: string): AuthResponse {
         throw new Error("Method not implemented.");
     }
 

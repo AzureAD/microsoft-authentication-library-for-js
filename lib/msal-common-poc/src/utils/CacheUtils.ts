@@ -9,6 +9,8 @@ import { Authority } from "../auth/authority/Authority";
 import { ServerRequestParameters } from "../request/server_request/ServerRequestParameters";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
+import { ImplicitTokenRequestParameters } from "../request/server_request/ImplicitTokenRequestParameters";
+import { AuthorizationCodeRequestParameters } from "../request/server_request/AuthorizationCodeRequestParameters";
 
 /**
  * @hidden
@@ -71,7 +73,9 @@ export class CacheUtils {
      * @hidden
      * @ignore
      */
-    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ServerRequestParameters, account: MsalAccount, loginStartPage?: any) {
+    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ImplicitTokenRequestParameters, account: MsalAccount, loginStartPage?: any): void;
+    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: AuthorizationCodeRequestParameters, account: MsalAccount, loginStartPage?: any): void;
+    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ServerRequestParameters, account: MsalAccount, loginStartPage?: any): void {
         // Cache account and authority
         if (loginStartPage) {
             // Cache the state, nonce, and login request data
@@ -83,8 +87,10 @@ export class CacheUtils {
         // Cache authorityKey
         CacheUtils.setAuthorityCache(cacheStorage, serverAuthenticationRequest.state, serverAuthenticationRequest.authorityInstance);
 
-        // Cache nonce
-        cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${serverAuthenticationRequest.state}`, serverAuthenticationRequest.nonce);
+        if (serverAuthenticationRequest instanceof ImplicitTokenRequestParameters) {
+            // Cache nonce
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${serverAuthenticationRequest.state}`, serverAuthenticationRequest.nonce);
+        }
     }
 
     /**
