@@ -8,5 +8,6 @@
     "exclude": [
         "**/*.d.ts"
     ],
-    "all": true  
+    "all": true,
+    "reporter": "text-lcov"
 }
