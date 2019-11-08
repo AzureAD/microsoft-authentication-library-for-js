@@ -17,4 +17,22 @@ steps:
   inputs:
     command: 'custom'
     workingDir: 'lib/msal-core'
+    customCommand: 'run lint'
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
+    customCommand: 'run test:coverage'
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
     customCommand: 'run build'
+  
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'lib/msal-core'
+    customCommand: 'run test:report'
