@@ -521,7 +521,7 @@ export class UserAgentApplication {
 
             // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
             if (popUpWindow) {
-                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout);
+                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
                 if (hash) {
                     // Hash found
                     this.handleAuthenticationResponse(hash);
@@ -762,7 +762,7 @@ export class UserAgentApplication {
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
-                    window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError());
+                    window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError(urlNavigate));
                 }
 
                 this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, RequestStatus.CANCELLED);
@@ -770,10 +770,11 @@ export class UserAgentApplication {
         }, this.config.system.loadFrameTimeout);
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
-        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout);
+        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
         if (hash) {
             this.handleAuthenticationResponse(hash);
         }
+        WindowUtils.removeHiddenIframe(iframe);
     }
 
     // #endregion
@@ -791,7 +792,7 @@ export class UserAgentApplication {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
             const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
             this.logger.infoPii(logMessage);
-            navigateWindow.location.replace(urlNavigate);
+            navigateWindow.location.assign(urlNavigate);
         }
         else {
             this.logger.info("Navigate url is empty");
@@ -1005,7 +1006,15 @@ export class UserAgentApplication {
             if (this.config.auth.navigateToLoginRequestUrl) {
                 this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
                 if (window.parent === window) {
-                    window.location.href = this.cacheStorage.getItem(TemporaryCacheKeys.LOGIN_REQUEST, this.inCookie);
+                    const loginRequestUrl = this.cacheStorage.getItem(TemporaryCacheKeys.LOGIN_REQUEST, this.inCookie);
+
+                    // Redirect to home page if login request url is null (real null or the string null)
+                    if (!loginRequestUrl || loginRequestUrl === "null") {
+                        this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
+                        window.location.href = "/";
+                    } else {
+                        window.location.href = loginRequestUrl;
+                    }
                 }
                 return;
             }
@@ -1244,7 +1253,7 @@ export class UserAgentApplication {
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = Constants.renewToken;
@@ -1269,7 +1278,7 @@ export class UserAgentApplication {
         this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         if (this.silentLogin) {
             window.requestType = Constants.login;

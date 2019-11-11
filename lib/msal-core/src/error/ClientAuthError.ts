@@ -88,6 +88,10 @@ export const ClientAuthErrorMessage = {
     invalidInteractionType: {
         code: "invalid_interaction_type",
         desc: "The interaction type passed to the handler was incorrect or unknown"
+    },
+    cacheParseError: {
+        code: "cannot_parse_cache",
+        desc: "The cached token key is not a valid JSON and cannot be parsed"
     }
 };
 
@@ -129,9 +133,10 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code, errorMessage);
     }
 
-    static createTokenRenewalTimeoutError(): ClientAuthError {
+    static createTokenRenewalTimeoutError(urlNavigate: string): ClientAuthError {
+        const errorMessage = `URL navigated to is ${urlNavigate}, ${ClientAuthErrorMessage.tokenRenewalError.desc}`;
         return new ClientAuthError(ClientAuthErrorMessage.tokenRenewalError.code,
-            ClientAuthErrorMessage.tokenRenewalError.desc);
+            errorMessage);
     }
 
     static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
@@ -210,4 +215,11 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidInteractionType.code,
             ClientAuthErrorMessage.invalidInteractionType.desc);
     }
+
+    static createCacheParseError(key: string) : ClientAuthError {
+        const errorMessage = `invalid key: ${key}, ${ClientAuthErrorMessage.cacheParseError.desc}`;
+        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code,
+            errorMessage);
+    }
+
 }
