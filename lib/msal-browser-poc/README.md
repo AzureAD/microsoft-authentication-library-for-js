@@ -13,7 +13,55 @@ The MSAL library for JavaScript enables client-side JavaScript applications to a
 ## Installation
 ### Via NPM:
 
-    npm install msal-common
+    npm install msal-browser
+
+## How to Run Samples for Authorization Code Flow POC
+The current VanillaJSTestApp sample is set up to run the authorization code flow in the browser. However, there are a few pre-requisites that you will need to complete before being able to run the POC. 
+
+### Pre-requisites
+
+1. Create an application registration in the portal. Use whatever audience you wish, as long as it is testable on your machine. It is recommended to use the common audience (a.k.a. accounts in any Azure tenant) for simplest use.
+    - Go to the Authentication tab. Register the redirect URI for the application as "http://localhost:30662/". Also select "Yes" when asked if you would like to treat this application as a public client.
+    - Go the Certificates & Secrets tab. Create a Client Secret that you can use for testing. This will most likely not be a required step in future production versions for Auth Code in the browser, but for now in order to run the POC you will need to create one.
+2. Keep the app registration page open. You will now need a browser with CORS disabled in order to be able to retrieve tokens from the token endpoint. This is once again not a recommended production setting, but for the purposes of this POC you should follow these instructions:
+    - We recommend using Chrome for this. You can follow the steps [here](https://alfilatov.com/posts/run-chrome-without-cors/) to figure out how to run Chrome by CORS for your OS.
+    - For Windows machines, you can do the following:
+        - Right click on your desktop -> New -> Shortcut
+        - Paste the following: 
+        ```javascript
+        "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
+        ```
+        - Click next and create a name for the shortcut (i.e. Chrome-no-cors)
+3. You should now have a shortcut for a CORS-disabled Chrome browser and an application registration for a public client with the correct redirect URI registerd and a client secret. You can now run the sample! When you run the browser shortcut, ensure you run as an administrator.
+
+### Run the POC
+
+1. Right click and run the browser shortcut you create as an administrator. You should see a new Chrome browser with the message:
+    ```
+    You are using an unsupported command-line flag: --disable-web-security. Stability and security will suffer.
+    ```
+    This means you have configured your browser correctly for this POC. Open the developer tools so you can see the console. You can click the drop down in the top-right of the developer tools to create a separate window. In the console and network tabs, hit the Settings icon and enable the `Preserve Log` option.
+
+2. Clone this repository, and navigate to samples/VanillaJSTestApp. Open the index.html file and paste your Client Id and Client Secret in the appropriate configuration strings and save the file. If you are using a single tenant audience, change the authority string as well.
+
+3. In your command line environment, ensure you have npm 6+ installed. Navigate to the root of the microsoft-authentication-library-for-js cloned repository folder and run the following commands (in order):
+    ```javascript
+    cd lib/msal-common-poc
+    npm i
+    cd ../msal-browser-poc
+    npm i
+    npm run build:all
+    ```
+    This will install all packages for the common and browser projects, and then build both projects successively.
+
+4. Once both projects successfully build, you can run the sample:
+    ```javascript
+    cd ../../samples/VanillaJSTestApp
+    npm i
+    npm start
+    ```
+
+5. Navigate to `localhost:30662` in the browser you opened in (1). Click sign-in, and you should navigate to the sign-in page. Enter your credentials and submit. You should be navigated back to the sample page, and the response with your tokens will eventually appear in the console window of your Chrome developer tools.
 
 ## Roadmap and What To Expect From This Library
 MSAL support on Javascript is a collection of libraries. `msal-common` is the platform agnostic core library, and `msal-browser` is our core library for Single Page Applications (SPAs) without a backend. This library includes improvements for new browser requirements in Safari, as well as an updated token acquisition flow utilizing the OAuth 2.0 Authorization Code Flow.
