@@ -11,8 +11,8 @@ export interface INetworkModule {
     /**
      * Interface function for async network requests
      * @param url 
-     * @param method 
+     * @param requestParams 
      * @param enableCaching 
      */
-    sendRequestAsync(url: string, method: string, enableCaching?:boolean): Promise<any>
+    sendRequestAsync(url: string, requestParams: RequestInit, enableCaching?:boolean): Promise<any>
 }

@@ -8,6 +8,7 @@
  */
 export interface ITenantDiscoveryResponse {
     AuthorizationEndpoint: string;
+    TokenEndpoint: string;
     EndSessionEndpoint: string;
     Issuer: string;
 }

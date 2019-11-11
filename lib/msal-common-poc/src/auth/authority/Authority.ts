@@ -63,6 +63,14 @@ export abstract class Authority {
         }
     }
 
+    public get tokenEndpoint(): string {
+        if(this.discoveryComplete) {
+            return this.tenantDiscoveryResponse.TokenEndpoint.replace("{tenant}", this.tenant);
+        } else {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError();
+        }
+    }
+
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete) {
             return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.tenant);
@@ -95,9 +103,10 @@ export abstract class Authority {
     }
 
     private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-        const response = await this.networkInterface.sendRequestAsync(openIdConfigurationEndpoint, "GET", true);
+        const response = await this.networkInterface.sendRequestAsync(openIdConfigurationEndpoint, { method: "GET" }, true);
         return {
             AuthorizationEndpoint: response.authorization_endpoint,
+            TokenEndpoint: response.token_endpoint,
             EndSessionEndpoint: response.end_session_endpoint,
             Issuer: response.issuer
         } as ITenantDiscoveryResponse;

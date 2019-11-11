@@ -18,7 +18,10 @@ export { UrlString } from "./url/UrlString";
 export { ICrypto, PKCECodes } from "./utils/crypto/ICrypto";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
+export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
+export { TokenResponse } from "./response/TokenResponse";
+export { CodeResponse } from "./response/CodeResponse";
 // Errors
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";

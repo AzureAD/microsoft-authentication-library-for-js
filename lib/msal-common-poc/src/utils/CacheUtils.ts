@@ -9,8 +9,8 @@ import { Authority } from "../auth/authority/Authority";
 import { ServerRequestParameters } from "../request/server_request/ServerRequestParameters";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
-import { ImplicitTokenRequestParameters } from "../request/server_request/ImplicitTokenRequestParameters";
-import { AuthorizationCodeRequestParameters } from "../request/server_request/AuthorizationCodeRequestParameters";
+import { ImplicitServerRequestParameters } from "../request/server_request/ImplicitServerRequestParameters";
+import { AuthCodeServerRequestParameters } from "../request/server_request/AuthCodeServerRequestParameters";
 
 /**
  * @hidden
@@ -73,8 +73,8 @@ export class CacheUtils {
      * @hidden
      * @ignore
      */
-    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ImplicitTokenRequestParameters, account: MsalAccount, loginStartPage?: any): void;
-    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: AuthorizationCodeRequestParameters, account: MsalAccount, loginStartPage?: any): void;
+    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ImplicitServerRequestParameters, account: MsalAccount, loginStartPage?: any): void;
+    static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: AuthCodeServerRequestParameters, account: MsalAccount, loginStartPage?: any): void;
     static updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: ServerRequestParameters, account: MsalAccount, loginStartPage?: any): void {
         // Cache account and authority
         if (loginStartPage) {
@@ -87,7 +87,7 @@ export class CacheUtils {
         // Cache authorityKey
         CacheUtils.setAuthorityCache(cacheStorage, serverAuthenticationRequest.state, serverAuthenticationRequest.authorityInstance);
 
-        if (serverAuthenticationRequest instanceof ImplicitTokenRequestParameters) {
+        if (serverAuthenticationRequest instanceof ImplicitServerRequestParameters) {
             // Cache nonce
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${serverAuthenticationRequest.state}`, serverAuthenticationRequest.nonce);
         }

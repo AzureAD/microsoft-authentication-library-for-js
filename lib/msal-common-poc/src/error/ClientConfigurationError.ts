@@ -41,6 +41,10 @@ export const ClientConfigurationErrorMessage = {
     telemetryConfigError: {
         code: "telemetry_config_error",
         desc: "Telemetry config is not configured with required values"
+    },
+    authCodeRequestError: {
+        code: "auth_code_request_error",
+        desc: "No Authorization code is present in the token request, or the request is malformed/empty."
     }
 };
 
@@ -93,5 +97,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createEmptyRequestError(): ClientConfigurationError {
         const { code, desc } = ClientConfigurationErrorMessage.emptyRequestError;
         return new ClientConfigurationError(code, desc);
+    }
+
+    static createAuthCodeRequestError(givenTokenRequest: string): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.authCodeRequestError;
+        return new ClientConfigurationError(code, `${desc} Given Request: ${givenTokenRequest}`);
     }
 }

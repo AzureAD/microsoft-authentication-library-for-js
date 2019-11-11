@@ -22,7 +22,7 @@
     const msalConfig = {
         auth: {
             // clientId: "Enter_your_client_id",
-            clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
+            clientId: "0a7ee018-cfe8-4442-a66d-dcc5a47657d9",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true,
             navigateToLoginRequestUrl: false
@@ -60,9 +60,9 @@
 
     function authRedirectCallBack(error, response) {
         if (error) {
-            console.log(error);
+            console.log("Auth Error: " + error.stack);
         } else {
-            console.log(response);
+            console.log("Response: " + JSON.stringify(response));
         }
     }
 

@@ -61,43 +61,51 @@ export class HashParser {
         return error;
     }
 
-    private parseSuccessfulAuthResponseFromHash(hashParams: any, responseState: ResponseStateInfo): TokenResponse {
-        let response : TokenResponse = {
-            uniqueId: "",
-            tenantId: "",
-            tokenType: "",
-            idToken: null,
-            idTokenClaims: null,
-            accessToken: null,
-            scopes: [],
-            expiresOn: null,
-            account: null,
-            state: "",
-        };
-
+    private parseSuccessfulAuthResponseFromHash(hashParams: any, responseState: ResponseStateInfo): AuthResponse {
+        let codeResponse: CodeResponse;
+        let tokenResponse: TokenResponse;
         // Verify the state from redirect and record tokens to storage if exists
         if (responseState.stateMatch) {
             // this.logger.info("State is right");
             if (hashParams.hasOwnProperty(ServerHashParamKeys.SESSION_STATE)) {
                 this.cacheStorage.setItem(TemporaryCacheKeys.SESSION_STATE, hashParams[ServerHashParamKeys.SESSION_STATE]);
             }
-            response.state = StringUtils.extractUserGivenState(responseState.state);
 
             // Process code
             if (hashParams.hasOwnProperty(ServerHashParamKeys.CODE)) {
-                
-            } 
+                return this.parseAuthCodeFromHash(hashParams, responseState);
+            }
             // Process tokens
             else {
+                tokenResponse = {
+                    uniqueId: "",
+                    tenantId: "",
+                    tokenType: "",
+                    idToken: null,
+                    idTokenClaims: null,
+                    accessToken: null,
+                    scopes: [],
+                    expiresOn: null,
+                    account: null,
+                    state: StringUtils.extractUserGivenState(responseState.state),
+                };
+
+                if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
+                    // this.logger.warning("ClientInfo not received in the response from AAD");
+                    throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
+                }
+
                 // Process id_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
-                    response = this.parseIdTokenFromHash(hashParams, response, responseState);
+                    tokenResponse = this.parseIdTokenFromHash(hashParams, tokenResponse, responseState);
                 }
 
                 // Process access_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
-                    response = this.parseAccessTokenFromHash(hashParams, response, responseState);
+                    tokenResponse = this.parseAccessTokenFromHash(hashParams, tokenResponse, responseState);
                 }
+
+                return tokenResponse;
             }
         }
         // State mismatch - unexpected/invalid state
@@ -106,18 +114,16 @@ export class HashParser {
             // this.logger.error("State Mismatch.Expected State: " + expectedState + "," + "Actual State: " + responseState.state);
             throw ClientAuthError.createInvalidStateError(responseState.state, expectedState);
         }
-
-        return response;
     }
 
     private parseAuthCodeFromHash(hashParams: any, responseState: ResponseStateInfo): CodeResponse {
-        let authResponse: CodeResponse = {
+        const authResponse: CodeResponse = {
             code: "",
             state: ""
         };
 
         authResponse.code = hashParams[ServerHashParamKeys.CODE];
-        authResponse.state = responseState.state;
+        authResponse.state = StringUtils.extractUserGivenState(responseState.state);
 
         return authResponse;
     }
@@ -131,10 +137,6 @@ export class HashParser {
         const clientInfo: string = hashParams[ServerHashParamKeys.CLIENT_INFO];
 
         authResponse = this.setResponseIdToken(authResponse, idTokenObj);
-        if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
-            // this.logger.warning("ClientInfo not received in the response from AAD");
-            throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
-        }
 
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
@@ -171,16 +173,13 @@ export class HashParser {
         // set the idToken
         const idTokenStr = authResponse.idToken ? authResponse.idToken : this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
         const idTokenObj = new IdToken(idTokenStr, this.crypto);
+        const clientInfo: string = hashParams[ServerHashParamKeys.CLIENT_INFO];
 
         authResponse = this.setResponseIdToken(authResponse, idTokenObj);
-        if (!hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
-            // this.logger.warning("ClientInfo not received in the response from AAD");
-            throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
-        }
 
         // set authority
         const authority: string = this.populateAuthority(responseState.state, idTokenObj);
-        const encodedClientInfo = new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO], this.crypto);
+        const encodedClientInfo = new ClientInfo(clientInfo, this.crypto);
         this.account = MsalAccount.createAccount(idTokenObj, encodedClientInfo, this.crypto);
         authResponse.account = this.account;
 
@@ -202,7 +201,7 @@ export class HashParser {
         if (!StringUtils.isEmpty(cachedAccount)) {
             acquireTokenAccount = JSON.parse(cachedAccount);
             if (authResponse.account && acquireTokenAccount && MsalAccount.compareAccounts(authResponse.account, acquireTokenAccount)) {
-                authResponse = this.saveToken(authResponse, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
+                authResponse = this.saveToken(authResponse, authority, hashParams, clientInfo, idTokenObj);
                 // this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
             }
             else {
@@ -210,15 +209,15 @@ export class HashParser {
             }
         }
         else if (!StringUtils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
-            authResponse = this.saveToken(authResponse, authority, hashParams, hashParams[ServerHashParamKeys.CLIENT_INFO], idTokenObj);
+            authResponse = this.saveToken(authResponse, authority, hashParams, clientInfo, idTokenObj);
         }
         return authResponse;
     }
 
-    parseResponseFromHash(hashString: UrlString, responseState: ResponseStateInfo): TokenResponse {
+    parseResponseFromHash(hashString: UrlString, responseState: ResponseStateInfo): AuthResponse {
         // this.logger.info("State status:" + stateInfo.stateMatch + "; Request type:" + stateInfo.requestType);
         let error: AuthError;
-        let response: TokenResponse;
+        let response: AuthResponse;
         const hashParams = hashString.getDeserializedHash();
 
         // If server returns an error

@@ -13,6 +13,7 @@ import { ScopeSet } from "../../auth/ScopeSet";
 import { StringDict } from "../../app/MsalTypes";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { ICrypto } from "../../utils/crypto/ICrypto";
+import { TokenExchangeParameters } from "../TokenExchangeParameters";
 
 export abstract class ServerRequestParameters {
 
@@ -22,7 +23,7 @@ export abstract class ServerRequestParameters {
     scopes: ScopeSet;
     responseType: string;
     redirectUri: string;
-    request: AuthenticationParameters;
+    request: AuthenticationParameters & TokenExchangeParameters;
     queryParameters: string;
     extraQueryParameters: string;
 
@@ -50,7 +51,7 @@ export abstract class ServerRequestParameters {
         this.state = request.state && !StringUtils.isEmpty(this.state) ? `${CryptoUtils.createNewGuid()}|${this.state}` : CryptoUtils.createNewGuid();
     
         // TODO: Change this to user passed vs generated with separate PR
-        this.correlationId = CryptoUtils.createNewGuid();
+        this.correlationId = request.correlationId ? request.correlationId : CryptoUtils.createNewGuid();
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -129,8 +130,7 @@ export abstract class ServerRequestParameters {
     }
 
     async createNavigateUrl(): Promise<string> {
-        const str = await this.createUrlParamString();
-        console.log("Nav Url String: " + str);
+        const str = await this.createParamString();
         let authEndpoint: string = this.authorityInstance.authorizationEndpoint;
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
         if (authEndpoint.indexOf("?") < 0) {
@@ -140,10 +140,11 @@ export abstract class ServerRequestParameters {
         }
 
         const requestUrl: string = `${authEndpoint}${str.join("&")}`;
+        console.log("Nav Url String: " + requestUrl);
         return requestUrl;
     }
 
-    protected abstract createUrlParamString(): Promise<Array<string>>;
+    protected abstract createParamString(): Promise<Array<string>>;
 
     protected replaceDefaultScopes() {
         if (this.scopes.containsScope(this.clientId)) {

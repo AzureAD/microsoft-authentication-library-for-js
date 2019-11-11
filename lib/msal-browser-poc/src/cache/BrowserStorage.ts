@@ -133,7 +133,6 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     getKeys(): string[] {
-        console.log(Object.keys(this.windowStorage));
         return Object.keys(this.windowStorage);
     }
 

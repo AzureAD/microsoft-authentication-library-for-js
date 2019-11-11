@@ -6,3 +6,9 @@
 export type AuthResponse = {
     state: string;
 };
+
+export function buildResponseStateOnly(responseState: string) : AuthResponse {
+    return {
+        state: responseState
+    };
+}

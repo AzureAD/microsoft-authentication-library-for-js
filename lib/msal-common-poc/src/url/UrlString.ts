@@ -191,7 +191,8 @@ export class UrlString {
             parameters.hasOwnProperty(ServerHashParamKeys.ERROR_DESCRIPTION) ||
             parameters.hasOwnProperty(ServerHashParamKeys.ERROR) ||
             parameters.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN) ||
-            parameters.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)
+            parameters.hasOwnProperty(ServerHashParamKeys.ID_TOKEN) ||
+            parameters.hasOwnProperty(ServerHashParamKeys.CODE)
         );
     }
 }

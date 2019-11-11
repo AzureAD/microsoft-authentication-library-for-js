@@ -9,10 +9,12 @@ import { MsalConfiguration } from "../MsalConfiguration";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-import { ImplicitTokenRequestParameters } from "../../request/server_request/ImplicitTokenRequestParameters";
+import { ImplicitServerRequestParameters } from "../../request/server_request/ImplicitServerRequestParameters";
 // utils
 import { CacheUtils } from "../../utils/CacheUtils";
 import { AuthModule } from "./AuthModule";
+import { AuthCodeServerRequestParameters } from "../../request/server_request/AuthCodeServerRequestParameters";
+import { AuthResponse } from "../../response/AuthResponse";
 
 /**
  * @hidden
@@ -70,7 +72,7 @@ export class ImplicitAuthModule extends AuthModule {
         request.account = this.getAccount();
 
         // Create and validate request parameters
-        const serverRequestParameters = new ImplicitTokenRequestParameters(
+        const serverRequestParameters = new ImplicitServerRequestParameters(
             acquireTokenAuthority,
             this.config.auth.clientId,
             request,

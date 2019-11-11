@@ -11,17 +11,10 @@ import { IXhrClient } from "./IXHRClient";
  * @hidden
  */
 export class XhrClient implements IXhrClient {
-    public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
+    public sendRequestAsync(url: string, requestParams: RequestInit, enableCaching?: boolean): Promise<any> {
         return new Promise<string>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
-            xhr.open(method, url, /* async: */ true);
-            if (enableCaching) {
-                /*
-                 * TODO: (shivb) ensure that this can be cached
-                 * xhr.setRequestHeader("Cache-Control", "Public");
-                 */
-            }
-
+            xhr.open(requestParams.method, url, /* async: */ true);
             xhr.onload = (ev) => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
@@ -40,7 +33,7 @@ export class XhrClient implements IXhrClient {
                 reject(xhr.status);
             };
 
-            if (method === "GET") {
+            if (requestParams.method === "GET") {
                 xhr.send();
             }
             else {

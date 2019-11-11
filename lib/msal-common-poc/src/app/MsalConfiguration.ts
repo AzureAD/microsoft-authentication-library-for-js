@@ -97,7 +97,7 @@ const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
 };
 
 const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
-    sendRequestAsync: (url: string, method: string, enableCaching?: boolean): Promise<any> => {
+    sendRequestAsync: (url: string, method: RequestInit, enableCaching?: boolean): Promise<any> => {
         console.log("Network interface - sendRequestAsync() has not been implemented");
         return null;
     }

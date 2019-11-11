@@ -9,5 +9,5 @@
  * @hidden
  */
 export interface IXhrClient {
-    sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any>;
+    sendRequestAsync(url: string, requestParams: RequestInit, enableCaching?: boolean): Promise<any>;
 }

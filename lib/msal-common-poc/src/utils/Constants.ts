@@ -85,7 +85,8 @@ export enum TemporaryCacheKeys {
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     ANGULAR_LOGIN_REQUEST = "angular.login.request",
-    INTERACTION_STATUS = "interaction.status"
+    INTERACTION_STATUS = "interaction.status",
+    REQUEST_PARAMS = "request.params"
 };
 
 export enum PersistentCacheKeys {

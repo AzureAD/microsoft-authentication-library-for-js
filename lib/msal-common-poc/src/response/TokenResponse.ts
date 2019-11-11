@@ -18,18 +18,3 @@ export type TokenResponse = AuthResponse & {
     expiresOn: Date;
     account: MsalAccount;
 };
-
-export function buildResponseStateOnly(responseState: string) : TokenResponse {
-    return {
-        uniqueId: "",
-        tenantId: "",
-        tokenType: "",
-        idToken: null,
-        idTokenClaims: null,
-        accessToken: "",
-        scopes: null,
-        expiresOn: null,
-        account: null,
-        state: responseState
-    };
-}

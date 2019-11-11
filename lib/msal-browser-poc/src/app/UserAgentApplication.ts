@@ -18,6 +18,9 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 // Errors
 import { ClientBrowserConfigurationError } from "../error/ClientBrowserConfigurationError";
 
+// Crypto
+import { BrowserCrypto } from "../utils/BrowserCrypto";
+
 // Utils
 import { StringUtils } from "../utils/StringUtils";
 import { WindowUtils } from "../utils/WindowUtils";
@@ -70,6 +73,9 @@ export class UserAgentApplication {
     // Network Client
     private networkClient: IXhrClient;
 
+    // Crypto implementation
+    private crypto: msalAuth.ICrypto;
+
     /**
      * @constructor
      * Constructor for the UserAgentApplication used to instantiate the UserAgentApplication object
@@ -101,13 +107,17 @@ export class UserAgentApplication {
         // Initialize the network module
         this.networkClient = new XhrClient();
 
+        // Initialize the crypto module
+        this.crypto = new BrowserCrypto();
+
         // Create the auth module
         this.authModule = new msalAuth.ImplicitAuthModule({ 
             auth: this.config.auth,
             storageInterface: this.cacheStorage,
             networkInterface: {
                 sendRequestAsync: this.networkClient.sendRequestAsync
-            }
+            },
+            cryptoInterface: this.crypto
         } as msalAuth.MsalConfiguration);
 
         // Set initial state vars

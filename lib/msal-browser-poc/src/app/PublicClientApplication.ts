@@ -10,7 +10,7 @@ import { Configuration, buildConfiguration } from "./Configuration";
 
 // Network
 import { IXhrClient } from "../network/IXHRClient";
-import { XhrClient } from "../network/XHRClient";
+import { FetchClient } from "../network/FetchClient";
 
 // Cache
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -24,6 +24,7 @@ import { BrowserCrypto } from "../utils/BrowserCrypto";
 // Utils
 import { StringUtils } from "../utils/StringUtils";
 import { WindowUtils } from "../utils/WindowUtils";
+import { ClientBrowserAuthError } from "../error/ClientBrowserAuthError";
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -105,7 +106,7 @@ export class PublicClientApplication {
         this.cacheStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Initialize the network module
-        this.networkClient = new XhrClient();
+        this.networkClient = new FetchClient();
 
         // Initialize crypto module
         this.crypto = new BrowserCrypto();
@@ -241,23 +242,44 @@ export class PublicClientApplication {
         // TODO: Close all open popups
     }
 
-    private processCallback(hash: string) {
-        let response: msalAuth.AuthResponse;
+    private async processCallback(hash: string) {
+        let codeResponse: msalAuth.CodeResponse;
+        let authResponse: msalAuth.AuthResponse;
         let authErr: msalAuth.AuthError;
         const responseState = this.authModule.extractResponseState(hash);
         try {
-            response = this.authModule.handleResponse(hash);
+            codeResponse = this.authModule.handleResponse(hash) as msalAuth.CodeResponse;
         } catch (err) {
             authErr = err;
+        }
+
+        if (codeResponse && codeResponse.code) {
+            const tokenRequest: msalAuth.TokenExchangeParameters = {
+                authority: "",
+                code: codeResponse.code,
+                correlationId: "",
+                extraQueryParameters: null,
+                scopes: null,
+                state: ""
+            };
+            try {
+                authResponse = await this.authModule.acquireToken(tokenRequest);
+            } catch (e) {
+                authErr = e;
+            }
+        } else {
+            authErr = ClientBrowserAuthError.createAuthCodeResponseDNEError(`Response = ${codeResponse}`);
         }
 
         this.cacheStorage.clearMsalCookie(responseState.state);
 
         if (authErr) {
-            
             this.authCallback(authErr, msalAuth.buildResponseStateOnly(responseState.state));
+        } else if (authResponse) {
+            this.authCallback(null, authResponse);
         } else {
-            this.authCallback(null, response);
+            throw msalAuth.AuthError.createUnexpectedError("Both response and error were null in processCallback()");
         }
     }
 }
+
