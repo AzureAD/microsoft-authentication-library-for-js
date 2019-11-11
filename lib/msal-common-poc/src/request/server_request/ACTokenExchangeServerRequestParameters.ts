@@ -37,7 +37,7 @@ export class ACTokenExchangeServerRequestParameters extends ServerRequestParamet
     protected async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         const grantType = "authorization_code";
-        const clientSecret = "8=SMPaPzbBV7QofnBr4XgL_2xa=_2j3o";
+        const clientSecret = "";
         str.push(`client_id=${encodeURIComponent(this.clientId)}`);
         str.push(`redirect_uri=${encodeURIComponent(this.redirectUri)}`);
         str.push(`grant_type=${grantType}`);
