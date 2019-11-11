@@ -8,6 +8,7 @@ export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, Configuration } from "./Configuration";
 export { AuthenticationParameters } from "./AuthenticationParameters";
 export { AuthResponse } from "./AuthResponse";
+export { CryptoUtils } from "./utils/CryptoUtils";
 
 // Errors
 export { AuthError } from "./error/AuthError";

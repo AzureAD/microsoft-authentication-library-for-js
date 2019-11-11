@@ -60,7 +60,8 @@ export const TEST_CONFIG = {
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
-    STATE: "1234"
+    STATE: "1234",
+    CorrelationId: "ed2a3125-a597-416f-9d12-68b9add1c268"
 };
 
 export const TEST_RESPONSE_TYPE = {

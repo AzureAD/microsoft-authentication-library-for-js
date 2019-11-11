@@ -5,6 +5,7 @@ import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
 import { ServerHashParamKeys } from "../../src/utils/Constants";
+import { UserSetRequestParams } from "../../src/UserAgentApplication";
 
 describe("UrlUtils.ts class", () => {
 
@@ -50,13 +51,13 @@ describe("UrlUtils.ts class", () => {
         const scopes = ["S1"];
         const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
+        let reqParams: UserSetRequestParams = ServerRequestParameters.validateUserSetServerParams(scopes, TEST_CONFIG.STATE, TEST_CONFIG.CorrelationId, TEST_CONFIG.MSAL_CLIENT_ID);
         const req = new ServerRequestParameters(
             authority,
             TEST_CONFIG.MSAL_CLIENT_ID,
-            scopes,
             TEST_RESPONSE_TYPE.token,
             TEST_URIS.TEST_REDIR_URI,
-            TEST_CONFIG.STATE
+            reqParams
         );
         const uriString = UrlUtils.createNavigateUrl(req);
 

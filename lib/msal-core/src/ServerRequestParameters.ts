@@ -11,6 +11,7 @@ import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { StringUtils } from "./utils/StringUtils";
+import { UserSetRequestParams } from "./UserAgentApplication";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -53,19 +54,15 @@ export class ServerRequestParameters {
      * @param redirectUri
      * @param state
      */
-    constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string, correlationId?: string) {
+    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, reqParams: UserSetRequestParams) {
         this.authorityInstance = authority;
         this.clientId = clientId;
-        if (!scope) {
-            this.scopes = [clientId];
-        } else {
-            this.scopes = [ ...scope ];
-        }
-
         this.nonce = CryptoUtils.createNewGuid();
-        this.state = state && !StringUtils.isEmpty(state) ?  CryptoUtils.createNewGuid() + "|" + state   : CryptoUtils.createNewGuid();
 
-        this.correlationId = correlationId || CryptoUtils.createNewGuid();
+        // validate and populate the below parameters from reqParams: UserSetRequestParams
+        this.scopes = reqParams.scopes;
+        this.state  = reqParams.state;
+        this.correlationId = reqParams.correlationId;
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -352,6 +349,35 @@ export class ServerRequestParameters {
         }
 
         return paramsString;
+    }
+
+    /**
+     * @hidden
+     *
+     * Validate  scopes/state/correlationId set in the request by the user
+     * @param request
+     */
+    static validateUserSetServerParams(scopes: Array<string>, state: string, correlationId: string, clientId: string): UserSetRequestParams {
+
+        // set scope to clientId if null
+        let reqScopes: Array<string>;
+        if (!scopes) {
+            reqScopes = [clientId];
+        } else {
+            reqScopes = [ ...scopes ];
+        }
+
+        // append GUID to user set state  or set one for the user if null
+        const reqState = state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+
+        // validate user set correlationId or set one for the user if null
+        if(correlationId && !CryptoUtils.isGuid(correlationId)) {
+            throw ClientConfigurationError.createInvalidCorrelationIdError();
+        }
+        const reqCcorrelationId = correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+
+        const reqParams = {scopes: reqScopes, state: reqState, correlationId: reqCcorrelationId};
+        return reqParams;
     }
 
     // #endregion

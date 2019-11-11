@@ -89,6 +89,18 @@ export type ResponseStateInfo = {
 };
 
 /**
+ * @hidden
+ * @ignore
+ *
+ * Data type to contain userset request params sent to  -> server parameters
+ */
+export type UserSetRequestParams = {
+    scopes: Array<string>,
+    state: string,
+    correlationId: string
+};
+
+/**
  * A type alias for an authResponseCallback function.
  * {@link (authResponseCallback:type)}
  * @param authErr error created for failure cases
@@ -484,14 +496,18 @@ export class UserAgentApplication {
                 }
             }
 
+            const reqParams: UserSetRequestParams = ServerRequestParameters.validateUserSetServerParams(
+                scopes,
+                request && request.state,
+                request && request.correlationId,
+                this.clientId);
+
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
                 this.clientId,
-                scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state,
-                request && request.correlationId
+                reqParams
             );
 
             this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
@@ -597,15 +613,20 @@ export class UserAgentApplication {
 
             const responseType = this.getTokenType(account, request.scopes, true);
 
+            const reqParams: UserSetRequestParams = ServerRequestParameters.validateUserSetServerParams(
+                request.scopes,
+                request.state,
+                request.correlationId,
+                this.clientId);
+
             const serverAuthenticationRequest = new ServerRequestParameters(
                 AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
                 this.clientId,
-                request.scopes,
                 responseType,
                 this.getRedirectUri(),
-                request.state,
-                request.correlationId
+                reqParams
             );
+
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request);
@@ -1817,14 +1838,19 @@ export class UserAgentApplication {
         // Construct AuthenticationRequest based on response type
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
         const responseType = this.getTokenType(accountObject, scopes, true);
+
+        const reqParams: UserSetRequestParams = ServerRequestParameters.validateUserSetServerParams(
+            scopes,
+            state,
+            correlationId,
+            this.clientId);
+
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
             this.clientId,
-            scopes,
             responseType,
             this.getRedirectUri(),
-            state,
-            correlationId
+            reqParams
         );
 
         // get cached token
