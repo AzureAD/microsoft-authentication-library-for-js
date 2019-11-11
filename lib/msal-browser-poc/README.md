@@ -24,7 +24,7 @@ The current VanillaJSTestApp sample is set up to run the authorization code flow
     - Go to the Authentication tab. Register the redirect URI for the application as "http://localhost:30662/". Also select "Yes" when asked if you would like to treat this application as a public client.
     - Go the Certificates & Secrets tab. Create a Client Secret that you can use for testing. This will most likely not be a required step in future production versions for Auth Code in the browser, but for now in order to run the POC you will need to create one.
 2. Keep the app registration page open. You will now need a browser with CORS disabled in order to be able to retrieve tokens from the token endpoint. This is once again not a recommended production setting, but for the purposes of this POC you should follow these instructions:
-    - We recommend using Chrome for this. You can follow the steps [here](https://alfilatov.com/posts/run-chrome-without-cors/) to figure out how to run Chrome by CORS for your OS.
+    - We recommend using Chrome for this. You can follow the steps [here](https://alfilatov.com/posts/run-chrome-without-cors/) to figure out how to run Chrome withput CORS enabled for your OS.
     - For Windows machines, you can do the following:
         - Right click on your desktop -> New -> Shortcut
         - Paste the following: 
