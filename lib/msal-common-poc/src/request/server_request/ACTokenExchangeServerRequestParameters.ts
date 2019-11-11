@@ -14,9 +14,11 @@ import { Constants } from "../../utils/Constants";
 export class ACTokenExchangeServerRequestParameters extends ServerRequestParameters {
 
     request: TokenExchangeParameters;
+    clientSecret: string;
 
     constructor(authority: Authority, 
         clientId: string, 
+        clientSecret: string,
         request: TokenExchangeParameters, 
         isLoginCall: boolean, 
         isSilentRequest: boolean, 
@@ -24,6 +26,7 @@ export class ACTokenExchangeServerRequestParameters extends ServerRequestParamet
         redirectUri: string,
         crypto: ICrypto) {
         super(authority, clientId, request, isLoginCall, isSilentRequest, cachedAccount, redirectUri, crypto);
+        this.clientSecret = clientSecret;
     }
 
     async createNavigateUrl(): Promise<string> {
@@ -38,14 +41,15 @@ export class ACTokenExchangeServerRequestParameters extends ServerRequestParamet
     protected async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         const grantType = "authorization_code";
-        const clientSecret = "";
+        this.replaceDefaultScopes();
+
         str.push(`client_id=${encodeURIComponent(this.clientId)}`);
         str.push(`redirect_uri=${encodeURIComponent(this.redirectUri)}`);
         str.push(`grant_type=${grantType}`);
         str.push(`scope=${encodeURIComponent(this.scopes.printScopes())}`);
         str.push(`code=${encodeURIComponent(this.request.code)}`);
         str.push(`code_verifier=${encodeURIComponent(this.request.codeVerifier)}`);
-        str.push(`client_secret=${clientSecret}`);
+        str.push(`client_secret=${encodeURIComponent(this.clientSecret)}`);
         str.push(`state=${encodeURIComponent(this.state)}`);
         return str;
     }
@@ -53,7 +57,7 @@ export class ACTokenExchangeServerRequestParameters extends ServerRequestParamet
     protected replaceDefaultScopes() {
         if (this.scopes.containsScope(this.clientId)) {
             super.replaceDefaultScopes();
-            this.scopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
         }
+        this.scopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
     }
 }

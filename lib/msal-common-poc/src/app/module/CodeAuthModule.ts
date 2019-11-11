@@ -127,6 +127,7 @@ export class CodeAuthModule extends AuthModule {
         const tokenExchangeParams = new ACTokenExchangeServerRequestParameters(
             acquireTokenAuthority,
             this.config.auth.clientId,
+            this.config.auth.clientSecret,
             request,
             true,
             false,

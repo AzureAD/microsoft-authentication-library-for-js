@@ -21,8 +21,8 @@
     // initialize MSAL
     const msalConfig = {
         auth: {
-            // clientId: "Enter_your_client_id",
-            clientId: "",
+            clientId: "Enter_your_client_id",
+            clientSecret: "Enter_your_client_secret",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true,
             navigateToLoginRequestUrl: false
@@ -60,7 +60,7 @@
 
     function authRedirectCallBack(error, response) {
         if (error) {
-            console.log("Auth Error: " + error.stack);
+            console.error("Auth Error: " + error.stack);
         } else {
             console.log("Response: " + JSON.stringify(response));
         }
