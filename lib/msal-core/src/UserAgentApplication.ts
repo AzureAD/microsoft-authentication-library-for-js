@@ -489,7 +489,7 @@ export class UserAgentApplication {
                 this.clientId,
                 scopes,
                 responseType,
-                this.getRedirectUri(),
+                this.getRedirectUri(request && request.redirectUri),
                 request && request.state
             );
 
@@ -601,7 +601,7 @@ export class UserAgentApplication {
                 this.clientId,
                 request.scopes,
                 responseType,
-                this.getRedirectUri(),
+                this.getRedirectUri(request.redirectUri),
                 request && request.state
             );
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
@@ -1953,8 +1953,11 @@ export class UserAgentApplication {
      * @returns {string} redirect URL
      *
      */
-    public getRedirectUri(): string {
-        if (typeof this.config.auth.redirectUri === "function") {
+    public getRedirectUri(reqRedirectUri?:  string): string {
+        if(reqRedirectUri) {
+            return reqRedirectUri;
+        }
+        else if (typeof this.config.auth.redirectUri === "function") {
             return this.config.auth.redirectUri();
         }
         return this.config.auth.redirectUri;
