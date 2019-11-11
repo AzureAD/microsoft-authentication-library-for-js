@@ -36,8 +36,8 @@
     "scripts": {
         "clean": "shx rm -rf dist lib",
         "lint": "eslint src --ext .ts",
-        "build:all": "npm run build:common && npm run build",
-        "build:common": "cd ../msal-common-poc && npm run build",
+        "build:all": "npm run build:common && npm link msal-common && npm run build",
+        "build:common": "cd ../msal-common-poc && npm run build && npm link",
         "build:modules": "rollup -c",
         "build:modules:watch": "rollup -cw",
         "build": "npm run clean && npm run lint && npm run build:modules",

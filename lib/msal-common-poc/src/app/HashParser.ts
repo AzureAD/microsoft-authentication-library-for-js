@@ -84,6 +84,7 @@ export class HashParser {
                     idToken: null,
                     idTokenClaims: null,
                     accessToken: null,
+                    refreshToken: null,
                     scopes: [],
                     expiresOn: null,
                     account: null,

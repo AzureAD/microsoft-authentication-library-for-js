@@ -24,6 +24,7 @@ export const Constants = {
     // Default scopes
     OPENID_SCOPE: "openid",
     PROFILE_SCOPE: "profile",
+    OFFLINE_ACCESS_SCOPE: "offline_access",
     INTERACTION_IN_PROGRESS: "interaction_in_progress"
 };
 

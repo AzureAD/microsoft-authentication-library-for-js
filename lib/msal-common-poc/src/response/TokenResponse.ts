@@ -14,6 +14,7 @@ export type TokenResponse = AuthResponse & {
     idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
+    refreshToken: string;
     scopes: Array<string>;
     expiresOn: Date;
     account: MsalAccount;

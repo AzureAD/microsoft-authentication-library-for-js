@@ -153,6 +153,7 @@ export class CodeAuthModule extends AuthModule {
             idToken: acquiredTokenResponse.id_token,
             idTokenClaims: null,
             accessToken: acquiredTokenResponse.access_token,
+            refreshToken: acquiredTokenResponse.refresh_token,
             scopes: acquiredTokenResponse.scope,
             expiresOn: TimeUtils.now() + acquiredTokenResponse.expires_in,
             account: this.getAccount(),

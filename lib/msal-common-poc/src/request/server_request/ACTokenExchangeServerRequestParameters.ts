@@ -9,6 +9,7 @@ import { MsalAccount } from "../../auth/MsalAccount";
 import { ICrypto } from "../../utils/crypto/ICrypto";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { TokenExchangeParameters } from "../TokenExchangeParameters";
+import { Constants } from "../../utils/Constants";
 
 export class ACTokenExchangeServerRequestParameters extends ServerRequestParameters {
 
@@ -48,5 +49,11 @@ export class ACTokenExchangeServerRequestParameters extends ServerRequestParamet
         str.push(`state=${encodeURIComponent(this.state)}`);
         return str;
     }
-    
+
+    protected replaceDefaultScopes() {
+        if (this.scopes.containsScope(this.clientId)) {
+            super.replaceDefaultScopes();
+            this.scopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
+        }
+    }
 }
