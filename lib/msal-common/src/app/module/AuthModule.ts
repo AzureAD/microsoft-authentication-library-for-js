@@ -2,14 +2,20 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { MsalPublicClientConfiguration, buildMsalConfiguration } from "../MsalPublicClientConfiguration";
-import { ICrypto } from "../../utils/crypto/ICrypto";
-import { ICacheStorage } from "../../cache/ICacheStorage";
-import { INetworkModule } from "../../network/INetworkModule";
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
-import { AuthResponse } from "../../response/AuthResponse";
+// app
+import { MsalConfiguration, buildMsalConfiguration } from "../config/MsalConfiguration";
+// request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
+// response
+import { AuthResponse } from "../../response/AuthResponse";
+// cache
+import { ICacheStorage } from "../../cache/ICacheStorage";
+// network
+import { INetworkModule } from "../../network/INetworkModule";
+// error
+import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+// utils
+import { ICrypto } from "../../utils/crypto/ICrypto";
 
 /**
  * @hidden
@@ -22,15 +28,15 @@ export type ResponseStateInfo = {
 };
 
 /**
- * CodeAuthModule class
+ * AuthModule class
  * 
- * Object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
+ * Parent object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
  * 
  */
 export abstract class AuthModule {
 
     // Application config
-    protected config: MsalPublicClientConfiguration;
+    protected config: MsalConfiguration;
     
     // Crypto Interface
     protected crypto: ICrypto;
@@ -41,7 +47,7 @@ export abstract class AuthModule {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    constructor(configuration: MsalPublicClientConfiguration) {
+    constructor(configuration: MsalConfiguration) {
         // Set the configuration
         this.config = buildMsalConfiguration(configuration);
 
@@ -61,44 +67,4 @@ export abstract class AuthModule {
     handleFragmentResponse(hashFragment: string): AuthResponse {
         return null;
     }
-
-    // #region Getters and setters
-
-    /**
-     *
-     * Use to get the redirect uri configured in MSAL or null.
-     * Evaluates redirectUri if its a function, otherwise simply returns its value.
-     * @returns {string} redirect URL
-     *
-     */
-    public getRedirectUri(): string {
-        if (this.config.auth.redirectUri) {
-            if (typeof this.config.auth.redirectUri === "function") {
-                return this.config.auth.redirectUri();
-            }
-            return this.config.auth.redirectUri;
-        } else {
-            throw ClientConfigurationError.createRedirectUriEmptyError();
-        }
-    }
-
-    /**
-     * Use to get the post logout redirect uri configured in MSAL or null.
-     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
-     *
-     * @returns {string} post logout redirect URL
-     */
-    public getPostLogoutRedirectUri(): string {
-        if (this.config.auth.postLogoutRedirectUri) {
-            if (typeof this.config.auth.postLogoutRedirectUri === "function") {
-                return this.config.auth.postLogoutRedirectUri();
-            }
-            return this.config.auth.postLogoutRedirectUri;
-        } else {
-            throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
-        }
-    }
-
-    // #endregion
-
 }

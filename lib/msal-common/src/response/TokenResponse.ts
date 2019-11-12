@@ -7,6 +7,18 @@
 import { StringDict } from "../utils/MsalTypes";
 import { AuthResponse } from "./AuthResponse";
 
+/**
+ * TokenResponse type returned by library containing id, access and/or refresh tokens.
+ * - uniqueId: account object id
+ * - tenantId: id of home tenant for logged in user
+ * - tokenType: type of token response - either idToken or accessToken
+ * - idToken: id token jwt string
+ * - idTokenClaims: claims in id token
+ * - accessToken: access token jwt string
+ * - refreshToken: refresh token string
+ * - expiresOn: expiration of access token or id token (depends on token type)
+ * - account: logged in account object
+ */
 export type TokenResponse = AuthResponse & {
     uniqueId: string;
     tenantId: string;
@@ -15,7 +27,6 @@ export type TokenResponse = AuthResponse & {
     idTokenClaims: StringDict;
     accessToken: string;
     refreshToken: string;
-    scopes: Array<string>;
     expiresOn: Date;
     // account: MsalAccount;
 };

@@ -8,7 +8,19 @@ import { StringDict } from "../utils/MsalTypes";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
- * @link AuthenticationParameters}AuthenticationParameters
+ * AuthenticationParameters passed by user to retrieve a token from the server.
+ * - scopes: requested token scopes
+ * - extraScopesToConsent: additional scopes to consent 
+ * - prompt: the value of the OAuth prompt parameter
+ * - extraQueryParameters: string to string map of custom query parameters
+ * - claimsRequest: stringified claims object to request additional claims in a token
+ * - authority: authority to request tokens from
+ * - state: state parameter to ensure request/response integrity
+ * - correlationId: custom correlationId given by user
+ * - account: Account object to perform SSO
+ * - sid: session id for SSO
+ * - loginHint: login hint for SSO
+ * - forceRefresh: Forces silent requests to make network calls if true
  */
 export type AuthenticationParameters = {
     scopes?: Array<string>;
@@ -25,6 +37,10 @@ export type AuthenticationParameters = {
     forceRefresh?: boolean;
 };
 
+/**
+ * Function which validates claims request passed in by the user.
+ * @param request 
+ */
 export function validateClaimsRequest(request: AuthenticationParameters) {
     if (!request.claimsRequest) {
         return;

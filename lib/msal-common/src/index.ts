@@ -1,6 +1,6 @@
 // App Auth Modules and Configuration
 export { AuthorizationCodeModule } from "./app/module/AuthorizationCodeModule";
-export { MsalPublicClientConfiguration, AuthOptions } from "./app/MsalPublicClientConfiguration";
+export { MsalPublicClientConfiguration, AuthOptions } from "./app/config/MsalPublicClientConfiguration";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 // Network Interface

@@ -5,6 +5,9 @@
 
 import { ClientAuthError } from "./ClientAuthError";
 
+/**
+ * ClientConfigurationErrorMessage class containing string constants used by error codes and messages.
+ */
 export const ClientConfigurationErrorMessage = {
     redirectUriNotSet: {
         code: "redirect_uri_empty",
@@ -21,7 +24,7 @@ export const ClientConfigurationErrorMessage = {
 };
 
 /**
- * Error thrown when there is an error in configuration of the .js library.
+ * Error thrown when there is an error in configuration of the MSAL.js library.
  */
 export class ClientConfigurationError extends ClientAuthError {
 
@@ -31,16 +34,25 @@ export class ClientConfigurationError extends ClientAuthError {
         Object.setPrototypeOf(this, ClientConfigurationError.prototype);
     }
 
+    /**
+     * Creates an error thrown when the redirect uri is empty (not set by caller)
+     */
     static createRedirectUriEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientConfigurationErrorMessage.redirectUriNotSet.code,
             ClientConfigurationErrorMessage.redirectUriNotSet.desc);
     }
 
+    /**
+     * Creates an error thrown when the post-logout redirect uri is empty (not set by caller)
+     */
     static createPostLogoutRedirectUriEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientConfigurationErrorMessage.postLogoutUriNotSet.code,
             ClientConfigurationErrorMessage.postLogoutUriNotSet.desc);
     }
 
+    /**
+     * Creates an error thrown when the claims request could not be successfully parsed
+     */
     static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
             `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);

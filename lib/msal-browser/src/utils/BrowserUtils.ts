@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Utility class for browser specific functions
+ */
 export class BrowserUtils {
 
     /**

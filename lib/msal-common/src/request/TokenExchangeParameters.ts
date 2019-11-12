@@ -5,7 +5,14 @@
 import { StringDict } from "../utils/MsalTypes";
 
 /**
- * @link AuthenticationParameters}AuthenticationParameters
+ * TokenExchangeParameters used to exchange an authorization code for a token.
+ * - scopes: requested token scopes
+ * - code: authorization code to exchange for tokens
+ * - code_verifier: verifier to complete PKCE protocol
+ * - extraQueryParameters: string to string map of custom query parameters
+ * - authority: authority to request tokens from
+ * - state: state parameter to ensure request/response integrity
+ * - correlationId: custom correlationId given by user
  */
 export type TokenExchangeParameters = {
     scopes?: Array<string>;
