@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * AuthErrorMessage class containing string constants used by error codes and messages.
+ */
 export const AuthErrorMessage = {
     unexpectedError: {
         code: "unexpected_error",
@@ -27,6 +30,10 @@ export class AuthError extends Error {
         this.name = "AuthError";
     }
 
+    /**
+     * Creates an error that is thrown when something unexpected happens in the library.
+     * @param errDesc 
+     */
     static createUnexpectedError(errDesc: string) {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
     }

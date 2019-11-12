@@ -5,6 +5,10 @@
 
 import { AuthResponse } from "./AuthResponse";
 
+/**
+ * CodeResponse type returned by library containing authorization code.
+ * - code: authorization code returned from interactive call
+ */
 export type CodeResponse = AuthResponse &
 {
     code: string

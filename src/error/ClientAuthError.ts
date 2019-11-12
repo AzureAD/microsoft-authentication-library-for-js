@@ -5,6 +5,9 @@
 
 import { AuthError } from "./AuthError";
 
+/**
+ * ClientAuthErrorMessage class containing string constants used by error codes and messages.
+ */
 export const ClientAuthErrorMessage = {
 
 };
