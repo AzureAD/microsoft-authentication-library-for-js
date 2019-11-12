@@ -15,7 +15,7 @@ The MSAL library for JavaScript enables client-side JavaScript applications to a
     npm install msal-browser
 
 ## How to Run Samples for Authorization Code Flow POC
-See the PR [here](#1000).
+See the PR [here](#1106).
 
 ## Roadmap and What To Expect From This Library
 MSAL support on Javascript is a collection of libraries. `msal-common` is the platform agnostic core library, and `msal-browser` is our core library for Single Page Applications (SPAs) without a backend. This library includes improvements for new browser requirements in Safari, as well as an updated token acquisition flow utilizing the OAuth 2.0 Authorization Code Flow.
