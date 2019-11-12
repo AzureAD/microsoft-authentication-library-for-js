@@ -5,7 +5,10 @@
 
 // inheritance
 import { AuthModule } from "./AuthModule";
-import { MsalConfiguration } from "../MsalConfiguration";
+import { MsalPublicClientConfiguration } from "../MsalPublicClientConfiguration";
+import { AuthenticationParameters } from "../../request/AuthenticationParameters";
+import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
+import { TokenResponse } from "../../response/TokenResponse";
 
 /**
  * AuthorizationCodeModule class
@@ -15,19 +18,19 @@ import { MsalConfiguration } from "../MsalConfiguration";
  */
 export class AuthorizationCodeModule extends AuthModule {
     
-    constructor(configuration: MsalConfiguration) {
+    constructor(configuration: MsalPublicClientConfiguration) {
         super(configuration);
     }
 
-    async createLoginUrl(): Promise<string> {
+    async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }    
     
-    async createAcquireTokenUrl(): Promise<string> {
+    async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }
 
-    async acquireToken(): Promise<string> {
+    async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
         throw new Error("Method not implemented.");
     }
 }

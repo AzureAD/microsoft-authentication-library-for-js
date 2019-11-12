@@ -3,11 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { MsalConfiguration } from "../MsalConfiguration";
+import { MsalPublicClientConfiguration, buildMsalConfiguration } from "../MsalPublicClientConfiguration";
 import { ICrypto } from "../../utils/crypto/ICrypto";
 import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule } from "../../network/INetworkModule";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+import { AuthResponse } from "../../response/AuthResponse";
+import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 
 /**
  * @hidden
@@ -28,7 +30,7 @@ export type ResponseStateInfo = {
 export abstract class AuthModule {
 
     // Application config
-    protected config: MsalConfiguration;
+    protected config: MsalPublicClientConfiguration;
     
     // Crypto Interface
     protected crypto: ICrypto;
@@ -39,9 +41,9 @@ export abstract class AuthModule {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    constructor(configuration: MsalConfiguration) {
+    constructor(configuration: MsalPublicClientConfiguration) {
         // Set the configuration
-        this.config = configuration;
+        this.config = buildMsalConfiguration(configuration);
 
         // Initialize crypto
         this.crypto = this.config.cryptoInterface;
@@ -53,12 +55,14 @@ export abstract class AuthModule {
         this.networkClient = this.config.networkInterface;
     }
 
-    abstract async createLoginUrl(): Promise<string>;
-    abstract async createAcquireTokenUrl(): Promise<string>;
+    abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
+    abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
 
-    handleFragmentResponse(hashFragment: string): void {
-        return;
+    handleFragmentResponse(hashFragment: string): AuthResponse {
+        return null;
     }
+
+    // #region Getters and setters
 
     /**
      *
@@ -94,5 +98,7 @@ export abstract class AuthModule {
             throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
         }
     }
+
+    // #endregion
 
 }

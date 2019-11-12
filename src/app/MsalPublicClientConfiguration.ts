@@ -51,7 +51,7 @@ export type NetworkOptions = {
  * - storage: this is where you configure storage implementation.
  * - network: this is where you can configure network implementation.
  */
-export type MsalConfiguration = {
+export type MsalPublicClientConfiguration = {
     auth: AuthOptions,
     storageInterface: ICacheStorage,
     networkInterface: INetworkModule,
@@ -130,8 +130,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns TConfiguration object
  */
-export function buildMsalConfiguration({ auth, storageInterface, networkInterface, cryptoInterface }: MsalConfiguration): MsalConfiguration {
-    const overlayedConfig: MsalConfiguration = {
+export function buildMsalConfiguration({ auth, storageInterface, networkInterface, cryptoInterface }: MsalPublicClientConfiguration): MsalPublicClientConfiguration {
+    const overlayedConfig: MsalPublicClientConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         storageInterface: { ...DEFAULT_STORAGE_OPTIONS, ...storageInterface },
         networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface },

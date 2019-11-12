@@ -13,7 +13,11 @@ export const ClientConfigurationErrorMessage = {
     postLogoutUriNotSet: {
         code: "post_logout_uri_empty",
         desc: "A post logout redirect has not been set."
-    }
+    },
+    claimsRequestParsingError: {
+        code: "claims_request_parsing_error",
+        desc: "Could not parse the given claims request object."
+    },
 };
 
 /**
@@ -35,5 +39,10 @@ export class ClientConfigurationError extends ClientAuthError {
     static createPostLogoutRedirectUriEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientConfigurationErrorMessage.postLogoutUriNotSet.code,
             ClientConfigurationErrorMessage.postLogoutUriNotSet.desc);
+    }
+
+    static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
+            `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
     }
 }
