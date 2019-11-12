@@ -13,5 +13,20 @@ import { AuthModule } from "./AuthModule";
  * 
  */
 export class AuthorizationCodeModule extends AuthModule {
+    
+    constructor() {
+        super();
+    }
 
+    async createLoginUrl(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }    
+    
+    async createAcquireTokenUrl(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+
+    async acquireToken(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
 }

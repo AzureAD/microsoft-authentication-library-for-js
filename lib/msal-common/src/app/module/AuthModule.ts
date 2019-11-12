@@ -20,5 +20,14 @@ export type ResponseStateInfo = {
  * 
  */
 export abstract class AuthModule {
+    constructor() {
 
+    }
+
+    abstract async createLoginUrl(): Promise<string>;
+    abstract async createAcquireTokenUrl(): Promise<string>;
+
+    handleResponse(): void {
+        return;
+    }
 }
