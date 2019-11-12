@@ -1,0 +1,62 @@
+{
+    "name": "msal-browser",
+    "author": {
+        "name": "Microsoft",
+        "email": "nugetaad@microsoft.com",
+        "url": "https://www.microsoft.com"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    },
+    "version": "0.0.1",
+    "description": "Microsoft Authentication Library for js",
+    "keywords": [
+        "implicit",
+        "authorization code",
+        "PKCE",
+        "js",
+        "AAD",
+        "msal",
+        "oauth"
+    ],
+    "main": "./dist/index.js",
+    "module": "./dist/index.es.js",
+    "types": "./dist/index.d.ts",
+    "engines": {
+        "node": ">=0.8.0"
+    },
+    "directories": {
+        "test": "test"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "clean": "shx rm -rf dist lib",
+        "lint": "eslint src --ext .ts",
+        "build:all": "npm run build:common && npm link msal-common && npm run build",
+        "build:common": "cd ../msal-common-poc && npm run build && npm link",
+        "build:modules": "rollup -c",
+        "build:modules:watch": "rollup -cw",
+        "build": "npm run clean && npm run lint && npm run build:modules",
+        "prepack": "npm run build"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^2.4.0",
+        "@typescript-eslint/eslint-plugin-tslint": "^2.4.0",
+        "@typescript-eslint/parser": "^2.4.0",
+        "eslint": "^6.5.1",
+        "husky": "^3.0.9",
+        "rollup": "^1.24.0",
+        "rollup-plugin-node-resolve": "^5.2.0",
+        "rollup-plugin-typescript2": "^0.24.3",
+        "rollup-plugin-uglify": "^6.0.3",
+        "shx": "^0.3.2",
+        "tslib": "^1.10.0",
+        "tslint": "^5.20.0",
+        "typescript": "^3.6.4"
+    },
+    "dependencies": {}
+}
