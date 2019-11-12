@@ -32,7 +32,7 @@ The current VanillaJSTestApp sample is set up to run the authorization code flow
         "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
         ```
         - Click next and create a name for the shortcut (i.e. Chrome-no-cors)
-3. You should now have a shortcut for a CORS-disabled Chrome browser and an application registration for a public client with the correct redirect URI registerd and a client secret. You can now run the sample! When you run the browser shortcut, ensure you run as an administrator.
+3. You should now have a shortcut for a CORS-disabled Chrome browser and an application registration for a public client with the correct redirect URI registered and a client secret. You can now run the sample! When you run the browser shortcut, ensure you run as an administrator.
 
 ### Run the POC
 
