@@ -5,6 +5,7 @@
 
 // inheritance
 import { AuthModule } from "./AuthModule";
+import { MsalConfiguration } from "../MsalConfiguration";
 
 /**
  * AuthorizationCodeModule class
@@ -14,8 +15,8 @@ import { AuthModule } from "./AuthModule";
  */
 export class AuthorizationCodeModule extends AuthModule {
     
-    constructor() {
-        super();
+    constructor(configuration: MsalConfiguration) {
+        super(configuration);
     }
 
     async createLoginUrl(): Promise<string> {
