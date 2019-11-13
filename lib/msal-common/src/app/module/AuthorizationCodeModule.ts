@@ -6,7 +6,7 @@
 // inheritance
 import { AuthModule } from "./AuthModule";
 // app
-import { MsalPublicClientConfiguration } from "../config/MsalPublicClientConfiguration";
+import { MsalPublicClientSPAConfiguration } from "../config/MsalPublicClientSPAConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
@@ -23,9 +23,9 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 export class AuthorizationCodeModule extends AuthModule {
 
     // Application config
-    protected config: MsalPublicClientConfiguration;
+    protected config: MsalPublicClientSPAConfiguration;
     
-    constructor(configuration: MsalPublicClientConfiguration) {
+    constructor(configuration: MsalPublicClientSPAConfiguration) {
         super({
             storageInterface: configuration.storageInterface,
             networkInterface: configuration.networkInterface,
