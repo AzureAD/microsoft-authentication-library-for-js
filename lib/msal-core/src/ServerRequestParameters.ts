@@ -11,7 +11,6 @@ import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { StringUtils } from "./utils/StringUtils";
-import { UserSetRequestParams } from "./UserAgentApplication";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -54,15 +53,16 @@ export class ServerRequestParameters {
      * @param redirectUri
      * @param state
      */
-    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, reqParams: UserSetRequestParams) {
+    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, scopes: Array<string>, state: string, correlationId: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
         this.nonce = CryptoUtils.createNewGuid();
 
-        // validate and populate the below parameters from reqParams: UserSetRequestParams
-        this.scopes = reqParams.scopes;
-        this.state  = reqParams.state;
-        this.correlationId = reqParams.correlationId;
+        // validate and populate state and correlationId
+        const values = this.validateUserSetServerParams(scopes, state, correlationId, this.clientId);
+        this.scopes = values.scopes;
+        this.state  = values.state;
+        this.correlationId = values.correlationId;
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -357,15 +357,10 @@ export class ServerRequestParameters {
      * Validate  scopes/state/correlationId set in the request by the user
      * @param request
      */
-    static validateUserSetServerParams(scopes: Array<string>, state: string, correlationId: string, clientId: string): UserSetRequestParams {
+    private validateUserSetServerParams(scopes: Array<string>, state: string, correlationId: string, clientId: string) {
 
         // set scope to clientId if null
-        let reqScopes: Array<string>;
-        if (!scopes) {
-            reqScopes = [clientId];
-        } else {
-            reqScopes = [ ...scopes ];
-        }
+        const reqScopes = scopes? [ ...scopes] : [clientId];
 
         // append GUID to user set state  or set one for the user if null
         const reqState = state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
@@ -376,8 +371,7 @@ export class ServerRequestParameters {
         }
         const reqCcorrelationId = correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
 
-        const reqParams = {scopes: reqScopes, state: reqState, correlationId: reqCcorrelationId};
-        return reqParams;
+        return {scopes: reqScopes, state: reqState, correlationId: reqCcorrelationId};
     }
 
     // #endregion

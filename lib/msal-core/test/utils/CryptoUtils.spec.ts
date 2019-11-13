@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
+import { TEST_RESPONSE_TYPE } from "./../TestConstants";
 
 describe("CryptoUtils.ts class", () => {
 
@@ -65,6 +66,39 @@ describe("CryptoUtils.ts class", () => {
             };
 
             expect(CryptoUtils.base64Decode(ID_TOKEN_STRING)).to.be.equal(JSON.stringify(ID_TOKEN));
+        });
+    });
+
+    describe("test if a string is GUID", () => {
+        it('Regular text', () => {
+            expect(CryptoUtils.isGuid("Hello")).to.be.eq(false);
+        });
+
+        it('GUID', () => {
+            expect(CryptoUtils.isGuid("a3cd2952-64dd-43b4-9720-f48c093394a3")).to.be.eq(true);
+        });
+    });
+
+    describe("test createNewGuid() generates a GUID", () => {
+        it('Generate and validate a GUID', () => {
+            expect(CryptoUtils.isGuid(CryptoUtils.createNewGuid())).to.be.eq(true);
+        });
+    });
+
+    describe("test decimal to hex conversion utility", () => {
+        it('test  if we are  generating a hex number', () => {
+            const h: string = CryptoUtils.decimalToHex(1234);
+            const d = parseInt(h,16);
+
+            expect(d.toString(16)).to.be.equal(h);
+        });
+    });
+
+    describe("test the deserializing utility function", () => {
+        it('validate the deserializing utility function', () => {
+            const query: string = CryptoUtils.deserialize("id_token=MSAL_TEST_IDTOKEN&access_token=MSAL_TEST_ACCESS_TOKEN");
+            expect(query.hasOwnProperty("id_token"));
+            expect(query.hasOwnProperty("access_token"));
         });
     });
 });
