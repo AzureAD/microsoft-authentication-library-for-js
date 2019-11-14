@@ -71,6 +71,16 @@ export const msalApp = new UserAgentApplication({
         storeAuthStateInCookie: isIE()
     },
     system: {
-        navigateFrameWait: 0
+        navigateFrameWait: 0,
+        logger: {
+            error: console.error,
+            errorPii: console.error,
+            info: console.log,
+            infoPii: console.log,
+            verbose: console.log,
+            verbosePii: console.log,
+            warning: console.warn,
+            warningPii: console.warn
+        }
     }
 });

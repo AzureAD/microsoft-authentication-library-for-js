@@ -41,7 +41,8 @@ export class WindowUtils {
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
                     clearInterval(intervalId);
-                    resolve();
+                    reject(ClientAuthError.createUserCancelledError());
+                    return;
                 }
 
                 let href;
@@ -146,7 +147,9 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        document.body.removeChild(iframe);
+        if (document.body !== iframe.parentNode) {
+            document.body.removeChild(iframe);
+        }
     }
 
     /**
