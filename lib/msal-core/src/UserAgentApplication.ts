@@ -1387,6 +1387,7 @@ export class UserAgentApplication {
             expiresOn: null,
             account: null,
             accountState: "",
+            fromCache: false
         };
 
         let error: AuthError;

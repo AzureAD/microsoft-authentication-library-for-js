@@ -18,7 +18,7 @@ export type AuthResponse = {
     expiresOn: Date;
     account: Account;
     accountState: string;
-    fromCache?: boolean
+    fromCache: boolean
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
@@ -32,6 +32,7 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         scopes: null,
         expiresOn: null,
         account: null,
-        accountState: state
+        accountState: state,
+        fromCache: false
     };
 }
