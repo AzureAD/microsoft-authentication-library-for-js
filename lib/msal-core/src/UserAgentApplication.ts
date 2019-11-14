@@ -1812,7 +1812,7 @@ export class UserAgentApplication {
             return null;
         }
 
-        // Construct AuthenticationRequest based on response type
+        // Construct AuthenticationRequest based on response type; set "redirectUri" from the "request" which makes this call from Angular - for this.getRedirectUri()
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
         const responseType = this.getTokenType(accountObject, scopes, true);
         const serverAuthenticationRequest = new ServerRequestParameters(
@@ -1832,6 +1832,7 @@ export class UserAgentApplication {
      * @hidden
      *
      * Get scopes for the Endpoint - Used in Angular to track protected and unprotected resources without interaction from the developer app
+     * Note: Please check if we need to set the "redirectUri" from the "request" which makes this call from Angular - for this.getRedirectUri()
      *
      * @param endpoint
      */
@@ -1947,11 +1948,10 @@ export class UserAgentApplication {
     // #region Getters and Setters
 
     /**
-     *
      * Use to get the redirect uri configured in MSAL or null.
      * Evaluates redirectUri if its a function, otherwise simply returns its value.
-     * @returns {string} redirect URL
      *
+     * @returns {string} redirect URL
      */
     public getRedirectUri(reqRedirectUri?:  string): string {
         if(reqRedirectUri) {

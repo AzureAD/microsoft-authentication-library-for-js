@@ -196,53 +196,6 @@ describe("UserAgentApplication.ts Class", function () {
         });
     });
 
-    describe("Check redirectURL set per request", function () {
-
-        beforeEach(function() {
-            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
-            const config: Configuration = {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    redirectUri: TEST_URIS.TEST_REDIR_URI
-                }
-            };
-            msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
-            setTestCacheItems();
-
-            delete window.location;
-        });
-
-        afterEach(function () {
-            cacheStorage.clear();
-            sinon.restore();
-            window.location = oldWindowLocation;
-        });
-
-        it.only("navigates user to redirectURI passed in the  request config", (done) => {
-            window.location = {
-                ...oldWindowLocation,
-                assign: function (url) {
-                    try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        done();
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-            };
-            msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
-
-            const request: AuthenticationParameters = { scopes: ["user.read"], redirectUri: "http://localhost:4200" };
-            msal.acquireTokenSilent(request);
-        });
-    });
-
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
@@ -274,6 +227,29 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws error if null argument is passed to either argument of setRedirectCallbacks", (done) => {
             expect(() => msal.handleRedirectCallback(null)).to.throw(ClientConfigurationError);
             done();
+        });
+
+        it("navigates user to redirectURI passed in the  request config", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            msal.handleRedirectCallback(authCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+
+            const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
+            msal.loginRedirect(request);
         });
 
         it("navigates user to login and prompt parameter is not passed by default", (done) => {
