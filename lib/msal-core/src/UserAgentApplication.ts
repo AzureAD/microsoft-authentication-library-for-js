@@ -1193,7 +1193,8 @@ export class UserAgentApplication {
                     scopes: accessTokenCacheItem.key.scopes.split(" "),
                     expiresOn: new Date(expired * 1000),
                     account: account,
-                    accountState: aState
+                    accountState: aState,
+                    fromCache: true
                 };
                 ResponseUtils.setResponseIdToken(response, idTokenObj);
                 return response;
