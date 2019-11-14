@@ -487,10 +487,11 @@ export class UserAgentApplication {
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
                 this.clientId,
-                scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state
+                scopes,
+                request && request.state,
+                request && request.correlationId
             );
 
             this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
@@ -594,16 +595,20 @@ export class UserAgentApplication {
                 return reject(ClientAuthError.createUserLoginRequiredError());
             }
 
+            // set the response type based on the current cache status / scopes set
             const responseType = this.getTokenType(account, request.scopes, true);
 
+            // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
                 AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
                 this.clientId,
-                request.scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state
+                request.scopes,
+                request.state,
+                request.correlationId,
             );
+
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request);
@@ -1805,7 +1810,7 @@ export class UserAgentApplication {
      * @param state
      * @return {@link AuthResponse} AuthResponse
      */
-    protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string): AuthResponse {
+    protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string, correlationId?: string): AuthResponse {
         // Get the current session's account object
         const accountObject: Account = account || this.getAccount();
         if (!accountObject) {
@@ -1815,13 +1820,15 @@ export class UserAgentApplication {
         // Construct AuthenticationRequest based on response type
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
         const responseType = this.getTokenType(accountObject, scopes, true);
+
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
             this.clientId,
-            scopes,
             responseType,
             this.getRedirectUri(),
-            state
+            scopes,
+            state,
+            correlationId
         );
 
         // get cached token
