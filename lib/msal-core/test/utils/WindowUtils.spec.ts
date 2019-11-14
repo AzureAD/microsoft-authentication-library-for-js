@@ -60,8 +60,8 @@ describe("WindowUtils", () => {
 
             // @ts-ignore
             WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000)
-                .then((hash: string) => {
-                    expect(hash).to.be.undefined;
+                .catch((error: ClientAuthError) => {
+                    expect(error.errorCode).to.equal('user_cancelled');
                     done();
                 });
 
