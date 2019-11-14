@@ -59,10 +59,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // validate and populate state and correlationId
-        const values = this.validateUserSetServerParams(scopes, state, correlationId, this.clientId);
-        this.scopes = values.scopes;
-        this.state  = values.state;
-        this.correlationId = values.correlationId;
+        this.setRequestServerParams(scopes, state, correlationId, this.clientId);
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -357,21 +354,18 @@ export class ServerRequestParameters {
      * Validate  scopes/state/correlationId set in the request by the user
      * @param request
      */
-    private validateUserSetServerParams(scopes: Array<string>, state: string, correlationId: string, clientId: string) {
-
+    private setRequestServerParams(scopes: Array<string>, state: string, correlationId: string, clientId: string) {
         // set scope to clientId if null
-        const reqScopes = scopes? [ ...scopes] : [clientId];
+        this.scopes = scopes? [ ...scopes] : [clientId];
 
         // append GUID to user set state  or set one for the user if null
-        const reqState = state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+        this.state = state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
 
         // validate user set correlationId or set one for the user if null
         if(correlationId && !CryptoUtils.isGuid(correlationId)) {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
-        const reqCcorrelationId = correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
-
-        return {scopes: reqScopes, state: reqState, correlationId: reqCcorrelationId};
+        this.correlationId = correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
     }
 
     // #endregion
