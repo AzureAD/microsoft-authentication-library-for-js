@@ -120,13 +120,16 @@ export class AuthCache extends BrowserStorage {// Singleton
     /**
      * Reset all temporary cache items
      */
-    resetTempCacheItems(): void {
+    resetTempCacheItems(state: string): void {
         const storage = window[this.cacheLocation];
         let key: string;
         for (key in storage) {
             // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
             if (Object.keys(TemporaryCacheKeys).indexOf(key) > -1) {
-                super.removeItem(key);
+                if ((state && (Object.keys(TemporaryCacheKeys).indexOf(state) > -1))) {
+                    super.removeItem(key);
+                }
+
             }
         }
     }

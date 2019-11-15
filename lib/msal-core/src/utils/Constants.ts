@@ -56,7 +56,6 @@ export class Constants {
  * Status of the current token request
  */
 export enum RequestStatus {
-    CANCELLED = "Cancelled",
     COMPLETED = "Completed",
     IN_PROGRESS = "InProgress"
 };

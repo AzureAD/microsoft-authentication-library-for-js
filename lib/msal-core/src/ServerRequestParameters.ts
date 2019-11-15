@@ -58,8 +58,14 @@ export class ServerRequestParameters {
         this.clientId = clientId;
         this.nonce = CryptoUtils.createNewGuid();
 
-        // validate and populate state and correlationId
-        this.setRequestServerParams(scopes, state, correlationId, this.clientId);
+        // set scope to clientId if null
+        this.scopes = scopes? [ ...scopes] : [clientId];
+
+        // set state (already set at top level)
+        this.state = state;
+
+        // set correlationId
+        this.correlationId = this.setCorrelationId(correlationId);
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -349,23 +355,24 @@ export class ServerRequestParameters {
     }
 
     /**
-     * @hidden
-     *
-     * Validate  scopes/state/correlationId set in the request by the user
+     * generate unique state per request
      * @param request
      */
-    private setRequestServerParams(scopes: Array<string>, state: string, correlationId: string, clientId: string) {
-        // set scope to clientId if null
-        this.scopes = scopes? [ ...scopes] : [clientId];
-
+    static setState(state: string): string {
         // append GUID to user set state  or set one for the user if null
-        this.state = state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+        return state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+    }
 
+    /**
+     * validate correlationId and generate if not valid or not set by the user
+     * @param correlationId
+     */
+    private setCorrelationId(correlationId: string): string {
         // validate user set correlationId or set one for the user if null
         if(correlationId && !CryptoUtils.isGuid(correlationId)) {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
-        this.correlationId = correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+        return correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
     }
 
     // #endregion
