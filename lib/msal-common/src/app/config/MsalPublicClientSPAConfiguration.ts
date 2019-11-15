@@ -41,12 +41,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientSecret: "",
     authority: null,
     validateAuthority: true,
-    redirectUri: (): string => {
-        throw ClientConfigurationError.createRedirectUriEmptyError();
-    },
-    postLogoutRedirectUri: () => {
-        throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
-    },
+    redirectUri: "",
+    postLogoutRedirectUri: "",
     navigateToLoginRequestUrl: true
 };
 

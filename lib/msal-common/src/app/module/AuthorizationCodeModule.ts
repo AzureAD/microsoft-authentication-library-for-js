@@ -6,7 +6,7 @@
 // inheritance
 import { AuthModule } from "./AuthModule";
 // app
-import { MsalPublicClientSPAConfiguration } from "../config/MsalPublicClientSPAConfiguration";
+import { MsalPublicClientSPAConfiguration, buildMsalPublicClientSPAConfiguration } from "../config/MsalPublicClientSPAConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
@@ -31,7 +31,7 @@ export class AuthorizationCodeModule extends AuthModule {
             networkInterface: configuration.networkInterface,
             cryptoInterface: configuration.cryptoInterface
         });
-        this.config = configuration;
+        this.config = buildMsalPublicClientSPAConfiguration(configuration);
     }
 
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
