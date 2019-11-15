@@ -38,7 +38,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Creates an error thrown when the redirect uri is empty (not set by caller)
      */
     static createRedirectUriEmptyError(): ClientAuthError {
-        return new ClientAuthError(ClientConfigurationErrorMessage.redirectUriNotSet.code,
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.redirectUriNotSet.code,
             ClientConfigurationErrorMessage.redirectUriNotSet.desc);
     }
 
@@ -46,7 +46,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Creates an error thrown when the post-logout redirect uri is empty (not set by caller)
      */
     static createPostLogoutRedirectUriEmptyError(): ClientAuthError {
-        return new ClientAuthError(ClientConfigurationErrorMessage.postLogoutUriNotSet.code,
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.postLogoutUriNotSet.code,
             ClientConfigurationErrorMessage.postLogoutUriNotSet.desc);
     }
 
