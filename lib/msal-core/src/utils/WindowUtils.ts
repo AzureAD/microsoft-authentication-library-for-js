@@ -41,7 +41,8 @@ export class WindowUtils {
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
                     clearInterval(intervalId);
-                    resolve();
+                    reject(ClientAuthError.createUserCancelledError());
+                    return;
                 }
 
                 let href;
@@ -126,6 +127,7 @@ export class WindowUtils {
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
                 ifr.style.border = "0";
+                ifr.setAttribute("sandbox", "allow-scripts allow-same-origin");
                 adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
             } else if (document.body && document.body.insertAdjacentHTML) {
                 document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
@@ -145,7 +147,9 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        document.body.removeChild(iframe);
+        if (document.body !== iframe.parentNode) {
+            document.body.removeChild(iframe);
+        }
     }
 
     /**

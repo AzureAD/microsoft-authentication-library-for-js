@@ -8,7 +8,7 @@ Microsoft Authentication Library for JavaScript (MSAL.js)
 
 The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-[![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
+[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
 ## Installation
 ### Via NPM:
@@ -74,7 +74,7 @@ Below is an example of how to use one CDN as a fallback when the other CDN is no
 Internet Explorer does not have native `Promise` support, and so you will need to include a polyfill for promises such as `bluebird`.
 
     <!-- IE support: add promises polyfill before msal.js  -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
 
 See here for more details on [supported browsers and known compatability issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs#q4-what-browsers-is-msaljs-supported-on).
 
@@ -186,7 +186,7 @@ See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authe
             .catch(err => {
                 // could also check if err instance of InteractionRequiredAuthError if you can import the class.
                 if (err.name === "InteractionRequiredAuthError") {
-                    return msalnstance.acquireTokenPopup(tokenRequest)
+                    return msalInstance.acquireTokenPopup(tokenRequest)
                         .then(response => {
                             // get access token from response
                             // response.accessToken
@@ -202,24 +202,6 @@ See [Request and Response Data Types](https://github.com/AzureAD/microsoft-authe
 ```
 
 #### 4. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API
-
-```JavaScript
-    var headers = new Headers();
-    var bearer = "Bearer " + token;
-    headers.append("Authorization", bearer);
-    var options = {
-         method: "GET",
-         headers: headers
-    };
-    var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
-
-    fetch(graphEndpoint, options)
-        .then(resp => {
-             //do something with response
-        });
-```
-
-You can learn further details about MSAL.js functionality documented in the [MSAL Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki) and find complete [code samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
 
 ```JavaScript
     var headers = new Headers();

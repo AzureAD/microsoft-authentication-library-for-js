@@ -496,10 +496,11 @@ export class UserAgentApplication {
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
                 this.clientId,
-                scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state
+                scopes,
+                request && request.state,
+                request && request.correlationId
             );
 
             this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
@@ -530,9 +531,9 @@ export class UserAgentApplication {
 
             // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
             if (popUpWindow) {
-                const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
-                if (hash) {
-                    // Hash found
+                try {
+                    const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
+
                     this.handleAuthenticationResponse(hash);
 
                     // Request completed successfully, set to completed
@@ -544,20 +545,18 @@ export class UserAgentApplication {
                         this.broadcast("msal:popUpHashChanged", hash);
                         WindowUtils.closePopups();
                     }
-                } else {
-                    // Window closed
+                } catch (error) {
                     if (reject) {
-                        this.cacheStorage.resetTempCacheItems();
-                        reject(ClientAuthError.createUserCancelledError());
+                        reject(error);
                     }
 
                     if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpClosed", ClientAuthErrorMessage.userCancelledError.code + Constants.resourceDelimiter + ClientAuthErrorMessage.userCancelledError.desc);
-                        return;
+                        this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
+                    } else {
+                        // Request failed, set to canceled
+                        this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+                        popUpWindow.close();
                     }
-
-                    // Request failed, set to canceled
-                    this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
                 }
             }
         }).catch((err) => {
@@ -604,16 +603,20 @@ export class UserAgentApplication {
                 return reject(ClientAuthError.createUserLoginRequiredError());
             }
 
+            // set the response type based on the current cache status / scopes set
             const responseType = this.getTokenType(account, request.scopes, true);
 
+            // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
                 AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
                 this.clientId,
-                request.scopes,
                 responseType,
                 this.getRedirectUri(),
-                request && request.state
+                request.scopes,
+                request.state,
+                request.correlationId,
             );
+
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request);
@@ -766,24 +769,32 @@ export class UserAgentApplication {
         const expectedState = window.activeRenewals[scope];
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
         this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, RequestStatus.IN_PROGRESS);
-        setTimeout(() => {
+
+        const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
+
+        try {
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
+
+            if (hash) {
+                this.handleAuthenticationResponse(hash);
+            }
+        } catch (error) {
             if (this.cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + expectedState) === RequestStatus.IN_PROGRESS) {
                 // fail the iframe session if it's in pending state
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
-                    window.callbackMappedToRenewStates[expectedState](null, ClientAuthError.createTokenRenewalTimeoutError(urlNavigate));
+                    window.callbackMappedToRenewStates[expectedState](null, error);
                 }
 
                 this.cacheStorage.setItem(TemporaryCacheKeys.RENEW_STATUS + expectedState, RequestStatus.COMPLETED);
             }
-        }, this.config.system.loadFrameTimeout);
 
-        const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
-        const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
-        if (hash) {
-            this.handleAuthenticationResponse(hash);
+            WindowUtils.removeHiddenIframe(iframe);
+
+            throw error;
         }
+
         WindowUtils.removeHiddenIframe(iframe);
     }
 
@@ -1203,7 +1214,8 @@ export class UserAgentApplication {
                     scopes: accessTokenCacheItem.key.scopes.split(" "),
                     expiresOn: new Date(expired * 1000),
                     account: account,
-                    accountState: aState
+                    accountState: aState,
+                    fromCache: true
                 };
                 ResponseUtils.setResponseIdToken(response, idTokenObj);
                 return response;
@@ -1263,14 +1275,14 @@ export class UserAgentApplication {
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = Constants.renewToken;
         this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, frameName, scope);
+        this.loadIframeTimeout(urlNavigate, frameName, scope).catch(error => reject(error));
     }
 
     /**
@@ -1288,7 +1300,7 @@ export class UserAgentApplication {
         this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
-        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none;
+        const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         if (this.silentLogin) {
             window.requestType = Constants.login;
@@ -1302,7 +1314,7 @@ export class UserAgentApplication {
         this.registerCallback(serverAuthenticationRequest.state, this.clientId, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, frameName, this.clientId);
+        this.loadIframeTimeout(urlNavigate, frameName, this.clientId).catch(error => reject(error));
     }
 
     /**
@@ -1396,6 +1408,7 @@ export class UserAgentApplication {
             expiresOn: null,
             account: null,
             accountState: "",
+            fromCache: false
         };
 
         let error: AuthError;
@@ -1813,7 +1826,7 @@ export class UserAgentApplication {
      * @param state
      * @return {@link AuthResponse} AuthResponse
      */
-    protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string): AuthResponse {
+    protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string, correlationId?: string): AuthResponse {
         // Get the current session's account object
         const accountObject: Account = account || this.getAccount();
         if (!accountObject) {
@@ -1823,13 +1836,15 @@ export class UserAgentApplication {
         // Construct AuthenticationRequest based on response type
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
         const responseType = this.getTokenType(accountObject, scopes, true);
+
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
             this.clientId,
-            scopes,
             responseType,
             this.getRedirectUri(),
-            state
+            scopes,
+            state,
+            correlationId
         );
 
         // get cached token

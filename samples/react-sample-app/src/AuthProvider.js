@@ -34,6 +34,8 @@ export default C =>
                     return redirect
                         ? msalApp.acquireTokenRedirect(request)
                         : msalApp.acquireTokenPopup(request);
+                } else {
+                    console.error('Non-interactive error:', error.errorCode)
                 }
             });
         }
