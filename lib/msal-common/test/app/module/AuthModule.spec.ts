@@ -1,12 +1,46 @@
 import * as Mocha from "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { AuthModule } from "../../../src/app/module/AuthModule";
+import { MsalConfiguration } from "../../../src/app/config/MsalConfiguration";
+import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
+import { TEST_HASHES } from "../../utils/StringConstants";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe("", () => {
+class TestAuthModule extends AuthModule {
+    
+    constructor(config: MsalConfiguration) {
+        super(config);
+    }
 
-    describe("", () => {
-        
+    createLoginUrl(request: AuthenticationParameters): Promise<string> {
+        throw new Error("Method not implemented.");
+    }    
+    
+    createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+}
+
+describe("AuthModule.ts Class Unit Tests", () => {
+
+    let config: MsalConfiguration = {
+        cryptoInterface: null,
+        networkInterface: null,
+        storageInterface: null
+    }
+    let authModule = new TestAuthModule(config);
+
+    describe("Constructor", () => {
+
+        it("Creates a valid AuthModule object", () => {
+            expect(authModule).to.be.not.null;
+            expect(authModule instanceof AuthModule).to.be.true;
+        });
+
+        it("Handles the authentication response - currently return null", () => {
+            expect(authModule.handleFragmentResponse(TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH)).to.be.null;
+        }) 
     });
 });

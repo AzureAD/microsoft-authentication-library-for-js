@@ -29,6 +29,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
         it("creates an AuthorizationCodeModule that extends the AuthModule", () => {
             expect(authModule).to.be.not.null;
+            expect(authModule instanceof AuthorizationCodeModule).to.be.true;
             expect(authModule instanceof AuthModule).to.be.true;
         });
     });

@@ -12,8 +12,6 @@ import { AuthResponse } from "../../response/AuthResponse";
 import { ICacheStorage } from "../../cache/ICacheStorage";
 // network
 import { INetworkModule } from "../../network/INetworkModule";
-// error
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 // utils
 import { ICrypto } from "../../utils/crypto/ICrypto";
 
@@ -64,7 +62,7 @@ export abstract class AuthModule {
     abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
     abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
 
-    handleFragmentResponse(hashFragment: string): AuthResponse {
+    public handleFragmentResponse(hashFragment: string): AuthResponse {
         return null;
     }
 }
