@@ -74,6 +74,10 @@ export const ClientConfigurationErrorMessage = {
         code: "empty_request_error",
         desc: "Request object is required."
     },
+    invalidCorrelationIdError: {
+        code: "invalid_guid_sent_as_correlationId",
+        desc: "Please set the correlationId as a valid guid"
+    },
     telemetryConfigError: {
         code: "telemetry_config_error",
         desc: "Telemetry config is not configured with required values"
@@ -143,6 +147,11 @@ export class ClientConfigurationError extends ClientAuthError {
     static createEmptyRequestError(): ClientConfigurationError {
         const { code, desc } = ClientConfigurationErrorMessage.emptyRequestError;
         return new ClientConfigurationError(code, desc);
+    }
+
+    static createInvalidCorrelationIdError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCorrelationIdError.code,
+            ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
     }
 
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
