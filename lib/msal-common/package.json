@@ -24,6 +24,12 @@
     "main": "./dist/index.js",
     "module": "./dist/index.es.js",
     "types": "./dist/index.d.ts",
+    "browserslist": [
+        "last 1 version",
+        "> 1%",
+        "maintained node versions",
+        "not dead"
+    ],
     "engines": {
         "node": ">=0.8.0"
     },
@@ -36,21 +42,36 @@
     "scripts": {
         "clean": "shx rm -rf dist lib",
         "lint": "eslint src --ext .ts",
+        "test": "mocha",
+        "test:coverage": "nyc mocha",
         "build:modules": "rollup -c",
         "build:modules:watch": "rollup -cw",
         "build": "npm run clean && npm run lint && npm run build:modules",
         "prepack": "npm run build"
     },
     "devDependencies": {
+        "@babel/core": "^7.7.2",
+        "@babel/plugin-proposal-class-properties": "^7.7.0",
+        "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
+        "@babel/polyfill": "^7.7.0",
+        "@babel/preset-env": "^7.7.1",
+        "@babel/register": "^7.7.0",
+        "@types/chai": "^4.2.5",
+        "@types/mocha": "^5.2.7",
+        "@types/sinon": "^7.5.0",
         "@typescript-eslint/eslint-plugin": "^2.4.0",
         "@typescript-eslint/eslint-plugin-tslint": "^2.4.0",
         "@typescript-eslint/parser": "^2.4.0",
+        "chai": "^4.2.0",
         "eslint": "^6.5.1",
         "husky": "^3.0.9",
+        "mocha": "^6.2.2",
+        "nyc": "^14.1.1",
         "rollup": "^1.24.0",
         "rollup-plugin-typescript2": "^0.24.3",
         "rollup-plugin-uglify": "^6.0.3",
         "shx": "^0.3.2",
+        "sinon": "^7.5.0",
         "tslint": "^5.20.0",
         "typescript": "^3.6.4"
     },
