@@ -604,10 +604,9 @@ export class UserAgentApplication {
                 this.clientId,
                 responseType,
                 this.getRedirectUri(request.redirectUri),
-                request && request.state
                 request.scopes,
                 request.state,
-                request.correlationId,
+                request.correlationId
             );
 
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
