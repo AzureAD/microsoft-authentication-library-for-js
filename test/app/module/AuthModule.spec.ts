@@ -1,12 +1,12 @@
 import * as Mocha from "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+const expect = chai.expect;
+chai.use(chaiAsPromised);
 import { AuthModule } from "../../../src/app/module/AuthModule";
 import { MsalConfiguration } from "../../../src/app/config/MsalConfiguration";
 import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
 import { TEST_HASHES } from "../../utils/StringConstants";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 
 class TestAuthModule extends AuthModule {
     
