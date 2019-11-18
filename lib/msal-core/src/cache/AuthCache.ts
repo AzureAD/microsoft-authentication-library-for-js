@@ -74,9 +74,8 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param value
      * @param enableCookieStorage
      */
-    setItem(key: string, value: string, enableCookieStorage?: boolean): void {
+    setItem(key: string, value: string, enableCookieStorage?: boolean, state?: string): void {
         super.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
-
         if (this.rollbackEnabled) {
             super.setItem(this.generateCacheKey(key, false), value, enableCookieStorage);
         }
@@ -125,11 +124,8 @@ export class AuthCache extends BrowserStorage {// Singleton
         let key: string;
         for (key in storage) {
             // Check if key contains msal prefix; For now, we are clearing all cache items created by MSAL.js
-            if (Object.keys(TemporaryCacheKeys).indexOf(key) > -1) {
-                if ((state && (Object.keys(TemporaryCacheKeys).indexOf(state) > -1))) {
-                    super.removeItem(key);
-                }
-
+            if (Object.keys(TemporaryCacheKeys).indexOf(key) > -1 && Object.keys(TemporaryCacheKeys).indexOf(state) > -1) {
+                super.removeItem(key);
             }
         }
     }
