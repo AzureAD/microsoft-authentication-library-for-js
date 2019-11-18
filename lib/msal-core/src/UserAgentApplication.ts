@@ -317,7 +317,9 @@ export class UserAgentApplication {
             this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
             throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
-        this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request);
+        // append GUID to user set state  or set one for the user if null
+        const state = ServerRequestParameters.setState(request && request.state);
+        this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null, state);
     }
 
     /**
@@ -337,7 +339,9 @@ export class UserAgentApplication {
             this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
             throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
-        this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request);
+        // append GUID to user set state  or set one for the user if null
+        const state = ServerRequestParameters.setState(request.state);
+        this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null, state);
     }
 
     /**
@@ -349,7 +353,7 @@ export class UserAgentApplication {
      */
     loginPopup(request?: AuthenticationParameters): Promise<AuthResponse> {
         // append GUID to user set state  or set one for the user if null
-        const state = ServerRequestParameters.setState(request.state);
+        const state = ServerRequestParameters.setState(request && request.state);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject, state);
@@ -368,7 +372,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
         // append GUID to user set state  or set one for the user if null
-        const state = ServerRequestParameters.setState(request.state);
+        const state = ServerRequestParameters.setState(request && request.state);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             if (!request) {
