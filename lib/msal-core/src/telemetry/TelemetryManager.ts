@@ -1,5 +1,13 @@
 import TelemetryEvent from "./TelemetryEvent";
-import { CompletedEvents, EventCount, EventCountByCorrelationId, InProgressEvents, TelemetryConfig, TelemetryPlatform } from "./TelemetryTypes";
+import {
+    CompletedEvents,
+    EventCount,
+    EventCountByCorrelationId,
+    InProgressEvents,
+    TelemetryConfig,
+    TelemetryPlatform,
+    TelemetryEmitter
+} from "./TelemetryTypes";
 import DefaultEvent from "./DefaultEvent";
 
 // for use in cache events
@@ -19,25 +27,27 @@ export default class TelemetryManager {
     // correlation id to map of eventname to count
     private eventCountByCorrelationId: EventCountByCorrelationId = {};
 
-    //Implement after API EVENT
+    // Implement after API EVENT
     private onlySendFailureTelemetry: boolean = false;
     private telemetryPlatform: TelemetryPlatform;
     private clientId: string;
-    private telemetryCallback: Function = null;
+    private telemetryEmitter: TelemetryEmitter;
 
-    constructor(config: TelemetryConfig, cb: Function) {
+    constructor(config: TelemetryConfig, telemetryEmitter: TelemetryEmitter) {
         // TODO THROW if bad options
         this.telemetryPlatform = config.platform;
         this.clientId = config.clientId;
         this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
-        // TODO, when i get to wiring this through, think about what it means if
-        // a developer does not implement telem at all, we still instrument, but cb can be
-        // optional?
-        this.telemetryCallback = cb;
+        /*
+         * TODO, when i get to wiring this through, think about what it means if
+         * a developer does not implement telem at all, we still instrument, but telemetryEmitter can be
+         * optional?
+         */
+        this.telemetryEmitter = telemetryEmitter;
     }
 
     startEvent(event: TelemetryEvent) {
-        if (!this.telemetryCallback) {
+        if (!this.telemetryEmitter) {
             return;
         }
         const eventKey = createEventKey(event);
@@ -46,7 +56,7 @@ export default class TelemetryManager {
 
     stopEvent(event: TelemetryEvent) {
         const eventKey = createEventKey(event);
-        if (!this.telemetryCallback || !this.inProgressEvents[eventKey]) {
+        if (!this.telemetryEmitter || !this.inProgressEvents[eventKey]) {
             return;
         }
         event.stop();
@@ -62,7 +72,7 @@ export default class TelemetryManager {
     flush(correlationId: string): void {
 
         // If there is only unfinished events should this still return them?
-        if (!this.telemetryCallback || !this.completedEvents[correlationId]) {
+        if (!this.telemetryEmitter || !this.completedEvents[correlationId]) {
             return;
         }
 
@@ -92,12 +102,14 @@ export default class TelemetryManager {
 
         const eventsWithDefaultEvent = [ ...eventsToFlush, defaultEvent ];
 
-        this.telemetryCallback(eventsWithDefaultEvent.map(e => e.get()));
+        this.telemetryEmitter(eventsWithDefaultEvent.map(e => e.get()));
     }
 
     private incrementEventCount(event: TelemetryEvent): void {
-        // TODO, name cache event different?
-        // if type is cache event, change name
+        /*
+         * TODO, name cache event different?
+         * if type is cache event, change name
+         */
         const eventName = event.eventName;
         const eventCount = this.eventCountByCorrelationId[event.telemetryCorrelationId];
         if (!eventCount) {

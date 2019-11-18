@@ -1,0 +1,34 @@
+# Node.js
+
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+jobs:
+  - job: rolling_VS2017_build
+    displayName: 'Build Job for JS (VS2017)'
+    pool:
+      name: Hosted VS2017
+    steps:
+      - template: build/sdl-tasks.yml
+      - template: build/npm-build-steps.yml
+
+  - job: release_VS2017_build
+    displayName: 'Release Job for JS (VS2017)'
+    pool:
+      name: Hosted VS2017
+    dependsOn: rolling_VS2017_build
+    condition: and(succeeded('rolling_VS2017_build'), eq(variables['Build.SourceBranchName'], 'master'))
+    steps:
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: 'lib/msal-core'
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'

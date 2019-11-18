@@ -13,118 +13,82 @@ import {
     Authority,
     AuthResponse,
     InteractionRequiredAuthError
-} from '../src/index';
+} from "../src/index";
 import sinon from "sinon";
-import { ITenantDiscoveryResponse } from "../src/ITenantDiscoveryResponse";
-import { Storage } from "../src/Storage";
-import { AccessTokenKey } from "../src/AccessTokenKey";
-import { AccessTokenValue } from "../src/AccessTokenValue";
-import { Utils } from "../src/Utils";
-import { SSOTypes } from "../src/Constants";
+import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
+import { AuthCache } from "../src/cache/AuthCache";
+import { AccessTokenKey } from "../src/cache/AccessTokenKey";
+import { AccessTokenValue } from "../src/cache/AccessTokenValue";
+import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys, RequestStatus } from "../src/utils/Constants";
+import { WindowUtils } from "../src/utils/WindowUtils";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";
+import { ServerRequestParameters } from "../src/ServerRequestParameters";
+import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_HASHES, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
+import { IdToken } from "../src/IdToken";
+import { TimeUtils } from "../src/utils/TimeUtils";
 
 type kv = {
     [key: string]: string;
-}
+};
 
 describe("UserAgentApplication.ts Class", function () {
 
-    // Test URIs
-    const DEFAULT_INSTANCE = "https://login.microsoftonline.com/";
-    const ALTERNATE_INSTANCE = "https://login.windows.net/"
-    const TEST_REDIR_URI = "https://localhost:8081/redirect.html";
-    const TEST_LOGOUT_URI = "https://localhost:8081/logout.html";
+    // Test state params
+    const TEST_USER_STATE_NUM = "1234";
+    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
 
-    // Test MSAL config params
-    const TENANT = 'common';
-    const MSAL_CLIENT_ID = "0813e1d1-ad72-46a9-8665-399bba48c201";
-    const MSAL_TENANT_ID = "124ds324-43de-n89m-7477-466fefs45a85";
-    const validAuthority = DEFAULT_INSTANCE + TENANT;
-    const alternateValidAuthority = ALTERNATE_INSTANCE + TENANT;
+    // Test Unique Params
+    const TEST_NONCE = "123523";
+    const IDTOKEN_OID = "00000000-0000-0000-66f3-3332eca7ea81";
+    const TEST_UNIQUE_ID = IDTOKEN_OID;
+
+    // Test Hash Params
+    const TEST_ERROR_CODE = "error_code";
+    const TEST_ERROR_DESC = "msal error description";
+
+    const TEST_ACCESS_DENIED = "access_denied";
+    const TEST_SERVER_ERROR_SUBCODE_CANCEL = "#error=access_denied&error_subcode=cancel&state=RANDOM-GUID-HERE|";
 
     // Test SSO params
     const TEST_LOGIN_HINT = "test@test.com";
     const TEST_SID = "1234-5678";
 
-    // Test state params
-    const TEST_USER_STATE_NUM = "1234";
-    const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
-    const TEST_STATE = "6789|" + TEST_USER_STATE_NUM;
-    
-    // Test Unique Params
-    const TEST_NONCE = "test_nonce";
-    const TEST_UNIQUE_ID = "248289761001";
-
-    // Test Client Info Params
-    const TEST_UID = "123-test-uid";
-    const TEST_UTID = "456-test-utid";
-    const TEST_DECODED_CLIENT_INFO = `{"uid":"123-test-uid","utid":"456-test-utid"}`;
-    const TEST_INVALID_JSON_CLIENT_INFO = `{"uid":"${TEST_UID}""utid":"${TEST_UTID}"`;
-    const TEST_RAW_CLIENT_INFO = "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9";
-    const TEST_CLIENT_INFO_B64ENCODED = "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9";
-
-    // Test Account Params
-    const TEST_HOME_ACCOUNT_ID = "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==";
-
-    // Test Expiration Vals
-    const DEFAULT_EXPIRES_IN = 3599;
-    const BASELINE_DATE_CHECK = Utils.now();
-    const TEST_ID_TOKEN_ISSUED = 1561749650;
-    
-    // Test Hash Params
-    const TEST_ID_TOKEN = "eyJraWQiOiIxZTlnZGs3IiwiYWxnIjoiUlMyNTYifQ"
-    + ".ewogImlzcyI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAidGVzdF9ub25jZSIsCiAiZXhwIjogMTU2MTc0OTY1MCwKICJpYXQiOiAxNTYxNzQ5NjUwLAogIm5hbWUiOiAiSmFuZSBEb2UiLAogImdpdmVuX25hbWUiOiAiSmFuZSIsCiAiZmFtaWx5X25hbWUiOiAiRG9lIiwKICJnZW5kZXIiOiAiZmVtYWxlIiwKICJ0aWQiOiAiMTI0ZHMzMjQtNDNkZS1uODltLTc0NzctNDY2ZmVmczQ1YTg1IiwKICJiaXJ0aGRhdGUiOiAiMDAwMC0xMC0zMSIsCiAiZW1haWwiOiAiamFuZWRvZUBleGFtcGxlLmNvbSIsCiAicGljdHVyZSI6ICJodHRwOi8vZXhhbXBsZS5jb20vamFuZWRvZS9tZS5qcGciCn0="
-    + ".rHQjEmBqn9Jre0OLykYNnspA10Qql2rvx4FsD00jwlB0Sym4NzpgvPKsDjn_wMkHxcp6CilPcoKrWHcipR2iAjzLvDNAReF97zoJqq880ZD1bwY82JDauCXELVR9O6_B0w3K-E7yM2macAAgNCUwtik6SjoSUZRcf-O5lygIyLENx882p6MtmwaL1hd6qn5RZOQ0TLrOYu0532g9Exxcm-ChymrB4xLykpDj3lUivJt63eEGGN6DH5K6o33TcxkIjNrCD4XB1CKKumZvCedgHHF3IAK4dVEDSUoGlH9z4pP_eWYNXvqQOjGs-rDaQzUHl6cQQWNiDpWOl_lxXjQEvQ";
-    const TEST_ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjFMVE16YWtpaGlSbGFfOHoyQkVKVlhlV01xbyJ9"
-    + ".eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwic3ViIjoiMjQ4Mjg5NzYxMDAxIiwiYXVkIjoiczZCaGRSa3F0MyIsImV4cCI6MTU2MTc0OTY1MCwiaWF0IjoxNTYxNzQ1NzUwLCJuYmYiOjE1NjE3NDU3NTAsIm5hbWUiOiJKYW5lIERvZSIsInByZWZlcnJlZF91c2VybmFtZSI6ImphbmVkb2VAZXhhbXBsZS5jb20iLCJvaWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMTIzNC0xMjM0NWFlNjc4OSIsInRpZCI6Inh4eHh4eC14eHh4LXh4eHgteHh4eHgiLCJzY3AiOiJ0ZXN0In0="
-    + ".Ztsxk8912PBaweKw0UFKcLsHL4yNnKj6MVd-ZCtKK8KxzAVCinaxepSJIlRB_p-9UBDCkFAOycbrSXYs7nA7fo9AtYxgAH5MHyuAT_K-Ev49LgD6oyLU3JLmRKthi9vVcMD2V9W93NPUxQG5JHhiruMAGDY4ISg0sD9MICZr0SMFlRxvhiEWkWuWwYhgctmOoB6dn17qrQEmTlQnZZlvQ2gLflBJmvvQ6OQxTFZi_5QxVBJkc6wyP4gArIfjUmeHK8Y9_WTTrCf7ZBNUyOvRVN4QTcl1JpYlIlU2GTg-QChpkiqQ8Weu4QaZFb_7UwLf7rnZeBKpEeBtVfsIqF39zw";
-    const TEST_ERROR_CODE = "error_code";
-    const TEST_ERROR_DESC = "msal error description";
-
-    // Test Hashes
-    const TEST_SUCCESS_ID_TOKEN_HASH = `#id_token=${TEST_ID_TOKEN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
-    const TEST_SUCCESS_ACCESS_TOKEN_HASH = `#access_token=${TEST_ACCESS_TOKEN}&id_token=${TEST_ID_TOKEN}&scope=test&expiresIn=${DEFAULT_EXPIRES_IN}&client_info=${TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`;
-    const TEST_ERROR_HASH = "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
-    const TEST_INTERACTION_REQ_ERROR_HASH1 = "#error=interaction_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
-    const TEST_INTERACTION_REQ_ERROR_HASH2 = "#error=interaction_required&error_description=msal+error+description+interaction_required&state=RANDOM-GUID-HERE|";
-    const TEST_LOGIN_REQ_ERROR_HASH1 = "#error=login_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
-    const TEST_LOGIN_REQ_ERROR_HASH2 = "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|";
-    const TEST_CONSENT_REQ_ERROR_HASH1 = "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|";
-    const TEST_CONSENT_REQ_ERROR_HASH2 = "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|";
-    
     // Sample OpenId Configurations
-    const validOpenIdConfigString = `{"authorization_endpoint":"${validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
+    const validOpenIdConfigString = `{"authorization_endpoint":"${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize","token_endpoint":"https://token_endpoint","issuer":"https://fakeIssuer", "end_session_endpoint":"https://end_session_endpoint"}`;
     const validOpenIdConfigurationResponse: ITenantDiscoveryResponse = {
-        AuthorizationEndpoint: `${validAuthority}/oauth2/v2.0/authorize`,
-        EndSessionEndpoint: `https://end_session_endpoint`,
-        Issuer: `https://fakeIssuer`
-    }
+        AuthorizationEndpoint: `${TEST_CONFIG.validAuthority}/oauth2/v2.0/authorize`,
+        EndSessionEndpoint: "https://end_session_endpoint",
+        Issuer: "https://fakeIssuer"
+    };
+
+    const oldWindowLocation = window.location;
 
     let msal: UserAgentApplication;
 
-    const authCallback = function (error, response) {
+    const authCallback = function (error: AuthError, response: AuthResponse) {
         if (error) {
-            throw error;
+            console.error(error);
         } else {
             console.log(response);
         }
     };
 
-    const tokenReceivedCallback = function (response) {
+    const tokenReceivedCallback = function (response: AuthResponse) {
         console.log(response);
-    }
+    };
 
-    const errorReceivedCallback = function (error, state) {
+    const errorReceivedCallback = function (error: AuthError, state: string) {
         if (error) {
-            throw error;
+            console.error(error);
         } else {
             console.log(state);
         }
-    }
+    };
 
     const setAuthInstanceStubs = function () {
+        sinon.restore();
         sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () : Promise<Authority> {
             return new Promise((resolve, reject) => {
                 return resolve(msal.getAuthorityInstance());
@@ -133,149 +97,268 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
-        sinon.stub(msal, "isInIframe").returns(false);
+        sinon.stub(WindowUtils, "isInIframe").returns(false);
     };
 
     const setUtilUnifiedCacheQPStubs = function (params: kv) {
-        sinon.stub(Utils, "constructUnifiedCacheQueryParameter").returns(params);
-        sinon.stub(Utils, "addSSOParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, <any>"constructUnifiedCacheQueryParameter").returns(params);
+        sinon.stub(ServerRequestParameters.prototype, <any>"addSSOParameter").returns(params);
     };
 
-    let cacheStorage: Storage;
+    let cacheStorage: AuthCache;
     let accessTokenKey : AccessTokenKey;
     let accessTokenValue : AccessTokenValue;
     let account : Account;
 
-    let setTestCacheItems = function () {
+    const setTestCacheItems = function () {
         accessTokenKey = {
-            authority: validAuthority,
+            authority: TEST_CONFIG.validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: "S1",
-            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
         accessTokenValue = {
-            accessToken: "accessToken1",
-            idToken: "idToken",
+            accessToken: TEST_TOKENS.ACCESSTOKEN,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
             expiresIn: "150000000000000",
-            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
         account = {
             accountIdentifier: "1234",
             environment: "js",
-            homeAccountIdentifier: TEST_HOME_ACCOUNT_ID,
-            idToken: "idToken",
-            name: "Test Account",
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            idToken: new IdToken(TEST_TOKENS.IDTOKEN_V2).claims,
+            idTokenClaims: new IdToken(TEST_TOKENS.IDTOKEN_V2).claims,
+            name: "Abe Lincoln",
             sid: "123451435",
-            userName: "TestAccount"
+            userName: "AbeLi@microsoft.com"
         };
     };
 
+    describe("Telemetry in UserAgenApplication", () => {
+        it("configure telemtry in UAA happy case smoke test", () => {
+            msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    telemetry: {
+                        applicationName: TEST_CONFIG.applicationName,
+                        applicationVersion: TEST_CONFIG.applicationVersion,
+                        telemetryEmitter: event => {}
+                    }
+                }
+            });
+        });
+        it("configure telemtry in UAA missing configuration throws config error", () => {
+            const configureTestCase = () => msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    // @ts-ignore
+                    telemetry: {
+                        applicationName: TEST_CONFIG.applicationName,
+                        applicationVersion: TEST_CONFIG.applicationVersion,
+                    }
+                }
+            });
+
+            expect(configureTestCase).to.throw(ClientConfigurationError);
+        });
+        it("telemetry manager exists in UAA when configured", () => {
+            msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    telemetry: {
+                        applicationName: TEST_CONFIG.applicationName,
+                        applicationVersion: TEST_CONFIG.applicationVersion,
+                        telemetryEmitter: event => {}
+                    }
+                }
+            });
+            // @ts-ignore
+            expect(msal.telemetryManager).to.not.be.undefined;
+            // @ts-ignore
+            expect(msal.telemetryManager).to.not.be.null;
+        });
+        it("telemetry manager doesn't exis in UAA when not configured", () => {
+            msal = new UserAgentApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+            // @ts-ignore
+            expect(msal.telemetryManager).to.be.null;
+        });
+    });
+
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
+            setTestCacheItems();
+
+            delete window.location;
         });
 
         afterEach(function () {
+            cacheStorage.clear();
             sinon.restore();
+            window.location = oldWindowLocation;
         });
 
         it("throws error if loginRedirect is called without calling setRedirectCallbacks", function (done) {
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
             expect(msal.loginRedirect.bind(msal)).to.throw(ClientConfigurationError);
             done();
         });
 
-        it('throws error if null argument is passed to either argument of setRedirectCallbacks', (done) => {
+        it("throws error if null argument is passed to either argument of setRedirectCallbacks", (done) => {
             expect(() => msal.handleRedirectCallback(null)).to.throw(ClientConfigurationError);
             done();
         });
 
-        it('navigates user to login and prompt parameter is not passed by default', (done) => {
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).not.to.include(Constants.prompt_select_account);
-                expect(url).not.to.include(Constants.prompt_none);
-                done();
-            });
+        it("navigates user to redirectURI passed in the  request config", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-            msal.loginRedirect({});
-        });
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
 
-        it('navigates user to login and prompt=select_account parameter is passed in request', (done) => {
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include(Constants.prompt_select_account);
-                expect(url).not.to.include(Constants.prompt_none);
-                done();
-            });
-            msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-
-            let request: AuthenticationParameters = { prompt: "select_account" };
+            const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
             msal.loginRedirect(request);
         });
 
-        it('navigates user to login and prompt=none parameter is passed in request', (done) => {
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).not.to.include(Constants.prompt_select_account);
-                expect(url).to.include(Constants.prompt_none);
-                done();
-            });
+        it("navigates user to login and prompt parameter is not passed by default", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).not.to.include(Constants.prompt_select_account);
+                        expect(url).not.to.include(Constants.prompt_none);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            msal.loginRedirect({});
+        });
 
-            let request: AuthenticationParameters = { prompt: "none" };
+        it("navigates user to login and prompt=select_account parameter is passed in request", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.include(Constants.prompt_select_account);
+                        expect(url).not.to.include(Constants.prompt_none);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            msal.handleRedirectCallback(authCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+
+            const request: AuthenticationParameters = { prompt: "select_account" };
+            msal.loginRedirect(request);
+        });
+
+        it("navigates user to login and prompt=none parameter is passed in request", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).not.to.include(Constants.prompt_select_account);
+                        expect(url).to.include(Constants.prompt_none);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            msal.handleRedirectCallback(authCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+
+            const request: AuthenticationParameters = { prompt: "none" };
             msal.loginRedirect(request);
         });
 
         it("tests if hint parameters are added when account object is passed in request", function (done) {
-            let accountObj: Account = {
-                homeAccountIdentifier: 'MTIzNA==.NTY3OA==',
-                accountIdentifier: '1234',
-                userName: 'some_id',
+            const accountObj: Account = {
+                homeAccountIdentifier: "MTIzNA==.NTY3OA==",
+                accountIdentifier: "1234",
+                userName: "some_id",
                 name: null,
                 idToken: null,
+                idTokenClaims: null,
                 sid: null,
                 environment: null
             };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include("&login_hint=" + 'some_id');
-                expect(url).to.include("&login_req=1234");
-                expect(url).to.include("&domain_req=5678");
-                expect(url).to.include("&domain_hint");
-                expect(url).to.include(Constants.prompt_select_account);
-                expect(url).to.not.include(Constants.prompt_none);
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.include("&login_hint=" + "some_id");
+                        expect(url).to.include("&login_req=1234");
+                        expect(url).to.include("&domain_req=5678");
+                        expect(url).to.include("&domain_hint");
+                        expect(url).to.include(Constants.prompt_select_account);
+                        expect(url).to.not.include(Constants.prompt_none);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
-            let tokenRequest: AuthenticationParameters = {
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            const tokenRequest: AuthenticationParameters = {
                 prompt: "select_account",
                 account: accountObj
             };
@@ -283,321 +366,323 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that claims is added to the url when passed in request object", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
+            const claimsRequestObj: any = {
+                "accessToken": {
+                    "test": null
                 }
             };
-            let tokenRequest: AuthenticationParameters = {
+            const tokenRequest: AuthenticationParameters = {
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
         it("tests that claims is added to the url when passed in extraQueryParameters", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
+            const claimsRequestObj: any = {
+                "accessToken": {
+                    "test": null
                 }
             };
-            let tokenRequest: AuthenticationParameters = {
+            const tokenRequest: AuthenticationParameters = {
                 extraQueryParameters: {
                     claims: JSON.stringify(claimsRequestObj)
                 }
             };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.extraQueryParameters.claims));
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.extraQueryParameters.claims));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
         it("removes claims from extraQueryParameters when passed in extraQueryParameters and request object", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
+            const claimsRequestObj: any = {
+                "accessToken": {
+                    "test": null
                 }
             };
-            let claimsRequestObj2 = {
-                'accessToken': {
-                    'test2': null
+            const claimsRequestObj2: any = {
+                "accessToken": {
+                    "test2": null
                 }
             };
-            let tokenRequest: AuthenticationParameters = {
+            const tokenRequest: AuthenticationParameters = {
                 claimsRequest: JSON.stringify(claimsRequestObj),
                 extraQueryParameters: {
                     claims: JSON.stringify(claimsRequestObj2)
                 }
             };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
-        it('removes login_hint from request.extraQueryParameters', (done) => {
-            let tokenRequestWithoutLoginHint: AuthenticationParameters = {
+        it("removes login_hint from request.extraQueryParameters", (done) => {
+            const tokenRequestWithoutLoginHint: AuthenticationParameters = {
                 extraQueryParameters: {
                     login_hint: JSON.stringify(TEST_LOGIN_HINT)
                 }
             };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.not.include('&login_hint=');
-                expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.LOGIN_HINT]));
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.not.include("&login_hint=");
+                        expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.LOGIN_HINT]));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequestWithoutLoginHint);
         });
 
-        it('removes sid from request.extraQueryParameters', (done) => {
-            let tokenRequestWithoutLoginHint: AuthenticationParameters = {
+        it("removes sid from request.extraQueryParameters", (done) => {
+            const tokenRequestWithoutLoginHint: AuthenticationParameters = {
                 extraQueryParameters: {
                     sid: JSON.stringify(TEST_SID)
                 }
             };
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.not.include('&sid=');
-                expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
-                
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        expect(url).to.not.include("&sid=");
+                        expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequestWithoutLoginHint);
         });
 
-        it('navigates user to redirectURI passed in constructor config', (done) => {
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                done();
-            });
+        it("navigates user to redirectURI passed in constructor config", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
 
             msal.loginRedirect({});
         });
 
-        it('uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated', (done) => {
+        it("uses current location.href as redirectUri default value, even if location changed after UserAgentApplication was instantiated", (done) => {
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    try {
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(TEST_URIS.TEST_REDIR_URI));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
                 }
             };
             msal = new UserAgentApplication(config);
-            history.pushState(null, null, '/new_pushstate_uri');
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent('http://localhost:8080/new_pushstate_uri'));
-                done();
-            });
+            history.pushState(null, null, "/new_pushstate_uri");
+
             msal.handleRedirectCallback(authCallback);
             msal.loginRedirect({});
         });
 
-        it('exits login function with error if loginInProgress is true', function (done) {
-            sinon.stub(msal, <any>"loginInProgress").value(true);
+        it("exits login function with error if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
                 expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
                 expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
                 expect(authErr.name).to.equal("ClientAuthError");
-                expect(authErr.stack).to.be.undefined;
+                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
                 done();
-            }
+            };
             msal.handleRedirectCallback(checkErrorFromLibrary);
             msal.loginRedirect();
         });
 
-        it('exits login function with error if invalid prompt parameter is passed', function (done) {
-            // TODO: We need to perform upfront parameter validation in order for this test to pass
-            // let tokenRequest = {
-            //     prompt: "random"
-            // };
-            // msal.handleRedirectCallbacks(successCallback, errCallback);
-            // let authErr: AuthError;
-            // try {
-            //     msal.loginRedirect(tokenRequest);
-            // } catch (e) {
-            //     authErr = e;
-            // }
-            // console.log(authErr);
+        it("exits login function with error if invalid prompt parameter is passed", function (done) {
+            /*
+             * TODO: We need to perform upfront parameter validation in order for this test to pass
+             * let tokenRequest = {
+             *     prompt: "random"
+             * };
+             * msal.handleRedirectCallbacks(successCallback, errCallback);
+             * let authErr: AuthError;
+             * try {
+             *     msal.loginRedirect(tokenRequest);
+             * } catch (e) {
+             *     authErr = e;
+             * }
+             * console.log(authErr);
+             */
 
-            // expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.invalidPrompt.code);
-            // expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidPrompt.desc);
-            // expect(authErr.errorMessage).to.contain(tokenRequest.prompt);
-            // expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidPrompt.desc);
-            // expect(authErr.name).to.equal("ClientConfigurationError");
-            // expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            /*
+             * expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.invalidPrompt.code);
+             * expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidPrompt.desc);
+             * expect(authErr.errorMessage).to.contain(tokenRequest.prompt);
+             * expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidPrompt.desc);
+             * expect(authErr.name).to.equal("ClientConfigurationError");
+             * expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+             */
             done();
         });
 
         it("tests if error is thrown when null scopes are passed", function (done) {
             msal.handleRedirectCallback(authCallback);
-            var authErr: AuthError;
+            let authErr: AuthError;
             try {
                 msal.acquireTokenRedirect({});
             } catch (e) {
                 authErr = e;
-            };
+            }
             expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
         });
 
         it("tests if error is thrown when empty array of scopes are passed", function (done) {
             msal.handleRedirectCallback(authCallback);
-            var authErr: AuthError;
+            let authErr: AuthError;
             try {
                 msal.acquireTokenRedirect({
                     scopes: []
                 });
             } catch (e) {
                 authErr = e;
-            };
+            }
             expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
         });
 
         it("tests if error is thrown when client id is not passed as single scope", function (done) {
             msal.handleRedirectCallback(authCallback);
-            var authErr: AuthError;
+            let authErr: AuthError;
             try {
                 msal.acquireTokenRedirect({
-                    scopes: [MSAL_CLIENT_ID, "S1"]
+                    scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"]
                 });
             } catch (e) {
                 authErr = e;
-            };
+            }
             expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.js");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
+        });
+
+        it("throws an error if configured with a null request", () => {
+            let correctError;
+            try {
+                // @ts-ignore
+                msal.acquireTokenRedirect();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                correctError = true;
+            }
+            expect(correctError).to.be.true;
         });
     });
 
     describe("Different Callback Signatures", function () {
 
         beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
-                }
-            };
-            msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
-            setTestCacheItems();
-        });
-
-        it("Calls the error callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            const checkErrorFromServer = function(error: AuthError, accountState: string) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
-                expect(error instanceof ServerError).to.be.true;
-                expect(error.name).to.include("ServerError");
-                expect(error.errorCode).to.include(TEST_ERROR_CODE);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
-                done();
-            };
-            msal.handleRedirectCallback(tokenReceivedCallback, checkErrorFromServer);
-        });
-
-        it("Calls the token callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
-
-            const checkResponseFromServer = function(response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(Constants.idToken);
-                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
-                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
-                done();
-            };
-            msal.handleRedirectCallback(checkResponseFromServer, errorReceivedCallback);
-        });
-
-        it("Calls the response callback if single callback is sent", function (done) {
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
-
-            const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(Constants.idToken);
-                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
-                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
-                done();
-            };
-            msal.handleRedirectCallback(checkResponseFromServer);
-        });
-    });
-
-    describe("Cache Storage Unit Tests", function () {
-
-        beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
-            const config: Configuration = {
-                auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -610,22 +695,92 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.restore();
         });
 
-        it('tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes', function (done) {
-            let tokenRequest : AuthenticationParameters = {
+        it("Calls the error callback if two callbacks are sent", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, accountState: string) {
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(error instanceof ServerError).to.be.true;
+                expect(error.name).to.include("ServerError");
+                expect(error.errorCode).to.include(TEST_ERROR_CODE);
+                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
+                expect(error.message).to.include(TEST_ERROR_DESC);
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                done();
+            };
+            msal.handleRedirectCallback(tokenReceivedCallback, checkErrorFromServer);
+        });
+
+        it("Calls the token callback if two callbacks are sent", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
+
+            const checkResponseFromServer = function(response: AuthResponse) {
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                done();
+            };
+            msal.handleRedirectCallback(checkResponseFromServer, errorReceivedCallback);
+        });
+
+        it("Calls the response callback if single callback is sent", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
+
+            const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                done();
+            };
+            msal.handleRedirectCallback(checkResponseFromServer);
+        });
+    });
+
+    describe("Cache Storage Unit Tests", function () {
+
+        beforeEach(function () {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                }
+            };
+            msal = new UserAgentApplication(config);
+            setAuthInstanceStubs();
+            setTestCacheItems();
+        });
+
+        afterEach(function() {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+
+        it("tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes", function (done) {
+            const tokenRequest : AuthenticationParameters = {
                 scopes: ["S1"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.idToken.rawIdToken).to.include("idToken");
-                expect(response.accessToken).to.include('accessToken1');
+                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
                 expect(response.account).to.be.eq(account);
                 expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
-                expect(response.tokenType).to.be.eq(Constants.accessToken);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err) {
                 // Won't happen
@@ -633,18 +788,18 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it('tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes', function (done) {
-            let tokenRequest : AuthenticationParameters = {
+        it("tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes", function (done) {
+            const tokenRequest : AuthenticationParameters = {
                 scopes: ["S1"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
-            accessTokenKey.authority = alternateValidAuthority;
+            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -655,23 +810,23 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                expect(err.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             });
         });
 
-        it('tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist', function (done) {
-            let tokenRequest : AuthenticationParameters = {
+        it("tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist", function (done) {
+            const tokenRequest : AuthenticationParameters = {
                 scopes: ["S3"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = 'S2';
-            accessTokenKey.authority = alternateValidAuthority;
+            accessTokenKey.scopes = "S2";
+            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -682,38 +837,39 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
                 expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
                 expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                expect(err.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             });
         });
 
-        it('tests getCachedToken when authority is passed and single matching accessToken is found', function (done) {
-            let tokenRequest : AuthenticationParameters = {
-                authority: validAuthority,
+        it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            let tokenRequest2 : AuthenticationParameters = {
-                authority: alternateValidAuthority,
+            const tokenRequest2 : AuthenticationParameters = {
+                authority: TEST_CONFIG.alternateValidAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
             accessTokenKey.authority = accessTokenKey.authority + "/";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.authority = alternateValidAuthority + "/";
+            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority + "/";
             accessTokenValue.accessToken = "accessToken2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
                 expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.include("idToken");
-                expect(response.accessToken).to.include('accessToken1');
-                expect(response.tokenType).to.be.eq(Constants.accessToken);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.eql(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
@@ -722,9 +878,10 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenSilent(tokenRequest2).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(tokenRequest2.scopes);
                 expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.include("idToken");
-                expect(response.accessToken).to.include('accessToken2');
-                expect(response.tokenType).to.be.eq(Constants.accessToken);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include("accessToken2");
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -732,13 +889,13 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it('tests getCachedToken when authority is passed and multiple matching accessTokens are found', function (done) {
-            let tokenRequest : AuthenticationParameters = {
-                authority: validAuthority,
+        it("tests getCachedToken when authority is passed and multiple matching accessTokens are found", function (done) {
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
             accessTokenKey.authority = accessTokenKey.authority + "/";
@@ -753,27 +910,27 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.js");
+                expect(err.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             });
         });
 
-        it('tests getCachedToken when authority is passed and no matching accessToken is found', function (done) {
-            let tokenRequest : AuthenticationParameters = {
-                authority: alternateValidAuthority,
+        it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.alternateValidAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                expect(url).to.include(alternateValidAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
+                expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include("&state");
+                expect(url).to.include("&client_info=1");
                 done();
                 return {};
             });
@@ -790,28 +947,28 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken when authority is passed and single matching accessToken is found which is expired", function (done) {
-            let tokenRequest : AuthenticationParameters = {
-                authority: alternateValidAuthority,
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.alternateValidAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
-                expect(url).to.include(alternateValidAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
+                expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include("&state");
+                expect(url).to.include("&client_info=1");
                 done();
                 return {};
             });
 
             accessTokenValue.expiresIn = "1300";
-            accessTokenKey.authority = alternateValidAuthority + "/";
+            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority + "/";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -824,37 +981,37 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken is skipped when claims are passed in", function (done) {
-            let claimsRequestObj = {
-                'accessToken': {
-                    'test': null
+            const claimsRequestObj: any = {
+                "accessToken": {
+                    "test": null
                 }
             };
-            let tokenRequest : AuthenticationParameters = {
-                authority: validAuthority,
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
                 account: account,
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };
-            let params: kv = {  };
+            const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
-            let cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
+            const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
 
-             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 expect(cacheCallSpy.notCalled).to.be.true;
-                expect(url).to.include(validAuthority + '/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile');
-                expect(url).to.include('&client_id=' + MSAL_CLIENT_ID);
-                expect(url).to.include('&redirect_uri=' + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include('&state');
-                expect(url).to.include('&client_info=1');
-                expect(url).to.include('&claims=' + encodeURIComponent(tokenRequest.claimsRequest));
+                expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include("&state");
+                expect(url).to.include("&client_info=1");
+                expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
                 done();
                 return {};
             });
 
-             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
-             msal.acquireTokenSilent(tokenRequest).then(function(response) {
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen - we are not testing response here
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
@@ -862,16 +1019,49 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Error in assertion: " + JSON.stringify(err));
             });
         });
+
+        it("tests getCachedToken is skipped when force is set true", function (done) {
+
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["S1"],
+                account: account,
+                forceRefresh: true
+            };
+
+            setUtilUnifiedCacheQPStubs({
+                [SSOTypes.SID]: account.sid
+            });
+            const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
+
+            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                expect(cacheCallSpy.notCalled).to.be.true;
+                expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                expect(url).to.include("&state");
+                expect(url).to.include("&client_info=1");
+                done();
+                return {};
+            });
+
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                // Won't happen - we are not testing response here
+                throw `Shouldn't have response here. Data: ${JSON.stringify(response)}`;
+            }).catch(done);
+        });
     });
 
     describe("Processing Authentication Responses", function() {
 
         beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -885,40 +1075,55 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of response", function(done) {
-            let successHash = TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, successHash);
-            let checkRespFromServer = function(response: AuthResponse) {
+            const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
+            const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(Constants.idToken);
-                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
                 expect(error.name).to.include("ServerError");
                 expect(error.errorCode).to.include(TEST_ERROR_CODE);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromServer);
+        });
+
+        // TEST_SERVER_ERROR_SUBCODE_CANCEL
+        it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(error instanceof ServerError).to.be.true;
+                expect(error.name).to.include("ServerError");
+                expect(error.errorCode).to.include(TEST_ACCESS_DENIED);
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
@@ -927,8 +1132,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_ERROR_HASH + TEST_USER_STATE_URL);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_URL);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_URL);
                 done();
@@ -946,39 +1151,40 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that expiresIn returns the correct date for access tokens", function (done) {
-            sinon.stub(Utils, "now").returns(BASELINE_DATE_CHECK);
-            let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
+            const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
-            let successHash = TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, successHash);
-            let checkRespFromServer = function(response: AuthResponse) {
+            const successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_ACQ_TOKEN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
+
+            const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(Constants.accessToken);
-                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(response.expiresOn.getTime()).to.be.eq((BASELINE_DATE_CHECK + DEFAULT_EXPIRES_IN) * 1000);
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(response.expiresOn.getTime()).to.be.eq((TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
         });
 
         it("tests that expiresIn returns the correct date for id tokens", function (done) {
-            let acquireTokenAccountKey = Storage.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
-            let successHash = TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.nonceIdToken, TEST_NONCE);
-            cacheStorage.setItem(Constants.urlHash, successHash);
-            let checkRespFromServer = function(response: AuthResponse) {
+            const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
+            const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(Constants.idToken);
-                expect(response.tenantId).to.be.eq(MSAL_TENANT_ID);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
                 expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(response.expiresOn.getTime()).to.be.eq(TEST_ID_TOKEN_ISSUED * 1000);
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(response.expiresOn.getTime()).to.be.eq(TEST_TOKEN_LIFETIMES.TEST_ID_TOKEN_EXP * 1000);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
@@ -988,11 +1194,11 @@ describe("UserAgentApplication.ts Class", function () {
     describe("InteractionRequired Error Types", function () {
 
         beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -1006,26 +1212,26 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests saveTokenForHash in case of interaction_required error code", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests saveTokenForHash in case of interaction_required error code and description", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
@@ -1033,33 +1239,33 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
                 expect(error.message).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests saveTokenForHash in case of login_required error code", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests saveTokenForHash in case of login_required error code and description", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
@@ -1067,33 +1273,33 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
                 expect(error.message).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests saveTokenForHash in case of consent_required error code", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
                 expect(error.errorMessage).to.include(TEST_ERROR_DESC);
                 expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
 
         it("tests saveTokenForHash in case of consent_required error code and description", function(done) {
-            cacheStorage.setItem(Constants.urlHash, TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(Constants.stateLogin, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(Constants.urlHash)).to.be.null;
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
                 expect(error.name).to.include("InteractionRequiredAuthError");
                 expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
@@ -1101,44 +1307,53 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(error.message).to.include(TEST_ERROR_DESC);
                 expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
                 expect(error.message).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.js");
+                expect(error.stack).to.include("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
         });
-
     });
 
     describe("Logout functionality", function () {
 
         beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI,
-                    postLogoutRedirectUri: TEST_LOGOUT_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
                 }
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
             setTestCacheItems();
+            delete window.location;
         });
 
-        afterEach(function() {
+        afterEach(function () {
+            window.location = oldWindowLocation;
             cacheStorage.clear();
             sinon.restore();
         });
 
         it("clears cache and account object", function (done) {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            cacheStorage.setItem(Constants.idTokenKey, "idTokenKey");
-            cacheStorage.setItem(Constants.msalClientInfo, TEST_CLIENT_INFO_B64ENCODED);
+            cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, "idTokenKey");
+            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED);
             sinon.stub(Account, "createAccount").returns(account);
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                done();
-            });
-            let clearCacheSpy = sinon.spy(msal, <any>"clearCache");
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    try {
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            const clearCacheSpy = sinon.spy(msal, <any>"clearCache");
             expect(msal.getAccount()).to.not.be.null;
             msal.logout();
             expect(msal.getAccount()).to.be.null;
@@ -1146,40 +1361,63 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("adds postLogoutRedirectUri to logout URI", function (done) {
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(encodeURIComponent(TEST_LOGOUT_URI));
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.logout();
         });
         it("uses the end_session_endpoint url", function (done) {
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(validOpenIdConfigurationResponse.EndSessionEndpoint);
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(validOpenIdConfigurationResponse.EndSessionEndpoint);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.logout();
         });
         it("falls back to default url when there is no end_session_endpoint ", function (done) {
             sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").reset();
             sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value("");
-            sinon.stub(window.location, "replace").callsFake(function (url) {
-                expect(url).to.include(DEFAULT_INSTANCE + TENANT + '/oauth2/v2.0/logout?');
-                done();
-            });
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/logout?");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
             msal.logout();
         });
-
 
     });
 
     describe("State Handling", function () {
 
         beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -1197,12 +1435,12 @@ describe("UserAgentApplication.ts Class", function () {
             expect(result).to.be.eq("91111");
         });
 
-        it('test getAccountState when there is no user state', function () {
+        it("test getAccountState when there is no user state", function () {
             const result = msal.getAccountState("123465464565");
             expect(result).to.be.eq("123465464565");
         });
 
-        it('test getAccountState when there is no state', function () {
+        it("test getAccountState when there is no state", function () {
             const result = msal.getAccountState("");
             expect(result).to.be.eq("");
         });
@@ -1211,7 +1449,7 @@ describe("UserAgentApplication.ts Class", function () {
     describe("Cache Location", function () {
 
         beforeEach(function () {
-            cacheStorage = new Storage("sessionStorage");
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             setAuthInstanceStubs();
             setTestCacheItems();
         });
@@ -1224,8 +1462,8 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests cacheLocation functionality defaults to sessionStorage", function () {
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -1236,8 +1474,8 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests cacheLocation functionality sets to localStorage when passed as a parameter", function () {
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 },
                 cache: {
                     cacheLocation: "localStorage"
@@ -1251,34 +1489,55 @@ describe("UserAgentApplication.ts Class", function () {
 
     describe("Popup Flow", function () {
 
+        const oldWindow = window;
+
         beforeEach(function() {
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
+
+            delete window.location;
         });
 
         afterEach(function() {
+            window.location = oldWindowLocation;
             cacheStorage.clear();
             sinon.restore();
         });
 
         it("returns a promise from loginPopup", function () {
-            let loginPopupPromise : Promise<AuthResponse>;
-            loginPopupPromise = msal.loginPopup({});
+            window = {
+                ...oldWindow,
+                open: function (url?, target?, features?, replace?): Window {
+                    return null;
+                }
+            };
+            const loginPopupPromise = msal.loginPopup({});
             expect(loginPopupPromise instanceof Promise).to.be.true;
             loginPopupPromise.catch(error => {});
         });
 
         it("returns a promise from acquireTokenPopup", function () {
-            let acquireTokenPromise : Promise<AuthResponse>;
-            acquireTokenPromise = msal.acquireTokenPopup({scopes: [MSAL_CLIENT_ID]});
+            const acquireTokenPromise = msal.acquireTokenPopup({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]});
             expect(acquireTokenPromise instanceof Promise).to.be.true;
             acquireTokenPromise.catch(error => {});
+        });
+
+        it("throws an error if configured with a null request", () => {
+            let correctError;
+            try {
+                // @ts-ignore
+                msal.acquireTokenPopup();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                correctError = true;
+            }
+            expect(correctError).to.be.true;
         });
     });
 
@@ -1287,8 +1546,8 @@ describe("UserAgentApplication.ts Class", function () {
         beforeEach(function() {
             const config: Configuration = {
                 auth: {
-                    clientId: MSAL_CLIENT_ID,
-                    redirectUri: TEST_REDIR_URI
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);
@@ -1301,10 +1560,21 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("returns a promise from acquireTokenSilent", function () {
-            let acquireTokenSilentPromise : Promise<AuthResponse>;
-            acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [MSAL_CLIENT_ID]});
+            const acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]});
             expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
             acquireTokenSilentPromise.catch(error => {});
+        });
+
+        it("throws an error if configured with a null request", () => {
+            let correctError;
+            try {
+                // @ts-ignore
+                msal.acquireTokenSilent();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                correctError = true;
+            }
+            expect(correctError).to.be.true;
         });
 
     });

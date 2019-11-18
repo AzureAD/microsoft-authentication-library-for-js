@@ -118,4 +118,33 @@ describe("Configuration.ts Type", () => {
         const { framework } = configWithDefaults;
         expect(framework.isAngular).to.eq(fake_isAngular);
     });
+    it("does not set defaults for telemetry object", () => {
+        const config: Configuration = {
+            auth: {
+                clientId: "iamnotreal"
+            }
+        };
+        const configWithDefaults: Configuration = buildConfiguration(config);
+        const { system } = configWithDefaults;
+        expect(system.telemetry).to.be.undefined;
+    });
+    it("does not set defaults for telemetry object memebers", () => {
+        const config: Configuration = {
+            auth: {
+                clientId: "iamnotreal"
+            },
+            system: {
+                telemetry: {
+                    // @ts-ignore
+                    a: true
+                }
+            }
+        };
+        const configWithDefaults: Configuration = buildConfiguration(config);
+        const { system } = configWithDefaults;
+        // @ts-ignore
+        expect(system.telemetry.a).to.be.true;
+        expect(system.telemetry.applicationName).to.be.undefined;
+        expect(Object.keys(system.telemetry).length).to.eq(1);
+    });
 });

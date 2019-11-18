@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { AuthError } from "./AuthError";
-import { Utils } from "../Utils";
 import { IdToken } from "../IdToken";
+import { StringUtils } from "../utils/StringUtils";
 
 export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
@@ -82,6 +84,14 @@ export const ClientAuthErrorMessage = {
     tokenEncodingError: {
         code: "token_encoding_error",
         desc: "The token to be decoded is not encoded correctly."
+    },
+    invalidInteractionType: {
+        code: "invalid_interaction_type",
+        desc: "The interaction type passed to the handler was incorrect or unknown"
+    },
+    cacheParseError: {
+        code: "cannot_parse_cache",
+        desc: "The cached token key is not a valid JSON and cannot be parsed"
     }
 };
 
@@ -99,7 +109,7 @@ export class ClientAuthError extends AuthError {
 
     static createEndpointResolutionError(errDetail?: string): ClientAuthError {
         let errorMessage = ClientAuthErrorMessage.endpointResolutionError.desc;
-        if (errDetail && !Utils.isEmpty(errDetail)) {
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
             errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
@@ -116,16 +126,17 @@ export class ClientAuthError extends AuthError {
     }
 
     static createPopupWindowError(errDetail?: string): ClientAuthError {
-        var errorMessage = ClientAuthErrorMessage.popUpWindowError.desc;
-        if (errDetail && !Utils.isEmpty(errDetail)) {
+        let errorMessage = ClientAuthErrorMessage.popUpWindowError.desc;
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
             errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code, errorMessage);
     }
 
-    static createTokenRenewalTimeoutError(): ClientAuthError {
+    static createTokenRenewalTimeoutError(urlNavigate: string): ClientAuthError {
+        const errorMessage = `URL navigated to is ${urlNavigate}, ${ClientAuthErrorMessage.tokenRenewalError.desc}`;
         return new ClientAuthError(ClientAuthErrorMessage.tokenRenewalError.code,
-            ClientAuthErrorMessage.tokenRenewalError.desc);
+            errorMessage);
     }
 
     static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
@@ -133,13 +144,13 @@ export class ClientAuthError extends AuthError {
             `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${idToken}`);
     }
 
-    //TODO: Is this not a security flaw to send the user the state expected??
+    // TODO: Is this not a security flaw to send the user the state expected??
     static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
             `${ClientAuthErrorMessage.invalidStateError.desc} ${invalidState}, state expected : ${actualState}.`);
     }
 
-    //TODO: Is this not a security flaw to send the user the Nonce expected??
+    // TODO: Is this not a security flaw to send the user the Nonce expected??
     static createNonceMismatchError(invalidNonce: string, actualNonce: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             `${ClientAuthErrorMessage.nonceMismatchError.desc} ${invalidNonce}, nonce expected : ${actualNonce}.`);
@@ -199,4 +210,16 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenEncodingError.code,
             `${ClientAuthErrorMessage.tokenEncodingError.desc} Attempted to decode: ${incorrectlyEncodedToken}`);
     }
+
+    static createInvalidInteractionTypeError() : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidInteractionType.code,
+            ClientAuthErrorMessage.invalidInteractionType.desc);
+    }
+
+    static createCacheParseError(key: string) : ClientAuthError {
+        const errorMessage = `invalid key: ${key}, ${ClientAuthErrorMessage.cacheParseError.desc}`;
+        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code,
+            errorMessage);
+    }
+
 }

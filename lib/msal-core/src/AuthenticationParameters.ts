@@ -1,13 +1,11 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Account } from "./Account";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-
-/**
- * Key-Value type to support queryParams and extraQueryParams
- */
-export type QPDict = {[key: string]: string};
+import { StringDict } from "./MsalTypes";
 
 /**
  * @link AuthenticationParameters}AuthenticationParameters
@@ -16,7 +14,7 @@ export type AuthenticationParameters = {
     scopes?: Array<string>;
     extraScopesToConsent?: Array<string>;
     prompt?: string;
-    extraQueryParameters?: QPDict;
+    extraQueryParameters?: StringDict;
     claimsRequest?: string;
     authority?: string;
     state?: string;
@@ -24,6 +22,8 @@ export type AuthenticationParameters = {
     account?: Account;
     sid?: string;
     loginHint?: string;
+    forceRefresh?: boolean;
+    redirectUri?: string;
 };
 
 export function validateClaimsRequest(request: AuthenticationParameters) {

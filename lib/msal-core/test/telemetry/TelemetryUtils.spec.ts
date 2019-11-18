@@ -1,5 +1,6 @@
 import { expect } from "chai";
-import { scrubTenantFromUri, hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
+import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "../../src/telemetry/TelemetryUtils";
+import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";
 
 describe("TelemetryUtils", () => {
     it("TelemtryUtils.scrubTenantFromUri works on regular uri", () => {
@@ -20,7 +21,7 @@ describe("TelemetryUtils", () => {
     });
     it("TelemetryUtils.hashPersonalIdentifier produces a result", () => {
         const result = hashPersonalIdentifier("test");
-        expect(result).to.be.a.string;
+        expect(result).to.be.string;
     });
     it("TelemetryUtils.hashPersonalIdentifier produces a consistent result", () => {
         const result = hashPersonalIdentifier("test");
@@ -31,5 +32,22 @@ describe("TelemetryUtils", () => {
         const result = hashPersonalIdentifier("test");
         const result2 = hashPersonalIdentifier("test2");
         expect(result).to.not.equal(result2);
+    });
+    it("TelemetryUtils.prependEventNamePrefix works", () => {
+        const result = prependEventNamePrefix("a");
+        const result2 = prependEventNamePrefix("b_c");
+        const result3 = prependEventNamePrefix(" d e ");
+        expect(result).to.eql(`${EVENT_NAME_PREFIX}a`);
+        expect(result2).to.eql(`${EVENT_NAME_PREFIX}b_c`);
+        expect(result3).to.eql(`${EVENT_NAME_PREFIX} d e `);
+    });
+    it("TelemetryUtils.prependEventNamePrefix handles non / empty strings", () => {
+        const result = prependEventNamePrefix("");
+        const result2 = prependEventNamePrefix(null);
+        // @ts-ignore
+        const result3 = prependEventNamePrefix(44);
+        expect(result).to.eql(`${EVENT_NAME_PREFIX}`);
+        expect(result2).to.eql(`${EVENT_NAME_PREFIX}`);
+        expect(result3).to.eql(`${EVENT_NAME_PREFIX}44`);
     });
 });

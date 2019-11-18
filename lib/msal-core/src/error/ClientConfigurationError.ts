@@ -1,25 +1,24 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-import { Constants } from "../Constants";
+import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "./ClientAuthError";
+import { TelemetryOptions } from "../Configuration";
 
 export const ClientConfigurationErrorMessage = {
     configurationNotSet: {
         code: "no_config_set",
         desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
     },
-    invalidCacheLocation: {
-        code: "invalid_cache_location",
-        desc: "The cache location provided is not valid."
-    },
-    noStorageSupported: {
-        code: "browser_storage_not_supported",
-        desc: "localStorage and sessionStorage are not supported."
+    storageNotSupported: {
+        code: "storage_not_supported",
+        desc: "The value for the cacheLocation is not supported."
     },
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
-        desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
+        desc: "No redirect callbacks have been set. Please call handleRedirectCallback() with the appropriate function arguments before continuing. " +
             "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     invalidCallbackObject: {
@@ -70,6 +69,18 @@ export const ClientConfigurationErrorMessage = {
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
         desc: "Could not parse the given claims request object."
+    },
+    emptyRequestError: {
+        code: "empty_request_error",
+        desc: "Request object is required."
+    },
+    invalidCorrelationIdError: {
+        code: "invalid_guid_sent_as_correlationId",
+        desc: "Please set the correlationId as a valid guid"
+    },
+    telemetryConfigError: {
+        code: "telemetry_config_error",
+        desc: "Telemetry config is not configured with required values"
     }
 };
 
@@ -89,14 +100,9 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.configurationNotSet.desc}`);
     }
 
-    static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCacheLocation.code,
-            `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
-    }
-
-    static createNoStorageSupportedError() : ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.noStorageSupported.code,
-            ClientConfigurationErrorMessage.noStorageSupported.desc);
+    static createStorageNotSupportedError(givenCacheLocation: string) : ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.storageNotSupported.code,
+            `${ClientConfigurationErrorMessage.storageNotSupported.desc} Given location: ${givenCacheLocation}`);
     }
 
     static createRedirectCallbacksNotSetError(): ClientConfigurationError {
@@ -136,5 +142,31 @@ export class ClientConfigurationError extends ClientAuthError {
     static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
             `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
+    }
+
+    static createEmptyRequestError(): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.emptyRequestError;
+        return new ClientConfigurationError(code, desc);
+    }
+
+    static createInvalidCorrelationIdError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCorrelationIdError.code,
+            ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
+    }
+
+    static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
+        const { code, desc } = ClientConfigurationErrorMessage.telemetryConfigError;
+        const requiredKeys = {
+            applicationName: "string",
+            applicationVersion: "string",
+            telemetryEmitter: "function"
+        };
+
+        const missingKeys = Object.keys(requiredKeys)
+            .reduce((keys, key) => {
+                return config[key] ? keys : keys.concat([ `${key} (${requiredKeys[key]})` ]);
+            }, []);
+
+        return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
     }
 }

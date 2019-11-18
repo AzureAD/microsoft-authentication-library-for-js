@@ -7,6 +7,11 @@ describe("InteractionRequiredAuthError.ts Class", () => {
 
   const ERROR_DESC = "Error from the server";
 
+  const INTERACTION_REQ_STRING = "interaction_required";
+  const LOGIN_REQ_STRING = "login_required";
+  const CONSENT_REQ_STRING = "consent_required";
+  const INCORRECT_REQ_STRING = "something_else_required";
+
   it("InteractionRequiredAuthError object can be created", () => {
 
     const TEST_ERROR_CODE: string = "test";
@@ -27,7 +32,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("createLoginRequiredAuthError creates a ServerError object", () => {
@@ -45,7 +50,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("createInteractionRequiredAuthError creates a ServerError object", () => {
@@ -63,7 +68,7 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
   });
 
   it("createConsentRequiredAuthError creates a ServerError object", () => {
@@ -81,7 +86,14 @@ describe("InteractionRequiredAuthError.ts Class", () => {
     expect(err.errorMessage).to.equal(ERROR_DESC);
     expect(err.message).to.equal(ERROR_DESC);
     expect(err.name).to.equal("InteractionRequiredAuthError");
-    expect(err.stack).to.include("InteractionRequiredAuthError.spec.js");
+    expect(err.stack).to.include("InteractionRequiredAuthError.spec.ts");
+  });
+
+  it("isInteractionRequiredError function correctly detects _required strings", () => {
+    expect(InteractionRequiredAuthError.isInteractionRequiredError(INTERACTION_REQ_STRING)).to.be.true;
+    expect(InteractionRequiredAuthError.isInteractionRequiredError(LOGIN_REQ_STRING)).to.be.true;
+    expect(InteractionRequiredAuthError.isInteractionRequiredError(CONSENT_REQ_STRING)).to.be.true;
+    expect(InteractionRequiredAuthError.isInteractionRequiredError(INCORRECT_REQ_STRING)).to.be.false;
   });
 
 });
