@@ -113,7 +113,7 @@ describe("ClientAuthError.ts Class", () => {
 
     it("createTokenRenewalTimeoutError creates a ClientAuthError object", () => {
 
-        const tokenRenewalTimeOutError = ClientAuthError.createTokenRenewalTimeoutError();
+        const tokenRenewalTimeOutError = ClientAuthError.createTokenRenewalTimeoutError("some string");
         let err: ClientAuthError;
 
         try {
@@ -123,8 +123,8 @@ describe("ClientAuthError.ts Class", () => {
         }
 
         expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenRenewalError.code);
-        expect(err.errorMessage).to.equal(ClientAuthErrorMessage.tokenRenewalError.desc);
-        expect(err.message).to.equal(ClientAuthErrorMessage.tokenRenewalError.desc);
+        expect(err.errorMessage).to.equal(`URL navigated to is some string, ${ClientAuthErrorMessage.tokenRenewalError.desc}`);
+        expect(err.message).to.equal(`URL navigated to is some string, ${ClientAuthErrorMessage.tokenRenewalError.desc}`);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });

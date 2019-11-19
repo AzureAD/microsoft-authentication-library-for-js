@@ -1,0 +1,4 @@
+{
+    "require": ["test/setup.js", "ts-node/register", "source-map-support/register"],
+    "spec":  ["./test/*.spec.ts", "./test/**/*.spec.ts"]
+}

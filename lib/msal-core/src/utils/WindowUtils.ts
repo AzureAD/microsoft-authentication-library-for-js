@@ -33,7 +33,7 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
@@ -41,7 +41,8 @@ export class WindowUtils {
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
                     clearInterval(intervalId);
-                    resolve();
+                    reject(ClientAuthError.createUserCancelledError());
+                    return;
                 }
 
                 let href;
@@ -67,7 +68,7 @@ export class WindowUtils {
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
                     clearInterval(intervalId);
-                    reject(ClientAuthError.createTokenRenewalTimeoutError()); // better error?
+                    reject(ClientAuthError.createTokenRenewalTimeoutError(urlNavigate)); // better error?
                 }
             }, WindowUtils.POLLING_INTERVAL_MS);
         });
@@ -126,6 +127,7 @@ export class WindowUtils {
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
                 ifr.style.border = "0";
+                ifr.setAttribute("sandbox", "allow-scripts allow-same-origin");
                 adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
             } else if (document.body && document.body.insertAdjacentHTML) {
                 document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
@@ -145,7 +147,9 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        document.body.removeChild(iframe);
+        if (document.body !== iframe.parentNode) {
+            document.body.removeChild(iframe);
+        }
     }
 
     /**
