@@ -41,7 +41,7 @@
     "tslib": "^1.9.3"
   },
   "devDependencies": {
-    "@msal-tools/eslint-config-msal": "^1.0.0",
+    "@azuread/eslint-config-msal": "^1.0.0",
     "@types/chai": "^4.1.7",
     "@types/handlebars": "4.0.33",
     "@types/js-base64": "^2.3.1",

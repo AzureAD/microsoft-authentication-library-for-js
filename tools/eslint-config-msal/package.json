@@ -1,5 +1,5 @@
 {
-  "name": "@msal-tools/eslint-config-msal",
+  "name": "@azuread/eslint-config-msal",
   "version": "1.0.0",
   "description": "Base eslint config for msal projects.",
   "main": "index.js",

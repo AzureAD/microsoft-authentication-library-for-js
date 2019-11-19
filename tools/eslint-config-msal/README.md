@@ -1,6 +1,6 @@
-# eslint-config-msal
+# @azuread/eslint-config-msal
 
-ESLint configuration for MSAL.js libraries. Private package that is only available in the MSAL.js monorepo.
+ESLint configuration for MSAL.js libraries.
 
 ## Usage
 
@@ -13,7 +13,7 @@ npm install eslint@5 tslint @typescript-eslint/eslint-plugin-tslint @typescript-
 ### Install config (via lerna):
 
 ```sh
-npx lerna add eslint-config-msal --scope=<library-name>
+npx lerna add @azuread/eslint-config-msal --scope=<library-name>
 ```
 
 ### Configure:
@@ -21,7 +21,7 @@ npx lerna add eslint-config-msal --scope=<library-name>
 `eslintrc.json`
 ```json
 {
-    "extends": "eslint-config-msal"
+    "extends": "@azuread/eslint-config-msal"
 }
 ```
 
@@ -33,3 +33,7 @@ npx lerna add eslint-config-msal --scope=<library-name>
     }
 }
 ```
+
+## Publishing
+
+To publish an update of this package, [follow this steps](https://help.github.com/en/github/managing-packages-with-github-packages/configuring-npm-for-use-with-github-packages#publishing-a-package) to generate an access token for Github.
