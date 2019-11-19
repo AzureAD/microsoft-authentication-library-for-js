@@ -359,7 +359,8 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject, state);
         }).catch((error: AuthError) => {
             this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
-            throw this.returnErrorAndClearTempCache(this.cacheStorage, error, state);
+            this.cacheStorage.resetTempCacheItems(state);
+            throw error;
         });
     }
 
@@ -381,7 +382,8 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject, state);
         }).catch((error: AuthError) => {
             this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
-            throw this.returnErrorAndClearTempCache(this.cacheStorage, error, state);
+            this.cacheStorage.resetTempCacheItems(state);
+            throw error;
         });
     }
 
@@ -618,6 +620,11 @@ export class UserAgentApplication {
                 throw ClientConfigurationError.createEmptyRequestError();
             }
 
+            // return an error if called from the hidden iframe created by the msal js silent calls
+            if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
+                throw ClientConfigurationError.createBlockTokenRequestsInHiddenIframeError();
+            }
+
             // Validate and filter scopes (the validate function will throw if validation fails)
             this.validateInputScope(request.scopes, true);
 
@@ -645,7 +652,7 @@ export class UserAgentApplication {
                 responseType,
                 this.getRedirectUri(),
                 request.scopes,
-                request.state,
+                state,
                 request.correlationId,
             );
 
@@ -734,7 +741,9 @@ export class UserAgentApplication {
                     });
             }
         }).catch((error: AuthError) => {
-            throw this.returnErrorAndClearTempCache(this.cacheStorage, error, state);
+            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.resetTempCacheItems(state);
+            throw error;
         });
     }
 
@@ -823,12 +832,9 @@ export class UserAgentApplication {
 
                 this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, RequestStatus.COMPLETED);
             }
-
             WindowUtils.removeHiddenIframe(iframe);
-
             throw error;
         }
-
         WindowUtils.removeHiddenIframe(iframe);
     }
 
@@ -890,7 +896,9 @@ export class UserAgentApplication {
                   } else if (response) {
                       window.promiseMappedToRenewStates[expectedState][i].resolve(response);
                   } else {
-                      throw this.returnErrorAndClearTempCache(this.cacheStorage, AuthError.createUnexpectedError("Error and response are both null"), expectedState);
+                      this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+                      this.cacheStorage.resetTempCacheItems(expectedState);
+                      throw AuthError.createUnexpectedError("Error and response are both null");
                   }
               } catch (e) {
                   this.logger.warning(e);
@@ -939,6 +947,7 @@ export class UserAgentApplication {
             this.cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
         }
         this.cacheStorage.resetCacheItems();
+        // state not being sent would mean this call may not be needed; check later
         this.cacheStorage.clearMsalCookie();
     }
 
@@ -1624,8 +1633,9 @@ export class UserAgentApplication {
 
         // Set status to completed
         this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
-        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${stateInfo.state}` + stateInfo.state, RequestStatus.COMPLETED);
-        this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
+        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${stateInfo.state}`, RequestStatus.COMPLETED);
+        this.cacheStorage.resetTempCacheItems(stateInfo.state);
+
         // this is required if navigateToLoginRequestUrl=false
         if (this.inCookie) {
             this.cacheStorage.setItemCookie(authorityKey, "", -1);
@@ -1633,7 +1643,6 @@ export class UserAgentApplication {
         }
         if (error) {
             // Error case, set status to cancelled
-            this.cacheStorage.removeAcquireTokenEntries(stateInfo.state);
             throw error;
         }
 
@@ -2226,15 +2235,5 @@ export class UserAgentApplication {
             clientId: clientId
         };
         return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
-    }
-
-    /**
-     * Helper function to clear the cache and throw an error
-     * @param storage
-     * @param error
-     */
-    private returnErrorAndClearTempCache(storage: AuthCache, error: AuthError, state: string) {
-        storage.resetTempCacheItems(state);
-        return error;
     }
 }

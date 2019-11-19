@@ -81,6 +81,10 @@ export const ClientConfigurationErrorMessage = {
     telemetryConfigError: {
         code: "telemetry_config_error",
         desc: "Telemetry config is not configured with required values"
+    },
+    blockTokenRequestsInHiddenIframe: {
+        code: "block_token_requests",
+        desc: "Token calls are blocked in hidden iframes"
     }
 };
 
@@ -168,5 +172,10 @@ export class ClientConfigurationError extends ClientAuthError {
             }, []);
 
         return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
+    }
+
+    static createBlockTokenRequestsInHiddenIframeError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.blockTokenRequestsInHiddenIframe.code,
+            ClientConfigurationErrorMessage.blockTokenRequestsInHiddenIframe.desc);
     }
 }
