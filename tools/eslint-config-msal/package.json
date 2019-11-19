@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Base eslint config for msal projects.",
   "main": "index.js",
-  "private": true,
   "scripts": {
     "lint": "eslint ."
   },
