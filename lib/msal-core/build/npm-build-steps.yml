@@ -7,12 +7,12 @@ steps:
   displayName: 'Install Node.js'
 
 - task: Npm@1
+  env:
+    NPM_CONFIG_TOKEN: $(NPM_CONFIG_TOKEN)
   inputs:
     command: 'custom'
     workingDir: 'lib/msal-core'
     customCommand: 'ci'
-    env:
-        NPM_CONFIG_TOKEN: $(NPM_CONFIG_TOKEN)
 
 - task: Npm@1
   inputs:
@@ -33,9 +33,9 @@ steps:
     customCommand: 'run build'
 
 - task: Npm@1
+  env:
+    COVERALLS_REPO_TOKEN: $(COVERALLS_REPO_TOKEN)
   inputs:
     command: 'custom'
     workingDir: 'lib/msal-core'
     customCommand: 'run test:report'
-    env:
-        COVERALLS_REPO_TOKEN: $(COVERALLS_REPO_TOKEN)
