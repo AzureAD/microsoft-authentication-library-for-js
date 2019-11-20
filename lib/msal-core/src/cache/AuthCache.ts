@@ -131,6 +131,7 @@ export class AuthCache extends BrowserStorage {// Singleton
     resetTempCacheItems(state: string): void {
         const storage = window[this.cacheLocation];
         let key: string;
+        // check state and remove associated cache
         for (key in storage) {
             if (!state || key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.resourceDelimiter);
@@ -140,9 +141,10 @@ export class AuthCache extends BrowserStorage {// Singleton
                     this.setItemCookie(key, "", -1);
                     this.clearMsalCookie(state);
                 }
-                this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             }
         }
+        // delete the interaction status cache
+        this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
     }
 
     /**
