@@ -9,6 +9,7 @@ import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
+import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -243,5 +244,28 @@ export class UrlUtils {
     static deserializeHash(urlFragment: string) {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
+    }
+
+    /**
+     * @hidden
+     * generate unique state per request
+     * @param request
+     */
+    static getRequestState(state: string): string {
+        // append GUID to user set state  or set one for the user if null
+        return state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+    }
+
+    /**
+     * @hidden
+     * validate correlationId and generate if not valid or not set by the user
+     * @param correlationId
+     */
+    static getRequestCorrelationId(correlationId: string): string {
+        // validate user set correlationId or set one for the user if null
+        if(correlationId && !CryptoUtils.isGuid(correlationId)) {
+            throw ClientConfigurationError.createInvalidCorrelationIdError();
+        }
+        return correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
     }
 }

@@ -220,7 +220,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(JSON.stringify(res3[1].value)).to.be.eq(msalCacheStorage.getItem(JSON.stringify(res3[1].key)));
         });
 
-        it("removeAcquireTokenEntries removes any acquireToken or authorityKey entries in the cache", function () {
+        it("resetTempCacheItems removes acquireToken or authorityKey entries in the cache", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
 
@@ -230,13 +230,13 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
 
-            msalCacheStorage.removeAcquireTokenEntries(TEST_STATE);
+            msalCacheStorage.resetTempCacheItems(TEST_STATE);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
         });
 
-        it("removeAcquireTokenEntries removes specific acquireToken or authorityKey entries in the cache", function () {
+        it("resetTempCacheItems removes specific acquireToken or authorityKey entries in the cache", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
 
@@ -252,14 +252,14 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(msalCacheStorage.getItem(acquireTokenAccountKey2)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey2)).to.be.eq(validAuthority);
 
-            msalCacheStorage.removeAcquireTokenEntries(TEST_STATE);
+            msalCacheStorage.resetTempCacheItems(TEST_STATE);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
             expect(msalCacheStorage.getItem(acquireTokenAccountKey2)).to.be.eq(JSON.stringify(ACCOUNT));
             expect(msalCacheStorage.getItem(authorityKey2)).to.be.eq(validAuthority);
 
-            msalCacheStorage.removeAcquireTokenEntries(TEST_STATE2);
+            msalCacheStorage.resetTempCacheItems(TEST_STATE2);
 
             expect(msalCacheStorage.getItem(acquireTokenAccountKey2)).to.be.null;
             expect(msalCacheStorage.getItem(authorityKey2)).to.be.null;

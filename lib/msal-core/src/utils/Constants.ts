@@ -50,15 +50,8 @@ export class Constants {
 
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
+    static get IN_PROGRESS(): string { return "InProgress"; }
 }
-
-/**
- * Status of the current token request
- */
-export enum RequestStatus {
-    COMPLETED = "Completed",
-    IN_PROGRESS = "InProgress"
-};
 
 /**
  * Keys in the hashParams
@@ -89,7 +82,8 @@ export enum TemporaryCacheKeys {
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    ANGULAR_LOGIN_REQUEST = "angular.login.request"
+    ANGULAR_LOGIN_REQUEST = "angular.login.request",
+    INTERACTION_STATUS = "interaction_status"
 }
 
 export enum PersistentCacheKeys {
@@ -102,8 +96,6 @@ export enum ErrorCacheKeys {
     ERROR = "error",
     ERROR_DESC = "error.description"
 }
-
-export const INTERACTION_STATUS = "interaction.status";
 
 export const AADTrustedHostList =  {
     "login.windows.net": "login.windows.net",

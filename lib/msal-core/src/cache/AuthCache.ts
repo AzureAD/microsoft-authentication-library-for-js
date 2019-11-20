@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, INTERACTION_STATUS, RequestStatus } from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys} from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -30,12 +30,21 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
-        const persistentCacheSet = Object.keys(PersistentCacheKeys).map(key => super.getItem(`msal.${PersistentCacheKeys[key]}`));
-        const errorCacheSet = Object.keys(ErrorCacheKeys).map(key => super.getItem(`msal.${ErrorCacheKeys[key]}`));
 
-        const cacheSet = persistentCacheSet.concat(errorCacheSet);
-        const keysToMigrate = Object.keys(cacheSet);
-        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, cacheSet[index], storeAuthStateInCookie));
+        const idTokenKey = `${Constants.cachePrefix}.${PersistentCacheKeys.IDTOKEN}`;
+        const clientInfoKey = `${Constants.cachePrefix}.${PersistentCacheKeys.CLIENT_INFO}`;
+        const errorKey = `${Constants.cachePrefix}.${ErrorCacheKeys.ERROR}`;
+        const errorDescKey = `${Constants.cachePrefix}.${ErrorCacheKeys.ERROR_DESC}`;
+
+        const idTokenValue = super.getItem(idTokenKey);
+        const clientInfoValue = super.getItem(clientInfoKey);
+        const errorValue = super.getItem(errorKey);
+        const errorDescValue = super.getItem(errorDescKey);
+
+        const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
+        const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
+
+        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
     }
 
     /**
@@ -131,7 +140,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                     this.setItemCookie(key, "", -1);
                     this.clearMsalCookie(state);
                 }
-                this.removeItem(INTERACTION_STATUS);
+                this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             }
         }
     }
@@ -190,7 +199,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     private tokenRenewalInProgress(stateValue: string): boolean {
         const renewStatus = this.getItem(`${TemporaryCacheKeys.RENEW_STATUS}|${stateValue}`);
-        return !!(renewStatus && renewStatus === RequestStatus.IN_PROGRESS);
+        return !!(renewStatus && renewStatus === Constants.IN_PROGRESS);
     }
 
     /**

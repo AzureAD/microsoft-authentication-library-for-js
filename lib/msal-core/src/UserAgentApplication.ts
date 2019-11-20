@@ -20,7 +20,6 @@ import { TokenUtils } from "./utils/TokenUtils";
 import { TimeUtils } from "./utils/TimeUtils";
 import { UrlUtils } from "./utils/UrlUtils";
 import { ResponseUtils } from "./utils/ResponseUtils";
-import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthorityFactory } from "./authority/AuthorityFactory";
 import { Configuration, buildConfiguration, TelemetryOptions } from "./Configuration";
 import { AuthenticationParameters } from "./AuthenticationParameters";
@@ -39,8 +38,6 @@ import { Constants,
     TemporaryCacheKeys,
     PersistentCacheKeys,
     ErrorCacheKeys,
-    RequestStatus,
-    INTERACTION_STATUS
 } from "./utils/Constants";
 
 // default authority
@@ -292,7 +289,7 @@ export class UserAgentApplication {
 
     private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
         // set interaction_status to complete
-        this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         if (interactionType === Constants.interactionTypeRedirect) {
             if (this.errorReceivedCallback) {
                 this.errorReceivedCallback(authErr, response.accountState);
@@ -314,11 +311,12 @@ export class UserAgentApplication {
     loginRedirect(request?: AuthenticationParameters): void {
         // Throw error if callbacks are not set before redirect
         if (!this.redirectCallbacksSet) {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
+
         // append GUID to user set state  or set one for the user if null
-        const state = ServerRequestParameters.setState(request && request.state);
+        const state = UrlUtils.getRequestState(request && request.state);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null, state);
     }
 
@@ -330,17 +328,18 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
         if (!request) {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             throw ClientConfigurationError.createEmptyRequestError();
         }
 
         // Throw error if callbacks are not set before redirect
         if (!this.redirectCallbacksSet) {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
+
         // append GUID to user set state  or set one for the user if null
-        const state = ServerRequestParameters.setState(request.state);
+        const state = UrlUtils.getRequestState(request.state);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null, state);
     }
 
@@ -353,12 +352,12 @@ export class UserAgentApplication {
      */
     loginPopup(request?: AuthenticationParameters): Promise<AuthResponse> {
         // append GUID to user set state  or set one for the user if null
-        const state = ServerRequestParameters.setState(request && request.state);
+        const state = UrlUtils.getRequestState(request && request.state);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject, state);
         }).catch((error: AuthError) => {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             this.cacheStorage.resetTempCacheItems(state);
             throw error;
         });
@@ -373,7 +372,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
         // append GUID to user set state  or set one for the user if null
-        const state = ServerRequestParameters.setState(request && request.state);
+        const state = UrlUtils.getRequestState(request && request.state);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             if (!request) {
@@ -381,7 +380,7 @@ export class UserAgentApplication {
             }
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject, state);
         }).catch((error: AuthError) => {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             this.cacheStorage.resetTempCacheItems(state);
             throw error;
         });
@@ -398,12 +397,12 @@ export class UserAgentApplication {
      */
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any, state?: string): void {
 
-        const interactionProgress = this.cacheStorage.getItem(INTERACTION_STATUS);
+        const interactionProgress = this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS);
 
         // If already in progress, do not proceed
-        if (interactionProgress === RequestStatus.IN_PROGRESS) {
+        if (interactionProgress === Constants.IN_PROGRESS) {
             const thrownError = isLoginCall ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
-            const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request && request.state));
+            const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(state));
             this.cacheStorage.resetTempCacheItems(state);
             this.authErrorHandler(interactionType,
                 thrownError,
@@ -455,7 +454,7 @@ export class UserAgentApplication {
             // AcquireToken call, but no account or context given, so throw error
             else {
                 this.logger.info("User login is required");
-                const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request && request.state));
+                const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(state));
                 this.cacheStorage.resetTempCacheItems(state);
                 this.authErrorHandler(interactionType,
                     ClientAuthError.createUserLoginRequiredError(),
@@ -478,7 +477,7 @@ export class UserAgentApplication {
      */
     private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, scopes?: Array<string>, resolve?: any, reject?: any, state?: string, ): void {
         // Track the acquireToken progress
-        this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
+        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.IN_PROGRESS);
         const scope = scopes ? scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
@@ -565,7 +564,7 @@ export class UserAgentApplication {
                     this.handleAuthenticationResponse(hash);
 
                     // Request completed successfully, set to completed
-                    this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+                    this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
                     this.logger.info("Closing popup window");
 
                     // TODO: Check how this can be extracted for any framework specific code?
@@ -582,7 +581,7 @@ export class UserAgentApplication {
                         this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
                     } else {
                         // Request failed, set to canceled
-                        this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+                        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
                         popUpWindow.close();
                     }
                 }
@@ -612,7 +611,7 @@ export class UserAgentApplication {
     acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
 
         // generate state
-        const state = ServerRequestParameters.setState(request && request.state);
+        const state = UrlUtils.getRequestState(request && request.state);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             // throw on null request
@@ -741,7 +740,7 @@ export class UserAgentApplication {
                     });
             }
         }).catch((error: AuthError) => {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             this.cacheStorage.resetTempCacheItems(state);
             throw error;
         });
@@ -792,7 +791,7 @@ export class UserAgentApplication {
             return popupWindow;
         } catch (e) {
             this.logger.error("error opening popup " + e.message);
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             throw ClientAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -811,7 +810,7 @@ export class UserAgentApplication {
         // set iframe session to pending
         const expectedState = window.activeRenewals[scope];
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
-        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, RequestStatus.IN_PROGRESS);
+        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.IN_PROGRESS);
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
 
@@ -822,7 +821,7 @@ export class UserAgentApplication {
                 this.handleAuthenticationResponse(hash);
             }
         } catch (error) {
-            if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === RequestStatus.IN_PROGRESS) {
+            if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.IN_PROGRESS) {
                 // fail the iframe session if it's in pending state
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
@@ -830,7 +829,7 @@ export class UserAgentApplication {
                     window.callbackMappedToRenewStates[expectedState](null, error);
                 }
 
-                this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, RequestStatus.COMPLETED);
+                this.cacheStorage.removeItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`);
             }
             WindowUtils.removeHiddenIframe(iframe);
             throw error;
@@ -896,7 +895,7 @@ export class UserAgentApplication {
                   } else if (response) {
                       window.promiseMappedToRenewStates[expectedState][i].resolve(response);
                   } else {
-                      this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
+                      this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
                       this.cacheStorage.resetTempCacheItems(expectedState);
                       throw AuthError.createUnexpectedError("Error and response are both null");
                   }
@@ -1632,8 +1631,8 @@ export class UserAgentApplication {
         }
 
         // Set status to completed
-        this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.COMPLETED);
-        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${stateInfo.state}`, RequestStatus.COMPLETED);
+        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        this.cacheStorage.removeItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${stateInfo.state}`);
         this.cacheStorage.resetTempCacheItems(stateInfo.state);
 
         // this is required if navigateToLoginRequestUrl=false
@@ -1952,7 +1951,7 @@ export class UserAgentApplication {
         if (pendingCallback) {
             return true;
         }
-        return this.cacheStorage.getItem(INTERACTION_STATUS) === RequestStatus.IN_PROGRESS;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.IN_PROGRESS;
     }
 
     /**
@@ -1963,9 +1962,9 @@ export class UserAgentApplication {
      */
     protected setInteractionInProgress(inProgress: boolean) {
         if (inProgress) {
-            this.cacheStorage.setItem(INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.IN_PROGRESS);
         } else {
-            this.cacheStorage.removeItem(INTERACTION_STATUS);
+            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         }
     }
 
@@ -1986,7 +1985,7 @@ export class UserAgentApplication {
      * returns the status of acquireTokenInProgress
      */
     protected getAcquireTokenInProgress(): boolean {
-        return this.cacheStorage.getItem(INTERACTION_STATUS) === RequestStatus.IN_PROGRESS;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.IN_PROGRESS;
     }
 
     /**

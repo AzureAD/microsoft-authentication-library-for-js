@@ -11,6 +11,7 @@ import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
 import { StringUtils } from "./utils/StringUtils";
+import { UrlUtils } from "./utils/UrlUtils";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -65,7 +66,7 @@ export class ServerRequestParameters {
         this.state = state;
 
         // set correlationId
-        this.correlationId = this.setCorrelationId(correlationId);
+        this.correlationId = UrlUtils.getRequestCorrelationId(correlationId);
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -353,28 +354,6 @@ export class ServerRequestParameters {
 
         return paramsString;
     }
-
-    /**
-     * generate unique state per request
-     * @param request
-     */
-    static setState(state: string): string {
-        // append GUID to user set state  or set one for the user if null
-        return state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
-    }
-
-    /**
-     * validate correlationId and generate if not valid or not set by the user
-     * @param correlationId
-     */
-    private setCorrelationId(correlationId: string): string {
-        // validate user set correlationId or set one for the user if null
-        if(correlationId && !CryptoUtils.isGuid(correlationId)) {
-            throw ClientConfigurationError.createInvalidCorrelationIdError();
-        }
-        return correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
-    }
-
     // #endregion
 
     /**
