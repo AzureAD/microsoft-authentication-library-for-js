@@ -11,7 +11,8 @@ steps:
     command: 'custom'
     workingDir: 'lib/msal-core'
     customCommand: 'ci'
-    verbose: true
+    env:
+        NPM_CONFIG_TOKEN: $(NPM_CONFIG_TOKEN)
 
 - task: Npm@1
   inputs:
@@ -36,3 +37,5 @@ steps:
     command: 'custom'
     workingDir: 'lib/msal-core'
     customCommand: 'run test:report'
+    env:
+        COVERALLS_REPO_TOKEN: $(COVERALLS_REPO_TOKEN)
