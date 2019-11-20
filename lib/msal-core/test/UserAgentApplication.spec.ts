@@ -228,6 +228,29 @@ describe("UserAgentApplication.ts Class", function () {
             done();
         });
 
+        it("navigates user to redirectURI passed in the  request config", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            msal.handleRedirectCallback(authCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+
+            const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
+            msal.loginRedirect(request);
+        });
+
         it("navigates user to login and prompt parameter is not passed by default", (done) => {
             window.location = {
                 ...oldWindowLocation,
