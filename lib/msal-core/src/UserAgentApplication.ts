@@ -2219,7 +2219,6 @@ export class UserAgentApplication {
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
         if (!applicationName || !applicationVersion || !telemetryEmitter) {
-            console.log("Am I here");
             throw ClientConfigurationError.createTelemetryConfigError(config);
         }
         // if valid then construct
