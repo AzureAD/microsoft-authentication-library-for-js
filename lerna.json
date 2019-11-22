@@ -6,7 +6,8 @@
     }
   },
   "packages": [
-    "lib/*"
+    "lib/*",
+    "samples/*"
   ],
   "version": "independent",
   "concurrency": 2
