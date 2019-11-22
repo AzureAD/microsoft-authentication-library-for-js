@@ -42,6 +42,14 @@
     "tslib": "^1.9.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
+    "@babel/polyfill": "^7.7.0",
+    "@babel/preset-env": "^7.7.1",
+    "@babel/preset-typescript": "^7.7.2",
+    "@babel/register": "^7.7.0",
+    "@istanbuljs/nyc-config-babel": "^2.1.1",
     "@types/chai": "^4.1.7",
     "@types/handlebars": "4.0.33",
     "@types/js-base64": "^2.3.1",
@@ -54,6 +62,7 @@
     "@typescript-eslint/parser": "^1.12.0",
     "ajv": "6.6.1",
     "awesome-typescript-loader": "^3.2.3",
+    "babel-plugin-istanbul": "^5.2.0",
     "babel-polyfill": "^6.26.0",
     "chai": "^4.2.0",
     "coveralls": "^3.0.7",

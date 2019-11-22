@@ -1,4 +1,5 @@
 {
+    "extends": "@istanbuljs/nyc-config-babel",
     "extension": [
         ".ts"
     ],
@@ -9,5 +10,7 @@
         "**/*.d.ts"
     ],
     "all": true,
+    "temp-dir": "../../.nyc_output",
+    "clean": false,
     "reporter": "text-lcov"
 }
