@@ -5,8 +5,10 @@
     "lerna": "^3.16.4"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap && lerna run build:modules --no-private",
-    "clean": "lerna run clean --no-private && lerna clean"
+    "postinstall": "npm run bootstrap:libraries",
+    "clean": "lerna run clean --no-private && lerna clean",
+    "bootstrap:libraries": "lerna bootstrap --no-private",
+    "bootstrap:samples": "lerna bootstrap && lerna run build:modules --no-private"
   },
   "dependencies": {}
 }
