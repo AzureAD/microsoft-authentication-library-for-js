@@ -120,3 +120,4 @@ export abstract class Authority {
 
         return this;
     }
+}
