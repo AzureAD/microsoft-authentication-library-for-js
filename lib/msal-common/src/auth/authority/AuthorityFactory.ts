@@ -6,6 +6,7 @@
 import { AuthorityType, Authority } from "./Authority";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
+import { UrlString } from "../../url/UrlString";
 
 export class AuthorityFactory {
 
