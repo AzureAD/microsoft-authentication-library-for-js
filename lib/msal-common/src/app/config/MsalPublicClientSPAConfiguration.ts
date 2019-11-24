@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { MsalConfiguration,buildMsalConfiguration } from "./MsalConfiguration";
 
 /**
@@ -41,12 +40,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientSecret: "",
     authority: null,
     validateAuthority: true,
-    redirectUri: (): string => {
-        throw ClientConfigurationError.createRedirectUriEmptyError();
-    },
-    postLogoutRedirectUri: () => {
-        throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
-    },
+    redirectUri: "",
+    postLogoutRedirectUri: "",
     navigateToLoginRequestUrl: true
 };
 

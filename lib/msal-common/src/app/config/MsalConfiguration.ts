@@ -16,9 +16,9 @@ import { ICrypto, PKCECodes } from "../../utils/crypto/ICrypto";
  * - crypto: implementation of crypto functions
  */
 export type MsalConfiguration = {
-    storageInterface: ICacheStorage,
-    networkInterface: INetworkModule,
-    cryptoInterface: ICrypto
+    storageInterface?: ICacheStorage,
+    networkInterface?: INetworkModule,
+    cryptoInterface?: ICrypto
 };
 
 const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
@@ -48,7 +48,7 @@ const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
 };
 
 const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
-    sendRequestAsync: (url: string, method: RequestInit, enableCaching?: boolean): Promise<any> => {
+    sendRequestAsync: async (url: string, method: RequestInit, enableCaching?: boolean): Promise<any> => {
         console.log("Network interface - sendRequestAsync() has not been implemented");
         return null;
     }
@@ -63,7 +63,7 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         console.log("Crypto interface - base64Encode() has not been implemented");
         return "";
     },
-    generatePKCECodes(): Promise<PKCECodes> {
+    async generatePKCECodes(): Promise<PKCECodes> {
         console.log("Crypto interface - generatePKCECodes() has not been implemented");
         return null;
     }
