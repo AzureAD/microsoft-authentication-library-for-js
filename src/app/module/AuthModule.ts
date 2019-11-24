@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // app
-import { MsalConfiguration, buildMsalConfiguration } from "../config/MsalConfiguration";
+import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "../config/MsalConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 // response
@@ -34,7 +34,7 @@ export type ResponseStateInfo = {
 export abstract class AuthModule {
 
     // Application config
-    protected config: MsalConfiguration;
+    protected config: MsalModuleConfiguration;
     
     // Crypto Interface
     protected crypto: ICrypto;
@@ -45,9 +45,9 @@ export abstract class AuthModule {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    constructor(configuration: MsalConfiguration) {
+    constructor(configuration: MsalModuleConfiguration) {
         // Set the configuration
-        this.config = buildMsalConfiguration(configuration);
+        this.config = buildMsalModuleConfiguration(configuration);
 
         // Initialize crypto
         this.crypto = this.config.cryptoInterface;
