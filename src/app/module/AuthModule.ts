@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // app
-import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "../config/MsalConfiguration";
+import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "../config/MsalModuleConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 // response

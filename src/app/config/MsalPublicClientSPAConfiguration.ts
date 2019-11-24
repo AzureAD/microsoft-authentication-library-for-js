@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { MsalModuleConfiguration,buildMsalModuleConfiguration } from "./MsalConfiguration";
+import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "./MsalModuleConfiguration";
 
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
