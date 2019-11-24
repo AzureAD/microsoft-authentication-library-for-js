@@ -9,13 +9,6 @@ import { AuthOptions } from "msal-common";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
- * Cache location options supported by MSAL are:
- * - local storage: MSAL uses browsers local storage to store its cache
- * - session storage: MSAL uses the browsers session storage to store its cache
- */
-export type CacheLocation = "localStorage" | "sessionStorage";
-
-/**
  * Defaults for the Configuration Options
  */
 const FRAME_TIMEOUT = 6000;
@@ -29,7 +22,7 @@ const NAVIGATE_FRAME_WAIT = 500;
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-    cacheLocation?: CacheLocation;
+    cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
 };
 

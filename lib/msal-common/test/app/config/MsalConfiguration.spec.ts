@@ -12,7 +12,7 @@ describe("MsalConfiguration.ts Class Unit Tests", () => {
 
     it("buildMsalConfiguration assigns default functions", () => {
         let emptyConfig: MsalConfiguration = buildMsalConfiguration({});
-        let consoleSpy = sinon.spy(console, "log");
+        let consoleSpy = sinon.spy(console, "warn");
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;

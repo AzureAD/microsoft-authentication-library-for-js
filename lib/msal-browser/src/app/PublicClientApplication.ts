@@ -7,15 +7,6 @@ import * as msalAuth from "msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
 
 /**
- * Interface to handle iFrame generation, Popup Window creation and redirect handling
- */
-declare global {
-    interface Window {
-        openedWindows: Array<Window>;
-    }
-}
-
-/**
  * A type alias for an authResponseCallback function.
  * {@link (authResponseCallback:type)}
  * @param authErr error created for failure cases
@@ -100,7 +91,7 @@ export class PublicClientApplication {
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(request: msalAuth.AuthenticationParameters): void {
         throw new Error("Method not implemented.");
@@ -125,7 +116,7 @@ export class PublicClientApplication {
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      * @param {@link AuthenticationParameters}
      *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: msalAuth.AuthenticationParameters): Promise<msalAuth.TokenResponse> {
@@ -148,19 +139,6 @@ export class PublicClientApplication {
      */
     acquireTokenSilent(request: msalAuth.AuthenticationParameters): Promise<msalAuth.TokenResponse> {
         throw new Error("Method not implemented."); 
-    }
-
-    // #endregion
-
-    // #region Window Navigation
-
-    /**
-     * @hidden
-     * Used to redirect the browser to the STS authorization endpoint
-     * @param {string} urlNavigate - URL of the authorization endpoint
-     */
-    private navigateWindow(urlNavigate: string): void {
-        throw new Error("Method not implemented.");
     }
 
     // #endregion
