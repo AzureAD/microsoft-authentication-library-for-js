@@ -16,7 +16,7 @@ export const ClientAuthErrorMessage = {
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
-        
+
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientAuthError";
@@ -45,6 +45,10 @@ export class ClientAuthError extends AuthError {
     }
 
     static createEndpointDiscoveryIncompleteError(): ClientAuthError {
+        throw new Error("Method not implemented.");
+    }
+
+    static createInvalidAuthorityError(invalidAuthorityError: string) {
         throw new Error("Method not implemented.");
     }
 }

@@ -7,6 +7,8 @@ import { AuthorityType, Authority } from "./Authority";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
+import { AadAuthority } from "./AadAuthority";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 export class AuthorityFactory {
 
@@ -40,6 +42,10 @@ export class AuthorityFactory {
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
+            case AuthorityType.Aad:
+                return new AadAuthority(authorityUrl, networkInterface);
+            default:
+                throw ClientAuthError.createInvalidAuthorityError(`Given Url: ${authorityUrl}`);
         }
     }
 }
