@@ -50,7 +50,7 @@ export class Constants {
 
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
-    static get IN_PROGRESS(): string { return "InProgress"; }
+    static get inProgress(): string { return "inProgress"; }
 }
 
 /**

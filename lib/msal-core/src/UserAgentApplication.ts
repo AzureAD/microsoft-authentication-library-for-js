@@ -400,7 +400,7 @@ export class UserAgentApplication {
         const interactionProgress = this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS);
 
         // If already in progress, do not proceed
-        if (interactionProgress === Constants.IN_PROGRESS) {
+        if (interactionProgress === Constants.inProgress) {
             const thrownError = isLoginCall ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
             const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(state));
             this.cacheStorage.resetTempCacheItems(state);
@@ -477,7 +477,7 @@ export class UserAgentApplication {
      */
     private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, scopes?: Array<string>, resolve?: any, reject?: any, state?: string, ): void {
         // Track the acquireToken progress
-        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.IN_PROGRESS);
+        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = scopes ? scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
@@ -610,15 +610,15 @@ export class UserAgentApplication {
      */
     acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
 
+        // throw on null request
+        if (!request) {
+            throw ClientConfigurationError.createEmptyRequestError();
+        }
+
         // generate state
         const state = UrlUtils.getRequestState(request && request.state);
 
         return new Promise<AuthResponse>((resolve, reject) => {
-            // throw on null request
-            if (!request) {
-                throw ClientConfigurationError.createEmptyRequestError();
-            }
-
             // return an error if called from the hidden iframe created by the msal js silent calls
             if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
                 throw ClientConfigurationError.createBlockTokenRequestsInHiddenIframeError();
@@ -810,7 +810,7 @@ export class UserAgentApplication {
         // set iframe session to pending
         const expectedState = window.activeRenewals[scope];
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
-        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.IN_PROGRESS);
+        this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
 
@@ -821,7 +821,7 @@ export class UserAgentApplication {
                 this.handleAuthenticationResponse(hash);
             }
         } catch (error) {
-            if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.IN_PROGRESS) {
+            if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.inProgress) {
                 // fail the iframe session if it's in pending state
                 this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
                 // Error after timeout
@@ -1952,7 +1952,7 @@ export class UserAgentApplication {
         if (pendingCallback) {
             return true;
         }
-        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.IN_PROGRESS;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.inProgress;
     }
 
     /**
@@ -1963,7 +1963,7 @@ export class UserAgentApplication {
      */
     protected setInteractionInProgress(inProgress: boolean) {
         if (inProgress) {
-            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.IN_PROGRESS);
+            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         } else {
             this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         }
@@ -1986,7 +1986,7 @@ export class UserAgentApplication {
      * returns the status of acquireTokenInProgress
      */
     protected getAcquireTokenInProgress(): boolean {
-        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.IN_PROGRESS;
+        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.inProgress;
     }
 
     /**

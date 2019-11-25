@@ -569,7 +569,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("exits login function with error if interaction is true", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.IN_PROGRESS);
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);

@@ -70,7 +70,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             JSON.parse(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${Constants.cachePrefix}`) || key.startsWith(Constants.adalIdToken)) {
+            if (key.indexOf(`${Constants.cachePrefix}`) === 0 || key.indexOf(Constants.adalIdToken) === 0){
                 return key;
             }
             return addInstanceId ? `${Constants.cachePrefix}.${this.clientId}.${key}` : `${Constants.cachePrefix}.${key}`;
@@ -201,7 +201,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     private tokenRenewalInProgress(stateValue: string): boolean {
         const renewStatus = this.getItem(`${TemporaryCacheKeys.RENEW_STATUS}|${stateValue}`);
-        return !!(renewStatus && renewStatus === Constants.IN_PROGRESS);
+        return !!(renewStatus && renewStatus === Constants.inProgress);
     }
 
     /**
