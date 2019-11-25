@@ -8,6 +8,7 @@ import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -47,15 +48,15 @@ export class UrlString {
         try {
             components = this.getUrlComponents();
         } catch (e) {
-            throw ClientAuthError.createUrlSegmentError(this.urlString);
+            throw ClientConfigurationError.createUrlParseError(e);
         }
 
         if(!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
-            throw ClientAuthError.createInsecureAuthorityUriError(this.urlString);
+            throw ClientConfigurationError.createInsecureAuthorityUriError(this.urlString);
         }
 
         if (!components.PathSegments || components.PathSegments.length < 1) {
-            throw ClientAuthError.createInsecureAuthorityUriError(this.urlString);
+            throw ClientConfigurationError.createInsecureAuthorityUriError(this.urlString);
         }
     }
 
@@ -127,7 +128,7 @@ export class UrlString {
      */
     getUrlComponents(): IUri {
         if (!this.urlString) {
-            throw ClientAuthError.createUrlSegmentError(this.urlString);
+            throw ClientConfigurationError.createUrlParseError(this.urlString);
         }
 
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
@@ -136,7 +137,7 @@ export class UrlString {
         const match = this.urlString.match(regEx);
 
         if (!match || match.length < 6) {
-            throw ClientAuthError.createUrlSegmentError(this.urlString);
+            throw ClientConfigurationError.createUrlParseError(this.urlString);
         }
 
         const urlComponents = {
