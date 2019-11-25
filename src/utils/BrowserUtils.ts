@@ -15,7 +15,7 @@ export class BrowserUtils {
      * Used to redirect the browser to the STS authorization endpoint
      * @param {string} urlNavigate - URL of the authorization endpoint
      */
-    private navigateWindow(urlNavigate: string): void {
+    static navigateWindow(urlNavigate: string): void {
         throw new Error("Method not implemented.");
     }
 
