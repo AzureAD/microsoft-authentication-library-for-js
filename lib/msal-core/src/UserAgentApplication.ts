@@ -561,6 +561,27 @@ export class UserAgentApplication {
     }
 
     /**
+     * API interfacing idToken request when applications already have a session/hint acquired by authorization client applications
+     * @param request
+     */
+    ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        // throw an error on an empty request
+        if (!request) {
+            throw ClientConfigurationError.createEmptyRequestError();
+        }
+
+        // throw an error on no hints passed
+        if(!request.sid || !request.loginHint) {
+            throw ClientConfigurationError.createSsoSilentError();
+        }
+
+        return this.acquireTokenSilent({
+            ...request,
+            scopes: [this.clientId]
+        });
+    }
+
+    /**
      * Use this function to obtain a token before every call to the API / resource provider
      *
      * MSAL return's a cached token when available
@@ -586,6 +607,8 @@ export class UserAgentApplication {
             // if the developer passes an account, give that account the priority
             const account: Account = request.account || this.getAccount();
 
+            // TODO: if no account set and SSO Flag is set create a dummy account
+
             // extract if there is an adalIdToken stashed in the cache
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
@@ -596,7 +619,7 @@ export class UserAgentApplication {
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true);
+            const responseType = this.getTokenType(account, request.scopes, true, request.knownUserContext);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
@@ -2037,12 +2060,17 @@ export class UserAgentApplication {
      * @returns {string} token type: id_token or access_token
      *
      */
-    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
+    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean, knownUserContext?: boolean): string {
         /*
          * if account is passed and matches the account object/or set to getAccount() from cache
          * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
          */
         let tokenType: string;
+
+        // If this flag is set, the app would need an idToken and Token in the same call.
+        if(knownUserContext) {
+            return ResponseTypes.id_token_token;
+        }
 
         // acquireTokenSilent
         if (silentCall) {
