@@ -3,7 +3,7 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import sinon from "sinon";
-import { MsalConfiguration, buildMsalConfiguration } from "../../../src/app/config/MsalConfiguration";
+import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "../../../src/app/config/MsalModuleConfiguration";
 import { PKCECodes } from "../../../src/utils/crypto/ICrypto";
 
 describe("MsalConfiguration.ts Class Unit Tests", () => {
@@ -11,7 +11,7 @@ describe("MsalConfiguration.ts Class Unit Tests", () => {
     const notImplString = " has not been implemented for the cacheStorage interface."
 
     it("buildMsalConfiguration assigns default functions", () => {
-        let emptyConfig: MsalConfiguration = buildMsalConfiguration({});
+        let emptyConfig: MsalModuleConfiguration = buildMsalModuleConfiguration({});
         let consoleSpy = sinon.spy(console, "warn");
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
@@ -68,7 +68,7 @@ describe("MsalConfiguration.ts Class Unit Tests", () => {
     const testKeySet = ["testKey1", "testKey2"];
 
     it("buildMsalConfiguration correctly assigns new values", () => {
-        let newConfig: MsalConfiguration = buildMsalConfiguration({
+        let newConfig: MsalModuleConfiguration = buildMsalModuleConfiguration({
             cryptoInterface: {
                 base64Decode: (input: string): string => {
                     return "testDecodedString";
