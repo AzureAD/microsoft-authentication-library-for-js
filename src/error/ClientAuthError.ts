@@ -9,7 +9,26 @@ import { AuthError } from "./AuthError";
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const ClientAuthErrorMessage = {
-
+    clientInfoDecodingError: {
+        code: "client_info_decoding_error",
+        desc: "The client info could not be parsed/decoded correctly. Please review the trace to determine the root cause."
+    },
+    idTokenNotParsed: {
+        code: "id_token_parsing_error",
+        desc: "ID token cannot be parsed. Please review stack trace to determine root cause."
+    },
+    nullOrEmptyIdToken: {
+        code: "null_or_empty_id_token",
+        desc: "The idToken is null or empty. Please review the trace to determine the root cause."
+    },
+    endpointResolutionError: {
+        code: "endpoints_resolution_error",
+        desc: "Error: could not resolve endpoints. Please check network and try again."
+    },
+    invalidAuthorityType: {
+        code: "invalid_authority_type",
+        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>."
+    },
 };
 
 /**
@@ -24,31 +43,45 @@ export class ClientAuthError extends AuthError {
         Object.setPrototypeOf(this, ClientAuthError.prototype);
     }
 
-    static createClientInfoDecodingError(err: string): ClientAuthError {
-        throw new Error("Method not implemented.");
+    /**
+     * Creates an error thrown when client info object doesn't decode correctly.
+     * @param caughtError 
+     */
+    static createClientInfoDecodingError(caughtError: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.clientInfoDecodingError.code,
+            `${ClientAuthErrorMessage.clientInfoDecodingError.desc} Failed with error: ${caughtError}`);
     }
 
-    static createIdTokenParsingError(err: string): ClientAuthError {
-        throw new Error("Method not implemented.");
+    /**
+     * Creates an error thrown when the id token doesn't parse correctly.
+     * @param caughtParsingError 
+     */
+    static createIdTokenParsingError(caughtParsingError: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.idTokenNotParsed.code,
+            `${ClientAuthErrorMessage.idTokenNotParsed.desc} Failed with error: ${caughtParsingError}`);
     }
 
-    static createIdTokenNullOrEmptyError(rawIdToken: string): ClientAuthError {
-        throw new Error("Method not implemented.");
+    /**
+     * Creates an error thrown when the id token string is null or empty.
+     * @param invalidRawTokenString 
+     */
+    static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
+            `${ClientAuthErrorMessage.nullOrEmptyIdToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
     }
 
-    static createInsecureAuthorityUriError(urlString: string): ClientAuthError {
-        throw new Error("Method not implemented.");
-    }
-    
-    static createUrlSegmentError(urlString: string): ClientAuthError {
-        throw new Error("Method not implemented.");
-    }
-
+    /**
+     * Creates an error thrown when the endpoint discovery doesn't complete correctly.
+     */
     static createEndpointDiscoveryIncompleteError(): ClientAuthError {
-        throw new Error("Method not implemented.");
+        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, ClientAuthErrorMessage.endpointResolutionError.desc);
     }
 
-    static createInvalidAuthorityError(invalidAuthorityError: string) {
-        throw new Error("Method not implemented.");
+    /**
+     * Creates an error thrown if authority type is not valid.
+     * @param invalidAuthorityError 
+     */
+    static createInvalidAuthorityTypeError(givenUrl: string) {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, `${ClientAuthErrorMessage.invalidAuthorityType.desc} ${givenUrl}`);
     }
 }

@@ -8,7 +8,7 @@ import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
 import { AadAuthority } from "./AadAuthority";
-import { ClientAuthError } from "../../error/ClientAuthError";
+import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 
 export class AuthorityFactory {
 
@@ -45,7 +45,7 @@ export class AuthorityFactory {
             case AuthorityType.Aad:
                 return new AadAuthority(authorityUrl, networkInterface);
             default:
-                throw ClientAuthError.createInvalidAuthorityError(`Given Url: ${authorityUrl}`);
+                throw ClientConfigurationError.createInvalidAuthorityTypeError(`Given Url: ${authorityUrl}`);
         }
     }
 }

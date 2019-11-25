@@ -21,6 +21,14 @@ export const ClientConfigurationErrorMessage = {
         code: "claims_request_parsing_error",
         desc: "Could not parse the given claims request object."
     },
+    authorityUriInsecure: {
+        code: "authority_uri_insecure",
+        desc: "Authority URIs must use https."
+    },
+    urlParseError: {
+        code: "url_parse_error",
+        desc: "URL could not be parsed into appropriate segments."
+    },
 };
 
 /**
@@ -56,5 +64,23 @@ export class ClientConfigurationError extends ClientAuthError {
     static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
             `${ClientConfigurationErrorMessage.claimsRequestParsingError.desc} Given value: ${claimsRequestParseError}`);
+    }
+
+    /**
+     * Creates an error thrown if authority uri is given an insecure protocol.
+     * @param urlString 
+     */
+    static createInsecureAuthorityUriError(urlString: string): ClientAuthError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityUriInsecure.code,
+            `${ClientConfigurationErrorMessage.authorityUriInsecure.desc} Given URI: ${urlString}`);
+    }
+
+    /**
+     * Creates an error thrown if URL string does not parse into separate segments.
+     * @param urlString 
+     */
+    static createUrlParseError(urlParseError: string): ClientAuthError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.urlParseError.code,
+            `${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlParseError}`);
     }
 }
