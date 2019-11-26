@@ -37,7 +37,7 @@ export class ClientInfo {
 
         try {
             const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
-            const clientInfo: ClientInfo = JSON.parse(decodedClientInfo) as ClientInfo;
+            const clientInfo = JSON.parse(decodedClientInfo);
             if (clientInfo.hasOwnProperty("uid")) {
                 this.uid = clientInfo.uid;
             }
