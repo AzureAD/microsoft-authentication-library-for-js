@@ -32,66 +32,57 @@ export class IdToken {
         if (StringUtils.isEmpty(rawIdToken)) {
             throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken);
         }
-        try {
-            this.rawIdToken = rawIdToken;
-            this.claims = IdToken.extractIdToken(rawIdToken, crypto);
-            if (this.claims) {
-                if (this.claims.hasOwnProperty("iss")) {
-                    this.issuer = this.claims["iss"];
-                }
 
-                if (this.claims.hasOwnProperty("oid")) {
-                    this.objectId = this.claims["oid"];
-                }
-
-                if (this.claims.hasOwnProperty("sub")) {
-                    this.subject = this.claims["sub"];
-                }
-
-                if (this.claims.hasOwnProperty("tid")) {
-                    this.tenantId = this.claims["tid"];
-                }
-
-                if (this.claims.hasOwnProperty("ver")) {
-                    this.version = this.claims["ver"];
-                }
-
-                if (this.claims.hasOwnProperty("preferred_username")) {
-                    this.preferredName = this.claims["preferred_username"];
-                }
-
-                if (this.claims.hasOwnProperty("name")) {
-                    this.name = this.claims["name"];
-                }
-
-                if (this.claims.hasOwnProperty("nonce")) {
-                    this.nonce = this.claims["nonce"];
-                }
-
-                if (this.claims.hasOwnProperty("exp")) {
-                    this.expiration = this.claims["exp"];
-                }
-
-                if (this.claims.hasOwnProperty("home_oid")) {
-                    this.homeObjectId = this.claims["home_oid"];
-                }
-
-                if (this.claims.hasOwnProperty("sid")) {
-                    this.sid = this.claims["sid"];
-                }
-
-                if (this.claims.hasOwnProperty("cloud_instance_host_name")) {
-                    this.cloudInstance = this.claims["cloud_instance_host_name"];
-                }
-                /* tslint:enable:no-string-literal */
-            }
-        } catch (e) {
-            /*
-             * TODO: This error here won't really every be thrown, since extractIdToken() returns null if the decodeJwt() fails.
-             * Need to add better error handling here to account for being unable to decode jwts.
-             */
-            throw ClientAuthError.createIdTokenParsingError(e);
+        this.rawIdToken = rawIdToken;
+        this.claims = IdToken.extractIdToken(rawIdToken, crypto);
+        if (this.claims.hasOwnProperty("iss")) {
+            this.issuer = this.claims["iss"];
         }
+
+        if (this.claims.hasOwnProperty("oid")) {
+            this.objectId = this.claims["oid"];
+        }
+
+        if (this.claims.hasOwnProperty("sub")) {
+            this.subject = this.claims["sub"];
+        }
+
+        if (this.claims.hasOwnProperty("tid")) {
+            this.tenantId = this.claims["tid"];
+        }
+
+        if (this.claims.hasOwnProperty("ver")) {
+            this.version = this.claims["ver"];
+        }
+
+        if (this.claims.hasOwnProperty("preferred_username")) {
+            this.preferredName = this.claims["preferred_username"];
+        }
+
+        if (this.claims.hasOwnProperty("name")) {
+            this.name = this.claims["name"];
+        }
+
+        if (this.claims.hasOwnProperty("nonce")) {
+            this.nonce = this.claims["nonce"];
+        }
+
+        if (this.claims.hasOwnProperty("exp")) {
+            this.expiration = this.claims["exp"];
+        }
+
+        if (this.claims.hasOwnProperty("home_oid")) {
+            this.homeObjectId = this.claims["home_oid"];
+        }
+
+        if (this.claims.hasOwnProperty("sid")) {
+            this.sid = this.claims["sid"];
+        }
+
+        if (this.claims.hasOwnProperty("cloud_instance_host_name")) {
+            this.cloudInstance = this.claims["cloud_instance_host_name"];
+        }
+        /* tslint:enable:no-string-literal */
     }
 
     /**
@@ -107,17 +98,12 @@ export class IdToken {
         }
         try {
             const base64IdToken = decodedToken.JWSPayload;
+            // base64Decode() should throw an error if there is an issue
             const base64Decoded = crypto.base64Decode(base64IdToken);
-            if (!base64Decoded) {
-                // this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");
-                return null;
-            }
             // ECMA script has JSON built-in support
             return JSON.parse(base64Decoded);
         } catch (err) {
-            // this._requestContext.logger.error("The returned id_token could not be decoded" + err);
+            throw ClientAuthError.createIdTokenExtractionError(err);
         }
-
-        return null;
     }
 }

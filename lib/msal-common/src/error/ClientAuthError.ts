@@ -13,7 +13,11 @@ export const ClientAuthErrorMessage = {
         code: "client_info_decoding_error",
         desc: "The client info could not be parsed/decoded correctly. Please review the trace to determine the root cause."
     },
-    idTokenNotParsed: {
+    clientInfoEmptyError: {
+        code: "client_info_empty_error",
+        desc: "The client info was empty. Please review the trace to determine the root cause."
+    },
+    idTokenParsingError: {
         code: "id_token_parsing_error",
         desc: "ID token cannot be parsed. Please review stack trace to determine root cause."
     },
@@ -35,7 +39,7 @@ export const ClientAuthErrorMessage = {
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
-
+        
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientAuthError";
@@ -53,12 +57,21 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the id token doesn't parse correctly.
-     * @param caughtParsingError 
+     * Creates an error thrown if the client info is empty.
+     * @param rawClientInfo 
      */
-    static createIdTokenParsingError(caughtParsingError: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.idTokenNotParsed.code,
-            `${ClientAuthErrorMessage.idTokenNotParsed.desc} Failed with error: ${caughtParsingError}`);
+    static createClientInfoEmptyError(rawClientInfo: string) {
+        return new ClientAuthError(ClientAuthErrorMessage.clientInfoEmptyError.code,
+            `${ClientAuthErrorMessage.clientInfoEmptyError.desc} Given Object: ${rawClientInfo}`);
+    }
+
+    /**
+     * Creates an error thrown when the id token extraction errors out.
+     * @param err 
+     */
+    static createIdTokenExtractionError(caughtExtractionError: any) {
+        return new ClientAuthError(ClientAuthErrorMessage.idTokenParsingError.code,
+            `${ClientAuthErrorMessage.idTokenParsingError.desc} Failed with error: ${caughtExtractionError}`);
     }
 
     /**
@@ -84,4 +97,5 @@ export class ClientAuthError extends AuthError {
     static createInvalidAuthorityTypeError(givenUrl: string) {
         return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, `${ClientAuthErrorMessage.invalidAuthorityType.desc} ${givenUrl}`);
     }
+
 }

@@ -14,7 +14,7 @@ export class ClientInfo {
 
     private _uid: string;
     get uid(): string {
-        return this._uid ? this._uid : "";
+        return this._uid;
     }
 
     set uid(uid: string) {
@@ -23,7 +23,7 @@ export class ClientInfo {
 
     private _utid: string;
     get utid(): string {
-        return this._utid ? this._utid : "";
+        return this._utid;
     }
 
     set utid(utid: string) {
@@ -32,22 +32,18 @@ export class ClientInfo {
 
     constructor(rawClientInfo: string, crypto: ICrypto) {
         if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
-            this.uid = "";
-            this.utid = "";
-            return;
+            throw ClientAuthError.createClientInfoEmptyError(rawClientInfo);
         }
 
         try {
-            // const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
-            const clientInfo: ClientInfo = JSON.parse("decodedClientInfo") as ClientInfo;
-            if (clientInfo) {
-                if (clientInfo.hasOwnProperty("uid")) {
-                    this.uid = clientInfo.uid;
-                }
+            const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
+            const clientInfo: ClientInfo = JSON.parse(decodedClientInfo) as ClientInfo;
+            if (clientInfo.hasOwnProperty("uid")) {
+                this.uid = clientInfo.uid;
+            }
 
-                if (clientInfo.hasOwnProperty("utid")) {
-                    this.utid = clientInfo.utid;
-                }
+            if (clientInfo.hasOwnProperty("utid")) {
+                this.utid = clientInfo.utid;
             }
         } catch (e) {
             throw ClientAuthError.createClientInfoDecodingError(e);

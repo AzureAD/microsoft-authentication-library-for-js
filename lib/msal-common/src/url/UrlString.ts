@@ -7,7 +7,6 @@ import { AADAuthorityConstants, AADServerHashParamKeys } from "../utils/Constant
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
