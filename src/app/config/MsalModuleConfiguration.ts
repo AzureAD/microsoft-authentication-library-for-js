@@ -5,6 +5,7 @@
 import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule } from "../../network/INetworkModule";
 import { ICrypto, PKCECodes } from "../../utils/crypto/ICrypto";
+import { AuthError } from "../../error/AuthError";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -22,49 +23,60 @@ export type MsalModuleConfiguration = {
 
 const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
     clear: () => {
-        console.warn("clear() has not been implemented for the cacheStorage interface.");
+        const notImplErr = "clear() has not been implemented for the cacheStorage interface.";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     containsKey: (key: string): boolean => {
-        console.warn("containsKey() has not been implemented for the cacheStorage interface.");
-        return false;
+        const notImplErr = "containsKey() has not been implemented for the cacheStorage interface.";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     getItem: (key: string): string => {
-        console.warn("getItem() has not been implemented for the cacheStorage interface.");
-        return "";
+        const notImplErr = "getItem() has not been implemented for the cacheStorage interface.";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     getKeys: (): string[] => {
-        console.warn("getKeys() has not been implemented for the cacheStorage interface.");
-        return null;
+        const notImplErr = "getKeys() has not been implemented for the cacheStorage interface.";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     removeItem: (key: string) => {
-        console.warn("removeItem() has not been implemented for the cacheStorage interface.");
-        return;
+        const notImplErr = "removeItem() has not been implemented for the cacheStorage interface.";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     setItem: (key: string, value: string) => {
-        console.warn("setItem() has not been implemented for the cacheStorage interface.");
-        return;
+        const notImplErr = "setItem() has not been implemented for the cacheStorage interface.";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
 const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
     sendRequestAsync: async (url: string, method: RequestInit, enableCaching?: boolean): Promise<any> => {
-        console.warn("Network interface - sendRequestAsync() has not been implemented");
-        return null;
+        const notImplErr = "Network interface - sendRequestAsync() has not been implemented";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
 const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     base64Decode: (input: string): string => {
-        console.warn("Crypto interface - base64Decode() has not been implemented");
-        return "";
+        const notImplErr = "Crypto interface - base64Decode() has not been implemented";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     base64Encode: (input: string): string => {
-        console.warn("Crypto interface - base64Encode() has not been implemented");
-        return "";
+        const notImplErr = "Crypto interface - base64Encode() has not been implemented";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     },
     async generatePKCECodes(): Promise<PKCECodes> {
-        console.warn("Crypto interface - generatePKCECodes() has not been implemented");
-        return null;
+        const notImplErr = "Crypto interface - generatePKCECodes() has not been implemented";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
