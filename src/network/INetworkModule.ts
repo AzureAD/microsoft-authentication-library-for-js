@@ -9,7 +9,7 @@
  */
 export interface INetworkModule {
     /**
-     * Interface function for async network requests
+     * Interface function for async network requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
      * @param url 
      * @param requestParams 
      * @param enableCaching 
