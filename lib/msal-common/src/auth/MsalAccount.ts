@@ -67,7 +67,7 @@ export class MsalAccount {
 
         let homeAccountIdentifier: string;
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
-            // homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
+            homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
         }
         return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
