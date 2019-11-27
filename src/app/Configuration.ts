@@ -63,7 +63,6 @@ export type SystemOptions = {
  *
  */
 export type FrameworkOptions = {
-    isAngular?: boolean;
     unprotectedResources?: Array<string>;
     protectedResourceMap?: Map<string, Array<string>>;
 };
@@ -107,7 +106,6 @@ const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
 };
 
 const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
-    isAngular: false,
     unprotectedResources: new Array<string>(),
     protectedResourceMap: new Map<string, Array<string>>()
 };
