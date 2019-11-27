@@ -57,13 +57,14 @@ export class RequestUtils {
         this.validatePromptParameter(request && request.prompt);
 
         // validate extraQueryParameters and claimsRequest
-        this.validateEQParameters(request && request.extraQueryParameters, request && request.claimsRequest);
+        const extraQueryParameters = this.validateEQParameters(request && request.extraQueryParameters, request && request.claimsRequest);
 
         const state = this.validateAndGenerateState(request && request.state);
         const correlationId = this.validateAndGenerateCorrelationId(request && request.correlationId);
 
         return validatedRequest = {
             ...request,
+            extraQueryParameters,
             scopes,
             state,
             correlationId

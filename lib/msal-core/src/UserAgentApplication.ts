@@ -142,7 +142,7 @@ export class UserAgentApplication {
     private telemetryManager: TelemetryManager;
 
     // Cache and Account info referred across token grant flow
-    public cacheStorage: AuthCache;
+    protected cacheStorage: AuthCache;
     private account: Account;
 
     // state variables
@@ -1835,7 +1835,7 @@ export class UserAgentApplication {
      * Return boolean flag to developer to help inform if login is in progress
      * @returns {boolean} true/false
      */
-    public getLoginInProgress(state?: string): boolean {
+    public getLoginInProgress(): boolean {
         const pendingCallback = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
         if (pendingCallback) {
             return true;
