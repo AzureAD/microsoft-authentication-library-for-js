@@ -309,10 +309,10 @@ export class UserAgentApplication {
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request?: AuthenticationParameters): void {
+    loginRedirect(userRequest?: AuthenticationParameters): void {
         // validate request
-        const validatedRequest: AuthenticationParameters = RequestUtils.validateRequest(request, true, Constants.interactionTypeRedirect, this.redirectCallbacksSet, this.cacheStorage, this.clientId);
-        this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, validatedRequest,  null, null);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
+        this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
     /**
@@ -321,10 +321,10 @@ export class UserAgentApplication {
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: AuthenticationParameters): void {
+    acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
-        const validatedRequest: AuthenticationParameters = RequestUtils.validateRequest(request, false, Constants.interactionTypeRedirect, this.redirectCallbacksSet, this.cacheStorage, this.clientId);
-        this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, validatedRequest, null, null);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
+        this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
     /**
@@ -334,15 +334,15 @@ export class UserAgentApplication {
      *
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    loginPopup(request?: AuthenticationParameters): Promise<AuthResponse> {
+    loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const validatedRequest: AuthenticationParameters = RequestUtils.validateRequest(request, true, Constants.interactionTypePopup, this.redirectCallbacksSet, this.cacheStorage, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
-            this.acquireTokenInteractive(Constants.interactionTypePopup, true, validatedRequest, resolve, reject);
+            this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
         }).catch((error: AuthError) => {
             this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-            this.cacheStorage.resetTempCacheItems(validatedRequest.state);
+            this.cacheStorage.resetTempCacheItems(request.state);
             throw error;
         });
     }
@@ -354,15 +354,15 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
+    acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const validatedRequest: AuthenticationParameters = RequestUtils.validateRequest(request, false, Constants.interactionTypePopup, this.redirectCallbacksSet, this.cacheStorage, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
-            this.acquireTokenInteractive(Constants.interactionTypePopup, false, validatedRequest, resolve, reject);
+            this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         }).catch((error: AuthError) => {
             this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-            this.cacheStorage.resetTempCacheItems(validatedRequest.state);
+            this.cacheStorage.resetTempCacheItems(request.state);
             throw error;
         });
     }
@@ -379,7 +379,7 @@ export class UserAgentApplication {
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
 
         // block the request if made from the hidden iframe
-        RequestUtils.blockReloadInHiddenIframes();
+        WindowUtils.blockReloadInHiddenIframes();
 
         const interactionProgress = this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS);
 
@@ -586,17 +586,15 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+    acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
 
-        // throw on null request
-        if (!request) {
-            throw ClientConfigurationError.createEmptyRequestError();
-        }
+        // validate the request
+        const request = RequestUtils.validateRequest(userRequest, false, this.clientId);
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
             // block the request if made from the hidden iframe
-            RequestUtils.blockReloadInHiddenIframes();
+            WindowUtils.blockReloadInHiddenIframes();
 
             const scope = request.scopes.join(" ").toLowerCase();
 

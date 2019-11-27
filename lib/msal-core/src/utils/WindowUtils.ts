@@ -216,4 +216,15 @@ export class WindowUtils {
         WindowUtils.getPopups().forEach(popup => popup.close());
     }
 
+    /**
+     * @ignore
+     *
+     * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
+     */
+    static blockReloadInHiddenIframes() {
+        // return an error if called from the hidden iframe created by the msal js silent calls
+        if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
+            throw ClientAuthError.createBlockTokenRequestsInHiddenIframeError();
+        }
+    }
 }

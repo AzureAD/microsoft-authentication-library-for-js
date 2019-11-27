@@ -4,14 +4,11 @@
  */
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
-import { Constants, TemporaryCacheKeys, PromptState, BlacklistedEQParams } from "../utils/Constants";
+import { Constants, PromptState, BlacklistedEQParams } from "../utils/Constants";
 import { AuthCache } from "../cache/AuthCache";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
-import { UrlUtils } from "../utils/UrlUtils";
-import { WindowUtils } from "../utils/WindowUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
 
@@ -32,9 +29,7 @@ export class RequestUtils {
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, requestType: string, redirectCallbacksSet: boolean, cacheStorage: AuthCache, clientId: string): AuthenticationParameters {
-
-        let validatedRequest: AuthenticationParameters;
+    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, requestType?: string, redirectCallbacksSet?: boolean): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
@@ -42,45 +37,38 @@ export class RequestUtils {
         }
 
         // Throw error if callbacks are not set before redirect
-        if(requestType == Constants.interactionTypeRedirect) {
-            if (!redirectCallbacksSet) {
-                cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-                throw ClientConfigurationError.createRedirectCallbacksNotSetError();
-            }
+        if(requestType == Constants.interactionTypeRedirect && !redirectCallbacksSet) {
+            throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
 
-        // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
-        const scopes: Array<string> = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request && request.scopes;
-        ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
+        let scopes: Array<string>;
+        let extraQueryParameters: StringDict;
 
-        // validate prompt parameter
-        this.validatePromptParameter(request && request.prompt);
+        if(request) {
+            // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
+            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
+            ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
 
-        // validate extraQueryParameters and claimsRequest
-        const extraQueryParameters = this.validateEQParameters(request && request.extraQueryParameters, request && request.claimsRequest);
+            // validate prompt parameter
+            this.validatePromptParameter(request.prompt);
 
+            // validate extraQueryParameters and claimsRequest
+            extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
+        }
+
+        // validate and generate state and correlationId
         const state = this.validateAndGenerateState(request && request.state);
         const correlationId = this.validateAndGenerateCorrelationId(request && request.correlationId);
 
-        return validatedRequest = {
+        const validatedRequest: AuthenticationParameters = {
             ...request,
             extraQueryParameters,
             scopes,
             state,
             correlationId
         };
-    }
 
-    /**
-     * @ignore
-     *
-     * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
-     */
-    static blockReloadInHiddenIframes() {
-        // return an error if called from the hidden iframe created by the msal js silent calls
-        if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
-            throw ClientAuthError.createBlockTokenRequestsInHiddenIframeError();
-        }
+        return validatedRequest;
     }
 
     /**
@@ -90,7 +78,7 @@ export class RequestUtils {
      * @param request
      */
     static validatePromptParameter (prompt: string) {
-        if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
+        if (prompt && [PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
     }
@@ -141,6 +129,6 @@ export class RequestUtils {
         if(correlationId && !CryptoUtils.isGuid(correlationId)) {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
-        return correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+        return CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
     }
 }

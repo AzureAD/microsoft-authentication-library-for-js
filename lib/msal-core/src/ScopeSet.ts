@@ -131,8 +131,10 @@ export class ScopeSet {
      * @param {@link AuthenticationParameters}
      */
     static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
-        const scopes: Array<string> = reqExtraScopesToConsent? [...reqScopes, ...reqExtraScopesToConsent]: reqScopes;
-        return scopes;
+        if(reqScopes) {
+            return reqExtraScopesToConsent ? [...reqScopes, ...reqExtraScopesToConsent]: reqScopes;
+        }
+        return null;
     }
 
     // #endregion

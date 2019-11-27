@@ -570,6 +570,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("exits login function with error if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
@@ -1563,13 +1564,20 @@ describe("UserAgentApplication.ts Class", function () {
         };
 
         msal = new UserAgentApplication(config);
-
         it("throws an error if configured with a null request", () => {
-            msal.acquireTokenSilent(null).catch(e => { expect(e).to.be.instanceOf(ClientConfigurationError);});
+            try {
+                msal.acquireTokenSilent(null);
+            } catch(e) {
+                () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
+            };
         });
 
         it("throws an error if configured with a null request", () => {
-            msal.acquireTokenPopup(null).catch(e => {expect(e).to.be.instanceOf(ClientConfigurationError);});
+            try {
+                msal.acquireTokenPopup(null);
+            } catch(e) {
+                () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
+            };
         });
     });
 });
