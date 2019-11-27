@@ -50,6 +50,6 @@ export class AadAuthority extends Authority {
      * @param {string} The host to look up
      */
     public isInTrustedHostList(host: string): boolean {
-        return AADTrustedHostList[host.toLowerCase()];
+        return !!AADTrustedHostList[host.toLowerCase()];
     }
 }

@@ -114,10 +114,10 @@ export abstract class Authority {
 
     public abstract async getOpenIdConfigurationAsync(): Promise<string>;
 
-    public async resolveEndpointsAsync(): Promise<Authority> {
+    public async resolveEndpointsAsync(): Promise<ITenantDiscoveryResponse> {
         const openIdConfigEndpoint = await this.getOpenIdConfigurationAsync();
         this.tenantDiscoveryResponse = await this.discoverEndpoints(openIdConfigEndpoint);
 
-        return this;
+        return this.tenantDiscoveryResponse;
     }
 }

@@ -24,7 +24,7 @@ export class MsalAccount {
     homeAccountIdentifier: string;
     userName: string;
     name: string;
-    idToken: StringDict; // will be deprecated soon
+    idToken: string;
     idTokenClaims: StringDict;
     sid: string;
     environment: string;
@@ -39,13 +39,13 @@ export class MsalAccount {
      * @param sid
      * @param environment
      */
-    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idTokenClaims: StringDict, sid: string,  environment: string) {
+    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, rawIdToken: string, idTokenClaims: StringDict, sid: string,  environment: string) {
         this.accountIdentifier = accountIdentifier;
         this.homeAccountIdentifier = homeAccountIdentifier;
         this.userName = userName;
         this.name = name;
         // will be deprecated soon
-        this.idToken = idTokenClaims;
+        this.idToken = rawIdToken;
         this.idTokenClaims = idTokenClaims;
         this.sid = sid;
         this.environment = environment;
@@ -69,7 +69,7 @@ export class MsalAccount {
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
         }
-        return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
+        return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.rawIdToken, idToken.claims, idToken.sid, idToken.issuer);
     }
 
     /**
@@ -79,14 +79,9 @@ export class MsalAccount {
      * @param a2: Account object
      */
     static compareAccounts(a1: MsalAccount, a2: MsalAccount): boolean {
-        if (!a1 || !a2) {
+        if (!(a1 && a1.homeAccountIdentifier) || !(a2 && a2.homeAccountIdentifier)) {
             return false;
         }
-        if (a1.homeAccountIdentifier && a2.homeAccountIdentifier) {
-            if (a1.homeAccountIdentifier === a2.homeAccountIdentifier) {
-                return true;
-            }
-        }
-        return false;
+        return a1.homeAccountIdentifier === a2.homeAccountIdentifier;
     }
 }

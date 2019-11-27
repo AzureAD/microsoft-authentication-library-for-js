@@ -38,3 +38,21 @@ export enum AADServerHashParamKeys {
     CLIENT_INFO = "client_info",
     CODE = "code"
 };
+
+/**
+ * IdToken claim string constants
+ */
+export enum IdTokenClaimName {
+    ISSUER = "iss",
+    OBJID = "oid",
+    SUBJECT = "sub",
+    TENANTID = "tid",
+    VERSION = "ver",
+    PREF_USERNAME = "preferred_username",
+    NAME = "name",
+    NONCE = "nonce",
+    EXPIRATION = "exp",
+    HOME_OBJID = "home_oid",
+    SESSIONID = "sid",
+    CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
+}
