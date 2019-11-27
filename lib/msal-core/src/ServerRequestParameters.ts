@@ -8,10 +8,9 @@ import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
-import { ClientConfigurationError } from "./error/ClientConfigurationError";
+import { SSOTypes, Constants, PromptState, libraryVersion } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
-import { UrlUtils } from "./utils/UrlUtils";
+import { RequestUtils } from "./utils/RequestUtils";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -66,7 +65,7 @@ export class ServerRequestParameters {
         this.state = state;
 
         // set correlationId
-        this.correlationId = UrlUtils.getRequestCorrelationId(correlationId);
+        this.correlationId = correlationId;
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -90,7 +89,6 @@ export class ServerRequestParameters {
         if (request) {
             // add the prompt parameter to serverRequestParameters if passed
             if (request.prompt) {
-                this.validatePromptParameter(request.prompt);
                 this.promptValue = request.prompt;
             }
 
@@ -117,10 +115,7 @@ export class ServerRequestParameters {
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        let eQParams: StringDict;
-        if (request) {
-            eQParams = this.sanitizeEQParams(request);
-        }
+        const eQParams: StringDict = request.extraQueryParameters;
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
@@ -128,19 +123,6 @@ export class ServerRequestParameters {
     }
 
     // #region QueryParam helpers
-
-    /**
-     * @hidden
-     * @ignore
-     *
-     * Utility to test if valid prompt value is passed in the request
-     * @param request
-     */
-    private validatePromptParameter (prompt: string) {
-        if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
-            throw ClientConfigurationError.createInvalidPromptError(prompt);
-        }
-    }
 
     /**
      * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
@@ -308,30 +290,6 @@ export class ServerRequestParameters {
         }
 
         return ssoParam;
-    }
-
-    /**
-     * @hidden
-     * @ignore
-     * Removes unnecessary or duplicate query parameters from extraQueryParameters
-     * @param request
-     */
-    private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
-        const eQParams : StringDict = request.extraQueryParameters;
-        if (!eQParams) {
-            return null;
-        }
-        if (request.claimsRequest) {
-            // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-            delete eQParams[Constants.claims];
-        }
-        BlacklistedEQParams.forEach(param => {
-            if (eQParams[param]) {
-                // this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
-                delete eQParams[param];
-            }
-        });
-        return eQParams;
     }
 
     /**

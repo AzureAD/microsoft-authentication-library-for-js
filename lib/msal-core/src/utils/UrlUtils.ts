@@ -247,25 +247,16 @@ export class UrlUtils {
     }
 
     /**
-     * @hidden
-     * generate unique state per request
-     * @param request
+     * @ignore
+     * @param {string} URI
+     * @returns {string} host from the URI
+     *
+     * extract URI from the host
      */
-    static getRequestState(state: string): string {
-        // append GUID to user set state  or set one for the user if null
-        return state && !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
-    }
-
-    /**
-     * @hidden
-     * validate correlationId and generate if not valid or not set by the user
-     * @param correlationId
-     */
-    static getRequestCorrelationId(correlationId: string): string {
-        // validate user set correlationId or set one for the user if null
-        if(correlationId && !CryptoUtils.isGuid(correlationId)) {
-            throw ClientConfigurationError.createInvalidCorrelationIdError();
-        }
-        return correlationId && CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+    static getHostFromUri(uri: string): string {
+        // remove http:// or https:// from uri
+        let extractedUri = String(uri).replace(/^(https?:)\/\//, "");
+        extractedUri = extractedUri.split("/")[0];
+        return extractedUri;
     }
 }

@@ -4,7 +4,9 @@ import { Authority, ClientConfigurationError } from "../src";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "./TestConstants";
-import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError"
+import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
+import { AuthenticationParameters } from "../src/AuthenticationParameters";
+import { RequestUtils } from "../src/utils/RequestUtils";
 import sinon from "sinon";
 
 describe("ServerRequestParameters.ts Class", function () {
@@ -114,14 +116,8 @@ describe("ServerRequestParameters.ts Class", function () {
                 authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
 
                 const scopes = ["user.read"];
-                authenticationRequestParameters = new ServerRequestParameters(
-                    authority,
-                    TEST_CONFIG.MSAL_CLIENT_ID,
-                    TEST_RESPONSE_TYPE.id_token,
-                    "",
-                    scopes,
-                    TEST_CONFIG.STATE,
-                    "Hello");
+                const request: AuthenticationParameters = { correlationId: "Hello"};
+                RequestUtils.validateAndGenerateCorrelationId(request.correlationId);
             }
             catch (e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
