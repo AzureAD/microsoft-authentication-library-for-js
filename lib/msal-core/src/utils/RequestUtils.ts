@@ -78,8 +78,10 @@ export class RequestUtils {
      * @param request
      */
     static validatePromptParameter (prompt: string) {
-        if (prompt && [PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
-            throw ClientConfigurationError.createInvalidPromptError(prompt);
+        if(prompt) {
+            if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
+                throw ClientConfigurationError.createInvalidPromptError(prompt);
+            }
         }
     }
 
