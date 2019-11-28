@@ -5,7 +5,6 @@
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
 import { Constants, PromptState, BlacklistedEQParams } from "../utils/Constants";
-import { AuthCache } from "../cache/AuthCache";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
@@ -52,8 +51,12 @@ export class RequestUtils {
             // validate prompt parameter
             this.validatePromptParameter(request.prompt);
 
-            // validate extraQueryParameters and claimsRequest
+            // validate extraQueryParameters
             extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
+
+            // validate claimsRequest
+            this.validateClaimsRequest(request.claimsRequest);
+
         }
 
         // validate and generate state and correlationId
@@ -92,7 +95,7 @@ export class RequestUtils {
      * @param request
      */
     static validateEQParameters(extraQueryParameters: StringDict, claimsRequest: string) : StringDict {
-        const eQParams : StringDict = extraQueryParameters;
+        const eQParams : StringDict = { ...extraQueryParameters};
         if (!eQParams) {
             return null;
         }
@@ -106,7 +109,27 @@ export class RequestUtils {
                 delete eQParams[param];
             }
         });
+
         return eQParams;
+    }
+
+    /**
+     * @ignore
+     *
+     * Validates the claims passed in request is a JSON
+     * TODO: More validation will be added when the server team tells us how they have actually implemented claims
+     * @param claimsRequest
+     */
+    static validateClaimsRequest(claimsRequest: string) {
+        if (!claimsRequest) {
+            return;
+        }
+        let claims;
+        try {
+            claims = JSON.parse(claimsRequest);
+        } catch (e) {
+            throw ClientConfigurationError.createClaimsRequestParsingError(e);
+        }
     }
 
     /**

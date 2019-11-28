@@ -341,7 +341,6 @@ export class UserAgentApplication {
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
         }).catch((error: AuthError) => {
-            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             this.cacheStorage.resetTempCacheItems(request.state);
             throw error;
         });
@@ -361,7 +360,6 @@ export class UserAgentApplication {
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         }).catch((error: AuthError) => {
-            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             this.cacheStorage.resetTempCacheItems(request.state);
             throw error;
         });
@@ -709,7 +707,6 @@ export class UserAgentApplication {
                     });
             }
         }).catch((error: AuthError) => {
-            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             this.cacheStorage.resetTempCacheItems(request.state);
             throw error;
         });
@@ -851,32 +848,30 @@ export class UserAgentApplication {
 
         // Store the server response in the current window??
         if (!window.callbackMappedToRenewStates[expectedState]) {
-            window.callbackMappedToRenewStates[expectedState] =
-      (response: AuthResponse, error: AuthError) => {
-          // reset active renewals
-          window.activeRenewals[scope] = null;
+            window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
+                // reset active renewals
+                window.activeRenewals[scope] = null;
 
-          // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
-          for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
-              try {
-                  if (error) {
-                      window.promiseMappedToRenewStates[expectedState][i].reject(error);
-                  } else if (response) {
-                      window.promiseMappedToRenewStates[expectedState][i].resolve(response);
-                  } else {
-                      this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-                      this.cacheStorage.resetTempCacheItems(expectedState);
-                      throw AuthError.createUnexpectedError("Error and response are both null");
-                  }
-              } catch (e) {
-                  this.logger.warning(e);
-              }
-          }
+                // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
+                for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
+                    try {
+                        if (error) {
+                            window.promiseMappedToRenewStates[expectedState][i].reject(error);
+                        } else if (response) {
+                            window.promiseMappedToRenewStates[expectedState][i].resolve(response);
+                        } else {
+                            this.cacheStorage.resetTempCacheItems(expectedState);
+                            throw AuthError.createUnexpectedError("Error and response are both null");
+                        }
+                    } catch (e) {
+                        this.logger.warning(e);
+                    }
+                }
 
-          // reset
-          window.promiseMappedToRenewStates[expectedState] = null;
-          window.callbackMappedToRenewStates[expectedState] = null;
-      };
+                // reset
+                window.promiseMappedToRenewStates[expectedState] = null;
+                window.callbackMappedToRenewStates[expectedState] = null;
+            };
         }
     }
 
@@ -1600,7 +1595,6 @@ export class UserAgentApplication {
         }
 
         // Set status to completed
-        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         this.cacheStorage.removeItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${stateInfo.state}`);
         this.cacheStorage.resetTempCacheItems(stateInfo.state);
 
@@ -1940,12 +1934,7 @@ export class UserAgentApplication {
         return this.config;
     }
 
-    // #endregion
-
-    // #region String Util (Should be extracted to Utils.ts)
-
     /**
-     * @hidden
      * @ignore
      *
      * Utils function to create the Authentication
@@ -2064,12 +2053,10 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
      * @ignore
+     * @param extraQueryParameters
      *
      * Construct 'tokenRequest' from the available data in adalIdToken
-     * @param extraQueryParameters
-     * @hidden
      */
     private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 
@@ -2083,6 +2070,13 @@ export class UserAgentApplication {
         return tokenRequest;
     }
 
+    /**
+     * @ignore
+     * @param config
+     * @param clientId
+     *
+     * Construct TelemetryManager from Configuration
+     */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
             return null;
