@@ -6,6 +6,7 @@
 import { Logger } from "./Logger";
 import { UrlUtils } from "./utils/UrlUtils";
 import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
+import { StringDict } from "./MsalTypes";
 
 /**
  * Cache location options supported by MSAL are:
@@ -93,6 +94,9 @@ export type FrameworkOptions = {
     isAngular?: boolean;
     unprotectedResources?: Array<string>;
     protectedResourceMap?: Map<string, Array<string>>;
+    consentScopes?: Array<string>;
+    popUp?: boolean;
+    extraQueryParameters?: StringDict;
 };
 
 /**
@@ -135,7 +139,10 @@ const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
 const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
     isAngular: false,
     unprotectedResources: new Array<string>(),
-    protectedResourceMap: new Map<string, Array<string>>()
+    protectedResourceMap: new Map<string, Array<string>>(),
+    consentScopes: new Array<string>(),
+    popUp: false,
+    extraQueryParameters: null
 };
 
 /**

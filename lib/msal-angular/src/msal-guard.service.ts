@@ -8,22 +8,21 @@ import {MSAL_CONFIG, MsalService} from "./msal.service";
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/pairwise';
 import {Location, PlatformLocation} from "@angular/common";
-import {MsalConfig} from "./msal-config";
 import {BroadcastService} from "./broadcast.service";
-import {Constants} from "msal";
+import { Configuration, TemporaryCacheKeys } from "msal";
 import {MSALError} from "./MSALError";
 import {AuthenticationResult} from "./AuthenticationResult";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
 
-    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private authService: MsalService, private router: Router, private activatedRoute: ActivatedRoute, private location: Location, private platformLocation: PlatformLocation, private broadcastService: BroadcastService) {
+    constructor(@Inject(MSAL_CONFIG) private msalConfig: Configuration, private authService: MsalService, private router: Router, private activatedRoute: ActivatedRoute, private location: Location, private platformLocation: PlatformLocation, private broadcastService: BroadcastService) {
     }
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
-        this.authService.updateDataFromCache([this.config.clientID]);
+        this.authService.updateDataFromCache([this.msalConfig.auth.clientId]);
         if (!this.authService._oauthData.isAuthenticated && this.isObjectEmpty(this.authService._oauthData.idToken)) {
             if (state.url) {
 
@@ -31,10 +30,13 @@ export class MsalGuard implements CanActivate {
 
                     var loginStartPage = this.getBaseUrl() + state.url;
                     if (loginStartPage !== null) {
-                        this.authService.getCacheStorage().setItem(Constants.angularLoginRequest, loginStartPage);
+                        this.authService.getCacheStorage().setItem(TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST, loginStartPage);
                     }
-                    if (this.config.popUp) {
-                        return this.authService.loginPopup(this.config.consentScopes, this.config.extraQueryParameters)
+                    if (this.msalConfig.framework.popUp) {
+                        return this.authService.loginPopup({
+                            scopes: this.msalConfig.framework.consentScopes,
+                            extraQueryParameters: this.msalConfig.framework.extraQueryParameters
+                        })
                             .then(function (token) {
                                return true;
                             }, function (error) {
@@ -42,14 +44,19 @@ export class MsalGuard implements CanActivate {
                             });
                     }
                     else {
-                        this.authService.loginRedirect(this.config.consentScopes, this.config.extraQueryParameters);
+                        this.authService.loginRedirect({
+                            scopes: this.msalConfig.framework.consentScopes,
+                            extraQueryParameters: this.msalConfig.framework.extraQueryParameters
+                        });
                     }
                 }
             }
         }
         //token is expired/deleted but userdata still exists in _oauthData object
         else if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
-            return this.authService.acquireTokenSilent([this.config.clientID])
+            return this.authService.acquireTokenSilent({
+                scopes: [this.msalConfig.auth.clientId]
+            })
                 .then((token: any) => {
                     if (token) {
                         this.authService._oauthData.isAuthenticated = true;
