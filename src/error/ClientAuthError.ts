@@ -31,7 +31,7 @@ export const ClientAuthErrorMessage = {
     },
     invalidAuthorityType: {
         code: "invalid_authority_type",
-        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authorities: <insert URL here>."
+        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authority configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options"
     },
 };
 

@@ -23,39 +23,39 @@ export type MsalModuleConfiguration = {
 
 const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
     clear: () => {
-        const notImplErr = "clear() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
     containsKey: (key: string): boolean => {
-        const notImplErr = "containsKey() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
     getItem: (key: string): string => {
-        const notImplErr = "getItem() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
     getKeys: (): string[] => {
-        const notImplErr = "getKeys() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
     removeItem: (key: string) => {
-        const notImplErr = "removeItem() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
     setItem: (key: string, value: string) => {
-        const notImplErr = "setItem() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
 const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
-    sendRequestAsync: async (url: string, method: RequestInit, enableCaching?: boolean): Promise<any> => {
+    async sendRequestAsync(url: string, method: RequestInit, enableCaching?: boolean): Promise<any> {
         const notImplErr = "Network interface - sendRequestAsync() has not been implemented";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
