@@ -58,8 +58,6 @@ describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.telemetry).to.be.undefined;
         // Framework config checks
         expect(emptyConfig.framework).to.be.not.null;
-        expect(emptyConfig.framework.isAngular).to.be.not.null;
-        expect(emptyConfig.framework.isAngular).to.be.false;
         expect(emptyConfig.framework.unprotectedResources).to.be.not.null;
         expect(emptyConfig.framework.unprotectedResources).to.be.empty;
         expect(emptyConfig.framework.protectedResourceMap).to.be.not.null;
