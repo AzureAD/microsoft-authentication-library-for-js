@@ -8,6 +8,7 @@ import { IdToken } from "./IdToken";
 import { StringUtils } from "../utils/StringUtils";
 import { StringDict } from "../utils/MsalTypes";
 import { ICrypto } from "../utils/crypto/ICrypto";
+import { IdTokenClaims } from "./IdTokenClaims";
 
 /**
  * accountIdentifier       combination of idToken.uid and idToken.utid
@@ -39,16 +40,16 @@ export class MsalAccount {
      * @param sid
      * @param environment
      */
-    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, rawIdToken: string, idTokenClaims: StringDict, sid: string,  environment: string) {
+    constructor(accountIdentifier: string, homeAccountIdentifier: string, idTokenClaims: IdTokenClaims, rawIdToken: string) {
         this.accountIdentifier = accountIdentifier;
         this.homeAccountIdentifier = homeAccountIdentifier;
-        this.userName = userName;
-        this.name = name;
+        this.userName = idTokenClaims.preferred_username;
+        this.name = idTokenClaims.name;
         // will be deprecated soon
         this.idToken = rawIdToken;
         this.idTokenClaims = idTokenClaims;
-        this.sid = sid;
-        this.environment = environment;
+        this.sid = idTokenClaims.sid;
+        this.environment = idTokenClaims.iss;
     }
 
     /**
@@ -59,7 +60,7 @@ export class MsalAccount {
     static createAccount(idToken: IdToken, clientInfo: ClientInfo, crypto: ICrypto): MsalAccount {
 
         // create accountIdentifier
-        const accountIdentifier: string = idToken.objectId ||  idToken.subject;
+        const accountIdentifier: string = idToken.claims.oid ||  idToken.claims.sub;
 
         // create homeAccountIdentifier
         const uid: string = clientInfo ? clientInfo.uid : "";
@@ -69,7 +70,7 @@ export class MsalAccount {
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
         }
-        return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.rawIdToken, idToken.claims, idToken.sid, idToken.issuer);
+        return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.claims, idToken.rawIdToken);
     }
 
     /**

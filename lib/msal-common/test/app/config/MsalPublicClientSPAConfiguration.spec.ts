@@ -5,10 +5,11 @@ chai.use(chaiAsPromised);
 import { MsalPublicClientSPAConfiguration, buildMsalPublicClientSPAConfiguration } from "../../../src/app/config/MsalPublicClientSPAConfiguration";
 import { PKCECodes } from "../../../src/utils/crypto/ICrypto";
 import { TEST_CONFIG, TEST_URIS } from "../../utils/StringConstants";
+import { AuthError } from "../../../src/error/AuthError";
 
 describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
 
-    it("buildMsalConfiguration assigns default functions", () => {
+    it("buildMsalConfiguration assigns default functions", async () => {
         let emptyConfig: MsalPublicClientSPAConfiguration = buildMsalPublicClientSPAConfiguration({auth: null});
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
@@ -22,26 +23,39 @@ describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
-        expect(emptyConfig.cryptoInterface.base64Decode("test input")).to.be.empty;
+        expect(() => emptyConfig.cryptoInterface.base64Decode("test input")).to.throw("Unexpected error in authentication.: Crypto interface - base64Decode() has not been implemented");
+        expect(() => emptyConfig.cryptoInterface.base64Decode("test input")).to.throw(AuthError);
         expect(emptyConfig.cryptoInterface.base64Encode).to.be.not.null;
-        expect(emptyConfig.cryptoInterface.base64Encode("test input")).to.be.empty;
+        expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).to.throw("Unexpected error in authentication.: Crypto interface - base64Encode() has not been implemented");
+        expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).to.throw(AuthError);
         expect(emptyConfig.cryptoInterface.generatePKCECodes).to.be.not.null;
-        expect(emptyConfig.cryptoInterface.generatePKCECodes()).to.eventually.be.null;
+        await expect(emptyConfig.cryptoInterface.generatePKCECodes()).to.be.rejectedWith("Unexpected error in authentication.: Crypto interface - generatePKCECodes() has not been implemented");
+        await expect(emptyConfig.cryptoInterface.generatePKCECodes()).to.be.rejectedWith(AuthError);
         // Storage interface checks
         expect(emptyConfig.storageInterface).to.be.not.null;
         expect(emptyConfig.storageInterface.clear).to.be.not.null;
+        expect(() => emptyConfig.storageInterface.clear()).to.throw("Unexpected error in authentication.: Storage interface - clear() has not been implemented");
+        expect(() => emptyConfig.storageInterface.clear()).to.throw(AuthError);
         expect(emptyConfig.storageInterface.containsKey).to.be.not.null;
-        expect(emptyConfig.storageInterface.containsKey("testKey")).to.be.false;
+        expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw("Unexpected error in authentication.: Storage interface - containsKey() has not been implemented");
+        expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw(AuthError);
         expect(emptyConfig.storageInterface.getItem).to.be.not.null;
-        expect(emptyConfig.storageInterface.getItem("testKey")).to.be.empty;
+        expect(() => emptyConfig.storageInterface.getItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - getItem() has not been implemented");
+        expect(() => emptyConfig.storageInterface.getItem("testKey")).to.throw(AuthError);
         expect(emptyConfig.storageInterface.getKeys).to.be.not.null;
-        expect(emptyConfig.storageInterface.getKeys()).to.be.null;
+        expect(() => emptyConfig.storageInterface.getKeys()).to.throw("Unexpected error in authentication.: Storage interface - getKeys() has not been implemented");
+        expect(() => emptyConfig.storageInterface.getKeys()).to.throw(AuthError);
         expect(emptyConfig.storageInterface.removeItem).to.be.not.null;
+        expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - removeItem() has not been implemented");
+        expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw(AuthError);
         expect(emptyConfig.storageInterface.setItem).to.be.not.null;
+        expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw("Unexpected error in authentication.: Storage interface - setItem() has not been implemented");
+        expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
         expect(emptyConfig.networkInterface.sendRequestAsync).to.be.not.null;
-        expect(emptyConfig.networkInterface.sendRequestAsync("", null)).to.eventually.be.null;
+        await expect(emptyConfig.networkInterface.sendRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendRequestAsync() has not been implemented");
+        await expect(emptyConfig.networkInterface.sendRequestAsync("", null)).to.be.rejectedWith(AuthError);
     });
 
     const clearFunc = (): void => {
