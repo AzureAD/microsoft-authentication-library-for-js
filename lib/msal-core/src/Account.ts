@@ -56,10 +56,7 @@ export class Account {
      * @param idToken
      * @param clientInfo
      */
-    static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
-
-        // create accountIdentifier
-        const accountIdentifier: string = idToken.objectId ||  idToken.subject;
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo, preferred_username?: string, sid?: string ): Account {
 
         // create homeAccountIdentifier
         const uid: string = clientInfo ? clientInfo.uid : "";
@@ -69,7 +66,14 @@ export class Account {
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
-        return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
+
+        if(idToken) {
+            // create accountIdentifier
+            const accountIdentifier: string = idToken.objectId ||  idToken.subject;
+            return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
+        }
+
+        return new Account(null, homeAccountIdentifier, preferred_username, null, null, sid, null);
     }
 
     /**
