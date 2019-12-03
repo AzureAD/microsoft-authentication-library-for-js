@@ -145,6 +145,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
         // delete the interaction status cache
         this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        this.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
     }
 
     /**

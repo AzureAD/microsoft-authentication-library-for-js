@@ -231,6 +231,9 @@ export class UserAgentApplication {
         const urlHash = window.location.hash;
         const urlContainsHash = UrlUtils.urlContainsHash(urlHash);
 
+        // check if back button is pressed
+        WindowUtils.checkIfBackButtonIsPressed(this.cacheStorage);
+
         // On the server 302 - Redirect, handle this
         if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
             this.handleAuthenticationResponse(urlHash);
@@ -380,6 +383,9 @@ export class UserAgentApplication {
         WindowUtils.blockReloadInHiddenIframes();
 
         const interactionProgress = this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        if(interactionType === Constants.interactionTypeRedirect) {
+            this.cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${request.state}`);
+        }
 
         // If already in progress, do not proceed
         if (interactionProgress === Constants.inProgress) {
@@ -460,6 +466,7 @@ export class UserAgentApplication {
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
         let popUpWindow: Window;
+
         if (interactionType === Constants.interactionTypePopup) {
             // Generate a popup window
             try {
