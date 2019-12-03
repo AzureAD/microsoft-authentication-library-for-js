@@ -24,7 +24,6 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "msal": "0.2.2",
     "tslib": "1.7.1"
   },
   "devDependencies": {
@@ -83,7 +82,8 @@
   "peerDependencies": {
     "@angular/common": "^4.3.0",
     "@angular/core": "^4.3.0",
-    "rxjs": "^5.0.1"
+    "rxjs": "^5.0.1",
+    "msal": "0.2.4",
   },
   "directories": {
     "test": "tests"
