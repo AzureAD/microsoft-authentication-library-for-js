@@ -35,7 +35,7 @@ export abstract class Authority {
      * A URL that is the authority set by the developer
      */
     public get canonicalAuthority(): string {
-        return this._canonicalAuthority.getUrlString();
+        return this._canonicalAuthority.urlString;
     }
 
     public set canonicalAuthority(url: string) {

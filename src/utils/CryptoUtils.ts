@@ -8,6 +8,7 @@
  */
 export class CryptoUtils {
 
+    // TODO: Move to ICrypto, implement in platform library
     /**
      * Creates a new random GUID - used to populate state?
      * @returns string (GUID)

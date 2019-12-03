@@ -29,6 +29,10 @@ export const ClientConfigurationErrorMessage = {
         code: "url_parse_error",
         desc: "URL could not be parsed into appropriate segments."
     },
+    urlEmptyError: {
+        code: "empty_url_error",
+        desc: "URL was empty or null."
+    }
 };
 
 /**
@@ -82,5 +86,13 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUrlParseError(urlParseError: string): ClientAuthError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlParseError.code,
             `${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlParseError}`);
+    }
+
+    /**
+     * Creates an error thrown if URL string is empty or null.
+     * @param urlString 
+     */
+    static createUrlEmptyError(): ClientAuthError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code, ClientConfigurationErrorMessage.urlEmptyError.desc);
     }
 }
