@@ -7,9 +7,9 @@ import { AuthError } from "../../../src/error/AuthError";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe("MsalConfiguration.ts Class Unit Tests", () => {
+describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
 
-    it("buildMsalConfiguration assigns default functions", async () => {
+    it("buildMsalModuleConfiguration assigns default functions", async () => {
         let emptyConfig: MsalModuleConfiguration = buildMsalModuleConfiguration({});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;

@@ -69,7 +69,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the id token extraction errors out.
      * @param err 
      */
-    static createIdTokenExtractionError(caughtExtractionError: any) {
+    static createIdTokenParsingError(caughtExtractionError: any) {
         return new ClientAuthError(ClientAuthErrorMessage.idTokenParsingError.code,
             `${ClientAuthErrorMessage.idTokenParsingError.desc} Failed with error: ${caughtExtractionError}`);
     }

@@ -1,3 +1,5 @@
+import { ClientAuthError } from "../error/ClientAuthError";
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -15,13 +17,12 @@ export class StringUtils {
      */
     static decodeJwt(jwtToken: string): any {
         if (StringUtils.isEmpty(jwtToken)) {
-            return null;
+            throw ClientAuthError.createIdTokenNullOrEmptyError(jwtToken);
         }
         const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
         const matches = idTokenPartsRegex.exec(jwtToken);
         if (!matches || matches.length < 4) {
-            // this._requestContext.logger.warn("The returned id_token is not parseable.");
-            return null;
+            throw ClientAuthError.createIdTokenParsingError(`Given token is malformed: ${jwtToken}`);
         }
         const crackedToken = {
             header: matches[1],

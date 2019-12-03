@@ -14,12 +14,16 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
  */
 export class UrlString {
 
-    private urlString: string;
+    private _urlString: string;
+
+    public get urlString() {
+        return this._urlString;
+    }
     
     constructor(url: string) {
-        this.urlString = url;
-        if(StringUtils.isEmpty(this.getHash())) {
-            this.urlString = this.canonicalizeUri(url);
+        this._urlString = url;
+        if(this._urlString && StringUtils.isEmpty(this.getHash())) {
+            this._urlString = this.canonicalizeUri(url);
         }
     }
 
@@ -55,7 +59,7 @@ export class UrlString {
         }
 
         if (!components.PathSegments || components.PathSegments.length < 1) {
-            throw ClientConfigurationError.createInsecureAuthorityUriError(this.urlString);
+            throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
     }
 
@@ -66,17 +70,17 @@ export class UrlString {
      */
     urlRemoveQueryStringParameter(name: string): string {
         if (StringUtils.isEmpty(this.urlString)) {
-            return this.urlString;
+            throw ClientConfigurationError.createUrlEmptyError();
         }
 
         let regex = new RegExp("(\\&" + name + "=)[^\&]+");
-        this.urlString = this.urlString.replace(regex, "");
+        this._urlString = this.urlString.replace(regex, "");
         // name=value&
         regex = new RegExp("(" + name + "=)[^\&]+&");
-        this.urlString = this.urlString.replace(regex, "");
+        this._urlString = this.urlString.replace(regex, "");
         // name=value
         regex = new RegExp("(" + name + "=)[^\&]+");
-        this.urlString = this.urlString.replace(regex, "");
+        this._urlString = this.urlString.replace(regex, "");
         return this.urlString;
     }
 
@@ -91,7 +95,7 @@ export class UrlString {
         if (tenantId && (pathArray.length !== 0 && (pathArray[0] === AADAuthorityConstants.COMMON || pathArray[0] === AADAuthorityConstants.ORGANIZATIONS))) {
             pathArray[0] = tenantId;
         }
-        return UrlString.constructAuthorityUriFromObject(urlObject, pathArray);
+        return UrlString.constructAuthorityUriFromObject(urlObject);
     }
 
     /**
@@ -127,16 +131,16 @@ export class UrlString {
      */
     getUrlComponents(): IUri {
         if (!this.urlString) {
-            throw ClientConfigurationError.createUrlParseError(this.urlString);
+            throw ClientConfigurationError.createUrlEmptyError();
         }
 
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
         const regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
 
         const match = this.urlString.match(regEx);
-
-        if (!match || match.length < 6) {
-            throw ClientConfigurationError.createUrlParseError(this.urlString);
+        
+        if (!match) {
+            throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
 
         const urlComponents = {
@@ -151,12 +155,8 @@ export class UrlString {
         return urlComponents;
     }
 
-    getUrlString(): string {
-        return this.urlString;
-    }
-
-    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
-        return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
+    static constructAuthorityUriFromObject(urlObject: IUri) {
+        return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + urlObject.PathSegments.join("/"));
     }
 
     /**
