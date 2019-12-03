@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+import { ClientConfigurationError } from "./error/ClientConfigurationError";
+import { AuthenticationParameters } from "./AuthenticationParameters";
+
 export class ScopeSet {
 
     /**
@@ -68,4 +71,72 @@ export class ScopeSet {
 
         return scopeList;
     }
+
+    /**
+     * @hidden
+     *
+     * Used to validate the scopes input parameter requested  by the developer.
+     * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+     * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
+     * @ignore
+     */
+    static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
+        if (!scopes) {
+            if (scopesRequired) {
+                throw ClientConfigurationError.createScopesRequiredError(scopes);
+            } else {
+                return;
+            }
+        }
+
+        // Check that scopes is an array object (also throws error if scopes == null)
+        if (!Array.isArray(scopes)) {
+            throw ClientConfigurationError.createScopesNonArrayError(scopes);
+        }
+
+        // Check that scopes is not an empty array
+        if (scopes.length < 1) {
+            throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
+        }
+
+        // Check that clientId is passed as single scope
+        if (scopes.indexOf(clientId) > -1) {
+            if (scopes.length > 1) {
+                throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
+            }
+        }
+    }
+
+    /**
+     * @hidden
+     *
+     * Extracts scope value from the state sent with the authentication request.
+     * @param {string} state
+     * @returns {string} scope.
+     * @ignore
+     */
+    static getScopeFromState(state: string): string {
+        if (state) {
+            const splitIndex = state.indexOf("|");
+            if (splitIndex > -1 && splitIndex + 1 < state.length) {
+                return state.substring(splitIndex + 1);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * @ignore
+     * Appends extraScopesToConsent if passed
+     * @param {@link AuthenticationParameters}
+     */
+    static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
+        if(reqScopes) {
+            return reqExtraScopesToConsent ? [...reqScopes, ...reqExtraScopesToConsent]: reqScopes;
+        }
+        return null;
+    }
+
+    // #endregion
+
 }
