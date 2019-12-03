@@ -3,6 +3,43 @@
  * Licensed under the MIT License.
  */
 
+export const Constants = {
+    // Prefix for all library cache entries
+    CACHE_PREFIX: "msal",
+    // Resource delimiter - used for certain cache entries
+    RESOURCE_DELIM: "|"
+};
+
+/**
+ * @hidden
+ * CacheKeys for MSAL
+ */
+export enum TemporaryCacheKeys {
+    AUTHORITY = "authority",
+    ACQUIRE_TOKEN_ACCOUNT = "acquireTokenAccount",
+    SESSION_STATE = "session.state",
+    REQUEST_STATE = "state.request",
+    NONCE_IDTOKEN = "nonce.idtoken",
+    ORIGIN_URI = "login.request",
+    RENEW_STATUS = "token.renew.status",
+    URL_HASH = "urlHash",
+    INTERACTION_STATUS = "interaction.status",
+    REQUEST_PARAMS = "request.params",
+    REDIRECT_REQUEST = "redirect.request"
+};
+
+export enum PersistentCacheKeys {
+    ID_TOKEN = "idtoken",
+    CLIENT_INFO = "client.info",
+    ADAL_ID_TOKEN = "adal.idtoken",
+};
+
+export enum ErrorCacheKeys {
+    LOGIN_ERROR = "login.error",
+    ERROR = "error",
+    ERROR_DESC = "error.description"
+}
+
 /**
  * List of pre-established trusted host URLs. 
  */
