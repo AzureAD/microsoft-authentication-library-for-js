@@ -13,7 +13,7 @@ import { ICrypto } from "../utils/crypto/ICrypto";
 export type ClientInfo = {
     uid: string,
     utid: string
-}
+};
 
 /**
  * Function to build a client info object
