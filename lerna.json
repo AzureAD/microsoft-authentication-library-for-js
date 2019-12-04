@@ -1,5 +1,10 @@
 {
   "lerna": "3.16.4",
+  "command": {
+    "run": {
+      "scope": ["msal", "msal-common", "msal-browser"]
+    }
+  },
   "packages": [
     "lib/*",
     "samples/*"
