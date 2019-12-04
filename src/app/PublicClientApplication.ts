@@ -5,6 +5,7 @@
 
 import * as msalAuth from "msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
+import { BrowserCrypto } from "../utils/crypto/BrowserCrypto";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -34,6 +35,9 @@ export class PublicClientApplication {
     // callback for error/token response
     private authCallback: authCallback = null;
 
+    // Crypto interface implementation
+    private browserCrypto: BrowserCrypto;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -58,9 +62,13 @@ export class PublicClientApplication {
         // Set the configuration
         this.config = buildConfiguration(configuration);
 
+        // Initialize the crypto class
+        this.browserCrypto = new BrowserCrypto();
+
+        // Create auth module
         this.authModule = new msalAuth.AuthorizationCodeModule({
             auth: this.config.auth,
-            cryptoInterface: null,
+            cryptoInterface: this.browserCrypto,
             networkInterface: null,
             storageInterface: null
         });
