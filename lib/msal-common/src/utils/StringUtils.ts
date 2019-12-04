@@ -1,9 +1,8 @@
-import { ClientAuthError } from "../error/ClientAuthError";
-
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * @hidden
@@ -39,5 +38,24 @@ export class StringUtils {
      */
     static isEmpty(str: string): boolean {
         return (typeof str === "undefined" || !str || 0 === str.length);
+    }
+
+    /**
+     * deserialize a string
+     *
+     * @param query
+     */
+    static deserialize(query: string): any {
+        let match: Array<string>; // Regex for replacing addition symbol with a space
+        const pl = /\+/g;
+        const search = /([^&=]+)=([^&]*)/g;
+        const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));
+        const obj: {} = {};
+        match = search.exec(query);
+        while (match) {
+            obj[decode(match[1])] = decode(match[2]);
+            match = search.exec(query);
+        }
+        return obj;
     }
 }

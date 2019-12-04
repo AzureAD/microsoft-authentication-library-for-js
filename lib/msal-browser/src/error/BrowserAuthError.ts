@@ -11,6 +11,10 @@ export const BrowserAuthErrorMessage = {
     noWindowObjectError: {
         code: "no_window_object",
         desc: "No window object detected."
+    },
+    pkceNotGenerated: {
+        code: "pkce_not_created",
+        desc: "The PKCE code challenge and verifier could not be generated."
     }
 };
 
@@ -28,5 +32,10 @@ export class BrowserAuthError extends AuthError {
 
     static createNoWindowObjectError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
+    }
+
+    static createPKCENotGeneratedError(arg0: string) {
+        return new BrowserAuthError(BrowserAuthErrorMessage.pkceNotGenerated.code,
+            BrowserAuthErrorMessage.pkceNotGenerated.desc);
     }
 }
