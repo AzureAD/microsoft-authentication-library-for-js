@@ -80,4 +80,14 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.isEmpty("Non-empty string")).to.be.false;
     });
 
+    it("deserialize Unit Tests", () => {
+        const serializedObj = "param1=value1&param2=value2&param3=value3";
+        const deserializedObj = {
+            "param1": "value1",
+            "param2": "value2",
+            "param3": "value3",
+        };
+        expect(StringUtils.deserialize(serializedObj)).to.be.deep.eq(deserializedObj);        
+    });
+
 });
