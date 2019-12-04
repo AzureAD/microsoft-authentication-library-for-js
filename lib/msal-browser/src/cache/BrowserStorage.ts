@@ -10,6 +10,8 @@ import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuth
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { ErrorCacheKeys } from "msal-common/dist/utils/Constants";
 
+const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
+
 export class BrowserStorage implements ICacheStorage {
 
     private cacheConfig: CacheOptions;
@@ -23,7 +25,7 @@ export class BrowserStorage implements ICacheStorage {
             throw BrowserAuthError.createNoWindowObjectError();
         }
 
-        const storageSupported = typeof window[cacheConfig.cacheLocation] !== "undefined" && window[cacheConfig.cacheLocation] !== null;
+        const storageSupported = typeof window !== "undefined" && !!window[cacheConfig.cacheLocation];
         if (!storageSupported) {
             throw BrowserConfigurationAuthError.createStorageNotSupportedError();
         }
@@ -57,16 +59,16 @@ export class BrowserStorage implements ICacheStorage {
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
 
-        keysToMigrate.forEach((cacheKey, index) => this.createCacheEntry(cacheKey, values[index]));
+        keysToMigrate.forEach((cacheKey, index) => this.migrateCacheEntry(cacheKey, values[index]));
     }
 
     /**
-     * Utility function to help with rollback keys
+     * Utility function to help with rollback keys.
      * @param newKey
      * @param value
      * @param storeAuthStateInCookie
      */
-    private createCacheEntry(newKey: string, value: string) {
+    private migrateCacheEntry(newKey: string, value: string) {
         if (newKey && value) {
             this.setItem(newKey, value);
         }
@@ -80,7 +82,7 @@ export class BrowserStorage implements ICacheStorage {
     private generateCacheKey(key: string, addInstanceId: boolean): string {
         try {
             // Defined schemas do not need the key appended
-            JSON.parse(key);
+            this.validateObjectKey(key);
             return key;
         } catch (e) {
             if (key.startsWith(`${Constants.CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
@@ -88,6 +90,14 @@ export class BrowserStorage implements ICacheStorage {
             }
             return addInstanceId ? `${Constants.CACHE_PREFIX}.${this.clientId}.${key}` : `${Constants.CACHE_PREFIX}.${key}`;
         }
+    }
+
+    /**
+     * Parses key as JSON object, JSON.parse() will throw an error.
+     * @param key 
+     */
+    private validateObjectKey(key: string): void {
+        JSON.parse(key);
     }
 
     setItem(key: string, value: string): void {
@@ -99,7 +109,6 @@ export class BrowserStorage implements ICacheStorage {
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.setItemCookie(msalKey, value);
         }
-        return;
     }
     
     getItem(key: string): string {
@@ -175,35 +184,35 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     /**
-     * add value to cookies
-     * @param cName
-     * @param cValue
+     * Add value to cookies
+     * @param cookieName
+     * @param cookieValue
      * @param expires
      */
-    setItemCookie(cName: string, cValue: string, expires?: number): void {
-        let cookieStr = cName + "=" + cValue + ";";
+    setItemCookie(cookieName: string, cookieValue: string, expires?: number): void {
+        let cookieStr = `${cookieName}=${cookieValue};path=/;`;
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
-            cookieStr += "expires=" + expireTime + ";";
+            cookieStr += `expires=${expireTime};`;
         }
 
         document.cookie = cookieStr;
     }
 
     /**
-     * get one item by key from cookies
-     * @param cName
+     * Get one item by key from cookies
+     * @param cookieName
      */
-    getItemCookie(cName: string): string {
-        const name = cName + "=";
-        const ca = document.cookie.split(";");
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === " ") {
-                c = c.substring(1);
+    getItemCookie(cookieName: string): string {
+        const name = `${cookieName}=`;
+        const cookieList = document.cookie.split(";");
+        for (let i = 0; i < cookieList.length; i++) {
+            let cookie = cookieList[i];
+            while (cookie.charAt(0) === " ") {
+                cookie = cookie.substring(1);
             }
-            if (c.indexOf(name) === 0) {
-                return c.substring(name.length, c.length);
+            if (cookie.indexOf(name) === 0) {
+                return cookie.substring(name.length, cookie.length);
             }
         }
         return "";
@@ -211,16 +220,16 @@ export class BrowserStorage implements ICacheStorage {
 
     /**
      * Clear an item in the cookies by key
-     * @param cName
+     * @param cookieName
      */
-    clearItemCookie(cName: string) {
-        this.setItemCookie(cName, "", -1);
+    clearItemCookie(cookieName: string) {
+        this.setItemCookie(cookieName, "", -1);
     }
 
     /**
      * Clear all msal cookies
      */
-    public clearMsalCookie(state?: string): void {
+    clearMsalCookie(state?: string): void {
         const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
         this.clearItemCookie(nonceKey);
         this.clearItemCookie(TemporaryCacheKeys.REQUEST_STATE);
@@ -233,7 +242,7 @@ export class BrowserStorage implements ICacheStorage {
      */
     getCookieExpirationTime(cookieLifeDays: number): string {
         const today = new Date();
-        const expr = new Date(today.getTime() + cookieLifeDays * 24 * 60 * 60 * 1000);
+        const expr = new Date(today.getTime() + cookieLifeDays * COOKIE_LIFE_MULTIPLIER);
         return expr.toUTCString();
     }
 }
