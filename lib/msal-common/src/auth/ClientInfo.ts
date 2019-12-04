@@ -10,43 +10,25 @@ import { ICrypto } from "../utils/crypto/ICrypto";
 /**
  * @hidden
  */
-export class ClientInfo {
+export type ClientInfo = {
+    uid: string,
+    utid: string
+}
 
-    private _uid: string;
-    get uid(): string {
-        return this._uid;
+/**
+ * Function to build a client info object
+ * @param rawClientInfo 
+ * @param crypto 
+ */
+export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientInfo {
+    if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
+        throw ClientAuthError.createClientInfoEmptyError(rawClientInfo);
     }
 
-    set uid(uid: string) {
-        this._uid = uid;
-    }
-
-    private _utid: string;
-    get utid(): string {
-        return this._utid;
-    }
-
-    set utid(utid: string) {
-        this._utid = utid;
-    }
-
-    constructor(rawClientInfo: string, crypto: ICrypto) {
-        if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
-            throw ClientAuthError.createClientInfoEmptyError(rawClientInfo);
-        }
-
-        try {
-            const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
-            const clientInfo = JSON.parse(decodedClientInfo);
-            if (clientInfo.hasOwnProperty("uid")) {
-                this.uid = clientInfo.uid;
-            }
-
-            if (clientInfo.hasOwnProperty("utid")) {
-                this.utid = clientInfo.utid;
-            }
-        } catch (e) {
-            throw ClientAuthError.createClientInfoDecodingError(e);
-        }
+    try {
+        const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
+        return JSON.parse(decodedClientInfo) as ClientInfo;
+    } catch (e) {
+        throw ClientAuthError.createClientInfoDecodingError(e);
     }
 }

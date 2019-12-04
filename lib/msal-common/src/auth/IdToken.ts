@@ -21,7 +21,7 @@ export class IdToken {
         }
 
         this.rawIdToken = rawIdToken;
-        this.claims = IdToken.extractIdToken(rawIdToken, crypto) as IdTokenClaims;
+        this.claims = IdToken.extractIdToken(rawIdToken, crypto);
     }
 
     /**
@@ -29,7 +29,7 @@ export class IdToken {
      *
      * @param encodedIdToken
      */
-    static extractIdToken(encodedIdToken: string, crypto: ICrypto): any {
+    static extractIdToken(encodedIdToken: string, crypto: ICrypto): IdTokenClaims {
         // id token will be decoded to get the username
         const decodedToken = StringUtils.decodeJwt(encodedIdToken);
         if (!decodedToken) {
@@ -39,7 +39,7 @@ export class IdToken {
             const base64IdToken = decodedToken.JWSPayload;
             // base64Decode() should throw an error if there is an issue
             const base64Decoded = crypto.base64Decode(base64IdToken);
-            return JSON.parse(base64Decoded);
+            return JSON.parse(base64Decoded) as IdTokenClaims;
         } catch (err) {
             throw ClientAuthError.createIdTokenParsingError(err);
         }

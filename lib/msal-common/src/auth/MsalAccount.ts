@@ -6,7 +6,6 @@
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { StringUtils } from "../utils/StringUtils";
-import { StringDict } from "../utils/MsalTypes";
 import { ICrypto } from "../utils/crypto/ICrypto";
 import { IdTokenClaims } from "./IdTokenClaims";
 
@@ -26,7 +25,7 @@ export class MsalAccount {
     userName: string;
     name: string;
     idToken: string;
-    idTokenClaims: StringDict;
+    idTokenClaims: IdTokenClaims;
     sid: string;
     environment: string;
 
