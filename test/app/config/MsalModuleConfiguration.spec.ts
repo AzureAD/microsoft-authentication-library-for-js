@@ -75,6 +75,9 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
     it("buildMsalConfiguration correctly assigns new values", () => {
         let newConfig: MsalModuleConfiguration = buildMsalModuleConfiguration({
             cryptoInterface: {
+                createNewGuid: (): string => {
+                    return "newGuid";
+                },
                 base64Decode: (input: string): string => {
                     return "testDecodedString";
                 },

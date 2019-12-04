@@ -92,6 +92,9 @@ describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
                 navigateToLoginRequestUrl: false
             },
             cryptoInterface: {
+                createNewGuid: (): string => {
+                    return "newGuid";
+                },
                 base64Decode: (input: string): string => {
                     return "testDecodedString";
                 },
