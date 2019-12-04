@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ClientConfigurationError } from "msal-common";
+import { ClientConfigurationError, AuthError } from "msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
@@ -17,7 +17,7 @@ export const BrowserConfigurationAuthErrorMessage = {
 /**
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
-export class BrowserConfigurationAuthError extends ClientConfigurationError {
+export class BrowserConfigurationAuthError extends AuthError {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
