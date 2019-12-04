@@ -63,6 +63,11 @@ const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
 };
 
 const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
+    createNewGuid: (): string => {
+        const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
+        console.warn(notImplErr);
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
     base64Decode: (input: string): string => {
         const notImplErr = "Crypto interface - base64Decode() has not been implemented";
         console.warn(notImplErr);

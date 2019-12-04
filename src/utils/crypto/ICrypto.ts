@@ -18,6 +18,10 @@ export type PKCECodes = {
  */
 export interface ICrypto {
     /**
+     * Creates a guid randomly.
+     */
+    createNewGuid(): string;
+    /**
      * base64 Encode string
      * @param input 
      */
