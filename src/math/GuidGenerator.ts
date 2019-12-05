@@ -2,9 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { MathUtils } from "./MathUtils";
+import { MathUtils } from "../utils/MathUtils";
 
 export class GuidGenerator {
+
+    private cryptoObj: Crypto;
+
+    constructor(cryptoObj: Crypto) {
+        this.cryptoObj = cryptoObj;
+    }
 
     /*
      * RFC4122: The version 4 UUID is meant for generating UUIDs from truly-random or
@@ -28,11 +34,10 @@ export class GuidGenerator {
      * y could be 1000, 1001, 1010, 1011 since most significant two bits needs to be 10
      * y values are 8, 9, A, B
      */
-    static generateGuid(): string {
-        const cryptoObj: Crypto = window.crypto; // for IE 11
-        if (cryptoObj && cryptoObj.getRandomValues) {
+    generateGuid(): string {
+        if (this.cryptoObj && this.cryptoObj.getRandomValues) {
             const buffer: Uint8Array = new Uint8Array(16);
-            cryptoObj.getRandomValues(buffer);
+            this.cryptoObj.getRandomValues(buffer);
 
             // buffer[6] and buffer[7] represents the time_hi_and_version field. We will set the four most significant bits (4 through 7) of buffer[6] to represent decimal number 4 (UUID version number).
             buffer[6] |= 0x40; // buffer[6] | 01000000 will set the 6 bit to 1.

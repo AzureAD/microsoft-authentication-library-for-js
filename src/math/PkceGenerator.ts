@@ -14,7 +14,13 @@ const RANDOM_BYTE_ARR_LENGTH = 32;
  */
 export class PkceGenerator {
 
-    private base64Encode: Base64Encode = new Base64Encode();
+    private base64Encode: Base64Encode;
+    private cryptoObj: Crypto;
+
+    constructor(cryptoObj: Crypto) {
+        this.base64Encode = new Base64Encode();
+        this.cryptoObj = cryptoObj;
+    }
 
     /**
      * Generates PKCE Codes. See the RFC for more information: https://tools.ietf.org/html/rfc7636
@@ -33,18 +39,17 @@ export class PkceGenerator {
      * encoded string to be used as a PKCE Code Verifier
      */
     private generateCodeVerifier(): string {
-        const cryptoObj: Crypto = window.crypto;
-        if (cryptoObj && cryptoObj.getRandomValues) {
+        if (this.cryptoObj && this.cryptoObj.getRandomValues) {
             // Generate random values as utf-8
             const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
-            cryptoObj.getRandomValues(buffer);
+            this.cryptoObj.getRandomValues(buffer);
             // verifier as string
             const pkceCodeVerifierString = this.bufferToCVString(buffer);
             // encode verifier as base64
             const pkceCodeVerifierB64: string = this.base64Encode.urlEncode(pkceCodeVerifierString);
             return pkceCodeVerifierB64;
         } else {
-            throw BrowserAuthError.createPKCENotGeneratedError(`window.crypto or getRandomValues does not exist. Crypto object: ${cryptoObj}`);
+            throw BrowserAuthError.createPKCENotGeneratedError(`window.crypto, window.mscrypto, window.mscrypto.getRandomValues or getRandomValues does not exist. Crypto object: ${this.cryptoObj}`);
         }
     }
 
@@ -53,16 +58,15 @@ export class PkceGenerator {
      * hash created from the PKCE Code Verifier supplied
      */
     private async generateCodeChallengeFromVerifier(pkceCodeVerifier: string): Promise<string> {
-        const cryptoObj: Crypto = window.crypto;
-        if (cryptoObj && cryptoObj.subtle) {
+        if (this.cryptoObj && this.cryptoObj.subtle) {
             // encode verifier as utf-8
             const pkceCodeVerifierUtf8 = new TextEncoder().encode(pkceCodeVerifier);
             // hashed verifier
-            const pkceHashedCodeVerifier = await cryptoObj.subtle.digest("SHA-256", pkceCodeVerifierUtf8);
+            const pkceHashedCodeVerifier = await this.cryptoObj.subtle.digest("SHA-256", pkceCodeVerifierUtf8);
             // encode hash as base64
             return this.base64Encode.urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
         } else {
-            throw BrowserAuthError.createPKCENotGeneratedError(`window.crypto or window.crypto.subtle does not exist. Crypto object: ${cryptoObj}`);
+            throw BrowserAuthError.createPKCENotGeneratedError(`window.crypto, window.mscrypto, window.mscrypto.subtle or window.crypto.subtle does not exist. Crypto object: ${this.cryptoObj}`);
         }
     }
 
