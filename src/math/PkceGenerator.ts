@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { PKCECodes } from "msal-common";
+import { PkceCodes } from "msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Base64Encode } from "./Base64Encode";
 
@@ -25,7 +25,7 @@ export class PkceGenerator {
     /**
      * Generates PKCE Codes. See the RFC for more information: https://tools.ietf.org/html/rfc7636
      */
-    async generateCodes(): Promise<PKCECodes> {
+    async generateCodes(): Promise<PkceCodes> {
         const codeVerifier = this.generateCodeVerifier();
         const codeChallenge = await this.generateCodeChallengeFromVerifier(codeVerifier);
         return {
@@ -49,7 +49,7 @@ export class PkceGenerator {
             const pkceCodeVerifierB64: string = this.base64Encode.urlEncode(pkceCodeVerifierString);
             return pkceCodeVerifierB64;
         } else {
-            throw BrowserAuthError.createPKCENotGeneratedError(`window.crypto, window.mscrypto, window.mscrypto.getRandomValues or getRandomValues does not exist. Crypto object: ${this.cryptoObj}`);
+            throw BrowserAuthError.createPkceNotGeneratedError(`window.crypto, window.mscrypto, window.mscrypto.getRandomValues or getRandomValues does not exist. Crypto object: ${this.cryptoObj}`);
         }
     }
 
@@ -66,7 +66,7 @@ export class PkceGenerator {
             // encode hash as base64
             return this.base64Encode.urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
         } else {
-            throw BrowserAuthError.createPKCENotGeneratedError(`window.crypto, window.mscrypto, window.mscrypto.subtle or window.crypto.subtle does not exist. Crypto object: ${this.cryptoObj}`);
+            throw BrowserAuthError.createPkceNotGeneratedError(`window.crypto, window.mscrypto, window.mscrypto.subtle or window.crypto.subtle does not exist. Crypto object: ${this.cryptoObj}`);
         }
     }
 
