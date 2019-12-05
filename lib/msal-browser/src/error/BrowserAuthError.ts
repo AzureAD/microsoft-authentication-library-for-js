@@ -34,7 +34,7 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
     }
 
-    static createPKCENotGeneratedError(arg0: string) {
+    static createPkceNotGeneratedError(arg0: string) {
         return new BrowserAuthError(BrowserAuthErrorMessage.pkceNotGenerated.code,
             BrowserAuthErrorMessage.pkceNotGenerated.desc);
     }

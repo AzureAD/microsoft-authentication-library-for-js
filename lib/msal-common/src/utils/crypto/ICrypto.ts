@@ -4,11 +4,11 @@
  */
 
 /**
- * The PKCECodes type describes the structure
+ * The PkceCodes type describes the structure
  * of objects that contain PKCE code
  * challenge and verifier pairs
  */
-export type PKCECodes = {
+export type PkceCodes = {
     verifier: string,
     challenge: string
 };
@@ -34,5 +34,5 @@ export interface ICrypto {
     /**
      * Generate PKCE codes for OAuth. See RFC here: https://tools.ietf.org/html/rfc7636
      */
-    generatePKCECodes(): Promise<PKCECodes>;
+    generatePkceCodes(): Promise<PkceCodes>;
 }
