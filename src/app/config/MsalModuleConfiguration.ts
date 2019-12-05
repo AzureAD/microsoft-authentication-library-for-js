@@ -4,7 +4,7 @@
  */
 import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule } from "../../network/INetworkModule";
-import { ICrypto, PKCECodes } from "../../utils/crypto/ICrypto";
+import { ICrypto, PkceCodes } from "../../utils/crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
 
 /**
@@ -78,8 +78,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    async generatePKCECodes(): Promise<PKCECodes> {
-        const notImplErr = "Crypto interface - generatePKCECodes() has not been implemented";
+    async generatePkceCodes(): Promise<PkceCodes> {
+        const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     }
