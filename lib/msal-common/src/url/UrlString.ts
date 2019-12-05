@@ -121,7 +121,7 @@ export class UrlString {
      */
     getDeserializedHash() {
         const hash = this.getHash();
-        return StringUtils.deserialize(hash);
+        return StringUtils.queryStringToObject(hash);
     }
 
     /**

@@ -32,7 +32,7 @@ export class StringUtils {
     }
 
     /**
-     * Check if a string is empty
+     * Check if a string is empty.
      *
      * @param str
      */
@@ -41,11 +41,11 @@ export class StringUtils {
     }
 
     /**
-     * deserialize a string
+     * Parses string into an object.
      *
      * @param query
      */
-    static deserialize(query: string): any {
+    static queryStringToObject(query: string): any {
         let match: Array<string>; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
