@@ -14,5 +14,5 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendRequestAsync(url: string, requestParams: RequestInit, enableCaching?:boolean): Promise<any>
+    sendRequestAsync(url: string, requestParams: RequestInit): Promise<any>;
 }
