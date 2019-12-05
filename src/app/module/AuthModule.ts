@@ -14,6 +14,7 @@ import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule } from "../../network/INetworkModule";
 // utils
 import { ICrypto } from "../../utils/crypto/ICrypto";
+import { MsalAccount } from "../../auth/MsalAccount";
 
 /**
  * @hidden
@@ -44,6 +45,9 @@ export abstract class AuthModule {
 
     // Network Interface
     protected networkClient: INetworkModule;
+
+    // Account object
+    protected account: MsalAccount;
 
     constructor(configuration: MsalModuleConfiguration) {
         // Set the configuration
