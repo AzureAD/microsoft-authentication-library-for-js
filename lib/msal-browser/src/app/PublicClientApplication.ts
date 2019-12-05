@@ -4,10 +4,11 @@
  */
 
 import * as msalAuth from "msal-common";
-import { Configuration, buildConfiguration } from "./Configuration";
+import { Configuration, buildConfiguration, SystemOptions } from "./Configuration";
 import { BrowserCrypto } from "../utils/crypto/BrowserCrypto";
 import { FetchClient } from "../network/FetchClient";
 import { BrowserStorage } from "../cache/BrowserStorage";
+import { INetworkClient } from "../network/INetworkClient";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -44,7 +45,7 @@ export class PublicClientApplication {
     private browserStorage: BrowserStorage;
 
     // Network interface implementation
-    private fetchClient: FetchClient;
+    private networkClient: INetworkClient;
 
     /**
      * @constructor
@@ -74,7 +75,7 @@ export class PublicClientApplication {
         this.browserCrypto = new BrowserCrypto();
 
         // Initialize the network module class
-        this.fetchClient = new FetchClient();
+        this.networkClient = this.config.system.networkClient;
 
         // Initialize the browser storage class
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
@@ -83,7 +84,7 @@ export class PublicClientApplication {
         this.authModule = new msalAuth.AuthorizationCodeModule({
             auth: this.config.auth,
             cryptoInterface: this.browserCrypto,
-            networkInterface: this.fetchClient,
+            networkInterface: this.networkClient,
             storageInterface: this.browserStorage
         });
     }
