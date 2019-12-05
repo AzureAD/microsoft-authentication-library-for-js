@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICrypto, PKCECodes } from "msal-common";
+import { ICrypto, PkceCodes } from "msal-common";
 import { GuidGenerator } from "../../math/GuidGenerator";
 import { Base64Encode } from "../../math/Base64Encode";
 import { Base64Decode } from "../../math/Base64Decode";
@@ -38,7 +38,7 @@ export class BrowserCrypto implements ICrypto {
         return this.b64Decode.decode(input);
     }
 
-    async generatePKCECodes(): Promise<PKCECodes> {
+    async generatePkceCodes(): Promise<PkceCodes> {
         return this.pkceGenerator.generateCodes();
     }
 
