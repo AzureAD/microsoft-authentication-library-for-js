@@ -35,6 +35,8 @@ describe("AuthError.ts Class", () => {
             err = error;
         }
 
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
         expect(err.errorCode).to.equal(AuthErrorMessage.unexpectedError.code);
         expect(err.errorMessage).to.contain(AuthErrorMessage.unexpectedError.desc);
         expect(err.errorMessage).to.contain(ERROR_DESC);

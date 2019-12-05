@@ -16,7 +16,7 @@ const TEST_FRAME_TIMEOUT = 3000;
 const TEST_OFFSET = 100;
 const TEST_NAVIGATE_FRAME_WAIT = 200;
 
-describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
+describe("Configuration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default values", () => {
         let emptyConfig: Configuration = buildConfiguration({auth: null});
@@ -58,8 +58,6 @@ describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.telemetry).to.be.undefined;
         // Framework config checks
         expect(emptyConfig.framework).to.be.not.null;
-        expect(emptyConfig.framework.isAngular).to.be.not.null;
-        expect(emptyConfig.framework.isAngular).to.be.false;
         expect(emptyConfig.framework.unprotectedResources).to.be.not.null;
         expect(emptyConfig.framework.unprotectedResources).to.be.empty;
         expect(emptyConfig.framework.protectedResourceMap).to.be.not.null;
@@ -96,7 +94,6 @@ describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
                 }
             },
             framework: {
-                isAngular: true,
                 unprotectedResources: testUnprotectedResources,
                 protectedResourceMap: testProtectedResourceMap
             }
@@ -129,8 +126,6 @@ describe("MsalPublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.system.telemetry.applicationVersion).to.be.eq(testAppVersion);
         // Framework config checks
         expect(newConfig.framework).to.be.not.null;
-        expect(newConfig.framework.isAngular).to.be.not.null;
-        expect(newConfig.framework.isAngular).to.be.true;
         expect(newConfig.framework.unprotectedResources).to.be.not.null;
         expect(newConfig.framework.unprotectedResources).to.be.eq(testUnprotectedResources);
         expect(newConfig.framework.protectedResourceMap).to.be.not.null;
