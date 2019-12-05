@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-/**
- * Client network interface to send backend requests.
- * @hidden
- */
-export interface INetworkModule {
+import { INetworkModule } from "msal-common";
+
+export interface INetworkClient extends INetworkModule {
     /**
      * Interface function for async network requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
      * @param url 

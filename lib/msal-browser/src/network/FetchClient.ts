@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule } from "msal-common";
+import { INetworkClient } from "./INetworkClient";
 
-export class FetchClient implements INetworkModule {
+export class FetchClient implements INetworkClient {
 
     /**
      * XHR client for JSON endpoints
@@ -13,9 +13,8 @@ export class FetchClient implements INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    async sendRequestAsync(url: string, requestParams: RequestInit, enableCaching?: boolean): Promise<any> {
-        return await fetch(url, requestParams).then(resp => {
-            return resp.json();
-        });
+    async sendRequestAsync(url: string, requestParams: RequestInit): Promise<any> {
+        const response = await fetch(url, requestParams);
+        return response.json();
     }
 }
