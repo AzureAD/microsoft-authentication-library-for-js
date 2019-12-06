@@ -50,7 +50,7 @@ export class ScopeSet {
      * @param scopes 
      */
     static trimScopes(scopes: Array<string>): Array<string> {
-        return scopes ? scopes.map(scope => scope.trim()) : scopes;
+        return scopes && scopes.map(scope => scope.trim());
     }
 
     /**
