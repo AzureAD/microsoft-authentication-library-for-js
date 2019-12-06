@@ -6,13 +6,14 @@
 // inheritance
 import { AuthModule } from "./AuthModule";
 // app
-import { MsalPublicClientSPAConfiguration, buildMsalPublicClientSPAConfiguration } from "../config/MsalPublicClientSPAConfiguration";
+import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../config/PublicClientSPAConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 // response
 import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 
 /**
  * AuthorizationCodeModule class
@@ -23,19 +24,26 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 export class AuthorizationCodeModule extends AuthModule {
 
     // Application config
-    protected config: MsalPublicClientSPAConfiguration;
+    private clientConfig: PublicClientSPAConfiguration;
     
-    constructor(configuration: MsalPublicClientSPAConfiguration) {
+    constructor(configuration: PublicClientSPAConfiguration) {
         super({
             storageInterface: configuration.storageInterface,
             networkInterface: configuration.networkInterface,
             cryptoInterface: configuration.cryptoInterface
         });
-        this.config = buildMsalPublicClientSPAConfiguration(configuration);
+        this.clientConfig = buildPublicClientSPAConfiguration(configuration);
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || AuthorityFactory.DEFAULT_AUTHORITY, this.networkClient);
     }
 
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
+        // Initialize authority or use default, and perform discovery endpoint check
+        let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+        await acquireTokenAuthority.resolveEndpointsAsync();
+
+        // Set the account object to the current session
+        request.account = this.getAccount();
+        return null;
     }    
     
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
@@ -56,11 +64,11 @@ export class AuthorizationCodeModule extends AuthModule {
      *
      */
     public getRedirectUri(): string {
-        if (this.config.auth.redirectUri) {
-            if (typeof this.config.auth.redirectUri === "function") {
-                return this.config.auth.redirectUri();
+        if (this.clientConfig.auth.redirectUri) {
+            if (typeof this.clientConfig.auth.redirectUri === "function") {
+                return this.clientConfig.auth.redirectUri();
             }
-            return this.config.auth.redirectUri;
+            return this.clientConfig.auth.redirectUri;
         } else {
             throw ClientConfigurationError.createRedirectUriEmptyError();
         }
@@ -73,11 +81,11 @@ export class AuthorizationCodeModule extends AuthModule {
      * @returns {string} post logout redirect URL
      */
     public getPostLogoutRedirectUri(): string {
-        if (this.config.auth.postLogoutRedirectUri) {
-            if (typeof this.config.auth.postLogoutRedirectUri === "function") {
-                return this.config.auth.postLogoutRedirectUri();
+        if (this.clientConfig.auth.postLogoutRedirectUri) {
+            if (typeof this.clientConfig.auth.postLogoutRedirectUri === "function") {
+                return this.clientConfig.auth.postLogoutRedirectUri();
             }
-            return this.config.auth.postLogoutRedirectUri;
+            return this.clientConfig.auth.postLogoutRedirectUri;
         } else {
             throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
         }
