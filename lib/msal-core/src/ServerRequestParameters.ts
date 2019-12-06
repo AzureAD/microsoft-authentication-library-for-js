@@ -75,7 +75,7 @@ export class ServerRequestParameters {
     }
 
     private createScopes(scopeArr: Array<string>): Array<string> {
-        return scopeArr ? scopeArr.map(scope => scope.trim()) : [this.clientId];
+        return scopeArr ? scopeArr.map(scope => scope.trim().toLowerCase()) : [this.clientId];
     }
 
     /**

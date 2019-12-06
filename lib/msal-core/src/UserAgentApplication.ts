@@ -460,7 +460,6 @@ export class UserAgentApplication {
     private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -517,7 +516,7 @@ export class UserAgentApplication {
 
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
-
+            const scope = serverAuthenticationRequest.scopes.join(" ");
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
 
@@ -601,8 +600,6 @@ export class UserAgentApplication {
             // block the request if made from the hidden iframe
             WindowUtils.blockReloadInHiddenIframes();
 
-            const scope = request.scopes.join(" ").toLowerCase();
-
             // if the developer passes an account, give that account the priority
             const account: Account = request.account || this.getAccount();
 
@@ -652,7 +649,7 @@ export class UserAgentApplication {
                     authErr = e;
                 }
             }
-
+            const scope = serverAuthenticationRequest.scopes.join(" ").toLowerCase();
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
                 this.logger.info("Token is already in cache for scope:" + scope);
@@ -693,18 +690,18 @@ export class UserAgentApplication {
                             this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
                         }
                         else {
-                            if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
+                            if (serverAuthenticationRequest.scopes && serverAuthenticationRequest.scopes.indexOf(this.clientId) > -1 && serverAuthenticationRequest.scopes.length === 1) {
                                 /*
                                  * App uses idToken to send to api endpoints
                                  * Default scope is tracked as clientId to store this token
                                  */
                                 this.logger.verbose("renewing idToken");
                                 this.silentLogin = true;
-                                this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+                                this.renewIdToken(resolve, reject, account, serverAuthenticationRequest);
                             } else {
                                 // renew access token
                                 this.logger.verbose("renewing accesstoken");
-                                this.renewToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+                                this.renewToken(resolve, reject, account, serverAuthenticationRequest);
                             }
                         }
                     }).catch((err) => {
@@ -1278,8 +1275,8 @@ export class UserAgentApplication {
      * Acquires access token using a hidden iframe.
      * @ignore
      */
-    private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        const scope = scopes.join(" ").toLowerCase();
+    private renewToken(resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+        const scope = serverAuthenticationRequest.scopes.join(" ").toLowerCase();
         this.logger.verbose("renewToken is called for scope:" + scope);
 
         const frameName = `msalRenewFrame${scope}`;
@@ -1304,7 +1301,7 @@ export class UserAgentApplication {
      * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
      * @ignore
      */
-    private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+    private renewIdToken(resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.info("renewidToken is called");
         const frameName = "msalIdTokenFrame";
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);

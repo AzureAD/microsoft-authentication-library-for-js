@@ -43,6 +43,21 @@ describe("RequestUtils.ts class", () => {
         expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
     });
 
+    it.only("Scopes with leading or trailing spaces are trimmed before validation", () => {
+        let clientIdSingleScopeError;
+        try {
+            const userRequest: AuthenticationParameters = {scopes: [` ${TEST_CONFIG.MSAL_CLIENT_ID}  `, "S2"]};
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID);
+        } catch (e) {
+            clientIdSingleScopeError = e;
+        };
+        
+        expect(clientIdSingleScopeError instanceof ClientConfigurationError).to.be.true;
+        expect(clientIdSingleScopeError.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
+        expect(clientIdSingleScopeError.name).to.equal("ClientConfigurationError");
+        expect(clientIdSingleScopeError.stack).to.include("RequestUtils.spec.ts");
+    });
+
     it("ClientId can be sent only as a single scope", () => {
 
         let improperScopes : ClientConfigurationError;

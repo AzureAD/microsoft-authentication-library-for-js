@@ -46,7 +46,7 @@ export class RequestUtils {
         if(request) {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
             scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
-            ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
+            ScopeSet.validateInputScope(scopes.map(scope => scope.trim().toLowerCase()), !isLoginCall, clientId);
 
             // validate prompt parameter
             this.validatePromptParameter(request.prompt);
