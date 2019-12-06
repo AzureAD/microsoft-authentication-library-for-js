@@ -18,7 +18,7 @@ import { IdTokenClaims } from "./IdTokenClaims";
  * sid                     idToken.sid - session identifier
  * environment             idtoken.issuer (the authority that issues the token)
  */
-export class MsalAccount {
+export class Account {
 
     accountIdentifier: string;
     homeAccountIdentifier: string;
@@ -56,7 +56,7 @@ export class MsalAccount {
      * @param idToken
      * @param clientInfo
      */
-    static createAccount(idToken: IdToken, clientInfo: ClientInfo, crypto: ICrypto): MsalAccount {
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo, crypto: ICrypto): Account {
 
         // create accountIdentifier
         const accountIdentifier: string = idToken.claims.oid ||  idToken.claims.sub;
@@ -69,7 +69,7 @@ export class MsalAccount {
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             homeAccountIdentifier = crypto.base64Encode(uid) + "." + crypto.base64Encode(utid);
         }
-        return new MsalAccount(accountIdentifier, homeAccountIdentifier, idToken.claims, idToken.rawIdToken);
+        return new Account(accountIdentifier, homeAccountIdentifier, idToken.claims, idToken.rawIdToken);
     }
 
     /**
@@ -78,7 +78,7 @@ export class MsalAccount {
      * @param a1: Account object
      * @param a2: Account object
      */
-    static compareAccounts(a1: MsalAccount, a2: MsalAccount): boolean {
+    static compareAccounts(a1: Account, a2: Account): boolean {
         if (!(a1 && a1.homeAccountIdentifier) || !(a2 && a2.homeAccountIdentifier)) {
             return false;
         }

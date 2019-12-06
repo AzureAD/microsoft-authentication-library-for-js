@@ -1,6 +1,6 @@
 // App Auth Modules and Configuration
 export { AuthorizationCodeModule } from "./app/module/AuthorizationCodeModule";
-export { MsalPublicClientSPAConfiguration as MsalPublicClientConfiguration, AuthOptions } from "./app/config/MsalPublicClientSPAConfiguration";
+export { PublicClientSPAConfiguration, AuthOptions } from "./app/config/PublicClientSPAConfiguration";
 // Authority
 export { Authority } from "./auth/authority/Authority";
 export { AuthorityFactory } from "./auth/authority/AuthorityFactory";

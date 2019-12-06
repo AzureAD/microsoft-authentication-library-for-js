@@ -15,7 +15,7 @@ import { AuthError } from "../../error/AuthError";
  * - network: this is where you can configure network implementation.
  * - crypto: implementation of crypto functions
  */
-export type MsalModuleConfiguration = {
+export type ModuleConfiguration = {
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto
@@ -94,8 +94,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildMsalModuleConfiguration({ storageInterface, networkInterface, cryptoInterface }: MsalModuleConfiguration): MsalModuleConfiguration {
-    const overlayedConfig: MsalModuleConfiguration = {
+export function buildModuleConfiguration({ storageInterface, networkInterface, cryptoInterface }: ModuleConfiguration): ModuleConfiguration {
+    const overlayedConfig: ModuleConfiguration = {
         storageInterface: { ...DEFAULT_STORAGE_OPTIONS, ...storageInterface },
         networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface },
         cryptoInterface: { ...DEFAULT_CRYPTO_IMPLEMENTATION, ...cryptoInterface }
