@@ -43,7 +43,7 @@ describe("RequestUtils.ts class", () => {
         expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
     });
 
-    it.only("Scopes with leading or trailing spaces are trimmed before validation", () => {
+    it("Scopes with leading or trailing spaces are trimmed before validation", () => {
         let clientIdSingleScopeError;
         try {
             const userRequest: AuthenticationParameters = {scopes: [` ${TEST_CONFIG.MSAL_CLIENT_ID}  `, "S2"]};

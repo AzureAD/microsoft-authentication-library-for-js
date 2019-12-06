@@ -516,7 +516,7 @@ export class UserAgentApplication {
 
             // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
-            const scope = serverAuthenticationRequest.scopes.join(" ");
+            const scope = serverAuthenticationRequest.scopes.join(" ").toLowerCase();
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
 
@@ -1276,7 +1276,7 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewToken(resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        const scope = serverAuthenticationRequest.scopes.join(" ").toLowerCase();
+        const scope = serverAuthenticationRequest.scopes.join(" ");
         this.logger.verbose("renewToken is called for scope:" + scope);
 
         const frameName = `msalRenewFrame${scope}`;
