@@ -10,6 +10,7 @@ import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, libraryVersion } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
+import { ScopeSet } from "./ScopeSet";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -75,7 +76,7 @@ export class ServerRequestParameters {
     }
 
     private createScopes(scopeArr: Array<string>): Array<string> {
-        return scopeArr ? scopeArr.map(scope => scope.trim()) : [this.clientId];
+        return scopeArr ? ScopeSet.trimScopes(scopeArr) : [this.clientId];
     }
 
     /**

@@ -44,9 +44,9 @@ export class RequestUtils {
         let extraQueryParameters: StringDict;
 
         if(request) {
+            const reqScopes = ScopeSet.trimScopes(request.scopes);
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
-            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
-            scopes = scopes ? scopes.map(scope => scope.trim()) : scopes;
+            scopes = isLoginCall ? ScopeSet.appendScopes(reqScopes, ScopeSet.trimScopes(request.extraScopesToConsent)) : reqScopes;
             ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
 
             // validate prompt parameter

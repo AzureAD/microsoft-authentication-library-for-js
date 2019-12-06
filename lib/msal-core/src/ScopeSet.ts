@@ -16,7 +16,7 @@ export class ScopeSet {
      */
     // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
     static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
+        cachedScopes = this.convertScopesToLowerCase(cachedScopes);
         for (let i = 0; i < scopes.length; i++) {
             if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
                 return true;
@@ -32,7 +32,7 @@ export class ScopeSet {
      * @param scopes
      */
     static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
+        cachedScopes = this.convertScopesToLowerCase(cachedScopes);
         return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
     }
 
@@ -41,9 +41,16 @@ export class ScopeSet {
      *
      * @param scopes
      */
-    // TODO: Rename this, too generic name for a function that only deals with scopes
-    static convertToLowerCase(scopes: Array<string>): Array<string> {
+    static convertScopesToLowerCase(scopes: Array<string>): Array<string> {
         return scopes.map(scope => scope.toLowerCase());
+    }
+
+    /**
+     * Trim scope values
+     * @param scopes 
+     */
+    static trimScopes(scopes: Array<string>): Array<string> {
+        return scopes ? scopes.map(scope => scope.trim()) : scopes;
     }
 
     /**
@@ -52,8 +59,7 @@ export class ScopeSet {
      * @param scopes
      * @param scope
      */
-    // TODO: Rename this, too generic name for a function that only deals with scopes
-    static removeElement(scopes: Array<string>, scope: string): Array<string> {
+    static removeScope(scopes: Array<string>, scope: string): Array<string> {
         return scopes.filter(value => value !== scope);
     }
 
