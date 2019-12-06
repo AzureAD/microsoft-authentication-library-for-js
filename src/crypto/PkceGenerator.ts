@@ -4,7 +4,7 @@
  */
 import { PkceCodes } from "msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { Base64Encode } from "./Base64Encode";
+import { Base64Encode } from "../encode/Base64Encode";
 
 const CV_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
 const RANDOM_BYTE_ARR_LENGTH = 32;
