@@ -1276,7 +1276,7 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewToken(resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        const scope = serverAuthenticationRequest.scopes.join(" ");
+        const scope = serverAuthenticationRequest.scopes.join(" ").toLowerCase();
         this.logger.verbose("renewToken is called for scope:" + scope);
 
         const frameName = `msalRenewFrame${scope}`;
