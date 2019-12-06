@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 import { ICrypto, PkceCodes } from "msal-common";
-import { GuidGenerator } from "../../math/GuidGenerator";
-import { Base64Encode } from "../../math/Base64Encode";
-import { Base64Decode } from "../../math/Base64Decode";
-import { PkceGenerator } from "../../math/PkceGenerator";
+import { GuidGenerator } from "../../crypto/GuidGenerator";
+import { Base64Encode } from "../../encode/Base64Encode";
+import { Base64Decode } from "../../encode/Base64Decode";
+import { PkceGenerator } from "../../crypto/PkceGenerator";
 
 export class BrowserCrypto implements ICrypto {
 
