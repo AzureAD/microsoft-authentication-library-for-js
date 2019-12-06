@@ -47,6 +47,23 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(req.scopes.length).to.be.eql(1);
         });
 
+        it("Scopes are trimmed if scopes with leading or trailing spaces are passed", function () {
+            const scopes = ["  S1", "S2  ", "  S3  "];
+            const expectedScopes = ["S1", "S2", "S3"];
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
+            const req = new ServerRequestParameters(
+                authority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                TEST_RESPONSE_TYPE.token,
+                TEST_URIS.TEST_REDIR_URI,
+                scopes,
+                TEST_CONFIG.STATE,
+                TEST_CONFIG.CorrelationId
+            );
+            expect(req.scopes).to.be.deep.equal(expectedScopes);
+            expect(req.scopes.length).to.be.eql(expectedScopes.length);
+        });
     });
 
     describe("State Generation", function () {

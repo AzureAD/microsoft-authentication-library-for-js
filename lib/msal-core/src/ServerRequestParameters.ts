@@ -58,7 +58,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // set scope to clientId if null
-        this.scopes = scopes? [ ...scopes] : [clientId];
+        this.scopes = this.createScopes(scopes);
 
         // set state (already set at top level)
         this.state = state;
@@ -72,6 +72,10 @@ export class ServerRequestParameters {
 
         this.responseType = responseType;
         this.redirectUri = redirectUri;
+    }
+
+    private createScopes(scopeArr: Array<string>): Array<string> {
+        return scopeArr ? scopeArr.map(scope => scope.trim()) : [this.clientId];
     }
 
     /**
