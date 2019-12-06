@@ -21,14 +21,7 @@ export class BrowserStorage implements ICacheStorage {
     private rollbackEnabled: boolean;
 
     constructor(clientId: string, cacheConfig: CacheOptions) {
-        if (!window) {
-            throw BrowserAuthError.createNoWindowObjectError();
-        }
-
-        const storageSupported = typeof window !== "undefined" && !!window[cacheConfig.cacheLocation];
-        if (!storageSupported) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError();
-        }
+        this.validateWindowStorage(cacheConfig.cacheLocation);
 
         this.cacheConfig = cacheConfig;
         this.windowStorage = window[this.cacheConfig.cacheLocation];
@@ -38,6 +31,17 @@ export class BrowserStorage implements ICacheStorage {
         this.rollbackEnabled = true;
 
         this.migrateCacheEntries();
+    }
+
+    private validateWindowStorage(cacheLocation: string) {
+        if (!window || typeof window === "undefined") {
+            throw BrowserAuthError.createNoWindowObjectError();
+        }
+
+        const storageSupported = !!window[cacheLocation];
+        if (!storageSupported) {
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError();
+        }
     }
 
     /**
