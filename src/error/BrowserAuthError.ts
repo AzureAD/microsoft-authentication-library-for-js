@@ -15,6 +15,10 @@ export const BrowserAuthErrorMessage = {
     pkceNotGenerated: {
         code: "pkce_not_created",
         desc: "The PKCE code challenge and verifier could not be generated."
+    },
+    cryptoDoesNotExist: {
+        code: "crypto_nonexistent",
+        desc: "The crypto object or function is not available."
     }
 };
 
@@ -25,17 +29,22 @@ export class BrowserAuthError extends AuthError {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
-        this.name = "BrowserAuthError";
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
+        this.name = "BrowserAuthError";
     }
 
     static createNoWindowObjectError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
     }
 
-    static createPkceNotGeneratedError(arg0: string) {
+    static createPkceNotGeneratedError(errDetail: string) {
         return new BrowserAuthError(BrowserAuthErrorMessage.pkceNotGenerated.code,
-            BrowserAuthErrorMessage.pkceNotGenerated.desc);
+            `${BrowserAuthErrorMessage.pkceNotGenerated.desc} Detail:${errDetail}`);
+    }
+
+    static createCryptoNotAvailableError(errDetail: string) {
+        return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code, 
+            `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`);
     }
 }
