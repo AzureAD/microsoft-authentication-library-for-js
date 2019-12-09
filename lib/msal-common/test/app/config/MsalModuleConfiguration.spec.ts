@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "../../../src/app/config/MsalModuleConfiguration";
-import { PKCECodes } from "../../../src/utils/crypto/ICrypto";
+import { PkceCodes } from "../../../src/utils/crypto/ICrypto";
 import { AuthError } from "../../../src/error/AuthError";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -19,9 +19,9 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.cryptoInterface.base64Encode).to.be.not.null;
         expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).to.throw("Unexpected error in authentication.: Crypto interface - base64Encode() has not been implemented");
         expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).to.throw(AuthError);
-        expect(emptyConfig.cryptoInterface.generatePKCECodes).to.be.not.null;
-        await expect(emptyConfig.cryptoInterface.generatePKCECodes()).to.be.rejectedWith("Unexpected error in authentication.: Crypto interface - generatePKCECodes() has not been implemented");
-        await expect(emptyConfig.cryptoInterface.generatePKCECodes()).to.be.rejectedWith(AuthError);
+        expect(emptyConfig.cryptoInterface.generatePkceCodes).to.be.not.null;
+        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith("Unexpected error in authentication.: Crypto interface - generatePkceCodes() has not been implemented");
+        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith(AuthError);
         // Storage interface checks
         expect(emptyConfig.storageInterface).to.be.not.null;
         expect(emptyConfig.storageInterface.clear).to.be.not.null;
@@ -61,10 +61,10 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
         return;
     };
 
-    const testPKCECodes = {
+    const testPkceCodes = {
         challenge: "TestChallenge",
         verifier: "TestVerifier"
-    } as PKCECodes;
+    } as PkceCodes;
 
     const testNetworkResult = {
         testParam: "testValue"
@@ -84,8 +84,8 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
                 base64Encode: (input: string): string => {
                     return "testEncodedString";
                 },
-                generatePKCECodes: async (): Promise<PKCECodes> => {
-                    return testPKCECodes;
+                generatePkceCodes: async (): Promise<PkceCodes> => {
+                    return testPkceCodes;
                 }
             },
             storageInterface: {
@@ -114,8 +114,8 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Decode("testString")).to.be.eq("testDecodedString");
         expect(newConfig.cryptoInterface.base64Encode).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Encode("testString")).to.be.eq("testEncodedString");
-        expect(newConfig.cryptoInterface.generatePKCECodes).to.be.not.null;
-        expect(newConfig.cryptoInterface.generatePKCECodes()).to.eventually.eq(testPKCECodes);
+        expect(newConfig.cryptoInterface.generatePkceCodes).to.be.not.null;
+        expect(newConfig.cryptoInterface.generatePkceCodes()).to.eventually.eq(testPkceCodes);
         // Storage interface tests
         expect(newConfig.storageInterface).to.be.not.null;
         expect(newConfig.storageInterface.clear).to.be.not.null;
