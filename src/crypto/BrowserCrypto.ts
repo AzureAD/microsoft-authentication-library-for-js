@@ -12,7 +12,7 @@ export class BrowserCrypto {
 
     constructor() {
         if (!(window["msCrypto"] || window.crypto)) {
-            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.")
+            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
     }
 

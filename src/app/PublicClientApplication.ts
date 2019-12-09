@@ -5,7 +5,7 @@
 
 import * as msalAuth from "msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
-import { BrowserCrypto } from "../utils/crypto/BrowserCrypto";
+import { CryptoOps } from "../crypto/CryptoOps";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -36,7 +36,7 @@ export class PublicClientApplication {
     private authCallback: authCallback = null;
 
     // Crypto interface implementation
-    private browserCrypto: BrowserCrypto;
+    private browserCrypto: CryptoOps;
 
     /**
      * @constructor
@@ -63,7 +63,7 @@ export class PublicClientApplication {
         this.config = buildConfiguration(configuration);
 
         // Initialize the crypto class
-        this.browserCrypto = new BrowserCrypto();
+        this.browserCrypto = new CryptoOps();
 
         // Create auth module
         this.authModule = new msalAuth.AuthorizationCodeModule({
@@ -91,7 +91,7 @@ export class PublicClientApplication {
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: msalAuth.AuthenticationParameters): void {
+    async loginRedirect(request: msalAuth.AuthenticationParameters): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
