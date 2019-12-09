@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys } from "msal-common";
 import { CacheOptions } from "../app/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -33,7 +32,7 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     private validateWindowStorage(cacheLocation: string) {
-        if (!window || typeof window === "undefined") {
+        if (typeof window === "undefined" || !window) {
             throw BrowserAuthError.createNoWindowObjectError();
         }
 
@@ -72,7 +71,7 @@ export class BrowserStorage implements ICacheStorage {
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntry(newKey: string, value: string) {
-        if (newKey && value) {
+        if (value) {
             this.setItem(newKey, value);
         }
     }
