@@ -7,7 +7,8 @@
  * @hidden
  * Constants
  */
-export class Constants {
+export class BrowserConstants {
+    static get inProgress(): string { return "inProgress"; }
     static get cacheLocationLocal(): string { return "localStorage"; }
     static get cacheLocationSession(): string { return "sessionStorage"; }
 }
