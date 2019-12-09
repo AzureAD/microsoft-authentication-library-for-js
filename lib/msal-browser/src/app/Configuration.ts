@@ -4,9 +4,8 @@
  */
 
 // import { Logger } from "./Logger";
+import { AuthOptions, INetworkModule } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { AuthOptions } from "msal-common";
-import { INetworkClient } from "../network/INetworkClient";
 import { FetchClient } from "../network/FetchClient";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
@@ -50,7 +49,7 @@ export type TelemetryOptions = {
  */
 export type SystemOptions = {
     // logger?: Logger;
-    networkClient?: INetworkClient;
+    networkClient?: INetworkModule;
     loadFrameTimeout?: number;
     tokenRenewalOffsetSeconds?: number;
     navigateFrameWait?: number;
