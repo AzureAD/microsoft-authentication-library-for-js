@@ -43,7 +43,7 @@ export abstract class AuthModule {
     private config: ModuleConfiguration;
     
     // Crypto Interface
-    protected crypto: ICrypto;
+    protected cryptoObj: ICrypto;
 
     // Storage Interface
     protected cacheStorage: ICacheStorage;
@@ -62,7 +62,7 @@ export abstract class AuthModule {
         this.config = buildModuleConfiguration(configuration);
 
         // Initialize crypto
-        this.crypto = this.config.cryptoInterface;
+        this.cryptoObj = this.config.cryptoInterface;
 
         // Initialize storage interface
         this.cacheStorage = this.config.storageInterface;
@@ -76,7 +76,7 @@ export abstract class AuthModule {
     abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
     abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
 
-    //#endregion
+    // #endregion
 
     // #region Response Handling
 
@@ -98,10 +98,10 @@ export abstract class AuthModule {
         const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
 
         if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
-            const idToken = new IdToken(rawIdToken, this.crypto);
-            const clientInfo = buildClientInfo(rawClientInfo, this.crypto);
+            const idToken = new IdToken(rawIdToken, this.cryptoObj);
+            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoObj);
 
-            this.account = Account.createAccount(idToken, clientInfo, this.crypto);
+            this.account = Account.createAccount(idToken, clientInfo, this.cryptoObj);
             return this.account;
         }
 

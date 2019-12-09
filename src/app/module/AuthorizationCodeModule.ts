@@ -14,6 +14,8 @@ import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
+import { CodeRequestParameters } from "../../server/CodeRequestParameters";
+import { AuthApiType } from "../../utils/Constants";
 
 /**
  * AuthorizationCodeModule class
@@ -25,7 +27,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
     // Application config
     private clientConfig: PublicClientSPAConfiguration;
-    
+
     constructor(configuration: PublicClientSPAConfiguration) {
         super({
             storageInterface: configuration.storageInterface,
@@ -38,14 +40,27 @@ export class AuthorizationCodeModule extends AuthModule {
 
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check
-        let acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
         await acquireTokenAuthority.resolveEndpointsAsync();
 
-        // Set the account object to the current session
-        request.account = this.getAccount();
+        // Create and validate request parameters
+        const requestParameters = new CodeRequestParameters(
+            acquireTokenAuthority,
+            this.clientConfig.auth.clientId,
+            request,
+            this.getAccount(),
+            this.getRedirectUri(),
+            this.cryptoObj,
+            AuthApiType.LOGIN
+        );
+
+        if (!requestParameters.isSSOParam(this.getAccount())) {
+            // TODO: Check for ADAL SSO
+        }
+
         return null;
-    }    
-    
+    }
+
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }
