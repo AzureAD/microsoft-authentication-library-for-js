@@ -11,5 +11,6 @@ export {
     AuthResponse,
     // Error
     AuthError,
-    AuthErrorMessage
+    AuthErrorMessage,
+    INetworkModule
 } from "msal-common";
