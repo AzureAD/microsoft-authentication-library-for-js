@@ -8,11 +8,20 @@
  * @hidden
  */
 export interface INetworkModule {
+
     /**
-     * Interface function for async network requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
+     * Interface function for async network "GET" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
      * @param url 
      * @param requestParams 
      * @param enableCaching 
      */
-    sendRequestAsync(url: string, requestParams: RequestInit): Promise<any>;
+    sendGetRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any>;
+
+    /**
+     * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
+     * @param url 
+     * @param requestParams 
+     * @param enableCaching 
+     */
+    sendPostRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any>;
 }

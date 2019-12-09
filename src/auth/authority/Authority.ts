@@ -103,7 +103,7 @@ export abstract class Authority {
     }
 
     private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-        const response = await this.networkInterface.sendRequestAsync(openIdConfigurationEndpoint, { method: "GET" });
+        const response = await this.networkInterface.sendGetRequestAsync(openIdConfigurationEndpoint);
         return {
             AuthorizationEndpoint: response.authorization_endpoint,
             TokenEndpoint: response.token_endpoint,

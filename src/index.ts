@@ -23,4 +23,4 @@ export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants
-export { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export { Constants, TemporaryCacheKeys, PersistentCacheKeys, ErrorCacheKeys } from "./utils/Constants";
