@@ -88,7 +88,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
     // logger: new Logger(null),
-    networkClient: new FetchClient(),
+    networkClient: BrowserUtils.getBrowserNetworkClient(),
     loadFrameTimeout: FRAME_TIMEOUT,
     tokenRenewalOffsetSeconds: OFFSET,
     navigateFrameWait: NAVIGATE_FRAME_WAIT,
