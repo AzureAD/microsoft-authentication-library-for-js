@@ -3,12 +3,13 @@
  * Licensed under the MIT License.
  */
 import { ICrypto, PkceCodes } from "msal-common";
-import { GuidGenerator } from "../../math/GuidGenerator";
-import { Base64Encode } from "../../math/Base64Encode";
-import { Base64Decode } from "../../math/Base64Decode";
-import { PkceGenerator } from "../../math/PkceGenerator";
+import { GuidGenerator } from "./GuidGenerator";
+import { Base64Encode } from "../encode/Base64Encode";
+import { Base64Decode } from "../encode/Base64Decode";
+import { PkceGenerator } from "./PkceGenerator";
+import { BrowserCrypto } from "./BrowserCrypto";
 
-export class BrowserCrypto implements ICrypto {
+export class CryptoOps implements ICrypto {
 
     private guidGenerator: GuidGenerator;
     private b64Encode: Base64Encode;
@@ -16,10 +17,11 @@ export class BrowserCrypto implements ICrypto {
     private pkceGenerator: PkceGenerator;
 
     constructor() {
+        const browserCrypto = new BrowserCrypto();
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
-        this.guidGenerator = new GuidGenerator(BrowserCrypto.getBrowserCryptoObj());
-        this.pkceGenerator = new PkceGenerator(BrowserCrypto.getBrowserCryptoObj());
+        this.guidGenerator = new GuidGenerator(browserCrypto);
+        this.pkceGenerator = new PkceGenerator(browserCrypto);
     }
 
     /**
@@ -40,9 +42,5 @@ export class BrowserCrypto implements ICrypto {
 
     async generatePkceCodes(): Promise<PkceCodes> {
         return this.pkceGenerator.generateCodes();
-    }
-
-    static getBrowserCryptoObj(): Crypto {
-        return "msCrypto" in window ? window["msCrypto"] : window.crypto;
     }
 }

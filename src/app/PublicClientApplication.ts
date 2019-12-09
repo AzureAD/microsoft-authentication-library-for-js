@@ -4,11 +4,10 @@
  */
 
 import * as msalAuth from "msal-common";
-import { Configuration, buildConfiguration, SystemOptions } from "./Configuration";
-import { BrowserCrypto } from "../utils/crypto/BrowserCrypto";
-import { FetchClient } from "../network/FetchClient";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { INetworkClient } from "../network/INetworkClient";
+import { Configuration, buildConfiguration } from "./Configuration";
+import { CryptoOps } from "../crypto/CryptoOps";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -39,7 +38,7 @@ export class PublicClientApplication {
     private authCallback: authCallback = null;
 
     // Crypto interface implementation
-    private browserCrypto: BrowserCrypto;
+    private browserCrypto: CryptoOps;
 
     // Storage interface implementation
     private browserStorage: BrowserStorage;
@@ -72,7 +71,7 @@ export class PublicClientApplication {
         this.config = buildConfiguration(configuration);
 
         // Initialize the crypto class
-        this.browserCrypto = new BrowserCrypto();
+        this.browserCrypto = new CryptoOps();
 
         // Initialize the network module class
         this.networkClient = this.config.system.networkClient;
@@ -106,7 +105,7 @@ export class PublicClientApplication {
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: msalAuth.AuthenticationParameters): void {
+    loginRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
         throw new Error("Method not implemented.");
     }
 
@@ -116,7 +115,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): void {
+    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
         throw new Error("Method not implemented.");
     }
 

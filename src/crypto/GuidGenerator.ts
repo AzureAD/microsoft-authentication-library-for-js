@@ -3,12 +3,13 @@
  * Licensed under the MIT License.
  */
 import { MathUtils } from "../utils/MathUtils";
+import { BrowserCrypto } from "./BrowserCrypto";
 
 export class GuidGenerator {
 
-    private cryptoObj: Crypto;
+    private cryptoObj: BrowserCrypto;
 
-    constructor(cryptoObj: Crypto) {
+    constructor(cryptoObj: BrowserCrypto) {
         this.cryptoObj = cryptoObj;
     }
 
@@ -35,7 +36,7 @@ export class GuidGenerator {
      * y values are 8, 9, A, B
      */
     generateGuid(): string {
-        if (this.cryptoObj && this.cryptoObj.getRandomValues) {
+        try {
             const buffer: Uint8Array = new Uint8Array(16);
             this.cryptoObj.getRandomValues(buffer);
 
@@ -56,7 +57,7 @@ export class GuidGenerator {
                 + MathUtils.decimalToHex(buffer[12]) + MathUtils.decimalToHex(buffer[13])
                 + MathUtils.decimalToHex(buffer[14]) + MathUtils.decimalToHex(buffer[15]);
         }
-        else {
+        catch (err) {
             const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
             const hex: string = "0123456789abcdef";
             let r: number = 0;

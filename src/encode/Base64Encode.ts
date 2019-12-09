@@ -1,3 +1,5 @@
+import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -36,65 +38,14 @@ export class Base64Encode {
      * @param input 
      */
     encode(input: string) {
-        const inputUtf8Arr = this.stringToUtf8Arr(encodeURIComponent(input));
+        const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(encodeURIComponent(input));
         return this.base64EncArr(inputUtf8Arr);
-    }
+    }    
 
-    private stringToUtf8Arr (sDOMStr: string): Uint8Array {
-        let nChr;
-        let nArrLen = 0;
-        const nStrLen = sDOMStr.length;
-        /* mapping... */
-        for (let nMapIdx = 0; nMapIdx < nStrLen; nMapIdx++) {
-            nChr = sDOMStr.charCodeAt(nMapIdx);
-            nArrLen += nChr < 0x80 ? 1 : nChr < 0x800 ? 2 : nChr < 0x10000 ? 3 : nChr < 0x200000 ? 4 : nChr < 0x4000000 ? 5 : 6;
-        }
-
-        const aBytes = new Uint8Array(nArrLen);
-
-        /* transcription... */
-
-        for (let nIdx = 0, nChrIdx = 0; nIdx < nArrLen; nChrIdx++) {
-            nChr = sDOMStr.charCodeAt(nChrIdx);
-            if (nChr < 128) {
-                /* one byte */
-                aBytes[nIdx++] = nChr;
-            } else if (nChr < 0x800) {
-                /* two bytes */
-                aBytes[nIdx++] = 192 + (nChr >>> 6);
-                aBytes[nIdx++] = 128 + (nChr & 63);
-            } else if (nChr < 0x10000) {
-                /* three bytes */
-                aBytes[nIdx++] = 224 + (nChr >>> 12);
-                aBytes[nIdx++] = 128 + (nChr >>> 6 & 63);
-                aBytes[nIdx++] = 128 + (nChr & 63);
-            } else if (nChr < 0x200000) {
-                /* four bytes */
-                aBytes[nIdx++] = 240 + (nChr >>> 18);
-                aBytes[nIdx++] = 128 + (nChr >>> 12 & 63);
-                aBytes[nIdx++] = 128 + (nChr >>> 6 & 63);
-                aBytes[nIdx++] = 128 + (nChr & 63);
-            } else if (nChr < 0x4000000) {
-                /* five bytes */
-                aBytes[nIdx++] = 248 + (nChr >>> 24);
-                aBytes[nIdx++] = 128 + (nChr >>> 18 & 63);
-                aBytes[nIdx++] = 128 + (nChr >>> 12 & 63);
-                aBytes[nIdx++] = 128 + (nChr >>> 6 & 63);
-                aBytes[nIdx++] = 128 + (nChr & 63);
-            } else /* if (nChr <= 0x7fffffff) */ {
-                /* six bytes */
-                aBytes[nIdx++] = 252 + (nChr >>> 30);
-                aBytes[nIdx++] = 128 + (nChr >>> 24 & 63);
-                aBytes[nIdx++] = 128 + (nChr >>> 18 & 63);
-                aBytes[nIdx++] = 128 + (nChr >>> 12 & 63);
-                aBytes[nIdx++] = 128 + (nChr >>> 6 & 63);
-                aBytes[nIdx++] = 128 + (nChr & 63);
-            }
-        }
-
-        return aBytes;      
-    }
-
+    /**
+     * Base64 encode byte array
+     * @param aBytes 
+     */
     private base64EncArr (aBytes: Uint8Array) {  
         const eqLen = (3 - (aBytes.length % 3)) % 3;
         let sB64Enc = "";
@@ -120,7 +71,10 @@ export class Base64Encode {
         return  eqLen === 0 ? sB64Enc : sB64Enc.substring(0, sB64Enc.length - eqLen) + (eqLen === 1 ? "=" : "==");
     }
 
-    /* Base64 string to array encoding */  
+    /**
+     * Base64 string to array encoding
+     * @param nUint6 
+     */
     private uint6ToB64 (nUint6: number) {
         return nUint6 < 26 ?
             nUint6 + 65
