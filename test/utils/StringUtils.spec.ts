@@ -87,7 +87,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
             "param2": "value2",
             "param3": "value3",
         };
-        expect(StringUtils.deserialize(serializedObj)).to.be.deep.eq(deserializedObj);        
+        expect(StringUtils.queryStringToObject(serializedObj)).to.be.deep.eq(deserializedObj);        
     });
 
 });
