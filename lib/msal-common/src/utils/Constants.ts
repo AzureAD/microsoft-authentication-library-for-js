@@ -7,7 +7,10 @@ export const Constants = {
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // Resource delimiter - used for certain cache entries
-    RESOURCE_DELIM: "|"
+    RESOURCE_DELIM: "|",
+    // Placeholder for non-existent account ids/objects
+    NO_ACCOUNT: "NO_ACCOUNT",
+    INTERACTION_IN_PROGRESS: "interaction_in_progress"
 };
 
 /**
@@ -26,6 +29,12 @@ export enum TemporaryCacheKeys {
     INTERACTION_STATUS = "interaction.status",
     REQUEST_PARAMS = "request.params",
     REDIRECT_REQUEST = "redirect.request"
+};
+
+export enum AuthApiType {
+    LOGIN = "login_auth_api_type",
+    ACQUIRE_TOKEN = "acquire_token_auth_api_type",
+    SILENT = "silent_auth_api_type"
 };
 
 export enum PersistentCacheKeys {

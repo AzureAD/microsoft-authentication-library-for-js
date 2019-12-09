@@ -58,4 +58,13 @@ export class StringUtils {
         }
         return obj;
     }
+
+    /**
+     * Trims entries and converts them to lower case.
+     *
+     * @param arr
+     */
+    static trimAndConvertArrayEntriesToLowerCase(arr: Array<string>): Array<string> {
+        return arr.map(entry => entry.trim().toLowerCase());
+    }
 }
