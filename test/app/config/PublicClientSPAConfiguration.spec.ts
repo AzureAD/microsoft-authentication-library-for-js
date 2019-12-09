@@ -53,9 +53,9 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
-        expect(emptyConfig.networkInterface.sendRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendRequestAsync("", null)).to.be.rejectedWith(AuthError);
+        expect(emptyConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith(AuthError);
     });
 
     const clearFunc = (): void => {
@@ -120,7 +120,10 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
                 setItem: setFunc
             },
             networkInterface: {
-                sendRequestAsync: async (url: string, method: RequestInit, enableCaching?: boolean): Promise<any> => {
+                sendGetRequestAsync: async (url: string, headers?: Map<string, string>, body?: string): Promise<any> => {
+                    return testNetworkResult;
+                },
+                sendPostRequestAsync: async (url: string, headers?: Map<string, string>, body?: string): Promise<any> => {
                     return testNetworkResult;
                 }
             }
@@ -158,7 +161,9 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface.setItem).to.be.eq(setFunc);
         // Network interface tests
         expect(newConfig.networkInterface).to.be.not.null;
-        expect(newConfig.networkInterface.sendRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendRequestAsync("", null)).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
+        expect(newConfig.networkInterface.sendGetRequestAsync("", null, "")).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
+        expect(newConfig.networkInterface.sendPostRequestAsync("", null, "")).to.eventually.eq(testNetworkResult);
     });
 });

@@ -26,7 +26,7 @@ export default [
             {
                 file: "./lib/msal-common.js",
                 format: "umd",
-                name: "Msal",
+                name: "msal",
                 banner: fileHeader,
                 sourcemap: "inline"
             }
@@ -49,7 +49,7 @@ export default [
             {
                 file: "./lib/msal-common.min.js",
                 format: "umd",
-                name: "Msal",
+                name: "msal",
                 banner: useStrictHeader,
                 sourcemap: "inline"
             }

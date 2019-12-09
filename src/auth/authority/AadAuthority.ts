@@ -41,7 +41,7 @@ export class AadAuthority extends Authority {
         }
 
         // for custom domains in AAD where we query the service for the Instance discovery
-        const response = await this.networkInterface.sendRequestAsync(this.aadInstanceDiscoveryEndpointUrl, { method: "GET" });
+        const response = await this.networkInterface.sendGetRequestAsync(this.aadInstanceDiscoveryEndpointUrl);
         return response.tenant_discovery_endpoint;
     }
 
