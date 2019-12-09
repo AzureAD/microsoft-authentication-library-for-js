@@ -5,7 +5,6 @@
 
 import * as msalAuth from "msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { INetworkClient } from "../network/INetworkClient";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 
@@ -44,7 +43,7 @@ export class PublicClientApplication {
     private browserStorage: BrowserStorage;
 
     // Network interface implementation
-    private networkClient: INetworkClient;
+    private networkClient: msalAuth.INetworkModule;
 
     /**
      * @constructor
