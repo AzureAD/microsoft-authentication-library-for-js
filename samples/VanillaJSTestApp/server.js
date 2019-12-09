@@ -15,11 +15,11 @@ var PORT = 30662;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-app.use("/dist", express.static(path.join(__dirname, "../../lib/msal-core/dist")));
+app.use("/lib", express.static(path.join(__dirname, "../../lib/msal-browser/lib")));
 
 // Set up our one route to the index.html file.
 app.get('*', function (req, res) {
-    const reqPath = req.path === "/" ? "/index.html" : req.path;
+    const reqPath = req.path === "/" ? "/index_authCode.html" : req.path;
     res.sendFile(path.join(__dirname + reqPath));
 });
 
