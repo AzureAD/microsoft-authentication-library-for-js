@@ -91,7 +91,7 @@ export class PublicClientApplication {
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
-    async loginRedirect(request: msalAuth.AuthenticationParameters): Promise<void> {
+    loginRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
         throw new Error("Method not implemented.");
     }
 
@@ -101,7 +101,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): void {
+    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
         throw new Error("Method not implemented.");
     }
 
