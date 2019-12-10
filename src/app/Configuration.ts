@@ -6,7 +6,6 @@
 // import { Logger } from "./Logger";
 import { AuthOptions, INetworkModule } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { FetchClient } from "../network/FetchClient";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
@@ -88,7 +87,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
     // logger: new Logger(null),
-    networkClient: BrowserUtils.getBrowserNetworkClient(),
+    networkClient: null,
     loadFrameTimeout: FRAME_TIMEOUT,
     tokenRenewalOffsetSeconds: OFFSET,
     navigateFrameWait: NAVIGATE_FRAME_WAIT,

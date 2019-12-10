@@ -6,15 +6,15 @@ import { INetworkModule } from "msal-common";
 
 export class XhrClient implements INetworkModule {
 
-    async sendGetRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any> {
-        return this.sendRequestAsync(url, "GET", headers, body);
+    async sendGetRequestAsync(url: string, headers?: Map<string, string>): Promise<any> {
+        return this.sendRequestAsync(url, "GET", headers, null);
     }    
     
-    async sendPostRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any> {
-        return this.sendRequestAsync(url, "POST", headers, body);
+    async sendPostRequestAsync(url: string, headers?: Map<string, string>, reqBody?: string): Promise<any> {
+        return this.sendRequestAsync(url, "POST", headers, reqBody);
     }
 
-    private sendRequestAsync(url: string, method: string, headers?: Map<string, string>, body?: string): Promise<any> {
+    private sendRequestAsync(url: string, method: string, headers?: Map<string, string>, reqBody?: string): Promise<any> {
         return new Promise<string>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
@@ -38,7 +38,7 @@ export class XhrClient implements INetworkModule {
             };
 
             if (method === "GET" || method === "POST") {
-                xhr.send(body);
+                reqBody ? xhr.send(reqBody) : xhr.send();
             }
             else {
                 throw "not implemented";
