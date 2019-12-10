@@ -1,25 +1,25 @@
 # 1.2.0
 
 ## Features:
-* Iframes Support added (#939, #975, #1053, #1075)
+* Iframes Support added  (#939, #975, #1053, #1075); msal js now added support for authentication in applications embedded in iframes which implies that an application can now call `loginSilent()`, `acquireTokenSilent()` and `acquireTokenPopup()` from iframes.
+* `redirectUri` supported as a request parameter (#1116); This feature in conjunction with iframes support improves performance, by providing the application the capability to avoid a full reload of a SPA on redirect. Please refer to the sample in the release [notes](1.2.0 release notes) for the usage details
 * Multiple Instances (#980, #1010)
 * Cache changes - to support iframes, multiple instances and other enhancements (#983, #1042, #1067)
-* Redirect URI supported as a request parameter (#1116)
-* fromCache flag added in response to indicate cache vs nw response for a request (#1114)
+* fromCache flag added in response to indicate cache vs network response for a request (#1114)
 * Instance Aware support (#969)
 
 ## Bugs
-* app set correlation-id is now passed to the service (#1083)
-* response_mode explicitly set to fragment for all usecases (#1090)
+* `request.correlationId` is now passed to the service (#1083)
+* response_mode explicitly set to fragment for all use cases (#1090)
 * verbose messages and monitoring for timeout errors (#1098, #1113)
-* handle loginRedirect set to null (#1047)
+* handle `loginRedirect` set to null (#1047)
 * Fix japanese decoding (#1036, #1054)
 * Fix Unified cache, Redirect and B2C samples (#933, #959, #1027, #973)
-* Change location.replace to location.assign to support history in redirect APIs (#1002)
+* Change `location.replace` to `location.assign` to support history in redirect APIs (#1002)
 
 ## Dev tools
 * linting added (#931, #935, #947)
-* CICD pipeline (#924)
+* CI/CD pipeline (#924)
 * Removed karma from UT and migrate completely to mocha/chai (#956)
 * Added Code coverage, introduce coveralls (#972, #1105)
 * Fix unit tests for unix environments (#977)
