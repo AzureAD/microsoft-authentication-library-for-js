@@ -20,6 +20,7 @@ import { PersistentCacheKeys } from "../../utils/Constants";
 import { StringUtils } from "../../utils/StringUtils";
 import { IdToken } from "../../auth/IdToken";
 import { buildClientInfo } from "../../auth/ClientInfo";
+import { CacheHelpers } from "../../cache/CacheHelpers";
 
 /**
  * @hidden
@@ -51,6 +52,9 @@ export abstract class AuthModule {
     // Network Interface
     protected networkClient: INetworkModule;
 
+    // Object for running cache functions
+    protected cacheManager: CacheHelpers;
+
     // Account object
     protected account: Account;
 
@@ -67,8 +71,12 @@ export abstract class AuthModule {
         // Initialize storage interface
         this.cacheStorage = this.config.storageInterface;
 
+        // Initialize storage helper object
+        this.cacheManager = new CacheHelpers(this.cacheStorage);
+
         // Set the network interface
         this.networkClient = this.config.networkInterface;
+        console.log(this.networkClient);
     }
 
     // #region URL Creation

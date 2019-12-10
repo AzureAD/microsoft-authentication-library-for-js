@@ -5,7 +5,6 @@
 
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
-import { AuthApiType } from "../utils/Constants";
 
 export class ScopeSet {
 
@@ -14,9 +13,9 @@ export class ScopeSet {
     private originalScopes: Set<string>;
     private scopesRequired: boolean;
 
-    constructor(inputScopes: Array<string>, appClientId: string, authType: AuthApiType) {
+    constructor(inputScopes: Array<string>, appClientId: string, scopesRequired: boolean) {
         this.clientId = appClientId;
-        this.scopesRequired = (authType !== AuthApiType.LOGIN);
+        this.scopesRequired = scopesRequired;
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(inputScopes);
         const scopeArr = inputScopes ? [...inputScopes] : [this.clientId];
@@ -30,9 +29,9 @@ export class ScopeSet {
      * @param appClientId 
      * @param scopesRequired 
      */
-    static fromString(inputScopeString: string, appClientId: string, authType: AuthApiType) {
+    static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean) {
         const inputScopes: Array<string> = inputScopeString.split(" ");
-        return new ScopeSet(inputScopes, appClientId, authType);
+        return new ScopeSet(inputScopes, appClientId, scopesRequired);
     }
 
     /**

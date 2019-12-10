@@ -16,6 +16,7 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { CodeRequestParameters } from "../../server/CodeRequestParameters";
 import { AuthApiType } from "../../utils/Constants";
+import { CacheHelpers } from "../../cache/CacheHelpers";
 
 /**
  * AuthorizationCodeModule class
@@ -48,17 +49,23 @@ export class AuthorizationCodeModule extends AuthModule {
             acquireTokenAuthority,
             this.clientConfig.auth.clientId,
             request,
-            this.getAccount(),
             this.getRedirectUri(),
             this.cryptoObj,
-            AuthApiType.LOGIN
+            true
         );
 
+        // Check for SSO
         if (!requestParameters.isSSOParam(this.getAccount())) {
             // TODO: Check for ADAL SSO
         }
 
-        return null;
+        // Update required cache entries for request
+        this.cacheManager.updateCacheEntries(requestParameters, request.account);
+
+        // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+        requestParameters.populateQueryParams();
+
+        return requestParameters.createNavigateUrl();
     }
 
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {

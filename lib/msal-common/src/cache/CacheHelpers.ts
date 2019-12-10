@@ -22,7 +22,7 @@ export class CacheHelpers {
      * @param accountId
      * @param state
      */
-    static generateAcquireTokenAccountKey(accountId: any, state: string): string {
+    generateAcquireTokenAccountKey(accountId: any, state: string): string {
         return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}${Constants.RESOURCE_DELIM}${state}`;
     }
 
@@ -30,7 +30,7 @@ export class CacheHelpers {
      * Create authorityKey to cache authority
      * @param state
      */
-    static generateAuthorityKey(state: string): string {
+    generateAuthorityKey(state: string): string {
         return `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
     }
 
@@ -47,7 +47,7 @@ export class CacheHelpers {
         // Cache acquireTokenAccountKey
         const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
 
-        const acquireTokenAccountKey = CacheHelpers.generateAcquireTokenAccountKey(accountId, state);
+        const acquireTokenAccountKey = this.generateAcquireTokenAccountKey(accountId, state);
         this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
     }
 
@@ -62,26 +62,26 @@ export class CacheHelpers {
      */
     setAuthorityCache(authority: Authority, state: string) {
         // Cache authorityKey
-        const authorityKey = CacheHelpers.generateAuthorityKey(state);
+        const authorityKey = this.generateAuthorityKey(state);
         this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
     }
 
     /**
-     * Updates account, authority, and nonce in cache
+     * Updates account, authority, and state in cache
      * @param serverAuthenticationRequest
      * @param account
      * @hidden
      * @ignore
      */
-    updateCacheEntries(cacheStorage: ICacheStorage, serverAuthenticationRequest: CodeRequestParameters, account: Account, loginStartPage?: any): void {
-        // Cache account and authority
-        if (loginStartPage) {
-            // Cache the state, nonce, and login request data
-            cacheStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, loginStartPage);
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
-        } else {
+    updateCacheEntries(serverAuthenticationRequest: CodeRequestParameters, account: Account): void {
+        // Cache account and state
+        if (account) {
             this.setAccountCache(account, serverAuthenticationRequest.state);
+        } else {
+            // Cache the request state
+            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
         }
+
         // Cache authorityKey
         this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);
     }

@@ -12,13 +12,11 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendGetRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any> {
+    async sendGetRequestAsync(url: string, headers?: Map<string, string>): Promise<any> {
         const requestType = "GET";
         const response = await fetch(url, {
             method: requestType,
-            headers: this.getFetchHeaders(headers),
-            credentials: "include",
-            body: body
+            headers: this.getFetchHeaders(headers)
         });
         return response.json();
     }
@@ -29,14 +27,13 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any> {
+    async sendPostRequestAsync(url: string, headers?: Map<string, string>, reqBody?: string): Promise<any> {
         const requestType = "POST";
-
         const response = await fetch(url, {
             method: requestType,
             headers: this.getFetchHeaders(headers),
             credentials: "include",
-            body: body
+            body: reqBody
         });
         return response.json();
     }
@@ -46,10 +43,10 @@ export class FetchClient implements INetworkModule {
      * @param inputHeaders 
      */
     private getFetchHeaders(inputHeaders: Map<string, string>): Headers {
-        if (!inputHeaders) {
-            return null;
-        }
         const headers = new Headers;
+        if (!inputHeaders) {
+            return headers;
+        }
         for (const headerName in inputHeaders.keys()) {
             headers.append(headerName, inputHeaders.get(headerName));
         }

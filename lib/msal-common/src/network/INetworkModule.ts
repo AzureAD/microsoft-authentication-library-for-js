@@ -15,7 +15,7 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendGetRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any>;
+    sendGetRequestAsync(url: string, headers?: Map<string, string>): Promise<any>;
 
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
@@ -23,5 +23,5 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendPostRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any>;
+    sendPostRequestAsync(url: string, headers?: Map<string, string>, reqBody?: string): Promise<any>;
 }

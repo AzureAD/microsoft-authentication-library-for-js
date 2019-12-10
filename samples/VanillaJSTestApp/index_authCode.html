@@ -46,7 +46,9 @@
     // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
     function signIn() {
         try {
-            myMSALObj.loginRedirect(loginRequest);
+            myMSALObj.loginRedirect(loginRequest).then((response) => {
+                console.log(response);
+            });
         } catch (e) {
             console.log(e);
         }
