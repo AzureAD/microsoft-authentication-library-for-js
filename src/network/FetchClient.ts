@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 import { INetworkModule, NetworkRequestOptions } from "msal-common";
-
-enum HTTP_REQUEST_TYPE {
-    GET = "GET",
-    POST = "POST"
-};
+import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 export class FetchClient implements INetworkModule {
 
@@ -46,7 +42,7 @@ export class FetchClient implements INetworkModule {
      * @param inputHeaders 
      */
     private getFetchHeaders(inputHeaders: Map<string, string>): Headers {
-        const headers = new Headers;
+        const headers = new Headers();
         if (!inputHeaders) {
             return headers;
         }

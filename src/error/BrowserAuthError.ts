@@ -19,6 +19,10 @@ export const BrowserAuthErrorMessage = {
     cryptoDoesNotExist: {
         code: "crypto_nonexistent",
         desc: "The crypto object or function is not available."
+    },
+    httpMethodNotImplementedError: {
+        code: "http_method_not_implemented",
+        desc: "The HTTP method given has not been implemented in this library."
     }
 };
 
@@ -46,5 +50,10 @@ export class BrowserAuthError extends AuthError {
     static createCryptoNotAvailableError(errDetail: string) {
         return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code, 
             `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`);
+    }
+
+    static createHttpMethodNotImplementedError(method: string) {
+        return new BrowserAuthError(BrowserAuthErrorMessage.httpMethodNotImplementedError.code,
+            `${BrowserAuthErrorMessage.httpMethodNotImplementedError.desc} Given Method: ${method}`);
     }
 }

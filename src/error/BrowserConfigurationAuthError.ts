@@ -26,7 +26,7 @@ export class BrowserConfigurationAuthError extends AuthError {
         Object.setPrototypeOf(this, BrowserConfigurationAuthError.prototype);
     }
 
-    static createStorageNotSupportedError(): BrowserConfigurationAuthError {
-        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.code, BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
+    static createStorageNotSupportedError(givenStorageLocation: string): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.code, `${BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc} Given Location: ${givenStorageLocation}`);
     }
 }
