@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+export type NetworkRequestOptions = {
+    headers?: Map<string, string>,
+    body?: string;
+};
+
 /**
  * Client network interface to send backend requests.
  * @hidden
@@ -15,7 +20,7 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendGetRequestAsync(url: string, headers?: Map<string, string>): Promise<any>;
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T>;
 
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
@@ -23,5 +28,5 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendPostRequestAsync(url: string, headers?: Map<string, string>, reqBody?: string): Promise<any>;
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T>;
 }
