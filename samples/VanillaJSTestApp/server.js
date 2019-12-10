@@ -19,7 +19,7 @@ app.use("/dist", express.static(path.join(__dirname, "../../lib/msal-core/dist")
 
 // Set up our one route to the index.html file.
 app.get('*', function (req, res) {
-    const reqPath = req.path === "/" ? "/index.html" : req.path;
+    const reqPath = req.path === "/" ? "/index_blankPageRedirectUri.html" : req.path;
     res.sendFile(path.join(__dirname + reqPath));
 });
 
