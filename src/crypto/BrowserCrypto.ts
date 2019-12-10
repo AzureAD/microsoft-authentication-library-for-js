@@ -11,7 +11,7 @@ const HASH_ALG = "SHA-256";
 export class BrowserCrypto {
 
     constructor() {
-        if (!(window["msCrypto"] || window.crypto)) {
+        if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
     }
@@ -19,7 +19,7 @@ export class BrowserCrypto {
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
 
-        if (window["msCrypto"]) {
+        if (this.hasIECrypto()) {
             return new Promise((resolve, reject) => {
                 const digestOperation = window["msCrypto"].subtle.digest(HASH_ALG, data.buffer);
                 digestOperation.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
@@ -40,5 +40,17 @@ export class BrowserCrypto {
             throw BrowserAuthError.createCryptoNotAvailableError("getRandomValues does not exist.");
         }
         cryptoObj.getRandomValues(dataBuffer);
+    }
+
+    private hasIECrypto(): boolean {
+        return !!window["msCrypto"];
+    }
+
+    private hasBrowserCrypto(): boolean {
+        return !!window.crypto;
+    }
+
+    private hasCryptoAPI(): boolean {
+        return this.hasIECrypto() || this.hasBrowserCrypto();
     }
 }
