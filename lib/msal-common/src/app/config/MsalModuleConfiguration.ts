@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { ICacheStorage } from "../../cache/ICacheStorage";
-import { INetworkModule } from "../../network/INetworkModule";
+import { INetworkModule, NetworkRequestOptions } from "../../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../utils/crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
 
@@ -55,12 +55,12 @@ const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
 };
 
 const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
-    async sendGetRequestAsync(url: string, headers: Map<string, string>, body: string): Promise<any> {
+    async sendGetRequestAsync(url: string, options?: NetworkRequestOptions): Promise<any> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    async sendPostRequestAsync(url: string, headers: Map<string, string>, body: string): Promise<any> {
+    async sendPostRequestAsync(url: string, options?: NetworkRequestOptions): Promise<any> {
         const notImplErr = "Network interface - sendPostRequestAsync() has not been implemented";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
