@@ -6,7 +6,7 @@
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { StringUtils } from "../utils/StringUtils";
-import { ICrypto } from "../utils/crypto/ICrypto";
+import { ICrypto } from "../crypto/ICrypto";
 import { IdTokenClaims } from "./IdTokenClaims";
 
 /**

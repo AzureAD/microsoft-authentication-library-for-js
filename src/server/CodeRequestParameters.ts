@@ -5,7 +5,7 @@
 import { Authority } from "../auth/authority/Authority";
 import { Account } from "../auth/Account";
 import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
-import { ICrypto } from "../utils/crypto/ICrypto";
+import { ICrypto } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
 import { StringUtils } from "../utils/StringUtils";
 import pkg from "../../package.json";
