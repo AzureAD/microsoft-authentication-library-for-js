@@ -11,17 +11,18 @@ import { BrowserCrypto } from "./BrowserCrypto";
 
 export class CryptoOps implements ICrypto {
 
+    private browserCrypto: BrowserCrypto;
     private guidGenerator: GuidGenerator;
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
 
     constructor() {
-        const browserCrypto = new BrowserCrypto();
+        this.browserCrypto = new BrowserCrypto();
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
-        this.guidGenerator = new GuidGenerator(browserCrypto);
-        this.pkceGenerator = new PkceGenerator(browserCrypto);
+        this.guidGenerator = new GuidGenerator(this.browserCrypto);
+        this.pkceGenerator = new PkceGenerator(this.browserCrypto);
     }
 
     /**
