@@ -3,7 +3,7 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../../../src/app/config/PublicClientSPAConfiguration";
-import { PkceCodes } from "../../../src/utils/crypto/ICrypto";
+import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { TEST_CONFIG, TEST_URIS } from "../../utils/StringConstants";
 import { AuthError } from "../../../src/error/AuthError";
 
