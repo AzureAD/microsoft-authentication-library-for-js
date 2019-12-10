@@ -15,8 +15,6 @@ import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { CodeRequestParameters } from "../../server/CodeRequestParameters";
-import { AuthApiType } from "../../utils/Constants";
-import { CacheHelpers } from "../../cache/CacheHelpers";
 
 /**
  * AuthorizationCodeModule class

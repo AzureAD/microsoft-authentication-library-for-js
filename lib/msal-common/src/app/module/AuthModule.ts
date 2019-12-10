@@ -13,7 +13,7 @@ import { ICacheStorage } from "../../cache/ICacheStorage";
 // network
 import { INetworkModule } from "../../network/INetworkModule";
 // utils
-import { ICrypto } from "../../utils/crypto/ICrypto";
+import { ICrypto } from "../../crypto/ICrypto";
 import { Account } from "../../auth/Account";
 import { Authority } from "../../auth/authority/Authority";
 import { PersistentCacheKeys } from "../../utils/Constants";
@@ -76,7 +76,6 @@ export abstract class AuthModule {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
-        console.log(this.networkClient);
     }
 
     // #region URL Creation

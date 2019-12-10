@@ -74,7 +74,7 @@ export class PublicClientApplication {
         this.browserCrypto = new CryptoOps();
 
         // Initialize the network module class
-        this.networkClient = this.config.system.networkClient || BrowserUtils.getBrowserNetworkClient();
+        this.networkClient = this.config.system.networkClient;
 
         // Initialize the browser storage class
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
