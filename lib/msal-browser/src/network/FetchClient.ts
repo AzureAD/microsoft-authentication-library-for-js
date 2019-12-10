@@ -4,6 +4,11 @@
  */
 import { INetworkModule } from "msal-common";
 
+enum HTTP_REQUEST_TYPE {
+    GET = "GET",
+    POST = "POST"
+}
+
 export class FetchClient implements INetworkModule {
 
     /**
@@ -12,15 +17,14 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendGetRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any> {
-        const requestType = "GET";
+    async sendGetRequestAsync<T>(url: string, headers?: Map<string, string>, body?: string): Promise<T> {
         const response = await fetch(url, {
-            method: requestType,
+            method: HTTP_REQUEST_TYPE.GET,
             headers: this.getFetchHeaders(headers),
             credentials: "include",
             body: body
         });
-        return response.json();
+        return await response.json() as T;
     }
 
     /**
@@ -29,16 +33,14 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync(url: string, headers?: Map<string, string>, body?: string): Promise<any> {
-        const requestType = "POST";
-
+    async sendPostRequestAsync<T>(url: string, headers?: Map<string, string>, body?: string): Promise<T> {
         const response = await fetch(url, {
-            method: requestType,
+            method: HTTP_REQUEST_TYPE.POST,
             headers: this.getFetchHeaders(headers),
             credentials: "include",
             body: body
         });
-        return response.json();
+        return await response.json() as T;
     }
 
     /**
