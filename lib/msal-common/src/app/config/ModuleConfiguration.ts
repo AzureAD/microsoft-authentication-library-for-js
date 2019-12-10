@@ -4,7 +4,7 @@
  */
 import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule } from "../../network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../utils/crypto/ICrypto";
+import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
 
 /**

@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { ModuleConfiguration, buildModuleConfiguration } from "../../../src/app/config/ModuleConfiguration";
-import { PkceCodes } from "../../../src/utils/crypto/ICrypto";
+import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { AuthError } from "../../../src/error/AuthError";
 const expect = chai.expect;
 chai.use(chaiAsPromised);

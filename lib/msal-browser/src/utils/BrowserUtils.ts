@@ -1,3 +1,7 @@
+import { INetworkModule } from "msal-common";
+import { FetchClient } from "../network/FetchClient";
+import { XhrClient } from "../network/XhrClient";
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
