@@ -2,28 +2,28 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule } from "msal-common";
+import { INetworkModule, NetworkRequestOptions } from "msal-common";
 
 export class XhrClient implements INetworkModule {
 
-    async sendGetRequestAsync<T>(url: string, headers?: Map<string, string>, body?: string): Promise<T> {
-        return this.sendRequestAsync(url, "GET", headers, body);
+    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+        return this.sendRequestAsync(url, "GET", options);
     }    
     
-    async sendPostRequestAsync<T>(url: string, headers?: Map<string, string>, body?: string): Promise<T> {
-        return this.sendRequestAsync(url, "POST", headers, body);
+    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+        return this.sendRequestAsync(url, "POST", options);
     }
 
-    private sendRequestAsync<T>(url: string, method: string, headers?: Map<string, string>, body?: string): Promise<T> {
+    private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
-            this.setXhrHeaders(xhr, headers);
+            this.setXhrHeaders(xhr, options.headers);
             xhr.onload = (ev) => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
-                let jsonResponse;
+                let jsonResponse: T;
                 try {
                     jsonResponse = JSON.parse(xhr.responseText) as T;
                 } catch (e) {
@@ -38,7 +38,7 @@ export class XhrClient implements INetworkModule {
             };
 
             if (method === "GET" || method === "POST") {
-                xhr.send(body);
+                xhr.send(options.body);
             }
             else {
                 throw "not implemented";

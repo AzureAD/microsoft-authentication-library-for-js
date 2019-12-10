@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule } from "msal-common";
+import { INetworkModule, NetworkRequestOptions } from "msal-common";
 
 enum HTTP_REQUEST_TYPE {
     GET = "GET",
     POST = "POST"
-}
+};
 
 export class FetchClient implements INetworkModule {
 
@@ -17,12 +17,12 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendGetRequestAsync<T>(url: string, headers?: Map<string, string>, body?: string): Promise<T> {
+    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.GET,
-            headers: this.getFetchHeaders(headers),
+            headers: this.getFetchHeaders(options.headers),
             credentials: "include",
-            body: body
+            body: options.body
         });
         return await response.json() as T;
     }
@@ -33,12 +33,12 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync<T>(url: string, headers?: Map<string, string>, body?: string): Promise<T> {
+    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.POST,
-            headers: this.getFetchHeaders(headers),
+            headers: this.getFetchHeaders(options.headers),
             credentials: "include",
-            body: body
+            body: options.body
         });
         return await response.json() as T;
     }
