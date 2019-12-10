@@ -2,30 +2,30 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule } from "msal-common";
+import { INetworkModule, NetworkRequestOptions } from "msal-common";
 
 export class XhrClient implements INetworkModule {
 
-    async sendGetRequestAsync(url: string, headers?: Map<string, string>): Promise<any> {
-        return this.sendRequestAsync(url, "GET", headers, null);
+    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+        return this.sendRequestAsync(url, "GET", options);
     }    
     
-    async sendPostRequestAsync(url: string, headers?: Map<string, string>, reqBody?: string): Promise<any> {
-        return this.sendRequestAsync(url, "POST", headers, reqBody);
+    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+        return this.sendRequestAsync(url, "POST", options);
     }
 
-    private sendRequestAsync(url: string, method: string, headers?: Map<string, string>, reqBody?: string): Promise<any> {
-        return new Promise<string>((resolve, reject) => {
+    private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
-            this.setXhrHeaders(xhr, headers);
+            this.setXhrHeaders(xhr, options.headers);
             xhr.onload = (ev) => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
-                let jsonResponse;
+                let jsonResponse: T;
                 try {
-                    jsonResponse = JSON.parse(xhr.responseText);
+                    jsonResponse = JSON.parse(xhr.responseText) as T;
                 } catch (e) {
                     reject(this.handleError(xhr.responseText));
                 }
