@@ -10,7 +10,17 @@ export const Constants = {
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
     NO_ACCOUNT: "NO_ACCOUNT",
-    INTERACTION_IN_PROGRESS: "interaction_in_progress"
+    INTERACTION_IN_PROGRESS: "interaction_in_progress",
+    // Claims
+    CLAIMS: "claims",
+    // UPN
+    UPN: "upn",
+    // Consumer UTID
+    CONSUMER_UTID: "9188040d-6c67-4c5b-b112-36a304b66dad",
+    // Default scopes
+    OPENID_SCOPE: "openid",
+    PROFILE_SCOPE: "profile",
+    OFFLINE_ACCESS_SCOPE: "offline_access",
 };
 
 /**
@@ -19,11 +29,11 @@ export const Constants = {
  */
 export enum TemporaryCacheKeys {
     AUTHORITY = "authority",
-    ACQUIRE_TOKEN_ACCOUNT = "acquireTokenAccount",
+    ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
     SESSION_STATE = "session.state",
-    REQUEST_STATE = "state.request",
+    REQUEST_STATE = "request.state",
     NONCE_IDTOKEN = "nonce.idtoken",
-    ORIGIN_URI = "login.request",
+    ORIGIN_URI = "request.origin",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     INTERACTION_STATUS = "interaction.status",
@@ -102,3 +112,42 @@ export enum IdTokenClaimName {
     SESSIONID = "sid",
     CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
 }
+
+/**
+ * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
+ * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
+ * internal partners too, hence the choice of generic "string" type instead of the "enum"
+ * @hidden
+ */
+export const PromptState = {
+    LOGIN: "login",
+    SELECT_ACCOUNT: "select_account",
+    CONSENT: "consent",
+    NONE: "none",
+};
+
+/**
+ * @hidden
+ * SSO Types - generated to populate hints
+ */
+export enum SSOTypes {
+    ACCOUNT = "account",
+    SID = "sid",
+    LOGIN_HINT = "login_hint",
+    ID_TOKEN ="id_token",
+    DOMAIN_HINT = "domain_hint",
+    ORGANIZATIONS = "organizations",
+    CONSUMERS = "consumers",
+    ACCOUNT_ID = "accountIdentifier",
+    HOMEACCOUNT_ID = "homeAccountIdentifier",
+    LOGIN_REQ = "login_req",
+    DOMAIN_REQ = "domain_req"
+};
+
+/**
+ * @hidden
+ */
+export const BlacklistedEQParams = [
+    SSOTypes.SID,
+    SSOTypes.LOGIN_HINT
+];

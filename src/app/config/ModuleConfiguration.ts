@@ -55,12 +55,12 @@ const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
 };
 
 const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
-    async sendGetRequestAsync(url: string, headers: Map<string, string>, body: string): Promise<any> {
+    sendGetRequestAsync(url: string, headers: Map<string, string>): Promise<any> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    async sendPostRequestAsync(url: string, headers: Map<string, string>, body: string): Promise<any> {
+    sendPostRequestAsync(url: string, headers: Map<string, string>, body: string): Promise<any> {
         const notImplErr = "Network interface - sendPostRequestAsync() has not been implemented";
         console.warn(notImplErr);
         throw AuthError.createUnexpectedError(notImplErr);
@@ -99,11 +99,11 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildModuleConfiguration({ storageInterface, networkInterface, cryptoInterface }: ModuleConfiguration): ModuleConfiguration {
+export function buildModuleConfiguration({ storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
     const overlayedConfig: ModuleConfiguration = {
-        storageInterface: { ...DEFAULT_STORAGE_OPTIONS, ...storageInterface },
-        networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface },
-        cryptoInterface: { ...DEFAULT_CRYPTO_IMPLEMENTATION, ...cryptoInterface }
+        storageInterface: storageImplementation || DEFAULT_STORAGE_OPTIONS,
+        networkInterface: networkImplementation || DEFAULT_NETWORK_OPTIONS,
+        cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION
     };
     return overlayedConfig;
 }
