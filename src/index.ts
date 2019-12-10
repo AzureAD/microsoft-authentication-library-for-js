@@ -7,7 +7,7 @@ export { AuthorityFactory } from "./auth/authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 // Network Interface
-export { INetworkModule } from "./network/INetworkModule";
+export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
