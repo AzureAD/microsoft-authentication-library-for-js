@@ -36,9 +36,13 @@ export class BrowserStorage implements ICacheStorage {
             throw BrowserAuthError.createNoWindowObjectError();
         }
 
+        if (cacheLocation !== BrowserConstants.CACHE_LOCATION_LOCAL && cacheLocation !== BrowserConstants.CACHE_LOCATION_SESSION) {
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
+        }
+
         const storageSupported = !!window[cacheLocation];
         if (!storageSupported) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError();
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
         }
     }
 

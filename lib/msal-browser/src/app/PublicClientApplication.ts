@@ -7,7 +7,6 @@ import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParamet
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
-import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -105,9 +104,8 @@ export class PublicClientApplication {
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
-    async loginRedirect(request: AuthenticationParameters): Promise<TokenResponse> {
-        console.log(await this.authModule.createLoginUrl(request));
-        return null;
+    loginRedirect(request: AuthenticationParameters): void {
+        console.log(this.authModule.createLoginUrl(request));
     }
 
     /**
@@ -116,7 +114,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: AuthenticationParameters): TokenResponse {
+    acquireTokenRedirect(request: AuthenticationParameters): void {
         throw new Error("Method not implemented.");
     }
 

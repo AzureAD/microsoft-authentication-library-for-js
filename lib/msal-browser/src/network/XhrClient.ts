@@ -3,15 +3,17 @@
  * Licensed under the MIT License.
  */
 import { INetworkModule, NetworkRequestOptions } from "msal-common";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 export class XhrClient implements INetworkModule {
 
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-        return this.sendRequestAsync(url, "GET", options);
+        return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
     }    
     
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-        return this.sendRequestAsync(url, "POST", options);
+        return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.POST, options);
     }
 
     private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<T> {
@@ -37,11 +39,12 @@ export class XhrClient implements INetworkModule {
                 reject(xhr.status);
             };
 
-            if (method === "GET" || method === "POST") {
-                reqBody ? xhr.send(reqBody) : xhr.send();
-            }
-            else {
-                throw "not implemented";
+            if (method === "POST" && options.body) {
+                xhr.send(options.body);
+            } else if (method === "GET") {
+                xhr.send();
+            } else {
+                throw BrowserAuthError.createHttpMethodNotImplementedError(method);
             }
         });
     }

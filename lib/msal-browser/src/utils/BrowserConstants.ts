@@ -7,8 +7,12 @@
  * @hidden
  * Constants
  */
-export class BrowserConstants {
-    static get inProgress(): string { return "inProgress"; }
-    static get cacheLocationLocal(): string { return "localStorage"; }
-    static get cacheLocationSession(): string { return "sessionStorage"; }
-}
+export const BrowserConstants = {
+    CACHE_LOCATION_LOCAL: "localStorage",
+    CACHE_LOCATION_SESSION: "sessionStorage"
+};
+
+export enum HTTP_REQUEST_TYPE {
+    GET = "GET",
+    POST = "POST"
+};

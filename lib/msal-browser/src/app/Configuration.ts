@@ -6,6 +6,7 @@
 // import { Logger } from "./Logger";
 import { AuthOptions, INetworkModule } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
+import { BrowserConstants } from "../utils/BrowserConstants";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
@@ -81,7 +82,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    cacheLocation: "sessionStorage",
+    cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
     storeAuthStateInCookie: false
 };
 
