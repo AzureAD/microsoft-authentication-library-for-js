@@ -21,7 +21,7 @@ export type ModuleConfiguration = {
     cryptoInterface?: ICrypto
 };
 
-const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
+const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     clear: () => {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
@@ -54,7 +54,7 @@ const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
     }
 };
 
-const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
+const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     sendGetRequestAsync(url: string, headers: Map<string, string>): Promise<any> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
         console.warn(notImplErr);
@@ -101,8 +101,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  */
 export function buildModuleConfiguration({ storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
     const overlayedConfig: ModuleConfiguration = {
-        storageInterface: storageImplementation || DEFAULT_STORAGE_OPTIONS,
-        networkInterface: networkImplementation || DEFAULT_NETWORK_OPTIONS,
+        storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
+        networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION
     };
     return overlayedConfig;
