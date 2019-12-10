@@ -2,7 +2,7 @@
 
 ## Features:
 * Iframes Support added  (#939, #975, #1053, #1075); msal js now added support for authentication in applications embedded in iframes which implies that an application can now call `loginSilent()`, `acquireTokenSilent()` and `acquireTokenPopup()` from iframes.
-* `redirectUri` supported as a request parameter (#1116); This feature in conjunction with iframes support improves performance, by providing the application the capability to avoid a full reload of a SPA on redirect. Please refer to the sample in the release [notes](1.2.0 release notes) for the usage details
+* `redirectUri` supported as a request parameter (#1116); This feature in conjunction with iframes support improves performance, by providing the application the capability to avoid a full reload of a SPA on redirect. Please refer to the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/VanillaJSTestApp/index_blankPageRedirectUri.html) in the release [notes](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-JS-1.2.0) for the usage details
 * Multiple Instances (#980, #1010)
 * Cache changes - to support iframes, multiple instances and other enhancements (#983, #1042, #1067)
 * fromCache flag added in response to indicate cache vs network response for a request (#1114)
