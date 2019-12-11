@@ -14,33 +14,40 @@ import {MSALError} from "./MSALError";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
-
     constructor(private auth: MsalService ,  private broadcastService: BroadcastService) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        var scopes = this.auth.getScopesForEndpoint(req.url);
-        this.auth.verbose('Url: ' + req.url + ' maps to scopes: ' + scopes);
-        if (scopes === null) {
+        const scopes = this.auth.getScopesForEndpoint(req.url);
+        this.auth.getLogger().verbose('Url: ' + req.url + ' maps to scopes: ' + scopes);
+
+        // If there are no scopes set for this request, do nothing.
+        if (!scopes) {
             return next.handle(req);
         }
-        return Observable.fromPromise(this.auth.acquireTokenSilent({ scopes }).then(token => {
-            const JWT = `Bearer ${token.accessToken}`;
-            return req.clone({
-                setHeaders: {
-                    Authorization: JWT,
-                },
-            });
-        })).mergeMap(req => next.handle(req).do(event => {}, err => {
-            if (err instanceof HttpErrorResponse && err.status == 401) {
-                var scopes = this.auth.getScopesForEndpoint(req.url);
-                this.auth.acquireTokenSilent({ scopes }).then(response => {
-                    if (response && response.accessToken) {
-                        this.auth.clearCacheForScope(response.accessToken);
+
+        // Acquire a token for this request, and attach as proper auth header.
+        return Observable.fromPromise(
+            this.auth.acquireTokenSilent({ scopes })
+                .then(token => {
+                    const authHeader = `Bearer ${token.accessToken}`;
+                    return req.clone({
+                        setHeaders: {
+                            Authorization: authHeader,
+                        }
+                    });
+                })
+        ).mergeMap(nextReq => {
+            // Call next handler, and if that errors, broadcast error
+            return next.handle(nextReq).do(
+                event => {},
+                err => {
+                    if (err instanceof HttpErrorResponse && err.status == 401) {
+                        const accessToken = nextReq.headers.get("Authorization").split(" ")[1];
+                        this.auth.clearCacheForScope(accessToken);
+                        this.broadcastService.broadcast('msal:notAuthorized', err.message);
                     }
-                    var msalError = new MSALError(JSON.stringify(err), "", JSON.stringify(scopes));
-                    this.broadcastService.broadcast('msal:notAuthorized', msalError);
-                });
+                })
             }
-        })); //calling next.handle means we are passing control to next interceptor in chain
+        );
     }
 }

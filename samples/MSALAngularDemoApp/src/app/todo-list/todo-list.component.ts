@@ -26,7 +26,9 @@ private subscription: Subscription;
     this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload));
       if (payload.errorDesc.indexOf("consent_required") !== -1 || payload.errorDesc.indexOf("interaction_required") != -1 ) {
-        this.msalService.acquireTokenPopup(['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']).then( (token) => {
+        this.msalService.acquireTokenPopup({
+          scopes: ['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']
+        }).then( (token) => {
           this.todoListService.getItems().subscribe( (results) => {
             this.error = '';
             this.todoList = results;

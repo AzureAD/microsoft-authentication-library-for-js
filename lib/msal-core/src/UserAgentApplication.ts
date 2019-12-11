@@ -1956,7 +1956,7 @@ export class UserAgentApplication {
      *
      * returns the logger handle
      */
-    protected getLogger() {
+    public getLogger(): Logger {
         return this.config.system.logger;
     }
 

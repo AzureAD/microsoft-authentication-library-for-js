@@ -6,7 +6,6 @@ import {
     UserAgentApplication,
     Configuration,
     AuthenticationParameters,
-    Account,
     AuthResponse,
     AuthError
 } from "msal";
@@ -31,16 +30,9 @@ const buildMsalConfig = (config: Configuration) : Configuration => {
 
 @Injectable()
 export class MsalService extends UserAgentApplication {
-    public user: any;
-    _oauthData = {isAuthenticated: false, userName: "", loginError: "", idToken: {}};
-    private loginScopes: string[];
-    _renewActive: boolean;
 
     constructor(@Inject(MSAL_CONFIG) private msalConfig: Configuration, private router: Router, private broadcastService: BroadcastService) {
         super(buildMsalConfig(msalConfig));
-
-        this.loginScopes = [this.msalConfig.auth.clientId, "openid", "profile", "user.read"];
-        this.updateDataFromCache(this.loginScopes);
 
         window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
             this.getLogger().verbose("popUpHashChanged ");
@@ -49,7 +41,7 @@ export class MsalService extends UserAgentApplication {
         window.addEventListener('msal:popUpClosed', (e: CustomEvent) => {
             var errorParts = e.detail.split('|');
             var msalError = new MSALError(errorParts[0], errorParts[1]);
-            if (this.loginInProgress()) {
+            if (this.getLoginInProgress()) {
                 broadcastService.broadcast('msal:loginFailure', msalError);
                 this.setloginInProgress(false);
             }
@@ -70,21 +62,7 @@ export class MsalService extends UserAgentApplication {
                 }
             }
         })
-    }
 
-     updateDataFromCache(scopes: string[]) {
-        // only cache lookup here to not interrupt with events
-        super.acquireTokenSilent({ scopes }).then(response => {
-            this._oauthData.isAuthenticated = response != null && response.accessToken !== null && response.accessToken.length > 0;
-            var user = this.getAccount();
-            if (user) {
-                this._oauthData.userName = user.name;
-                this._oauthData.idToken = user.idToken;
-            }
-        })
-            .catch((error: AuthError) => {
-                this._oauthData.loginError = error.errorMessage;
-            });
     }
 /*
     private processHash(hash: string) {
@@ -252,123 +230,58 @@ export class MsalService extends UserAgentApplication {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
-    //dummy method for future use
-    private authCallback(errorDesc: any, _token: any, error: any, _tokenType: any) {
-
-    }
-
-    protected clearCache() {
-        super.clearCache();
-    }
-
-
-    /*This is a private api and not supposed to be use by customers */
-    getLogger()
-    {
-        return super.getLogger();
-    }
-
-    getCacheStorage(): AuthCache {
+    public getCacheStorage(): AuthCache {
         return this.cacheStorage;
-
     }
 
-    public isCallback(hash: string): boolean
-    {
-        return super.isCallback(hash);
-    }
-
-    public loginRedirect(request: AuthenticationParameters) {
-
-        this.getLogger().verbose("login redirect flow");
-        super.loginRedirect(request)
-    }
-
-    public loginPopup(request: AuthenticationParameters): Promise<any> {
-        this.getLogger().verbose("login popup flow");
+    public loginPopup(request?: AuthenticationParameters): Promise<any> {
         return super.loginPopup(request)
-            .then((authResponse) => {
+            .then((authResponse: AuthResponse) => {
                 this.broadcastService.broadcast("msal:loginSuccess", authResponse);
                 return authResponse;
-            }, (error: any) => {
+            })
+            .catch((error: any) => {
                 var errorParts = error.split('|');
                 var msalError = new MSALError(errorParts[0], errorParts[1]);
                 this.getLogger().error("Error during login:\n" + error);
                 this.broadcastService.broadcast("msal:loginFailure", msalError);
                 throw error;
             });
-
-    }
-
-    public logout(): void {
-        this.user = null;
-        super.logout();
     }
 
     public acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
-        return super.acquireTokenSilent(request).then((authResponse) => {
-                this._renewActive = false;
+        return super.acquireTokenSilent(request)
+            .then((authResponse: AuthResponse) => {
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', authResponse);
                 return authResponse;
-            }, (error: any) => {
-                var errorParts = error.split('|');
-                var msalError = new MSALError(errorParts[0], errorParts[1]);
-                this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
+            })
+            .catch((error: AuthError) => {
+                this.broadcastService.broadcast('msal:acquireTokenFailure', error.errorMessage);
                 this.getLogger().error('Error when acquiring token for scopes: ' + request.scopes + " " + error);
-
                 throw error;
             });
 
     }
 
     public acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
-        return super.acquireTokenPopup(request).then((authResponse) => {
-                this._renewActive = false;
+        return super.acquireTokenPopup(request)
+            .then((authResponse: AuthResponse) => {
                 this.broadcastService.broadcast('msal:acquireTokenSuccess', authResponse);
                 return authResponse;
-            }, (error: any) => {
-                var errorParts = error.split('|');
-                var msalError = new MSALError(errorParts[0], errorParts[1]);
-                this._renewActive = false;
-                this.broadcastService.broadcast('msal:acquireTokenFailure', msalError);
+            })
+            .catch((error: AuthError) => {
+                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
                 this.getLogger().error('Error when acquiring token for scopes : ' + request.scopes +" "+  error);
                 throw error;
             });
     }
 
-    public acquireTokenRedirect(request: AuthenticationParameters) {
-        super.acquireTokenRedirect(request);
-    }
-
-    public loginInProgress(): boolean {
-        return super.getLoginInProgress();
-    }
-
-    public getAccount(): Account {
-        return super.getAccount();
-    }
-
-    getScopesForEndpoint(endpoint: string) {
+    public getScopesForEndpoint(endpoint: string): string[] {
         return super.getScopesForEndpoint(endpoint);
     }
 
-    clearCacheForScope(accessToken: string) {
-        super.clearCacheForScope(accessToken);
+    public clearCacheForScope(accessToken: string) {
+        return super.clearCacheForScope(accessToken);
     }
-
-    info(message: string) {
-        this.getLogger().info(message);
-    }
-
-    verbose(message: string) {
-        this.getLogger().verbose(message);
-    }
-
-    removeItem(key: string) {
-        this.cacheStorage.removeItem(key);
-    }
-
-
 }
 
