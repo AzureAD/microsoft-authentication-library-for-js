@@ -4,6 +4,7 @@
  */
 
 import * as msalAuth from "msal-common";
+import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 
@@ -38,6 +39,12 @@ export class PublicClientApplication {
     // Crypto interface implementation
     private browserCrypto: CryptoOps;
 
+    // Storage interface implementation
+    private browserStorage: BrowserStorage;
+
+    // Network interface implementation
+    private networkClient: msalAuth.INetworkModule;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -65,12 +72,18 @@ export class PublicClientApplication {
         // Initialize the crypto class
         this.browserCrypto = new CryptoOps();
 
+        // Initialize the network module class
+        this.networkClient = this.config.system.networkClient;
+
+        // Initialize the browser storage class
+        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+
         // Create auth module
         this.authModule = new msalAuth.AuthorizationCodeModule({
             auth: this.config.auth,
             cryptoInterface: this.browserCrypto,
-            networkInterface: null,
-            storageInterface: null
+            networkInterface: this.networkClient,
+            storageInterface: this.browserStorage
         });
     }
 

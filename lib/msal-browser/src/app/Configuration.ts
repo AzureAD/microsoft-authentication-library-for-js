@@ -4,8 +4,9 @@
  */
 
 // import { Logger } from "./Logger";
+import { AuthOptions, INetworkModule } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { AuthOptions } from "msal-common";
+import { FetchClient } from "../network/FetchClient";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
@@ -48,23 +49,11 @@ export type TelemetryOptions = {
  */
 export type SystemOptions = {
     // logger?: Logger;
+    networkClient?: INetworkModule;
     loadFrameTimeout?: number;
     tokenRenewalOffsetSeconds?: number;
     navigateFrameWait?: number;
     telemetry?: TelemetryOptions
-};
-
-/**
- * App/Framework specific environment support
- *
- * - isAngular                - flag set to determine if it is Angular Framework. MSAL uses this to broadcast tokens. More to come here: detangle this dependency from core.
- * - unprotectedResources     - Array of URI's which are unprotected resources. MSAL will not attach a token to outgoing requests that have these URI. Defaults to 'null'.
- * - protectedResourceMap     - This is mapping of resources to scopes used by MSAL for automatically attaching access tokens in web API calls.A single access token is obtained for the resource. So you can map a specific resource path as follows: {"https://graph.microsoft.com/v1.0/me", ["user.read"]}, or the app URL of the resource as: {"https://graph.microsoft.com/", ["user.read", "mail.send"]}. This is required for CORS calls.
- *
- */
-export type FrameworkOptions = {
-    unprotectedResources?: Array<string>;
-    protectedResourceMap?: Map<string, Array<string>>;
 };
 
 /**
@@ -79,8 +68,7 @@ export type FrameworkOptions = {
 export type Configuration = {
     auth: AuthOptions,
     cache?: CacheOptions,
-    system?: SystemOptions,
-    framework?: FrameworkOptions
+    system?: SystemOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
@@ -100,14 +88,11 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
     // logger: new Logger(null),
+    networkClient: BrowserUtils.getBrowserNetworkClient(),
     loadFrameTimeout: FRAME_TIMEOUT,
     tokenRenewalOffsetSeconds: OFFSET,
-    navigateFrameWait: NAVIGATE_FRAME_WAIT
-};
-
-const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
-    unprotectedResources: new Array<string>(),
-    protectedResourceMap: new Map<string, Array<string>>()
+    navigateFrameWait: NAVIGATE_FRAME_WAIT,
+    telemetry: null
 };
 
 /**
@@ -121,12 +106,11 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
  * @returns TConfiguration object
  */
 
-export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
+export function buildConfiguration({ auth, cache = {}, system = {}}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system }
     };
     return overlayedConfig;
 }

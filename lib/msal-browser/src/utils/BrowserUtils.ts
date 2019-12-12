@@ -1,3 +1,7 @@
+import { INetworkModule } from "msal-common";
+import { FetchClient } from "../network/FetchClient";
+import { XhrClient } from "../network/XhrClient";
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -28,4 +32,14 @@ export class BrowserUtils {
         return window.location.href.split("?")[0].split("#")[0];
     }
 
+    /**
+     * Returns best compatible network client object. 
+     */
+    static getBrowserNetworkClient(): INetworkModule {
+        if (window.fetch) {
+            return new FetchClient();
+        } else {
+            return new XhrClient();
+        }
+    }
 }

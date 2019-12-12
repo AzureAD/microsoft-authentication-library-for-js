@@ -7,7 +7,7 @@ export { AuthorityFactory } from "./auth/authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 // Network Interface
-export { INetworkModule } from "./network/INetworkModule";
+export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
@@ -23,4 +23,4 @@ export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants
-export { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export { Constants, TemporaryCacheKeys, PersistentCacheKeys, ErrorCacheKeys } from "./utils/Constants";

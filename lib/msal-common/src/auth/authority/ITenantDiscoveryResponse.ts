@@ -7,8 +7,8 @@
  * @hidden
  */
 export interface ITenantDiscoveryResponse {
-    AuthorizationEndpoint: string;
-    TokenEndpoint: string;
-    EndSessionEndpoint: string;
-    Issuer: string;
+    authorization_endpoint: string;
+    token_endpoint: string;
+    end_session_endpoint: string;
+    issuer: string;
 }
