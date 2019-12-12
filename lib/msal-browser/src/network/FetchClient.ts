@@ -16,7 +16,7 @@ export class FetchClient implements INetworkModule {
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.GET,
-            headers: this.getFetchHeaders(options.headers)
+            headers: this.getFetchHeaders(options)
         });
         return await response.json() as T;
     }
@@ -28,11 +28,12 @@ export class FetchClient implements INetworkModule {
      * @param body 
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+        const reqBody = (options && options.body) || "";
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.POST,
-            headers: this.getFetchHeaders(options.headers),
+            headers: this.getFetchHeaders(options),
             credentials: "include",
-            body: options.body
+            body: reqBody
         });
         return await response.json() as T;
     }
@@ -41,13 +42,13 @@ export class FetchClient implements INetworkModule {
      * Get Fetch API Headers object from string map
      * @param inputHeaders 
      */
-    private getFetchHeaders(inputHeaders: Map<string, string>): Headers {
+    private getFetchHeaders(options?: NetworkRequestOptions): Headers {
         const headers = new Headers();
-        if (!inputHeaders) {
+        if (!(options && options.headers)) {
             return headers;
         }
-        for (const headerName in inputHeaders.keys()) {
-            headers.append(headerName, inputHeaders.get(headerName));
+        for (const headerName in options.headers.keys()) {
+            headers.append(headerName, options.headers.get(headerName));
         }
         return headers;
     }

@@ -10,8 +10,8 @@ export class XhrClient implements INetworkModule {
 
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
-    }    
-    
+    }
+
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.POST, options);
     }
@@ -20,13 +20,13 @@ export class XhrClient implements INetworkModule {
         return new Promise<T>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
-            this.setXhrHeaders(xhr, options.headers);
+            this.setXhrHeaders(xhr, options);
             xhr.onload = (ev) => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
                 try {
-                    let jsonResponse = JSON.parse(xhr.responseText) as T;
+                    const jsonResponse = JSON.parse(xhr.responseText) as T;
                     resolve(jsonResponse);
                 } catch (e) {
                     reject(this.handleError(xhr.responseText));
@@ -61,9 +61,11 @@ export class XhrClient implements INetworkModule {
         }
     }
 
-    private setXhrHeaders(xhr: XMLHttpRequest, headers: Map<string, string>): void {
-        for (const headerName in headers.keys()) {
-            xhr.setRequestHeader(headerName, headers.get(headerName));
+    private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {
+        if (options && options.headers) {
+            for (const headerName in options.headers.keys()) {
+                xhr.setRequestHeader(headerName, options.headers.get(headerName));
+            }
         }
     }
 }
