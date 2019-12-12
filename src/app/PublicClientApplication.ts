@@ -101,15 +101,19 @@ export class PublicClientApplication {
     }
 
     /**
-     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so 
+     * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
-        console.log(this.authModule.createLoginUrl(request));
+        this.authModule.createLoginUrl(request).then((urlNavigate) => {
+            console.log(urlNavigate);
+        });
     }
 
     /**
-     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint.
+     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects 
+     * the page, so any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
