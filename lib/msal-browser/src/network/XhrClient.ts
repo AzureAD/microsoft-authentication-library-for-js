@@ -23,14 +23,12 @@ export class XhrClient implements INetworkModule {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
-                let jsonResponse: T;
                 try {
-                    jsonResponse = JSON.parse(xhr.responseText) as T;
+                    let jsonResponse = JSON.parse(xhr.responseText) as T;
+                    resolve(jsonResponse);
                 } catch (e) {
                     reject(this.handleError(xhr.responseText));
                 }
-
-                resolve(jsonResponse);
             };
 
             xhr.onerror = (ev) => {
