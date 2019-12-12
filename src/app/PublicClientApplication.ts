@@ -81,7 +81,10 @@ export class PublicClientApplication {
         // Create auth module
         this.authModule = new AuthorizationCodeModule({
             auth: this.config.auth,
-            loggerOptions: this.config.system.loggerOptions,
+            loggerOptions: {
+                loggerCallbackInterface: this.config.system.loggerOptions.loggerCallback,
+                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled
+            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage
@@ -108,7 +111,7 @@ export class PublicClientApplication {
      */
     loginRedirect(request: AuthenticationParameters): void {
         this.authModule.createLoginUrl(request).then((urlNavigate) => {
-            console.log(urlNavigate);
+            this.authModule.logger.info(urlNavigate);
         });
     }
 
