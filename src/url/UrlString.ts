@@ -4,7 +4,6 @@
  */
 
 import { AADAuthorityConstants, AADServerHashParamKeys } from "../utils/Constants";
-import { CryptoUtils } from "../utils/CryptoUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
@@ -122,7 +121,7 @@ export class UrlString {
      */
     getDeserializedHash() {
         const hash = this.getHash();
-        return CryptoUtils.deserialize(hash);
+        return StringUtils.queryStringToObject(hash);
     }
 
     /**
