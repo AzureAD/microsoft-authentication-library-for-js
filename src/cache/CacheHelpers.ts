@@ -77,10 +77,10 @@ export class CacheHelpers {
         // Cache account and state
         if (account) {
             this.setAccountCache(account, serverAuthenticationRequest.state);
-        } else {
-            // Cache the request state
-            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
         }
+
+        // Cache the request state
+        this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
 
         // Cache authorityKey
         this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);
