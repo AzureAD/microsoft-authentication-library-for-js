@@ -21,6 +21,7 @@ import { StringUtils } from "../../utils/StringUtils";
 import { IdToken } from "../../auth/IdToken";
 import { buildClientInfo } from "../../auth/ClientInfo";
 import { CacheHelpers } from "../../cache/CacheHelpers";
+import { Logger } from "../../logger/Logger";
 
 /**
  * @hidden
@@ -39,6 +40,9 @@ export type ResponseStateInfo = {
  * 
  */
 export abstract class AuthModule {
+
+    // Logger object
+    public logger: Logger;
 
     // Application config
     private config: ModuleConfiguration;
@@ -64,6 +68,9 @@ export abstract class AuthModule {
     constructor(configuration: ModuleConfiguration) {
         // Set the configuration
         this.config = buildModuleConfiguration(configuration);
+
+        // Initialize the logger
+        this.logger = new Logger(configuration.loggerOptions.loggerCallbackInterface, configuration.loggerOptions.piiLoggingEnabled);
 
         // Initialize crypto
         this.cryptoObj = this.config.cryptoInterface;
