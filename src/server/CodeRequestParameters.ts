@@ -167,7 +167,6 @@ export class CodeRequestParameters {
         const pkceCodes = await this.cryptoObj.generatePkceCodes();
         str.push(`code_challenge=${encodeURIComponent(pkceCodes.challenge)}`);
         str.push("code_challenge_method=S256");
-        console.log(`PKCE Codes: ${JSON.stringify(pkceCodes)}`);
 
         if (this.userRequest.prompt) {
             str.push("prompt=" + encodeURIComponent(this.userRequest.prompt));
