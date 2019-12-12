@@ -11,7 +11,7 @@ export { INetworkModule } from "./network/INetworkModule";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
-export { ICrypto, PKCECodes } from "./utils/crypto/ICrypto";
+export { ICrypto, PkceCodes } from "./utils/crypto/ICrypto";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";

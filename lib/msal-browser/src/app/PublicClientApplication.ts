@@ -5,6 +5,7 @@
 
 import * as msalAuth from "msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
+import { CryptoOps } from "../crypto/CryptoOps";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -34,6 +35,9 @@ export class PublicClientApplication {
     // callback for error/token response
     private authCallback: authCallback = null;
 
+    // Crypto interface implementation
+    private browserCrypto: CryptoOps;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -58,9 +62,13 @@ export class PublicClientApplication {
         // Set the configuration
         this.config = buildConfiguration(configuration);
 
+        // Initialize the crypto class
+        this.browserCrypto = new CryptoOps();
+
+        // Create auth module
         this.authModule = new msalAuth.AuthorizationCodeModule({
             auth: this.config.auth,
-            cryptoInterface: null,
+            cryptoInterface: this.browserCrypto,
             networkInterface: null,
             storageInterface: null
         });
@@ -83,7 +91,7 @@ export class PublicClientApplication {
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: msalAuth.AuthenticationParameters): void {
+    loginRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
         throw new Error("Method not implemented.");
     }
 
@@ -93,7 +101,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): void {
+    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
         throw new Error("Method not implemented.");
     }
 

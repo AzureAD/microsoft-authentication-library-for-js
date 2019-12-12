@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quickstart for MSAL JS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
+    <script src="./lib/msal-browser.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="leftContainer">
+            <p id="WelcomeMessage">Welcome to the Microsoft Authentication Library For Javascript Quickstart</p>
+            <button id="SignIn" onclick="signIn()">Sign In</button>
+        </div>
+        <div class="rightContainer">
+            <pre id="json"></pre>
+        </div>
+    </div>
+    <script>
+    // initialize MSAL
+    const msalConfig = {
+        auth: {
+            clientId: "Enter_your_client_id",
+            clientSecret: "Enter_your_client_secret",
+            authority: "https://login.microsoftonline.com/common",
+            validateAuthority: true,
+            navigateToLoginRequestUrl: false
+        },
+        cache: {
+            cacheLocation: "localStorage",
+            storeAuthStateInCookie: false
+        }
+    };
+    const loginRequest = {
+        scopes: ["openid", "profile", "User.Read"]
+    }
+    // resource endpoints
+    const graphConfig = {
+        graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
+        graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
+    };
+    // instantiate MSAL
+    const myMSALObj = new msal.PublicClientApplication(msalConfig);
+    // register callback for redirect usecases
+    // myMSALObj.handleRedirectCallback(authRedirectCallBack);
+    // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
+    function signIn() {
+        try {
+            myMSALObj.loginRedirect(loginRequest);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    function authRedirectCallBack(error, response) {
+        if (error) {
+            console.error("Auth Error: " + error.stack);
+        } else {
+            console.log("Response: " + JSON.stringify(response));
+        }
+    }
+</script>
+</body>
+</html>
