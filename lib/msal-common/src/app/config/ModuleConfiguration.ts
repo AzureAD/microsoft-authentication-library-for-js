@@ -6,19 +6,35 @@ import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule, NetworkRequestOptions } from "../../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
+import { ILoggerCallback, LogLevel } from "../../logger/Logger";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
  *
  * This object allows you to configure important elements of MSAL functionality:
+ * - logger: logging for application
  * - storage: this is where you configure storage implementation.
  * - network: this is where you can configure network implementation.
  * - crypto: implementation of crypto functions
  */
 export type ModuleConfiguration = {
+    loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto
+};
+
+/**
+ * Logger options to configure the logging that MSAL does.
+ */
+export type LoggerOptions = {
+    loggerCallbackInterface?: ILoggerCallback,
+    piiLoggingEnabled?: boolean
+};
+
+const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
+    loggerCallbackInterface: null,
+    piiLoggingEnabled: false
 };
 
 const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
@@ -99,8 +115,9 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildModuleConfiguration({ storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
+export function buildModuleConfiguration({ loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
     const overlayedConfig: ModuleConfiguration = {
+        loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION

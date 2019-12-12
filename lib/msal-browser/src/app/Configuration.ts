@@ -4,7 +4,7 @@
  */
 
 // import { Logger } from "./Logger";
-import { AuthOptions, INetworkModule } from "msal-common";
+import { AuthOptions, INetworkModule, ILoggerCallback, LogLevel } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
@@ -48,12 +48,23 @@ export type TelemetryOptions = {
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
-    // logger?: Logger;
+    loggerOptions?: BrowserLoggerOptions;
     networkClient?: INetworkModule;
     loadFrameTimeout?: number;
     tokenRenewalOffsetSeconds?: number;
     navigateFrameWait?: number;
     telemetry?: TelemetryOptions
+};
+
+/**
+ * Logger options
+ * 
+ * - piiLoggingEnabled          - Used to configure whether piiLogging is enabled. Defaults to false.
+ * - loggerCallback             - Callback for logger that determines how message is broadcast. Defaults to console.
+ */
+export type BrowserLoggerOptions = {
+    piiLoggingEnabled?: boolean,
+    loggerCallback?: ILoggerCallback
 };
 
 /**
@@ -66,7 +77,7 @@ export type SystemOptions = {
  * - framework: this is where you can configure the running mode of angular. More to come here soon.
  */
 export type Configuration = {
-    auth: AuthOptions,
+    auth?: AuthOptions,
     cache?: CacheOptions,
     system?: SystemOptions
 };
@@ -86,8 +97,27 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     storeAuthStateInCookie: false
 };
 
+const DEFAULT_LOGGER_OPTIONS: BrowserLoggerOptions = {
+    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+        if (containsPii) {
+            return;
+        }
+        switch (level) {
+            case LogLevel.Error:
+                console.error(message);
+            case LogLevel.Info:
+                console.info(message);
+            case LogLevel.Verbose:
+                console.debug(message);
+            case LogLevel.Warning:
+                console.warn(message);
+        }
+    },
+    piiLoggingEnabled: false
+};
+
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    // logger: new Logger(null),
+    loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
     loadFrameTimeout: FRAME_TIMEOUT,
     tokenRenewalOffsetSeconds: OFFSET,

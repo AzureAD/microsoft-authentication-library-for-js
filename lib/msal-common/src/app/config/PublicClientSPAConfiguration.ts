@@ -55,8 +55,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
  *
  * @returns TConfiguration object
  */
-export function buildPublicClientSPAConfiguration({ auth, storageInterface, networkInterface, cryptoInterface }: PublicClientSPAConfiguration): PublicClientSPAConfiguration {
-    const baseConfig = buildModuleConfiguration({storageInterface, networkInterface, cryptoInterface});
+export function buildPublicClientSPAConfiguration({ auth, loggerOptions, storageInterface, networkInterface, cryptoInterface }: PublicClientSPAConfiguration): PublicClientSPAConfiguration {
+    const baseConfig = buildModuleConfiguration({loggerOptions, storageInterface, networkInterface, cryptoInterface});
     const overlayedConfig: PublicClientSPAConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         ...baseConfig
