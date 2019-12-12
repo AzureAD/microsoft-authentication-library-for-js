@@ -57,7 +57,7 @@ export abstract class Authority {
 
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete) {
-            return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.tenant);
+            return this.tenantDiscoveryResponse.authorization_endpoint.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
         }
@@ -65,7 +65,7 @@ export abstract class Authority {
 
     public get tokenEndpoint(): string {
         if(this.discoveryComplete) {
-            return this.tenantDiscoveryResponse.TokenEndpoint.replace("{tenant}", this.tenant);
+            return this.tenantDiscoveryResponse.token_endpoint.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
         }
@@ -73,7 +73,7 @@ export abstract class Authority {
 
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete) {
-            return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.tenant);
+            return this.tenantDiscoveryResponse.end_session_endpoint.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
         }
@@ -81,7 +81,7 @@ export abstract class Authority {
 
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete) {
-            return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.tenant);
+            return this.tenantDiscoveryResponse.issuer.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
         }
@@ -103,13 +103,7 @@ export abstract class Authority {
     }
 
     private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-        const response = await this.networkInterface.sendRequestAsync(openIdConfigurationEndpoint, { method: "GET" }, true);
-        return {
-            AuthorizationEndpoint: response.authorization_endpoint,
-            TokenEndpoint: response.token_endpoint,
-            EndSessionEndpoint: response.end_session_endpoint,
-            Issuer: response.issuer
-        } as ITenantDiscoveryResponse;
+        return this.networkInterface.sendGetRequestAsync<ITenantDiscoveryResponse>(openIdConfigurationEndpoint);
     }
 
     public abstract async getOpenIdConfigurationAsync(): Promise<string>;
