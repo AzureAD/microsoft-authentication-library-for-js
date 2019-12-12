@@ -23,6 +23,10 @@ export const BrowserAuthErrorMessage = {
     httpMethodNotImplementedError: {
         code: "http_method_not_implemented",
         desc: "The HTTP method given has not been implemented in this library."
+    },
+    emptyRedirectUriError: {
+        code: "empty_redirect_ur",
+        desc: "Redirect URI is empty. Please check stack trace for more info."
     }
 };
 
@@ -42,18 +46,22 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
     }
 
-    static createPkceNotGeneratedError(errDetail: string) {
+    static createPkceNotGeneratedError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.pkceNotGenerated.code,
             `${BrowserAuthErrorMessage.pkceNotGenerated.desc} Detail:${errDetail}`);
     }
 
-    static createCryptoNotAvailableError(errDetail: string) {
+    static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code, 
             `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`);
     }
 
-    static createHttpMethodNotImplementedError(method: string) {
+    static createHttpMethodNotImplementedError(method: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.httpMethodNotImplementedError.code,
             `${BrowserAuthErrorMessage.httpMethodNotImplementedError.desc} Given Method: ${method}`);
+    }
+
+    static createEmptyRedirectUriError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.emptyRedirectUriError.code, BrowserAuthErrorMessage.emptyRedirectUriError.desc);
     }
 }

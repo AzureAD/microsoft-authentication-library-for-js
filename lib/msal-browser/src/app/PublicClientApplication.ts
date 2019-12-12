@@ -7,6 +7,8 @@ import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParamet
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
+import { IInteractionHandler } from "../interaction_handler/IInteractionHandler";
+import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -32,6 +34,8 @@ export class PublicClientApplication {
 
     // auth functions imported from msal-common module
     private authModule: AuthorizationCodeModule;
+
+    private interactionHandler: IInteractionHandler;
 
     // callback for error/token response
     private authCallback: AuthCallback = null;
@@ -110,8 +114,9 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
+        this.interactionHandler = new RedirectHandler(this.authModule);
         this.authModule.createLoginUrl(request).then((urlNavigate) => {
-            this.authModule.logger.info(urlNavigate);
+            this.interactionHandler.showUI(urlNavigate);
         });
     }
 
