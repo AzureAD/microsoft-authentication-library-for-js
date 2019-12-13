@@ -2,19 +2,29 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthorizationCodeModule } from "msal-common";
+import { AuthorizationCodeModule, AuthenticationParameters } from "msal-common";
+import { BrowserAuthOptions } from "../app/Configuration";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
 export abstract class IInteractionHandler {
 
     protected authModule: AuthorizationCodeModule;
+    protected browserStorage: BrowserStorage;
 
-    constructor(authCodeModule: AuthorizationCodeModule) {
+    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
+        this.browserStorage = storageImpl;
     }
     
     /**
-     * Function to handle user interaction.
+     * Function to enable user interaction.
      * @param urlNavigate 
      */
-    abstract showUI(urlNavigate: string): void;
+    abstract showUI(authRequest: AuthenticationParameters): void;
+
+    /**
+     * Function to handle response parameters from hash.
+     * @param hash 
+     */
+    abstract handleCodeResponse(hash: string): void;
 }
