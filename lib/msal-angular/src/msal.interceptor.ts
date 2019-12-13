@@ -11,6 +11,7 @@ import 'rxjs/add/operator/mergeMap'
 import {MsalService} from "./msal.service";
 import {BroadcastService} from "./broadcast.service";
 import {MSALError} from "./MSALError";
+import { AuthResponse } from 'msal';
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -25,11 +26,14 @@ export class MsalInterceptor implements HttpInterceptor {
             return next.handle(req);
         }
 
+        let accessToken: string;
+
         // Acquire a token for this request, and attach as proper auth header.
         return Observable.fromPromise(
             this.auth.acquireTokenSilent({ scopes })
-                .then(token => {
-                    const authHeader = `Bearer ${token.accessToken}`;
+                .then((response: AuthResponse) => {
+                    accessToken = response.accessToken;
+                    const authHeader = `Bearer ${response.accessToken}`;
                     return req.clone({
                         setHeaders: {
                             Authorization: authHeader,
@@ -42,10 +46,11 @@ export class MsalInterceptor implements HttpInterceptor {
                 event => {},
                 err => {
                     if (err instanceof HttpErrorResponse && err.status == 401) {
-                        const accessToken = nextReq.headers.get("Authorization").split(" ")[1];
                         this.auth.clearCacheForScope(accessToken);
                         this.broadcastService.broadcast('msal:notAuthorized', err.message);
                     }
+
+                    throw err;
                 })
             }
         );
