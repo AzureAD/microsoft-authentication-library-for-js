@@ -11,7 +11,17 @@ export const BrowserConfigurationAuthErrorMessage = {
     storageNotSupportedError: {
         code: "storage_not_supported",
         desc: "Given storage configuration option was not supported."
-    }
+    },
+    noRedirectCallbacksSet: {
+        code: "no_redirect_callbacks",
+        desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
+            "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
+    },
+    invalidCallbackObject: {
+        code: "invalid_callback_object",
+        desc: "The object passed for the callback was invalid. " +
+          "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
+    },
 };
 
 /**
@@ -28,5 +38,14 @@ export class BrowserConfigurationAuthError extends AuthError {
 
     static createStorageNotSupportedError(givenStorageLocation: string): BrowserConfigurationAuthError {
         return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.code, `${BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc} Given Location: ${givenStorageLocation}`);
+    }
+
+    static createInvalidCallbackObjectError(callbackObject: object): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.invalidCallbackObject.code,
+            `${BrowserConfigurationAuthErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
+    }
+
+    static createRedirectCallbacksNotSetError(): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.code, BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
     }
 }

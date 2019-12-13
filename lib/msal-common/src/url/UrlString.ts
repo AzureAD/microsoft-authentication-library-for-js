@@ -119,9 +119,9 @@ export class UrlString {
      * Returns deserialized portion of URL hash
      * @ignore
      */
-    getDeserializedHash() {
+    getDeserializedHash<T>(): T {
         const hash = this.getHash();
-        return StringUtils.queryStringToObject(hash);
+        return StringUtils.queryStringToObject<T>(hash);
     }
 
     /**
@@ -165,12 +165,10 @@ export class UrlString {
      */
     static hashContainsKnownProperties(url: string): boolean {
         const urlString = new UrlString(url);
-        const parameters = urlString.getDeserializedHash();
+        const parameters = urlString.getDeserializedHash<any>();
         return (
             parameters.hasOwnProperty(AADServerHashParamKeys.ERROR_DESCRIPTION) ||
             parameters.hasOwnProperty(AADServerHashParamKeys.ERROR) ||
-            parameters.hasOwnProperty(AADServerHashParamKeys.ACCESS_TOKEN) ||
-            parameters.hasOwnProperty(AADServerHashParamKeys.ID_TOKEN) ||
             parameters.hasOwnProperty(AADServerHashParamKeys.CODE)
         );
     }

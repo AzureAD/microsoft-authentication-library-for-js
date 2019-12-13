@@ -15,6 +15,7 @@ import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { CodeRequestParameters } from "../../server/CodeRequestParameters";
+import { CodeResponse } from "../../response/CodeResponse";
 
 /**
  * AuthorizationCodeModule class
@@ -74,6 +75,17 @@ export class AuthorizationCodeModule extends AuthModule {
     async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
         throw new Error("Method not implemented.");
     }
+
+    // #region Response Handling
+
+    public handleFragmentResponse(hashFragment: string): CodeResponse {
+        return {
+            scopes: ["test_scopes"],
+            state: "test_state"
+        };
+    }
+
+    // #endregion
 
     // #region Getters and setters
 

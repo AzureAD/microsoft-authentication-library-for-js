@@ -91,14 +91,6 @@ export abstract class AuthModule {
     abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
 
     // #endregion
-
-    // #region Response Handling
-
-    public handleFragmentResponse(hashFragment: string): AuthResponse {
-        return null;
-    }
-
-    // #endregion
     
     // #region Getters and Setters
 
