@@ -66,7 +66,7 @@ export class RedirectHandler extends IInteractionHandler {
             window.location.hash = "";
         }
 
-        let authResponse: AuthResponse = null;
+        const authResponse: AuthResponse = null;
         let authErr: AuthError = null;
         try {
             this.authModule.handleFragmentResponse(locationHash);
