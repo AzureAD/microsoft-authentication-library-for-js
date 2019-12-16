@@ -31,7 +31,9 @@ export class UserDataComponent implements OnInit {
     this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
       console.log("acquire token failure " + JSON.stringify(payload))
       if (payload.errorDesc.indexOf("consent_required") !== -1 || payload.errorDesc.indexOf("interaction_required") != -1) {
-        this.authService.acquireTokenPopup(["user.read", "mail.send"]).then((token) => {
+        this.authService.acquireTokenPopup({
+          scopes: ["user.read", "mail.send"]
+        }).then((token) => {
           this.getUSerProfile();
         }, (error) => {
         });

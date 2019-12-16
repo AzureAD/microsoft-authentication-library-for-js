@@ -3,7 +3,7 @@ import {BroadcastService} from "@azure/msal-angular";
 import { MsalService} from "@azure/msal-angular";
 import {ProductService} from "./product/product.service";
 import {Subscription} from "rxjs/Subscription";
-import { AuthError, AuthResponse } from '../../../../lib/msal-core/lib-commonjs';
+import { AuthError, AuthResponse } from 'msal';
 
 @Component({
   selector: 'app-root',

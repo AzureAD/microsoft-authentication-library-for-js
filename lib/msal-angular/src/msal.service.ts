@@ -7,7 +7,8 @@ import {
     Configuration,
     AuthenticationParameters,
     AuthResponse,
-    AuthError
+    AuthError,
+    Logger
 } from "msal";
 import {
      Router
@@ -15,8 +16,10 @@ import {
 import {BroadcastService} from "./broadcast.service";
 import {MSALError} from "./MSALError";
 import { AuthCache } from "msal/lib-commonjs/cache/AuthCache";
+import { MsalAngularConfiguration } from "./msal-angular.configuration";
 
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
+export const MSAL_CONFIG_ANGULAR = new InjectionToken<string>("MSAL_CONFIG_ANGULAR");
 
 const buildMsalConfig = (config: Configuration) : Configuration => {
     return {
@@ -31,7 +34,12 @@ const buildMsalConfig = (config: Configuration) : Configuration => {
 @Injectable()
 export class MsalService extends UserAgentApplication {
 
-    constructor(@Inject(MSAL_CONFIG) private msalConfig: Configuration, private router: Router, private broadcastService: BroadcastService) {
+    constructor(
+        @Inject(MSAL_CONFIG) private msalConfig: Configuration,
+        @Inject(MSAL_CONFIG_ANGULAR) private msalAngularConfig: MsalAngularConfiguration,
+        private router: Router,
+        private broadcastService: BroadcastService
+    ) {
         super(buildMsalConfig(msalConfig));
 
         window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
@@ -122,6 +130,10 @@ export class MsalService extends UserAgentApplication {
                 this.getLogger().error('Error when acquiring token for scopes : ' + request.scopes +" "+  error);
                 throw error;
             });
+    }
+
+    public getLogger(): Logger {
+        return super.getLogger();
     }
 
     public getScopesForEndpoint(endpoint: string): string[] {

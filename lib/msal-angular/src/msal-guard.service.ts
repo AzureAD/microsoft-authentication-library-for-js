@@ -1,27 +1,36 @@
-import {Inject, Injectable} from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import {
     ActivatedRoute,
     ActivatedRouteSnapshot, CanActivate, Router,
     RouterStateSnapshot,
 } from "@angular/router";
-import {MSAL_CONFIG, MsalService} from "./msal.service";
+import { MSAL_CONFIG, MsalService, MSAL_CONFIG_ANGULAR } from "./msal.service";
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/pairwise';
-import {Location, PlatformLocation} from "@angular/common";
-import {BroadcastService} from "./broadcast.service";
+import { Location, PlatformLocation } from "@angular/common";
+import { BroadcastService } from "./broadcast.service";
 import { Configuration, AuthResponse, AuthError } from "msal";
+import { MsalAngularConfiguration } from "./msal-angular.configuration";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
 
-    constructor(@Inject(MSAL_CONFIG) private msalConfig: Configuration, private authService: MsalService, private router: Router, private activatedRoute: ActivatedRoute, private location: Location, private platformLocation: PlatformLocation, private broadcastService: BroadcastService) {
-    }
+    constructor(
+        @Inject(MSAL_CONFIG) private msalConfig: Configuration,
+        @Inject(MSAL_CONFIG_ANGULAR) private msalAngularConfig: MsalAngularConfiguration,
+        private authService: MsalService,
+        private router: Router,
+        private activatedRoute: ActivatedRoute,
+        private location: Location,
+        private platformLocation: PlatformLocation,
+        private broadcastService: BroadcastService
+    ) {}
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
         if (!this.authService.getAccount()) {
-            if (this.msalConfig.framework.popUp) {
+            if (this.msalAngularConfig.popUp) {
                 return this.authService.loginPopup({
                     scopes: this.msalConfig.framework.consentScopes,
                     extraQueryParameters: this.msalConfig.framework.extraQueryParameters
@@ -31,8 +40,8 @@ export class MsalGuard implements CanActivate {
             }
 
             this.authService.loginRedirect({
-                scopes: this.msalConfig.framework.consentScopes,
-                extraQueryParameters: this.msalConfig.framework.extraQueryParameters
+                scopes: this.msalAngularConfig.consentScopes,
+                extraQueryParameters: this.msalAngularConfig.extraQueryParameters
             });
         } else {
             return this.authService.acquireTokenSilent({

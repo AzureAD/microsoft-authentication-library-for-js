@@ -10,7 +10,7 @@ import {ProductDetailComponent} from './product/product-detail.component'
 import {ProductService} from './product/product.service';
 import {appRoutes} from './app.routes';
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
-import { MsalInterceptor, MsalModule, Logger } from "@azure/msal-angular";
+import { MsalInterceptor, MsalModule } from "@azure/msal-angular";
 import { Logger } from "msal";
 import { TodoListComponent } from './todo-list/todo-list.component';
 import {TodoListService} from "./todo-list/todo-list.service";
@@ -53,13 +53,16 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
         },
         framework: {
           unprotectedResources: ["https://www.microsoft.com/en-us/"],
-          protectedResourceMap: new Map(protectedResourceMap),
-          popUp: !isIE,
-          consentScopes: [ "user.read", "openid", "profile", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"]
+          protectedResourceMap: new Map(protectedResourceMap)
         },
         system: {
           logger: new Logger(loggerCallback)
         }
+      },
+      {
+        popUp: !isIE,
+        consentScopes: [ "user.read", "openid", "profile", "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"],
+        extraQueryParameters: {}
       }
     ),
   ],
