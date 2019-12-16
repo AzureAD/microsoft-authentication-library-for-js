@@ -1,5 +1,3 @@
-import { CacheLocation } from "../Configuration";
-
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -52,16 +50,8 @@ export class Constants {
 
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
+    static get inProgress(): string { return "inProgress"; }
 }
-
-/**
- * Status of the current token request
- */
-export enum RequestStatus {
-    CANCELLED = "Cancelled",
-    COMPLETED = "Completed",
-    IN_PROGRESS = "InProgress"
-};
 
 /**
  * Keys in the hashParams
@@ -93,16 +83,19 @@ export enum TemporaryCacheKeys {
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     ANGULAR_LOGIN_REQUEST = "angular.login.request",
-    INTERACTION_STATUS = "interaction.status"
+    INTERACTION_STATUS = "interaction_status",
+    REDIRECT_REQUEST = "redirect_request"
 }
 
 export enum PersistentCacheKeys {
     IDTOKEN = "idtoken",
-    CLIENT_INFO = "client.info",
-    ADAL_ID_TOKEN = "adal.idtoken",
+    CLIENT_INFO = "client.info"
+}
+
+export enum ErrorCacheKeys {
+    LOGIN_ERROR = "login.error",
     ERROR = "error",
-    ERROR_DESC = "error.description",
-    LOGIN_ERROR = "login.error"
+    ERROR_DESC = "error.description"
 }
 
 export const AADTrustedHostList =  {
@@ -159,5 +152,5 @@ export const PromptState = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.2.0-beta.3";
+    return "1.2.0-beta.5";
 }

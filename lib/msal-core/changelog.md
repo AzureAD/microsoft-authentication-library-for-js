@@ -1,3 +1,35 @@
+# 1.2.0
+
+## Features:
+* Iframes Support added  (#939, #975, #1053, #1075); msal js now added support for authentication in applications embedded in iframes which implies that an application can now call `loginSilent()`, `acquireTokenSilent()` and `acquireTokenPopup()` from iframes.
+* `redirectUri` supported as a request parameter (#1116); This feature in conjunction with iframes support improves performance, by providing the application the capability to avoid a full reload of a SPA on redirect. Please refer to the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/VanillaJSTestApp/index_blankPageRedirectUri.html) in the release [notes](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-JS-1.2.0) for the usage details
+* Multiple Instances (#980, #1010)
+* Cache changes - to support iframes, multiple instances and other enhancements (#983, #1042, #1067)
+* fromCache flag added in response to indicate cache vs network response for a request (#1114)
+* Instance Aware support (#969)
+
+## Bugs
+* `request.correlationId` is now passed to the service (#1083)
+* response_mode explicitly set to fragment for all use cases (#1090)
+* verbose messages and monitoring for timeout errors (#1098, #1113)
+* handle `loginRedirect` set to null (#1047)
+* Fix japanese decoding (#1036, #1054)
+* Fix Unified cache, Redirect and B2C samples (#933, #959, #1027, #973)
+* Change `location.replace` to `location.assign` to support history in redirect APIs (#1002)
+
+## Dev tools
+* linting added (#931, #935, #947)
+* CI/CD pipeline (#924)
+* Removed karma from UT and migrate completely to mocha/chai (#956)
+* Added Code coverage, introduce coveralls (#972, #1105)
+* Fix unit tests for unix environments (#977)
+* Move samples to top level (#987)
+* Added SRI tags to CDN files (#1020, #1024, #1030)
+
+## Documentation
+* Simplify root readme file (#1004)
+* Remove generated doc files from repo, deploy them to Github Pages (#1131)
+
 # 1.1.3
 * Introduction of Azure Pipelines (#912)
 * Removing uuid library that is incompatible with ES6 modules (#878)
@@ -14,7 +46,7 @@
 * Fixed an issue where cacheLocation was no longer accepting string values (#862)
 
 # 1.1.0
-* Core 
+* Core
     * idTokenClaims has been added to the API surface in AuthResponse and Account (#804)
     * Added forceRefresh parameter to request object, which will force acquireTokenSilent to fetch tokens from cache (#823)
     * Added scaffolding for telemetry (#737, #802, #840)
@@ -60,12 +92,12 @@
 
 # 1.0.0-preview.5
 * Error First Callbacks PR #658
-* Claims Request Support PR #664 
-* loginInProgress() as a public function #671 
-* 'state' moved from config to request, returning the user state if passed stripping the GUID #674 #679 #681 
-* cache cleanup of all values (keys cleanup will be done in next release) #675 
-* made loading iFrame timeout in silent calls configurable, 'navigateFrameWait' #676 
-* readme updated with latest code patterns #672 
+* Claims Request Support PR #664
+* loginInProgress() as a public function #671
+* 'state' moved from config to request, returning the user state if passed stripping the GUID #674 #679 #681
+* cache cleanup of all values (keys cleanup will be done in next release) #675
+* made loading iFrame timeout in silent calls configurable, 'navigateFrameWait' #676
+* readme updated with latest code patterns #672
 
 # 1.0.0-preview.4
 Add dist back into npm package as a valid build artifact

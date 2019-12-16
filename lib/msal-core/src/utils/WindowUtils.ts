@@ -1,6 +1,8 @@
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
+import { AuthCache } from "../cache/AuthCache";
+import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 
 export class WindowUtils {
     /**
@@ -216,4 +218,30 @@ export class WindowUtils {
         WindowUtils.getPopups().forEach(popup => popup.close());
     }
 
+    /**
+     * @ignore
+     *
+     * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
+     */
+    static blockReloadInHiddenIframes() {
+        // return an error if called from the hidden iframe created by the msal js silent calls
+        if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
+            throw ClientAuthError.createBlockTokenRequestsInHiddenIframeError();
+        }
+    }
+
+    /**
+     *
+     * @param cacheStorage
+     */
+    static checkIfBackButtonIsPressed(cacheStorage: AuthCache) {
+        const redirectCache = cacheStorage.getItem(TemporaryCacheKeys.REDIRECT_REQUEST);
+
+        // if redirect request is set and there is no hash
+        if(redirectCache && !UrlUtils.urlContainsHash(window.location.hash)) {
+            const splitCache = redirectCache.split(Constants.resourceDelimiter);
+            const state = splitCache.length > 1 ? splitCache[splitCache.length-1]: null;
+            cacheStorage.resetTempCacheItems(state);
+        }
+    }
 }
