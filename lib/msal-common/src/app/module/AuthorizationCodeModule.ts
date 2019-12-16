@@ -16,6 +16,7 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { CodeRequestParameters } from "../../server/CodeRequestParameters";
 import { CodeResponse } from "../../response/CodeResponse";
+import { UrlString } from "../../url/UrlString";
 
 /**
  * AuthorizationCodeModule class
@@ -79,10 +80,9 @@ export class AuthorizationCodeModule extends AuthModule {
     // #region Response Handling
 
     public handleFragmentResponse(hashFragment: string): CodeResponse {
-        return {
-            scopes: ["test_scopes"],
-            state: "test_state"
-        };
+        const hashUrlString = new UrlString(hashFragment);
+        console.log(hashUrlString.getDeserializedHash<any>());
+        return null;
     }
 
     // #endregion

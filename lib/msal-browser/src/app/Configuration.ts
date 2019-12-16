@@ -18,7 +18,7 @@ const NAVIGATE_FRAME_WAIT = 500;
 
 export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
-}
+};
 
 /**
  * Use this to configure the below cache configuration options:

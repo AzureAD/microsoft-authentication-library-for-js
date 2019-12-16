@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import { AuthorizationCodeModule, AuthenticationParameters } from "msal-common";
-import { BrowserAuthOptions } from "../app/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 
 export abstract class IInteractionHandler {
