@@ -58,13 +58,8 @@ export class Logger {
             return;
         }
         const timestamp = new Date().toUTCString();
-        let log: string;
-        if (!StringUtils.isEmpty(this.correlationId)) {
-            log = timestamp + ":" + this.correlationId + "-" + pkg.version + "-" + LogLevel[options.logLevel] + " " + logMessage;
-        }
-        else {
-            log = timestamp + ":" + pkg.version + "-" + LogLevel[options.logLevel] + " " + logMessage;
-        }
+        let logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
+        const log = `${logHeader} : ${pkg.version} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         this.executeCallback(options.logLevel, log, options.containsPii);
     }
 
