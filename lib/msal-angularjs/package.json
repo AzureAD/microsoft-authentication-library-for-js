@@ -44,7 +44,6 @@
     "karma-jasmine": "^1.1.2",
     "karma-jasmine-ajax": "^0.1.13",
     "karma-phantomjs-launcher": "^1.0.4",
-    "npm": "^6.1.0",
     "phantomjs": "^2.1.7",
     "puppeteer": "^1.5.0",
     "unminified-webpack-plugin": "^2.0.0",
