@@ -56,7 +56,7 @@ export class Account {
      * @param idToken
      * @param clientInfo
      */
-    static createAccount(idToken: IdToken, clientInfo: ClientInfo, preferred_username?: string, sid?: string ): Account {
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
 
         // create accountIdentifier
         const accountIdentifier: string = idToken.objectId ||  idToken.subject;
