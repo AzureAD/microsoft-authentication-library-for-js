@@ -58,6 +58,9 @@ export class Account {
      */
     static createAccount(idToken: IdToken, clientInfo: ClientInfo, preferred_username?: string, sid?: string ): Account {
 
+        // create accountIdentifier
+        const accountIdentifier: string = idToken.objectId ||  idToken.subject;
+
         // create homeAccountIdentifier
         const uid: string = clientInfo ? clientInfo.uid : "";
         const utid: string = clientInfo ? clientInfo.utid : "";
@@ -67,13 +70,7 @@ export class Account {
             homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
 
-        if(idToken) {
-            // create accountIdentifier
-            const accountIdentifier: string = idToken.objectId ||  idToken.subject;
-            return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
-        }
-
-        return new Account(null, homeAccountIdentifier, preferred_username, null, null, sid, null);
+        return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
 
     /**
