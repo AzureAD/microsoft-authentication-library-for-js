@@ -24,8 +24,6 @@ export type AuthenticationParameters = {
     loginHint?: string;
     forceRefresh?: boolean;
     redirectUri?: string;
-    knownUserContext?: boolean;
-    skipIdToken?: boolean;
 };
 
 export function validateClaimsRequest(request: AuthenticationParameters) {

@@ -136,7 +136,6 @@ export class UserAgentApplication {
     // Cache and Account info referred across token grant flow
     protected cacheStorage: AuthCache;
     private account: Account;
-    private skipIdToken: boolean;
 
     // state variables
     private silentAuthenticationState: string;
@@ -607,19 +606,18 @@ export class UserAgentApplication {
 
             // if the developer passes an account, give that account the priority
             const account: Account = request.account || this.getAccount();
-            this.skipIdToken = request.skipIdToken;
 
             // extract if there is an adalIdToken stashed in the cache
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
             // if there is no account logged in and no login_hint/sid is passed in the request
-            if (!request.knownUserContext && !account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
+            if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
                 this.logger.info("User login is required");
                 return reject(ClientAuthError.createUserLoginRequiredError());
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true, request.knownUserContext);
+            const responseType = this.getTokenType(account, request.scopes, true);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
@@ -1510,7 +1508,7 @@ export class UserAgentApplication {
                         throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
                     }
 
-                    response.account = this.skipIdToken? Account.createAccount(null, new ClientInfo(clientInfo)): Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
+                    response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
 
                     let accountKey: string;
                     if (response.account && !StringUtils.isEmpty(response.account.homeAccountIdentifier)) {
@@ -2061,22 +2059,12 @@ export class UserAgentApplication {
      * @returns {string} token type: id_token or access_token
      *
      */
-    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean, knownUserContext?: boolean, skipIdToken?: boolean): string {
+    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
         /*
          * if account is passed and matches the account object/or set to getAccount() from cache
          * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
          */
         let tokenType: string;
-
-        // If knownUserContext is set, the app would need an idToken and Token in the same call.
-        if(knownUserContext) {
-            return ResponseTypes.id_token_token;
-        }
-
-        // if skipIdToken is set, set the response type to token
-        if(skipIdToken) {
-            return ResponseTypes.token;
-        }
 
         // acquireTokenSilent
         if (silentCall) {
