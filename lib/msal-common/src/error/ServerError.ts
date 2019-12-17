@@ -5,16 +5,6 @@
 
 import { AuthError } from "./AuthError";
 
-export const ServerErrorMessage = {
-    serverUnavailable: {
-        code: "server_unavailable",
-        desc: "Server is temporarily unavailable."
-    },
-    unknownServerError: {
-        code: "unknown_server_error"
-    },
-};
-
 /**
  * Error thrown when there is an error with the server code, for example, unavailability.
  */
