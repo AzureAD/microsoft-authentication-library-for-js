@@ -6,8 +6,6 @@
 import { ModuleConfiguration, buildModuleConfiguration } from "../config/ModuleConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-// response
-import { AuthResponse } from "../../response/AuthResponse";
 // cache
 import { ICacheStorage } from "../../cache/ICacheStorage";
 // network
