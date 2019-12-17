@@ -7,6 +7,7 @@ import { AADAuthorityConstants, AADServerHashParamKeys } from "../utils/Constant
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -121,7 +122,11 @@ export class UrlString {
      */
     getDeserializedHash<T>(): T {
         const hash = this.getHash();
-        return StringUtils.queryStringToObject<T>(hash);
+        const deserializedHash: T = StringUtils.queryStringToObject<T>(hash);
+        if (!deserializedHash) {
+            throw ClientAuthError.createHashNotDeserializedError(deserializedHash);
+        }
+        return deserializedHash;
     }
 
     /**

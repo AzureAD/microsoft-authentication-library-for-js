@@ -11,15 +11,16 @@ import { StringDict } from "../utils/MsalTypes";
  * - code_verifier: verifier to complete PKCE protocol
  * - extraQueryParameters: string to string map of custom query parameters
  * - authority: authority to request tokens from
- * - state: state parameter to ensure request/response integrity
+ * - userRequestState: state parameter to ensure request/response integrity
  * - correlationId: custom correlationId given by user
  */
 export type TokenExchangeParameters = {
     scopes?: Array<string>;
+    resource?: string;
     code?: string;
     codeVerifier?: string;
     extraQueryParameters?: StringDict;
     authority?: string;
-    state?: string;
+    userRequestState?: string;
     correlationId?: string;
 };
