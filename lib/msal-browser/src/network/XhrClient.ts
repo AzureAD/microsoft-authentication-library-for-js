@@ -3,28 +3,30 @@
  * Licensed under the MIT License.
  */
 import { INetworkModule, NetworkRequestOptions } from "msal-common";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 export class XhrClient implements INetworkModule {
 
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-        return this.sendRequestAsync(url, "GET", options);
-    }    
-    
+        return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
+    }
+
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-        return this.sendRequestAsync(url, "POST", options);
+        return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.POST, options);
     }
 
     private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
-            this.setXhrHeaders(xhr, options.headers);
+            this.setXhrHeaders(xhr, options);
             xhr.onload = (ev) => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
                 try {
-                    let jsonResponse = JSON.parse(xhr.responseText) as T;
+                    const jsonResponse = JSON.parse(xhr.responseText) as T;
                     resolve(jsonResponse);
                 } catch (e) {
                     reject(this.handleError(xhr.responseText));
@@ -35,11 +37,12 @@ export class XhrClient implements INetworkModule {
                 reject(xhr.status);
             };
 
-            if (method === "GET" || method === "POST") {
+            if (method === "POST" && options.body) {
                 xhr.send(options.body);
-            }
-            else {
-                throw "not implemented";
+            } else if (method === "GET") {
+                xhr.send();
+            } else {
+                throw BrowserAuthError.createHttpMethodNotImplementedError(method);
             }
         });
     }
@@ -58,9 +61,11 @@ export class XhrClient implements INetworkModule {
         }
     }
 
-    private setXhrHeaders(xhr: XMLHttpRequest, headers: Map<string, string>): void {
-        for (const headerName in headers.keys()) {
-            xhr.setRequestHeader(headerName, headers.get(headerName));
+    private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {
+        if (options && options.headers) {
+            for (const headerName in options.headers.keys()) {
+                xhr.setRequestHeader(headerName, options.headers.get(headerName));
+            }
         }
     }
 }

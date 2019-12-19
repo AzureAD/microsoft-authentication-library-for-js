@@ -1,16 +1,25 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import sinon from "sinon";
-import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "../../../src/app/config/MsalModuleConfiguration";
-import { PkceCodes } from "../../../src/utils/crypto/ICrypto";
-import { AuthError } from "../../../src/error/AuthError";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
+import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../../../src/app/config/PublicClientSPAConfiguration";
+import { PkceCodes } from "../../../src/crypto/ICrypto";
+import { TEST_CONFIG, TEST_URIS } from "../../utils/StringConstants";
+import { AuthError } from "../../../src/error/AuthError";
 
-describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
+describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
 
-    it("buildMsalModuleConfiguration assigns default functions", async () => {
-        let emptyConfig: MsalModuleConfiguration = buildMsalModuleConfiguration({});
+    it("buildConfiguration assigns default functions", async () => {
+        let emptyConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({auth: null});
+        // Auth config checks
+        expect(emptyConfig.auth).to.be.not.null;
+        expect(emptyConfig.auth.clientId).to.be.empty;
+        expect(emptyConfig.auth.clientSecret).to.be.empty;
+        expect(emptyConfig.auth.authority).to.be.null;
+        expect(emptyConfig.auth.validateAuthority).to.be.true;
+        expect(emptyConfig.auth.redirectUri).to.be.empty;
+        expect(emptyConfig.auth.postLogoutRedirectUri).to.be.empty;
+        expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -44,9 +53,6 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
         expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
-        expect(emptyConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null, "")).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendGetRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null, "")).to.be.rejectedWith(AuthError);
         expect(emptyConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith(AuthError);
@@ -74,9 +80,17 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
     };
 
     const testKeySet = ["testKey1", "testKey2"];
-
-    it("buildMsalConfiguration correctly assigns new values", () => {
-        let newConfig: MsalModuleConfiguration = buildMsalModuleConfiguration({
+    it("buildConfiguration correctly assigns new values", () => {
+        let newConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
+                authority: TEST_CONFIG.validAuthority,
+                validateAuthority: false,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                navigateToLoginRequestUrl: false
+            },
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";
@@ -114,6 +128,15 @@ describe("MsalModuleConfiguration.ts Class Unit Tests", () => {
                 }
             }
         });
+        // Auth config checks
+        expect(newConfig.auth).to.be.not.null;
+        expect(newConfig.auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
+        expect(newConfig.auth.clientSecret).to.be.eq(TEST_CONFIG.MSAL_CLIENT_SECRET);
+        expect(newConfig.auth.authority).to.be.eq(TEST_CONFIG.validAuthority);
+        expect(newConfig.auth.validateAuthority).to.be.false;
+        expect(newConfig.auth.redirectUri).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+        expect(newConfig.auth.postLogoutRedirectUri).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
+        expect(newConfig.auth.navigateToLoginRequestUrl).to.be.false;
         // Crypto interface tests
         expect(newConfig.cryptoInterface).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Decode).to.be.not.null;

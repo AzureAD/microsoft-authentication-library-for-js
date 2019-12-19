@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { MsalModuleConfiguration, buildMsalModuleConfiguration } from "./MsalModuleConfiguration";
+import { ModuleConfiguration, buildModuleConfiguration } from "./ModuleConfiguration";
 
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
@@ -31,7 +31,7 @@ export type AuthOptions = {
  * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  */
-export type MsalPublicClientSPAConfiguration = MsalModuleConfiguration & {
+export type PublicClientSPAConfiguration = ModuleConfiguration & {
     auth: AuthOptions
 };
 
@@ -55,9 +55,9 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
  *
  * @returns TConfiguration object
  */
-export function buildMsalPublicClientSPAConfiguration({ auth, storageInterface, networkInterface, cryptoInterface }: MsalPublicClientSPAConfiguration): MsalPublicClientSPAConfiguration {
-    const baseConfig = buildMsalModuleConfiguration({storageInterface, networkInterface, cryptoInterface});
-    const overlayedConfig: MsalPublicClientSPAConfiguration = {
+export function buildPublicClientSPAConfiguration({ auth, storageInterface, networkInterface, cryptoInterface }: PublicClientSPAConfiguration): PublicClientSPAConfiguration {
+    const baseConfig = buildModuleConfiguration({storageInterface, networkInterface, cryptoInterface});
+    const overlayedConfig: PublicClientSPAConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         ...baseConfig
     };

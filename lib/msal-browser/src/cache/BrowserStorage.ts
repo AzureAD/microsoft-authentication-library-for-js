@@ -36,9 +36,13 @@ export class BrowserStorage implements ICacheStorage {
             throw BrowserAuthError.createNoWindowObjectError();
         }
 
+        if (cacheLocation !== BrowserConstants.CACHE_LOCATION_LOCAL && cacheLocation !== BrowserConstants.CACHE_LOCATION_SESSION) {
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
+        }
+
         const storageSupported = !!window[cacheLocation];
         if (!storageSupported) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError();
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
         }
     }
 
@@ -150,39 +154,6 @@ export class BrowserStorage implements ICacheStorage {
                 this.removeItem(key);
             }
         }
-    }
-
-    /**
-     * Reset all temporary cache items
-     * @param state 
-     */
-    resetTempCacheItems(state: string): void {
-        const storage = window[this.cacheConfig.cacheLocation];
-        let key: string;
-        // check state and remove associated cache
-        for (key in storage) {
-            if (!state || key.indexOf(state) !== -1) {
-                const splitKey = key.split(Constants.RESOURCE_DELIM);
-                const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
-                    this.removeItem(key);
-                    this.setItemCookie(key, "", -1);
-                    this.clearMsalCookie(state);
-                }
-            }
-        }
-        // delete the interaction status cache
-        this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-        this.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
-    }
-
-    /**
-     * Return if the token renewal is still in progress
-     * @param stateValue
-     */
-    private tokenRenewalInProgress(stateValue: string): boolean {
-        const renewStatus = this.getItem(`${TemporaryCacheKeys.RENEW_STATUS}|${stateValue}`);
-        return !!(renewStatus && renewStatus === BrowserConstants.inProgress);
     }
 
     /**

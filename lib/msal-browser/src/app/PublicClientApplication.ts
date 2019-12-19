@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import * as msalAuth from "msal-common";
+import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse } from "msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -14,7 +14,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
  * @param authErr error created for failure cases
  * @param response response containing token strings in success cases, or just state value in error cases
  */
-export type authCallback = (authErr: msalAuth.AuthError, response?: msalAuth.AuthResponse) => void;
+export type authCallback = (authErr: AuthError, response?: AuthResponse) => void;
 
 /**
  * Key-Value type to support queryParams, extraQueryParams and claims
@@ -31,7 +31,7 @@ export class PublicClientApplication {
     private config: Configuration;
 
     // auth functions imported from msal-common module
-    private authModule: msalAuth.AuthorizationCodeModule;
+    private authModule: AuthorizationCodeModule;
 
     // callback for error/token response
     private authCallback: authCallback = null;
@@ -43,7 +43,7 @@ export class PublicClientApplication {
     private browserStorage: BrowserStorage;
 
     // Network interface implementation
-    private networkClient: msalAuth.INetworkModule;
+    private networkClient: INetworkModule;
 
     /**
      * @constructor
@@ -79,7 +79,7 @@ export class PublicClientApplication {
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Create auth module
-        this.authModule = new msalAuth.AuthorizationCodeModule({
+        this.authModule = new AuthorizationCodeModule({
             auth: this.config.auth,
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
@@ -101,20 +101,24 @@ export class PublicClientApplication {
     }
 
     /**
-     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so 
+     * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
-        throw new Error("Method not implemented.");
+    loginRedirect(request: AuthenticationParameters): void {
+        this.authModule.createLoginUrl(request).then((urlNavigate) => {
+            console.log(urlNavigate);
+        });
     }
 
     /**
-     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint.
+     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects 
+     * the page, so any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: msalAuth.AuthenticationParameters): msalAuth.TokenResponse {
+    acquireTokenRedirect(request: AuthenticationParameters): void {
         throw new Error("Method not implemented.");
     }
 
@@ -129,7 +133,7 @@ export class PublicClientApplication {
      *
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    loginPopup(request: msalAuth.AuthenticationParameters): Promise<msalAuth.TokenResponse> {
+    loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
         throw new Error("Method not implemented.");
     }
 
@@ -140,7 +144,7 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    acquireTokenPopup(request: msalAuth.AuthenticationParameters): Promise<msalAuth.TokenResponse> {
+    acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
         throw new Error("Method not implemented.");
     }
 
@@ -158,7 +162,7 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    acquireTokenSilent(request: msalAuth.AuthenticationParameters): Promise<msalAuth.TokenResponse> {
+    acquireTokenSilent(request: AuthenticationParameters): Promise<TokenResponse> {
         throw new Error("Method not implemented."); 
     }
 
