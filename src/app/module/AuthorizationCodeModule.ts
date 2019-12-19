@@ -29,6 +29,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
     constructor(configuration: PublicClientSPAConfiguration) {
         super({
+            loggerOptions: configuration.loggerOptions,
             storageInterface: configuration.storageInterface,
             networkInterface: configuration.networkInterface,
             cryptoInterface: configuration.cryptoInterface
