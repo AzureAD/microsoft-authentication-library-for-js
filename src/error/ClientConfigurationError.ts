@@ -32,14 +32,34 @@ export const ClientConfigurationErrorMessage = {
     urlEmptyError: {
         code: "empty_url_error",
         desc: "URL was empty or null."
-    }
+    },
+    scopesRequiredError: {
+        code: "scopes_required",
+        desc: "Scopes are required to obtain an access token."
+    },
+    emptyScopesError: {
+        code: "empty_input_scopes_error",
+        desc: "Scopes cannot be passed as empty array."
+    },
+    nonArrayScopesError: {
+        code: "nonarray_input_scopes_error",
+        desc: "Scopes cannot be passed as non-array."
+    },
+    clientIdSingleScopeError: {
+        code: "clientid_input_scopes_error",
+        desc: "Client ID can only be provided as a single scope."
+    },
+    invalidPrompt: {
+        code: "invalid_prompt_value",
+        desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'",
+    },
 };
 
 /**
  * Error thrown when there is an error in configuration of the MSAL.js library.
  */
 export class ClientConfigurationError extends ClientAuthError {
-
+    
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientConfigurationError";
@@ -94,5 +114,46 @@ export class ClientConfigurationError extends ClientAuthError {
      */
     static createUrlEmptyError(): ClientAuthError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code, ClientConfigurationErrorMessage.urlEmptyError.desc);
+    }
+
+    /**
+     * Error thrown when input scopes are required.
+     * @param inputScopes 
+     */
+    static createScopesRequiredError(inputScopes: Array<string>) {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequiredError.code,
+            `${ClientConfigurationErrorMessage.scopesRequiredError.desc} Given Scopes: ${inputScopes.toString()}`);
+    }
+
+    /**
+     * Error thrown when scopes are not an array
+     * @param inputScopes 
+     */
+    static createScopesNonArrayError(inputScopes: Array<string>) {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
+            `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes.toString()}`);
+    }
+
+    /**
+     * Error thrown when scopes are empty.
+     * @param scopesValue 
+     */
+    static createEmptyScopesArrayError(inputScopes: Array<string>) {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
+            `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes.toString()}`);
+    }
+
+    /**
+     * Error thrown when client id scope is not provided as single scope.
+     * @param inputScopes 
+     */
+    static createClientIdSingleScopeError(inputScopes: Array<string>) {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.clientIdSingleScopeError.code,
+            `${ClientConfigurationErrorMessage.clientIdSingleScopeError.desc} Given Scopes: ${inputScopes.toString()}`);
+    }
+
+    static createInvalidPromptError(promptValue: any): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
+            `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
     }
 }

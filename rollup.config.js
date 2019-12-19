@@ -1,5 +1,6 @@
 import typescript from "rollup-plugin-typescript2";
 import { uglify } from "rollup-plugin-uglify";
+import json from '@rollup/plugin-json';
 import pkg from "./package.json";
 
 const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split('T')[0]} */`;
@@ -38,6 +39,7 @@ export default [
             typescript({
                 typescript: require('typescript')
             }),
+            json()
         ]
     },
     // Minified version of msal
@@ -60,6 +62,7 @@ export default [
             typescript({
                 typescript: require('typescript')
             }),
+            json(),
             uglify({
                 output: {
                     preamble: libraryHeader

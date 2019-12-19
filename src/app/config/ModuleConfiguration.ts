@@ -4,7 +4,7 @@
  */
 import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule, NetworkRequestOptions } from "../../network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../utils/crypto/ICrypto";
+import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
 
 /**
@@ -15,13 +15,13 @@ import { AuthError } from "../../error/AuthError";
  * - network: this is where you can configure network implementation.
  * - crypto: implementation of crypto functions
  */
-export type MsalModuleConfiguration = {
+export type ModuleConfiguration = {
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto
 };
 
-const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
+const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     clear: () => {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
         console.warn(notImplErr);
@@ -54,7 +54,7 @@ const DEFAULT_STORAGE_OPTIONS: ICacheStorage = {
     }
 };
 
-const DEFAULT_NETWORK_OPTIONS: INetworkModule = {
+const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     async sendGetRequestAsync(url: string, options?: NetworkRequestOptions): Promise<any> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
         console.warn(notImplErr);
@@ -99,11 +99,11 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildMsalModuleConfiguration({ storageInterface, networkInterface, cryptoInterface }: MsalModuleConfiguration): MsalModuleConfiguration {
-    const overlayedConfig: MsalModuleConfiguration = {
-        storageInterface: { ...DEFAULT_STORAGE_OPTIONS, ...storageInterface },
-        networkInterface: { ...DEFAULT_NETWORK_OPTIONS, ...networkInterface },
-        cryptoInterface: { ...DEFAULT_CRYPTO_IMPLEMENTATION, ...cryptoInterface }
+export function buildModuleConfiguration({ storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
+    const overlayedConfig: ModuleConfiguration = {
+        storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
+        networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
+        cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION
     };
     return overlayedConfig;
 }

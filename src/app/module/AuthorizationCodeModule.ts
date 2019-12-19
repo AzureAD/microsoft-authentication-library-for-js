@@ -6,13 +6,15 @@
 // inheritance
 import { AuthModule } from "./AuthModule";
 // app
-import { MsalPublicClientSPAConfiguration, buildMsalPublicClientSPAConfiguration } from "../config/MsalPublicClientSPAConfiguration";
+import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../config/PublicClientSPAConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 // response
 import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
+import { CodeRequestParameters } from "../../server/CodeRequestParameters";
 
 /**
  * AuthorizationCodeModule class
@@ -23,21 +25,47 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 export class AuthorizationCodeModule extends AuthModule {
 
     // Application config
-    protected config: MsalPublicClientSPAConfiguration;
-    
-    constructor(configuration: MsalPublicClientSPAConfiguration) {
+    private clientConfig: PublicClientSPAConfiguration;
+
+    constructor(configuration: PublicClientSPAConfiguration) {
         super({
             storageInterface: configuration.storageInterface,
             networkInterface: configuration.networkInterface,
             cryptoInterface: configuration.cryptoInterface
         });
-        this.config = buildMsalPublicClientSPAConfiguration(configuration);
+        this.clientConfig = buildPublicClientSPAConfiguration(configuration);
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || AuthorityFactory.DEFAULT_AUTHORITY, this.networkClient);
     }
 
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
-    }    
-    
+        // Initialize authority or use default, and perform discovery endpoint check
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+        await acquireTokenAuthority.resolveEndpointsAsync();
+
+        // Create and validate request parameters
+        const requestParameters = new CodeRequestParameters(
+            acquireTokenAuthority,
+            this.clientConfig.auth.clientId,
+            request,
+            this.getRedirectUri(),
+            this.cryptoObj,
+            true
+        );
+
+        // Check for SSO
+        if (!requestParameters.isSSOParam(this.getAccount())) {
+            // TODO: Check for ADAL SSO
+        }
+
+        // Update required cache entries for request
+        this.cacheManager.updateCacheEntries(requestParameters, request.account);
+
+        // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+        requestParameters.populateQueryParams();
+
+        return requestParameters.createNavigateUrl();
+    }
+
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }
@@ -56,11 +84,11 @@ export class AuthorizationCodeModule extends AuthModule {
      *
      */
     public getRedirectUri(): string {
-        if (this.config.auth.redirectUri) {
-            if (typeof this.config.auth.redirectUri === "function") {
-                return this.config.auth.redirectUri();
+        if (this.clientConfig.auth.redirectUri) {
+            if (typeof this.clientConfig.auth.redirectUri === "function") {
+                return this.clientConfig.auth.redirectUri();
             }
-            return this.config.auth.redirectUri;
+            return this.clientConfig.auth.redirectUri;
         } else {
             throw ClientConfigurationError.createRedirectUriEmptyError();
         }
@@ -73,11 +101,11 @@ export class AuthorizationCodeModule extends AuthModule {
      * @returns {string} post logout redirect URL
      */
     public getPostLogoutRedirectUri(): string {
-        if (this.config.auth.postLogoutRedirectUri) {
-            if (typeof this.config.auth.postLogoutRedirectUri === "function") {
-                return this.config.auth.postLogoutRedirectUri();
+        if (this.clientConfig.auth.postLogoutRedirectUri) {
+            if (typeof this.clientConfig.auth.postLogoutRedirectUri === "function") {
+                return this.clientConfig.auth.postLogoutRedirectUri();
             }
-            return this.config.auth.postLogoutRedirectUri;
+            return this.clientConfig.auth.postLogoutRedirectUri;
         } else {
             throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
         }

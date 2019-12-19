@@ -4,13 +4,13 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { AuthModule } from "../../../src/app/module/AuthModule";
-import { MsalModuleConfiguration } from "../../../src/app/config/MsalModuleConfiguration";
+import { ModuleConfiguration } from "../../../src/app/config/ModuleConfiguration";
 import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
 import { TEST_HASHES } from "../../utils/StringConstants";
 
 class TestAuthModule extends AuthModule {
     
-    constructor(config: MsalModuleConfiguration) {
+    constructor(config: ModuleConfiguration) {
         super(config);
     }
 
@@ -25,7 +25,7 @@ class TestAuthModule extends AuthModule {
 
 describe("AuthModule.ts Class Unit Tests", () => {
 
-    let config: MsalModuleConfiguration = {
+    let config: ModuleConfiguration = {
         cryptoInterface: null,
         networkInterface: null,
         storageInterface: null
