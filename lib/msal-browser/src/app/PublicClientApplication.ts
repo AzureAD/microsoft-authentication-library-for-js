@@ -14,7 +14,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
  * @param authErr error created for failure cases
  * @param response response containing token strings in success cases, or just state value in error cases
  */
-export type authCallback = (authErr: AuthError, response?: AuthResponse) => void;
+export type AuthCallback = (authErr: AuthError, response?: AuthResponse) => void;
 
 /**
  * Key-Value type to support queryParams, extraQueryParams and claims
@@ -34,7 +34,7 @@ export class PublicClientApplication {
     private authModule: AuthorizationCodeModule;
 
     // callback for error/token response
-    private authCallback: authCallback = null;
+    private authCallback: AuthCallback = null;
 
     // Crypto interface implementation
     private browserCrypto: CryptoOps;
@@ -81,6 +81,10 @@ export class PublicClientApplication {
         // Create auth module
         this.authModule = new AuthorizationCodeModule({
             auth: this.config.auth,
+            loggerOptions: {
+                loggerCallbackInterface: this.config.system.loggerOptions.loggerCallback,
+                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled
+            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage
@@ -91,12 +95,12 @@ export class PublicClientApplication {
 
     /**
      * Set the callback functions for the redirect flow to send back the success or error object.
-     * @param {@link (authCallback:type)} authCallback - Callback which contains
+     * @param {@link (AuthCallback:type)} authCallback - Callback which contains
      * an AuthError object, containing error data from either the server
      * or the library, depending on the origin of the error, or the AuthResponse object 
      * containing data from the server (returned with a null or non-blocking error).
      */
-    handleRedirectCallback(authCallback: authCallback): void {
+    handleRedirectCallback(authCallback: AuthCallback): void {
         throw new Error("Method not implemented.");
     }
 
@@ -107,7 +111,7 @@ export class PublicClientApplication {
      */
     loginRedirect(request: AuthenticationParameters): void {
         this.authModule.createLoginUrl(request).then((urlNavigate) => {
-            console.log(urlNavigate);
+            this.authModule.logger.info(urlNavigate);
         });
     }
 
