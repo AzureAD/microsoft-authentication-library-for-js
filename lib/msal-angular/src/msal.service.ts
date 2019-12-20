@@ -112,7 +112,7 @@ export class MsalService extends UserAgentApplication {
                 return authResponse;
             })
             .catch((error: AuthError) => {
-                this.broadcastService.broadcast('msal:acquireTokenFailure', error.errorMessage);
+                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
                 this.getLogger().error('Error when acquiring token for scopes: ' + request.scopes + " " + error);
                 throw error;
             });
