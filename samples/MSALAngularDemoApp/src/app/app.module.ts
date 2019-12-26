@@ -21,7 +21,6 @@ export function loggerCallback(logLevel, message, piiEnabled) {
   console.log("client logging" + message);
 }
 
-
 export const protectedResourceMap:[string, string[]][]=[
   ['https://buildtodoservice.azurewebsites.net/api/todolist', ['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']],
   ['https://graph.microsoft.com/v1.0/me', ['user.read']]
@@ -31,7 +30,13 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
 
 @NgModule({
   declarations: [
-    AppComponent, HomeComponent, ProductComponent, ErrorComponent, ProductDetailComponent, TodoListComponent, UserDataComponent
+    AppComponent,
+    HomeComponent,
+    ProductComponent,
+    ErrorComponent,
+    ProductDetailComponent,
+    TodoListComponent,
+    UserDataComponent
   ],
   imports: [
     BrowserModule,
@@ -56,7 +61,10 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
           protectedResourceMap: new Map(protectedResourceMap)
         },
         system: {
-          logger: new Logger(loggerCallback)
+          logger: new Logger(loggerCallback, {
+            correlationId: '1234',
+            piiLoggingEnabled: true
+          })
         }
       },
       {
@@ -66,8 +74,15 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
       }
     ),
   ],
-  providers: [ProductService, TodoListService, HttpServiceHelper,
-     {provide: HTTP_INTERCEPTORS, useClass: MsalInterceptor, multi: true}
+  providers: [
+    ProductService,
+    TodoListService,
+    HttpServiceHelper,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MsalInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

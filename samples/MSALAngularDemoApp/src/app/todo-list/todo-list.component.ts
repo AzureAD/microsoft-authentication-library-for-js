@@ -4,6 +4,7 @@ import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
 import {BroadcastService} from "@azure/msal-angular";
 import { MsalService} from "@azure/msal-angular";
+import { AuthError, InteractionRequiredAuthError } from 'msal';
 
 @Component({
   selector: 'app-todo-list',
@@ -23,9 +24,9 @@ private subscription: Subscription;
   ngOnInit() {
     this.populate();
 
-    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload: AuthError) => {
       console.log("acquire token failure " + JSON.stringify(payload));
-      if (payload.errorDesc.indexOf("consent_required") !== -1 || payload.errorDesc.indexOf("interaction_required") != -1 ) {
+      if (InteractionRequiredAuthError.isInteractionRequiredError(payload.errorCode)) {
         this.msalService.acquireTokenPopup({
           scopes: ['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']
         }).then(() => {
