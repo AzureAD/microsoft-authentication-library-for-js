@@ -105,16 +105,16 @@ export class PublicClientApplication {
      * or the library, depending on the origin of the error, or the AuthResponse object 
      * containing data from the server (returned with a null or non-blocking error).
      */
-    handleRedirectCallback(authCallback: AuthCallback): void {
+    async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
         if(!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
         }
 
         this.authCallback = authCallback;
-        const urlHash = window.location.hash;
-        if (UrlString.hashContainsKnownProperties(urlHash)) {
+        const { location: { hash }} = window;
+        if (UrlString.hashContainsKnownProperties(hash)) {
             this.interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
-            this.interactionHandler.handleCodeResponse(urlHash);
+            this.interactionHandler.handleCodeResponse(hash);
         }
     }
 
