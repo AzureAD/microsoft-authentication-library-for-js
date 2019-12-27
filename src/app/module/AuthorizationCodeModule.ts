@@ -99,16 +99,18 @@ export class AuthorizationCodeModule extends AuthModule {
         }
 
         const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
-        tokenRequest.code = codeResponse.code;
-        tokenRequest.userRequestState = codeResponse.userRequestState;
-
-        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        return this.acquireToken(tokenRequest);
+        try {
+            const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+            tokenRequest.code = codeResponse.code;
+            tokenRequest.userRequestState = codeResponse.userRequestState;
+            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            return this.acquireToken(tokenRequest);
+        } catch (err) {
+            throw err;
+        }        
     }
 
     async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
-        console.log(request);
         return null;
     }
 
