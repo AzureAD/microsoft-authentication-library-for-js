@@ -14,15 +14,15 @@ import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
-import { CodeRequestParameters } from "../../server/CodeRequestParameters";
+import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParameters";
 import { CodeResponse } from "../../response/CodeResponse";
 import { UrlString } from "../../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
-import { ClientAuthError } from "../../error/ClientAuthError";
-import { buildClientInfo } from "../../auth/ClientInfo";
-import { ServerError } from "../../error/ServerError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../error/ClientAuthError";
 import { ProtocolUtils } from "../../utils/ProtocolUtils";
 import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
+import { AuthError } from "../../error/AuthError";
+import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
 
 /**
  * AuthorizationCodeModule class
@@ -52,7 +52,7 @@ export class AuthorizationCodeModule extends AuthModule {
         await acquireTokenAuthority.resolveEndpointsAsync();
 
         // Create and validate request parameters
-        const requestParameters = new CodeRequestParameters(
+        const requestParameters = new ServerCodeRequestParameters(
             acquireTokenAuthority,
             this.clientConfig.auth.clientId,
             request,
@@ -111,6 +111,37 @@ export class AuthorizationCodeModule extends AuthModule {
     }
 
     async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+
+        let tokenEndpoint: string;
+        try {
+            tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
+        } catch (e) {
+            const authErr: AuthError = e;
+            if (authErr.errorCode === ClientAuthErrorMessage.endpointResolutionError.code) {
+                await acquireTokenAuthority.resolveEndpointsAsync();
+                tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
+            } else {
+                throw authErr;
+            }
+        }
+
+        const tokenReqParams = new ServerTokenRequestParameters(
+            this.clientConfig.auth.clientId,
+            request,
+            this.getRedirectUri(),
+            this.cryptoObj
+        );
+
+        const acquiredTokenResponse = this.networkClient.sendPostRequestAsync(
+            tokenEndpoint,
+            {
+                body: tokenReqParams.createRequestBody(),
+                headers: tokenReqParams.createRequestHeaders()
+            }
+        );
+
+        console.log(acquiredTokenResponse);
         return null;
     }
 
