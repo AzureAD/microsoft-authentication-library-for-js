@@ -4,7 +4,7 @@
  */
 import { IInteractionHandler } from "./IInteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, AuthenticationParameters, AuthError, AuthResponse, TokenResponse } from "msal-common";
+import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, AuthenticationParameters, AuthError, TokenResponse } from "msal-common";
 import { AuthCallback } from "../app/PublicClientApplication";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -44,9 +44,10 @@ export class RedirectHandler extends IInteractionHandler {
      * Handle authorization code response in the window.
      * @param hash 
      */
-    handleCodeResponse(hash: string, navigateToLoginRequestUrl?: boolean): void {
-        // retrieve the hash
-        const locationHash = hash || window.location.hash;
+    async handleCodeResponse(locationHash: string, navigateToLoginRequestUrl?: boolean): Promise<void> {
+        if (!locationHash) {
+            throw BrowserAuthError.createEmptyHashError(locationHash);
+        }
 
         if (navigateToLoginRequestUrl) {
             this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
@@ -68,13 +69,10 @@ export class RedirectHandler extends IInteractionHandler {
 
         try {
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-            this.authModule.acquireTokenAuto(codeResponse).then((tokenResponse: TokenResponse) => {
-                this.authCallback(null, tokenResponse);
-            }).catch((err: AuthError) => {
-                this.authCallback(err, null);
-            });
+            const tokenResponse: TokenResponse = await this.authModule.acquireTokenAuto(codeResponse);
+            this.authCallback(null, tokenResponse);
         } catch (err) {
             this.authCallback(err as AuthError, null);
-        }        
+        }
     }
 }

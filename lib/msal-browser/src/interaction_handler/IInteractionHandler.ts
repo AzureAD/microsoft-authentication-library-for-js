@@ -14,7 +14,7 @@ export abstract class IInteractionHandler {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }
-    
+
     /**
      * Function to enable user interaction.
      * @param urlNavigate 
@@ -25,5 +25,5 @@ export abstract class IInteractionHandler {
      * Function to handle response parameters from hash.
      * @param hash 
      */
-    abstract handleCodeResponse(hash: string): void;
+    abstract async handleCodeResponse(hash: string): Promise<void>;
 }

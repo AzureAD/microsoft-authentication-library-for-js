@@ -25,8 +25,12 @@ export const BrowserAuthErrorMessage = {
         desc: "The HTTP method given has not been implemented in this library."
     },
     emptyRedirectUriError: {
-        code: "empty_redirect_ur",
+        code: "empty_redirect_uri",
         desc: "Redirect URI is empty. Please check stack trace for more info."
+    },
+    hashEmptyError: {
+        code: "hash_empty_error",
+        desc: "Hash value cannot be processed because it is empty."
     }
 };
 
@@ -63,5 +67,9 @@ export class BrowserAuthError extends AuthError {
 
     static createEmptyRedirectUriError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.emptyRedirectUriError.code, BrowserAuthErrorMessage.emptyRedirectUriError.desc);
+    }
+
+    static createEmptyHashError(hashValue: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
     }
 }
