@@ -56,7 +56,7 @@ export abstract class Authority {
     }
 
     public get authorizationEndpoint(): string {
-        if(this.discoveryComplete) {
+        if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.authorization_endpoint.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
@@ -64,7 +64,7 @@ export abstract class Authority {
     }
 
     public get tokenEndpoint(): string {
-        if(this.discoveryComplete) {
+        if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.token_endpoint.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
@@ -72,7 +72,7 @@ export abstract class Authority {
     }
 
     public get endSessionEndpoint(): string {
-        if(this.discoveryComplete) {
+        if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.end_session_endpoint.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
@@ -80,7 +80,7 @@ export abstract class Authority {
     }
 
     public get selfSignedJwtAudience(): string {
-        if(this.discoveryComplete) {
+        if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.issuer.replace("{tenant}", this.tenant);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError();
@@ -108,10 +108,8 @@ export abstract class Authority {
 
     public abstract async getOpenIdConfigurationAsync(): Promise<string>;
 
-    public async resolveEndpointsAsync(): Promise<ITenantDiscoveryResponse> {
+    public async resolveEndpointsAsync(): Promise<void> {
         const openIdConfigEndpoint = await this.getOpenIdConfigurationAsync();
         this.tenantDiscoveryResponse = await this.discoverEndpoints(openIdConfigEndpoint);
-
-        return this.tenantDiscoveryResponse;
     }
 }

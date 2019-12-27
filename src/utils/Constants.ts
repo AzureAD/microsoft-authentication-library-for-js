@@ -23,7 +23,16 @@ export const Constants = {
     PROFILE_SCOPE: "profile",
     OFFLINE_ACCESS_SCOPE: "offline_access",
     // Default response type for authorization code flow
-    CODE_RESPONSE_TYPE: "code"
+    CODE_RESPONSE_TYPE: "code",
+    CODE_GRANT_TYPE: "authorization_code",
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
+};
+
+/**
+ * Request header names
+ */
+export enum HEADER_NAMES {
+    CONTENT_TYPE = "Content-Type"
 };
 
 /**
@@ -86,16 +95,21 @@ export enum AADAuthorityConstants {
 /**
  * Keys in the hashParams sent by AAD Server
  */
-export enum AADServerHashParamKeys {
+export enum AADServerParamKeys {
+    CLIENT_ID = "client_id",
+    REDIRECT_URI = "redirect_uri",
+    GRANT_TYPE = "grant_type",
     SCOPE = "scope",
     ERROR = "error",
     ERROR_DESCRIPTION = "error_description",
     ACCESS_TOKEN = "access_token",
     ID_TOKEN = "id_token",
     EXPIRES_IN = "expires_in",
+    STATE = "state",
     SESSION_STATE = "session_state",
     CLIENT_INFO = "client_info",
-    CODE = "code"
+    CODE = "code",
+    CODE_VERIFIER = "code_verifier"
 };
 
 /**

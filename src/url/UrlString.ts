@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AADAuthorityConstants, AADServerHashParamKeys } from "../utils/Constants";
+import { AADAuthorityConstants, AADServerParamKeys } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
@@ -172,9 +172,9 @@ export class UrlString {
         const urlString = new UrlString(url);
         const parameters = urlString.getDeserializedHash<any>();
         return (
-            parameters.hasOwnProperty(AADServerHashParamKeys.ERROR_DESCRIPTION) ||
-            parameters.hasOwnProperty(AADServerHashParamKeys.ERROR) ||
-            parameters.hasOwnProperty(AADServerHashParamKeys.CODE)
+            parameters.hasOwnProperty(AADServerParamKeys.ERROR_DESCRIPTION) ||
+            parameters.hasOwnProperty(AADServerParamKeys.ERROR) ||
+            parameters.hasOwnProperty(AADServerParamKeys.CODE)
         );
     }
 }

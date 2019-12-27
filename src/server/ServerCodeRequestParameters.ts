@@ -14,7 +14,7 @@ import { Constants, BlacklistedEQParams, SSOTypes, PromptState } from "../utils/
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 
-export class CodeRequestParameters {
+export class ServerCodeRequestParameters {
     
     // Crypto functions
     private cryptoObj: ICrypto;
@@ -57,7 +57,7 @@ export class CodeRequestParameters {
         const randomGuid = this.cryptoObj.createNewGuid();
         this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid);
 
-        this.correlationId = userRequest.correlationId || this.cryptoObj.createNewGuid();
+        this.correlationId = this.userRequest.correlationId || this.cryptoObj.createNewGuid();
 
         // Telemetry Info
         this.xClientSku = Constants.LIBRARY_NAME;
