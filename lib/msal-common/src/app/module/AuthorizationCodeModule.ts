@@ -141,7 +141,6 @@ export class AuthorizationCodeModule extends AuthModule {
             }
         );
 
-        console.log(acquiredTokenResponse);
         return null;
     }
 
