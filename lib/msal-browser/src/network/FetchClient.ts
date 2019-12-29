@@ -50,7 +50,6 @@ export class FetchClient implements INetworkModule {
         options.headers.forEach((value, key) => {
             headers.append(key, value);
         });
-        console.log(headers);
         return headers;
     }
 }
