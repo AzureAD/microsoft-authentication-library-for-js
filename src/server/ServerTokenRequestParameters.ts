@@ -69,7 +69,7 @@ export class ServerTokenRequestParameters {
         str.push(`${AADServerParamKeys.STATE}=${encodeURIComponent(this.state)}`);
 
         // Temporary until server allows CORS requests from browser without client secret
-        str.push(`client_secret=${encodeURIComponent("6HKmct7Jd7sZG@8phyJA/RJFVlwBq-/R")}`);
+        // str.push(`client_secret=`);
 
         return str;
     }
