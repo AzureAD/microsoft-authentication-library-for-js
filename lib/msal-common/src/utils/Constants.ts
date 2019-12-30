@@ -25,6 +25,7 @@ export const Constants = {
     // Default response type for authorization code flow
     CODE_RESPONSE_TYPE: "code",
     CODE_GRANT_TYPE: "authorization_code",
+    FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
 };
