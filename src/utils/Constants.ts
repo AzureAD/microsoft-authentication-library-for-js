@@ -25,6 +25,7 @@ export const Constants = {
     // Default response type for authorization code flow
     CODE_RESPONSE_TYPE: "code",
     CODE_GRANT_TYPE: "authorization_code",
+    S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
 };
 
@@ -97,8 +98,12 @@ export enum AADAuthorityConstants {
  */
 export enum AADServerParamKeys {
     CLIENT_ID = "client_id",
+    RESOURCE = "resource",
     REDIRECT_URI = "redirect_uri",
+    RESPONSE_TYPE = "response_type",
+    RESPONSE_MODE = "response_mode",
     GRANT_TYPE = "grant_type",
+    CLAIMS = "claims",
     SCOPE = "scope",
     ERROR = "error",
     ERROR_DESCRIPTION = "error_description",
@@ -106,10 +111,17 @@ export enum AADServerParamKeys {
     ID_TOKEN = "id_token",
     EXPIRES_IN = "expires_in",
     STATE = "state",
+    NONCE = "nonce",
+    PROMPT = "prompt",
     SESSION_STATE = "session_state",
     CLIENT_INFO = "client_info",
     CODE = "code",
-    CODE_VERIFIER = "code_verifier"
+    CODE_CHALLENGE = "code_challenge",
+    CODE_CHALLENGE_METHOD = "code_challenge_method",
+    CODE_VERIFIER = "code_verifier",
+    CLIENT_REQUEST_ID = "client-request-id",
+    X_CLIENT_SKU = "x-client-SKU",
+    X_CLIENT_VER = "x-client-Ver"
 };
 
 /**
