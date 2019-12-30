@@ -11,7 +11,7 @@ import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from 
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 // response
-import { TokenResponse } from "../../response/TokenResponse";
+import { TokenResponse, setResponseIdToken } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParameters";
@@ -23,6 +23,11 @@ import { ProtocolUtils } from "../../utils/ProtocolUtils";
 import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
 import { AuthError } from "../../error/AuthError";
 import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
+import { ServerAuthorizationTokenResponse, validateServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
+import { IdToken } from "../../auth/IdToken";
+import { buildClientInfo } from "../../auth/ClientInfo";
+import { Account } from "../../auth/Account";
+import { ScopeSet } from "../../auth/ScopeSet";
 
 /**
  * AuthorizationCodeModule class
@@ -81,7 +86,8 @@ export class AuthorizationCodeModule extends AuthModule {
             codeVerifier: requestParameters.generatedPkce.verifier,
             extraQueryParameters: request.extraQueryParameters,
             authority: requestParameters.authorityInstance.canonicalAuthority,
-            correlationId: requestParameters.correlationId,            
+            correlationId: requestParameters.correlationId,
+            userRequestState: ProtocolUtils.getUserRequestState(requestParameters.state)
         };
 
         this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
@@ -133,7 +139,7 @@ export class AuthorizationCodeModule extends AuthModule {
             this.cryptoObj
         );
 
-        const acquiredTokenResponse = this.networkClient.sendPostRequestAsync(
+        const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
             tokenEndpoint,
             {
                 body: await tokenReqParams.createRequestBody(),
@@ -141,7 +147,14 @@ export class AuthorizationCodeModule extends AuthModule {
             }
         );
 
-        return null;
+        try {
+            validateServerAuthorizationTokenResponse(acquiredTokenResponse);
+        } catch (e) {
+            this.cacheManager.resetTempCacheItems(tokenReqParams.state);
+            throw e;
+        }
+
+        return this.createTokenResponse(acquiredTokenResponse, tokenReqParams.state);
     }
 
     // #region Response Handling
@@ -163,10 +176,89 @@ export class AuthorizationCodeModule extends AuthModule {
         // Create response object
         const response: CodeResponse = {
             code: hashParams.code,
-            userRequestState: ProtocolUtils.getUserRequestState(hashParams.state)
+            userRequestState: hashParams.state
         };
 
         return response;
+    }
+
+    private createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, state: string): TokenResponse {
+        const tokenResponse: TokenResponse = {
+            uniqueId: "",
+            tenantId: "",
+            tokenType: "",
+            idToken: null,
+            idTokenClaims: null,
+            accessToken: "",
+            refreshToken: "",
+            scopes: [],
+            expiresOn: null,
+            account: null,
+            userRequestState: ""
+        };
+        // Set consented scopes in response
+        const requestScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientConfig.auth.clientId, false);
+        tokenResponse.scopes = requestScopes.asArray();
+
+        // Retrieve current id token object
+        let idTokenObj: IdToken;
+        const cachedIdToken: IdToken = new IdToken(this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN), this.cryptoObj);
+        if (serverTokenResponse.id_token) {
+            idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+            setResponseIdToken(tokenResponse, idTokenObj);
+        } else if (cachedIdToken) {
+            idTokenObj = cachedIdToken;
+            setResponseIdToken(tokenResponse, idTokenObj);
+        } else {
+            // TODO: No account scenario?
+        }
+
+        // check nonce integrity if idToken has nonce - throw an error if not matched
+        const nonce = this.cacheStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
+
+        if (!idTokenObj || idTokenObj.claims.nonce) {
+            throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
+        }
+
+        if (idTokenObj.claims.nonce !== nonce) {
+            this.account = null;
+            throw ClientAuthError.createNonceMismatchError();
+        }
+
+        // TODO: This will be used when saving tokens
+        // const authorityKey: string = this.cacheManager.generateAuthorityKey(state);
+        // const cachedAuthority: string = this.cacheStorage.getItem(authorityKey);
+
+        // TODO: Save id token here
+        
+        // Retrieve client info
+        const clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
+
+        // Create account object for request
+        this.account = Account.createAccount(idTokenObj, clientInfo, this.cryptoObj);
+        tokenResponse.account = this.account;
+
+        // Set token type
+        tokenResponse.tokenType = serverTokenResponse.token_type;
+
+        // Save the access token if it exists
+        if (serverTokenResponse.access_token) {
+            const accountKey = this.cacheManager.generateAcquireTokenAccountKey(this.account.homeAccountIdentifier);
+            
+            const cachedAccount = JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
+
+            if (!cachedAccount || Account.compareAccounts(cachedAccount, this.account)) {
+                tokenResponse.accessToken = serverTokenResponse.access_token;
+                tokenResponse.refreshToken = serverTokenResponse.refresh_token;
+                // TODO: Save the access token
+            } else {
+                throw ClientAuthError.createAccountMismatchError();
+            }
+        }
+
+        // Return user set state in the response
+        tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
+        return tokenResponse;
     }
 
     // #endregion

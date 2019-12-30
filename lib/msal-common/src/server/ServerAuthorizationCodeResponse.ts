@@ -12,6 +12,8 @@ import { ICrypto } from "../crypto/ICrypto";
  * - code: authorization code from server
  * - client_info: client info object
  * - state: OAuth2 request state
+ * - error: error sent back in hash
+ * - error: description
  */
 export type ServerAuthorizationCodeResponse = {
     code?: string;
