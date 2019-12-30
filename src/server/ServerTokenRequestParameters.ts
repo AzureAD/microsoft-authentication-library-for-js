@@ -20,8 +20,7 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
 
         this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, false);
 
-        const randomGuid = this.cryptoObj.createNewGuid();
-        this.state = ProtocolUtils.setRequestState(this.tokenRequest && this.tokenRequest.userRequestState, randomGuid);
+        this.state = tokenRequest.userRequestState;
 
         this.correlationId = this.tokenRequest.correlationId || this.cryptoObj.createNewGuid();
     }
