@@ -183,7 +183,7 @@ export class AuthorizationCodeModule extends AuthModule {
     }
 
     private createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, state: string): TokenResponse {
-        const tokenResponse: TokenResponse = {
+        let tokenResponse: TokenResponse = {
             uniqueId: "",
             tenantId: "",
             tokenType: "",
@@ -202,13 +202,13 @@ export class AuthorizationCodeModule extends AuthModule {
 
         // Retrieve current id token object
         let idTokenObj: IdToken;
-        const cachedIdToken: IdToken = new IdToken(this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN), this.cryptoObj);
+        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
         if (serverTokenResponse.id_token) {
             idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
-            setResponseIdToken(tokenResponse, idTokenObj);
+            tokenResponse = setResponseIdToken(tokenResponse, idTokenObj);
         } else if (cachedIdToken) {
-            idTokenObj = cachedIdToken;
-            setResponseIdToken(tokenResponse, idTokenObj);
+            idTokenObj = new IdToken(cachedIdToken, this.cryptoObj);
+            tokenResponse = setResponseIdToken(tokenResponse, idTokenObj);
         } else {
             // TODO: No account scenario?
         }
@@ -216,7 +216,7 @@ export class AuthorizationCodeModule extends AuthModule {
         // check nonce integrity if idToken has nonce - throw an error if not matched
         const nonce = this.cacheStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
 
-        if (!idTokenObj || idTokenObj.claims.nonce) {
+        if (!idTokenObj || !idTokenObj.claims.nonce) {
             throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
         }
 
