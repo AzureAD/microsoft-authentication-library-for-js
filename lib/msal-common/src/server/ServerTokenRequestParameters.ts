@@ -2,36 +2,20 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import pkg from "../../package.json";
 import { ICrypto } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants";
+import { ServerRequestParameters } from "./ServerRequestParameters";
 
-export class ServerTokenRequestParameters {
-
-    // Crypto functions
-    private cryptoObj: ICrypto;
+export class ServerTokenRequestParameters extends ServerRequestParameters {
 
     // Params
-    private clientId: string;
-    private scopes: ScopeSet;
-    private redirectUri: string;
-    private tokenRequest: TokenExchangeParameters;
-
-    // Validity checks
-    private state: string;
-
-    // Telemetry Info
-    xClientVer: string;
-    xClientSku: string;
-    correlationId: string;
+    tokenRequest: TokenExchangeParameters;
 
     constructor(clientId: string, tokenRequest: TokenExchangeParameters, redirectUri: string, cryptoImpl: ICrypto) {
-        this.cryptoObj = cryptoImpl;
-        this.clientId = clientId;
-        this.redirectUri = redirectUri;
+        super(clientId, redirectUri, cryptoImpl);
         this.tokenRequest = tokenRequest;
 
         this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, false);
@@ -39,9 +23,6 @@ export class ServerTokenRequestParameters {
         const randomGuid = this.cryptoObj.createNewGuid();
         this.state = ProtocolUtils.setRequestState(this.tokenRequest && this.tokenRequest.userRequestState, randomGuid);
 
-        // Telemetry Info
-        this.xClientSku = Constants.LIBRARY_NAME;
-        this.xClientVer = pkg.version;
         this.correlationId = this.tokenRequest.correlationId || this.cryptoObj.createNewGuid();
     }
 
@@ -51,12 +32,12 @@ export class ServerTokenRequestParameters {
         return headers;
     }
 
-    createRequestBody(): string {
-        const paramString = this.createParamString();
+    async createRequestBody(): Promise<string> {
+        const paramString = await this.createParamString();
         return paramString.join("&");
     }
 
-    private createParamString(): Array<string> {
+    protected async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         this.replaceDefaultScopes();
 
@@ -72,14 +53,5 @@ export class ServerTokenRequestParameters {
         // str.push(`client_secret=`);
 
         return str;
-    }
-
-    protected replaceDefaultScopes() {
-        if (this.scopes.containsScope(this.clientId)) {
-            this.scopes.removeScope(this.clientId);
-            this.scopes.appendScope(Constants.OPENID_SCOPE);
-            this.scopes.appendScope(Constants.PROFILE_SCOPE);
-        }
-        this.scopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
     }
 }

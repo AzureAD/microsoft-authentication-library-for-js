@@ -8,23 +8,17 @@ import { AuthenticationParameters, validateClaimsRequest } from "../request/Auth
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
 import { StringUtils } from "../utils/StringUtils";
-import pkg from "../../package.json";
 import { StringDict } from "../utils/MsalTypes";
-import { Constants, BlacklistedEQParams, SSOTypes, PromptState } from "../utils/Constants";
+import { Constants, BlacklistedEQParams, SSOTypes, PromptState, AADServerParamKeys } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
+import { ServerRequestParameters } from "./ServerRequestParameters";
 
-export class ServerCodeRequestParameters {
-    
-    // Crypto functions
-    private cryptoObj: ICrypto;
+export class ServerCodeRequestParameters extends ServerRequestParameters {
 
     // Params
     authorityInstance: Authority;
-    clientId: string;
-    scopes: ScopeSet;
     responseType: string;
-    redirectUri: string;
     userRequest: AuthenticationParameters;
     queryParameters: string;
     extraQueryParameters: string;
@@ -33,19 +27,12 @@ export class ServerCodeRequestParameters {
     generatedPkce: PkceCodes;
     
     // Validity checks
-    state: string;
-
-    // Telemetry Info
-    xClientVer: string;
-    xClientSku: string;
-    correlationId: string;
+    nonce: string;
 
     constructor(authority: Authority, clientId: string, userRequest: AuthenticationParameters, redirectUri: string, cryptoImpl: ICrypto, isLoginCall: boolean) {
+        super(clientId, redirectUri, cryptoImpl);
         this.authorityInstance = authority;
-        this.clientId = clientId;
-        this.cryptoObj = cryptoImpl;
         this.userRequest = userRequest;
-        this.redirectUri = redirectUri;
 
         this.responseType = Constants.CODE_RESPONSE_TYPE;
 
@@ -56,12 +43,9 @@ export class ServerCodeRequestParameters {
         
         const randomGuid = this.cryptoObj.createNewGuid();
         this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid);
+        this.nonce = this.cryptoObj.createNewGuid();
 
         this.correlationId = this.userRequest.correlationId || this.cryptoObj.createNewGuid();
-
-        // Telemetry Info
-        this.xClientSku = Constants.LIBRARY_NAME;
-        this.xClientVer = pkg.version;
     }
 
     /**
@@ -152,36 +136,36 @@ export class ServerCodeRequestParameters {
     /**
      * Create a query parameter string.
      */
-    private async createParamString(): Promise<Array<string>> {
+    protected async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
-        str.push(`response_type=${this.responseType}`);
+        str.push(`${AADServerParamKeys.RESPONSE_TYPE}=${this.responseType}`);
 
         this.replaceDefaultScopes();
-        str.push("scope=" + encodeURIComponent(this.scopes.printScopes()));
-        str.push("client_id=" + encodeURIComponent(this.clientId));
-        str.push("redirect_uri=" + encodeURIComponent(this.redirectUri));
+        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
+        str.push(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(this.clientId)}`);
+        str.push(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(this.redirectUri)}`);
 
-        str.push("state=" + encodeURIComponent(this.state));
-        // str.push("nonce=" + encodeURIComponent(this.nonce));
+        str.push(`${AADServerParamKeys.STATE}=${encodeURIComponent(this.state)}`);
+        str.push(`${AADServerParamKeys.NONCE}=${encodeURIComponent(this.nonce)}`);
 
-        str.push("client_info=1");
-        str.push(`x-client-SKU=${this.xClientSku}`);
-        str.push(`x-client-Ver=${this.xClientVer}`);
+        str.push(`${AADServerParamKeys.CLIENT_INFO}=1`);
+        str.push(`${AADServerParamKeys.X_CLIENT_SKU}=${this.xClientSku}`);
+        str.push(`${AADServerParamKeys.X_CLIENT_VER}=${this.xClientVer}`);
 
         this.generatedPkce = await this.cryptoObj.generatePkceCodes();
-        str.push(`code_challenge=${encodeURIComponent(this.generatedPkce.challenge)}`);
-        str.push("code_challenge_method=S256");
+        str.push(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(this.generatedPkce.challenge)}`);
+        str.push(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
 
         if (this.userRequest && this.userRequest.resource) {
-            str.push("resource=" + encodeURIComponent(this.userRequest.resource));
+            str.push(`${AADServerParamKeys.RESOURCE}=${encodeURIComponent(this.userRequest.resource)}`);
         }
 
         if (this.userRequest && this.userRequest.prompt) {
-            str.push("prompt=" + encodeURIComponent(this.userRequest.prompt));
+            str.push(`${AADServerParamKeys.PROMPT}=${(encodeURIComponent(this.userRequest.prompt))}`);
         }
 
         if (this.userRequest && this.userRequest.claimsRequest) {
-            str.push("claims=" + encodeURIComponent(this.userRequest.claimsRequest));
+            str.push(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(this.userRequest.claimsRequest)}`);
         }
 
         if (this.queryParameters) {
@@ -192,20 +176,9 @@ export class ServerCodeRequestParameters {
             str.push(this.extraQueryParameters);
         }
 
-        str.push("client-request-id=" + encodeURIComponent(this.correlationId));
-        str.push("response_mode=fragment");
+        str.push(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(this.correlationId)}`);
+        str.push(`${AADServerParamKeys.RESPONSE_MODE}=fragment`);
         return str;
-    }
-
-    /**
-     * Replace client id with the default scopes used for token acquisition.
-     */
-    private replaceDefaultScopes() {
-        if (this.scopes.containsScope(this.clientId)) {
-            this.scopes.removeScope(this.clientId);
-            this.scopes.appendScope(Constants.OPENID_SCOPE);
-            this.scopes.appendScope(Constants.PROFILE_SCOPE);
-        }
     }
 
     /**

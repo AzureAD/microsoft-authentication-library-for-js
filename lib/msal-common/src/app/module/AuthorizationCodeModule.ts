@@ -136,7 +136,7 @@ export class AuthorizationCodeModule extends AuthModule {
         const acquiredTokenResponse = this.networkClient.sendPostRequestAsync(
             tokenEndpoint,
             {
-                body: tokenReqParams.createRequestBody(),
+                body: await tokenReqParams.createRequestBody(),
                 headers: tokenReqParams.createRequestHeaders()
             }
         );
