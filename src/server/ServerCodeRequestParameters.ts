@@ -177,7 +177,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         }
 
         str.push(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(this.correlationId)}`);
-        str.push(`${AADServerParamKeys.RESPONSE_MODE}=fragment`);
+        str.push(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
         return str;
     }
 
