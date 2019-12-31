@@ -111,7 +111,7 @@ export class PublicClientApplication {
         }
 
         this.authCallback = authCallback;
-        const { location: { hash }} = window;
+        const { location: { hash } } = window;
         if (UrlString.hashContainsKnownProperties(hash)) {
             this.interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
             this.interactionHandler.handleCodeResponse(hash);

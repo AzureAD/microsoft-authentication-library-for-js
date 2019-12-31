@@ -93,24 +93,20 @@ export class AuthorizationCodeModule extends AuthModule {
         throw new Error("Method not implemented.");
     }
 
-    async acquireTokenAuto(codeResponse: CodeResponse): Promise<TokenResponse> {
-        if (!codeResponse || !codeResponse.code) {
-            throw ClientAuthError.createAuthCodeNullOrEmptyError();
+    async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {
+        let encodedTokenRequest;
+        if (!request) {
+            encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
         }
-
-        const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+        
         try {
             const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
             tokenRequest.code = codeResponse.code;
             tokenRequest.userRequestState = codeResponse.userRequestState;
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-            return this.acquireToken(tokenRequest);
         } catch (err) {
             throw err;
-        }        
-    }
-
-    async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
+        }       
         return null;
     }
 
