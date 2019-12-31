@@ -104,8 +104,6 @@ export class AuthorizationCodeModule extends AuthModule {
         
         try {
             const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
-            tokenRequest.code = codeResponse.code;
-            tokenRequest.userRequestState = codeResponse.userRequestState;
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
         } catch (err) {
             throw err;
