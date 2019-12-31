@@ -4,7 +4,7 @@
  */
 import { IInteractionHandler } from "./IInteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, AuthenticationParameters, AuthError, TokenResponse, ClientAuthError } from "msal-common";
+import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, AuthenticationParameters, AuthError, TokenResponse } from "msal-common";
 import { AuthCallback } from "../app/PublicClientApplication";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -69,9 +69,6 @@ export class RedirectHandler extends IInteractionHandler {
 
         try {
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-            if (!codeResponse || !codeResponse.code) {
-                throw ClientAuthError.createAuthCodeNullOrEmptyError();
-            }
             const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse);
             this.authCallback(null, tokenResponse);
         } catch (err) {
