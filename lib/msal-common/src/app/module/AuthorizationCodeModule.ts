@@ -94,6 +94,9 @@ export class AuthorizationCodeModule extends AuthModule {
     }
 
     async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {
+        if (!codeResponse || !codeResponse.code) {
+            throw ClientAuthError.createAuthCodeNullOrEmptyError();
+        }
         let encodedTokenRequest;
         if (!request) {
             encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
