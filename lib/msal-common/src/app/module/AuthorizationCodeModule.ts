@@ -49,7 +49,11 @@ export class AuthorizationCodeModule extends AuthModule {
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-        await acquireTokenAuthority.resolveEndpointsAsync();
+        try {
+            await acquireTokenAuthority.resolveEndpointsAsync();
+        } catch (e) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        }
 
         // Create and validate request parameters
         const requestParameters = new ServerCodeRequestParameters(
@@ -106,16 +110,20 @@ export class AuthorizationCodeModule extends AuthModule {
                 tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
                 this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
             } catch (err) {
-                throw err;
+                throw ClientAuthError.createTokenRequestCacheError(err);
             }
         } else {
             tokenRequest = request;
         }
 
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-        
+
         if (!acquireTokenAuthority.discoveryComplete()) {
-            await acquireTokenAuthority.resolveEndpointsAsync();
+            try {
+                await acquireTokenAuthority.resolveEndpointsAsync();
+            } catch (e) {
+                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            }
         }
         const tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
 
