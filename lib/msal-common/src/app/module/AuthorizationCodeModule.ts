@@ -19,8 +19,6 @@ import { CodeResponse } from "../../response/CodeResponse";
 import { UrlString } from "../../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
 import { ClientAuthError } from "../../error/ClientAuthError";
-import { buildClientInfo } from "../../auth/ClientInfo";
-import { ServerError } from "../../error/ServerError";
 import { ProtocolUtils } from "../../utils/ProtocolUtils";
 import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
 
@@ -107,7 +105,7 @@ export class AuthorizationCodeModule extends AuthModule {
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
         } catch (err) {
             throw err;
-        }       
+        }
         return null;
     }
 

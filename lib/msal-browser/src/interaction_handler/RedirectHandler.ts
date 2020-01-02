@@ -45,7 +45,7 @@ export class RedirectHandler extends IInteractionHandler {
      * @param hash 
      */
     async handleCodeResponse(locationHash: string, navigateToLoginRequestUrl?: boolean): Promise<void> {
-        if (!locationHash) {
+        if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
