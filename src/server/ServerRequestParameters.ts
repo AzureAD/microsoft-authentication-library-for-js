@@ -33,8 +33,6 @@ export abstract class ServerRequestParameters {
         this.xClientSku = Constants.LIBRARY_NAME;
         this.xClientVer = pkg.version;
     }
-
-    protected abstract createParamString(): Promise<Array<string>>;
     
     /**
      * Replace client id with the default scopes used for token acquisition.
