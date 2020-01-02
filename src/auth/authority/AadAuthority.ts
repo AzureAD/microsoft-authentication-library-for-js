@@ -6,7 +6,6 @@
 import { Authority, AuthorityType } from "./Authority";
 import { AADTrustedHostList } from "../../utils/Constants";
 import { INetworkModule } from "../../network/INetworkModule";
-import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 
 /**
  * @hidden
