@@ -8,6 +8,7 @@ import { ICacheStorage } from "./ICacheStorage";
 import { Account } from "../auth/Account";
 import { Authority } from "../auth/authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
+import { StringUtils } from "../utils/StringUtils";
 
 export class CacheHelpers {
 
@@ -99,27 +100,23 @@ export class CacheHelpers {
      */
     resetTempCacheItems(state: string): void {
         let key: string;
-        // check state and remove associated cache
-        for (key in this.cacheStorage.getKeys()) {
-            if (!state || key.indexOf(state) !== -1) {
+        // check state and remove associated cache items
+        this.cacheStorage.getKeys().forEach((key) => {
+            console.log("Key: " + key);
+            if (StringUtils.isEmpty(state) || key.indexOf(state) !== -1) {
+                console.log("State: " + state);
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
+                console.log("Split Key: " + splitKey);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
+                console.log("keyState: " + keyState);
+                if (keyState === state) {
                     this.cacheStorage.removeItem(key);
                 }
             }
-        }
-        // delete the interaction status cache
-        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        });
+        // delete generic interactive request parameters
+        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
+        this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
         this.cacheStorage.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
-    }
-
-    /**
-     * Return if the token renewal is still in progress
-     * @param stateValue
-     */
-    tokenRenewalInProgress(stateValue: string): boolean {
-        const renewStatus = this.cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
-        return !!(renewStatus && renewStatus === Constants.INTERACTION_IN_PROGRESS);
     }
 }

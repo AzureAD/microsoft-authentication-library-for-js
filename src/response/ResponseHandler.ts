@@ -126,6 +126,8 @@ export class ResponseHandler {
     
         // Return user set state in the response
         tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
+        
+        this.cacheManager.resetTempCacheItems(state);
         return tokenResponse;
     }
 }
