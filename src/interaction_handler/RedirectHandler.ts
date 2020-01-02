@@ -45,7 +45,7 @@ export class RedirectHandler extends IInteractionHandler {
      * @param hash 
      */
     async handleCodeResponse(locationHash: string, navigateToLoginRequestUrl?: boolean): Promise<void> {
-        if (!locationHash) {
+        if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
@@ -69,7 +69,7 @@ export class RedirectHandler extends IInteractionHandler {
 
         try {
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-            const tokenResponse: TokenResponse = await this.authModule.acquireTokenAuto(codeResponse);
+            const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse);
             this.authCallback(null, tokenResponse);
         } catch (err) {
             this.authCallback(err as AuthError, null);
