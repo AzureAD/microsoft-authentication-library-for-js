@@ -31,6 +31,10 @@ export const BrowserAuthErrorMessage = {
     hashEmptyError: {
         code: "hash_empty_error",
         desc: "Hash value cannot be processed because it is empty."
+    },
+    interactionInProgress: {
+        code: "interaction_in_progress",
+        desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API."
     }
 };
 
@@ -71,5 +75,9 @@ export class BrowserAuthError extends AuthError {
 
     static createEmptyHashError(hashValue: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
+    }
+
+    static createInteractionInProgressError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.interactionInProgress.code, BrowserAuthErrorMessage.interactionInProgress.desc);
     }
 }

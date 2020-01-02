@@ -4,10 +4,11 @@
  */
 import { IInteractionHandler } from "./IInteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, AuthenticationParameters, AuthError, TokenResponse } from "msal-common";
+import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, AuthenticationParameters, AuthError, TokenResponse, Constants } from "msal-common";
 import { AuthCallback } from "../app/PublicClientApplication";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserConstants } from "../utils/BrowserConstants";
 
 export class RedirectHandler extends IInteractionHandler {
 
@@ -28,6 +29,7 @@ export class RedirectHandler extends IInteractionHandler {
     showUI(authRequest: AuthenticationParameters): void {
         this.browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, window.location.href);
         this.authModule.createLoginUrl(authRequest).then((urlNavigate) => {
+            this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS);
             // Navigate if valid URL
             if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
                 this.authModule.logger.infoPii("Navigate to:" + urlNavigate);
@@ -69,6 +71,7 @@ export class RedirectHandler extends IInteractionHandler {
         }
 
         try {
+            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
             const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse).catch(error => {
                 throw error;
