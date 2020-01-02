@@ -16,7 +16,6 @@ export class BrowserStorage implements ICacheStorage {
     private windowStorage: Storage;
 
     private clientId: string;
-    private rollbackEnabled: boolean;
 
     constructor(clientId: string, cacheConfig: CacheOptions) {
         this.validateWindowStorage(cacheConfig.cacheLocation);
@@ -24,9 +23,6 @@ export class BrowserStorage implements ICacheStorage {
         this.cacheConfig = cacheConfig;
         this.windowStorage = window[this.cacheConfig.cacheLocation];
         this.clientId = clientId;
-
-        // This is hardcoded to true for now, we will roll this out as a configurable option in the future.
-        this.rollbackEnabled = true;
 
         this.migrateCacheEntries();
     }
@@ -51,7 +47,6 @@ export class BrowserStorage implements ICacheStorage {
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntries() {
-
         const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
         const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
         const errorKey = `${Constants.CACHE_PREFIX}.${ErrorCacheKeys.ERROR}`;
@@ -85,7 +80,7 @@ export class BrowserStorage implements ICacheStorage {
      * @param key
      * @param addInstanceId
      */
-    private generateCacheKey(key: string, addInstanceId: boolean): string {
+    private generateCacheKey(key: string): string {
         try {
             // Defined schemas do not need the key appended
             this.validateObjectKey(key);
@@ -94,7 +89,7 @@ export class BrowserStorage implements ICacheStorage {
             if (key.startsWith(`${Constants.CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
             }
-            return addInstanceId ? `${Constants.CACHE_PREFIX}.${this.clientId}.${key}` : `${Constants.CACHE_PREFIX}.${key}`;
+            return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;
         }
     }
 
@@ -107,18 +102,15 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     setItem(key: string, value: string): void {
-        const msalKey = this.generateCacheKey(key, true);
+        const msalKey = this.generateCacheKey(key);
         this.windowStorage.setItem(msalKey, value);
-        if (this.rollbackEnabled) {
-            this.windowStorage.setItem(this.generateCacheKey(key, false), value);
-        }
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.setItemCookie(msalKey, value);
         }
     }
     
     getItem(key: string): string {
-        const msalKey = this.generateCacheKey(key, true);
+        const msalKey = this.generateCacheKey(key);
         const itemCookie = this.getItemCookie(msalKey);
         if (this.cacheConfig.storeAuthStateInCookie && itemCookie) {
             return itemCookie;
@@ -127,22 +119,20 @@ export class BrowserStorage implements ICacheStorage {
     }
     
     removeItem(key: string): void {
-        const msalKey = this.generateCacheKey(key, true);
+        const msalKey = this.generateCacheKey(key);
         this.windowStorage.removeItem(msalKey);
-        if (this.rollbackEnabled) {
-            this.windowStorage.removeItem(this.generateCacheKey(key, false));
-        }
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.clearItemCookie(msalKey);
         }
     }
     
     containsKey(key: string): boolean {
-        const msalKey = this.generateCacheKey(key, true);
+        const msalKey = this.generateCacheKey(key);
         return this.windowStorage.hasOwnProperty(msalKey) || this.windowStorage.hasOwnProperty(key);
     }
     
     getKeys(): string[] {
+        console.log("Cache Keys: " + JSON.stringify(Object.keys(this.windowStorage)));
         return Object.keys(this.windowStorage);
     }
 
