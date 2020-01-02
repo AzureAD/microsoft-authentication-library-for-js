@@ -34,6 +34,10 @@ export class CacheHelpers {
         return `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
     }
 
+    generateNonceKey(state: string): string {
+        return `${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${state}`;
+    }
+
     /**
      * @hidden
      * @ignore
