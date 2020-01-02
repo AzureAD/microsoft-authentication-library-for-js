@@ -69,7 +69,9 @@ export class RedirectHandler extends IInteractionHandler {
 
         try {
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-            const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse);
+            const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse).catch(error => {
+                throw error;
+            });
             this.authCallback(null, tokenResponse);
         } catch (err) {
             this.authCallback(err, null);
