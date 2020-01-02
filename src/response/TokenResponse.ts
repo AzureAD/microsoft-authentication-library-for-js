@@ -6,7 +6,6 @@
 import { Account } from "../auth/Account";
 import { StringDict } from "../utils/MsalTypes";
 import { AuthResponse } from "./AuthResponse";
-import { IdToken } from "../auth/IdToken";
 
 /**
  * TokenResponse type returned by library containing id, access and/or refresh tokens.
@@ -32,24 +31,3 @@ export type TokenResponse = AuthResponse & {
     expiresOn: Date;
     account: Account;
 };
-
-export function setResponseIdToken(originalResponse: TokenResponse, idTokenObj: IdToken) : TokenResponse {
-    if (!originalResponse) {
-        return null;
-    } else if (!idTokenObj) {
-        return originalResponse;
-    }
-
-    const exp = Number(idTokenObj.claims.exp);
-    if (exp && !originalResponse.expiresOn) {
-        originalResponse.expiresOn = new Date(exp * 1000);
-    }
-
-    return {
-        ...originalResponse,
-        idToken: idTokenObj.rawIdToken,
-        idTokenClaims: idTokenObj.claims,
-        uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-        tenantId: idTokenObj.claims.tid,
-    };
-}
