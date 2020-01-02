@@ -36,8 +36,6 @@ export class PublicClientApplication {
     // auth functions imported from msal-common module
     private authModule: AuthorizationCodeModule;
 
-    private interactionHandler: IInteractionHandler;
-
     // callback for error/token response
     private authCallback: AuthCallback = null;
 
@@ -111,10 +109,10 @@ export class PublicClientApplication {
         }
 
         this.authCallback = authCallback;
-        const { location: { hash }} = window;
+        const { location: { hash } } = window;
         if (UrlString.hashContainsKnownProperties(hash)) {
-            this.interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
-            this.interactionHandler.handleCodeResponse(hash);
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
+            interactionHandler.handleCodeResponse(hash);
         }
     }
 
@@ -124,8 +122,8 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
-        this.interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
-        this.interactionHandler.showUI(request);
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
+        interactionHandler.showUI(request);
     }
 
     /**

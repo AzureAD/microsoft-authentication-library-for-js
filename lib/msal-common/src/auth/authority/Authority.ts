@@ -98,7 +98,7 @@ export abstract class Authority {
         this.networkInterface = networkInterface;
     }
 
-    private discoveryComplete() {
+    discoveryComplete() {
         return !!this.tenantDiscoveryResponse;
     }
 
