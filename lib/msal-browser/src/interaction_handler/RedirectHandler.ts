@@ -32,11 +32,12 @@ export class RedirectHandler extends IInteractionHandler {
             if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
                 this.authModule.logger.infoPii("Navigate to:" + urlNavigate);
                 window.location.assign(urlNavigate);
-            }
-            else {
+            } else {
                 this.authModule.logger.info("Navigate url is empty");
                 throw BrowserAuthError.createEmptyRedirectUriError();
             }
+        }).catch(error => {
+            throw error;
         });
     }
 
@@ -45,7 +46,7 @@ export class RedirectHandler extends IInteractionHandler {
      * @param hash 
      */
     async handleCodeResponse(locationHash: string, navigateToLoginRequestUrl?: boolean): Promise<void> {
-        if (!locationHash) {
+        if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
@@ -69,10 +70,12 @@ export class RedirectHandler extends IInteractionHandler {
 
         try {
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-            const tokenResponse: TokenResponse = await this.authModule.acquireTokenAuto(codeResponse);
+            const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse).catch(error => {
+                throw error;
+            });
             this.authCallback(null, tokenResponse);
         } catch (err) {
-            this.authCallback(err as AuthError, null);
+            this.authCallback(err, null);
         }
     }
 }

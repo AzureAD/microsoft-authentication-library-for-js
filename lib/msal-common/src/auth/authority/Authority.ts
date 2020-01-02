@@ -59,7 +59,7 @@ export abstract class Authority {
         if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.authorization_endpoint.replace("{tenant}", this.tenant);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError();
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
     }
 
@@ -67,7 +67,7 @@ export abstract class Authority {
         if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.token_endpoint.replace("{tenant}", this.tenant);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError();
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
     }
 
@@ -75,7 +75,7 @@ export abstract class Authority {
         if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.end_session_endpoint.replace("{tenant}", this.tenant);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError();
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
     }
 
@@ -83,7 +83,7 @@ export abstract class Authority {
         if(this.discoveryComplete()) {
             return this.tenantDiscoveryResponse.issuer.replace("{tenant}", this.tenant);
         } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError();
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
     }
 
@@ -98,7 +98,7 @@ export abstract class Authority {
         this.networkInterface = networkInterface;
     }
 
-    private discoveryComplete() {
+    discoveryComplete() {
         return !!this.tenantDiscoveryResponse;
     }
 

@@ -17,10 +17,8 @@ import { StringDict } from "../utils/MsalTypes";
 export type TokenExchangeParameters = {
     scopes?: Array<string>;
     resource?: string;
-    code?: string;
     codeVerifier?: string;
     extraQueryParameters?: StringDict;
     authority?: string;
-    userRequestState?: string;
     correlationId?: string;
 };

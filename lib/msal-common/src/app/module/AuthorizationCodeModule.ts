@@ -54,7 +54,11 @@ export class AuthorizationCodeModule extends AuthModule {
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-        await acquireTokenAuthority.resolveEndpointsAsync();
+        try {
+            await acquireTokenAuthority.resolveEndpointsAsync();
+        } catch (e) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        }
 
         // Create and validate request parameters
         const requestParameters = new ServerCodeRequestParameters(
@@ -99,42 +103,40 @@ export class AuthorizationCodeModule extends AuthModule {
         throw new Error("Method not implemented.");
     }
 
-    async acquireTokenAuto(codeResponse: CodeResponse): Promise<TokenResponse> {
+    async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {
         if (!codeResponse || !codeResponse.code) {
             throw ClientAuthError.createAuthCodeNullOrEmptyError();
         }
 
-        const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        try {
-            const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
-            tokenRequest.code = codeResponse.code;
-            tokenRequest.userRequestState = codeResponse.userRequestState;
-            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-            return this.acquireToken(tokenRequest);
-        } catch (err) {
-            throw err;
-        }        
-    }
+        let encodedTokenRequest;
+        let tokenRequest: TokenExchangeParameters;
+        if (!request) {
+            encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            try {
+                tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+                this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            } catch (err) {
+                throw ClientAuthError.createTokenRequestCacheError(err);
+            }
+        } else {
+            tokenRequest = request;
+        }
 
-    async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
 
-        let tokenEndpoint: string;
-        try {
-            tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
-        } catch (e) {
-            const authErr: AuthError = e;
-            if (authErr.errorCode === ClientAuthErrorMessage.endpointResolutionError.code) {
+        if (!acquireTokenAuthority.discoveryComplete()) {
+            try {
                 await acquireTokenAuthority.resolveEndpointsAsync();
-                tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
-            } else {
-                throw authErr;
+            } catch (e) {
+                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
             }
         }
+        const tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
 
         const tokenReqParams = new ServerTokenRequestParameters(
             this.clientConfig.auth.clientId,
-            request,
+            tokenRequest,
+            codeResponse,
             this.getRedirectUri(),
             this.cryptoObj
         );
@@ -142,7 +144,7 @@ export class AuthorizationCodeModule extends AuthModule {
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
             tokenEndpoint,
             {
-                body: await tokenReqParams.createRequestBody(),
+                body: tokenReqParams.createRequestBody(),
                 headers: tokenReqParams.createRequestHeaders()
             }
         );

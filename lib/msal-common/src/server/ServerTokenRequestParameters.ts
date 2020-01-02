@@ -8,20 +8,22 @@ import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants";
 import { ServerRequestParameters } from "./ServerRequestParameters";
+import { CodeResponse } from "../response/CodeResponse";
 
 export class ServerTokenRequestParameters extends ServerRequestParameters {
 
     // Params
     tokenRequest: TokenExchangeParameters;
+    codeResponse: CodeResponse;
 
-    constructor(clientId: string, tokenRequest: TokenExchangeParameters, redirectUri: string, cryptoImpl: ICrypto) {
+    constructor(clientId: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto) {
         super(clientId, redirectUri, cryptoImpl);
         this.tokenRequest = tokenRequest;
+        this.codeResponse = codeResponse;
 
         this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, false);
 
-        this.state = tokenRequest.userRequestState;
-
+        this.state = this.codeResponse.userRequestState;
         this.correlationId = this.tokenRequest.correlationId || this.cryptoObj.createNewGuid();
     }
 
@@ -31,25 +33,25 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         return headers;
     }
 
-    async createRequestBody(): Promise<string> {
-        const paramString = await this.createParamString();
+    createRequestBody(): string {
+        const paramString = this.createParamString();
         return paramString.join("&");
     }
 
-    protected async createParamString(): Promise<Array<string>> {
+    protected createParamString(): Array<string> {
         const str: Array<string> = [];
         this.replaceDefaultScopes();
 
         str.push(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(this.clientId)}`);
         str.push(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(this.redirectUri)}`);
         str.push(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
-        str.push(`${AADServerParamKeys.CODE}=${encodeURIComponent(this.tokenRequest.code)}`);
+        str.push(`${AADServerParamKeys.CODE}=${encodeURIComponent(this.codeResponse.code)}`);
         str.push(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(this.tokenRequest.codeVerifier)}`);
         str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
         str.push(`${AADServerParamKeys.STATE}=${encodeURIComponent(this.state)}`);
 
         // Temporary until server allows CORS requests from browser without client secret
-        // str.push(`client_secret=`);
+        str.push("client_secret=m66gDTSK.fgColXGWaCT3R1iFsBP?_B=");
 
         return str;
     }
