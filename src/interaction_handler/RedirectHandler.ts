@@ -32,11 +32,12 @@ export class RedirectHandler extends IInteractionHandler {
             if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
                 this.authModule.logger.infoPii("Navigate to:" + urlNavigate);
                 window.location.assign(urlNavigate);
-            }
-            else {
+            } else {
                 this.authModule.logger.info("Navigate url is empty");
                 throw BrowserAuthError.createEmptyRedirectUriError();
             }
+        }).catch(error => {
+            throw error;
         });
     }
 
