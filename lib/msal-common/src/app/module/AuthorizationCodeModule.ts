@@ -73,8 +73,13 @@ export class AuthorizationCodeModule extends AuthModule {
         // Update required cache entries for request
         this.cacheManager.updateCacheEntries(requestParameters, request.account);
 
-        // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-        requestParameters.populateQueryParams();
+        try {
+            // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+            requestParameters.populateQueryParams();
+        } catch (e) {
+            this.cacheManager.resetTempCacheItems(requestParameters.state);
+            throw e;
+        }
 
         const urlNavigate = await requestParameters.createNavigateUrl();
 
@@ -99,6 +104,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
     async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {
         if (!codeResponse || !codeResponse.code) {
+            this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
             throw ClientAuthError.createAuthCodeNullOrEmptyError();
         }
 
@@ -110,6 +116,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
                 this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
             } catch (err) {
+                this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
                 throw ClientAuthError.createTokenRequestCacheError(err);
             }
         } else {
@@ -122,6 +129,7 @@ export class AuthorizationCodeModule extends AuthModule {
             try {
                 await acquireTokenAuthority.resolveEndpointsAsync();
             } catch (e) {
+                this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
                 throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
             }
         }
