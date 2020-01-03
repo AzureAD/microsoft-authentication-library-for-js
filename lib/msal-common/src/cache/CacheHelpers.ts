@@ -9,6 +9,10 @@ import { Account } from "../auth/Account";
 import { Authority } from "../auth/authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 import { StringUtils } from "../utils/StringUtils";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { AccessTokenKey } from "./AccessTokenKey";
+import { AccessTokenValue } from "./AccessTokenValue";
 
 export class CacheHelpers {
 
@@ -102,13 +106,9 @@ export class CacheHelpers {
         let key: string;
         // check state and remove associated cache items
         this.cacheStorage.getKeys().forEach((key) => {
-            console.log("Key: " + key);
             if (StringUtils.isEmpty(state) || key.indexOf(state) !== -1) {
-                console.log("State: " + state);
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
-                console.log("Split Key: " + splitKey);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                console.log("keyState: " + keyState);
                 if (keyState === state) {
                     this.cacheStorage.removeItem(key);
                 }
@@ -118,5 +118,31 @@ export class CacheHelpers {
         this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
         this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
         this.cacheStorage.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
+    }
+
+    /**
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
+     */
+    getAllAccessTokens(clientId: string, authority: string): Array<AccessTokenCacheItem> {
+        const results = this.cacheStorage.getKeys().reduce((tokens, key) => {
+            const keyMatches = key.match(clientId) && key.match(authority) && key.match(TemporaryCacheKeys.SCOPES);
+            if (keyMatches) {
+                const value = this.cacheStorage.getItem(key);
+                if (value) {
+                    try {
+                        const parseAtKey = JSON.parse(key) as AccessTokenKey;
+                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
+                        return tokens.concat([ newAccessTokenCacheItem ]);
+                    } catch (e) {
+                        throw ClientAuthError.createCacheParseError(key);
+                    }
+                }
+            }
+            return tokens;
+        }, []);
+
+        return results;
     }
 }

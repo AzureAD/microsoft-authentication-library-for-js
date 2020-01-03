@@ -146,7 +146,9 @@ export class AuthorizationCodeModule extends AuthModule {
         try {
             validateServerAuthorizationTokenResponse(acquiredTokenResponse);
             const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
-            return responseHandler.createTokenResponse(acquiredTokenResponse, tokenReqParams.state);
+            const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenReqParams.state);
+            this.account = tokenResponse.account;
+            return tokenResponse;
         } catch (e) {
             this.cacheManager.resetTempCacheItems(tokenReqParams.state);
             this.account = null;
