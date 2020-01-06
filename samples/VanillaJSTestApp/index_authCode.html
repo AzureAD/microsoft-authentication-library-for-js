@@ -21,7 +21,7 @@
     const msalConfig = {
         auth: {
             clientId: "Enter_your_client_id",
-            clientSecret: "Enter_your_client_secret",
+            clientSecret: "",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true,
             navigateToLoginRequestUrl: false
@@ -42,7 +42,7 @@
     // instantiate MSAL
     const myMSALObj = new msal.PublicClientApplication(msalConfig);
     // register callback for redirect usecases
-    // myMSALObj.handleRedirectCallback(authRedirectCallBack);
+    myMSALObj.handleRedirectCallback(authRedirectCallBack);
     // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
     function signIn() {
         try {

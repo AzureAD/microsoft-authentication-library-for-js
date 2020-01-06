@@ -15,7 +15,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
  * - extraQueryParameters: string to string map of custom query parameters
  * - claimsRequest: stringified claims object to request additional claims in a token
  * - authority: authority to request tokens from
- * - state: state parameter to ensure request/response integrity
+ * - userRequestState: state parameter to ensure request/response integrity
  * - correlationId: custom correlationId given by user
  * - account: Account object to perform SSO
  * - sid: session id for SSO
@@ -24,12 +24,13 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
  */
 export type AuthenticationParameters = {
     scopes?: Array<string>;
+    resource?: string;
     extraScopesToConsent?: Array<string>;
     prompt?: string;
     extraQueryParameters?: StringDict;
     claimsRequest?: string;
     authority?: string;
-    state?: string;
+    userRequestState?: string;
     correlationId?: string;
     account?: Account;
     sid?: string;

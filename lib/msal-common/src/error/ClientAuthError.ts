@@ -4,7 +4,6 @@
  */
 
 import { AuthError } from "./AuthError";
-
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
  */
@@ -31,8 +30,24 @@ export const ClientAuthErrorMessage = {
     },
     invalidAuthorityType: {
         code: "invalid_authority_type",
-        desc: "The given authority is not a valid type of authority supported by MSAL. Please see here for valid authority configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options"
+        desc: "The given authority is not a valid type of authority supported by MSAL. Please review the trace to determine the root cause."
     },
+    hashNotDeserialized: {
+        code: "hash_not_deserialized",
+        desc: "The hash parameters could not be deserialized. Please review the trace to determine the root cause."
+    },
+    blankGuidGenerated: {
+        code: "blank_guid_generated",
+        desc: "The guid generated was blank. Please review the trace to determine the root cause."
+    },
+    stateMismatchError: {
+        code: "state_mismatch",
+        desc: "State mismatch error. Please check your network. Continued requests may cause cache overflow."
+    },
+    authCodeNullOrEmptyError: {
+        code: "auth_code_null_or_empty",
+        desc: "The authorization code or code response was null. Please check the stack trace and logs for more information."
+    }
 };
 
 /**
@@ -94,8 +109,30 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown if authority type is not valid.
      * @param invalidAuthorityError 
      */
-    static createInvalidAuthorityTypeError(givenUrl: string) {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, `${ClientAuthErrorMessage.invalidAuthorityType.desc} ${givenUrl}`);
+    static createInvalidAuthorityTypeError(givenUrl: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, `${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${givenUrl}`);
+    }
+
+    /**
+     * Creates an error thrown when the hash cannot be deserialized.
+     * @param invalidAuthorityError 
+     */
+    static createHashNotDeserializedError(hashParamObj: any): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code, `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
+    }
+
+    /**
+     * Creates an error thrown when two states do not match.
+     */
+    static createStateMismatchError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.stateMismatchError.code, ClientAuthErrorMessage.stateMismatchError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the authorization code required for a token request is null or empty.
+     */
+    static createAuthCodeNullOrEmptyError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.authCodeNullOrEmptyError.code, ClientAuthErrorMessage.authCodeNullOrEmptyError.desc);
     }
 
 }
