@@ -15,6 +15,12 @@ import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { CodeRequestParameters } from "../../server/CodeRequestParameters";
+import { CodeResponse } from "../../response/CodeResponse";
+import { UrlString } from "../../url/UrlString";
+import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
+import { ClientAuthError } from "../../error/ClientAuthError";
+import { ProtocolUtils } from "../../utils/ProtocolUtils";
+import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
 
 /**
  * AuthorizationCodeModule class
@@ -64,16 +70,71 @@ export class AuthorizationCodeModule extends AuthModule {
         // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
         requestParameters.populateQueryParams();
 
-        return requestParameters.createNavigateUrl();
+        const urlNavigate = await requestParameters.createNavigateUrl();
+
+        // Cache token request
+        const tokenRequest: TokenExchangeParameters = {
+            scopes: requestParameters.scopes.getOriginalScopesAsArray(),
+            resource: request.resource,
+            codeVerifier: requestParameters.generatedPkce.verifier,
+            extraQueryParameters: request.extraQueryParameters,
+            authority: requestParameters.authorityInstance.canonicalAuthority,
+            correlationId: requestParameters.correlationId,            
+        };
+
+        this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
+
+        return urlNavigate;
     }
 
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }
 
-    async acquireToken(request: TokenExchangeParameters): Promise<TokenResponse> {
-        throw new Error("Method not implemented.");
+    async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {
+        if (!codeResponse || !codeResponse.code) {
+            throw ClientAuthError.createAuthCodeNullOrEmptyError();
+        }
+        let encodedTokenRequest;
+        if (!request) {
+            encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+        }
+        
+        try {
+            const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+        } catch (err) {
+            throw err;
+        }
+        return null;
     }
+
+    // #region Response Handling
+
+    public handleFragmentResponse(hashFragment: string): CodeResponse {
+        // Deserialize and validate hash fragment response parameters
+        const hashUrlString = new UrlString(hashFragment);
+        const hashParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+        try {
+            validateServerAuthorizationCodeResponse(hashParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
+        } catch(e) {
+            this.cacheManager.resetTempCacheItems(hashParams && hashParams.state);
+            throw e;
+        }
+
+        // Cache client info
+        this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, hashParams.client_info);
+
+        // Create response object
+        const response: CodeResponse = {
+            code: hashParams.code,
+            userRequestState: ProtocolUtils.getUserRequestState(hashParams.state)
+        };
+
+        return response;
+    }
+
+    // #endregion
 
     // #region Getters and setters
 

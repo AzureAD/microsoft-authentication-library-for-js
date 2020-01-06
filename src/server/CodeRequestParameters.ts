@@ -5,13 +5,14 @@
 import { Authority } from "../auth/authority/Authority";
 import { Account } from "../auth/Account";
 import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
-import { ICrypto } from "../crypto/ICrypto";
+import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
 import { StringUtils } from "../utils/StringUtils";
 import pkg from "../../package.json";
 import { StringDict } from "../utils/MsalTypes";
 import { Constants, BlacklistedEQParams, SSOTypes, PromptState } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ProtocolUtils } from "../utils/ProtocolUtils";
 
 export class CodeRequestParameters {
     
@@ -27,6 +28,9 @@ export class CodeRequestParameters {
     userRequest: AuthenticationParameters;
     queryParameters: string;
     extraQueryParameters: string;
+
+    // Generated Params
+    generatedPkce: PkceCodes;
     
     // Validity checks
     state: string;
@@ -43,20 +47,20 @@ export class CodeRequestParameters {
         this.userRequest = userRequest;
         this.redirectUri = redirectUri;
 
-        this.responseType = "code";
+        this.responseType = Constants.CODE_RESPONSE_TYPE;
 
-        this.scopes = new ScopeSet(this.userRequest.scopes, this.clientId, isLoginCall);
+        this.scopes = new ScopeSet(this.userRequest && this.userRequest.scopes, this.clientId, isLoginCall);
         if (this.scopes.isLoginScopeSet()) {
             this.appendExtraScopes();
         }
         
         const randomGuid = this.cryptoObj.createNewGuid();
-        this.state = userRequest.state && !StringUtils.isEmpty(userRequest.state) ? `${randomGuid}|${userRequest.state}` : randomGuid;
+        this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid);
 
         this.correlationId = userRequest.correlationId || this.cryptoObj.createNewGuid();
 
         // Telemetry Info
-        this.xClientSku = "MSAL.JS";
+        this.xClientSku = Constants.LIBRARY_NAME;
         this.xClientVer = pkg.version;
     }
 
@@ -164,15 +168,19 @@ export class CodeRequestParameters {
         str.push(`x-client-SKU=${this.xClientSku}`);
         str.push(`x-client-Ver=${this.xClientVer}`);
 
-        const pkceCodes = await this.cryptoObj.generatePkceCodes();
-        str.push(`code_challenge=${encodeURIComponent(pkceCodes.challenge)}`);
+        this.generatedPkce = await this.cryptoObj.generatePkceCodes();
+        str.push(`code_challenge=${encodeURIComponent(this.generatedPkce.challenge)}`);
         str.push("code_challenge_method=S256");
 
-        if (this.userRequest.prompt) {
+        if (this.userRequest && this.userRequest.resource) {
+            str.push("resource=" + encodeURIComponent(this.userRequest.resource));
+        }
+
+        if (this.userRequest && this.userRequest.prompt) {
             str.push("prompt=" + encodeURIComponent(this.userRequest.prompt));
         }
 
-        if (this.userRequest.claimsRequest) {
+        if (this.userRequest && this.userRequest.claimsRequest) {
             str.push("claims=" + encodeURIComponent(this.userRequest.claimsRequest));
         }
 

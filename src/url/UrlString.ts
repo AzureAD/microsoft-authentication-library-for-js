@@ -7,6 +7,7 @@ import { AADAuthorityConstants, AADServerHashParamKeys } from "../utils/Constant
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -119,9 +120,13 @@ export class UrlString {
      * Returns deserialized portion of URL hash
      * @ignore
      */
-    getDeserializedHash() {
+    getDeserializedHash<T>(): T {
         const hash = this.getHash();
-        return StringUtils.queryStringToObject(hash);
+        const deserializedHash: T = StringUtils.queryStringToObject<T>(hash);
+        if (!deserializedHash) {
+            throw ClientAuthError.createHashNotDeserializedError(deserializedHash);
+        }
+        return deserializedHash;
     }
 
     /**
@@ -165,12 +170,10 @@ export class UrlString {
      */
     static hashContainsKnownProperties(url: string): boolean {
         const urlString = new UrlString(url);
-        const parameters = urlString.getDeserializedHash();
+        const parameters = urlString.getDeserializedHash<any>();
         return (
             parameters.hasOwnProperty(AADServerHashParamKeys.ERROR_DESCRIPTION) ||
             parameters.hasOwnProperty(AADServerHashParamKeys.ERROR) ||
-            parameters.hasOwnProperty(AADServerHashParamKeys.ACCESS_TOKEN) ||
-            parameters.hasOwnProperty(AADServerHashParamKeys.ID_TOKEN) ||
             parameters.hasOwnProperty(AADServerHashParamKeys.CODE)
         );
     }
