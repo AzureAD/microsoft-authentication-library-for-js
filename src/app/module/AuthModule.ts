@@ -6,8 +6,6 @@
 import { ModuleConfiguration, buildModuleConfiguration } from "../config/ModuleConfiguration";
 // request
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-// response
-import { AuthResponse } from "../../response/AuthResponse";
 // cache
 import { ICacheStorage } from "../../cache/ICacheStorage";
 // network
@@ -89,14 +87,6 @@ export abstract class AuthModule {
 
     abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
     abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
-
-    // #endregion
-
-    // #region Response Handling
-
-    public handleFragmentResponse(hashFragment: string): AuthResponse {
-        return null;
-    }
 
     // #endregion
     

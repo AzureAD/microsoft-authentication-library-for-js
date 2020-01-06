@@ -22,7 +22,6 @@ export type AuthOptions = {
     validateAuthority?: boolean;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
-    navigateToLoginRequestUrl?: boolean;
 };
 
 /**
@@ -41,8 +40,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     authority: null,
     validateAuthority: true,
     redirectUri: "",
-    postLogoutRedirectUri: "",
-    navigateToLoginRequestUrl: true
+    postLogoutRedirectUri: ""
 };
 
 /**
