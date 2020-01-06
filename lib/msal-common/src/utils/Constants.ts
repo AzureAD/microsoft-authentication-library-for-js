@@ -4,6 +4,7 @@
  */
 
 export const Constants = {
+    LIBRARY_NAME: "MSAL.JS",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // Resource delimiter - used for certain cache entries
@@ -21,6 +22,8 @@ export const Constants = {
     OPENID_SCOPE: "openid",
     PROFILE_SCOPE: "profile",
     OFFLINE_ACCESS_SCOPE: "offline_access",
+    // Default response type for authorization code flow
+    CODE_RESPONSE_TYPE: "code"
 };
 
 /**

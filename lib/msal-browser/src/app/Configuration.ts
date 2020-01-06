@@ -16,6 +16,10 @@ const FRAME_TIMEOUT = 6000;
 const OFFSET = 300;
 const NAVIGATE_FRAME_WAIT = 500;
 
+export type BrowserAuthOptions = AuthOptions & {
+    navigateToLoginRequestUrl?: boolean;
+};
+
 /**
  * Use this to configure the below cache configuration options:
  *
@@ -77,12 +81,12 @@ export type BrowserLoggerOptions = {
  * - framework: this is where you can configure the running mode of angular. More to come here soon.
  */
 export type Configuration = {
-    auth?: AuthOptions,
+    auth?: BrowserAuthOptions,
     cache?: CacheOptions,
     system?: SystemOptions
 };
 
-const DEFAULT_AUTH_OPTIONS: AuthOptions = {
+const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     clientSecret: "",
     authority: null,

@@ -3,10 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse } from "msal-common";
+import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys } from "msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
+import { IInteractionHandler } from "../interaction_handler/IInteractionHandler";
+import { RedirectHandler } from "../interaction_handler/RedirectHandler";
+import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -100,8 +103,17 @@ export class PublicClientApplication {
      * or the library, depending on the origin of the error, or the AuthResponse object 
      * containing data from the server (returned with a null or non-blocking error).
      */
-    handleRedirectCallback(authCallback: AuthCallback): void {
-        throw new Error("Method not implemented.");
+    async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
+        if(!authCallback) {
+            throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
+        }
+
+        this.authCallback = authCallback;
+        const { location: { hash } } = window;
+        if (UrlString.hashContainsKnownProperties(hash)) {
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
+            interactionHandler.handleCodeResponse(hash);
+        }
     }
 
     /**
@@ -110,9 +122,8 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
-        this.authModule.createLoginUrl(request).then((urlNavigate) => {
-            this.authModule.logger.info(urlNavigate);
-        });
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
+        interactionHandler.showUI(request);
     }
 
     /**
