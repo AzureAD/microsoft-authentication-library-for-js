@@ -125,7 +125,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
             }
         }
-        const tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
+        const { tokenEndpoint } = acquireTokenAuthority;
 
         const tokenReqParams = new ServerTokenRequestParameters(
             this.clientConfig.auth.clientId,

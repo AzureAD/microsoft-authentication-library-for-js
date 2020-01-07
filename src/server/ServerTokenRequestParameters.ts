@@ -42,14 +42,13 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
 
     protected createParamString(): Array<string> {
         const str: Array<string> = [];
-        this.replaceDefaultScopes();
 
         str.push(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(this.clientId)}`);
         str.push(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(this.redirectUri)}`);
         str.push(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
         str.push(`${AADServerParamKeys.CODE}=${encodeURIComponent(this.codeResponse.code)}`);
         str.push(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(this.tokenRequest.codeVerifier)}`);
-        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
+        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.getReplacedDefaultScopes())}`);
         str.push(`${AADServerParamKeys.STATE}=${encodeURIComponent(this.state)}`);
 
         // Temporary until server allows CORS requests from browser without client secret
