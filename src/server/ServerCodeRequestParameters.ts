@@ -139,7 +139,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     protected async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         str.push(`${AADServerParamKeys.RESPONSE_TYPE}=${this.responseType}`);
-        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.getReplacedDefaultScopes())}`);
+        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printReplacedDefaultScopes())}`);
         str.push(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(this.clientId)}`);
         str.push(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(this.redirectUri)}`);
 
