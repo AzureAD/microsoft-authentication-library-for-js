@@ -38,8 +38,6 @@ export class RedirectHandler extends IInteractionHandler {
                 this.authModule.logger.info("Navigate url is empty");
                 throw BrowserAuthError.createEmptyRedirectUriError();
             }
-        }).catch(error => {
-            throw error;
         });
     }
 
@@ -73,9 +71,7 @@ export class RedirectHandler extends IInteractionHandler {
         try {
             this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
             const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-            const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse).catch(error => {
-                throw error;
-            });
+            const tokenResponse: TokenResponse = await this.authModule.acquireToken(null, codeResponse);
             this.authCallback(null, tokenResponse);
         } catch (err) {
             this.authCallback(err, null);
