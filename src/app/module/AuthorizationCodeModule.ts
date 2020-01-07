@@ -108,20 +108,7 @@ export class AuthorizationCodeModule extends AuthModule {
             throw ClientAuthError.createAuthCodeNullOrEmptyError();
         }
 
-        let encodedTokenRequest;
-        let tokenRequest: TokenExchangeParameters;
-        if (!request) {
-            encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
-            try {
-                tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
-                this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-            } catch (err) {
-                this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
-                throw ClientAuthError.createTokenRequestCacheError(err);
-            }
-        } else {
-            tokenRequest = request;
-        }
+        const tokenRequest: TokenExchangeParameters = request || this.getCachedRequest();
 
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
 
@@ -133,7 +120,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
             }
         }
-        const tokenEndpoint = acquireTokenAuthority.tokenEndpoint;
+        const { tokenEndpoint } = acquireTokenAuthority;
 
         const tokenReqParams = new ServerTokenRequestParameters(
             this.clientConfig.auth.clientId,
@@ -189,6 +176,21 @@ export class AuthorizationCodeModule extends AuthModule {
         return response;
     }
 
+    // #endregion
+
+    // #region Helpers
+
+    private getCachedRequest(): TokenExchangeParameters {
+        try {
+            const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            const parsedRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            return parsedRequest;
+        } catch (err) {
+            throw ClientAuthError.createTokenRequestCacheError(err);
+        }
+    }
+    
     // #endregion
 
     // #region Getters and setters

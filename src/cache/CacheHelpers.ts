@@ -39,6 +39,10 @@ export class CacheHelpers {
         return `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
     }
 
+    /**
+     * Create Nonce key to cache nonce
+     * @param state 
+     */
     generateNonceKey(state: string): string {
         return `${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${state}`;
     }
@@ -92,7 +96,7 @@ export class CacheHelpers {
         this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
 
         // Cache the nonce
-        this.cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${serverAuthenticationRequest.state}`, serverAuthenticationRequest.nonce);
+        this.cacheStorage.setItem(this.generateNonceKey(serverAuthenticationRequest.state), serverAuthenticationRequest.nonce);
 
         // Cache authorityKey
         this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);

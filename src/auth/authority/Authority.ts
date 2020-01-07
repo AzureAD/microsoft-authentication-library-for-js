@@ -57,7 +57,7 @@ export abstract class Authority {
 
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.tenantDiscoveryResponse.authorization_endpoint.replace("{tenant}", this.tenant);
+            return this.replaceTenant(this.tenantDiscoveryResponse.authorization_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -65,7 +65,7 @@ export abstract class Authority {
 
     public get tokenEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.tenantDiscoveryResponse.token_endpoint.replace("{tenant}", this.tenant);
+            return this.replaceTenant(this.tenantDiscoveryResponse.token_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -73,7 +73,7 @@ export abstract class Authority {
 
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.tenantDiscoveryResponse.end_session_endpoint.replace("{tenant}", this.tenant);
+            return this.replaceTenant(this.tenantDiscoveryResponse.end_session_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -81,10 +81,14 @@ export abstract class Authority {
 
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete()) {
-            return this.tenantDiscoveryResponse.issuer.replace("{tenant}", this.tenant);
+            return this.replaceTenant(this.tenantDiscoveryResponse.issuer);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
+    }
+
+    private replaceTenant(urlString: string): string {
+        return urlString.replace("{tenant}", this.tenant);
     }
 
     protected get defaultOpenIdConfigurationEndpoint(): string {
