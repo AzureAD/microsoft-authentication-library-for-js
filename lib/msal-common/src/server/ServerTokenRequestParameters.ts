@@ -48,11 +48,11 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         str.push(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
         str.push(`${AADServerParamKeys.CODE}=${encodeURIComponent(this.codeResponse.code)}`);
         str.push(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(this.tokenRequest.codeVerifier)}`);
-        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.getReplacedDefaultScopes())}`);
+        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printReplacedDefaultScopes())}`);
         str.push(`${AADServerParamKeys.STATE}=${encodeURIComponent(this.state)}`);
 
         // Temporary until server allows CORS requests from browser without client secret
-        str.push("client_secret=m66gDTSK.fgColXGWaCT3R1iFsBP?_B=");
+        str.push("client_secret=");
 
         return str;
     }

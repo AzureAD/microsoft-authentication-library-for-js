@@ -158,10 +158,17 @@ export class ScopeSet {
     }
 
     /**
+     * Returns the original scopes as an array (no extra scopes to consent)
+     */
+    getOriginalScopesAsArray(): Array<string> {
+        return Array.from(this.originalScopes);
+    }
+
+    /**
      * Replace client id with the default scopes used for token acquisition.
      */
-    getReplacedDefaultScopes(): string {
-        const replacedScopes = { ...this };
+    printReplacedDefaultScopes(): string {
+        const replacedScopes: ScopeSet = new ScopeSet(this.asArray(), this.clientId, this.scopesRequired);
         if (replacedScopes.containsScope(this.clientId)) {
             replacedScopes.removeScope(this.clientId);
             replacedScopes.appendScope(Constants.OPENID_SCOPE);
@@ -170,13 +177,6 @@ export class ScopeSet {
         replacedScopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
         return replacedScopes.printScopes();
     }
-
-    /**
-     * Returns the original scopes as an array (no extra scopes to consent)
-     */
-    getOriginalScopesAsArray(): Array<string> {
-        return Array.from(this.originalScopes);
-    } 
 
     /**
      * Prints scopes into a space-delimited string
