@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-alpha.1
+
+* Requires `msal@1.2.0-beta.1`, which includes fixes for bugs with redirect methods.
+* `handleRedirectCallback` will now emit events after returning from the redirect.
+
 ## 1.0.0-alpha.0
 
 Initial upgrade to use `msal@1.2.0`.
