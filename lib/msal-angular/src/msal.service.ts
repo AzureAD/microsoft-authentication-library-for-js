@@ -17,6 +17,7 @@ import {BroadcastService} from "./broadcast.service";
 import {MSALError} from "./MSALError";
 import { AuthCache } from "msal/lib-commonjs/cache/AuthCache";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
+import { authResponseCallback, errorReceivedCallback, tokenReceivedCallback } from "msal/lib-commonjs/UserAgentApplication";
 
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
 export const MSAL_CONFIG_ANGULAR = new InjectionToken<string>("MSAL_CONFIG_ANGULAR");
@@ -130,6 +131,41 @@ export class MsalService extends UserAgentApplication {
                 this.getLogger().error('Error when acquiring token for scopes : ' + request.scopes +" "+  error);
                 throw error;
             });
+    }
+
+    handleRedirectCallback(tokenReceivedCallback: tokenReceivedCallback, errorReceivedCallback: errorReceivedCallback): void;
+    handleRedirectCallback(authCallback: authResponseCallback): void;
+    handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
+        super.handleRedirectCallback((authError: AuthError, authResponse: AuthResponse) => {
+            if (authResponse) {
+                if (authResponse.tokenType === "id_token") {
+                    this.broadcastService.broadcast("msal:loginSuccess", authResponse);
+                } else {
+                    this.broadcastService.broadcast("msal:acquireTokenSuccess", authResponse);
+                }
+
+                if (errorReceivedCallback) {
+                    (authOrTokenCallback as tokenReceivedCallback)(authResponse);
+                } else {
+                    (authOrTokenCallback as authResponseCallback)(null, authResponse);
+                }
+
+            } else if (authError) {
+                if (authResponse.tokenType === "id_token") {
+                    this.broadcastService.broadcast("msal:loginFailure", authError);
+
+                } else {
+                    this.broadcastService.broadcast("msal:acquireTokenFailure", authError);
+                }
+
+                if (errorReceivedCallback) {
+                    errorReceivedCallback(authError, authResponse.accountState);
+                } else {
+                    (authOrTokenCallback as authResponseCallback)(authError);
+                }
+
+            }
+        });
     }
 
     public getLogger(): Logger {

@@ -62,11 +62,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.authService.handleRedirectCallback((redirectError: AuthError, redirectResponse: AuthResponse) => {
       if (redirectError) {
-        console.error(redirectError);
+        console.error("Redirect error: ", redirectError);
         return;
       }
 
-      console.log(redirectResponse);
+      console.log("Redirect success: ", redirectResponse);
     });
   }
 
