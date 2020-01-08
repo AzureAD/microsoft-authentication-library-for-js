@@ -122,7 +122,7 @@ export class ClientConfigurationError extends ClientAuthError {
      */
     static createScopesRequiredError(inputScopes: Array<string>) {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequiredError.code,
-            `${ClientConfigurationErrorMessage.scopesRequiredError.desc} Given Scopes: ${inputScopes.toString()}`);
+            `${ClientConfigurationErrorMessage.scopesRequiredError.desc} Given Scopes: ${inputScopes}`);
     }
 
     /**

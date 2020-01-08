@@ -36,11 +36,11 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
 
         this.responseType = Constants.CODE_RESPONSE_TYPE;
 
-        this.scopes = new ScopeSet(this.userRequest && this.userRequest.scopes, this.clientId, isLoginCall);
+        this.scopes = new ScopeSet(this.userRequest && this.userRequest.scopes, this.clientId, !isLoginCall);
         if (this.scopes.isLoginScopeSet()) {
             this.appendExtraScopes();
         }
-        
+
         const randomGuid = this.cryptoObj.createNewGuid();
         this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid);
         this.nonce = this.cryptoObj.createNewGuid();

@@ -47,6 +47,14 @@ export class AuthorizationCodeModule extends AuthModule {
     }
 
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
+        return this.createUrl(request, true);
+    }
+
+    async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
+        return this.createUrl(request, false);
+    }
+
+    private async createUrl(request: AuthenticationParameters, isLoginCall: boolean): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
         try {
@@ -64,7 +72,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 request,
                 this.getRedirectUri(),
                 this.cryptoObj,
-                true
+                isLoginCall
             );
 
             // Check for SSO
@@ -97,10 +105,6 @@ export class AuthorizationCodeModule extends AuthModule {
             this.cacheManager.resetTempCacheItems(requestParameters && requestParameters.state);
             throw e;
         }
-    }
-
-    async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
     }
 
     async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {

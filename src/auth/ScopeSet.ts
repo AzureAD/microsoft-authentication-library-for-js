@@ -44,29 +44,28 @@ export class ScopeSet {
      * @ignore
      */
     private validateInputScopes(inputScopes: Array<string>): void {
-        if (!inputScopes) {
-            if (this.scopesRequired) {
+        if (this.scopesRequired) {
+            // Scopes are required but not given
+            if (!inputScopes) {
                 throw ClientConfigurationError.createScopesRequiredError(inputScopes);
-            } else {
-                return;
             }
-        }
 
-        // Check that scopes is an array object (also throws error if scopes == null)
-        if (!Array.isArray(inputScopes)) {
-            throw ClientConfigurationError.createScopesNonArrayError(inputScopes);
-        }
-
-        // Check that scopes is not an empty array
-        if (inputScopes.length < 1) {
-            throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
+            // Check that scopes is not an empty array
+            if (inputScopes.length < 1) {
+                throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
+            }
         }
 
         // Check that clientId is passed as single scope
-        if (inputScopes.indexOf(this.clientId) > -1) {
+        if (inputScopes && inputScopes.indexOf(this.clientId) > -1) {
             if (inputScopes.length > 1) {
                 throw ClientConfigurationError.createClientIdSingleScopeError(inputScopes);
             }
+        }
+
+        // Check that scopes is an array object
+        if (inputScopes && !Array.isArray(inputScopes)) {
+            throw ClientConfigurationError.createScopesNonArrayError(inputScopes);
         }
     }
 
