@@ -153,7 +153,13 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
-        throw new Error("Method not implemented.");
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
+        this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
+            interactionHandler.showUI(navigateUrl);
+        });
     }
 
     // #endregion
@@ -185,8 +191,15 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        throw new Error("Method not implemented.");
+    async acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
+        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+        const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
+        const popupWindow = interactionHandler.showUI(navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.loadFrameTimeout, navigateUrl);
+        return interactionHandler.handleCodeResponse(hash);
     }
 
     // #region Silent Flow
