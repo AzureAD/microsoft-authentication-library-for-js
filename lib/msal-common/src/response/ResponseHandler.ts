@@ -41,9 +41,9 @@ export class ResponseHandler {
             return originalResponse;
         }
     
-        const exp = Number(idTokenObj.claims.exp);
-        if (exp && !originalResponse.expiresOn) {
-            originalResponse.expiresOn = new Date(exp * 1000);
+        const expiresSeconds = Number(idTokenObj.claims.exp);
+        if (expiresSeconds && !originalResponse.expiresOn) {
+            originalResponse.expiresOn = new Date(expiresSeconds * 1000);
         }
     
         return {
@@ -89,6 +89,14 @@ export class ResponseHandler {
         tokenResponse.refreshToken = serverTokenResponse.refresh_token;
         tokenResponse.expiresOn = new Date(expiration * 1000);
         return tokenResponse;
+    }
+
+    private getCachedAccount(accountKey: string): Account {
+        try {
+            return JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
+        } catch (e) {
+            return null;
+        }
     }
     
     public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, state: string): TokenResponse {
@@ -146,15 +154,13 @@ export class ResponseHandler {
 
         // Save the access token if it exists
         const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
-        
-        const cachedAccount = JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
-
+        const cachedAccount = this.getCachedAccount(accountKey);
         if (!cachedAccount || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             this.saveToken(tokenResponse, cachedAuthority, serverTokenResponse, clientInfo);
         } else {
             throw ClientAuthError.createAccountMismatchError();
         }
-    
+
         // Return user set state in the response
         tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
         
