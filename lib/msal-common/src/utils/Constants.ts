@@ -23,7 +23,18 @@ export const Constants = {
     PROFILE_SCOPE: "profile",
     OFFLINE_ACCESS_SCOPE: "offline_access",
     // Default response type for authorization code flow
-    CODE_RESPONSE_TYPE: "code"
+    CODE_RESPONSE_TYPE: "code",
+    CODE_GRANT_TYPE: "authorization_code",
+    FRAGMENT_RESPONSE_MODE: "fragment",
+    S256_CODE_CHALLENGE_METHOD: "S256",
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
+};
+
+/**
+ * Request header names
+ */
+export enum HEADER_NAMES {
+    CONTENT_TYPE = "Content-Type"
 };
 
 /**
@@ -86,16 +97,32 @@ export enum AADAuthorityConstants {
 /**
  * Keys in the hashParams sent by AAD Server
  */
-export enum AADServerHashParamKeys {
+export enum AADServerParamKeys {
+    CLIENT_ID = "client_id",
+    RESOURCE = "resource",
+    REDIRECT_URI = "redirect_uri",
+    RESPONSE_TYPE = "response_type",
+    RESPONSE_MODE = "response_mode",
+    GRANT_TYPE = "grant_type",
+    CLAIMS = "claims",
     SCOPE = "scope",
     ERROR = "error",
     ERROR_DESCRIPTION = "error_description",
     ACCESS_TOKEN = "access_token",
     ID_TOKEN = "id_token",
     EXPIRES_IN = "expires_in",
+    STATE = "state",
+    NONCE = "nonce",
+    PROMPT = "prompt",
     SESSION_STATE = "session_state",
     CLIENT_INFO = "client_info",
-    CODE = "code"
+    CODE = "code",
+    CODE_CHALLENGE = "code_challenge",
+    CODE_CHALLENGE_METHOD = "code_challenge_method",
+    CODE_VERIFIER = "code_verifier",
+    CLIENT_REQUEST_ID = "client-request-id",
+    X_CLIENT_SKU = "x-client-SKU",
+    X_CLIENT_VER = "x-client-Ver"
 };
 
 /**

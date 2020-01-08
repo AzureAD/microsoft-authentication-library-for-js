@@ -63,9 +63,9 @@ export class XhrClient implements INetworkModule {
 
     private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {
         if (options && options.headers) {
-            for (const headerName in options.headers.keys()) {
-                xhr.setRequestHeader(headerName, options.headers.get(headerName));
-            }
+            options.headers.forEach((value, key) => {
+                xhr.setRequestHeader(key, value);
+            });
         }
     }
 }

@@ -7,7 +7,7 @@ import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 import { ICacheStorage } from "./ICacheStorage";
 import { Account } from "../auth/Account";
 import { Authority } from "../auth/authority/Authority";
-import { CodeRequestParameters } from "../server/CodeRequestParameters";
+import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 
 export class CacheHelpers {
 
@@ -73,7 +73,7 @@ export class CacheHelpers {
      * @hidden
      * @ignore
      */
-    updateCacheEntries(serverAuthenticationRequest: CodeRequestParameters, account: Account): void {
+    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
         // Cache account and state
         if (account) {
             this.setAccountCache(account, serverAuthenticationRequest.state);
