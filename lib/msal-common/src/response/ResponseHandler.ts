@@ -157,7 +157,7 @@ export class ResponseHandler {
         const cachedAccount = this.getCachedAccount(accountKey);
         if (!cachedAccount || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             this.saveToken(tokenResponse, cachedAuthority, serverTokenResponse, clientInfo);
-        } else {
+        } else if (cachedAccount) {
             throw ClientAuthError.createAccountMismatchError();
         }
 
