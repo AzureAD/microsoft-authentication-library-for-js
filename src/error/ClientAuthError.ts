@@ -24,6 +24,10 @@ export const ClientAuthErrorMessage = {
         code: "null_or_empty_id_token",
         desc: "The idToken is null or empty. Please review the trace to determine the root cause."
     },
+    tokenRequestCacheError: {
+        code: "token_request_cache_error",
+        desc: "The token request could not be fetched from the cache correctly."
+    },
     endpointResolutionError: {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
@@ -99,10 +103,19 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the token request could not be retrieved from the cache
+     * @param errDetail 
+     */
+    static createTokenRequestCacheError(errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCacheError.code, 
+            `${ClientAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
+    }
+
+    /**
      * Creates an error thrown when the endpoint discovery doesn't complete correctly.
      */
-    static createEndpointDiscoveryIncompleteError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, ClientAuthErrorMessage.endpointResolutionError.desc);
+    static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
     }
 
     /**

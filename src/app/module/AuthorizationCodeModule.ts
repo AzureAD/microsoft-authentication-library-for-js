@@ -14,13 +14,15 @@ import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 import { TokenResponse } from "../../response/TokenResponse";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
-import { CodeRequestParameters } from "../../server/CodeRequestParameters";
+import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParameters";
 import { CodeResponse } from "../../response/CodeResponse";
 import { UrlString } from "../../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
-import { ClientAuthError } from "../../error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../error/ClientAuthError";
 import { ProtocolUtils } from "../../utils/ProtocolUtils";
 import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
+import { AuthError } from "../../error/AuthError";
+import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
 
 /**
  * AuthorizationCodeModule class
@@ -47,10 +49,14 @@ export class AuthorizationCodeModule extends AuthModule {
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-        await acquireTokenAuthority.resolveEndpointsAsync();
+        try {
+            await acquireTokenAuthority.resolveEndpointsAsync();
+        } catch (e) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        }
 
         // Create and validate request parameters
-        const requestParameters = new CodeRequestParameters(
+        const requestParameters = new ServerCodeRequestParameters(
             acquireTokenAuthority,
             this.clientConfig.auth.clientId,
             request,
@@ -95,17 +101,36 @@ export class AuthorizationCodeModule extends AuthModule {
         if (!codeResponse || !codeResponse.code) {
             throw ClientAuthError.createAuthCodeNullOrEmptyError();
         }
-        let encodedTokenRequest;
-        if (!request) {
-            encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+
+        const tokenRequest: TokenExchangeParameters = request || this.getCachedRequest();
+
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+
+        if (!acquireTokenAuthority.discoveryComplete()) {
+            try {
+                await acquireTokenAuthority.resolveEndpointsAsync();
+            } catch (e) {
+                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            }
         }
-        
-        try {
-            const tokenRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
-            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        } catch (err) {
-            throw err;
-        }
+        const { tokenEndpoint } = acquireTokenAuthority;
+
+        const tokenReqParams = new ServerTokenRequestParameters(
+            this.clientConfig.auth.clientId,
+            tokenRequest,
+            codeResponse,
+            this.getRedirectUri(),
+            this.cryptoObj
+        );
+
+        const acquiredTokenResponse = this.networkClient.sendPostRequestAsync(
+            tokenEndpoint,
+            {
+                body: tokenReqParams.createRequestBody(),
+                headers: tokenReqParams.createRequestHeaders()
+            }
+        );
+
         return null;
     }
 
@@ -134,6 +159,21 @@ export class AuthorizationCodeModule extends AuthModule {
         return response;
     }
 
+    // #endregion
+
+    // #region Helpers
+
+    private getCachedRequest(): TokenExchangeParameters {
+        try {
+            const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            const parsedRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            return parsedRequest;
+        } catch (err) {
+            throw ClientAuthError.createTokenRequestCacheError(err);
+        }
+    }
+    
     // #endregion
 
     // #region Getters and setters

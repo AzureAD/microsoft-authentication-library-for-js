@@ -5,6 +5,7 @@
 
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
+import { Constants } from "../utils/Constants";
 
 export class ScopeSet {
 
@@ -161,7 +162,21 @@ export class ScopeSet {
      */
     getOriginalScopesAsArray(): Array<string> {
         return Array.from(this.originalScopes);
-    } 
+    }
+
+    /**
+     * Replace client id with the default scopes used for token acquisition.
+     */
+    printReplacedDefaultScopes(): string {
+        const replacedScopes: ScopeSet = new ScopeSet(this.asArray(), this.clientId, this.scopesRequired);
+        if (replacedScopes.containsScope(this.clientId)) {
+            replacedScopes.removeScope(this.clientId);
+            replacedScopes.appendScope(Constants.OPENID_SCOPE);
+            replacedScopes.appendScope(Constants.PROFILE_SCOPE);
+        }
+        replacedScopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
+        return replacedScopes.printScopes();
+    }
 
     /**
      * Prints scopes into a space-delimited string
