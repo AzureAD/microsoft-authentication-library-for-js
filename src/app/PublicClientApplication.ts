@@ -7,8 +7,8 @@ import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParamet
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
-import { IInteractionHandler } from "../interaction_handler/IInteractionHandler";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
+import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -106,15 +106,27 @@ export class PublicClientApplication {
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
-        if(!authCallback) {
+        if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
         }
 
         this.authCallback = authCallback;
         const { location: { hash } } = window;
-        if (UrlString.hashContainsKnownProperties(hash)) {
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
-            interactionHandler.handleCodeResponse(hash);
+        const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
+        try {
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
+            let tokenResponse: TokenResponse;
+            if (UrlString.hashContainsKnownProperties(hash)) {
+                tokenResponse = await interactionHandler.handleCodeResponse(hash);
+            } else if (UrlString.hashContainsKnownProperties(cachedHash)) {
+                tokenResponse = await interactionHandler.handleCodeResponse(cachedHash);
+            }
+
+            if (tokenResponse) {
+                this.authCallback(null, tokenResponse);
+            }
+        } catch (err) {
+            this.authCallback(err, null);
         }
     }
 
@@ -127,8 +139,10 @@ export class PublicClientApplication {
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
-        interactionHandler.showUI(request);
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
+        this.authModule.createLoginUrl(request).then((navigateUrl) => {
+            interactionHandler.showUI(navigateUrl);
+        });
     }
 
     /**
@@ -153,8 +167,15 @@ export class PublicClientApplication {
      *
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        throw new Error("Method not implemented.");
+    async loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
+        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+        const navigateUrl = await this.authModule.createLoginUrl(request);
+        const popupWindow = interactionHandler.showUI(navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.loadFrameTimeout, navigateUrl);
+        return interactionHandler.handleCodeResponse(hash);
     }
 
     /**

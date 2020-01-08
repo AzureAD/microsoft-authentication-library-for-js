@@ -2,10 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthorizationCodeModule, AuthenticationParameters } from "msal-common";
+import { AuthorizationCodeModule, TokenResponse } from "msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 
-export abstract class IInteractionHandler {
+export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeModule;
     protected browserStorage: BrowserStorage;
@@ -19,11 +19,11 @@ export abstract class IInteractionHandler {
      * Function to enable user interaction.
      * @param urlNavigate 
      */
-    abstract showUI(authRequest: AuthenticationParameters): void;
+    abstract showUI(requestUrl: string): Window;
 
     /**
      * Function to handle response parameters from hash.
      * @param hash 
      */
-    abstract async handleCodeResponse(hash: string): Promise<void>;
+    abstract async handleCodeResponse(locationHash: string): Promise<TokenResponse>;
 }
