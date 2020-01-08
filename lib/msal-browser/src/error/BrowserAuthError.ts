@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthError } from "msal-common";
+import { AuthError, StringUtils } from "msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
@@ -35,7 +35,19 @@ export const BrowserAuthErrorMessage = {
     interactionInProgress: {
         code: "interaction_in_progress",
         desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API."
-    }
+    },
+    popUpWindowError: {
+        code: "popup_window_error",
+        desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
+    },
+    userCancelledError: {
+        code: "user_cancelled",
+        desc: "User cancelled the flow."
+    },
+    tokenRenewalError: {
+        code: "token_renewal_error",
+        desc: "Token renewal operation failed due to timeout."
+    },
 };
 
 /**
@@ -79,5 +91,24 @@ export class BrowserAuthError extends AuthError {
 
     static createInteractionInProgressError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.interactionInProgress.code, BrowserAuthErrorMessage.interactionInProgress.desc);
+    }
+
+    static createPopupWindowError(errDetail?: string): BrowserAuthError {
+        let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
+        if (errDetail && !StringUtils.isEmpty(errDetail)) {
+            errorMessage += ` Details: ${errDetail}`;
+        }
+        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+    }
+
+    static createUserCancelledError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.userCancelledError.code,
+            BrowserAuthErrorMessage.userCancelledError.desc);
+    }
+
+    static createTokenRenewalTimeoutError(urlNavigate: string): BrowserAuthError {
+        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.tokenRenewalError.desc}`;
+        return new BrowserAuthError(BrowserAuthErrorMessage.tokenRenewalError.code,
+            errorMessage);
     }
 }

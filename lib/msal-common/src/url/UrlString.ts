@@ -169,6 +169,9 @@ export class UrlString {
      * @ignore
      */
     static hashContainsKnownProperties(url: string): boolean {
+        if (!url) {
+            return false;
+        }
         const urlString = new UrlString(url);
         const parameters = urlString.getDeserializedHash<any>();
         return (

@@ -56,46 +56,47 @@ export class AuthorizationCodeModule extends AuthModule {
         }
 
         // Create and validate request parameters
-        const requestParameters = new ServerCodeRequestParameters(
-            acquireTokenAuthority,
-            this.clientConfig.auth.clientId,
-            request,
-            this.getRedirectUri(),
-            this.cryptoObj,
-            true
-        );
-
-        // Check for SSO
-        if (!requestParameters.isSSOParam(this.getAccount())) {
-            // TODO: Check for ADAL SSO
-        }
-
-        // Update required cache entries for request
-        this.cacheManager.updateCacheEntries(requestParameters, request.account);
-
+        let requestParameters: ServerCodeRequestParameters;
         try {
+            requestParameters = new ServerCodeRequestParameters(
+                acquireTokenAuthority,
+                this.clientConfig.auth.clientId,
+                request,
+                this.getRedirectUri(),
+                this.cryptoObj,
+                true
+            );
+
+            // Check for SSO
+            if (!requestParameters.isSSOParam(this.getAccount())) {
+                // TODO: Check for ADAL SSO
+            }
+
+            // Update required cache entries for request
+            this.cacheManager.updateCacheEntries(requestParameters, request.account);
+
             // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
             requestParameters.populateQueryParams();
+
+            const urlNavigate = await requestParameters.createNavigateUrl();
+
+            // Cache token request
+            const tokenRequest: TokenExchangeParameters = {
+                scopes: requestParameters.scopes.getOriginalScopesAsArray(),
+                resource: request.resource,
+                codeVerifier: requestParameters.generatedPkce.verifier,
+                extraQueryParameters: request.extraQueryParameters,
+                authority: requestParameters.authorityInstance.canonicalAuthority,
+                correlationId: requestParameters.correlationId
+            };
+
+            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
+
+            return urlNavigate;
         } catch (e) {
-            this.cacheManager.resetTempCacheItems(requestParameters.state);
+            this.cacheManager.resetTempCacheItems(requestParameters && requestParameters.state);
             throw e;
         }
-
-        const urlNavigate = await requestParameters.createNavigateUrl();
-
-        // Cache token request
-        const tokenRequest: TokenExchangeParameters = {
-            scopes: requestParameters.scopes.getOriginalScopesAsArray(),
-            resource: request.resource,
-            codeVerifier: requestParameters.generatedPkce.verifier,
-            extraQueryParameters: request.extraQueryParameters,
-            authority: requestParameters.authorityInstance.canonicalAuthority,
-            correlationId: requestParameters.correlationId
-        };
-
-        this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
-
-        return urlNavigate;
     }
 
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
@@ -108,10 +109,7 @@ export class AuthorizationCodeModule extends AuthModule {
             throw ClientAuthError.createAuthCodeNullOrEmptyError();
         }
 
-        const tokenRequest: TokenExchangeParameters = request || this.getCachedRequest();
-
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
                 await acquireTokenAuthority.resolveEndpointsAsync();
@@ -120,32 +118,34 @@ export class AuthorizationCodeModule extends AuthModule {
                 throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
             }
         }
+
         const { tokenEndpoint } = acquireTokenAuthority;
-
-        const tokenReqParams = new ServerTokenRequestParameters(
-            this.clientConfig.auth.clientId,
-            tokenRequest,
-            codeResponse,
-            this.getRedirectUri(),
-            this.cryptoObj
-        );
-
-        const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
-            tokenEndpoint,
-            {
-                body: tokenReqParams.createRequestBody(),
-                headers: tokenReqParams.createRequestHeaders()
-            }
-        );
-
+        let tokenReqParams;
         try {
+            const tokenRequest: TokenExchangeParameters = request || this.getCachedRequest();
+            tokenReqParams = new ServerTokenRequestParameters(
+                this.clientConfig.auth.clientId,
+                tokenRequest,
+                codeResponse,
+                this.getRedirectUri(),
+                this.cryptoObj
+            );
+
+            const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
+                tokenEndpoint,
+                {
+                    body: tokenReqParams.createRequestBody(),
+                    headers: tokenReqParams.createRequestHeaders()
+                }
+            );
+
             validateServerAuthorizationTokenResponse(acquiredTokenResponse);
             const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
             const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenReqParams.state);
             this.account = tokenResponse.account;
             return tokenResponse;
         } catch (e) {
-            this.cacheManager.resetTempCacheItems(tokenReqParams.state);
+            this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
             this.account = null;
             throw e;
         }
@@ -159,21 +159,21 @@ export class AuthorizationCodeModule extends AuthModule {
         const hashParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
         try {
             validateServerAuthorizationCodeResponse(hashParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
+
+            // Cache client info
+            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, hashParams.client_info);
+
+            // Create response object
+            const response: CodeResponse = {
+                code: hashParams.code,
+                userRequestState: hashParams.state
+            };
+
+            return response;
         } catch(e) {
             this.cacheManager.resetTempCacheItems(hashParams && hashParams.state);
             throw e;
         }
-
-        // Cache client info
-        this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, hashParams.client_info);
-
-        // Create response object
-        const response: CodeResponse = {
-            code: hashParams.code,
-            userRequestState: hashParams.state
-        };
-
-        return response;
     }
 
     // #endregion

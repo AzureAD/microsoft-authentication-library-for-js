@@ -19,8 +19,8 @@ export class ScopeSet {
         this.scopesRequired = scopesRequired;
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(inputScopes);
-        const scopeArr = inputScopes ? [...inputScopes] : [this.clientId];
-        this.scopes = new Set<string>(StringUtils.trimAndConvertArrayEntriesToLowerCase(scopeArr));
+        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [this.clientId];
+        this.scopes = new Set<string>(scopeArr);
         this.originalScopes = new Set<string>(this.scopes);
     }
 
