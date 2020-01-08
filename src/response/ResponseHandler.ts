@@ -38,9 +38,9 @@ export class ResponseHandler {
             return originalResponse;
         }
     
-        const exp = Number(idTokenObj.claims.exp);
-        if (exp && !originalResponse.expiresOn) {
-            originalResponse.expiresOn = new Date(exp * 1000);
+        const expiresSeconds = Number(idTokenObj.claims.exp);
+        if (expiresSeconds && !originalResponse.expiresOn) {
+            originalResponse.expiresOn = new Date(expiresSeconds * 1000);
         }
     
         return {
@@ -114,7 +114,7 @@ export class ResponseHandler {
             const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
             
             const cachedAccount = JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
-    
+
             if (!cachedAccount || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
                 tokenResponse.accessToken = serverTokenResponse.access_token;
                 tokenResponse.refreshToken = serverTokenResponse.refresh_token;
@@ -123,7 +123,7 @@ export class ResponseHandler {
                 throw ClientAuthError.createAccountMismatchError();
             }
         }
-    
+
         // Return user set state in the response
         tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
         return tokenResponse;
