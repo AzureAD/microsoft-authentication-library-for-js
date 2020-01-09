@@ -19,7 +19,7 @@ A wrapper of the core library for apps using AngularJS framework.
 
 ### Samples
 
-The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. A complete list of samples can be found [our our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
+The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. A complete list of samples can be found [on our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
 
 ## Package versioning
 
