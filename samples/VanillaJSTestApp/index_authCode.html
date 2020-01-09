@@ -4,13 +4,14 @@
     <title>Quickstart for MSAL JS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
     <script src="./lib/msal-browser.js"></script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-6YzvYa+Cj+5GpaHUkUcifub2Er0fzSjPX+rStsH3pMA='; connect-src https:;">
 </head>
 
 <body>
     <div class="container">
         <div class="leftContainer">
             <p id="WelcomeMessage">Welcome to the Microsoft Authentication Library For Javascript Quickstart</p>
-            <button id="SignIn" onclick="signIn()">Sign In</button>
+            <button id="SignIn">Sign In</button>
         </div>
         <div class="rightContainer">
             <pre id="json"></pre>
@@ -60,6 +61,7 @@
             console.log("Response: " + JSON.stringify(response));
         }
     }
+    document.getElementById("SignIn").addEventListener("click", signIn);
 </script>
 </body>
 </html>
