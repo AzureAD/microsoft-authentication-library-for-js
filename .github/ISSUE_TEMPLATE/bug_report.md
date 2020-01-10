@@ -10,10 +10,12 @@ assignees: ''
 Please follow the issue template below. Failure to do so will result in a delay in answering your question.
 
 ## Library
-- [ ] `msal@1.x` or `@azure/msal@1.x`
-- [ ] `@azure/msal-angular@0.x`
-- [ ] `@azure/msal-angular@1.x`
-- [ ] `@azure/msal-angularjs@1.x`
+- [ ] `msal@1.x.x` or `@azure/msal@1.x.x`
+- [ ] `@azure/msal-angular@0.x.x`
+- [ ] `@azure/msal-angular@1.x.x`
+- [ ] `@azure/msal-angularjs@1.x.x`
+
+**Important**: Please fill in your exact version number above, e.g. `msal@1.1.3`.
 
 ## Framework
 If you are using a framework, please provide the framework and version (e.g. Angular v8, React v16, etc).

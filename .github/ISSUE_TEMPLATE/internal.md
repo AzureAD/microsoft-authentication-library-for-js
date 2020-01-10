@@ -10,10 +10,10 @@ assignees: ''
 Please follow the issue template below. 
 
 ## Library
-- [ ] `msal@1.x` or `@azure/msal@1.x`
-- [ ] `@azure/msal-angular@0.x`
-- [ ] `@azure/msal-angular@1.x`
-- [ ] `@azure/msal-angularjs@1.x`
+- [ ] `msal@1.x.x` or `@azure/msal@1.x.x`
+- [ ] `@azure/msal-angular@0.x.x`
+- [ ] `@azure/msal-angular@1.x.x`
+- [ ] `@azure/msal-angularjs@1.x.x`
 
 ## Type
 - [ ] Bug
