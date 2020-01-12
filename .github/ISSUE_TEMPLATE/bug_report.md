@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Please follow the issue template below. Failure to do so will result in a delay in answering your question.
+>> Please follow the issue template below. Failure to do so will result in a delay in answering your question.
 
 ## Library
 - [ ] `msal@1.x.x` or `@azure/msal@1.x.x`
