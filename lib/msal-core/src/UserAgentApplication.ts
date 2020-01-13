@@ -278,7 +278,7 @@ export class UserAgentApplication {
     }
 
     /**
-     * Adding public interface for urlContainsHash
+     * Public API to verify if the URL contains the hash with known properties
      * @param hash
      */
     public urlContainsHash(hash: string) {
