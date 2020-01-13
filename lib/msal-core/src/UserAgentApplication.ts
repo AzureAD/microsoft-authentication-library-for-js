@@ -277,6 +277,14 @@ export class UserAgentApplication {
         }
     }
 
+    /**
+     * Adding public interface for urlContainsHash
+     * @param hash
+     */
+    public urlContainsHash(hash: string) {
+        return UrlUtils.urlContainsHash(hash);
+    }
+
     private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
         if (interactionType === Constants.interactionTypeRedirect) {
             if (this.errorReceivedCallback) {
