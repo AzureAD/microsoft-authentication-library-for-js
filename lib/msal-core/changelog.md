@@ -1,3 +1,7 @@
+# 1.2.1
+
+* Remove `isAngular` checks for handling responses from redirects that are no longer needed. (#1184)
+
 # 1.2.0
 
 ## Features:

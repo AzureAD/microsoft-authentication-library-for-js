@@ -4,6 +4,7 @@ import { MsalService} from "@azure/msal-angular";
 import {HttpClient} from "@angular/common/http";
 import {HttpServiceHelper} from "../common/HttpServiceHelper";
 import {Subscription} from "rxjs/Subscription";
+import { AuthError, InteractionRequiredAuthError } from 'msal';
 
 
 @Component({
@@ -28,10 +29,12 @@ export class UserDataComponent implements OnInit {
     });
 
     //will work for acquireTokenSilent and acquireTokenPopup
-    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload: AuthError) => {
       console.log("acquire token failure " + JSON.stringify(payload))
-      if (payload.errorDesc.indexOf("consent_required") !== -1 || payload.errorDesc.indexOf("interaction_required") != -1) {
-        this.authService.acquireTokenPopup(["user.read", "mail.send"]).then((token) => {
+      if (InteractionRequiredAuthError.isInteractionRequiredError(payload.errorCode)) {
+        this.authService.acquireTokenPopup({
+          scopes: ["user.read", "mail.send"]
+        }).then((token) => {
           this.getUSerProfile();
         }, (error) => {
         });

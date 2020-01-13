@@ -4,6 +4,7 @@ import {TodoList} from "./todoList";
 import {Subscription} from "rxjs/Subscription";
 import {BroadcastService} from "@azure/msal-angular";
 import { MsalService} from "@azure/msal-angular";
+import { AuthError, InteractionRequiredAuthError } from 'msal';
 
 @Component({
   selector: 'app-todo-list',
@@ -23,17 +24,19 @@ private subscription: Subscription;
   ngOnInit() {
     this.populate();
 
-    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {
+    this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload: AuthError) => {
       console.log("acquire token failure " + JSON.stringify(payload));
-      if (payload.errorDesc.indexOf("consent_required") !== -1 || payload.errorDesc.indexOf("interaction_required") != -1 ) {
-        this.msalService.acquireTokenPopup(['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']).then( (token) => {
+      if (InteractionRequiredAuthError.isInteractionRequiredError(payload.errorCode)) {
+        this.msalService.acquireTokenPopup({
+          scopes: ['api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user']
+        }).then(() => {
           this.todoListService.getItems().subscribe( (results) => {
             this.error = '';
             this.todoList = results;
             this.loadingMessage = "";
           },  (err) => {
             this.error = err;
-            this.loadingMessage = "";
+            this.loadingMessage = err.message;
           });
         },  (error) => {
         });
@@ -42,7 +45,7 @@ private subscription: Subscription;
 
 
    this.subscription = this.broadcastService.subscribe("msal:acquireTokenSuccess", (payload) => {
-      console.log("acquire token success");
+      console.log("acquire token success", payload);
     });
   }
 
@@ -53,7 +56,7 @@ private subscription: Subscription;
     }, error => {
       console.log("access token silent failed");
       this.error = error;
-      this.loadingMessage = "";
+      this.loadingMessage = error.message;
     });
   }
 
@@ -68,7 +71,7 @@ private subscription: Subscription;
         this.populate();
       }, (err) => {
         this.error = err;
-       this.loadingMessage = "";
+       this.loadingMessage = err.message;
       })
     }
     else {
