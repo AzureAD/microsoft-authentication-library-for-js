@@ -9,7 +9,6 @@ import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
-import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -98,7 +97,7 @@ export class UrlUtils {
     /**
      * Returns current window URL as redirect uri
      */
-    static getDefaultRedirectUri(): string {
+    static getCurrentUrl(): string {
         return window.location.href.split("?")[0].split("#")[0];
     }
 

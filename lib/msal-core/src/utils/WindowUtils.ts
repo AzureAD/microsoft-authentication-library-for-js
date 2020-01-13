@@ -3,6 +3,10 @@ import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 import { AuthCache } from "../cache/AuthCache";
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { StringUtils } from "./StringUtils";
+import { AuthError } from "./../error/AuthError";
+import { MessageCache } from "../messaging/MessageCache";
+import { MessageHelper } from "../messaging/MessageHelper";
 
 export class WindowUtils {
     /**
@@ -28,6 +32,15 @@ export class WindowUtils {
      */
     static isInPopup(): boolean {
         return !!(window.opener && window.opener !== window);
+    }
+
+    /**
+     * @hidden
+     * Checks if the current page is running in an iframe.
+     * @ignore
+     */
+    static isWindowOnTop(): boolean {
+        return window.top === window;
     }
 
     /**
@@ -242,6 +255,44 @@ export class WindowUtils {
             const splitCache = redirectCache.split(Constants.resourceDelimiter);
             const state = splitCache.length > 1 ? splitCache[splitCache.length-1]: null;
             cacheStorage.resetTempCacheItems(state);
+        }
+    }
+
+    /**
+     * @hidden
+     * Used to redirect the browser to the STS authorization endpoint
+     * @param {string} urlNavigate - URL of the authorization endpoint
+     */
+    static navigateWindow(urlNavigate: string, logger: Logger, popupWindow?: Window) {
+        // Navigate if valid URL
+        if (!StringUtils.isEmpty(urlNavigate)) {
+            const navigateWindow: Window = popupWindow ? popupWindow : window;
+            const logMessage: string = popupWindow ? "Navigated Popup window to:" + urlNavigate : "Navigate to:" + urlNavigate;
+            logger.infoPii(logMessage);
+            navigateWindow.location.replace(urlNavigate);
+        }
+        else {
+            logger.info("Navigate url is empty");
+            throw AuthError.createUnexpectedError("Navigate url is empty");
+        }
+    }
+
+    /**
+     * IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame; else navigate to the popup Window
+     * @param popUpWindow
+     * @param urlNavigate
+     * @param messageCache
+     * @param logger
+     * @param topFrameOrigin
+     */
+    static navigateHelper(popUpWindow: Window, urlNavigate: string, messageCache: MessageCache, logger: Logger, topFrameOrigin?: string) {
+        // IFRAMEDAPPS: if we are redirecting in an iframe, post a message to the topFrame
+        if(WindowUtils.isInIframe() && !popUpWindow) {
+            MessageHelper.redirectDelegationRequest(messageCache, urlNavigate, topFrameOrigin);
+        }
+        // prompt user for interaction
+        else {
+            WindowUtils.navigateWindow(urlNavigate, logger, popUpWindow);
         }
     }
 }

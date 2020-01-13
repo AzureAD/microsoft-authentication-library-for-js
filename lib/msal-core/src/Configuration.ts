@@ -96,6 +96,17 @@ export type FrameworkOptions = {
 };
 
 /**
+ * Options to specify communication between embedded (iframed) apps and the Top Frame
+ *
+ * - topFrameOrigin             - origin check to restrict messages to the top frame origin only
+ * - embeddedFrameOrigin        - origin check to restrict messages to the top frame origin only
+ */
+export type BrokerOptions = {
+    topFrameOrigin?: string;
+    embeddedFrameOrigin?: string;
+};
+
+/**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
  * This object allows you to configure important elements of MSAL functionality:
@@ -108,15 +119,16 @@ export type Configuration = {
     auth: AuthOptions,
     cache?: CacheOptions,
     system?: SystemOptions,
-    framework?: FrameworkOptions
+    framework?: FrameworkOptions,
+    broker?: BrokerOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
-    redirectUri: () => UrlUtils.getDefaultRedirectUri(),
-    postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
+    redirectUri: () => UrlUtils.getCurrentUrl(),
+    postLogoutRedirectUri: () => UrlUtils.getCurrentUrl(),
     navigateToLoginRequestUrl: true
 };
 
@@ -138,23 +150,30 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
     protectedResourceMap: new Map<string, Array<string>>()
 };
 
+const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
+    topFrameOrigin: null,
+    embeddedFrameOrigin: null,
+};
+
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
- * @param TAuthOptions
- * @param TCacheOptions
- * @param TSystemOptions
- * @param TFrameworkOptions
+ * @param AuthOptions
+ * @param CacheOptions
+ * @param SystemOptions
+ * @param FrameworkOptions
+ * @param BrokerOptions
  *
- * @returns TConfiguration object
+ * @returns Configuration object
  */
 
-export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
+export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}, broker = {}}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
+        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework },
+        broker: { ...DEFAULT_BROKER_OPTIONS, ...broker }
     };
     return overlayedConfig;
 }
