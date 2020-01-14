@@ -19,10 +19,16 @@ import { CodeResponse } from "../../response/CodeResponse";
 import { UrlString } from "../../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
 import { ClientAuthError } from "../../error/ClientAuthError";
-import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../../utils/Constants";
 import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
 import { ServerAuthorizationTokenResponse, validateServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../response/ResponseHandler";
+import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
+import { ScopeSet } from "../../auth/ScopeSet";
+import { TimeUtils } from "../../utils/TimeUtils";
+import { IdToken } from "../../auth/IdToken";
+import { StringUtils } from "../../utils/StringUtils";
+import { TokenRenewParameters } from "../../request/TokenRenewParameters";
 
 /**
  * AuthorizationCodeModule class
@@ -37,6 +43,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
     constructor(configuration: PublicClientSPAConfiguration) {
         super({
+            systemOptions: configuration.systemOptions,
             loggerOptions: configuration.loggerOptions,
             storageInterface: configuration.storageInterface,
             networkInterface: configuration.networkInterface,
@@ -70,13 +77,14 @@ export class AuthorizationCodeModule extends AuthModule {
                 acquireTokenAuthority,
                 this.clientConfig.auth.clientId,
                 request,
+                this.getAccount(),
                 this.getRedirectUri(),
                 this.cryptoObj,
                 isLoginCall
             );
 
             // Check for SSO
-            if (!requestParameters.isSSOParam(this.getAccount())) {
+            if (!requestParameters.isSSOParam()) {
                 // TODO: Check for ADAL SSO
             }
 
@@ -107,77 +115,148 @@ export class AuthorizationCodeModule extends AuthModule {
         }
     }
 
-    async acquireToken(request: TokenExchangeParameters, codeResponse: CodeResponse): Promise<TokenResponse> {
-        if (!codeResponse || !codeResponse.code) {
-            this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
-            throw ClientAuthError.createAuthCodeNullOrEmptyError();
-        }
-
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-        if (!acquireTokenAuthority.discoveryComplete()) {
-            try {
-                await acquireTokenAuthority.resolveEndpointsAsync();
-            } catch (e) {
-                this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
-                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-            }
-        }
-
-        const { tokenEndpoint } = acquireTokenAuthority;
-        let tokenReqParams;
+    async acquireToken(codeResponse: CodeResponse): Promise<TokenResponse> {
         try {
-            const tokenRequest: TokenExchangeParameters = request || this.getCachedRequest();
-            tokenReqParams = new ServerTokenRequestParameters(
+            const tokenRequest: TokenExchangeParameters = this.getCachedRequest();
+
+            if(!codeResponse || !codeResponse.code) {
+                throw ClientAuthError.createTokenRequestCannotBeMadeError();
+            }
+
+            const authorityKey: string = this.cacheManager.generateAuthorityKey(codeResponse.userRequestState);
+            const cachedAuthority: string = this.cacheStorage.getItem(authorityKey);
+            tokenRequest.authority = cachedAuthority;
+
+            const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthorityInstance;
+            if (!acquireTokenAuthority.discoveryComplete()) {
+                try {
+                    await acquireTokenAuthority.resolveEndpointsAsync();
+                } catch (e) {
+                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+                }
+            }
+
+            const { tokenEndpoint } = acquireTokenAuthority;
+            const tokenReqParams = new ServerTokenRequestParameters(
                 this.clientConfig.auth.clientId,
                 tokenRequest,
                 codeResponse,
+                this.getAccount(),
                 this.getRedirectUri(),
                 this.cryptoObj
             );
 
-            const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
-                tokenEndpoint,
-                {
-                    body: tokenReqParams.createRequestBody(),
-                    headers: tokenReqParams.createRequestHeaders()
-                }
-            );
-
-            validateServerAuthorizationTokenResponse(acquiredTokenResponse);
-            const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
-            const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenReqParams.state);
-            this.account = tokenResponse.account;
-            return tokenResponse;
+            return this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
         } catch (e) {
-            this.cacheManager.resetTempCacheItems(codeResponse.userRequestState);
+            this.cacheManager.resetTempCacheItems(codeResponse && codeResponse.userRequestState);
             this.account = null;
             throw e;
         }
     }
 
+    async renewToken(request: TokenRenewParameters): Promise<TokenResponse> {
+        try {
+            if (!request) {
+                throw ClientAuthError.createEmptyTokenRequestError();
+            }
+
+            const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+            if (!acquireTokenAuthority.discoveryComplete()) {
+                try {
+                    await acquireTokenAuthority.resolveEndpointsAsync();
+                } catch (e) {
+                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+                }
+            }
+
+            const account = request.account || this.getAccount();
+            const requestScopes = new ScopeSet(request.scopes, this.clientConfig.auth.clientId, true);
+            if (requestScopes.isLoginScopeSet()) {
+                // Check for login if id token is being renewed
+                if (!account) {
+                    throw ClientAuthError.createUserLoginRequiredError();
+                }
+            }
+
+            const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
+            const expiration = Number(cachedTokenItem.value.expiresOnSec);
+            const offsetCurrentTime = TimeUtils.now() + this.clientConfig.systemOptions.tokenRenewalOffsetSeconds;
+            if (!request.forceRefresh && expiration && expiration > offsetCurrentTime) {
+                const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.clientConfig.auth.clientId, true);
+                let tokenResponse: TokenResponse = {
+                    uniqueId: "",
+                    tenantId: "",
+                    scopes: cachedScopes.asArray(),
+                    tokenType: cachedTokenItem.value.tokenType,
+                    idToken: "",
+                    idTokenClaims: null,
+                    accessToken: cachedTokenItem.value.accessToken,
+                    refreshToken: cachedTokenItem.value.refreshToken,
+                    expiresOn: new Date(expiration * 1000),
+                    account: account,
+                    userRequestState: ""
+                };
+
+                if (!StringUtils.isEmpty(cachedTokenItem.value.idToken)) {
+                    const idTokenObject = new IdToken(cachedTokenItem.value.idToken, this.cryptoObj);
+                    tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObject);
+                }
+
+                return tokenResponse;
+            } else {
+                request.authority = cachedTokenItem.key.authority;
+                const { tokenEndpoint } = acquireTokenAuthority;
+                const tokenReqParams = new ServerTokenRequestParameters(
+                    this.clientConfig.auth.clientId,
+                    request,
+                    null,
+                    this.getAccount(),
+                    this.getRedirectUri(),
+                    this.cryptoObj,
+                    cachedTokenItem.value.refreshToken
+                );
+
+                return this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
+            }
+        } catch (e) {
+            this.cacheManager.resetTempCacheItems();
+            this.account = null;
+            throw e;
+        }
+    }
+
+    // #region Logout
+
+    async logout(authorityUri?: string): Promise<string> {
+        const homeAccountIdentifier = this.account ? this.account.homeAccountIdentifier : "";
+        this.cacheManager.removeAllAccessTokens(this.clientConfig.auth.clientId, authorityUri, "", homeAccountIdentifier);
+        this.cacheStorage.clear();
+        this.account = null;
+        let postLogoutRedirectUri = "";
+        try {
+            postLogoutRedirectUri = `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(this.getPostLogoutRedirectUri());
+        } catch (e) {}
+
+        const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthorityInstance;
+        if (!acquireTokenAuthority.discoveryComplete()) {
+            try {
+                await acquireTokenAuthority.resolveEndpointsAsync();
+            } catch (e) {
+                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            }
+        }
+
+        const logoutUri = `${acquireTokenAuthority.endSessionEndpoint}${postLogoutRedirectUri}`;
+        return logoutUri;
+    }
+
+    // #endregion
+
     // #region Response Handling
 
     public handleFragmentResponse(hashFragment: string): CodeResponse {
-        // Deserialize and validate hash fragment response parameters
-        const hashUrlString = new UrlString(hashFragment);
-        const hashParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
-        try {
-            validateServerAuthorizationCodeResponse(hashParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
-
-            // Cache client info
-            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, hashParams.client_info);
-
-            // Create response object
-            const response: CodeResponse = {
-                code: hashParams.code,
-                userRequestState: hashParams.state
-            };
-
-            return response;
-        } catch(e) {
-            this.cacheManager.resetTempCacheItems(hashParams && hashParams.state);
-            throw e;
-        }
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        return responseHandler.handleFragmentResponse(hashFragment);
     }
 
     // #endregion
@@ -194,7 +273,47 @@ export class AuthorizationCodeModule extends AuthModule {
             throw ClientAuthError.createTokenRequestCacheError(err);
         }
     }
-    
+
+    private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): AccessTokenCacheItem {
+        const tokenCacheItems: Array<AccessTokenCacheItem> = this.cacheManager.getAllAccessTokens(this.clientConfig.auth.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
+        if (tokenCacheItems.length === 0) {
+            throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
+        }
+
+        const filteredCacheItems: Array<AccessTokenCacheItem> = [];
+        for (let i = 0; i < tokenCacheItems.length; i++) {
+            const cacheItem = tokenCacheItems[i];
+            const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.clientConfig.auth.clientId, true);
+            if (cachedScopes.containsScopeSet(requestScopes)) {
+                filteredCacheItems.push(cacheItem);
+            }
+        }
+
+        if (filteredCacheItems.length > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError(requestScopes.printScopes());
+        } else if (filteredCacheItems.length === 1) {
+            return filteredCacheItems[0];
+        } else {
+            throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
+        }
+    }
+
+    private async getTokenResponse(tokenEndpoint: string, tokenReqParams: ServerTokenRequestParameters, tokenRequest: TokenExchangeParameters, codeResponse?: CodeResponse): Promise<TokenResponse> {
+        const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
+            tokenEndpoint,
+            {
+                body: tokenReqParams.createRequestBody(),
+                headers: tokenReqParams.createRequestHeaders()
+            }
+        );
+
+        validateServerAuthorizationTokenResponse(acquiredTokenResponse);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
+        this.account = tokenResponse.account;
+        return tokenResponse;
+    }
+
     // #endregion
 
     // #region Getters and setters

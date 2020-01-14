@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import pkg from "../../package.json";
 import { ICrypto } from "../crypto/ICrypto";
 import { Constants } from "../utils/Constants";
-import pkg from "../../package.json";
 import { ScopeSet } from "../auth/ScopeSet";
 
 export abstract class ServerRequestParameters {
