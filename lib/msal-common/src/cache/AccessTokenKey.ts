@@ -21,6 +21,6 @@ export class AccessTokenKey {
         this.authority = authorityUri.urlString;
         this.clientId = clientId;
         this.scopes = scopes;
-        this.homeAccountIdentifier = cryptoObj.base64Encode(uid) + "." + cryptoObj.base64Encode(utid);
+        this.homeAccountIdentifier = `${cryptoObj.base64Encode(uid)}.${cryptoObj.base64Encode(utid)}`;
     }
 }

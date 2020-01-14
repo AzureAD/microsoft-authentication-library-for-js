@@ -41,9 +41,9 @@ export class ResponseHandler {
             return originalResponse;
         }
     
-        const exp = Number(idTokenObj.claims.exp);
-        if (exp && !originalResponse.expiresOn) {
-            originalResponse.expiresOn = new Date(exp * 1000);
+        const expiresSeconds = Number(idTokenObj.claims.exp);
+        if (expiresSeconds && !originalResponse.expiresOn) {
+            originalResponse.expiresOn = new Date(expiresSeconds * 1000);
         }
     
         return {
@@ -56,39 +56,47 @@ export class ResponseHandler {
     }
 
     private saveToken(originalTokenResponse: TokenResponse, authority: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
-        const tokenResponse = { ...originalTokenResponse };
         // Set consented scopes in response
         const requestScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, false);
-        tokenResponse.scopes = requestScopes.asArray();
+        const requestScopesArray = requestScopes.asArray();
 
         const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority);
-
-        for (let i = 0; i < accessTokenCacheItems.length; i++) {
-            const accessTokenCacheItem = accessTokenCacheItems[i];
-            if (accessTokenCacheItem.key.homeAccountIdentifier === tokenResponse.account.homeAccountIdentifier) {
+        accessTokenCacheItems.forEach(accessTokenCacheItem => {
+            if (accessTokenCacheItem.key.homeAccountIdentifier === originalTokenResponse.account.homeAccountIdentifier) {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, false);
 
-                if(cachedScopes.intersectingScopeSets(tokenResponse.scopes)) {
+                if(cachedScopes.intersectingScopeSets(requestScopesArray)) {
                     this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                 }
             }
-        }
+        });
 
         // Expiration calculation
-        const expiresIn = TimeUtils.parseExpiresIn(serverTokenResponse.expires_in);
+        const expiresIn = TimeUtils.parseExpiresInSeconds(serverTokenResponse.expires_in);
         const expiration = TimeUtils.now() + expiresIn;
 
         // Save access token in cache
         const accessTokenKey = new AccessTokenKey(authority, this.clientId, serverTokenResponse.scope, clientInfo.uid, clientInfo.utid, this.cryptoObj);
-        const accessTokenValue = new AccessTokenValue(serverTokenResponse.access_token, serverTokenResponse.id_token, serverTokenResponse.refresh_token, expiresIn.toString(), tokenResponse.account.homeAccountIdentifier);
+        const accessTokenValue = new AccessTokenValue(serverTokenResponse.access_token, serverTokenResponse.id_token, serverTokenResponse.refresh_token, expiresIn.toString(), originalTokenResponse.account.homeAccountIdentifier);
         this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
         // Save tokens in cache
-        tokenResponse.accessToken = serverTokenResponse.access_token;
-        tokenResponse.idToken = serverTokenResponse.id_token;
-        tokenResponse.refreshToken = serverTokenResponse.refresh_token;
-        tokenResponse.expiresOn = new Date(expiration * 1000);
-        return tokenResponse;
+        return {
+            ...originalTokenResponse,
+            scopes: requestScopesArray,
+            accessToken: serverTokenResponse.access_token,
+            idToken: serverTokenResponse.id_token,
+            refreshToken: serverTokenResponse.refresh_token,
+            expiresOn: new Date(expiration * 1000)
+        };
+    }
+
+    private getCachedAccount(accountKey: string): Account {
+        try {
+            return JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
+        } catch (e) {
+            return null;
+        }
     }
     
     public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, state: string): TokenResponse {
@@ -144,21 +152,19 @@ export class ResponseHandler {
         // Set token type
         tokenResponse.tokenType = serverTokenResponse.token_type;
 
+        // Return user set state in the response
+        tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
+
+        // Reset temporary cache items
+        this.cacheManager.resetTempCacheItems(state);
+
         // Save the access token if it exists
         const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
-        
-        const cachedAccount = JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
-
+        const cachedAccount = this.getCachedAccount(accountKey);
         if (!cachedAccount || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             tokenResponse = this.saveToken(tokenResponse, cachedAuthority, serverTokenResponse, clientInfo);
         } else {
             throw ClientAuthError.createAccountMismatchError();
         }
-    
-        // Return user set state in the response
-        tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
-        
-        this.cacheManager.resetTempCacheItems(state);
-        return tokenResponse;
     }
 }
