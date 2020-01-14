@@ -169,7 +169,7 @@ export class UrlString {
      * @ignore
      */
     static hashContainsKnownProperties(url: string): boolean {
-        if (!url) {
+        if (StringUtils.isEmpty(url)) {
             return false;
         }
         const urlString = new UrlString(url);
