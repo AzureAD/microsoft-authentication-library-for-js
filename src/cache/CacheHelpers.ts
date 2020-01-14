@@ -22,8 +22,8 @@ export class CacheHelpers {
      * @param accountId
      * @param state
      */
-    generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}${Constants.RESOURCE_DELIM}${state}`;
+    generateAcquireTokenAccountKey(accountId: any): string {
+        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}`;
     }
 
     /**
@@ -35,6 +35,14 @@ export class CacheHelpers {
     }
 
     /**
+     * Create Nonce key to cache nonce
+     * @param state 
+     */
+    generateNonceKey(state: string): string {
+        return `${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${state}`;
+    }
+
+    /**
      * @hidden
      * @ignore
      *
@@ -43,11 +51,11 @@ export class CacheHelpers {
      * @param state
      * @hidden
      */
-    setAccountCache(account: Account, state: string) {
+    setAccountCache(account: Account) {
         // Cache acquireTokenAccountKey
         const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
 
-        const acquireTokenAccountKey = this.generateAcquireTokenAccountKey(accountId, state);
+        const acquireTokenAccountKey = this.generateAcquireTokenAccountKey(accountId);
         this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
     }
 
@@ -76,11 +84,14 @@ export class CacheHelpers {
     updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
         // Cache account and state
         if (account) {
-            this.setAccountCache(account, serverAuthenticationRequest.state);
+            this.setAccountCache(account);
         }
 
         // Cache the request state
         this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
+
+        // Cache the nonce
+        this.cacheStorage.setItem(this.generateNonceKey(serverAuthenticationRequest.state), serverAuthenticationRequest.nonce);
 
         // Cache authorityKey
         this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);
