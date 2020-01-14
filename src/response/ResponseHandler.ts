@@ -18,7 +18,6 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
-import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { CodeResponse } from "./CodeResponse";
 
@@ -59,27 +58,25 @@ export class ResponseHandler {
         };
     }
 
-    public handleFragmentResponse(hashFragment: string): CodeResponse {
-        // Deserialize and validate hash fragment response parameters
-        const hashUrlString = new UrlString(hashFragment);
-        const hashParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+    public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): CodeResponse {
         try {
-            validateServerAuthorizationCodeResponse(hashParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
+            // Validate hash fragment response parameters
+            validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
 
             // Cache client info
-            if (hashParams.client_info) {
-                this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, hashParams.client_info);
+            if (serverParams.client_info) {
+                this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info);
             }
 
             // Create response object
             const response: CodeResponse = {
-                code: hashParams.code,
-                userRequestState: hashParams.state
+                code: serverParams.code,
+                userRequestState: serverParams.state
             };
 
             return response;
         } catch(e) {
-            this.cacheManager.resetTempCacheItems(hashParams && hashParams.state);
+            this.cacheManager.resetTempCacheItems(serverParams && serverParams.state);
             throw e;
         }
     }
