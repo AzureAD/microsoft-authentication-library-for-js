@@ -58,7 +58,7 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         }
 
         // Temporary until server allows CORS requests from browser without client secret
-        str.push("client_secret=/6Un[=rF.aZHhLvRUjCCocOosg3O54Zh");
+        str.push("client_secret=");
 
         return str;
     }
