@@ -94,7 +94,7 @@ export class PopupHandler extends InteractionHandler {
      * @ignore
      * @hidden
      */
-    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
+    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number): Window {
         try {
             /**
              * adding winLeft and winTop to account for dual monitor

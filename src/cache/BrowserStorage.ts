@@ -27,7 +27,7 @@ export class BrowserStorage implements ICacheStorage {
         this.migrateCacheEntries();
     }
 
-    private validateWindowStorage(cacheLocation: string) {
+    private validateWindowStorage(cacheLocation: string): void {
         if (typeof window === "undefined" || !window) {
             throw BrowserAuthError.createNoWindowObjectError();
         }
@@ -46,7 +46,7 @@ export class BrowserStorage implements ICacheStorage {
      * Support roll back to old cache schema until the next major release: true by default now
      * @param storeAuthStateInCookie
      */
-    private migrateCacheEntries() {
+    private migrateCacheEntries(): void {
         const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
         const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
         const errorKey = `${Constants.CACHE_PREFIX}.${ErrorCacheKeys.ERROR}`;
@@ -69,7 +69,7 @@ export class BrowserStorage implements ICacheStorage {
      * @param value
      * @param storeAuthStateInCookie
      */
-    private migrateCacheEntry(newKey: string, value: string) {
+    private migrateCacheEntry(newKey: string, value: string): void {
         if (value) {
             this.setItem(newKey, value);
         }
@@ -184,7 +184,7 @@ export class BrowserStorage implements ICacheStorage {
      * Clear an item in the cookies by key
      * @param cookieName
      */
-    clearItemCookie(cookieName: string) {
+    clearItemCookie(cookieName: string): void {
         this.setItemCookie(cookieName, "", -1);
     }
 
