@@ -18,7 +18,6 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
-import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { CodeResponse } from "./CodeResponse";
@@ -62,36 +61,33 @@ export class ResponseHandler {
         };
     }
 
-    public handleFragmentResponse(hashFragment: string) {
-        // Deserialize and validate hash fragment response parameters
-        const hashUrlString = new UrlString(hashFragment);
-        const hashParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+    public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse) {
         try {
-            validateServerAuthorizationCodeResponse(hashParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj, this.logger);
+            // Validate hash fragment response parameters
+            validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj, this.logger);
 
             // Cache client info
-            if (hashParams.client_info) {
-                this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, hashParams.client_info);
+            if (serverParams.client_info) {
+                this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info);
             }
 
             // Create response object
             const response: CodeResponse = {
-                code: hashParams.code,
-                userRequestState: hashParams.state
+                code: serverParams.code,
+                userRequestState: serverParams.state
             };
 
             return response;
         } catch(e) {
-            this.cacheManager.resetTempCacheItems(hashParams && hashParams.state);
+            this.cacheManager.resetTempCacheItems(serverParams && serverParams.state);
             throw e;
         }
     }
 
     private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
-        const tokenResponse = { ...originalTokenResponse };
         // Set consented scopes in response
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, false);
-        const requestScopesArray = responseScopes.asArray();
+        const responseScopesArray = responseScopes.asArray();
 
         // Expiration calculation
         const expiresIn = TimeUtils.parseExpiresInSeconds(serverTokenResponse.expires_in);
@@ -105,7 +101,7 @@ export class ResponseHandler {
 
         // Save access token in cache
         const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
-        const homeAccountIdentifier = tokenResponse.account && tokenResponse.account.homeAccountIdentifier;
+        const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
         const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
         if (accessTokenCacheItems.length < 1) {
             const newTokenKey = new AccessTokenKey(
@@ -121,9 +117,9 @@ export class ResponseHandler {
         } else {
             accessTokenCacheItems.forEach(accessTokenCacheItem => {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, false);
-                if(cachedScopes.intersectingScopeSets(requestScopesArray)) {
+                if(cachedScopes.intersectingScopeSets(responseScopesArray)) {
                     this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
-                    cachedScopes.appendScopes(tokenResponse.scopes);
+                    cachedScopes.appendScopes(responseScopesArray);
                     accessTokenCacheItem.key.scopes = cachedScopes.printScopes();
                     if (StringUtils.isEmpty(newAccessTokenValue.idToken)) {
                         newAccessTokenValue.idToken = accessTokenCacheItem.value.idToken;
@@ -136,7 +132,7 @@ export class ResponseHandler {
         // Save tokens in cache
         return {
             ...originalTokenResponse,
-            scopes: requestScopesArray,
+            scopes: responseScopesArray,
             accessToken: serverTokenResponse.access_token,
             refreshToken: serverTokenResponse.refresh_token,
             expiresOn: new Date(expirationSec * 1000)
