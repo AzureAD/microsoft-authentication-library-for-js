@@ -92,6 +92,12 @@ export abstract class AuthModule {
     
     // #region Getters and Setters
 
+    /**
+     * Returns the signed in account
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link Account} - the account object stored in MSAL
+     */
     getAccount(): Account {
         if (this.account) {
             return this.account;

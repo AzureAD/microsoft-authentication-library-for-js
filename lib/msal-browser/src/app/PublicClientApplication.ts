@@ -274,6 +274,12 @@ export class PublicClientApplication {
         return this.authModule.getPostLogoutRedirectUri();
     }
 
+    /**
+     * Returns the signed in account
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link Account} - the account object stored in MSAL
+     */
     public getAccount(): Account {
         return this.authModule.getAccount();
     }
