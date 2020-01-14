@@ -27,6 +27,8 @@ import { TimeUtils } from "../../utils/TimeUtils";
 import { IdToken } from "../../auth/IdToken";
 import { StringUtils } from "../../utils/StringUtils";
 import { TokenRenewParameters } from "../../request/TokenRenewParameters";
+import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
+import { UrlString } from "../../url/UrlString";
 
 /**
  * AuthorizationCodeModule class
@@ -256,7 +258,10 @@ export class AuthorizationCodeModule extends AuthModule {
 
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
-        return responseHandler.handleFragmentResponse(hashFragment);
+        // Deserialize hash fragment response parameters
+        const hashUrlString = new UrlString(hashFragment);
+        const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+        return responseHandler.handleServerCodeResponse(serverParams);
     }
 
     // #endregion
