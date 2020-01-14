@@ -5,8 +5,6 @@
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, TokenResponse } from "msal-common";
-import { AuthCallback } from "../app/PublicClientApplication";
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserConstants } from "../utils/BrowserConstants";
 

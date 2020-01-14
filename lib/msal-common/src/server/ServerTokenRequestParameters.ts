@@ -19,13 +19,13 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
     codeResponse: CodeResponse;
     refreshToken: string;
 
-    constructor(clientId: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, cachedAccount: Account, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
+    constructor(clientId: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
         super(clientId, redirectUri, cryptoImpl);
         this.tokenRequest = tokenRequest;
         this.codeResponse = codeResponse;
         this.refreshToken = refreshToken || "";
 
-        this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, false);
+        this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, true);
 
         this.correlationId = this.tokenRequest.correlationId || this.cryptoObj.createNewGuid();
     }
@@ -45,7 +45,7 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         const str: Array<string> = [];
 
         str.push(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(this.clientId)}`);
-        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printReplacedDefaultScopes())}`);
+        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
         str.push(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(this.redirectUri)}`);
         if (this.codeResponse) {
             str.push(`${AADServerParamKeys.CODE}=${encodeURIComponent(this.codeResponse.code)}`);
