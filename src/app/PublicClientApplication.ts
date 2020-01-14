@@ -2,8 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { AuthError, AuthResponse, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys } from "msal-common";
+import { AuthError, Account, AuthResponse, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -86,8 +85,12 @@ export class PublicClientApplication {
         // Create auth module
         this.authModule = new AuthorizationCodeModule({
             auth: this.config.auth,
+            systemOptions: {
+                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
+                telemetry: this.config.system.telemetry
+            },
             loggerOptions: {
-                loggerCallbackInterface: this.config.system.loggerOptions.loggerCallback,
+                loggerCallback: this.config.system.loggerOptions.loggerCallback,
                 piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled
             },
             cryptoInterface: this.browserCrypto,
@@ -114,7 +117,7 @@ export class PublicClientApplication {
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         try {
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
             let tokenResponse: TokenResponse;
             if (UrlString.hashContainsKnownProperties(hash)) {
                 tokenResponse = await interactionHandler.handleCodeResponse(hash);
@@ -136,10 +139,15 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
-        if (this.interactionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
+        if (!this.authCallback) {
+            throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
         }
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
+
+        if (this.interactionInProgress()) {
+            this.authCallback(BrowserAuthError.createInteractionInProgressError());
+        }
+
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
         this.authModule.createLoginUrl(request).then((navigateUrl) => {
             interactionHandler.showUI(navigateUrl);
         });
@@ -153,10 +161,15 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
-        if (this.interactionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
+        if (!this.authCallback) {
+            throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
         }
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
+
+        if (this.interactionInProgress()) {
+            this.authCallback(BrowserAuthError.createInteractionInProgressError());
+        }
+
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
         this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
             interactionHandler.showUI(navigateUrl);
         });
@@ -180,7 +193,7 @@ export class PublicClientApplication {
         const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         const navigateUrl = await this.authModule.createLoginUrl(request);
         const popupWindow = interactionHandler.showUI(navigateUrl);
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.loadFrameTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.popupWindowTimeout, navigateUrl);
         return interactionHandler.handleCodeResponse(hash);
     }
 
@@ -198,7 +211,7 @@ export class PublicClientApplication {
         const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
         const popupWindow = interactionHandler.showUI(navigateUrl);
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.loadFrameTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.popupWindowTimeout, navigateUrl);
         return interactionHandler.handleCodeResponse(hash);
     }
 
@@ -216,8 +229,24 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    acquireTokenSilent(request: AuthenticationParameters): Promise<TokenResponse> {
-        throw new Error("Method not implemented."); 
+    async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+        return this.authModule.renewToken(tokenRequest);
+    }
+
+    // #endregion
+
+    // #region Logout
+
+    /**
+     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
+     * Default behaviour is to redirect the user to `window.location.href`.
+     */
+    logout(): void {
+        this.authModule.logout().then(logoutUri => {
+            window.location.assign(logoutUri);
+        }).catch(e => {
+            throw e;
+        });
     }
 
     // #endregion
@@ -243,6 +272,10 @@ export class PublicClientApplication {
      */
     public getPostLogoutRedirectUri(): string {
         return this.authModule.getPostLogoutRedirectUri();
+    }
+
+    public getAccount(): Account {
+        return this.authModule.getAccount();
     }
 
     // #endregion
