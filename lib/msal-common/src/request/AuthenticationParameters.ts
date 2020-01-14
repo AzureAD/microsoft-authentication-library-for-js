@@ -2,14 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { Account } from "../auth/Account";
-import { StringDict } from "../utils/MsalTypes";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientRequestParameters } from "./ClientRequestParameters";
 
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.
  * - scopes: requested token scopes
+ * - resource: requested resource uri
  * - extraScopesToConsent: additional scopes to consent 
  * - prompt: the value of the OAuth prompt parameter
  * - extraQueryParameters: string to string map of custom query parameters
@@ -20,22 +20,15 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
  * - account: Account object to perform SSO
  * - sid: session id for SSO
  * - loginHint: login hint for SSO
- * - forceRefresh: Forces silent requests to make network calls if true
  */
-export type AuthenticationParameters = {
-    scopes?: Array<string>;
-    resource?: string;
+export type AuthenticationParameters = ClientRequestParameters & {
     extraScopesToConsent?: Array<string>;
     prompt?: string;
-    extraQueryParameters?: StringDict;
     claimsRequest?: string;
-    authority?: string;
     userRequestState?: string;
-    correlationId?: string;
     account?: Account;
     sid?: string;
     loginHint?: string;
-    forceRefresh?: boolean;
 };
 
 /**

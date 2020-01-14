@@ -61,13 +61,30 @@ export const ClientAuthErrorMessage = {
         code: "invalid_id_token",
         desc: "Invalid ID token format."
     },
-    authCodeNullOrEmptyError: {
-        code: "auth_code_null_or_empty",
-        desc: "The authorization code or code response was null. Please check the stack trace and logs for more information."
+    noTokensFoundError: {
+        code: "no_tokens_found",
+        desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken()."
     },
     cacheParseError: {
         code: "cache_parse_error",
         desc: "Could not parse cache key."
+    },
+    userLoginRequiredError: {
+        code: "user_login_error",
+        desc: "User login is required."
+    },
+    multipleMatchingTokens: {
+        code: "multiple_matching_tokens",
+        desc: "The cache contains multiple tokens satisfying the requirements. " +
+            "Call AcquireToken again providing more requirements such as authority, resource, or account."
+    },
+    tokenRequestCannotBeMade: {
+        code: "request_cannot_be_made",
+        desc: "Token request cannot be made without authorization code or refresh token."
+    },
+    tokenRequestEmptyError: {
+        code: "token_request_empty",
+        desc: "Token request was empty and not found in cache."
     }
 };
 
@@ -184,15 +201,15 @@ export class ClientAuthError extends AuthError {
      */
     static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
-            `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${idToken}`);
+            `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${JSON.stringify(idToken)}`);
     }
 
     /**
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
-    static createAuthCodeNullOrEmptyError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.authCodeNullOrEmptyError.code, 
-            ClientAuthErrorMessage.authCodeNullOrEmptyError.desc);
+    static createNoTokensFoundError(scopes: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, 
+            `${ClientAuthErrorMessage.noTokensFoundError.desc} Scopes: ${scopes}`);
     }
 
     /**
@@ -201,5 +218,36 @@ export class ClientAuthError extends AuthError {
     static createCacheParseError(cacheKey: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code, 
             `${ClientAuthErrorMessage.cacheParseError.desc} Cache key: ${cacheKey}`);
+    }
+
+    /**
+     * Throws error when renewing token without login.
+     */
+    static createUserLoginRequiredError() : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code,
+            ClientAuthErrorMessage.userLoginRequiredError.desc);
+    }
+
+    /**
+     * Throws error when multiple tokens are in cache for the given scope.
+     * @param scope 
+     */
+    static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
+            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
+    }
+
+    /**
+     * Throws error when no auth code or refresh token is given to ServerTokenRequestParameters.
+     */
+    static createTokenRequestCannotBeMadeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCannotBeMade.code, ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+    }
+
+    /**
+     * Throws error when token request is empty and nothing cached in storage.
+     */
+    static createEmptyTokenRequestError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestEmptyError.code, ClientAuthErrorMessage.tokenRequestEmptyError.desc);
     }
 }

@@ -3,16 +3,19 @@
  * Licensed under the MIT License.
  */
 import { ClientRequestParameters } from "./ClientRequestParameters";
+import { Account } from "../auth/Account";
 
 /**
- * TokenExchangeParameters used to exchange an authorization code for a token.
+ * AuthenticationParameters passed by user to retrieve a token from the server.
  * - scopes: requested token scopes
  * - resource: requested resource uri
- * - code_verifier: verifier to complete PKCE protocol
  * - extraQueryParameters: string to string map of custom query parameters
  * - authority: authority to request tokens from
  * - correlationId: custom correlationId given by user
+ * - account: Account object to perform SSO
+ * - forceRefresh: Forces silent requests to make network calls if true
  */
-export type TokenExchangeParameters = ClientRequestParameters & {
-    codeVerifier?: string;
+export type TokenRenewParameters = ClientRequestParameters & {
+    account: Account;
+    forceRefresh?: boolean;
 };

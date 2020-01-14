@@ -24,6 +24,7 @@ export const Constants = {
     // Default response type for authorization code flow
     CODE_RESPONSE_TYPE: "code",
     CODE_GRANT_TYPE: "authorization_code",
+    RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
@@ -109,6 +110,7 @@ export enum AADServerParamKeys {
     ERROR_DESCRIPTION = "error_description",
     ACCESS_TOKEN = "access_token",
     ID_TOKEN = "id_token",
+    REFRESH_TOKEN = "refresh_token",
     EXPIRES_IN = "expires_in",
     STATE = "state",
     NONCE = "nonce",
@@ -121,7 +123,8 @@ export enum AADServerParamKeys {
     CODE_VERIFIER = "code_verifier",
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
-    X_CLIENT_VER = "x-client-Ver"
+    X_CLIENT_VER = "x-client-Ver",
+    POST_LOGOUT_URI = "post_logout_redirect_uri"
 };
 
 /**

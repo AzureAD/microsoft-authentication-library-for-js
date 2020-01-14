@@ -68,7 +68,7 @@ export abstract class AuthModule {
         this.config = buildModuleConfiguration(configuration);
 
         // Initialize the logger
-        this.logger = new Logger(configuration.loggerOptions.loggerCallbackInterface, configuration.loggerOptions.piiLoggingEnabled);
+        this.logger = new Logger(configuration.loggerOptions.loggerCallback, configuration.loggerOptions.piiLoggingEnabled);
 
         // Initialize crypto
         this.cryptoObj = this.config.cryptoInterface;
