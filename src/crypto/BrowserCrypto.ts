@@ -2,11 +2,18 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Utils
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+// Errors
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
+// SHA-256 hashing algorithm
 const HASH_ALG = "SHA-256";
 
+/**
+ * This class implements functions used by the browser library to perform cryptography operations such as
+ * hashing and encoding. It also has helper functions to validate the availability of specific APIs.
+ */
 export class BrowserCrypto {
 
     constructor() {
@@ -15,6 +22,10 @@ export class BrowserCrypto {
         }
     }
 
+    /**
+     * Returns a sha-256 hash of the given dataString as an ArrayBuffer.
+     * @param dataString 
+     */
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
 
@@ -33,6 +44,10 @@ export class BrowserCrypto {
         return window.crypto.subtle.digest(HASH_ALG, data);
     }
 
+    /**
+     * Populates buffer with cryptographically random values.
+     * @param dataBuffer 
+     */
     getRandomValues(dataBuffer: Uint8Array): void {
         const cryptoObj = window["msCrypto"] || window.crypto;
         if (!cryptoObj.getRandomValues) {
@@ -41,14 +56,23 @@ export class BrowserCrypto {
         cryptoObj.getRandomValues(dataBuffer);
     }
 
+    /**
+     * Checks whether IE crypto (AKA msCrypto) is available.
+     */
     private hasIECrypto(): boolean {
         return !!window["msCrypto"];
     }
 
+    /**
+     * Check whether browser crypto is available.
+     */
     private hasBrowserCrypto(): boolean {
         return !!window.crypto;
     }
 
+    /**
+     * Check whether IE crypto or other browser cryptography is available.
+     */
     private hasCryptoAPI(): boolean {
         return this.hasIECrypto() || this.hasBrowserCrypto();
     }

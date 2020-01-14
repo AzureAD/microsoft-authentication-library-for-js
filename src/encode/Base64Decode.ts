@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Browser String Utils
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -33,6 +34,11 @@ export class Base64Decode {
         return decodeURIComponent(BrowserStringUtils.utf8ArrToString(inputUtf8Arr));
     }
 
+    /**
+     * Decodes base64 into Uint8Array
+     * @param base64String 
+     * @param nBlockSize 
+     */
     private base64DecToArr(base64String: string, nBlockSize?: number): Uint8Array {
         const sB64Enc = base64String.replace(/[^A-Za-z0-9\+\/]/g, "");
         const nInLen = sB64Enc.length;
@@ -53,6 +59,10 @@ export class Base64Decode {
         return aBytes;
     }
 
+    /**
+     * Base64 string to array decoding helper
+     * @param charNum 
+     */
     private b64ToUint6(charNum: number): number {
         return charNum > 64 && charNum < 91 ?
             charNum - 65

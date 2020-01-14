@@ -2,12 +2,24 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Common package imports
 import { INetworkModule, NetworkRequestOptions } from "msal-common";
+// Error
 import { BrowserAuthError } from "../error/BrowserAuthError";
+// HTTP Constants
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
+/**
+ * This client implements the XMLHttpRequest class to send GET and POST requests.
+ */
 export class XhrClient implements INetworkModule {
 
+    /**
+     * XhrClient for REST endpoints - Get request
+     * @param url 
+     * @param headers 
+     * @param body 
+     */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
     }
