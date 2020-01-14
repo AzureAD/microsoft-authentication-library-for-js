@@ -8,7 +8,6 @@ import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants";
 import { ServerRequestParameters } from "./ServerRequestParameters";
 import { CodeResponse } from "../response/CodeResponse";
-import { Account } from "../auth/Account";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
