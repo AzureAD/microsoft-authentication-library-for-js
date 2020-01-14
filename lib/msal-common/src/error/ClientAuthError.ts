@@ -4,6 +4,7 @@
  */
 
 import { AuthError } from "./AuthError";
+import { IdToken } from "../auth/IdToken";
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
  */
@@ -47,6 +48,18 @@ export const ClientAuthErrorMessage = {
     stateMismatchError: {
         code: "state_mismatch",
         desc: "State mismatch error. Please check your network. Continued requests may cause cache overflow."
+    },
+    nonceMismatchError: {
+        code: "nonce_mismatch",
+        desc: "Nonce mismatch error. This may be caused by a race condition in concurrent requests."
+    },
+    accountMismatchError: {
+        code: "account_mismatch",
+        desc: "The cached account and account which made the token request do not match."
+    },
+    invalidIdToken: {
+        code: "invalid_id_token",
+        desc: "Invalid ID token format."
     },
     authCodeNullOrEmptyError: {
         code: "auth_code_null_or_empty",
@@ -139,6 +152,26 @@ export class ClientAuthError extends AuthError {
      */
     static createStateMismatchError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.stateMismatchError.code, ClientAuthErrorMessage.stateMismatchError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the nonce does not match.
+     */
+    static createNonceMismatchError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code, ClientAuthErrorMessage.nonceMismatchError.desc);
+    }
+
+    static createAccountMismatchError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code, ClientAuthErrorMessage.accountMismatchError.desc);
+    }
+
+    /**
+     * Throws error if idToken is not correctly formed
+     * @param idToken 
+     */
+    static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
+            `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${idToken}`);
     }
 
     /**

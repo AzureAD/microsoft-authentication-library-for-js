@@ -18,11 +18,11 @@ import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParam
 import { CodeResponse } from "../../response/CodeResponse";
 import { UrlString } from "../../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../error/ClientAuthError";
-import { ProtocolUtils } from "../../utils/ProtocolUtils";
+import { ClientAuthError } from "../../error/ClientAuthError";
 import { TemporaryCacheKeys, PersistentCacheKeys } from "../../utils/Constants";
-import { AuthError } from "../../error/AuthError";
 import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
+import { ServerAuthorizationTokenResponse, validateServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
+import { ResponseHandler } from "../../response/ResponseHandler";
 
 /**
  * AuthorizationCodeModule class
@@ -85,7 +85,7 @@ export class AuthorizationCodeModule extends AuthModule {
             codeVerifier: requestParameters.generatedPkce.verifier,
             extraQueryParameters: request.extraQueryParameters,
             authority: requestParameters.authorityInstance.canonicalAuthority,
-            correlationId: requestParameters.correlationId,            
+            correlationId: requestParameters.correlationId
         };
 
         this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
@@ -123,7 +123,7 @@ export class AuthorizationCodeModule extends AuthModule {
             this.cryptoObj
         );
 
-        const acquiredTokenResponse = this.networkClient.sendPostRequestAsync(
+        const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
             tokenEndpoint,
             {
                 body: tokenReqParams.createRequestBody(),
@@ -131,7 +131,15 @@ export class AuthorizationCodeModule extends AuthModule {
             }
         );
 
-        return null;
+        try {
+            validateServerAuthorizationTokenResponse(acquiredTokenResponse);
+            const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
+            return responseHandler.createTokenResponse(acquiredTokenResponse, tokenReqParams.state);
+        } catch (e) {
+            this.cacheManager.resetTempCacheItems(tokenReqParams.state);
+            this.account = null;
+            throw e;
+        }
     }
 
     // #region Response Handling
@@ -153,7 +161,7 @@ export class AuthorizationCodeModule extends AuthModule {
         // Create response object
         const response: CodeResponse = {
             code: hashParams.code,
-            userRequestState: ProtocolUtils.getUserRequestState(hashParams.state)
+            userRequestState: hashParams.state
         };
 
         return response;
