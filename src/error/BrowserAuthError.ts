@@ -95,9 +95,7 @@ export class BrowserAuthError extends AuthError {
 
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
         let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
-        if (errDetail && !StringUtils.isEmpty(errDetail)) {
-            errorMessage += ` Details: ${errDetail}`;
-        }
+        errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
         return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
     }
 
