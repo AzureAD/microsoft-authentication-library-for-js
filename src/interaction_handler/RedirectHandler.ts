@@ -27,7 +27,7 @@ export class RedirectHandler extends InteractionHandler {
         this.browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, window.location.href);
         this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS);
         // Navigate if valid URL
-        if (requestUrl && !StringUtils.isEmpty(requestUrl)) {
+        if (!StringUtils.isEmpty(requestUrl)) {
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             window.location.assign(requestUrl);
         } else {
