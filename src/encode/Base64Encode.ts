@@ -1,9 +1,8 @@
-import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
  * Class which exposes APIs to encode plaintext to base64 encoded string. See here for implementation details:

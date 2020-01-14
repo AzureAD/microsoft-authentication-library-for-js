@@ -1,10 +1,9 @@
-import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 const HASH_ALG = "SHA-256";
 
