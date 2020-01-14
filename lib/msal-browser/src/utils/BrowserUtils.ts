@@ -11,19 +11,6 @@ import { XhrClient } from "../network/XhrClient";
  */
 export class BrowserUtils {
 
-    // #region Window Navigation
-
-    /**
-     * @hidden
-     * Used to redirect the browser to the STS authorization endpoint
-     * @param {string} urlNavigate - URL of the authorization endpoint
-     */
-    static navigateWindow(urlNavigate: string): void {
-        throw new Error("Method not implemented.");
-    }
-
-    // #endregion
-
     /**
      * Returns current window URL as redirect uri
      */

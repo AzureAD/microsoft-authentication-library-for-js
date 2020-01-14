@@ -24,7 +24,7 @@ export class BrowserCrypto {
                 digestOperation.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
                     resolve(e.target.result);
                 });
-                digestOperation.addEventListener("error", (error: any) => {
+                digestOperation.addEventListener("error", (error: string) => {
                     reject(error);
                 });
             });

@@ -26,7 +26,7 @@ export class CacheHelpers {
      * @param accountId
      * @param state
      */
-    generateAcquireTokenAccountKey(accountId: any): string {
+    generateAcquireTokenAccountKey(accountId: string): string {
         return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}`;
     }
 
@@ -55,7 +55,7 @@ export class CacheHelpers {
      * @param state
      * @hidden
      */
-    setAccountCache(account: Account) {
+    setAccountCache(account: Account): void {
         // Cache acquireTokenAccountKey
         const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
 
@@ -72,7 +72,7 @@ export class CacheHelpers {
      * @param authority
      * @hidden
      */
-    setAuthorityCache(authority: Authority, state: string) {
+    setAuthorityCache(authority: Authority, state: string): void {
         // Cache authorityKey
         const authorityKey = this.generateAuthorityKey(state);
         this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
@@ -106,9 +106,8 @@ export class CacheHelpers {
      * @param state 
      */
     resetTempCacheItems(state?: string): void {
-        let key: string;
         // check state and remove associated cache items
-        this.cacheStorage.getKeys().forEach((key) => {
+        this.cacheStorage.getKeys().forEach(key => {
             if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;

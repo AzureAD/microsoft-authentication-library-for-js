@@ -13,8 +13,6 @@ export const Constants = {
     NO_ACCOUNT: "NO_ACCOUNT",
     // Claims
     CLAIMS: "claims",
-    // UPN
-    UPN: "upn",
     // Consumer UTID
     CONSUMER_UTID: "9188040d-6c67-4c5b-b112-36a304b66dad",
     // Default scopes

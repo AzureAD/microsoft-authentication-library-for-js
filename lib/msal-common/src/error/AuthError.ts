@@ -34,7 +34,7 @@ export class AuthError extends Error {
      * Creates an error that is thrown when something unexpected happens in the library.
      * @param errDesc 
      */
-    static createUnexpectedError(errDesc: string) {
+    static createUnexpectedError(errDesc: string): AuthError {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
     }
 }

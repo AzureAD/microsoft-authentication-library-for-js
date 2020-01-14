@@ -6,6 +6,7 @@
 import { Authority, AuthorityType } from "./Authority";
 import { AADTrustedHostList } from "../../utils/Constants";
 import { INetworkModule } from "../../network/INetworkModule";
+import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 
 /**
  * @hidden
@@ -41,7 +42,7 @@ export class AadAuthority extends Authority {
         }
 
         // for custom domains in AAD where we query the service for the Instance discovery
-        const response = await this.networkInterface.sendGetRequestAsync<any>(this.aadInstanceDiscoveryEndpointUrl);
+        const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.aadInstanceDiscoveryEndpointUrl);
         return response.tenant_discovery_endpoint;
     }
 

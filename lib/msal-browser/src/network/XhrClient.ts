@@ -21,19 +21,19 @@ export class XhrClient implements INetworkModule {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             this.setXhrHeaders(xhr, options);
-            xhr.onload = (ev) => {
+            xhr.onload = (): void => {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    reject(this.handleError(xhr.responseText));
+                    reject(xhr.responseText);
                 }
                 try {
                     const jsonResponse = JSON.parse(xhr.responseText) as T;
                     resolve(jsonResponse);
                 } catch (e) {
-                    reject(this.handleError(xhr.responseText));
+                    reject(xhr.responseText);
                 }
             };
 
-            xhr.onerror = (ev) => {
+            xhr.onerror = (): void => {
                 reject(xhr.status);
             };
 
@@ -45,20 +45,6 @@ export class XhrClient implements INetworkModule {
                 throw BrowserAuthError.createHttpMethodNotImplementedError(method);
             }
         });
-    }
-
-    private handleError(responseText: string): any {
-        let jsonResponse;
-        try {
-            jsonResponse = JSON.parse(responseText);
-            if (jsonResponse.error) {
-                return jsonResponse.error;
-            } else {
-                throw responseText;
-            }
-        } catch (e) {
-            return responseText;
-        }
     }
 
     private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {

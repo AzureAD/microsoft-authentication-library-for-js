@@ -285,7 +285,7 @@ export class PublicClientApplication {
 
     // #region Helpers
 
-    private interactionInProgress() {
+    private interactionInProgress(): boolean {
         return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS;
     }
 

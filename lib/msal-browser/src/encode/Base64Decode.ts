@@ -33,7 +33,7 @@ export class Base64Decode {
         return decodeURIComponent(BrowserStringUtils.utf8ArrToString(inputUtf8Arr));
     }
 
-    private base64DecToArr (base64String: string, nBlockSize?: number) {
+    private base64DecToArr(base64String: string, nBlockSize?: number): Uint8Array {
         const sB64Enc = base64String.replace(/[^A-Za-z0-9\+\/]/g, "");
         const nInLen = sB64Enc.length;
         const nOutLen = nBlockSize ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : nInLen * 3 + 1 >>> 2;
@@ -53,7 +53,7 @@ export class Base64Decode {
         return aBytes;
     }
 
-    private b64ToUint6 (charNum: number) {
+    private b64ToUint6(charNum: number): number {
         return charNum > 64 && charNum < 91 ?
             charNum - 65
             : charNum > 96 && charNum < 123 ? 

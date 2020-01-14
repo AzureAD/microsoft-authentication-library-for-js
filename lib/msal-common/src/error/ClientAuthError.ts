@@ -82,10 +82,6 @@ export const ClientAuthErrorMessage = {
         code: "request_cannot_be_made",
         desc: "Token request cannot be made without authorization code or refresh token."
     },
-    tokenRequestEmptyError: {
-        code: "token_request_empty",
-        desc: "Token request was empty and not found in cache."
-    }
 };
 
 /**
@@ -113,7 +109,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown if the client info is empty.
      * @param rawClientInfo 
      */
-    static createClientInfoEmptyError(rawClientInfo: string) {
+    static createClientInfoEmptyError(rawClientInfo: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoEmptyError.code,
             `${ClientAuthErrorMessage.clientInfoEmptyError.desc} Given Object: ${rawClientInfo}`);
     }
@@ -122,7 +118,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the id token extraction errors out.
      * @param err 
      */
-    static createIdTokenParsingError(caughtExtractionError: any) {
+    static createIdTokenParsingError(caughtExtractionError: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.idTokenParsingError.code,
             `${ClientAuthErrorMessage.idTokenParsingError.desc} Failed with error: ${caughtExtractionError}`);
     }
@@ -166,7 +162,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the hash cannot be deserialized.
      * @param invalidAuthorityError 
      */
-    static createHashNotDeserializedError(hashParamObj: any): ClientAuthError {
+    static createHashNotDeserializedError(hashParamObj: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code, 
             `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
     }
@@ -242,12 +238,5 @@ export class ClientAuthError extends AuthError {
      */
     static createTokenRequestCannotBeMadeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCannotBeMade.code, ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-    }
-
-    /**
-     * Throws error when token request is empty and nothing cached in storage.
-     */
-    static createEmptyTokenRequestError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestEmptyError.code, ClientAuthErrorMessage.tokenRequestEmptyError.desc);
     }
 }

@@ -67,9 +67,9 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    isSSOParam() {
+    isSSOParam(): boolean {
         const isSSORequest = this.userRequest && (this.account || this.userRequest.sid || this.userRequest.loginHint);
-        return this.account || isSSORequest;
+        return !!this.account || !!isSSORequest;
     }
 
     /**
@@ -191,7 +191,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * Utility to test if valid prompt value is passed in the request
      * @param request
      */
-    private validatePromptParameter (prompt: string) {
+    private validatePromptParameter(prompt: string): void {
         if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
@@ -206,7 +206,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(idTokenObject: any): StringDict {
+    private constructUnifiedCacheQueryParameter(idTokenObject: IdToken): StringDict {
 
         // preference order: account > sid > login_hint
         let ssoType;
@@ -238,9 +238,9 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         }
         // adalIdToken retrieved from cache
         else if (idTokenObject) {
-            if (idTokenObject.hasOwnProperty(Constants.UPN)) {
+            if (idTokenObject.claims && idTokenObject.claims.preferred_username) {
                 ssoType = SSOTypes.ID_TOKEN;
-                ssoData = idTokenObject.upn;
+                ssoData = idTokenObject.claims.preferred_username;
             }
             else {
                 ssoType = SSOTypes.ORGANIZATIONS;

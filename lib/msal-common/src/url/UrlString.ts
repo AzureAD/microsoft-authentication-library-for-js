@@ -2,11 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AADAuthorityConstants, AADServerParamKeys } from "../utils/Constants";
+import { AADAuthorityConstants } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -15,7 +16,7 @@ export class UrlString {
 
     private _urlString: string;
 
-    public get urlString() {
+    public get urlString(): string {
         return this._urlString;
     }
     
@@ -123,7 +124,7 @@ export class UrlString {
         const hash = this.getHash();
         const deserializedHash: T = StringUtils.queryStringToObject<T>(hash);
         if (!deserializedHash) {
-            throw ClientAuthError.createHashNotDeserializedError(deserializedHash);
+            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
         }
         return deserializedHash;
     }
@@ -158,7 +159,7 @@ export class UrlString {
         return urlComponents;
     }
 
-    static constructAuthorityUriFromObject(urlObject: IUri) {
+    static constructAuthorityUriFromObject(urlObject: IUri): UrlString {
         return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + urlObject.PathSegments.join("/"));
     }
 
@@ -172,11 +173,11 @@ export class UrlString {
             return false;
         }
         const urlString = new UrlString(url);
-        const parameters = urlString.getDeserializedHash<any>();
-        return (
-            parameters.hasOwnProperty(AADServerParamKeys.ERROR_DESCRIPTION) ||
-            parameters.hasOwnProperty(AADServerParamKeys.ERROR) ||
-            parameters.hasOwnProperty(AADServerParamKeys.CODE)
+        const parameters = urlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+        return !!(
+            parameters.error_description ||
+            parameters.error ||
+            parameters.state
         );
     }
 }
