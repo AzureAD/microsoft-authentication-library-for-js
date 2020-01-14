@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Browser String Utils
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -71,7 +72,7 @@ export class Base64Encode {
     }
 
     /**
-     * Base64 string to array encoding
+     * Base64 string to array encoding helper
      * @param nUint6 
      */
     private uint6ToB64 (nUint6: number): number {

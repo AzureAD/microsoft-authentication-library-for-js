@@ -2,9 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Common package imports
 import { INetworkModule, NetworkRequestOptions } from "msal-common";
+// HTTP Constants
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
+/**
+ * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+ */
 export class FetchClient implements INetworkModule {
 
     /**

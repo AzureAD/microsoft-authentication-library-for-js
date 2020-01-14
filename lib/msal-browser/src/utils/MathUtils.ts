@@ -4,7 +4,7 @@
  */
 
 /**
- * Utility class for math specific functions
+ * Utility class for math specific functions in browser.
  */
 export class MathUtils {
 

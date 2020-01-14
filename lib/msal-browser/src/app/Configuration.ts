@@ -2,14 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Common package imports
 import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "msal-common";
+// Utils
 import { BrowserUtils } from "../utils/BrowserUtils";
+// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
 
-/**
- * Defaults for the Configuration Options
- */
-const FRAME_TIMEOUT = 6000;
+// Default timeout for popup windows in milliseconds
+const FRAME_TIMEOUT = 60000;
 
 export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
@@ -54,6 +55,7 @@ export type Configuration = {
     system?: BrowserSystemOptions
 };
 
+// Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     authority: null,
@@ -63,11 +65,13 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     navigateToLoginRequestUrl: true
 };
 
+// Default cache options for browser
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
     storeAuthStateInCookie: false
 };
 
+// Default logger options for browser
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -91,6 +95,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     piiLoggingEnabled: false
 };
 
+// Default system options for browser
 const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
@@ -107,7 +112,6 @@ const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
  *
  * @returns TConfiguration object
  */
-
 export function buildConfiguration({ auth, cache = {}, system = {}}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },

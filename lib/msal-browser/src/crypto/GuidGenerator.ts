@@ -2,11 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Math Utils
 import { MathUtils } from "../utils/MathUtils";
+// Browser crypto object
 import { BrowserCrypto } from "./BrowserCrypto";
 
 export class GuidGenerator {
 
+    // browser crypto object used to generate random values
     private cryptoObj: BrowserCrypto;
 
     constructor(cryptoObj: BrowserCrypto) {

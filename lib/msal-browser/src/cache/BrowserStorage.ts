@@ -2,31 +2,53 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Common package imports
 import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys } from "msal-common";
+// Configuration
 import { CacheOptions } from "../app/Configuration";
+// Errors
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
 
+// Cookie life calculation (hours * minutes * seconds * ms)
 const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
+/**
+ * This class implements the cache storage interface for MSAL through browser local or session storage. 
+ * Cookies are only used if storeAuthStateInCookie is true, and are only used for 
+ * parameters such as state and nonce, generally.
+ */
 export class BrowserStorage implements ICacheStorage {
 
+    // Cache configuration, either set by user or default values.
     private cacheConfig: CacheOptions;
+    // Window storage object (either local or sessionStorage)
     private windowStorage: Storage;
-
+    // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private clientId: string;
 
     constructor(clientId: string, cacheConfig: CacheOptions) {
+        // Validate cache location
         this.validateWindowStorage(cacheConfig.cacheLocation);
 
+        // Initialize field vars
         this.cacheConfig = cacheConfig;
         this.windowStorage = window[this.cacheConfig.cacheLocation];
         this.clientId = clientId;
 
+        // Migrate any cache entries from older versions of MSAL.
         this.migrateCacheEntries();
     }
 
+    /**
+     * Validates the the given cache location string is an expected value:
+     * - localStorage
+     * - sessionStorage (default)
+     * Also validates if given cacheLocation is supported on the browser.
+     * @param cacheLocation 
+     */
     private validateWindowStorage(cacheLocation: string): void {
         if (typeof window === "undefined" || !window) {
             throw BrowserAuthError.createNoWindowObjectError();
@@ -43,7 +65,7 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     /**
-     * Support roll back to old cache schema until the next major release: true by default now
+     * Migrate all old cache entries to new schema. No rollback supported.
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntries(): void {
@@ -64,7 +86,7 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     /**
-     * Utility function to help with rollback keys.
+     * Utility function to help with migration.
      * @param newKey
      * @param value
      * @param storeAuthStateInCookie
@@ -101,6 +123,13 @@ export class BrowserStorage implements ICacheStorage {
         JSON.parse(key);
     }
 
+    /**
+     * Sets the cache item with the key and value given. 
+     * Stores in cookie if storeAuthStateInCookie is set to true.
+     * This can cause cookie overflow if used incorrectly.
+     * @param key 
+     * @param value 
+     */
     setItem(key: string, value: string): void {
         const msalKey = this.generateCacheKey(key);
         this.windowStorage.setItem(msalKey, value);
@@ -109,6 +138,11 @@ export class BrowserStorage implements ICacheStorage {
         }
     }
     
+    /**
+     * Gets cache item with given key.
+     * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
+     * @param key 
+     */
     getItem(key: string): string {
         const msalKey = this.generateCacheKey(key);
         const itemCookie = this.getItemCookie(msalKey);
@@ -118,6 +152,11 @@ export class BrowserStorage implements ICacheStorage {
         return this.windowStorage.getItem(msalKey);
     }
     
+    /**
+     * Removes the cache item with the given key.
+     * Will also clear the cookie item if storeAuthStateInCookie is set to true.
+     * @param key 
+     */
     removeItem(key: string): void {
         const msalKey = this.generateCacheKey(key);
         this.windowStorage.removeItem(msalKey);
@@ -126,15 +165,25 @@ export class BrowserStorage implements ICacheStorage {
         }
     }
     
+    /**
+     * Checks whether key is in cache.
+     * @param key 
+     */
     containsKey(key: string): boolean {
         const msalKey = this.generateCacheKey(key);
         return this.windowStorage.hasOwnProperty(msalKey) || this.windowStorage.hasOwnProperty(key);
     }
     
+    /**
+     * Gets all keys in window.
+     */
     getKeys(): string[] {
         return Object.keys(this.windowStorage);
     }
 
+    /**
+     * Clears all cache entries created by MSAL (except tokens).
+     */
     clear(): void {
         let key: string;
         for (key in this.windowStorage) {
