@@ -51,7 +51,7 @@ export const ClientAuthErrorMessage = {
     },
     nonceMismatchError: {
         code: "nonce_mismatch",
-        desc: "Nonce mismatch error. Please check whether concurrent requests are causing this issue."
+        desc: "Nonce mismatch error. This may be caused by a race condition in concurrent requests."
     },
     accountMismatchError: {
         code: "account_mismatch",
