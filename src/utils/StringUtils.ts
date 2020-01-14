@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 import { ClientAuthError } from "../error/ClientAuthError";
+import { DecodedJwt } from "../auth/DecodedJwt";
 
 /**
  * @hidden
@@ -14,16 +15,16 @@ export class StringUtils {
      *
      * @param jwtToken
      */
-    static decodeJwt(jwtToken: string): any {
+    static decodeJwt(jwtToken: string): DecodedJwt {
         if (StringUtils.isEmpty(jwtToken)) {
             throw ClientAuthError.createIdTokenNullOrEmptyError(jwtToken);
         }
         const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
         const matches = idTokenPartsRegex.exec(jwtToken);
         if (!matches || matches.length < 4) {
-            throw ClientAuthError.createIdTokenParsingError(`Given token is malformed: ${jwtToken}`);
+            throw ClientAuthError.createIdTokenParsingError(`Given token is malformed: ${JSON.stringify(jwtToken)}`);
         }
-        const crackedToken = {
+        const crackedToken: DecodedJwt = {
             header: matches[1],
             JWSPayload: matches[2],
             JWSSig: matches[3]
@@ -49,7 +50,7 @@ export class StringUtils {
         let match: Array<string>; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
-        const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));
+        const decode = (s: string): string => decodeURIComponent(s.replace(pl, " "));
         const obj: {} = {};
         match = search.exec(query);
         while (match) {

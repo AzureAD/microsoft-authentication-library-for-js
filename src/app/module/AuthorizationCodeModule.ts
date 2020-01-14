@@ -158,7 +158,7 @@ export class AuthorizationCodeModule extends AuthModule {
     async renewToken(request: TokenRenewParameters): Promise<TokenResponse> {
         try {
             if (!request) {
-                throw ClientAuthError.createEmptyTokenRequestError();
+                throw ClientConfigurationError.createEmptyTokenRequestError();
             }
 
             const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
@@ -255,7 +255,7 @@ export class AuthorizationCodeModule extends AuthModule {
     // #region Response Handling
 
     public handleFragmentResponse(hashFragment: string): CodeResponse {
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
         return responseHandler.handleFragmentResponse(hashFragment);
     }
 
@@ -308,7 +308,7 @@ export class AuthorizationCodeModule extends AuthModule {
         );
 
         validateServerAuthorizationTokenResponse(acquiredTokenResponse);
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
         const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
         this.account = tokenResponse.account;
         return tokenResponse;

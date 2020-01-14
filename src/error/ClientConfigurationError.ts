@@ -52,6 +52,10 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_prompt_value",
         desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'.  Please see here for valid configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options",
     },
+    tokenRequestEmptyError: {
+        code: "token_request_empty",
+        desc: "Token request was empty and not found in cache."
+    }
 };
 
 /**
@@ -68,7 +72,7 @@ export class ClientConfigurationError extends ClientAuthError {
     /**
      * Creates an error thrown when the redirect uri is empty (not set by caller)
      */
-    static createRedirectUriEmptyError(): ClientAuthError {
+    static createRedirectUriEmptyError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.redirectUriNotSet.code,
             ClientConfigurationErrorMessage.redirectUriNotSet.desc);
     }
@@ -76,7 +80,7 @@ export class ClientConfigurationError extends ClientAuthError {
     /**
      * Creates an error thrown when the post-logout redirect uri is empty (not set by caller)
      */
-    static createPostLogoutRedirectUriEmptyError(): ClientAuthError {
+    static createPostLogoutRedirectUriEmptyError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.postLogoutUriNotSet.code,
             ClientConfigurationErrorMessage.postLogoutUriNotSet.desc);
     }
@@ -93,7 +97,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Creates an error thrown if authority uri is given an insecure protocol.
      * @param urlString 
      */
-    static createInsecureAuthorityUriError(urlString: string): ClientAuthError {
+    static createInsecureAuthorityUriError(urlString: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityUriInsecure.code,
             `${ClientConfigurationErrorMessage.authorityUriInsecure.desc} Given URI: ${urlString}`);
     }
@@ -102,7 +106,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Creates an error thrown if URL string does not parse into separate segments.
      * @param urlString 
      */
-    static createUrlParseError(urlParseError: string): ClientAuthError {
+    static createUrlParseError(urlParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlParseError.code,
             `${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlParseError}`);
     }
@@ -111,7 +115,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Creates an error thrown if URL string is empty or null.
      * @param urlString 
      */
-    static createUrlEmptyError(): ClientAuthError {
+    static createUrlEmptyError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code, ClientConfigurationErrorMessage.urlEmptyError.desc);
     }
 
@@ -119,7 +123,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Error thrown when input scopes are required.
      * @param inputScopes 
      */
-    static createScopesRequiredError(inputScopes: Array<string>) {
+    static createScopesRequiredError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequiredError.code,
             `${ClientConfigurationErrorMessage.scopesRequiredError.desc} Given Scopes: ${inputScopes}`);
     }
@@ -128,7 +132,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Error thrown when scopes are not an array
      * @param inputScopes 
      */
-    static createScopesNonArrayError(inputScopes: Array<string>) {
+    static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
             `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes.toString()}`);
     }
@@ -137,7 +141,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Error thrown when scopes are empty.
      * @param scopesValue 
      */
-    static createEmptyScopesArrayError(inputScopes: Array<string>) {
+    static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
             `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes.toString()}`);
     }
@@ -146,7 +150,7 @@ export class ClientConfigurationError extends ClientAuthError {
      * Error thrown when client id scope is not provided as single scope.
      * @param inputScopes 
      */
-    static createClientIdSingleScopeError(inputScopes: Array<string>) {
+    static createClientIdSingleScopeError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.clientIdSingleScopeError.code,
             `${ClientConfigurationErrorMessage.clientIdSingleScopeError.desc} Given Scopes: ${inputScopes.toString()}`);
     }
@@ -155,8 +159,15 @@ export class ClientConfigurationError extends ClientAuthError {
      * Error thrown when prompt is not an allowed type.
      * @param promptValue 
      */
-    static createInvalidPromptError(promptValue: any): ClientConfigurationError {
+    static createInvalidPromptError(promptValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
+    }
+
+    /**
+     * Throws error when token request is empty and nothing cached in storage.
+     */
+    static createEmptyTokenRequestError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.tokenRequestEmptyError.code, ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
     }
 }

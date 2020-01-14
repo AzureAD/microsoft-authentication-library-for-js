@@ -20,7 +20,6 @@ import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
-import { Logger } from "../logger/Logger";
 import { CodeResponse } from "./CodeResponse";
 
 /**
@@ -31,14 +30,12 @@ export class ResponseHandler {
     private cacheStorage: ICacheStorage;
     private cacheManager: CacheHelpers;
     private cryptoObj: ICrypto;
-    private logger: Logger;
 
-    constructor(clientId: string, cacheStorage: ICacheStorage, cacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: ICacheStorage, cacheManager: CacheHelpers, cryptoObj: ICrypto) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cacheManager = cacheManager;
         this.cryptoObj = cryptoObj;
-        this.logger = logger;
     }
 
     static setResponseIdToken(originalResponse: TokenResponse, idTokenObj: IdToken) : TokenResponse {
@@ -62,7 +59,7 @@ export class ResponseHandler {
         };
     }
 
-    public handleFragmentResponse(hashFragment: string) {
+    public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Deserialize and validate hash fragment response parameters
         const hashUrlString = new UrlString(hashFragment);
         const hashParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();

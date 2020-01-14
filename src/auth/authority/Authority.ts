@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
+import { TenantDiscoveryResponse } from "./TenantDiscoveryResponse";
 import { UrlString } from "../../url/UrlString";
 import { IUri } from "../../url/IUri";
 import { ClientAuthError } from "../../error/ClientAuthError";
@@ -24,7 +24,7 @@ export abstract class Authority {
 
     private _canonicalAuthority: UrlString;
     private _canonicalAuthorityUrlComponents: IUri;
-    private tenantDiscoveryResponse: ITenantDiscoveryResponse;
+    private tenantDiscoveryResponse: TenantDiscoveryResponse;
     protected networkInterface: INetworkModule;
 
     public abstract get authorityType(): AuthorityType;
@@ -101,12 +101,12 @@ export abstract class Authority {
         this.networkInterface = networkInterface;
     }
 
-    discoveryComplete() {
+    discoveryComplete(): boolean {
         return !!this.tenantDiscoveryResponse;
     }
 
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-        return this.networkInterface.sendGetRequestAsync<ITenantDiscoveryResponse>(openIdConfigurationEndpoint);
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<TenantDiscoveryResponse> {
+        return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);
     }
 
     public abstract async getOpenIdConfigurationAsync(): Promise<string>;

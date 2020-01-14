@@ -35,13 +35,12 @@ export type AuthenticationParameters = ClientRequestParameters & {
  * Function which validates claims request passed in by the user.
  * @param request 
  */
-export function validateClaimsRequest(request: AuthenticationParameters) {
+export function validateClaimsRequest(request: AuthenticationParameters): void {
     if (!request.claimsRequest) {
         return;
     }
-    let claims;
     try {
-        claims = JSON.parse(request.claimsRequest);
+        JSON.parse(request.claimsRequest);
     } catch (e) {
         throw ClientConfigurationError.createClaimsRequestParsingError(e);
     }

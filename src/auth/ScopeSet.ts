@@ -7,7 +7,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
 
 export class ScopeSet {
-
     private clientId: string;
     private scopes: Set<string>;
     private originalScopes: Set<string>;
@@ -33,7 +32,7 @@ export class ScopeSet {
      * @param appClientId 
      * @param scopesRequired 
      */
-    static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean) {
+    static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean): ScopeSet {
         const inputScopes: Array<string> = inputScopeString.split(" ");
         return new ScopeSet(inputScopes, appClientId, scopesRequired);
     }
@@ -89,7 +88,7 @@ export class ScopeSet {
      * Check if a set of scopes is present in this set of scopes.
      * @param scopeSet 
      */
-    containsScopeSet(scopeSet: ScopeSet) {
+    containsScopeSet(scopeSet: ScopeSet): boolean {
         if (this.scopes.size < scopeSet.scopes.size) {
             return false;
         } else {
@@ -139,7 +138,7 @@ export class ScopeSet {
      * Check if scopes intersect between this set and another.
      * @param otherScopes 
      */
-    intersectingScopeSets(otherScopes: ScopeSet) {
+    intersectingScopeSets(otherScopes: ScopeSet): boolean {
         return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.getScopeCount());
     }
 
