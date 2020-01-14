@@ -145,6 +145,7 @@ export class PublicClientApplication {
 
         if (this.interactionInProgress()) {
             this.authCallback(BrowserAuthError.createInteractionInProgressError());
+            return;
         }
 
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
@@ -167,6 +168,7 @@ export class PublicClientApplication {
 
         if (this.interactionInProgress()) {
             this.authCallback(BrowserAuthError.createInteractionInProgressError());
+            return;
         }
 
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
