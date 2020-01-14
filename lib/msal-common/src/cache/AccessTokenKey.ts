@@ -25,7 +25,7 @@ export class AccessTokenKey {
         this.scopes = scopes;
         this.resource = resource;
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
-            this.homeAccountIdentifier = cryptoObj.base64Encode(uid) + "." + cryptoObj.base64Encode(utid);
+            this.homeAccountIdentifier = `${cryptoObj.base64Encode(uid)}.${cryptoObj.base64Encode(utid)}`;
         }
     }
 }

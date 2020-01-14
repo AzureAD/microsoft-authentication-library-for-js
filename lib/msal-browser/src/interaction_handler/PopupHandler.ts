@@ -15,7 +15,7 @@ export class PopupHandler extends InteractionHandler {
         this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS);
         const popupWindow = this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
         this.currentWindow = popupWindow;
-        if (requestUrl && !StringUtils.isEmpty(requestUrl)) {
+        if (!StringUtils.isEmpty(requestUrl)) {
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             return popupWindow;
         } else {
