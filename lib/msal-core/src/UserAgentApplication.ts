@@ -235,7 +235,7 @@ export class UserAgentApplication {
         WindowUtils.checkIfBackButtonIsPressed(this.cacheStorage);
 
         // On the server 302 - Redirect, handle this
-        if (!this.config.framework.isAngular && urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
+        if (urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
             this.handleAuthenticationResponse(urlHash);
         }
     }
@@ -269,11 +269,9 @@ export class UserAgentApplication {
         this.redirectCallbacksSet = true;
 
         // On the server 302 - Redirect, handle this
-        if (!this.config.framework.isAngular) {
-            const cachedHash = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
-            if (cachedHash) {
-                this.processCallBack(cachedHash, null);
-            }
+        const cachedHash = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
+        if (cachedHash) {
+            this.processCallBack(cachedHash, null);
         }
     }
 
