@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { StringUtils } from "../utils/StringUtils";

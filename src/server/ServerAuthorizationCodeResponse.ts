@@ -4,9 +4,8 @@
  */
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
-import { buildClientInfo, ClientInfo } from "../auth/ClientInfo";
+import { buildClientInfo } from "../auth/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
-import { Logger } from "../logger/Logger";
 
 /**
  * Deserialized response object from server authorization code request.
@@ -24,7 +23,7 @@ export type ServerAuthorizationCodeResponse = {
     error_description?: string;
 };
 
-export function validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto, logger: Logger): void {
+export function validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
     if (serverResponseHash.state !== cachedState) {
         throw ClientAuthError.createStateMismatchError();
     }

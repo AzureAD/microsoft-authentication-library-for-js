@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { UrlString } from "../../url/UrlString";
 import { IUri } from "../../url/IUri";

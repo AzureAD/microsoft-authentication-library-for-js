@@ -6,7 +6,7 @@ import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule, NetworkRequestOptions } from "../../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
-import { ILoggerCallback, LogLevel } from "../../logger/Logger";
+import { ILoggerCallback } from "../../logger/Logger";
 
 /**
  * Defaults for the Module Configuration Options

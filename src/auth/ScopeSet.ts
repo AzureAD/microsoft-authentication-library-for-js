@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
@@ -19,9 +18,13 @@ export class ScopeSet {
         this.scopesRequired = scopesRequired;
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(inputScopes);
-        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [this.clientId];
+        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
         this.scopes = new Set<string>(scopeArr);
         this.originalScopes = new Set<string>(this.scopes);
+        if (!this.scopesRequired) {
+            this.appendScope(this.clientId);
+        }
+        this.replaceDefaultScopes();
     }
 
     /**
@@ -33,6 +36,18 @@ export class ScopeSet {
     static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean) {
         const inputScopes: Array<string> = inputScopeString.split(" ");
         return new ScopeSet(inputScopes, appClientId, scopesRequired);
+    }
+
+    /**
+     * Replace client id with the default scopes used for token acquisition.
+     */
+    private replaceDefaultScopes(): void {
+        if (this.scopes.has(this.clientId)) {
+            this.removeScope(this.clientId);
+            this.appendScope(Constants.OPENID_SCOPE);
+            this.appendScope(Constants.PROFILE_SCOPE);
+        }
+        this.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
     }
 
     /**
@@ -53,13 +68,6 @@ export class ScopeSet {
             // Check that scopes is not an empty array
             if (inputScopes.length < 1) {
                 throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
-            }
-
-            // Check that clientId is passed as single scope
-            if (inputScopes && inputScopes.indexOf(this.clientId) > -1) {
-                if (inputScopes.length > 1) {
-                    throw ClientConfigurationError.createClientIdSingleScopeError(inputScopes);
-                }
             }
         }
 
@@ -107,8 +115,8 @@ export class ScopeSet {
      * @param newScopes 
      */
     appendScopes(newScopes: Array<string>): void {
-        this.validateInputScopes(newScopes);
-        this.scopes = this.unionScopeSets(newScopes);
+        const newScopeSet = new ScopeSet(newScopes, this.clientId, false);
+        this.scopes = this.unionScopeSets(newScopeSet);
     }
 
     /**
@@ -123,16 +131,16 @@ export class ScopeSet {
      * Combines an array of scopes with the current set of scopes.
      * @param otherScopes 
      */
-    unionScopeSets(otherScopes: Array<string>): Set<string> {
-        return new Set<string>([...StringUtils.trimAndConvertArrayEntriesToLowerCase(otherScopes), ...Array.from(this.scopes)]);
+    unionScopeSets(otherScopes: ScopeSet): Set<string> {
+        return new Set<string>([...otherScopes.asArray(), ...Array.from(this.scopes)]);
     }
 
     /**
      * Check if scopes intersect between this set and another.
      * @param otherScopes 
      */
-    intersectingScopeSets(otherScopes: Array<string>) {
-        return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.length);
+    intersectingScopeSets(otherScopes: ScopeSet) {
+        return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.getScopeCount());
     }
 
     /**
@@ -151,7 +159,7 @@ export class ScopeSet {
             this.originalScopes.has(Constants.OPENID_SCOPE) ||
             this.originalScopes.has(Constants.PROFILE_SCOPE)
         );
-        return this.originalScopes && hasLoginScopes && this.originalScopes.size === 1;
+        return this.originalScopes && hasLoginScopes;
     }
 
     /**
@@ -166,20 +174,6 @@ export class ScopeSet {
      */
     getOriginalScopesAsArray(): Array<string> {
         return Array.from(this.originalScopes);
-    }
-
-    /**
-     * Replace client id with the default scopes used for token acquisition.
-     */
-    printReplacedDefaultScopes(): string {
-        const replacedScopes: ScopeSet = new ScopeSet(this.asArray(), this.clientId, this.scopesRequired);
-        if (replacedScopes.containsScope(this.clientId)) {
-            replacedScopes.removeScope(this.clientId);
-            replacedScopes.appendScope(Constants.OPENID_SCOPE);
-            replacedScopes.appendScope(Constants.PROFILE_SCOPE);
-        }
-        replacedScopes.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
-        return replacedScopes.printScopes();
     }
 
     /**
