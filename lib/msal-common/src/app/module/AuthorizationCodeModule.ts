@@ -27,6 +27,8 @@ import { TimeUtils } from "../../utils/TimeUtils";
 import { IdToken } from "../../auth/IdToken";
 import { StringUtils } from "../../utils/StringUtils";
 import { TokenRenewParameters } from "../../request/TokenRenewParameters";
+import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
+import { UrlString } from "../../url/UrlString";
 
 /**
  * AuthorizationCodeModule class
