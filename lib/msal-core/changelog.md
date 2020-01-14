@@ -2,10 +2,10 @@
 
 ## Bugs
 * `urlContainsHash()` is restored as a public API (#1202)
-* "allow-forms" added in sandbox properties for the iframes created by `msal js` to support certain B2C scenarios
+* `allow-forms` added in sandbox properties for the iframes created by `msal js` to support certain B2C scenarios(#1191)
 
 ## enhancements
-* `isAngular` flag removal from `redirect` use cases
+* `isAngular` flag removal from `redirect` use cases(#1193)
 
 # 1.2.0
 
