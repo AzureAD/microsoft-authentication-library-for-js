@@ -85,7 +85,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
             // Check for SSO
             if (!requestParameters.isSSOParam()) {
-                // TODO: Check for ADAL SSO
+                // TODO: Check for ADAL SSO 
             }
 
             // Update required cache entries for request
