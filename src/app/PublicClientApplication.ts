@@ -221,7 +221,7 @@ export class PublicClientApplication {
      * Use this function to obtain a token before every call to the API / resource provider
      *
      * MSAL return's a cached token when available
-     * Or it send's a request to the STS to obtain a new token using a hidden iframe.
+     * Or it send's a request to the STS to obtain a new token using a refresh token.
      *
      * @param {@link AuthenticationParameters}
      *
