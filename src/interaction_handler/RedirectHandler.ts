@@ -9,6 +9,7 @@ import { AuthCallback } from "../app/PublicClientApplication";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 export class RedirectHandler extends InteractionHandler {
 
@@ -29,7 +30,7 @@ export class RedirectHandler extends InteractionHandler {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
-            window.location.assign(requestUrl);
+            BrowserUtils.navigateWindow(requestUrl);
         } else {
             this.authModule.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyRedirectUriError();
