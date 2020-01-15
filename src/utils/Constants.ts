@@ -11,7 +11,6 @@ export const Constants = {
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
     NO_ACCOUNT: "NO_ACCOUNT",
-    INTERACTION_IN_PROGRESS: "interaction_in_progress",
     // Claims
     CLAIMS: "claims",
     // UPN
@@ -50,9 +49,9 @@ export enum TemporaryCacheKeys {
     ORIGIN_URI = "request.origin",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    INTERACTION_STATUS = "interaction.status",
     REQUEST_PARAMS = "request.params",
-    REDIRECT_REQUEST = "redirect.request"
+    REDIRECT_REQUEST = "redirect.request",
+    SCOPES = "scopes"
 };
 
 export enum AuthApiType {
