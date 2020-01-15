@@ -11,6 +11,7 @@ import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -132,7 +133,7 @@ export class PublicClientApplication {
      * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: AuthenticationParameters): void {
+    loginRedirect(request?: AuthenticationParameters): void {
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
         }
@@ -155,7 +156,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: AuthenticationParameters): void {
+    acquireTokenRedirect(request?: AuthenticationParameters): void {
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
         }
@@ -189,7 +190,7 @@ export class PublicClientApplication {
         const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         const navigateUrl = await this.authModule.createLoginUrl(request);
         const popupWindow = interactionHandler.showUI(navigateUrl);
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.popupWindowTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
         return interactionHandler.handleCodeResponse(hash);
     }
 
@@ -207,7 +208,7 @@ export class PublicClientApplication {
         const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
         const popupWindow = interactionHandler.showUI(navigateUrl);
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.popupWindowTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
         return interactionHandler.handleCodeResponse(hash);
     }
 
@@ -239,9 +240,7 @@ export class PublicClientApplication {
      */
     logout(): void {
         this.authModule.logout().then(logoutUri => {
-            window.location.assign(logoutUri);
-        }).catch(e => {
-            throw e;
+            BrowserUtils.navigateWindow(logoutUri);
         });
     }
 

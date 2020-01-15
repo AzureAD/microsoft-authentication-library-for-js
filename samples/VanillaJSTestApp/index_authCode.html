@@ -4,7 +4,7 @@
     <title>Quickstart for MSAL JS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
     <script src="./lib/msal-browser.js"></script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-q831to8qfzwOHGVtvjRavA4q3PAYmKlHYbRJ5Pl5g8o='; connect-src https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-ZkWnwak8hss11CqQPwfCdL+tG3KnX2knPw7CDApGULo='; connect-src https:;">
 </head>
 
 <body>
@@ -39,7 +39,7 @@
     };
 
     const tokenRequest = {
-        scopes: [msalConfig.auth.clientId],
+        scopes: ["user.read"],
         forceRefresh: true
     };
 
