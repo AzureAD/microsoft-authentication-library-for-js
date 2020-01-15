@@ -206,16 +206,6 @@ export class AuthorizationCodeModule extends AuthModule {
                 throw ClientConfigurationError.createEmptyTokenRequestError();
             }
 
-            // Initialize authority or use default, and perform discovery endpoint check.
-            const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-            if (!acquireTokenAuthority.discoveryComplete()) {
-                try {
-                    await acquireTokenAuthority.resolveEndpointsAsync();
-                } catch (e) {
-                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-                }
-            }
-
             // Get account object for this request.
             const account = request.account || this.getAccount();
             const requestScopes = new ScopeSet(request.scopes, this.clientConfig.auth.clientId, true);
@@ -225,16 +215,24 @@ export class AuthorizationCodeModule extends AuthModule {
                     throw ClientAuthError.createUserLoginRequiredError();
                 }
             }
-
+            
+            // Initialize authority or use default, and perform discovery endpoint check.
+            const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+            if (!acquireTokenAuthority.discoveryComplete()) {
+                try {
+                    await acquireTokenAuthority.resolveEndpointsAsync();
+                } catch (e) {
+                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+                }
+            }
             // Get current cached tokens
             const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
-            const expiration = Number(cachedTokenItem.value.expiresOnSec);
-            const offsetCurrentTime = TimeUtils.now() + this.clientConfig.systemOptions.tokenRenewalOffsetSeconds;
-
+            const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
+            const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.clientConfig.systemOptions.tokenRenewalOffsetSeconds;
             // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-            if (!request.forceRefresh && expiration && expiration > offsetCurrentTime) {
+            if (!request.forceRefresh && expirationSec && expirationSec > offsetCurrentTimeSec) {
                 const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.clientConfig.auth.clientId, true);
-                let tokenResponse: TokenResponse = {
+                const defaultTokenResponse: TokenResponse = {
                     uniqueId: "",
                     tenantId: "",
                     scopes: cachedScopes.asArray(),
@@ -243,18 +241,14 @@ export class AuthorizationCodeModule extends AuthModule {
                     idTokenClaims: null,
                     accessToken: cachedTokenItem.value.accessToken,
                     refreshToken: cachedTokenItem.value.refreshToken,
-                    expiresOn: new Date(expiration * 1000),
+                    expiresOn: new Date(expirationSec * 1000),
                     account: account,
                     userRequestState: ""
                 };
 
                 // Only populate id token if it exists in cache item.
-                if (!StringUtils.isEmpty(cachedTokenItem.value.idToken)) {
-                    const idTokenObject = new IdToken(cachedTokenItem.value.idToken, this.cryptoObj);
-                    tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObject);
-                }
-
-                return tokenResponse;
+                return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse : 
+                    ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoObj));
             } else {
                 // Renew the tokens.
                 request.authority = cachedTokenItem.key.authority;
@@ -379,14 +373,10 @@ export class AuthorizationCodeModule extends AuthModule {
         }
 
         // Filter cache items based on available scopes.
-        const filteredCacheItems: Array<AccessTokenCacheItem> = [];
-        for (let i = 0; i < tokenCacheItems.length; i++) {
-            const cacheItem = tokenCacheItems[i];
+        const filteredCacheItems: Array<AccessTokenCacheItem> = tokenCacheItems.filter(cacheItem => {
             const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.clientConfig.auth.clientId, true);
-            if (cachedScopes.containsScopeSet(requestScopes)) {
-                filteredCacheItems.push(cacheItem);
-            }
-        }
+            return cachedScopes.containsScopeSet(requestScopes);
+        });
 
         // If cache items contains too many matching tokens, throw error.
         if (filteredCacheItems.length > 1) {
@@ -394,10 +384,9 @@ export class AuthorizationCodeModule extends AuthModule {
         } else if (filteredCacheItems.length === 1) {
             // Return single cache item.
             return filteredCacheItems[0];
-        } else {
-            // If cache items are empty, throw error.
-            throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
         }
+        // If cache items are empty, throw error.
+        throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
     }
 
     /**

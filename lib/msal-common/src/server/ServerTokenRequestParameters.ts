@@ -33,7 +33,7 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         super(clientId, redirectUri, cryptoImpl);
         this.tokenRequest = tokenRequest;
         this.codeResponse = codeResponse;
-        this.refreshToken = refreshToken || "";
+        this.refreshToken = refreshToken;
 
         // Set scopes, always required for token request/exchange
         this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, true);

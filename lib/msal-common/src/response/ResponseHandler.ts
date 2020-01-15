@@ -88,7 +88,7 @@ export class ResponseHandler {
 
         // Expiration calculation
         const expiresIn = TimeUtils.parseExpiresInSeconds(serverTokenResponse.expires_in);
-        const expirationSec = TimeUtils.now() + expiresIn;
+        const expirationSec = TimeUtils.nowSeconds() + expiresIn;
         const extendedExpirationSec = expirationSec + TimeUtils.parseExpiresInSeconds(serverTokenResponse.ext_expires_in);
 
         // Get id token

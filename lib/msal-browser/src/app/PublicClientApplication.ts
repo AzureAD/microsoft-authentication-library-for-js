@@ -20,6 +20,7 @@ import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuth
 import { BrowserConstants } from "../utils/BrowserConstants";
 // Types
 import { AuthCallback } from "../types/AuthCallback";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -119,13 +120,12 @@ export class PublicClientApplication {
         try {
             // If hash exists, handle in window. Otherwise, continue execution.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
-            if (UrlString.hashContainsKnownProperties(hash)) {
-                this.authCallback(null, await interactionHandler.handleCodeResponse(hash));
-            } else if (UrlString.hashContainsKnownProperties(cachedHash)) {
-                this.authCallback(null, await interactionHandler.handleCodeResponse(cachedHash));
+            const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
+            if (responseHash) {
+                this.authCallback(null, await interactionHandler.handleCodeResponse(responseHash));
             }
         } catch (err) {
-            this.authCallback(err, null);
+            this.authCallback(err);
         }
     }
 
@@ -134,7 +134,7 @@ export class PublicClientApplication {
      * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: AuthenticationParameters): void {
+    loginRedirect(request?: AuthenticationParameters): void {
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
@@ -162,7 +162,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: AuthenticationParameters): void {
+    acquireTokenRedirect(request?: AuthenticationParameters): void {
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
@@ -207,7 +207,7 @@ export class PublicClientApplication {
         // Show the UI once the url has been created. Get the window handle for the popup.
         const popupWindow = interactionHandler.showUI(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.popupWindowTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
         // Handle response from hash string.
         return interactionHandler.handleCodeResponse(hash);
     }
@@ -232,7 +232,7 @@ export class PublicClientApplication {
         // Show the UI once the url has been created. Get the window handle for the popup.
         const popupWindow = interactionHandler.showUI(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.popupWindowTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
         // Handle response from hash string.
         return interactionHandler.handleCodeResponse(hash);
     }
@@ -267,9 +267,7 @@ export class PublicClientApplication {
     logout(): void {
         // create logout string and navigate user window to logout. Auth module will clear cache.
         this.authModule.logout().then(logoutUri => {
-            window.location.assign(logoutUri);
-        }).catch(e => {
-            throw e;
+            BrowserUtils.navigateWindow(logoutUri);
         });
     }
 
