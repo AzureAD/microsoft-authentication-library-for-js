@@ -20,7 +20,7 @@ export class TimeUtils {
     /**
      * return the current time in Unix time (seconds).
      */
-    static now(): number {
+    static nowSeconds(): number {
         // Date.getTime() returns in milliseconds.
         return Math.round(new Date().getTime() / 1000.0);
     }
