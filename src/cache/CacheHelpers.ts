@@ -2,19 +2,29 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { TemporaryCacheKeys, Constants } from "../utils/Constants";
-import { ICacheStorage } from "./ICacheStorage";
-import { Account } from "../auth/Account";
-import { Authority } from "../auth/authority/Authority";
-import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
-import { StringUtils } from "../utils/StringUtils";
-import { ClientAuthError } from "../error/ClientAuthError";
+// Cache
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
+import { ICacheStorage } from "./ICacheStorage";
+// Auth
+import { Account } from "../auth/Account";
+import { Authority } from "../auth/authority/Authority";
+// Request
+import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
+// Error
+import { ClientAuthError } from "../error/ClientAuthError";
+// Utils
+import { StringUtils } from "../utils/StringUtils";
+// Constants
+import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 
+/**
+ * The CacheHelpers class contains a set of helper functions used by the module to manage cache items.
+ */
 export class CacheHelpers {
 
+    // Storage interface
     private cacheStorage: ICacheStorage;
 
     constructor(cacheImpl: ICacheStorage) {
@@ -47,13 +57,9 @@ export class CacheHelpers {
     }
 
     /**
-     * @hidden
-     * @ignore
-     *
      * Sets the cachekeys for and stores the account information in cache
      * @param account
      * @param state
-     * @hidden
      */
     setAccountCache(account: Account): void {
         // Cache acquireTokenAccountKey
@@ -64,13 +70,9 @@ export class CacheHelpers {
     }
 
     /**
-     * @hidden
-     * @ignore
-     *
      * Sets the cacheKey for and stores the authority information in cache
      * @param state
      * @param authority
-     * @hidden
      */
     setAuthorityCache(authority: Authority, state: string): void {
         // Cache authorityKey
@@ -82,8 +84,6 @@ export class CacheHelpers {
      * Updates account, authority, and state in cache
      * @param serverAuthenticationRequest
      * @param account
-     * @hidden
-     * @ignore
      */
     updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
         // Cache account and state

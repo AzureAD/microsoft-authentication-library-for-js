@@ -2,16 +2,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Cache interface
 import { ICacheStorage } from "../../cache/ICacheStorage";
+// Network Interface
 import { INetworkModule } from "../../network/INetworkModule";
+// Crypto interface and types for PKCE
 import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
+// Error
 import { AuthError } from "../../error/AuthError";
+// Logger Callback
 import { ILoggerCallback } from "../../logger/Logger";
 
-/**
- * Defaults for the Module Configuration Options
- */
-const OFFSET = 300;
+// Token renewal offset default in seconds
+const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -61,11 +64,13 @@ export type LoggerOptions = {
     piiLoggingEnabled?: boolean
 };
 
+// Default module system options
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    tokenRenewalOffsetSeconds: OFFSET,
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };
 
+// Default logger implementation
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     loggerCallback: () => {
         const notImplErr = "Logger - loggerCallbackInterface() has not been implemented.";
@@ -74,6 +79,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     piiLoggingEnabled: false
 };
 
+// Default storage implementation
 const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     clear: () => {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
@@ -101,6 +107,7 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     }
 };
 
+// Default network implementation
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     async sendGetRequestAsync<T>(): Promise<T> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
@@ -112,6 +119,7 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     }
 };
 
+// Default crypto implementation
 const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
         const notImplErr = "Crypto interface - createNewGuid() has not been implemented";

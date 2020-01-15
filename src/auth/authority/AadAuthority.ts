@@ -2,27 +2,31 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { Authority, AuthorityType } from "./Authority";
-import { AADTrustedHostList } from "../../utils/Constants";
-import { INetworkModule } from "../../network/INetworkModule";
+// Authority Base Classes/Interfaces/Types/Enums
+import { Authority } from "./Authority";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
+import { AuthorityType } from "./AuthorityType";
+// Constants
+import { AADTrustedHostList } from "../../utils/Constants";
+// Network
+import { INetworkModule } from "../../network/INetworkModule";
 
 /**
- * @hidden
+ * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
  */
 export class AadAuthority extends Authority {
+    // Set authority type to AAD
     public get authorityType(): AuthorityType {
         return AuthorityType.Aad;
     }
 
     public get isValidationEnabled(): boolean {
-        // Hardcoded to true for now - will change depending on requirements
+        // Hardcoded to true for now - may change depending on requirements
         return true;
     }
 
+    // Default AAD Instance Discovery Endpoint
     private static readonly aadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
-
     private get aadInstanceDiscoveryEndpointUrl(): string {
         return `${AadAuthority.aadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.canonicalAuthority}oauth2/v2.0/authorize`;
     }
@@ -35,7 +39,6 @@ export class AadAuthority extends Authority {
      * Returns a promise which resolves to the OIDC endpoint
      * Only responds with the endpoint
      */
-
     public async getOpenIdConfigurationAsync(): Promise<string> {
         if (!this.isValidationEnabled || this.isInTrustedHostList(this.canonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.defaultOpenIdConfigurationEndpoint;

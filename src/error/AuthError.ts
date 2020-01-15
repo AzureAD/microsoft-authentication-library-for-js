@@ -18,7 +18,9 @@ export const AuthErrorMessage = {
  */
 export class AuthError extends Error {
 
+    // Short string denoting error
     errorCode: string;
+    // Detailed description of error
     errorMessage: string;
 
     constructor(errorCode: string, errorMessage?: string) {

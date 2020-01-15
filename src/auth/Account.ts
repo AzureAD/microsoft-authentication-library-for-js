@@ -2,11 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Auth
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
-import { StringUtils } from "../utils/StringUtils";
-import { ICrypto } from "../crypto/ICrypto";
 import { IdTokenClaims } from "./IdTokenClaims";
+// Utils
+import { StringUtils } from "../utils/StringUtils";
+// Crypto
+import { ICrypto } from "../crypto/ICrypto";
 
 /**
  * accountIdentifier       combination of idToken.uid and idToken.utid
@@ -51,7 +54,6 @@ export class Account {
     }
 
     /**
-     * @hidden
      * @param idToken
      * @param clientInfo
      */

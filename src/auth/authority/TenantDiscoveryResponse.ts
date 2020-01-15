@@ -4,7 +4,7 @@
  */
 
 /**
- * @hidden
+ * Tenant Discovery Response which contains the relevant OAuth endpoints and data needed for authentication and authorization.
  */
 export interface TenantDiscoveryResponse {
     authorization_endpoint: string;

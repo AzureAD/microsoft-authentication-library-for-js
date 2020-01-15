@@ -2,12 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Error
 import { ClientAuthError } from "../error/ClientAuthError";
+// Utils
 import { StringUtils } from "../utils/StringUtils";
+// Crypto
 import { ICrypto } from "../crypto/ICrypto";
 
 /**
- * @hidden
+ * Client info object which consists of two IDs. Need to add more info here.
  */
 export type ClientInfo = {
     uid: string,

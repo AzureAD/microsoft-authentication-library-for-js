@@ -2,9 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account } from "../auth/Account";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+// Base Type
 import { ClientRequestParameters } from "./ClientRequestParameters";
+// Auth
+import { Account } from "../auth/Account";
+// Error
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.

@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Interface for Decoded JWT tokens.
+ */
 export interface DecodedJwt {
     header: string,
     JWSPayload: string,

@@ -2,14 +2,25 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+// Error
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+// Utils
 import { StringUtils } from "../utils/StringUtils";
+// Constants
 import { Constants } from "../utils/Constants";
 
+/**
+ * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings to ensure uniqueness of strings.
+ */
 export class ScopeSet {
+    // Client ID of application
     private clientId: string;
+    // Scopes as a Set of strings
     private scopes: Set<string>;
+    // Original scopes passed to constructor. Usually used for caching or telemetry.
     private originalScopes: Set<string>;
+    // Boolean denoting whether scopes are required. Usually used for validation.
     private scopesRequired: boolean;
 
     constructor(inputScopes: Array<string>, appClientId: string, scopesRequired: boolean) {
@@ -50,12 +61,9 @@ export class ScopeSet {
     }
 
     /**
-     * @hidden
-     *
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-     * @ignore
      */
     private validateInputScopes(inputScopes: Array<string>): void {
         if (this.scopesRequired) {

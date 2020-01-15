@@ -2,20 +2,24 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AADAuthorityConstants } from "../utils/Constants";
-import { StringUtils } from "../utils/StringUtils";
-import { IUri } from "./IUri";
+// Response
+import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+// Error
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+// Utils
+import { StringUtils } from "../utils/StringUtils";
+import { IUri } from "./IUri";
+// Constants
+import { AADAuthorityConstants } from "../utils/Constants";
 
 /**
  * Url object class which can perform various transformations on url strings.
  */
 export class UrlString {
 
+    // internal url string field
     private _urlString: string;
-
     public get urlString(): string {
         return this._urlString;
     }
@@ -47,6 +51,7 @@ export class UrlString {
      * Throws if urlString passed is not a valid authority URI string.
      */
     validateAsUri(): void {
+        // Attempts to parse url for uri components
         let components;
         try {
             components = this.getUrlComponents();
@@ -54,10 +59,12 @@ export class UrlString {
             throw ClientConfigurationError.createUrlParseError(e);
         }
 
+        // Throw error if uri is insecure.
         if(!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
             throw ClientConfigurationError.createInsecureAuthorityUriError(this.urlString);
         }
 
+        // Throw error if path segments are not parseable.
         if (!components.PathSegments || components.PathSegments.length < 1) {
             throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
@@ -99,9 +106,6 @@ export class UrlString {
     }
 
     /**
-     * @hidden
-     * @ignore
-     *
      * Returns the anchor part(#) of the URL
      */
     getHash(): string {
@@ -116,9 +120,7 @@ export class UrlString {
     }
 
     /**
-     * @hidden
      * Returns deserialized portion of URL hash
-     * @ignore
      */
     getDeserializedHash<T>(): T {
         const hash = this.getHash();
@@ -134,6 +136,7 @@ export class UrlString {
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
      */
     getUrlComponents(): IUri {
+        // Throws error if url is empty
         if (!this.urlString) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
@@ -141,12 +144,13 @@ export class UrlString {
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
         const regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
 
+        // If url string does not match regEx, we throw an error
         const match = this.urlString.match(regEx);
-        
         if (!match) {
             throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
 
+        // Url component object
         const urlComponents = {
             Protocol: match[1],
             HostNameAndPort: match[4],
@@ -164,9 +168,7 @@ export class UrlString {
     }
 
     /**
-     * @hidden
      * Check if the hash of the URL string contains known properties
-     * @ignore
      */
     static hashContainsKnownProperties(url: string): boolean {
         if (StringUtils.isEmpty(url)) {

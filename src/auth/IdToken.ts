@@ -2,18 +2,24 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ClientAuthError } from "../error/ClientAuthError";
-import { StringUtils } from "../utils/StringUtils";
-import { ICrypto } from "../crypto/ICrypto";
+// Auth
 import { IdTokenClaims } from "./IdTokenClaims";
 import { DecodedJwt } from "./DecodedJwt";
+// Error
+import { ClientAuthError } from "../error/ClientAuthError";
+// Utils
+import { StringUtils } from "../utils/StringUtils";
+// Crypto
+import { ICrypto } from "../crypto/ICrypto";
 
 /**
- * @hidden
+ * Id Token representation class. Parses id token string and generates claims object.
  */
 export class IdToken {
 
+    // Raw Id Token string
     rawIdToken: string;
+    // Claims inside Id Token
     claims: IdTokenClaims;
     constructor(rawIdToken: string, crypto: ICrypto) {
         if (StringUtils.isEmpty(rawIdToken)) {

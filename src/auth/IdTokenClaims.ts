@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Type which describes Id Token claims known by MSAL.
+ */
 export type IdTokenClaims = {
     iss: string,
     oid: string,
