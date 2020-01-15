@@ -115,13 +115,12 @@ export class PublicClientApplication {
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         try {
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback, this.config.auth.navigateToLoginRequestUrl);
-            if (UrlString.hashContainsKnownProperties(hash)) {
-                this.authCallback(null, await interactionHandler.handleCodeResponse(hash));
-            } else if (UrlString.hashContainsKnownProperties(cachedHash)) {
-                this.authCallback(null, await interactionHandler.handleCodeResponse(cachedHash));
+            const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
+            if (responseHash) {
+                this.authCallback(null, await interactionHandler.handleCodeResponse(responseHash));
             }
         } catch (err) {
-            this.authCallback(err, null);
+            this.authCallback(err);
         }
     }
 
