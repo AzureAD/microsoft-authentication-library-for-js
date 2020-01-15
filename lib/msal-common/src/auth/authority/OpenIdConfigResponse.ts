@@ -4,7 +4,7 @@
  */
 
 /**
- * @hidden
+ * The OpenID Configuration Endpoint Response interface. Used by the authority class to get relevant OAuth endpoints.
  */
 export interface OpenIdConfigResponse {
     tenant_discovery_endpoint: string;

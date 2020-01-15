@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys } from "msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "msal-common";
 // Configuration
 import { CacheOptions } from "../app/Configuration";
 // Errors
@@ -71,8 +71,8 @@ export class BrowserStorage implements ICacheStorage {
     private migrateCacheEntries(): void {
         const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
         const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
-        const errorKey = `${Constants.CACHE_PREFIX}.${ErrorCacheKeys.ERROR}`;
-        const errorDescKey = `${Constants.CACHE_PREFIX}.${ErrorCacheKeys.ERROR_DESC}`;
+        const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
+        const errorDescKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR_DESC}`;
 
         const idTokenValue = this.getItem(idTokenKey);
         const clientInfoValue = this.getItem(clientInfoKey);
@@ -80,7 +80,7 @@ export class BrowserStorage implements ICacheStorage {
         const errorDescValue = this.getItem(errorDescKey);
 
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
-        const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
+        const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
 
         keysToMigrate.forEach((cacheKey, index) => this.migrateCacheEntry(cacheKey, values[index]));
     }

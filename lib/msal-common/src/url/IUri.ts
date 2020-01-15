@@ -4,7 +4,7 @@
  */
 
 /**
- * @hidden
+ * Interface which describes URI components.
  */
 export interface IUri {
     Protocol: string;
