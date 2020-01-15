@@ -10,7 +10,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows in milliseconds
-const FRAME_TIMEOUT = 60000;
+const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 
 export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
@@ -99,7 +99,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
-    popupWindowTimeout: FRAME_TIMEOUT
+    popupWindowTimeout: DEFAULT_POPUP_TIMEOUT_MS
 };
 
 /**
