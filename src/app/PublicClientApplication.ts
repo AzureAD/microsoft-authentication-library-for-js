@@ -134,7 +134,7 @@ export class PublicClientApplication {
      * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request?: AuthenticationParameters): void {
+    loginRedirect(request: AuthenticationParameters): void {
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
@@ -148,6 +148,7 @@ export class PublicClientApplication {
 
         // Create redirect interaction handler.
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+
         // Create login url, which will by default append the client id scope to the call.
         this.authModule.createLoginUrl(request).then((navigateUrl) => {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
@@ -162,7 +163,7 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request?: AuthenticationParameters): void {
+    acquireTokenRedirect(request: AuthenticationParameters): void {
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
@@ -200,16 +201,11 @@ export class PublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
 
-        // Create popup interaction handler.
-        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         // Create login url, which will by default append the client id scope to the call.
         const navigateUrl = await this.authModule.createLoginUrl(request);
-        // Show the UI once the url has been created. Get the window handle for the popup.
-        const popupWindow = interactionHandler.showUI(navigateUrl);
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
-        // Handle response from hash string.
-        return interactionHandler.handleCodeResponse(hash);
+
+        // Acquire token with popup
+        return this.popupTokenHelper(navigateUrl);
     }
 
     /**
@@ -225,10 +221,20 @@ export class PublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
 
-        // Create popup interaction handler.
-        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         // Create acquire token url.
         const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
+
+        // Acquire token with popup
+        return this.popupTokenHelper(navigateUrl);
+    }
+
+    /**
+     * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
+     * @param navigateUrl 
+     */
+    private async popupTokenHelper(navigateUrl: string): Promise<TokenResponse> {
+        // Create popup interaction handler.
+        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         // Show the UI once the url has been created. Get the window handle for the popup.
         const popupWindow = interactionHandler.showUI(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
