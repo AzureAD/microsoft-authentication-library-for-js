@@ -38,7 +38,7 @@ export type CacheOptions = {
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
-    popupWindowTimeout?: number;
+    windowHashTimeout?: number;
 };
 
 /**
@@ -99,7 +99,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
-    popupWindowTimeout: DEFAULT_POPUP_TIMEOUT_MS
+    windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS
 };
 
 /**

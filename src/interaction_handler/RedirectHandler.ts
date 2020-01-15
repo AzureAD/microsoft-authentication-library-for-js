@@ -12,6 +12,7 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 // Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 export class RedirectHandler extends InteractionHandler {
 
@@ -35,7 +36,7 @@ export class RedirectHandler extends InteractionHandler {
             this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Navigate window to request URL
-            window.location.assign(requestUrl);
+            BrowserUtils.navigateWindow(requestUrl);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");

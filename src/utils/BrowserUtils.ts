@@ -13,6 +13,18 @@ import { XhrClient } from "../network/XhrClient";
  */
 export class BrowserUtils {
 
+    // #region Window Navigation
+
+    /**
+     * Used to redirect the browser to the STS authorization endpoint
+     * @param {string} urlNavigate - URL of the authorization endpoint
+     */
+    static navigateWindow(urlNavigate: string): void {
+        window.location.assign(urlNavigate);
+    }
+
+    // #endregion
+
     /**
      * Returns current window URL as redirect uri
      */
