@@ -100,6 +100,8 @@ export class ResponseHandler {
         const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
         const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
+
+        // If no items in cache with these parameters, set new item.
         if (accessTokenCacheItems.length < 1) {
             const newTokenKey = new AccessTokenKey(
                 authority, 
@@ -112,6 +114,7 @@ export class ResponseHandler {
             );
             this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
         } else {
+            // Check if scopes are intersecting. If they are, combine scopes and replace cache item.
             accessTokenCacheItems.forEach(accessTokenCacheItem => {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, true);
                 if(cachedScopes.intersectingScopeSets(responseScopes)) {
@@ -126,7 +129,7 @@ export class ResponseHandler {
             });
         }
 
-        // Save tokens in cache
+        // Save tokens in response and return
         return {
             ...originalTokenResponse,
             scopes: responseScopeArray,
