@@ -109,8 +109,8 @@ export class AuthorizationCodeModule extends AuthModule {
             );
 
             // Check for SSO.
-            let adalIdToken: IdToken;
-            if (!requestParameters.isSSOParam()) {
+            let adalIdToken: IdToken = null;
+            if (!requestParameters.hasSSOParam()) {
                 const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (!StringUtils.isEmpty(adalIdTokenString)) {
                     adalIdToken = new IdToken(adalIdTokenString, this.cryptoObj);
@@ -324,7 +324,7 @@ export class AuthorizationCodeModule extends AuthModule {
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -409,7 +409,7 @@ export class AuthorizationCodeModule extends AuthModule {
         // Validate response. This function throws a server error if an error is returned by the server.
         validateServerAuthorizationTokenResponse(acquiredTokenResponse);
         // Create response handler and return token response with given parameters
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
         const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;

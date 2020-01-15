@@ -78,7 +78,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    isSSOParam(): boolean {
+    hasSSOParam(): boolean {
         const isSSORequest = this.userRequest && (this.account || this.userRequest.sid || this.userRequest.loginHint);
         return !!this.account || !!isSSORequest;
     }
@@ -102,7 +102,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
             }
 
             // if the developer provides one of these, give preference to developer choice
-            if (this.isSSOParam()) {
+            if (this.hasSSOParam()) {
                 queryParameters = this.constructUnifiedCacheQueryParameter(null);
             }
         }
