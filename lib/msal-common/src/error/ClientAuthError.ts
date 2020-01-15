@@ -64,6 +64,10 @@ export const ClientAuthErrorMessage = {
     authCodeNullOrEmptyError: {
         code: "auth_code_null_or_empty",
         desc: "The authorization code or code response was null. Please check the stack trace and logs for more information."
+    },
+    cacheParseError: {
+        code: "cache_parse_error",
+        desc: "Could not parse cache key."
     }
 };
 
@@ -128,7 +132,8 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the endpoint discovery doesn't complete correctly.
      */
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
+        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, 
+            `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
     }
 
     /**
@@ -136,7 +141,8 @@ export class ClientAuthError extends AuthError {
      * @param invalidAuthorityError 
      */
     static createInvalidAuthorityTypeError(givenUrl: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, `${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${givenUrl}`);
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, 
+            `${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${givenUrl}`);
     }
 
     /**
@@ -144,25 +150,32 @@ export class ClientAuthError extends AuthError {
      * @param invalidAuthorityError 
      */
     static createHashNotDeserializedError(hashParamObj: any): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code, `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
+        return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code, 
+            `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
     }
 
     /**
      * Creates an error thrown when two states do not match.
      */
     static createStateMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.stateMismatchError.code, ClientAuthErrorMessage.stateMismatchError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.stateMismatchError.code, 
+            ClientAuthErrorMessage.stateMismatchError.desc);
     }
 
     /**
      * Creates an error thrown when the nonce does not match.
      */
     static createNonceMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code, ClientAuthErrorMessage.nonceMismatchError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code, 
+            ClientAuthErrorMessage.nonceMismatchError.desc);
     }
 
+    /** 
+     * Creates an error thrown when the cached account and response account do not match.
+     */
     static createAccountMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code, ClientAuthErrorMessage.accountMismatchError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code, 
+            ClientAuthErrorMessage.accountMismatchError.desc);
     }
 
     /**
@@ -178,7 +191,15 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
     static createAuthCodeNullOrEmptyError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.authCodeNullOrEmptyError.code, ClientAuthErrorMessage.authCodeNullOrEmptyError.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.authCodeNullOrEmptyError.code, 
+            ClientAuthErrorMessage.authCodeNullOrEmptyError.desc);
     }
 
+    /**
+     * Creates an error in cache parsing.
+     */
+    static createCacheParseError(cacheKey: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code, 
+            `${ClientAuthErrorMessage.cacheParseError.desc} Cache key: ${cacheKey}`);
+    }
 }

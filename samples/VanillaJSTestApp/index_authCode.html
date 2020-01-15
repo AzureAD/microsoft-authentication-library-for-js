@@ -31,9 +31,11 @@
             storeAuthStateInCookie: false
         }
     };
+
     const loginRequest = {
-        scopes: ["openid", "profile", "User.Read"]
-    }
+        scopes: [msalConfig.auth.clientId]
+    };
+
     // resource endpoints
     const graphConfig = {
         graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",

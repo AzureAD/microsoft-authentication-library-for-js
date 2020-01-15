@@ -10,6 +10,8 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { IInteractionHandler } from "../interaction_handler/IInteractionHandler";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * A type alias for an authResponseCallback function.
@@ -122,6 +124,9 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.authCallback);
         interactionHandler.showUI(request);
     }
@@ -204,6 +209,14 @@ export class PublicClientApplication {
      */
     public getPostLogoutRedirectUri(): string {
         return this.authModule.getPostLogoutRedirectUri();
+    }
+
+    // #endregion
+
+    // #region Helpers
+
+    private interactionInProgress() {
+        return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS;
     }
 
     // #endregion

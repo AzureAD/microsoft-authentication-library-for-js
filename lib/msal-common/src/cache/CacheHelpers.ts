@@ -8,6 +8,11 @@ import { ICacheStorage } from "./ICacheStorage";
 import { Account } from "../auth/Account";
 import { Authority } from "../auth/authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
+import { StringUtils } from "../utils/StringUtils";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { AccessTokenKey } from "./AccessTokenKey";
+import { AccessTokenValue } from "./AccessTokenValue";
 
 export class CacheHelpers {
 
@@ -103,27 +108,45 @@ export class CacheHelpers {
      */
     resetTempCacheItems(state: string): void {
         let key: string;
-        // check state and remove associated cache
-        for (key in this.cacheStorage.getKeys()) {
-            if (!state || key.indexOf(state) !== -1) {
+        // check state and remove associated cache items
+        this.cacheStorage.getKeys().forEach((key) => {
+            if (StringUtils.isEmpty(state) || key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
+                if (keyState === state) {
                     this.cacheStorage.removeItem(key);
                 }
             }
-        }
-        // delete the interaction status cache
-        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        });
+        // delete generic interactive request parameters
+        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
+        this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
         this.cacheStorage.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
     }
 
     /**
-     * Return if the token renewal is still in progress
-     * @param stateValue
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
      */
-    tokenRenewalInProgress(stateValue: string): boolean {
-        const renewStatus = this.cacheStorage.getItem(TemporaryCacheKeys.RENEW_STATUS + stateValue);
-        return !!(renewStatus && renewStatus === Constants.INTERACTION_IN_PROGRESS);
+    getAllAccessTokens(clientId: string, authority: string): Array<AccessTokenCacheItem> {
+        const results = this.cacheStorage.getKeys().reduce((tokens, key) => {
+            const keyMatches = key.match(clientId) && key.match(authority) && key.match(TemporaryCacheKeys.SCOPES);
+            if (keyMatches) {
+                const value = this.cacheStorage.getItem(key);
+                if (value) {
+                    try {
+                        const parseAtKey = JSON.parse(key) as AccessTokenKey;
+                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
+                        return tokens.concat([ newAccessTokenCacheItem ]);
+                    } catch (e) {
+                        throw ClientAuthError.createCacheParseError(key);
+                    }
+                }
+            }
+            return tokens;
+        }, []);
+
+        return results;
     }
 }
