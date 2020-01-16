@@ -122,7 +122,8 @@ export class PublicClientApplication {
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
             const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
             if (responseHash) {
-                this.authCallback(null, await interactionHandler.handleCodeResponse(responseHash));
+                const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
+                this.authCallback(null, tokenResponse);
             }
         } catch (err) {
             this.authCallback(err);

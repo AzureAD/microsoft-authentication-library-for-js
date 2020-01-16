@@ -38,7 +38,7 @@ export class PopupHandler extends InteractionHandler {
             return popupWindow;
         } else {
             // Throw error if request URL is empty.
-            this.authModule.logger.info("Navigate url is empty");
+            this.authModule.logger.error("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
     }
