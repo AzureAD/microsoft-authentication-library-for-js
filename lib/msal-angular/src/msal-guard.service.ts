@@ -5,8 +5,6 @@ import {
     RouterStateSnapshot,
 } from "@angular/router";
 import { MSAL_CONFIG, MsalService, MSAL_CONFIG_ANGULAR } from "./msal.service";
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/pairwise';
 import { Location, PlatformLocation } from "@angular/common";
 import { BroadcastService } from "./broadcast.service";
 import { Configuration, AuthResponse, AuthError } from "msal";
@@ -32,8 +30,8 @@ export class MsalGuard implements CanActivate {
         if (!this.authService.getAccount()) {
             if (this.msalAngularConfig.popUp) {
                 return this.authService.loginPopup({
-                    scopes: this.msalConfig.framework.consentScopes,
-                    extraQueryParameters: this.msalConfig.framework.extraQueryParameters
+                    scopes: this.msalAngularConfig.consentScopes,
+                    extraQueryParameters: this.msalAngularConfig.extraQueryParameters
                 })
                     .then(() => true)
                     .catch(() => false);
