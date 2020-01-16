@@ -32,8 +32,9 @@ export type CacheOptions = {
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
+ * - windowHashTimeout            - sets the wait time for hidden iFrame navigation
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
+ * - telemetry                    - Telemetry options for library network requests
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;

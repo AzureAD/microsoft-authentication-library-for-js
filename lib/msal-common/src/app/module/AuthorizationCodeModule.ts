@@ -177,6 +177,7 @@ export class AuthorizationCodeModule extends AuthModule {
             // Initialize request parameters.
             const tokenReqParams = new ServerTokenRequestParameters(
                 this.clientConfig.auth.clientId,
+                this.clientConfig.auth.clientSecret,
                 tokenRequest,
                 codeResponse,
                 this.getRedirectUri(),
@@ -257,6 +258,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 // Initialize request parameters.
                 const tokenReqParams = new ServerTokenRequestParameters(
                     this.clientConfig.auth.clientId,
+                    this.clientConfig.auth.clientSecret,
                     request,
                     null,
                     this.getRedirectUri(),
