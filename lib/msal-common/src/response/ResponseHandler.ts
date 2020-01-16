@@ -155,11 +155,12 @@ export class ResponseHandler {
         // Return user set state in the response
         tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
 
-        this.cacheManager.resetTempCacheItems(state);
-
         // Save the access token if it exists
         const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
         const cachedAccount = this.getCachedAccount(accountKey);
+
+        // Reset temporary cache items
+        this.cacheManager.resetTempCacheItems(state);
         if (!cachedAccount || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             return this.saveToken(tokenResponse, cachedAuthority, serverTokenResponse, clientInfo);
         } else {

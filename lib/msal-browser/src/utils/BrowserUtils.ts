@@ -19,7 +19,7 @@ export class BrowserUtils {
      * @param {string} urlNavigate - URL of the authorization endpoint
      */
     static navigateWindow(urlNavigate: string): void {
-        throw new Error("Method not implemented.");
+        window.location.assign(urlNavigate);
     }
 
     // #endregion
