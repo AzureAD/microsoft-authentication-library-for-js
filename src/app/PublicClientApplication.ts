@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "msal-common";
+import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
 // Configuration
 import { Configuration, buildConfiguration } from "./Configuration";
 // Storage
@@ -31,7 +31,7 @@ export class PublicClientApplication {
     // input configuration by developer/user
     private config: Configuration;
 
-    // auth functions imported from msal-common module
+    // auth functions imported from @azure/msal-common module
     private authModule: AuthorizationCodeModule;
 
     // callback for error/token response

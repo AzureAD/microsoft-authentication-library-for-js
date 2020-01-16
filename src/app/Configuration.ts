@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "msal-common";
+import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
 // Utils
 import { BrowserUtils } from "../utils/BrowserUtils";
 // Constants
