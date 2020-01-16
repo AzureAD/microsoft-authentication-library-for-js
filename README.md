@@ -7,7 +7,7 @@ Microsoft Authentication Library for JavaScript (MSAL.js) (DRAFT)
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-[![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
+[![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat)](https://www.npmjs.com/package/msal-browser)[![npm version](https://img.shields.io/npm/dm/@azure/msal-browser.svg)](https://nodei.co/npm/msal/)
 
 ## Installation
 ### Via NPM:
@@ -33,7 +33,9 @@ However, recent discussion among the IETF community has uncovered numerous vulne
 We plan to continue support for the implicit flow in the library.
 
 ## Usage
-The example below walks you through how to login a user and acquire a token to be used for Microsoft's Graph Api.
+This library is not meant for production use. Please use one of these packages specific to the platform you are developing for:
+
+- [MSAL for Single Page Applications (SPAs)](../msal-browser/README.md)
 
 #### Prerequisite
 

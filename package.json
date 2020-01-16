@@ -1,5 +1,5 @@
 {
-    "name": "msal-common",
+    "name": "@azure/msal-common",
     "author": {
         "name": "Microsoft",
         "email": "nugetaad@microsoft.com",
