@@ -59,6 +59,7 @@ export type Configuration = {
 // Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
+    clientSecret: "",
     authority: null,
     validateAuthority: true,
     redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
