@@ -32,6 +32,7 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
 
     constructor(clientId: string, clientSecret: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
         super(clientId, redirectUri, cryptoImpl);
+        this.clientSecret = clientSecret;
         this.tokenRequest = tokenRequest;
         this.codeResponse = codeResponse;
         this.refreshToken = refreshToken;

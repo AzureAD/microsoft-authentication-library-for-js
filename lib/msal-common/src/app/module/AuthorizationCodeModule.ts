@@ -216,7 +216,7 @@ export class AuthorizationCodeModule extends AuthModule {
                     throw ClientAuthError.createUserLoginRequiredError();
                 }
             }
-            
+
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
             if (!acquireTokenAuthority.discoveryComplete()) {
@@ -226,6 +226,7 @@ export class AuthorizationCodeModule extends AuthModule {
                     throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
                 }
             }
+
             // Get current cached tokens
             const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
             const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
