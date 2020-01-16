@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { ICrypto, PkceCodes } from "msal-common";
+import { ICrypto, PkceCodes } from "@azure/msal-common";
 // GUIDs
 import { GuidGenerator } from "./GuidGenerator";
 // Base64

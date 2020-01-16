@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { AuthError, AuthResponse } from "msal-common";
+import { AuthError, AuthResponse } from "@azure/msal-common";
 
 /**
  * A type alias for an authResponseCallback function.

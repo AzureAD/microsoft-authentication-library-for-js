@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { PkceCodes } from "msal-common";
+import { PkceCodes } from "@azure/msal-common";
 // Error
 import { BrowserAuthError } from "../error/BrowserAuthError";
 // Base64 Encode

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "@azure/msal-common";
 // Configuration
 import { CacheOptions } from "../app/Configuration";
 // Errors

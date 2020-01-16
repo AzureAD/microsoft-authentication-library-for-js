@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { INetworkModule, NetworkRequestOptions } from "msal-common";
+import { INetworkModule, NetworkRequestOptions } from "@azure/msal-common";
 // Error
 import { BrowserAuthError } from "../error/BrowserAuthError";
 // HTTP Constants

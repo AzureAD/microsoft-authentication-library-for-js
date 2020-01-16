@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { UrlString, StringUtils, Constants, TokenResponse } from "msal-common";
+import { UrlString, StringUtils, Constants, TokenResponse } from "@azure/msal-common";
 // Base class
 import { InteractionHandler } from "./InteractionHandler";
 // Errors

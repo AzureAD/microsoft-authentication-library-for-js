@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, TokenResponse } from "msal-common";
+import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, TokenResponse } from "@azure/msal-common";
 // Base class
 import { InteractionHandler } from "./InteractionHandler";
 // Storage

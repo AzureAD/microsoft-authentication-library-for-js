@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { AuthorizationCodeModule, TokenResponse } from "msal-common";
+import { AuthorizationCodeModule, TokenResponse } from "@azure/msal-common";
 // Browser storage class
 import { BrowserStorage } from "../cache/BrowserStorage";
 

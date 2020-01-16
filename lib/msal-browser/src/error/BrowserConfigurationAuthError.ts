@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 // Common package imports
-import { AuthError } from "msal-common";
+import { AuthError } from "@azure/msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
