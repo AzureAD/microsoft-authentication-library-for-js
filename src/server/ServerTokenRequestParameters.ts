@@ -25,11 +25,12 @@ import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants"
 export class ServerTokenRequestParameters extends ServerRequestParameters {
 
     // Params
+    clientSecret: string;
     tokenRequest: TokenExchangeParameters;
     codeResponse: CodeResponse;
     refreshToken: string;
 
-    constructor(clientId: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
+    constructor(clientId: string, clientSecret: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
         super(clientId, redirectUri, cryptoImpl);
         this.tokenRequest = tokenRequest;
         this.codeResponse = codeResponse;
@@ -81,7 +82,7 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         }
 
         // Temporary until server allows CORS requests from browser without client secret
-        str.push("client_secret=");
+        str.push(`client_secret=${this.clientSecret}`);
 
         return str;
     }
