@@ -48,7 +48,8 @@ describe("AuthModule.ts Class Unit Tests", () => {
         systemOptions: null,
         cryptoInterface: null,
         networkInterface: null,
-        storageInterface: null
+        storageInterface: null,
+        loggerOptions: null
     }
     let authModule = new TestAuthModule(config);
 
