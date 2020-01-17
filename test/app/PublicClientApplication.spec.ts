@@ -1,19 +1,20 @@
 import * as Mocha from "mocha";
 import sinon from "sinon";
 import { expect } from "chai";
-import { PublicClientApplication, authCallback } from "../../src/app/PublicClientApplication";
+import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { AuthError, AuthResponse } from "msal-common";
+import { AuthCallback } from "../../src/types/AuthCallback";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca = new PublicClientApplication({
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
+            tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
         }
     });
 
-    const authCallback: authCallback = (authErr: AuthError, response: AuthResponse) => {
+    const authCallback: AuthCallback = (authErr: AuthError, response: AuthResponse) => {
         if (authErr) {
             console.error(authErr);
         } else if (response) {
@@ -74,7 +75,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         let pca_alternate_redirUris = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
+                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
             }
