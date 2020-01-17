@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { AuthorizationCodeModule, TokenResponse } from "@azure/msal-common";
-// Browser storage class
 import { BrowserStorage } from "../cache/BrowserStorage";
 
 /**
@@ -12,9 +10,7 @@ import { BrowserStorage } from "../cache/BrowserStorage";
  */
 export abstract class InteractionHandler {
 
-    // Auth Module
     protected authModule: AuthorizationCodeModule;
-    // Cache Storage
     protected browserStorage: BrowserStorage;
 
     constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {

@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Utils
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-// Errors
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 // SHA-256 hashing algorithm

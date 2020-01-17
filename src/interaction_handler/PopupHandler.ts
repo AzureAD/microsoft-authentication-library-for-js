@@ -2,13 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { UrlString, StringUtils, Constants, TokenResponse } from "@azure/msal-common";
-// Base class
 import { InteractionHandler } from "./InteractionHandler";
-// Errors
 import { BrowserAuthError } from "../error/BrowserAuthError";
-// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
 
 /**

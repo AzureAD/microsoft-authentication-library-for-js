@@ -2,11 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
-// Utils
 import { BrowserUtils } from "../utils/BrowserUtils";
-// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows in milliseconds

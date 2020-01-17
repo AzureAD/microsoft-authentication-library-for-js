@@ -2,15 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, TokenResponse } from "@azure/msal-common";
-// Base class
 import { InteractionHandler } from "./InteractionHandler";
-// Storage
 import { BrowserStorage } from "../cache/BrowserStorage";
-// Error
 import { BrowserAuthError } from "../error/BrowserAuthError";
-// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 

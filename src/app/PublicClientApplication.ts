@@ -2,23 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
-// Configuration
 import { Configuration, buildConfiguration } from "./Configuration";
-// Storage
 import { BrowserStorage } from "../cache/BrowserStorage";
-// Crypto
 import { CryptoOps } from "../crypto/CryptoOps";
-// Interaction
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
-// Errors
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
-// Types
 import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 
@@ -28,7 +20,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
  */
 export class PublicClientApplication {
 
-    // input configuration by developer/user
+    // Input configuration by developer/user
     private config: Configuration;
 
     // auth functions imported from @azure/msal-common module

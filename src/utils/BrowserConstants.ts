@@ -4,7 +4,6 @@
  */
 
 /**
- * @hidden
  * Constants
  */
 export const BrowserConstants = {

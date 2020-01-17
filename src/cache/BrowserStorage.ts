@@ -2,14 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "@azure/msal-common";
-// Configuration
 import { CacheOptions } from "../app/Configuration";
-// Errors
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-// Constants
 import { BrowserConstants } from "../utils/BrowserConstants";
 
 // Cookie life calculation (hours * minutes * seconds * ms)
@@ -33,7 +29,6 @@ export class BrowserStorage implements ICacheStorage {
         // Validate cache location
         this.validateWindowStorage(cacheConfig.cacheLocation);
 
-        // Initialize field vars
         this.cacheConfig = cacheConfig;
         this.windowStorage = window[this.cacheConfig.cacheLocation];
         this.clientId = clientId;

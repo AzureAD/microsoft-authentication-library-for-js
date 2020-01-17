@@ -2,16 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { ICrypto, PkceCodes } from "@azure/msal-common";
-// GUIDs
 import { GuidGenerator } from "./GuidGenerator";
-// Base64
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
-// PKCE
 import { PkceGenerator } from "./PkceGenerator";
-// Browser crypto implementation
 import { BrowserCrypto } from "./BrowserCrypto";
 
 /**
@@ -20,14 +15,10 @@ import { BrowserCrypto } from "./BrowserCrypto";
  */
 export class CryptoOps implements ICrypto {
 
-    // Browser crypto object - either mscrypto or window.crypto
     private browserCrypto: BrowserCrypto;
-    // GUID Generator class
     private guidGenerator: GuidGenerator;
-    // Base64 Encode and Decode
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
-    // PKCE Generator using SHA-256
     private pkceGenerator: PkceGenerator;
 
     constructor() {

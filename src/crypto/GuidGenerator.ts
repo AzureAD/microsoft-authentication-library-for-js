@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Math Utils
 import { MathUtils } from "../utils/MathUtils";
-// Browser crypto object
 import { BrowserCrypto } from "./BrowserCrypto";
 
 export class GuidGenerator {
