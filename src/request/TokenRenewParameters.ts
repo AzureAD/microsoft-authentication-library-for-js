@@ -16,6 +16,6 @@ import { Account } from "../auth/Account";
  * - forceRefresh: Forces silent requests to make network calls if true
  */
 export type TokenRenewParameters = ClientRequestParameters & {
-    account: Account;
+    account?: Account;
     forceRefresh?: boolean;
 };

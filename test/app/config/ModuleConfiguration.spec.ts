@@ -4,6 +4,7 @@ import sinon from "sinon";
 import { ModuleConfiguration, buildModuleConfiguration } from "../../../src/app/config/ModuleConfiguration";
 import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { AuthError } from "../../../src/error/AuthError";
+import { NetworkRequestOptions } from "../../../src/network/INetworkModule";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
@@ -45,11 +46,11 @@ describe("ModuleConfiguration.ts Class Unit Tests", () => {
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
         expect(emptyConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null, "")).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendGetRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null, "")).to.be.rejectedWith(AuthError);
+        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendGetRequestAsync() has not been implemented");
+        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).to.be.rejectedWith(AuthError);
         expect(emptyConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith(AuthError);
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
     });
 
     const clearFunc = (): void => {
@@ -106,10 +107,10 @@ describe("ModuleConfiguration.ts Class Unit Tests", () => {
                 setItem: setFunc
             },
             networkInterface: {
-                sendGetRequestAsync: async (url: string, headers?: Map<string, string>, body?: string): Promise<any> => {
+                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, headers?: Map<string, string>, body?: string): Promise<any> => {
+                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
                 }
             }
@@ -139,8 +140,8 @@ describe("ModuleConfiguration.ts Class Unit Tests", () => {
         // Network interface tests
         expect(newConfig.networkInterface).to.be.not.null;
         expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendGetRequestAsync("", null, "")).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface.sendGetRequestAsync("", null)).to.eventually.eq(testNetworkResult);
         expect(newConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendPostRequestAsync("", null, "")).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface.sendPostRequestAsync("", null)).to.eventually.eq(testNetworkResult);
     });
 });
