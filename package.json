@@ -37,7 +37,7 @@
         "clean": "shx rm -rf dist lib",
         "clean:coverage": "rimraf ../../.nyc_output/*",
         "lint": "eslint src --ext .ts",
-        "pretest": "npm link msal-common",
+        "pretest": "npm link @azure/msal-common",
         "test": "mocha",
         "test:coverage": "nyc --reporter=text mocha",
         "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
