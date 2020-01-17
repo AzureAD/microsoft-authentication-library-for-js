@@ -2,15 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Authority Interfaces/Types/Enums
 import { AuthorityType } from "./AuthorityType";
 import { TenantDiscoveryResponse } from "./TenantDiscoveryResponse";
-// Url
 import { UrlString } from "../../url/UrlString";
 import { IUri } from "../../url/IUri";
-// Error
 import { ClientAuthError } from "../../error/ClientAuthError";
-// Network
 import { INetworkModule } from "../../network/INetworkModule";
 
 /**

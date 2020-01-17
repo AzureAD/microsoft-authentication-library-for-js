@@ -2,15 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Cache interface
 import { ICacheStorage } from "../../cache/ICacheStorage";
-// Network Interface
 import { INetworkModule } from "../../network/INetworkModule";
-// Crypto interface and types for PKCE
 import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
-// Error
 import { AuthError } from "../../error/AuthError";
-// Logger Callback
 import { ILoggerCallback } from "../../logger/Logger";
 
 // Token renewal offset default in seconds

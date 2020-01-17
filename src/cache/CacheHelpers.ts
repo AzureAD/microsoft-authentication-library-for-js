@@ -2,21 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Cache
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 import { ICacheStorage } from "./ICacheStorage";
-// Auth
 import { Account } from "../auth/Account";
 import { Authority } from "../auth/authority/Authority";
-// Request
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
-// Error
 import { ClientAuthError } from "../error/ClientAuthError";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
-// Constants
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 
 /**

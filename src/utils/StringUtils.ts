@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Auth
 import { DecodedJwt } from "../auth/DecodedJwt";
-// Error
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**

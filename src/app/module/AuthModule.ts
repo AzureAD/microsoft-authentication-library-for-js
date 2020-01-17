@@ -2,30 +2,21 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Configuration
 import { ModuleConfiguration, buildModuleConfiguration } from "../config/ModuleConfiguration";
-// Request Parameters
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenRenewParameters } from "../../request/TokenRenewParameters";
-// Response
 import { CodeResponse } from "../../response/CodeResponse";
 import { TokenResponse } from "../../response/TokenResponse";
-// Cache
 import { ICacheStorage } from "../../cache/ICacheStorage";
 import { CacheHelpers } from "../../cache/CacheHelpers";
-// Network
 import { INetworkModule } from "../../network/INetworkModule";
-// Crypto
 import { ICrypto } from "../../crypto/ICrypto";
-// Auth
 import { Account } from "../../auth/Account";
 import { Authority } from "../../auth/authority/Authority";
 import { IdToken } from "../../auth/IdToken";
 import { buildClientInfo } from "../../auth/ClientInfo";
-// Utils
 import { StringUtils } from "../../utils/StringUtils";
 import { Logger } from "../../logger/Logger";
-// Constants
 import { PersistentCacheKeys } from "../../utils/Constants";
 
 /**
@@ -61,7 +52,7 @@ export abstract class AuthModule {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    // Object for running cache functions
+    // Helper API object for running cache functions
     protected cacheManager: CacheHelpers;
 
     // Account object

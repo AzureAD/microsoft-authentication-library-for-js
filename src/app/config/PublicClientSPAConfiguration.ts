@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Base types
 import { ModuleConfiguration, buildModuleConfiguration } from "./ModuleConfiguration";
 
 /**

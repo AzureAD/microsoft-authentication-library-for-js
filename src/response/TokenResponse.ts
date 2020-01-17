@@ -2,11 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Base class
 import { AuthResponse } from "./AuthResponse";
-// Auth
 import { Account } from "../auth/Account";
-// Types
 import { StringDict } from "../utils/MsalTypes";
 
 /**

@@ -2,12 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Auth
 import { buildClientInfo } from "../auth/ClientInfo";
-// Error
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
-// Crypto
 import { ICrypto } from "../crypto/ICrypto";
 
 /**

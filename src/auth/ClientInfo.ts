@@ -2,11 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Error
 import { ClientAuthError } from "../error/ClientAuthError";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
-// Crypto
 import { ICrypto } from "../crypto/ICrypto";
 
 /**
