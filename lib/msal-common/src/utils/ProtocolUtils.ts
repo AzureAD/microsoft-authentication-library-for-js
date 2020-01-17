@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Utils
 import { StringUtils } from "./StringUtils";
-// Constants
 import { Constants } from "./Constants";
 
 /**

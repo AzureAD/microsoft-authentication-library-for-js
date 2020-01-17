@@ -2,15 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Authority Classes/Interfaces/Types/Enums
 import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./AuthorityType";
-// Error
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
-// Network
 import { INetworkModule } from "../../network/INetworkModule";
-// Utils
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
 

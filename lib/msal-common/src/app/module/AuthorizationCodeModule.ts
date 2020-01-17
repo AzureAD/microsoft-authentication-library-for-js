@@ -2,35 +2,25 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-// Base Class
 import { AuthModule } from "./AuthModule";
-// Configuration
 import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../config/PublicClientSPAConfiguration";
-// Request Parameters
 import { AuthenticationParameters } from "../../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
 import { TokenRenewParameters } from "../../request/TokenRenewParameters";
 import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParameters";
 import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
-// Response
 import { CodeResponse } from "../../response/CodeResponse";
 import { TokenResponse } from "../../response/TokenResponse";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
 import { ServerAuthorizationTokenResponse, validateServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
-// Error
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
-// Cache
 import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
-// Auth
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { IdToken } from "../../auth/IdToken";
 import { ScopeSet } from "../../auth/ScopeSet";
-// Constants
 import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../../utils/Constants";
-// Utils
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
@@ -291,7 +281,7 @@ export class AuthorizationCodeModule extends AuthModule {
      */
     async logout(authorityUri?: string): Promise<string> {
         const currentAccount = this.getAccount();
-        // Check for homeAccountIdentifier.
+        // Check for homeAccountIdentifier. Do not send anything if it doesn't exist.
         const homeAccountIdentifier = currentAccount ? currentAccount.homeAccountIdentifier : "";
         // Remove all pertinent access tokens.
         this.cacheManager.removeAllAccessTokens(this.clientConfig.auth.clientId, authorityUri, "", homeAccountIdentifier);

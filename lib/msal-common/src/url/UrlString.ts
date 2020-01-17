@@ -2,15 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Response
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
-// Error
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
-// Constants
 import { AADAuthorityConstants } from "../utils/Constants";
 
 /**

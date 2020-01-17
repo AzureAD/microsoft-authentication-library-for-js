@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { AuthError } from "@azure/msal-common";
 
 /**

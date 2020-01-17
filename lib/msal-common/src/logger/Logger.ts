@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// package.json
 import pkg from "../../package.json";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
 
 /**

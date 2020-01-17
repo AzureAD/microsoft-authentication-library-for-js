@@ -2,13 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Authority Base Classes/Interfaces/Types/Enums
 import { Authority } from "./Authority";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { AuthorityType } from "./AuthorityType";
-// Constants
 import { AADTrustedHostList } from "../../utils/Constants";
-// Network
 import { INetworkModule } from "../../network/INetworkModule";
 
 /**

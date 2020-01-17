@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Base class
 import { AuthError } from "./AuthError";
-// Auth
 import { IdToken } from "../auth/IdToken";
 
 /**

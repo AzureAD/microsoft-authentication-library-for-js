@@ -2,13 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { PkceCodes } from "@azure/msal-common";
-// Error
 import { BrowserAuthError } from "../error/BrowserAuthError";
-// Base64 Encode
 import { Base64Encode } from "../encode/Base64Encode";
-// Browser crypto
 import { BrowserCrypto } from "./BrowserCrypto";
 
 // Charset to generate values from
@@ -21,9 +17,7 @@ const RANDOM_BYTE_ARR_LENGTH = 32;
  */
 export class PkceGenerator {
 
-    // Base 64 encoding class
     private base64Encode: Base64Encode;
-    // Browser crypto object - either mscrypto or window.crypto
     private cryptoObj: BrowserCrypto;
 
     constructor(cryptoObj: BrowserCrypto) {

@@ -2,14 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Auth
 import { IdTokenClaims } from "./IdTokenClaims";
 import { DecodedJwt } from "./DecodedJwt";
-// Error
 import { ClientAuthError } from "../error/ClientAuthError";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
-// Crypto
 import { ICrypto } from "../crypto/ICrypto";
 
 /**

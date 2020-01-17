@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { INetworkModule, NetworkRequestOptions } from "@azure/msal-common";
-// HTTP Constants
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**

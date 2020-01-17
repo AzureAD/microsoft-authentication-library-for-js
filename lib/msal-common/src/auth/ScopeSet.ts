@@ -2,11 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Error
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
-// Constants
 import { Constants } from "../utils/Constants";
 
 /**

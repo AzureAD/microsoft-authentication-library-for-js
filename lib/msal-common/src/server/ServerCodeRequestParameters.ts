@@ -2,24 +2,17 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Base class
 import { ServerRequestParameters } from "./ServerRequestParameters";
-// Auth
 import { Authority } from "../auth/authority/Authority";
 import { Account } from "../auth/Account";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
 import { IdToken } from "../auth/IdToken";
-// Request
 import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
-// Error
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
-// Constants
 import { Constants, BlacklistedEQParams, SSOTypes, PromptState, AADServerParamKeys } from "../utils/Constants";
-// Types
 import { StringDict } from "../utils/MsalTypes";
 
 /**

@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Common package imports
 import { INetworkModule } from "@azure/msal-common";
-// Network Clients
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 

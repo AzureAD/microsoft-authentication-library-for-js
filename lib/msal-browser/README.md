@@ -12,7 +12,7 @@ The MSAL library for JavaScript enables client-side JavaScript applications to a
 ## Installation
 ### Via NPM (Not available yet):
 
-    npm install msal-browser
+    npm install @azure/msal-browser
 
 ## Build and Run
 
@@ -44,14 +44,15 @@ The current VanillaJSTestApp sample is set up to run the authorization code flow
     - Go to the Authentication tab. Register the redirect URI for the application as "http://localhost:30662/". Also select "Yes" when asked if you would like to treat this application as a public client.
     - Go the Certificates & Secrets tab. Create a Client Secret that you can use for testing. This will most likely not be a required step in future production versions for Auth Code in the browser, but for now in order to run the alpha you will need to create one.
 2. Keep the app registration page open. You will now need a browser with CORS disabled in order to be able to retrieve tokens from the token endpoint. This is once again not a recommended production setting, but for the purposes of this alpha you should follow these instructions:
-    - We recommend using Chrome for this. You can follow the steps [here](https://alfilatov.com/posts/run-chrome-without-cors/) to figure out how to run Chrome withput CORS enabled for your OS.
-    - For Windows machines, you can do the following:
-        - Right click on your desktop -> New -> Shortcut
-        - Paste the following: 
-        ```javascript
-        "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
-        ```
-        - Click next and create a name for the shortcut (i.e. Chrome-no-cors)
+    - We recommend using Chrome for this. 
+        - For Windows machines, you can do the following:
+            - Right click on your desktop -> New -> Shortcut
+            - Paste the following: 
+            ```javascript
+            "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
+            ```
+            - Click next and create a name for the shortcut (i.e. Chrome-no-cors)
+        - For other machines, you can follow the steps [here](https://alfilatov.com/posts/run-chrome-without-cors/) to figure out how to run Chrome withput CORS enabled for your OS.
 3. You should now have a shortcut for a CORS-disabled Chrome browser and an application registration for a public client with the correct redirect URI registered and a client secret. You can now run the sample! When you run the browser shortcut, ensure you run as an administrator.
 
 ## Roadmap and What To Expect From This Library
@@ -86,7 +87,7 @@ Once you have created an application registration, create a new secret in the `C
 `PublicClientApplication` can be configured with a variety of different options, detailed in our [Wiki](), but the only required parameters are `auth.clientId` and `auth.tmp_clientSecret`. **IMPORTANT NOTE:** Client secret will not be carried forward in production versions of the library. This is temporary until the server allows CORS requests from public clients. 
 
 ```javascript
-import * as msal from "msal";
+import * as msal from "@azure/msal-browser";
 
 const msalConfig = {
     auth: {
@@ -101,8 +102,8 @@ const msalInstance = new msal.PublicClientApplication(msalConfig);
 #### 2. Choose interaction type - redirect or popup
 
 Choose which APIs you will use in your authentication flows:
-- loginRedirect and acquireTokenRedirect
-- loginPopup and acquireTokenPopup
+- `loginRedirect` and `acquireTokenRedirect`
+- `loginPopup` and `acquireTokenPopup`
 
 If you are using the redirect APIs, you will need to include the helper function below with a valid callback API. If you do not use this, your application will error out if any of the redirect APIs are used. This is not needed for any popup APIs.
 
@@ -118,7 +119,7 @@ Your app must login the user with either the `loginPopup` or the `loginRedirect`
 
 When the login methods are called and the authentication of the user is completed by the Azure AD service, an [id token](https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens) is returned which is used to identify the user with some basic information.
 
-When you login a user, you can pass in scopes that the user can pre consent to on login, however this is not required. Please note that consenting to scopes on login, does not return an access_token for these scopes, but gives you the opportunity to obtain a token silently with these scopes passed in, with no further interaction from the user.
+When you login a user, you can pass in scopes that the user can pre-consent to on login. However, this is not required. Please note that consenting to scopes on login, does not return an access_token for these scopes, but gives you the opportunity to obtain a token silently with these scopes passed in, with no further interaction from the user.
 
 It is best practice to only request scopes you need when you need them, a concept called dynamic consent. While this can create more interactive consent for users in your application, it also reduces drop-off from users that may be uneasy granting a large list of permissions for features they are not yet using.
 

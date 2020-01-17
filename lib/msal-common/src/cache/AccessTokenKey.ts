@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Crypto
 import { ICrypto } from "../crypto/ICrypto";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 

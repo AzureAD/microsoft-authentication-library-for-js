@@ -2,21 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-// Base class
 import { ServerRequestParameters } from "./ServerRequestParameters";
-// Auth
 import { ScopeSet } from "../auth/ScopeSet";
-// Request
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
-// Response
 import { CodeResponse } from "../response/CodeResponse";
-// Error
 import { ClientAuthError } from "../error/ClientAuthError";
-// Crypto
 import { ICrypto } from "../crypto/ICrypto";
-// Utils
 import { StringUtils } from "../utils/StringUtils";
-// Constants
 import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants";
 
 /**
