@@ -97,12 +97,13 @@ export class ScopeSet {
         if (this.scopes.size < scopeSet.scopes.size) {
             return false;
         } else {
-            for (const elem in scopeSet.scopes) {
-                if (!this.containsScope(elem)) {
-                    return false;
+            let containsScope: boolean = true;
+            scopeSet.scopes.forEach(scope => {
+                if (!this.containsScope(scope)) {
+                    containsScope = false;
                 }
-            }
-            return true;
+            });
+            return containsScope;
         }
     }
 
