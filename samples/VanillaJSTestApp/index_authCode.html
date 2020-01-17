@@ -4,7 +4,7 @@
     <title>Quickstart for MSAL JS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
     <script src="./lib/msal-browser.js"></script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-jajEQxLVE1cOV59/wAIRCerEBfotL1bEP4kAUxG1h8o='; connect-src https:;">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-f/ZCyElZ/9GHK6u3hNHibUffyRbNBLI/aA00mX4M/QA='; connect-src https:;"> -->
 </head>
 
 <body>
@@ -23,8 +23,8 @@
     // initialize MSAL
     const msalConfig = {
         auth: {
-            clientId: "16b0c3aa-11cc-4afc-a44a-12f25e5872b6",
-            clientSecret: "Yd4QAOjs.59ozKP5ibJ_JOw/RnE=szmu",
+            clientId: "Enter_your_client_id",
+            tmp_clientSecret: "Enter_your_client_id",
             authority: "https://login.microsoftonline.com/common",
             validateAuthority: true,
             navigateToLoginRequestUrl: false
@@ -56,7 +56,7 @@
     // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
     function signIn() {
         try {
-            myMSALObj.acquireTokenRedirect(loginRequest);
+            myMSALObj.loginRedirect(loginRequest);
         } catch (e) {
             console.log(e);
         }

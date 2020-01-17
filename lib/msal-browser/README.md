@@ -18,6 +18,9 @@ The MSAL library for JavaScript enables client-side JavaScript applications to a
 
 ### Build Library
 ```javascript
+// bootstrap for sym-links (go to base folder)
+lerna bootstrap
+cd /lib/msal-common/
 // To run build only for browser package
 npm run build
 // To run build for common and browser package
@@ -59,7 +62,7 @@ Our goal is to communicate extremely well with the community and to take their o
 Please check our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap) to see what we are working on and what we are tracking next.
 
 ## OAuth 2.0 and the Implicit Flow vs Authorization Code Flow with PKCE
-Msal used to only implement the [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
+MSAL formerly only implemented the [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
 Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective.
 The implicit flow runs in the context of a web browser which cannot manage client secrets securely. It is optimized for single page apps and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure.
@@ -74,20 +77,21 @@ The example below walks you through how to login a user and acquire a token to b
 
 #### Prerequisites
 
-Before using MSAL.js you will need to [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+Before using MSAL.js you will need to [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` and `clientSecret` for configuration, and to register the routes that your app will accept redirect traffic on.
 
-> TBD
+Once you have created an application registration, create a new secret in the `Certificates & Secrets` section. **IMPORTANT NOTE:** Client secret will not be carried forward in production versions of the library. This is temporary until the server allows CORS requests from public clients.
 
 #### 1. Initializing the Public Client Application
 
-`PublicClientApplication` can be configured with a variety of different options, detailed in our [Wiki](), but the only required parameter is `auth.clientId`.
+`PublicClientApplication` can be configured with a variety of different options, detailed in our [Wiki](), but the only required parameters are `auth.clientId` and `auth.tmp_clientSecret`. **IMPORTANT NOTE:** Client secret will not be carried forward in production versions of the library. This is temporary until the server allows CORS requests from public clients. 
 
 ```javascript
 import * as msal from "msal";
 
 const msalConfig = {
     auth: {
-        clientId: 'your_client_id'
+        clientId: 'your_client_id',
+        tmp_clientSecret: 'tmp_secret1'
     }
 };
 
