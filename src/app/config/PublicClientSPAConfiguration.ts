@@ -17,7 +17,7 @@ import { ModuleConfiguration, buildModuleConfiguration } from "./ModuleConfigura
 export type AuthOptions = {
     clientId: string;
     // Temporary until server allows CORS for public clients
-    clientSecret: string;
+    tmp_clientSecret: string;
     authority?: string;
     validateAuthority?: boolean;
     redirectUri?: string | (() => string);
@@ -37,7 +37,7 @@ export type PublicClientSPAConfiguration = ModuleConfiguration & {
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     // Temporary until server allows CORS for public clients
-    clientSecret: "",
+    tmp_clientSecret: "",
     authority: null,
     validateAuthority: true,
     redirectUri: "",
