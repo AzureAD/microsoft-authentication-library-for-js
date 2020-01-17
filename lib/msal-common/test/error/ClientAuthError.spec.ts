@@ -72,7 +72,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
     });
 
     it("createEndpointDiscoveryIncompleteError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createEndpointDiscoveryIncompleteError();
+        const err: ClientAuthError = ClientAuthError.createEndpointDiscoveryIncompleteError("Test endpoint error.");
 
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;

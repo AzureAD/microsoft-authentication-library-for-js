@@ -86,6 +86,6 @@
         "typescript": "^3.6.4"
     },
     "dependencies": {
-        "@azure/msal-common": "1.0.0-alpha"
+        "@azure/msal-common": "1.0.0-alpha.0"
     }
 }

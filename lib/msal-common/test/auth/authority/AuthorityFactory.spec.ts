@@ -1,14 +1,18 @@
 import { expect } from "chai";
 import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
-import { INetworkModule } from "../../../src/network/INetworkModule";
+import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
 
     const sampleNetworkInterface: INetworkModule = {
-        async sendRequestAsync(url: string, requestParams: RequestInit, enableCaching?:boolean): Promise<any> {
+        
+        sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
             console.log("Url: " + url);
-            console.log("Request params: " + requestParams);
-            console.log("Enable caching: " + enableCaching);
+            console.log("Request options: " + JSON.stringify(options));
+        },
+        sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+            console.log("Url: " + url);
+            console.log("Request options: " + JSON.stringify(options));
         }
     };
     

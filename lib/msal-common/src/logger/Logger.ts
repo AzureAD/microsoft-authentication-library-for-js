@@ -4,6 +4,7 @@
  */
 import pkg from "../../package.json";
 import { StringUtils } from "../utils/StringUtils";
+import { LoggerOptions } from "../app/config/ModuleConfiguration.js";
 
 /**
  * Options for logger messages.
@@ -48,9 +49,11 @@ export class Logger {
     // Callback to send messages to.
     private localCallback: ILoggerCallback;
 
-    constructor(localCallback: ILoggerCallback, piiLoggingEnabled: boolean) {
-        this.localCallback = localCallback;
-        this.piiLoggingEnabled = piiLoggingEnabled;
+    constructor(loggerOptions: LoggerOptions) {
+        if (loggerOptions) {
+            this.localCallback = loggerOptions.loggerCallback;
+            this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
+        }
     }
 
     /**
