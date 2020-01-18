@@ -35,12 +35,18 @@ cd samples/VanillaJSTestApp
 npm start
 ```
 
-## How to Run Samples for Authorization Code Flow (Alpha)
+## About this library - Authorization Code Flow (Alpha)
+This is an improvement upon the current `msal-core` library which will utilize the authorization code flow in the browser. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. 
+
+**IMPORTANT:** Please be aware that this is not a production ready library. You are required to use a browser that disables CORS checks, and will be exposing a client secret. The server will be making changes that will allow CORS requests and remove the requirement for client secret for applications which are registered in a specific way, and we will have documentation explaining this when the features are available.
+
+## Samples
+
 The current VanillaJSTestApp sample is set up to run the authorization code flow in the browser. However, there are a few pre-requisites that you will need to complete before being able to run the VanillaJS sample. 
 
 ### Pre-requisites
 
-1. Create an application registration in the portal. Use whatever audience you wish, as long as it is testable on your machine. It is recommended to use the common audience (a.k.a. accounts in any Azure tenant) for simplest use.
+1. Create a new application registration in the portal. Use whatever audience you wish, as long as it is testable on your machine. It is recommended to use the common audience (a.k.a. accounts in any Azure tenant) for simplest use.
     - Go to the Authentication tab. Register the redirect URI for the application as "http://localhost:30662/". Also select "Yes" when asked if you would like to treat this application as a public client.
     - Go the Certificates & Secrets tab. Create a Client Secret that you can use for testing. This will most likely not be a required step in future production versions for Auth Code in the browser, but for now in order to run the alpha you will need to create one.
 2. Keep the app registration page open. You will now need a browser with CORS disabled in order to be able to retrieve tokens from the token endpoint. This is once again not a recommended production setting, but for the purposes of this alpha you should follow these instructions:

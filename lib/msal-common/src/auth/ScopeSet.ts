@@ -94,17 +94,7 @@ export class ScopeSet {
      * @param scopeSet 
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
-        if (this.scopes.size < scopeSet.scopes.size) {
-            return false;
-        } else {
-            let containsScope: boolean = true;
-            scopeSet.scopes.forEach(scope => {
-                if (!this.containsScope(scope)) {
-                    containsScope = false;
-                }
-            });
-            return containsScope;
-        }
+        return this.scopes.size >= scopeSet.scopes.size && scopeSet.asArray().every(scope => this.containsScope(scope));
     }
 
     /**
