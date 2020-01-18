@@ -51,7 +51,7 @@ export default [
                 format: "umd",
                 name: "msal",
                 banner: useStrictHeader,
-                sourcemap: "inline"
+                sourcemap: true
             }
         ],
         external: [
