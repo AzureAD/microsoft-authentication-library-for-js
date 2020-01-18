@@ -2,12 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-// import { Logger } from "./Logger";
 import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
-// import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
  * Defaults for the Configuration Options

@@ -16,8 +16,6 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParameters";
 import { CodeResponse } from "../../response/CodeResponse";
-import { UrlString } from "../../url/UrlString";
-import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../../utils/Constants";
 import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
@@ -29,6 +27,8 @@ import { TimeUtils } from "../../utils/TimeUtils";
 import { IdToken } from "../../auth/IdToken";
 import { StringUtils } from "../../utils/StringUtils";
 import { TokenRenewParameters } from "../../request/TokenRenewParameters";
+import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
+import { UrlString } from "../../url/UrlString";
 
 /**
  * AuthorizationCodeModule class
@@ -84,15 +84,20 @@ export class AuthorizationCodeModule extends AuthModule {
             );
 
             // Check for SSO
+            let adalIdToken: IdToken;
             if (!requestParameters.isSSOParam()) {
-                // TODO: Check for ADAL SSO 
+                const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (!StringUtils.isEmpty(adalIdTokenString)) {
+                    adalIdToken = new IdToken(adalIdTokenString, this.cryptoObj);
+                    this.cacheStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                }
             }
 
             // Update required cache entries for request
             this.cacheManager.updateCacheEntries(requestParameters, request.account);
 
             // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
-            requestParameters.populateQueryParams();
+            requestParameters.populateQueryParams(adalIdToken);
 
             const urlNavigate = await requestParameters.createNavigateUrl();
 
@@ -107,7 +112,6 @@ export class AuthorizationCodeModule extends AuthModule {
             };
 
             this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
-
             return urlNavigate;
         } catch (e) {
             this.cacheManager.resetTempCacheItems(requestParameters && requestParameters.state);
@@ -119,7 +123,7 @@ export class AuthorizationCodeModule extends AuthModule {
         try {
             const tokenRequest: TokenExchangeParameters = this.getCachedRequest();
 
-            if(!codeResponse || !codeResponse.code) {
+            if (!codeResponse || !codeResponse.code) {
                 throw ClientAuthError.createTokenRequestCannotBeMadeError();
             }
 
@@ -141,7 +145,6 @@ export class AuthorizationCodeModule extends AuthModule {
                 this.clientConfig.auth.clientId,
                 tokenRequest,
                 codeResponse,
-                this.getAccount(),
                 this.getRedirectUri(),
                 this.cryptoObj
             );
@@ -206,7 +209,6 @@ export class AuthorizationCodeModule extends AuthModule {
                     this.clientConfig.auth.clientId,
                     request,
                     null,
-                    this.getAccount(),
                     this.getRedirectUri(),
                     this.cryptoObj,
                     cachedTokenItem.value.refreshToken

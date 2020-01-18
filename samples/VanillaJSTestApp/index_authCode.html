@@ -4,7 +4,7 @@
     <title>Quickstart for MSAL JS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>
     <script src="./lib/msal-browser.js"></script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-ZkWnwak8hss11CqQPwfCdL+tG3KnX2knPw7CDApGULo='; connect-src https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'strict-dynamic' 'sha256-CptkE3uliLCQ5/QYZ3MWdu6RGEG9pyfsgxWsiEdXNSo='; connect-src https:;">
 </head>
 
 <body>
@@ -35,11 +35,11 @@
     };
 
     const loginRequest = {
-        scopes: [msalConfig.auth.clientId, "User.Read"]
+        scopes: ["User.Read"]
     };
 
     const tokenRequest = {
-        scopes: ["user.read"],
+        scopes: ["Mail.Read"],
         forceRefresh: true
     };
 
@@ -55,7 +55,7 @@
     // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
     function signIn() {
         try {
-            myMSALObj.loginRedirect(loginRequest);
+            myMSALObj.acquireTokenRedirect(loginRequest);
         } catch (e) {
             console.log(e);
         }

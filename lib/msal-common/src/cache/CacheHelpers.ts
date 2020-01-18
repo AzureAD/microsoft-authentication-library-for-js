@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 import { ICacheStorage } from "./ICacheStorage";
 import { Account } from "../auth/Account";

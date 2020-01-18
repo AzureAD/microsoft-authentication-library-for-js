@@ -2,9 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { StringUtils } from "../utils/StringUtils";
 import pkg from "../../package.json";
+import { StringUtils } from "../utils/StringUtils";
 
 export type LoggerMessageOptions = {
     logLevel: LogLevel,
