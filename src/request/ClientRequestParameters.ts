@@ -2,17 +2,20 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ClientRequestParameters } from "./ClientRequestParameters";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
- * TokenExchangeParameters used to exchange an authorization code for a token.
+ * ClientRequestParameters passed by user to retrieve a token from the server.
  * - scopes: requested token scopes
  * - resource: requested resource uri
- * - code_verifier: verifier to complete PKCE protocol
  * - extraQueryParameters: string to string map of custom query parameters
  * - authority: authority to request tokens from
  * - correlationId: custom correlationId given by user
  */
-export type TokenExchangeParameters = ClientRequestParameters & {
-    codeVerifier?: string;
+export type ClientRequestParameters = {
+    scopes?: Array<string>;
+    resource?: string;
+    extraQueryParameters?: StringDict;
+    authority?: string;
+    correlationId?: string;
 };

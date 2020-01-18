@@ -9,6 +9,11 @@ import { AuthError } from "../../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../../logger/Logger";
 
 /**
+ * Defaults for the Module Configuration Options
+ */
+const OFFSET = 300;
+
+/**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
  *
  * This object allows you to configure important elements of MSAL functionality:
@@ -18,6 +23,7 @@ import { ILoggerCallback, LogLevel } from "../../logger/Logger";
  * - crypto: implementation of crypto functions
  */
 export type ModuleConfiguration = {
+    systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
@@ -25,15 +31,43 @@ export type ModuleConfiguration = {
 };
 
 /**
+ * Telemetry Config Options
+ * - applicationName              - Name of the consuming apps application
+ * - applicationVersion           - Verison of the consuming application
+ * - telemetryEmitter             - Function where telemetry events are flushed to
+ */
+export type TelemetryOptions = {
+    applicationName: string;
+    applicationVersion: string;
+    // TODO, add onlyAddFailureTelemetry option
+};
+
+/**
+ * Library Specific Options
+ *
+ * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
+ * - telemetry                    - Telemetry options for library network requests
+ */
+export type SystemOptions = {
+    tokenRenewalOffsetSeconds?: number;
+    telemetry?: TelemetryOptions
+};
+
+/**
  * Logger options to configure the logging that MSAL does.
  */
 export type LoggerOptions = {
-    loggerCallbackInterface?: ILoggerCallback,
+    loggerCallback?: ILoggerCallback,
     piiLoggingEnabled?: boolean
 };
 
+const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
+    tokenRenewalOffsetSeconds: OFFSET,
+    telemetry: null
+};
+
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
-    loggerCallbackInterface: () => {
+    loggerCallback: () => {
         const notImplErr = "Logger - loggerCallbackInterface() has not been implemented.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
@@ -106,8 +140,9 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildModuleConfiguration({ loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
+export function buildModuleConfiguration({ systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
     const overlayedConfig: ModuleConfiguration = {
+        systemOptions: userSystemOptions || DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,

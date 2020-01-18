@@ -54,12 +54,12 @@ export class ScopeSet {
             if (inputScopes.length < 1) {
                 throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
             }
-        }
 
-        // Check that clientId is passed as single scope
-        if (inputScopes && inputScopes.indexOf(this.clientId) > -1) {
-            if (inputScopes.length > 1) {
-                throw ClientConfigurationError.createClientIdSingleScopeError(inputScopes);
+            // Check that clientId is passed as single scope
+            if (inputScopes && inputScopes.indexOf(this.clientId) > -1) {
+                if (inputScopes.length > 1) {
+                    throw ClientConfigurationError.createClientIdSingleScopeError(inputScopes);
+                }
             }
         }
 
@@ -146,7 +146,12 @@ export class ScopeSet {
      * Returns true if the set of original scopes only contained client-id
      */
     isLoginScopeSet(): boolean {
-        return this.originalScopes && this.originalScopes.has(this.clientId) && this.originalScopes.size === 1;
+        const hasLoginScopes = (
+            this.originalScopes.has(this.clientId) ||
+            this.originalScopes.has(Constants.OPENID_SCOPE) ||
+            this.originalScopes.has(Constants.PROFILE_SCOPE)
+        );
+        return this.originalScopes && hasLoginScopes && this.originalScopes.size === 1;
     }
 
     /**

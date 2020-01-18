@@ -106,11 +106,11 @@ export class CacheHelpers {
      * Reset all temporary cache items
      * @param state 
      */
-    resetTempCacheItems(state: string): void {
+    resetTempCacheItems(state?: string): void {
         let key: string;
         // check state and remove associated cache items
         this.cacheStorage.getKeys().forEach((key) => {
-            if (StringUtils.isEmpty(state) || key.indexOf(state) !== -1) {
+            if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
                 if (keyState === state) {
@@ -129,9 +129,9 @@ export class CacheHelpers {
      * @param clientId
      * @param homeAccountIdentifier
      */
-    getAllAccessTokens(clientId: string, authority: string): Array<AccessTokenCacheItem> {
-        const results = this.cacheStorage.getKeys().reduce((tokens, key) => {
-            const keyMatches = key.match(clientId) && key.match(authority) && key.match(TemporaryCacheKeys.SCOPES);
+    getAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): Array<AccessTokenCacheItem> {
+        const results = this.cacheStorage.getKeys().reduce<Array<AccessTokenCacheItem>>((tokens, key) => {
+            const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
             if (keyMatches) {
                 const value = this.cacheStorage.getItem(key);
                 if (value) {
@@ -148,5 +148,19 @@ export class CacheHelpers {
         }, []);
 
         return results;
+    }
+
+    /**
+     * Remove all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
+     */
+    removeAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): void {
+        this.cacheStorage.getKeys().forEach((key) => {
+            const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
+            if (keyMatches) {
+                this.cacheStorage.removeItem(key);
+            }
+        });
     }
 }

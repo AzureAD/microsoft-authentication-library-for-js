@@ -29,12 +29,15 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     // Validity checks
     nonce: string;
 
-    constructor(authority: Authority, clientId: string, userRequest: AuthenticationParameters, redirectUri: string, cryptoImpl: ICrypto, isLoginCall: boolean) {
+    // Account
+    account: Account;
+
+    constructor(authority: Authority, clientId: string, userRequest: AuthenticationParameters, cachedAccount: Account, redirectUri: string, cryptoImpl: ICrypto, isLoginCall: boolean) {
         super(clientId, redirectUri, cryptoImpl);
         this.authorityInstance = authority;
         this.userRequest = userRequest;
-
         this.responseType = Constants.CODE_RESPONSE_TYPE;
+        this.account = (userRequest && userRequest.account) || cachedAccount;
 
         this.scopes = new ScopeSet(this.userRequest && this.userRequest.scopes, this.clientId, !isLoginCall);
         if (this.scopes.isLoginScopeSet()) {
@@ -63,9 +66,9 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    isSSOParam(account: Account) {
+    isSSOParam() {
         const isSSORequest = this.userRequest && (this.userRequest.account || this.userRequest.sid || this.userRequest.loginHint);
-        return account || isSSORequest;
+        return this.account || isSSORequest;
     }
 
     /**
@@ -90,7 +93,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
             }
 
             // if the developer provides one of these, give preference to developer choice
-            if (this.isSSOParam(this.userRequest.account)) {
+            if (this.isSSOParam()) {
                 queryParameters = this.constructUnifiedCacheQueryParameter(null);
             }
         }
