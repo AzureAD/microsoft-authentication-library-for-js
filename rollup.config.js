@@ -15,20 +15,20 @@ export default [
                 file: pkg.main,
                 format: "cjs",
                 banner: fileHeader,
-                sourcemap: "inline",
+                sourcemap: true,
             },
             {
                 file: pkg.module,
                 format: "es",
                 banner: fileHeader,
-                sourcemap: "inline",
+                sourcemap: true,
             },
             {
                 file: "./lib/msal-browser.js",
                 format: "umd",
                 name: "msal",
                 banner: fileHeader,
-                sourcemap: "inline",
+                sourcemap: true,
             }
         ],
         plugins: [
@@ -50,7 +50,7 @@ export default [
                 format: "umd",
                 name: "msal",
                 banner: useStrictHeader,
-                sourcemap: "inline",
+                sourcemap: false,
             }
         ],
         plugins: [
