@@ -171,9 +171,7 @@ export enum SSOTypes {
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers",
     ACCOUNT_ID = "accountIdentifier",
-    HOMEACCOUNT_ID = "homeAccountIdentifier",
-    LOGIN_REQ = "login_req",
-    DOMAIN_REQ = "domain_req"
+    HOMEACCOUNT_ID = "homeAccountIdentifier"
 };
 
 /**

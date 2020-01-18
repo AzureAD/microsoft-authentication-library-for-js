@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { AADAuthorityConstants, AADServerParamKeys } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";

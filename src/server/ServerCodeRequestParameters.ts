@@ -13,6 +13,7 @@ import { Constants, BlacklistedEQParams, SSOTypes, PromptState, AADServerParamKe
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ServerRequestParameters } from "./ServerRequestParameters";
+import { IdToken } from "../auth/IdToken";
 
 export class ServerCodeRequestParameters extends ServerRequestParameters {
 
@@ -67,7 +68,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * @param request
      */
     isSSOParam() {
-        const isSSORequest = this.userRequest && (this.userRequest.account || this.userRequest.sid || this.userRequest.loginHint);
+        const isSSORequest = this.userRequest && (this.account || this.userRequest.sid || this.userRequest.loginHint);
         return this.account || isSSORequest;
     }
 
@@ -78,7 +79,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
      * @param adalIdTokenObject 
      */
-    populateQueryParams(adalIdTokenObject?: any): void {
+    populateQueryParams(adalIdTokenObject?: IdToken): void {
         let queryParameters: StringDict = {};
 
         if (this.userRequest) {
@@ -98,12 +99,13 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
             }
         }
 
+        // ADAL token SSO
         if (adalIdTokenObject) {
             queryParameters = this.constructUnifiedCacheQueryParameter(adalIdTokenObject);
         }
 
         /*
-         * adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
+         * adds sid/login_hint if not populated; populates domain_hint
          * this.logger.verbose("Calling addHint parameters");
          */
         queryParameters = this.addHintParameters(queryParameters);
@@ -142,7 +144,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     protected async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         str.push(`${AADServerParamKeys.RESPONSE_TYPE}=${this.responseType}`);
-        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printReplacedDefaultScopes())}`);
+        str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
         str.push(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(this.clientId)}`);
         str.push(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(this.redirectUri)}`);
 
@@ -212,8 +214,8 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         let serverReqParam: StringDict = {};
         // if account info is passed, account.sid > account.login_hint
         if (this.userRequest) {
-            if (this.userRequest.account) {
-                const account: Account = this.userRequest.account;
+            if (this.account) {
+                const account: Account = this.account;
                 if (account.sid) {
                     ssoType = SSOTypes.SID;
                     ssoData = account.sid;
@@ -249,8 +251,8 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         serverReqParam = this.addSSOParameter(ssoType, ssoData);
 
         // add the HomeAccountIdentifier info/ domain_hint
-        if (this.userRequest && this.userRequest.account && this.userRequest.account.homeAccountIdentifier) {
-            serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, this.userRequest.account.homeAccountIdentifier, serverReqParam);
+        if (this.account && this.account.homeAccountIdentifier) {
+            serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, this.account.homeAccountIdentifier, serverReqParam);
         }
 
         return serverReqParam;
@@ -275,23 +277,18 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
          * This is a final check for all queryParams added so far; preference order: sid > login_hint
          * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
          */
-        if (this.userRequest.account && !qParams[SSOTypes.SID]) {
+        if (this.account && !qParams[SSOTypes.SID]) {
             // sid - populate only if login_hint is not already populated and the account has sid
-            const populateSID = !qParams[SSOTypes.LOGIN_HINT] && this.userRequest.account.sid && this.userRequest.prompt === PromptState.NONE;
+            const populateSID = !qParams[SSOTypes.LOGIN_HINT] && this.account.sid && this.userRequest.prompt === PromptState.NONE;
             if (populateSID) {
-                qParams = this.addSSOParameter(SSOTypes.SID, this.userRequest.account.sid, qParams);
+                qParams = this.addSSOParameter(SSOTypes.SID, this.account.sid, qParams);
             }
             // login_hint - account.userName
             else {
-                const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && this.userRequest.account.userName && !StringUtils.isEmpty(this.userRequest.account.userName);
+                const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && this.account.userName && !StringUtils.isEmpty(this.account.userName);
                 if (populateLoginHint) {
-                    qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, this.userRequest.account.userName, qParams);
+                    qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, this.account.userName, qParams);
                 }
-            }
-
-            const populateReqParams = !qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ];
-            if (populateReqParams) {
-                qParams = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, this.userRequest.account.homeAccountIdentifier, qParams);
             }
         }
 
@@ -335,12 +332,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
             }
             case SSOTypes.HOMEACCOUNT_ID: {
                 const homeAccountId = ssoData.split(".");
-                const uid = this.cryptoObj.base64Decode(homeAccountId[0]);
                 const utid = this.cryptoObj.base64Decode(homeAccountId[1]);
-
-                // TODO: domain_req and login_req are not needed according to eSTS team
-                ssoParam[SSOTypes.LOGIN_REQ] = uid;
-                ssoParam[SSOTypes.DOMAIN_REQ] = utid;
 
                 if (utid === Constants.CONSUMER_UTID) {
                     ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
@@ -348,14 +340,6 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
                 else {
                     ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
                 }
-                break;
-            }
-            case SSOTypes.LOGIN_REQ: {
-                ssoParam[SSOTypes.LOGIN_REQ] = ssoData;
-                break;
-            }
-            case SSOTypes.DOMAIN_REQ: {
-                ssoParam[SSOTypes.DOMAIN_REQ] = ssoData;
                 break;
             }
         }
