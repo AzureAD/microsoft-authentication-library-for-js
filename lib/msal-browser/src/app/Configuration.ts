@@ -4,7 +4,7 @@
  */
 
 // import { Logger } from "./Logger";
-import { AuthOptions, INetworkModule, ILoggerCallback, LogLevel } from "msal-common";
+import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 // import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
@@ -13,8 +13,6 @@ import { BrowserConstants } from "../utils/BrowserConstants";
  * Defaults for the Configuration Options
  */
 const FRAME_TIMEOUT = 6000;
-const OFFSET = 300;
-const NAVIGATE_FRAME_WAIT = 500;
 
 export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
@@ -32,18 +30,6 @@ export type CacheOptions = {
 };
 
 /**
- * Telemetry Config Options
- * - applicationName              - Name of the consuming apps application
- * - applicationVersion           - Verison of the consuming application
- * - telemetryEmitter             - Function where telemetry events are flushed to
- */
-export type TelemetryOptions = {
-    applicationName: string;
-    applicationVersion: string;
-    // TODO, add onlyAddFailureTelemetry option
-};
-
-/**
  * Library Specific Options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
@@ -51,44 +37,28 @@ export type TelemetryOptions = {
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
-export type SystemOptions = {
-    loggerOptions?: BrowserLoggerOptions;
+export type BrowserSystemOptions = SystemOptions & {
+    loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
-    loadFrameTimeout?: number;
-    tokenRenewalOffsetSeconds?: number;
-    navigateFrameWait?: number;
-    telemetry?: TelemetryOptions
-};
-
-/**
- * Logger options
- * 
- * - piiLoggingEnabled          - Used to configure whether piiLogging is enabled. Defaults to false.
- * - loggerCallback             - Callback for logger that determines how message is broadcast. Defaults to console.
- */
-export type BrowserLoggerOptions = {
-    piiLoggingEnabled?: boolean,
-    loggerCallback?: ILoggerCallback
+    windowHashTimeout?: number;
 };
 
 /**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
  * This object allows you to configure important elements of MSAL functionality:
- * - auth: this is where you configure auth elements like clientID,  authority used for authenticating against the Microsoft Identity Platform
+ * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location and whether to store cache in cookies
- * - system: this is where you can configure the logger, frame timeout etc.
- * - framework: this is where you can configure the running mode of angular. More to come here soon.
+ * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
  */
 export type Configuration = {
     auth?: BrowserAuthOptions,
     cache?: CacheOptions,
-    system?: SystemOptions
+    system?: BrowserSystemOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
-    clientSecret: "",
     authority: null,
     validateAuthority: true,
     redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
@@ -101,7 +71,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     storeAuthStateInCookie: false
 };
 
-const DEFAULT_LOGGER_OPTIONS: BrowserLoggerOptions = {
+const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
             return;
@@ -124,13 +94,10 @@ const DEFAULT_LOGGER_OPTIONS: BrowserLoggerOptions = {
     piiLoggingEnabled: false
 };
 
-const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
+const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
-    loadFrameTimeout: FRAME_TIMEOUT,
-    tokenRenewalOffsetSeconds: OFFSET,
-    navigateFrameWait: NAVIGATE_FRAME_WAIT,
-    telemetry: null
+    windowHashTimeout: FRAME_TIMEOUT
 };
 
 /**

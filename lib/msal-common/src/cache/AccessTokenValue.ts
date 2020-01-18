@@ -8,17 +8,19 @@
  */
 export class AccessTokenValue {
 
+    tokenType: string;
     accessToken: string;
     idToken: string;
     refreshToken: string;
-    expiresIn: string;
-    homeAccountIdentifier: string;
+    expiresOnSec: string;
+    extExpiresOnSec: string;
 
-    constructor(accessToken: string, idToken: string, refreshToken: string, expiresIn: string, homeAccountIdentifier: string) {
+    constructor(tokenType: string, accessToken: string, idToken: string, refreshToken: string, expiresOn: string, extExpiresOn: string) {
+        this.tokenType = tokenType;
         this.accessToken = accessToken;
         this.idToken = idToken;
         this.refreshToken = refreshToken;
-        this.expiresIn = expiresIn;
-        this.homeAccountIdentifier = homeAccountIdentifier;
+        this.expiresOnSec = expiresOn;
+        this.extExpiresOnSec = extExpiresOn;
     }
 }

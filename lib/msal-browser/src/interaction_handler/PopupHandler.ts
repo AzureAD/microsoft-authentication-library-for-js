@@ -4,9 +4,8 @@
  */
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { TemporaryCacheKeys, UrlString, StringUtils, Constants, AuthorizationCodeModule, TokenResponse } from "msal-common";
+import { UrlString, StringUtils, Constants, TokenResponse } from "msal-common";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserStorage } from "../cache/BrowserStorage";
 
 export class PopupHandler extends InteractionHandler {
 
@@ -33,7 +32,7 @@ export class PopupHandler extends InteractionHandler {
         this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
         const codeResponse = this.authModule.handleFragmentResponse(locationHash);
         this.currentWindow.close();
-        return this.authModule.acquireToken(null, codeResponse);
+        return this.authModule.acquireToken(codeResponse);
     }
 
     /**

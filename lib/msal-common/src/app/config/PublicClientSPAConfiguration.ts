@@ -17,7 +17,6 @@ import { ModuleConfiguration, buildModuleConfiguration } from "./ModuleConfigura
  */
 export type AuthOptions = {
     clientId: string;
-    clientSecret: string;
     authority?: string;
     validateAuthority?: boolean;
     redirectUri?: string | (() => string);
@@ -36,7 +35,6 @@ export type PublicClientSPAConfiguration = ModuleConfiguration & {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    clientSecret: "",
     authority: null,
     validateAuthority: true,
     redirectUri: "",

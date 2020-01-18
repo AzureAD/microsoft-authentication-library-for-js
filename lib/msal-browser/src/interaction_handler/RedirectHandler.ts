@@ -13,15 +13,10 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 
 export class RedirectHandler extends InteractionHandler {
 
-    private authCallback: AuthCallback;
     private navigateToLoginRequestUrl: boolean;
 
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage, redirectCallback: AuthCallback, navigateToLoginRequestUrl: boolean) {
+    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage, navigateToLoginRequestUrl: boolean) {
         super(authCodeModule, storageImpl);
-        if (!redirectCallback) {
-            throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
-        }
-        this.authCallback = redirectCallback;
         this.navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     }
 
@@ -72,6 +67,6 @@ export class RedirectHandler extends InteractionHandler {
 
         this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
         const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-        return this.authModule.acquireToken(null, codeResponse);
+        return this.authModule.acquireToken(codeResponse);
     }
 }

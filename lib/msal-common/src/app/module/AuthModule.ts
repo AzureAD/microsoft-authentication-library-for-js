@@ -68,7 +68,7 @@ export abstract class AuthModule {
         this.config = buildModuleConfiguration(configuration);
 
         // Initialize the logger
-        this.logger = new Logger(configuration.loggerOptions.loggerCallbackInterface, configuration.loggerOptions.piiLoggingEnabled);
+        this.logger = new Logger(configuration.loggerOptions.loggerCallback, configuration.loggerOptions.piiLoggingEnabled);
 
         // Initialize crypto
         this.cryptoObj = this.config.cryptoInterface;
@@ -92,6 +92,12 @@ export abstract class AuthModule {
     
     // #region Getters and Setters
 
+    /**
+     * Returns the signed in account
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link Account} - the account object stored in MSAL
+     */
     getAccount(): Account {
         if (this.account) {
             return this.account;
