@@ -275,6 +275,14 @@ export class UserAgentApplication {
         }
     }
 
+    /**
+     * Public API to verify if the URL contains the hash with known properties
+     * @param hash
+     */
+    public urlContainsHash(hash: string) {
+        return UrlUtils.urlContainsHash(hash);
+    }
+
     private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
         if (interactionType === Constants.interactionTypeRedirect) {
             if (this.errorReceivedCallback) {

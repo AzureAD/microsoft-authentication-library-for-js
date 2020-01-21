@@ -1,6 +1,11 @@
 # 1.2.1
 
-* Remove `isAngular` checks for handling responses from redirects that are no longer needed. (#1184)
+## Bugs
+* `urlContainsHash()` is restored as a public API (#1202)
+* `allow-forms` added in sandbox properties for the iframes created by `msal js` to support certain B2C scenarios(#1191)
+
+## enhancements
+* `isAngular` flag removal from `redirect` use cases(#1193)
 
 # 1.2.0
 
