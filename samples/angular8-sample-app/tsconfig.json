@@ -11,6 +11,10 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2015",
+    "skipLibCheck": true,
+    "paths": {
+      "@angular/*": ["./node_modules/@angular/*"]
+    },
     "typeRoots": [
       "node_modules/@types"
     ],

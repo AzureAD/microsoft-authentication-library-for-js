@@ -4,6 +4,9 @@
     "outDir": "./out-tsc/app",
     "types": []
   },
+  "angularCompilerOptions": {
+    "useIvy": true
+  },
   "files": [
     "src/main.ts",
     "src/polyfills.ts"

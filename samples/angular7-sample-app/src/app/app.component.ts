@@ -7,7 +7,7 @@ import { BroadcastService, MsalService } from '@azure/msal-angular';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'MSAL Angular - v7 Sample';
+  title = 'MSAL - Angular 7 Sample App';
   isIframe = false;
   loggedIn = false;
 
