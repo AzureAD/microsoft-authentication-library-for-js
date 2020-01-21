@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0-beta.0
+
+Initial upgrade to be compatible with new version of Angular (6+).
+
+* Requires `msal@1.2.1` as a peer dependency.
+* `rxjs-compat` is longer be required.
+
+### Known issues
+
+* `aot` compiling will throw errors for `new Logger()` and `new Map()` ("Function calls are not supported in decorators but 'Logger/Map' was called."). This will be addressed in a follow up release.
+
 ## 1.0.0-alpha.1
 
 * Requires `msal@1.2.0-beta.1`, which includes fixes for bugs with redirect methods.
