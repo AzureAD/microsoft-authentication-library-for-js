@@ -110,7 +110,7 @@ export class ServerRequestParameters {
          * adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
          * this.logger.verbose("Calling addHint parameters");
          */
-        queryParameters = this.addHintParameters(account, queryParameters);
+        queryParameters = this.addHintParameters(account, queryParameters, request);
 
         // sanity check for developer passed extraQueryParameters
         const eQParams: StringDict = request.extraQueryParameters;
@@ -197,20 +197,20 @@ export class ServerRequestParameters {
      * @param {@link ServerRequestParameters}
      * @ignore
      */
-    private addHintParameters(account: Account, qParams: StringDict): StringDict {
+    private addHintParameters(account: Account, qParams: StringDict, request?: AuthenticationParameters): StringDict {
     /*
      * This is a final check for all queryParams added so far; preference order: sid > login_hint
      * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
      */
         if (account && !qParams[SSOTypes.SID]) {
-            // sid - populate only if login_hint is not already populated and the account has sid
-            const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
+            // sid - populate only if login_hint is not already populated, the account has sid and sid in the request was not hard set to false to disable it
+            const populateSID = (!request || request.sid !== false) && !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
             if (populateSID) {
                 qParams = this.addSSOParameter(SSOTypes.SID, account.sid, qParams);
             }
-            // login_hint - account.userName
+            // login_hint - account.userName - only fill in if the loginHint in the request was not hard set to false to disable it
             else {
-                const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !StringUtils.isEmpty(account.userName);
+                const populateLoginHint = (!request || request.loginHint !== false) && !qParams[SSOTypes.LOGIN_HINT] && account.userName && !StringUtils.isEmpty(account.userName);
                 if (populateLoginHint) {
                     qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
                 }
