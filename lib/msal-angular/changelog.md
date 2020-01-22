@@ -1,10 +1,10 @@
 # Changelog
 
-## 1.0.0-beta.0
+## 1.0.0-beta.1
 
 Initial upgrade to be compatible with new version of Angular (6+).
 
-* Requires `msal@1.2.1` as a peer dependency.
+* Requires `msal@1.2.1` and `rxjs@6` as a peer dependency.
 * `rxjs-compat` is longer be required.
 
 ### Known issues
