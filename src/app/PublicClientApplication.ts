@@ -226,14 +226,19 @@ export class PublicClientApplication {
      * @param navigateUrl 
      */
     private async popupTokenHelper(navigateUrl: string): Promise<TokenResponse> {
-        // Create popup interaction handler.
-        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
-        // Show the UI once the url has been created. Get the window handle for the popup.
-        const popupWindow = interactionHandler.showUI(navigateUrl);
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
-        // Handle response from hash string.
-        return interactionHandler.handleCodeResponse(hash);
+        try {
+            // Create popup interaction handler.
+            const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+            // Show the UI once the url has been created. Get the window handle for the popup.
+            const popupWindow = interactionHandler.showUI(navigateUrl);
+            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
+            // Handle response from hash string.
+            return interactionHandler.handleCodeResponse(hash);
+        } catch (e) {
+            this.authModule.cancelRequest();
+            throw e;
+        }
     }
 
     // #region Silent Flow
