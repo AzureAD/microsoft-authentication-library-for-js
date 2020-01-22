@@ -20,8 +20,8 @@ export type AuthenticationParameters = {
     state?: string;
     correlationId?: string;
     account?: Account;
-    sid?: string;
-    loginHint?: string;
+    sid?: string | false;
+    loginHint?: string | false;
     forceRefresh?: boolean;
     redirectUri?: string;
 };
