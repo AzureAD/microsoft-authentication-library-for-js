@@ -272,6 +272,14 @@ export class AuthorizationCodeModule extends AuthModule {
         }
     }
 
+    /**
+     * 
+     */
+    public cancelRequest(): void {
+        const cachedState = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
+        this.cacheManager.resetTempCacheItems(cachedState || "");
+    }
+
     // #region Logout
 
     /**
