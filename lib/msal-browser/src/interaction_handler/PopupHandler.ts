@@ -72,6 +72,8 @@ export class PopupHandler extends InteractionHandler {
 
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
+                    // Interaction is completed - remove interaction status.
+                    this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createUserCancelledError());
                     return;
@@ -99,9 +101,12 @@ export class PopupHandler extends InteractionHandler {
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
+                    // Interaction is completed - remove interaction status.
+                    this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
                     clearInterval(intervalId);
                     contentWindow.close();
-                    reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate)); // better error?
+                    reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate));
+                    return;
                 }
             }, BrowserConstants.POPUP_POLL_INTERVAL_MS);
         });
