@@ -93,6 +93,9 @@ export class PublicClientApplication {
 
     /**
      * Set the callback functions for the redirect flow to send back the success or error object.
+     * IMPORTANT: Please do not use this function when using the popup APIs, as it will break the response handling
+     * in the main window.
+     * 
      * @param {@link (AuthCallback:type)} authCallback - Callback which contains
      * an AuthError object, containing error data from either the server
      * or the library, depending on the origin of the error, or the AuthResponse object 
@@ -110,12 +113,16 @@ export class PublicClientApplication {
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         try {
-            // If hash exists, handle in window. Otherwise, continue execution.
+            // If hash exists, handle in window. Otherwise, cancel any current requests and continue.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
             const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
             if (responseHash) {
                 const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
                 this.authCallback(null, tokenResponse);
+            } else {
+                // Interaction is completed - remove interaction status.
+                this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+                this.authModule.cancelRequest();
             }
         } catch (err) {
             this.authCallback(err);
