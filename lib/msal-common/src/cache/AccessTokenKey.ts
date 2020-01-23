@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 import { ICrypto } from "../crypto/ICrypto";
-import { UrlString } from "../url/UrlString";
 import { StringUtils } from "../utils/StringUtils";
+import { UrlString } from "../url/UrlString";
 
 /**
- * @hidden
+ * Key to cache access tokens, id tokens, and refresh tokens. Helps manage token renewal.
  */
 export class AccessTokenKey {
 

@@ -7,7 +7,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
 
 /**
- * @hidden
+ * Client info object which consists of two IDs. Need to add more info here.
  */
 export type ClientInfo = {
     uid: string,

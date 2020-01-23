@@ -2,44 +2,68 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { UrlString, StringUtils, Constants, TokenResponse } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { UrlString, StringUtils, Constants, TokenResponse } from "msal-common";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
+/**
+ * This class implements the interaction handler base class for browsers. It is written specifically for handling
+ * popup window scenarios. It includes functions for monitoring the popup window for a hash.
+ */
 export class PopupHandler extends InteractionHandler {
 
+    // Currently opened window handle.
     private currentWindow: Window;
 
+    /**
+     * Opens a popup window with given request Url.
+     * @param requestUrl 
+     */
     showUI(requestUrl: string): Window {
-        this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS);
-        const popupWindow = this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
-        this.currentWindow = popupWindow;
+        // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
+            // Set interaction status in the library.
+            this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            // Open the popup window to requestUrl.
+            const popupWindow = this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
+            // Save the window handle.
+            this.currentWindow = popupWindow;
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
+            // Return popup window handle.
             return popupWindow;
         } else {
-            this.authModule.logger.info("Navigate url is empty");
-            throw BrowserAuthError.createEmptyRedirectUriError();
+            // Throw error if request URL is empty.
+            this.authModule.logger.error("Navigate url is empty");
+            throw BrowserAuthError.createEmptyNavigationUriError();
         }
     }
 
+    /**
+     * Function to handle response parameters from hash.
+     * @param locationHash 
+     */
     async handleCodeResponse(locationHash: string): Promise<TokenResponse> {
+        // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
+        // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        // Handle code response.
         const codeResponse = this.authModule.handleFragmentResponse(locationHash);
+        // Close window.
         this.currentWindow.close();
+        // Acquire token with retrieved code.
         return this.authModule.acquireToken(codeResponse);
     }
 
     /**
      * Monitors a window until it loads a url with a hash
-     * @param contentWindow 
-     * @param timeout 
-     * @param urlNavigate 
+     * @param contentWindow - window that is being monitored
+     * @param timeout - milliseconds until timeout
+     * @param urlNavigate - url that was navigated to
      */
     monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -76,7 +100,8 @@ export class PopupHandler extends InteractionHandler {
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createTokenRenewalTimeoutError(urlNavigate)); // better error?
+                    contentWindow.close();
+                    reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate)); // better error?
                 }
             }, BrowserConstants.POPUP_POLL_INTERVAL_MS);
         });
@@ -94,7 +119,7 @@ export class PopupHandler extends InteractionHandler {
      * @ignore
      * @hidden
      */
-    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
+    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number): Window {
         try {
             /**
              * adding winLeft and winTop to account for dual monitor

@@ -13,8 +13,6 @@ export const Constants = {
     NO_ACCOUNT: "NO_ACCOUNT",
     // Claims
     CLAIMS: "claims",
-    // UPN
-    UPN: "upn",
     // Consumer UTID
     CONSUMER_UTID: "9188040d-6c67-4c5b-b112-36a304b66dad",
     // Default scopes
@@ -38,8 +36,7 @@ export enum HEADER_NAMES {
 };
 
 /**
- * @hidden
- * CacheKeys for MSAL
+ * Temporary cache keys for MSAL, deleted after any request.
  */
 export enum TemporaryCacheKeys {
     AUTHORITY = "authority",
@@ -55,23 +52,16 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes"
 };
 
-export enum AuthApiType {
-    LOGIN = "login_auth_api_type",
-    ACQUIRE_TOKEN = "acquire_token_auth_api_type",
-    SILENT = "silent_auth_api_type"
-};
-
+/**
+ * Persistent cache keys MSAL which stay while user is logged in.
+ */
 export enum PersistentCacheKeys {
     ID_TOKEN = "idtoken",
     CLIENT_INFO = "client.info",
     ADAL_ID_TOKEN = "adal.idtoken",
-};
-
-export enum ErrorCacheKeys {
-    LOGIN_ERROR = "login.error",
     ERROR = "error",
     ERROR_DESC = "error.description"
-}
+};
 
 /**
  * List of pre-established trusted host URLs. 
@@ -149,7 +139,6 @@ export enum IdTokenClaimName {
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
  * internal partners too, hence the choice of generic "string" type instead of the "enum"
- * @hidden
  */
 export const PromptState = {
     LOGIN: "login",
@@ -159,7 +148,6 @@ export const PromptState = {
 };
 
 /**
- * @hidden
  * SSO Types - generated to populate hints
  */
 export enum SSOTypes {
@@ -175,7 +163,7 @@ export enum SSOTypes {
 };
 
 /**
- * @hidden
+ * Disallowed extra query parameters.
  */
 export const BlacklistedEQParams = [
     SSOTypes.SID,

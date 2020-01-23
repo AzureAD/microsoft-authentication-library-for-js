@@ -13,4 +13,4 @@ export {
     AuthError,
     AuthErrorMessage,
     INetworkModule
-} from "msal-common";
+} from "@azure/msal-common";

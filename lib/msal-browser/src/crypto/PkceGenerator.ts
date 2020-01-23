@@ -2,12 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { PkceCodes } from "msal-common";
+import { PkceCodes } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Base64Encode } from "../encode/Base64Encode";
 import { BrowserCrypto } from "./BrowserCrypto";
 
+// Charset to generate values from
 const CV_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+// Constant byte array length
 const RANDOM_BYTE_ARR_LENGTH = 32;
 
 /**

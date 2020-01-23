@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule } from "msal-common";
+import { INetworkModule } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 
@@ -14,7 +14,6 @@ export class BrowserUtils {
     // #region Window Navigation
 
     /**
-     * @hidden
      * Used to redirect the browser to the STS authorization endpoint
      * @param {string} urlNavigate - URL of the authorization endpoint
      */

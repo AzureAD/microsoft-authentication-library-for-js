@@ -19,8 +19,8 @@ import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
-import { Logger } from "../logger/Logger";
 import { CodeResponse } from "./CodeResponse";
+import { Logger } from "../logger/Logger";
 
 /**
  * Class that handles response parsing.
@@ -40,6 +40,15 @@ export class ResponseHandler {
         this.logger = logger;
     }
 
+    /**
+     * Returns a new response with the data from original response filled with the relevant IdToken data.
+     * - raw id token
+     * - id token claims
+     * - unique id (oid or sub claim of token)
+     * - tenant id (tid claim of token)
+     * @param originalResponse 
+     * @param idTokenObj 
+     */
     static setResponseIdToken(originalResponse: TokenResponse, idTokenObj: IdToken) : TokenResponse {
         if (!originalResponse) {
             return null;
@@ -61,7 +70,11 @@ export class ResponseHandler {
         };
     }
 
-    public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse) {
+    /**
+     * Validates and handles a response from the server, and returns a constructed object with the authorization code and state.
+     * @param serverParams 
+     */
+    public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): CodeResponse {
         try {
             // Validate hash fragment response parameters
             validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
@@ -84,6 +97,14 @@ export class ResponseHandler {
         }
     }
 
+    /**
+     * Helper function which saves or updates the token in the cache and constructs the final token response to send back to the user.
+     * @param originalTokenResponse 
+     * @param authority 
+     * @param resource 
+     * @param serverTokenResponse 
+     * @param clientInfo 
+     */
     private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
         // Set consented scopes in response
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
@@ -103,7 +124,10 @@ export class ResponseHandler {
         const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
         const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
+
+        // If no items in cache with these parameters, set new item.
         if (accessTokenCacheItems.length < 1) {
+            this.logger.info("No tokens found, creating new item.");
             const newTokenKey = new AccessTokenKey(
                 authority, 
                 this.clientId, 
@@ -115,6 +139,7 @@ export class ResponseHandler {
             );
             this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
         } else {
+            // Check if scopes are intersecting. If they are, combine scopes and replace cache item.
             accessTokenCacheItems.forEach(accessTokenCacheItem => {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, true);
                 if(cachedScopes.intersectingScopeSets(responseScopes)) {
@@ -129,7 +154,7 @@ export class ResponseHandler {
             });
         }
 
-        // Save tokens in cache
+        // Save tokens in response and return
         return {
             ...originalTokenResponse,
             scopes: responseScopeArray,
@@ -139,14 +164,26 @@ export class ResponseHandler {
         };
     }
 
+    /**
+     * Gets account cached with given key. Returns null if parsing could not be completed.
+     * @param accountKey 
+     */
     private getCachedAccount(accountKey: string): Account {
         try {
             return JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
         } catch (e) {
+            this.logger.warning(`Account could not be parsed: ${JSON.stringify(e)}`);
             return null;
         }
     }
 
+    /**
+     * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
+     * @param serverTokenResponse 
+     * @param authorityString 
+     * @param resource 
+     * @param state 
+     */
     public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): TokenResponse {
         let tokenResponse: TokenResponse = {
             uniqueId: "",
@@ -180,6 +217,7 @@ export class ResponseHandler {
         if (idTokenObj) {
             // If state is empty, refresh token is being used
             if (!StringUtils.isEmpty(state)) {
+                this.logger.info("State was detected - nonce should be available.");
                 // check nonce integrity if refresh token is not used - throw an error if not matched        
                 if (!idTokenObj.claims.nonce) {
                     throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
@@ -211,6 +249,8 @@ export class ResponseHandler {
         if (!cachedAccount || !tokenResponse.account || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo);
         } else {
+            this.logger.error("Accounts do not match.");
+            this.logger.errorPii(`Cached Account: ${JSON.stringify(cachedAccount)}, New Account: ${JSON.stringify(tokenResponse.account)}`);
             throw ClientAuthError.createAccountMismatchError();
         }
     }

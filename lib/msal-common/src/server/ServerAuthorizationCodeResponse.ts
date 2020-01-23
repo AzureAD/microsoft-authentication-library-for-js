@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { buildClientInfo } from "../auth/ClientInfo";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
-import { buildClientInfo } from "../auth/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 
 /**
@@ -23,6 +23,12 @@ export type ServerAuthorizationCodeResponse = {
     error_description?: string;
 };
 
+/**
+ * Function which validates server authorization code response.
+ * @param serverResponseHash 
+ * @param cachedState 
+ * @param cryptoObj 
+ */
 export function validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
     if (serverResponseHash.state !== cachedState) {
         throw ClientAuthError.createStateMismatchError();

@@ -6,6 +6,8 @@ import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from 
 import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { TEST_CONFIG, TEST_URIS } from "../../utils/StringConstants";
 import { AuthError } from "../../../src/error/AuthError";
+import { NetworkRequestOptions } from "../../../src/network/INetworkModule";
+import { LogLevel } from "../../../src/logger/Logger";
 
 describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
 
@@ -14,12 +16,11 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.clientSecret).to.be.empty;
+        expect(emptyConfig.auth.tmp_clientSecret).to.be.empty;
         expect(emptyConfig.auth.authority).to.be.null;
         expect(emptyConfig.auth.validateAuthority).to.be.true;
         expect(emptyConfig.auth.redirectUri).to.be.empty;
         expect(emptyConfig.auth.postLogoutRedirectUri).to.be.empty;
-        expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -54,8 +55,13 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
         expect(emptyConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null, "")).to.be.rejectedWith(AuthError);
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
+        // Logger options checks
+        expect(emptyConfig.loggerOptions).to.be.not.null;
+        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw("Unexpected error in authentication.: Logger - loggerCallbackInterface() has not been implemented.");
+        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw(AuthError);
+        expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
     });
 
     const clearFunc = (): void => {
@@ -84,12 +90,11 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         let newConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
+                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority,
                 validateAuthority: false,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                navigateToLoginRequestUrl: false
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
@@ -120,23 +125,30 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
                 setItem: setFunc
             },
             networkInterface: {
-                sendGetRequestAsync: async (url: string, headers?: Map<string, string>, body?: string): Promise<any> => {
+                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, headers?: Map<string, string>, body?: string): Promise<any> => {
+                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
                 }
+            },
+            loggerOptions: {
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                    if (containsPii) {
+                        console.log(`Log level: ${level} Message: ${message}`);
+                    }
+                },
+                piiLoggingEnabled: true
             }
         });
         // Auth config checks
         expect(newConfig.auth).to.be.not.null;
         expect(newConfig.auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
-        expect(newConfig.auth.clientSecret).to.be.eq(TEST_CONFIG.MSAL_CLIENT_SECRET);
+        expect(newConfig.auth.tmp_clientSecret).to.be.eq(TEST_CONFIG.MSAL_CLIENT_SECRET);
         expect(newConfig.auth.authority).to.be.eq(TEST_CONFIG.validAuthority);
         expect(newConfig.auth.validateAuthority).to.be.false;
         expect(newConfig.auth.redirectUri).to.be.eq(TEST_URIS.TEST_REDIR_URI);
         expect(newConfig.auth.postLogoutRedirectUri).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
-        expect(newConfig.auth.navigateToLoginRequestUrl).to.be.false;
         // Crypto interface tests
         expect(newConfig.cryptoInterface).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -162,8 +174,12 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         // Network interface tests
         expect(newConfig.networkInterface).to.be.not.null;
         expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendGetRequestAsync("", null, "")).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface.sendGetRequestAsync("", null)).to.eventually.eq(testNetworkResult);
         expect(newConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendPostRequestAsync("", null, "")).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface.sendPostRequestAsync("", null)).to.eventually.eq(testNetworkResult);
+        // Logger option tests
+        expect(newConfig.loggerOptions).to.be.not.null;
+        expect(newConfig.loggerOptions.loggerCallback).to.be.not.null;
+        expect(newConfig.loggerOptions.piiLoggingEnabled).to.be.true;
     });
 });

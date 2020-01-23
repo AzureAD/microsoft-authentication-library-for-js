@@ -6,11 +6,18 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
 
+/**
+ * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings to ensure uniqueness of strings.
+ */
 export class ScopeSet {
-
+    // Client ID of application
     private clientId: string;
+    // Scopes as a Set of strings
     private scopes: Set<string>;
+    // Original scopes passed to constructor. Usually used for caching or telemetry.
     private originalScopes: Set<string>;
+    // Boolean denoting whether scopes are required. Usually used for validation.
     private scopesRequired: boolean;
 
     constructor(inputScopes: Array<string>, appClientId: string, scopesRequired: boolean) {
@@ -33,7 +40,7 @@ export class ScopeSet {
      * @param appClientId 
      * @param scopesRequired 
      */
-    static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean) {
+    static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean): ScopeSet {
         const inputScopes: Array<string> = inputScopeString.split(" ");
         return new ScopeSet(inputScopes, appClientId, scopesRequired);
     }
@@ -51,12 +58,9 @@ export class ScopeSet {
     }
 
     /**
-     * @hidden
-     *
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-     * @ignore
      */
     private validateInputScopes(inputScopes: Array<string>): void {
         if (this.scopesRequired) {
@@ -89,17 +93,8 @@ export class ScopeSet {
      * Check if a set of scopes is present in this set of scopes.
      * @param scopeSet 
      */
-    containsScopeSet(scopeSet: ScopeSet) {
-        if (this.scopes.size < scopeSet.scopes.size) {
-            return false;
-        } else {
-            for (const elem in scopeSet.scopes) {
-                if (!this.containsScope(elem)) {
-                    return false;
-                }
-            }
-            return true;
-        }
+    containsScopeSet(scopeSet: ScopeSet): boolean {
+        return this.scopes.size >= scopeSet.scopes.size && scopeSet.asArray().every(scope => this.containsScope(scope));
     }
 
     /**
@@ -139,7 +134,7 @@ export class ScopeSet {
      * Check if scopes intersect between this set and another.
      * @param otherScopes 
      */
-    intersectingScopeSets(otherScopes: ScopeSet) {
+    intersectingScopeSets(otherScopes: ScopeSet): boolean {
         return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.getScopeCount());
     }
 

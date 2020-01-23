@@ -2,14 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "msal-common";
+import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
-/**
- * Defaults for the Configuration Options
- */
-const FRAME_TIMEOUT = 6000;
+// Default timeout for popup windows in milliseconds
+const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 
 export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
@@ -31,8 +29,9 @@ export type CacheOptions = {
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
+ * - windowHashTimeout            - sets the wait time for hidden iFrame navigation
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
+ * - telemetry                    - Telemetry options for library network requests
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -54,8 +53,10 @@ export type Configuration = {
     system?: BrowserSystemOptions
 };
 
+// Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
+    tmp_clientSecret: "",
     authority: null,
     validateAuthority: true,
     redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
@@ -63,11 +64,13 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     navigateToLoginRequestUrl: true
 };
 
+// Default cache options for browser
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
     storeAuthStateInCookie: false
 };
 
+// Default logger options for browser
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -91,10 +94,11 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     piiLoggingEnabled: false
 };
 
+// Default system options for browser
 const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
-    windowHashTimeout: FRAME_TIMEOUT
+    windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS
 };
 
 /**
@@ -107,7 +111,6 @@ const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
  *
  * @returns TConfiguration object
  */
-
 export function buildConfiguration({ auth, cache = {}, system = {}}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },

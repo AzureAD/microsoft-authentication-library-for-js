@@ -3,15 +3,13 @@
  * Licensed under the MIT License.
  */
 import { ICacheStorage } from "../../cache/ICacheStorage";
-import { INetworkModule, NetworkRequestOptions } from "../../network/INetworkModule";
+import { INetworkModule } from "../../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
 import { ILoggerCallback } from "../../logger/Logger";
 
-/**
- * Defaults for the Module Configuration Options
- */
-const OFFSET = 300;
+// Token renewal offset default in seconds
+const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -61,11 +59,13 @@ export type LoggerOptions = {
     piiLoggingEnabled?: boolean
 };
 
+// Default module system options
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    tokenRenewalOffsetSeconds: OFFSET,
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };
 
+// Default logger implementation
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     loggerCallback: () => {
         const notImplErr = "Logger - loggerCallbackInterface() has not been implemented.";
@@ -74,16 +74,17 @@ const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     piiLoggingEnabled: false
 };
 
+// Default storage implementation
 const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     clear: () => {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    containsKey: (key: string): boolean => {
+    containsKey: (): boolean => {
         const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    getItem: (key: string): string => {
+    getItem: (): string => {
         const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
@@ -91,37 +92,39 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
         const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    removeItem: (key: string) => {
+    removeItem: () => {
         const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    setItem: (key: string, value: string) => {
+    setItem: () => {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
+// Default network implementation
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
-    async sendGetRequestAsync(url: string, options?: NetworkRequestOptions): Promise<any> {
+    async sendGetRequestAsync<T>(): Promise<T> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    async sendPostRequestAsync(url: string, options?: NetworkRequestOptions): Promise<any> {
+    async sendPostRequestAsync<T>(): Promise<T> {
         const notImplErr = "Network interface - sendPostRequestAsync() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
+// Default crypto implementation
 const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
         const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    base64Decode: (input: string): string => {
+    base64Decode: (): string => {
         const notImplErr = "Crypto interface - base64Decode() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    base64Encode: (input: string): string => {
+    base64Encode: (): string => {
         const notImplErr = "Crypto interface - base64Encode() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },

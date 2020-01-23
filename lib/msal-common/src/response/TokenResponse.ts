@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { AuthResponse } from "./AuthResponse";
 import { Account } from "../auth/Account";
 import { StringDict } from "../utils/MsalTypes";
-import { AuthResponse } from "./AuthResponse";
 
 /**
  * TokenResponse type returned by library containing id, access and/or refresh tokens.

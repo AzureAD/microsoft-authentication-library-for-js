@@ -6,7 +6,6 @@
 /**
  * AuthResponse base type returned by MSAL library on success
  * - userRequestState: User given state
- * - scopes: consented scopes
  */
 export type AuthResponse = {
     userRequestState: string;

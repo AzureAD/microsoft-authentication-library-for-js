@@ -7,6 +7,7 @@ import { BrowserCrypto } from "./BrowserCrypto";
 
 export class GuidGenerator {
 
+    // browser crypto object used to generate random values
     private cryptoObj: BrowserCrypto;
 
     constructor(cryptoObj: BrowserCrypto) {

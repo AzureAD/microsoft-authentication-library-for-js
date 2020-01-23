@@ -2,19 +2,22 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { ServerRequestParameters } from "./ServerRequestParameters";
 import { Authority } from "../auth/authority/Authority";
 import { Account } from "../auth/Account";
-import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
-import { StringUtils } from "../utils/StringUtils";
-import { StringDict } from "../utils/MsalTypes";
-import { Constants, BlacklistedEQParams, SSOTypes, PromptState, AADServerParamKeys } from "../utils/Constants";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ProtocolUtils } from "../utils/ProtocolUtils";
-import { ServerRequestParameters } from "./ServerRequestParameters";
 import { IdToken } from "../auth/IdToken";
+import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { StringUtils } from "../utils/StringUtils";
+import { ProtocolUtils } from "../utils/ProtocolUtils";
+import { Constants, BlacklistedEQParams, SSOTypes, PromptState, AADServerParamKeys } from "../utils/Constants";
+import { StringDict } from "../utils/MsalTypes";
 
+/**
+ * This class extends the ServerRequestParameters class. This class validates URL request parameters, checks for SSO and generates required URL.
+ */
 export class ServerCodeRequestParameters extends ServerRequestParameters {
 
     // Params
@@ -40,15 +43,16 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         this.responseType = Constants.CODE_RESPONSE_TYPE;
         this.account = (userRequest && userRequest.account) || cachedAccount;
 
+        // Set scopes, append extra scopes if there is a login call.
         this.scopes = new ScopeSet(this.userRequest && this.userRequest.scopes, this.clientId, !isLoginCall);
-        if (this.scopes.isLoginScopeSet()) {
+        if (isLoginCall) {
             this.appendExtraScopes();
         }
 
+        // Set random vars
         const randomGuid = this.cryptoObj.createNewGuid();
         this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid);
         this.nonce = this.cryptoObj.createNewGuid();
-
         this.correlationId = this.userRequest.correlationId || this.cryptoObj.createNewGuid();
     }
 
@@ -67,15 +71,12 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    isSSOParam() {
+    hasSSOParam(): boolean {
         const isSSORequest = this.userRequest && (this.account || this.userRequest.sid || this.userRequest.loginHint);
-        return this.account || isSSORequest;
+        return !!this.account || !!isSSORequest;
     }
 
     /**
-     * @hidden
-     * @ignore
-     * 
      * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
      * @param adalIdTokenObject 
      */
@@ -94,7 +95,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
             }
 
             // if the developer provides one of these, give preference to developer choice
-            if (this.isSSOParam()) {
+            if (this.hasSSOParam()) {
                 queryParameters = this.constructUnifiedCacheQueryParameter(null);
             }
         }
@@ -155,26 +156,32 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         str.push(`${AADServerParamKeys.X_CLIENT_SKU}=${this.xClientSku}`);
         str.push(`${AADServerParamKeys.X_CLIENT_VER}=${this.xClientVer}`);
 
+        // Add codes here. May want to add optional step to allow for non-PKCE auth code flows
         this.generatedPkce = await this.cryptoObj.generatePkceCodes();
         str.push(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(this.generatedPkce.challenge)}`);
         str.push(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
 
+        // Append resource
         if (this.userRequest && this.userRequest.resource) {
             str.push(`${AADServerParamKeys.RESOURCE}=${encodeURIComponent(this.userRequest.resource)}`);
         }
 
+        // Append prompt
         if (this.userRequest && this.userRequest.prompt) {
             str.push(`${AADServerParamKeys.PROMPT}=${(encodeURIComponent(this.userRequest.prompt))}`);
         }
 
+        // Append claims request
         if (this.userRequest && this.userRequest.claimsRequest) {
             str.push(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(this.userRequest.claimsRequest)}`);
         }
 
+        // Append query params
         if (this.queryParameters) {
             str.push(this.queryParameters);
         }
 
+        // Append extra query params
         if (this.extraQueryParameters) {
             str.push(this.extraQueryParameters);
         }
@@ -185,13 +192,10 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     }
 
     /**
-     * @hidden
-     * @ignore
-     *
      * Utility to test if valid prompt value is passed in the request
      * @param request
      */
-    private validatePromptParameter (prompt: string) {
+    private validatePromptParameter(prompt: string): void {
         if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
@@ -206,7 +210,7 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(idTokenObject: any): StringDict {
+    private constructUnifiedCacheQueryParameter(idTokenObject: IdToken): StringDict {
 
         // preference order: account > sid > login_hint
         let ssoType;
@@ -238,9 +242,9 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         }
         // adalIdToken retrieved from cache
         else if (idTokenObject) {
-            if (idTokenObject.hasOwnProperty(Constants.UPN)) {
+            if (idTokenObject.claims && idTokenObject.claims.preferred_username) {
                 ssoType = SSOTypes.ID_TOKEN;
-                ssoData = idTokenObject.upn;
+                ssoData = idTokenObject.claims.preferred_username;
             }
             else {
                 ssoType = SSOTypes.ORGANIZATIONS;
@@ -259,8 +263,6 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     }
 
     /**
-     * @hidden
-     *
      * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
      * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
      * domain_req utid received as part of the clientInfo
@@ -270,7 +272,6 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
      * @param {@link Account} account - Account for which the token is requested
      * @param queryparams
      * @param {@link ServerRequestParameters}
-     * @ignore
      */
     private addHintParameters(qParams: StringDict): StringDict {
         /*
@@ -348,8 +349,6 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     }
 
     /**
-     * @hidden
-     * @ignore
      * Removes unnecessary or duplicate query parameters from extraQueryParameters
      * @param request
      */

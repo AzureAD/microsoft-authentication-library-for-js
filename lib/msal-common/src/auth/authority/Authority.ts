@@ -2,32 +2,31 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
+import { AuthorityType } from "./AuthorityType";
+import { TenantDiscoveryResponse } from "./TenantDiscoveryResponse";
 import { UrlString } from "../../url/UrlString";
 import { IUri } from "../../url/IUri";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { INetworkModule } from "../../network/INetworkModule";
 
 /**
- * @hidden
- */
-export enum AuthorityType {
-    Aad,
-    Adfs,
-    B2C
-}
-
-/**
- * @hidden
+ * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
+ * endpoint. It will store the pertinent config data in this object for use during token calls.
  */
 export abstract class Authority {
 
+    // Canonical authority url string
     private _canonicalAuthority: UrlString;
+    // Canonicaly authority url components
     private _canonicalAuthorityUrlComponents: IUri;
-    private tenantDiscoveryResponse: ITenantDiscoveryResponse;
+    // Tenant discovery response retrieved from OpenID Configuration Endpoint
+    private tenantDiscoveryResponse: TenantDiscoveryResponse;
+    // Network interface to make requests with.
     protected networkInterface: INetworkModule;
 
+    // See above for AuthorityType
     public abstract get authorityType(): AuthorityType;
+    // Boolean value to check for authority validation. If validation is disabled, we do not check known authorities.
     public abstract get isValidationEnabled(): boolean;
 
     /**
@@ -37,11 +36,17 @@ export abstract class Authority {
         return this._canonicalAuthority.urlString;
     }
 
+    /**
+     * Sets canonical authority.
+     */
     public set canonicalAuthority(url: string) {
         this._canonicalAuthority = new UrlString(url);
         this._canonicalAuthorityUrlComponents = null;
     }
 
+    /**
+     * Get authority components.
+     */
     public get canonicalAuthorityUrlComponents(): IUri {
         if (!this._canonicalAuthorityUrlComponents) {
             this._canonicalAuthorityUrlComponents = this._canonicalAuthority.getUrlComponents();
@@ -50,10 +55,16 @@ export abstract class Authority {
         return this._canonicalAuthorityUrlComponents;
     }
 
+    /**
+     * Get tenant for authority.
+     */
     public get tenant(): string {
         return this._canonicalAuthorityUrlComponents.PathSegments[0];
     }
 
+    /**
+     * OAuth /authorize endpoint for requests
+     */
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete()) {
             return this.replaceTenant(this.tenantDiscoveryResponse.authorization_endpoint);
@@ -62,6 +73,9 @@ export abstract class Authority {
         }
     }
 
+    /**
+     * OAuth /token endpoint for requests
+     */
     public get tokenEndpoint(): string {
         if(this.discoveryComplete()) {
             return this.replaceTenant(this.tenantDiscoveryResponse.token_endpoint);
@@ -70,6 +84,9 @@ export abstract class Authority {
         }
     }
 
+    /**
+     * OAuth logout endpoint for requests
+     */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
             return this.replaceTenant(this.tenantDiscoveryResponse.end_session_endpoint);
@@ -78,6 +95,9 @@ export abstract class Authority {
         }
     }
 
+    /**
+     * OAuth issuer for requests
+     */
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete()) {
             return this.replaceTenant(this.tenantDiscoveryResponse.issuer);
@@ -86,10 +106,17 @@ export abstract class Authority {
         }
     }
 
+    /**
+     * Replaces tenant in url path with current tenant. Defaults to common.
+     * @param urlString 
+     */
     private replaceTenant(urlString: string): string {
         return urlString.replace("{tenant}", this.tenant);
     }
 
+    /**
+     * The default open id configuration endpoint for any canonical authority.
+     */
     protected get defaultOpenIdConfigurationEndpoint(): string {
         return `${this.canonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
@@ -101,16 +128,29 @@ export abstract class Authority {
         this.networkInterface = networkInterface;
     }
 
-    discoveryComplete() {
+    /**
+     * Boolean that returns whethr or not tenant discovery has been completed.
+     */
+    discoveryComplete(): boolean {
         return !!this.tenantDiscoveryResponse;
     }
 
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
-        return this.networkInterface.sendGetRequestAsync<ITenantDiscoveryResponse>(openIdConfigurationEndpoint);
+    /**
+     * Gets OAuth endpoints from the given OpenID configuration endpoint.
+     * @param openIdConfigurationEndpoint 
+     */
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<TenantDiscoveryResponse> {
+        return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);
     }
 
+    /**
+     * Abstract function which will get the OpenID configuration endpoint.
+     */
     public abstract async getOpenIdConfigurationAsync(): Promise<string>;
 
+    /**
+     * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
+     */
     public async resolveEndpointsAsync(): Promise<void> {
         const openIdConfigEndpoint = await this.getOpenIdConfigurationAsync();
         this.tenantDiscoveryResponse = await this.discoverEndpoints(openIdConfigEndpoint);

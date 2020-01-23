@@ -14,7 +14,7 @@ export class Base64Encode {
      * Returns URL Safe b64 encoded string from a plaintext string.
      * @param input 
      */
-    urlEncode(input: string) {
+    urlEncode(input: string): string {
         return this.encode(input)
             .replace(/=/g, "")
             .replace(/\+/g, "-")
@@ -36,7 +36,7 @@ export class Base64Encode {
      * Returns b64 encoded string from plaintext string.
      * @param input 
      */
-    encode(input: string) {
+    encode(input: string): string {
         const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(encodeURIComponent(input));
         return this.base64EncArr(inputUtf8Arr);
     }    
@@ -45,7 +45,7 @@ export class Base64Encode {
      * Base64 encode byte array
      * @param aBytes 
      */
-    private base64EncArr (aBytes: Uint8Array) {  
+    private base64EncArr(aBytes: Uint8Array): string {  
         const eqLen = (3 - (aBytes.length % 3)) % 3;
         let sB64Enc = "";
       
@@ -71,10 +71,10 @@ export class Base64Encode {
     }
 
     /**
-     * Base64 string to array encoding
+     * Base64 string to array encoding helper
      * @param nUint6 
      */
-    private uint6ToB64 (nUint6: number) {
+    private uint6ToB64 (nUint6: number): number {
         return nUint6 < 26 ?
             nUint6 + 65
             : nUint6 < 52 ?

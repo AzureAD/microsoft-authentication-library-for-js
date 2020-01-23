@@ -4,7 +4,7 @@
  */
 
 /**
- * @hidden
+ * Value of access token cache item which is stored in cache. Helps manage token renewal.
  */
 export class AccessTokenValue {
 

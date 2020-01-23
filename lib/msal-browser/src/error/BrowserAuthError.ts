@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthError, StringUtils } from "msal-common";
+import { AuthError, StringUtils } from "@azure/msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
@@ -24,9 +24,9 @@ export const BrowserAuthErrorMessage = {
         code: "http_method_not_implemented",
         desc: "The HTTP method given has not been implemented in this library."
     },
-    emptyRedirectUriError: {
-        code: "empty_redirect_uri",
-        desc: "Redirect URI is empty. Please check stack trace for more info."
+    emptyNavigateUriError: {
+        code: "empty_navigate_uri",
+        desc: "Navigation URI is empty. Please check stack trace for more info."
     },
     hashEmptyError: {
         code: "hash_empty_error",
@@ -44,9 +44,9 @@ export const BrowserAuthErrorMessage = {
         code: "user_cancelled",
         desc: "User cancelled the flow."
     },
-    tokenRenewalError: {
-        code: "token_renewal_error",
-        desc: "Token renewal operation failed due to timeout."
+    popupWindowTimeoutError: {
+        code: "popup_window_timeout",
+        desc: "Popup window token acquisition operation failed due to timeout."
     },
 };
 
@@ -62,51 +62,87 @@ export class BrowserAuthError extends AuthError {
         this.name = "BrowserAuthError";
     }
 
+    /**
+     * Creates error thrown when no window object can be found.
+     */
     static createNoWindowObjectError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
     }
 
+    /**
+     * Creates an error thrown when PKCE is not implemented.
+     * @param errDetail 
+     */
     static createPkceNotGeneratedError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.pkceNotGenerated.code,
             `${BrowserAuthErrorMessage.pkceNotGenerated.desc} Detail:${errDetail}`);
     }
 
+    /**
+     * Creates an error thrown when the crypto object is unavailable.
+     * @param errDetail 
+     */
     static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code, 
             `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`);
     }
 
+    /**
+     * Creates an error thrown when an HTTP method hasn't been implemented by the browser class.
+     * @param method 
+     */
     static createHttpMethodNotImplementedError(method: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.httpMethodNotImplementedError.code,
             `${BrowserAuthErrorMessage.httpMethodNotImplementedError.desc} Given Method: ${method}`);
     }
 
-    static createEmptyRedirectUriError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.emptyRedirectUriError.code, BrowserAuthErrorMessage.emptyRedirectUriError.desc);
+    /**
+     * Creates an error thrown when the navigation URI is empty.
+     */
+    static createEmptyNavigationUriError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.emptyNavigateUriError.code, BrowserAuthErrorMessage.emptyNavigateUriError.desc);
     }
 
+    /**
+     * Creates an error thrown when the hash string value is unexpectedly empty.
+     * @param hashValue 
+     */
     static createEmptyHashError(hashValue: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
     }
 
+    /**
+     * Creates an error thrown when a browser interaction (redirect or popup) is in progress.
+     */
     static createInteractionInProgressError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.interactionInProgress.code, BrowserAuthErrorMessage.interactionInProgress.desc);
     }
 
+    /**
+     * Creates an error thrown when the popup window could not be opened.
+     * @param errDetail 
+     */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
         let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
         return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
     }
 
+    /**
+     * Creates an error thrown when the user closes a popup.
+     */
     static createUserCancelledError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.userCancelledError.code,
             BrowserAuthErrorMessage.userCancelledError.desc);
     }
 
-    static createTokenRenewalTimeoutError(urlNavigate: string): BrowserAuthError {
-        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.tokenRenewalError.desc}`;
-        return new BrowserAuthError(BrowserAuthErrorMessage.tokenRenewalError.code,
+    /**
+     * Creates an error thrown when the 
+     * @param urlNavigate 
+     */
+    static createPopupWindowTimeoutError(urlNavigate: string): BrowserAuthError {
+        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.popupWindowTimeoutError.desc}`;
+        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowTimeoutError.code,
             errorMessage);
     }
 }

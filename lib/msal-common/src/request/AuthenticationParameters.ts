@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { ClientRequestParameters } from "./ClientRequestParameters";
 import { Account } from "../auth/Account";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientRequestParameters } from "./ClientRequestParameters";
 
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.
@@ -35,13 +35,12 @@ export type AuthenticationParameters = ClientRequestParameters & {
  * Function which validates claims request passed in by the user.
  * @param request 
  */
-export function validateClaimsRequest(request: AuthenticationParameters) {
+export function validateClaimsRequest(request: AuthenticationParameters): void {
     if (!request.claimsRequest) {
         return;
     }
-    let claims;
     try {
-        claims = JSON.parse(request.claimsRequest);
+        JSON.parse(request.claimsRequest);
     } catch (e) {
         throw ClientConfigurationError.createClaimsRequestParsingError(e);
     }

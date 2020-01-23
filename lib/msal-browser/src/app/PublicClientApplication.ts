@@ -2,29 +2,17 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthError, Account, AuthResponse, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "msal-common";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
+import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
-
-/**
- * A type alias for an authResponseCallback function.
- * {@link (authResponseCallback:type)}
- * @param authErr error created for failure cases
- * @param response response containing token strings in success cases, or just state value in error cases
- */
-export type AuthCallback = (authErr: AuthError, response?: AuthResponse) => void;
-
-/**
- * Key-Value type to support queryParams, extraQueryParams and claims
- */
-export type StringDict = {[key: string]: string};
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -32,10 +20,10 @@ export type StringDict = {[key: string]: string};
  */
 export class PublicClientApplication {
 
-    // input configuration by developer/user
+    // Input configuration by developer/user
     private config: Configuration;
 
-    // auth functions imported from msal-common module
+    // auth functions imported from @azure/msal-common module
     private authModule: AuthorizationCodeModule;
 
     // callback for error/token response
@@ -60,30 +48,31 @@ export class PublicClientApplication {
      * - redirect_uri: the uri of your application registered in the portal.
      *
      * In Azure AD, authority is a URL indicating the Azure active directory that MSAL uses to obtain tokens.
-     * It is of the form https://login.microsoftonline.com/&lt;Enter_the_Tenant_Info_Here&gt;.
+     * It is of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}
      * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
      * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
      * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * In Azure B2C, authority is of the form https://&lt;instance&gt;/tfp/&lt;tenant&gt;/&lt;policyName&gt;/
+     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
+     * Full B2C functionality will be available in this library in future versions.
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     constructor(configuration: Configuration) {
-        // Set the configuration
+        // Set the configuration.
         this.config = buildConfiguration(configuration);
 
-        // Initialize the crypto class
+        // Initialize the crypto class.
         this.browserCrypto = new CryptoOps();
 
-        // Initialize the network module class
+        // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
 
-        // Initialize the browser storage class
+        // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
-        // Create auth module
+        // Create auth module.
         this.authModule = new AuthorizationCodeModule({
             auth: this.config.auth,
             systemOptions: {
@@ -110,18 +99,23 @@ export class PublicClientApplication {
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
+        // Check whether callback object was passed.
         if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
         }
 
+        // Set the callback object.
         this.authCallback = authCallback;
+        // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         try {
+            // If hash exists, handle in window. Otherwise, continue execution.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
             const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
             if (responseHash) {
-                this.authCallback(null, await interactionHandler.handleCodeResponse(responseHash));
+                const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
+                this.authCallback(null, tokenResponse);
             }
         } catch (err) {
             this.authCallback(err);
@@ -133,18 +127,24 @@ export class PublicClientApplication {
      * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request?: AuthenticationParameters): void {
+    loginRedirect(request: AuthenticationParameters): void {
+        // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
         }
 
+        // Check if interaction is in progress. Throw error in callback and return if true.
         if (this.interactionInProgress()) {
             this.authCallback(BrowserAuthError.createInteractionInProgressError());
             return;
         }
 
+        // Create redirect interaction handler.
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+
+        // Create login url, which will by default append the client id scope to the call.
         this.authModule.createLoginUrl(request).then((navigateUrl) => {
+            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.showUI(navigateUrl);
         });
     }
@@ -156,18 +156,23 @@ export class PublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request?: AuthenticationParameters): void {
+    acquireTokenRedirect(request: AuthenticationParameters): void {
+        // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
         }
 
+        // Check if interaction is in progress. Throw error in callback and return if true.
         if (this.interactionInProgress()) {
             this.authCallback(BrowserAuthError.createInteractionInProgressError());
             return;
         }
 
+        // Create redirect interaction handler.
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+        // Create acquire token url.
         this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
+            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.showUI(navigateUrl);
         });
     }
@@ -184,14 +189,16 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
+        // Check if interaction is in progress. Throw error if true.
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
-        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+
+        // Create login url, which will by default append the client id scope to the call.
         const navigateUrl = await this.authModule.createLoginUrl(request);
-        const popupWindow = interactionHandler.showUI(navigateUrl);
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
-        return interactionHandler.handleCodeResponse(hash);
+
+        // Acquire token with popup
+        return this.popupTokenHelper(navigateUrl);
     }
 
     /**
@@ -202,13 +209,30 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
+        // Check if interaction is in progress. Throw error if true.
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
-        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+
+        // Create acquire token url.
         const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
+
+        // Acquire token with popup
+        return this.popupTokenHelper(navigateUrl);
+    }
+
+    /**
+     * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
+     * @param navigateUrl 
+     */
+    private async popupTokenHelper(navigateUrl: string): Promise<TokenResponse> {
+        // Create popup interaction handler.
+        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+        // Show the UI once the url has been created. Get the window handle for the popup.
         const popupWindow = interactionHandler.showUI(navigateUrl);
+        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
+        // Handle response from hash string.
         return interactionHandler.handleCodeResponse(hash);
     }
 
@@ -227,6 +251,7 @@ export class PublicClientApplication {
      *
      */
     async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+        // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return this.authModule.renewToken(tokenRequest);
     }
 
@@ -239,6 +264,7 @@ export class PublicClientApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      */
     logout(): void {
+        // create logout string and navigate user window to logout. Auth module will clear cache.
         this.authModule.logout().then(logoutUri => {
             BrowserUtils.navigateWindow(logoutUri);
         });
@@ -283,8 +309,9 @@ export class PublicClientApplication {
 
     // #region Helpers
 
-    private interactionInProgress() {
-        return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS;
+    private interactionInProgress(): boolean {
+        // Check whether value in cache is present and equal to expected value
+        return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
     }
 
     // #endregion

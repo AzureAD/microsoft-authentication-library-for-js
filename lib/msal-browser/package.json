@@ -1,5 +1,5 @@
 {
-    "name": "msal-browser",
+    "name": "@azure/msal-browser",
     "author": {
         "name": "Microsoft",
         "email": "nugetaad@microsoft.com",
@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
     },
-    "version": "0.0.1",
+    "version": "2.0.0-alpha.0",
     "description": "Microsoft Authentication Library for js",
     "keywords": [
         "implicit",
@@ -37,12 +37,12 @@
         "clean": "shx rm -rf dist lib",
         "clean:coverage": "rimraf ../../.nyc_output/*",
         "lint": "eslint src --ext .ts",
-        "pretest": "npm link msal-common",
+        "pretest": "npm link @azure/msal-common",
         "test": "mocha",
         "test:coverage": "nyc --reporter=text mocha",
         "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-        "build:all": "npm run build:common && npm link msal-common && npm run build",
-        "build:common": "cd ../msal-common && npm run build && npm link",
+        "build:all": "npm run build:common && npm run build",
+        "build:common": "cd ../msal-common && npm run build",
         "build:modules": "rollup -c",
         "build:modules:watch": "rollup -cw",
         "build": "npm run clean && npm run lint && npm run build:modules",
@@ -85,5 +85,7 @@
         "tslint": "^5.20.0",
         "typescript": "^3.6.4"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@azure/msal-common": "1.0.0-alpha.0"
+    }
 }
