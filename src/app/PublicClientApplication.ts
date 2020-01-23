@@ -146,14 +146,21 @@ export class PublicClientApplication {
             return;
         }
 
-        // Create redirect interaction handler.
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+        try {
+            // Create redirect interaction handler.
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
 
-        // Create login url, which will by default append the client id scope to the call.
-        this.authModule.createLoginUrl(request).then((navigateUrl) => {
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.showUI(navigateUrl);
-        });
+            // Create login url, which will by default append the client id scope to the call.
+            this.authModule.createLoginUrl(request).then((navigateUrl) => {
+                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+                interactionHandler.showUI(navigateUrl);
+            });
+        } catch (e) {
+            // Interaction is completed - remove interaction status.
+            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+            this.authModule.cancelRequest();
+            throw e;
+        }
     }
 
     /**
@@ -175,14 +182,22 @@ export class PublicClientApplication {
             return;
         }
 
-        // Create redirect interaction handler.
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
-        // Create acquire token url.
-        this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.showUI(navigateUrl);
-        });
-    }
+        try {
+            // Create redirect interaction handler.
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+
+            // Create acquire token url.
+            this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
+                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+                interactionHandler.showUI(navigateUrl);
+            });
+        } catch (e) {
+            // Interaction is completed - remove interaction status.
+            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+            this.authModule.cancelRequest();
+            throw e;
+        }
+     }
 
     // #endregion
 
@@ -243,6 +258,8 @@ export class PublicClientApplication {
             // Handle response from hash string.
             return interactionHandler.handleCodeResponse(hash);
         } catch (e) {
+            // Interaction is completed - remove interaction status.
+            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
             this.authModule.cancelRequest();
             throw e;
         }
