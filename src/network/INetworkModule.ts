@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Options allowed by network request APIs.
+ */
 export type NetworkRequestOptions = {
     headers?: Map<string, string>,
     body?: string;

@@ -3,10 +3,13 @@
  * Licensed under the MIT License.
  */
 import pkg from "../../package.json";
+import { ScopeSet } from "../auth/ScopeSet";
 import { ICrypto } from "../crypto/ICrypto";
 import { Constants } from "../utils/Constants";
-import { ScopeSet } from "../auth/ScopeSet";
 
+/**
+ * Base abstract class for server request params class which validates request parameters, checks for SSO, and returns URL or request body content.
+ */
 export abstract class ServerRequestParameters {
     // Crypto functions
     protected cryptoObj: ICrypto;

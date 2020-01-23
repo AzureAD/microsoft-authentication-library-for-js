@@ -2,19 +2,23 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
+import { AccessTokenKey } from "./AccessTokenKey";
+import { AccessTokenValue } from "./AccessTokenValue";
 import { ICacheStorage } from "./ICacheStorage";
 import { Account } from "../auth/Account";
 import { Authority } from "../auth/authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
-import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
-import { AccessTokenKey } from "./AccessTokenKey";
-import { AccessTokenValue } from "./AccessTokenValue";
+import { StringUtils } from "../utils/StringUtils";
+import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 
+/**
+ * The CacheHelpers class contains a set of helper functions used by the module to manage cache items.
+ */
 export class CacheHelpers {
 
+    // Storage interface
     private cacheStorage: ICacheStorage;
 
     constructor(cacheImpl: ICacheStorage) {
@@ -26,7 +30,7 @@ export class CacheHelpers {
      * @param accountId
      * @param state
      */
-    generateAcquireTokenAccountKey(accountId: any): string {
+    generateAcquireTokenAccountKey(accountId: string): string {
         return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}`;
     }
 
@@ -47,15 +51,11 @@ export class CacheHelpers {
     }
 
     /**
-     * @hidden
-     * @ignore
-     *
      * Sets the cachekeys for and stores the account information in cache
      * @param account
      * @param state
-     * @hidden
      */
-    setAccountCache(account: Account) {
+    setAccountCache(account: Account): void {
         // Cache acquireTokenAccountKey
         const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
 
@@ -64,15 +64,11 @@ export class CacheHelpers {
     }
 
     /**
-     * @hidden
-     * @ignore
-     *
      * Sets the cacheKey for and stores the authority information in cache
      * @param state
      * @param authority
-     * @hidden
      */
-    setAuthorityCache(authority: Authority, state: string) {
+    setAuthorityCache(authority: Authority, state: string): void {
         // Cache authorityKey
         const authorityKey = this.generateAuthorityKey(state);
         this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
@@ -82,8 +78,6 @@ export class CacheHelpers {
      * Updates account, authority, and state in cache
      * @param serverAuthenticationRequest
      * @param account
-     * @hidden
-     * @ignore
      */
     updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
         // Cache account and state
@@ -106,9 +100,8 @@ export class CacheHelpers {
      * @param state 
      */
     resetTempCacheItems(state?: string): void {
-        let key: string;
         // check state and remove associated cache items
-        this.cacheStorage.getKeys().forEach((key) => {
+        this.cacheStorage.getKeys().forEach(key => {
             if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;

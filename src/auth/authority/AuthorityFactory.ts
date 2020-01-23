@@ -2,12 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthorityType, Authority } from "./Authority";
+import { Authority } from "./Authority";
+import { AadAuthority } from "./AadAuthority";
+import { AuthorityType } from "./AuthorityType";
+import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
-import { AadAuthority } from "./AadAuthority";
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 
 export class AuthorityFactory {
 
@@ -23,8 +24,10 @@ export class AuthorityFactory {
         const pathSegments = components.PathSegments;
         switch (pathSegments[0]) {
             case "tfp":
+                // tfp denotes a b2c url
                 return AuthorityType.B2C;
             default:
+                // default authority is always AAD
                 return AuthorityType.Aad;
         }
     }
@@ -34,6 +37,7 @@ export class AuthorityFactory {
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
     public static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
+        // Return null if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }

@@ -4,7 +4,7 @@
  */
 
 /**
- * @hidden
+ * Utility class which exposes functions for managing date and time operations.
  */
 export class TimeUtils {
     /**

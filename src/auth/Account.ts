@@ -4,9 +4,9 @@
  */
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
+import { IdTokenClaims } from "./IdTokenClaims";
 import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
-import { IdTokenClaims } from "./IdTokenClaims";
 
 /**
  * accountIdentifier       combination of idToken.uid and idToken.utid
@@ -51,7 +51,6 @@ export class Account {
     }
 
     /**
-     * @hidden
      * @param idToken
      * @param clientInfo
      */

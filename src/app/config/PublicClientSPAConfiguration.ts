@@ -12,11 +12,11 @@ import { ModuleConfiguration, buildModuleConfiguration } from "./ModuleConfigura
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
- *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
- *
  */
 export type AuthOptions = {
     clientId: string;
+    // Temporary until server allows CORS for public clients
+    tmp_clientSecret: string;
     authority?: string;
     validateAuthority?: boolean;
     redirectUri?: string | (() => string);
@@ -35,6 +35,8 @@ export type PublicClientSPAConfiguration = ModuleConfiguration & {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
+    // Temporary until server allows CORS for public clients
+    tmp_clientSecret: "",
     authority: null,
     validateAuthority: true,
     redirectUri: "",
