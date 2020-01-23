@@ -273,7 +273,7 @@ export class AuthorizationCodeModule extends AuthModule {
     }
 
     /**
-     * 
+     * Clears cache of items related to current request.
      */
     public cancelRequest(): void {
         const cachedState = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
