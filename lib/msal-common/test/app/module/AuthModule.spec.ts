@@ -6,7 +6,6 @@ chai.use(chaiAsPromised);
 import { AuthModule } from "../../../src/app/module/AuthModule";
 import { ModuleConfiguration } from "../../../src/app/config/ModuleConfiguration";
 import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
-import { TEST_HASHES } from "../../utils/StringConstants";
 import { TokenResponse } from "../../../src/response/TokenResponse";
 import { CodeResponse } from "../../../src/response/CodeResponse";
 import { TokenRenewParameters } from "../../../src/request/TokenRenewParameters";
@@ -59,9 +58,12 @@ describe("AuthModule.ts Class Unit Tests", () => {
             expect(authModule).to.be.not.null;
             expect(authModule instanceof AuthModule).to.be.true;
         });
+    });
 
-        it("Handles the authentication response - currently return null", () => {
-            expect(() => authModule.handleFragmentResponse(TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH)).to.throw("Method not implemented");
-        }) 
+    describe("getAccount()", () => {
+
+        it("returns null if nothing is in the cache", () => {
+
+        });
     });
 });
