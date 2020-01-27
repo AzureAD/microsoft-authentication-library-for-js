@@ -197,7 +197,7 @@ export class PublicClientApplication {
             this.authModule.cancelRequest();
             throw e;
         }
-     }
+    }
 
     // #endregion
 
