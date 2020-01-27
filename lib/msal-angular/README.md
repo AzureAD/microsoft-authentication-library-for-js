@@ -275,6 +275,10 @@ MsalModule.forRoot({
 
 You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/samples).
 
+| Sample | Description |
+| ------ | ----------- |
+| [MSAL Angular 4.3+ Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/MSALAngularDemoApp) | Javascript sample application written using the Angular framework and the MSAL.js Angular wrapper. |
+
 ## Community Help and Support
 
 - [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs) for access to our frequently asked questions

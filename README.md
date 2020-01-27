@@ -5,7 +5,7 @@ The Microsoft Authentication Library for JavaScript enables client-side JavaScri
 
 ## Repository Details
 
-### Core and wrapper libaries
+### Core and wrapper libraries
 
 The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
 
@@ -19,17 +19,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ### Samples
 
-The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. Here is a complete list of samples: 
-
-| Sample | Description |
-| ------ | ----------- |
-| [Vanilla JS Sample](./samples/VanillaJSTestApp) | Vanilla Javascript sample that shows a basic usage of the MSAL.js core library. |
-| [JS Graph API V2 Sample](https://github.com/Azure-Samples/active-directory-javascript-graphapi-v2) | Javascript sample application used as the library quickstart which shows how to use the access token in a Graph API call. |
-| [B2C JS SPA Sample](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) | Javascript sample application showing how to use MSAL for B2C scenarios in a Single-Page Application. |
-| [JS SPA w/ .NET backend](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi-v2) | Javascript sample application showing how to use MSAL for auth scenarios in a Single-Page Application using an ASP.NET backend. Also shows how to call APIs other than MS Graph. |
-| [MSAL Angular 4.3+ Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/MSALAngularDemoApp) | Javascript sample application written using the Angular framework and the MSAL.js Angular wrapper. |
-| [React Sample using MSAL.js Core 1.x Library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/react-sample-app) | Javascript sample application written using the React framework and the MSAL.js Core 1.x library. |
-| [MSAL AngularJS 1.7 Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/MsalAngularjsDemoApp) | Javascript sample application written using the AngularJS framework and the MSAL.js AngularJS wrapper. |
+The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. For a complete list of samples, please go to the folder for that library (see [above](#core-and-wrapper-libraries) for links).
 
 ## Roadmap
 What we are working on and future releases.
@@ -48,7 +38,7 @@ TBD | Not Started | MSAL React Preview | Preview version of a client side librar
 
 - [GitHub Issues](../../issues) is the best place to ask questions, report bugs, and new request features.
 
-- [FAQs](./FAQ.md) for access to our frequently asked questions.
+- [FAQs](./FAQ.md) for access to our frequently asked questions about the MSAL libraries. For library specific questions, please go to the folder for that library (see [above](#core-and-wrapper-libraries) for links).
 
 - [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using "msal" and "msal.js" tag.
 

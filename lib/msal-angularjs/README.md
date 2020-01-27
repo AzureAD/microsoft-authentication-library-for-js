@@ -317,6 +317,10 @@ If you put your site in the trusted site list, cookies are not accessible for If
 
 You can find a quickstart and detailed sample under the [sample directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angularjs/samples).
 
+| Sample | Description |
+| ------ | ----------- |
+| [MSAL AngularJS 1.7 Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/MsalAngularjsDemoApp) | Javascript sample application written using the AngularJS framework and the MSAL.js AngularJS wrapper. |
+
 ## Community Help and Support
 
 - [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs) for access to our frequently asked questions
