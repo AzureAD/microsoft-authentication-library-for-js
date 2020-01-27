@@ -187,6 +187,24 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
+  it("createInvalidCorrelationIdError creates a ClientConfigurationError object", () => {
+
+    const invalidCorrelationId = ClientConfigurationError.createInvalidCorrelationIdError();
+    let err: ClientConfigurationError;
+
+    try {
+      throw invalidCorrelationId;
+    } catch (error) {
+      err = error;
+    }
+
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidCorrelationIdError.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
+    expect(err.name).to.equal("ClientConfigurationError");
+    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
+  });
+
   it("createTelemetryConfigError creates a ClientConfigurationError object", () => {
     // @ts-ignore
     const telemConfigErr: ClientConfigurationError = ClientConfigurationError.createTelemetryConfigError({

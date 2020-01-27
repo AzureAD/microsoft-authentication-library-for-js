@@ -19,7 +19,7 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { AuthCache } from "../src/cache/AuthCache";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
-import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys, RequestStatus } from "../src/utils/Constants";
+import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys } from "../src/utils/Constants";
 import { WindowUtils } from "../src/utils/WindowUtils";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
@@ -151,9 +151,10 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
         it("configure telemtry in UAA missing configuration throws config error", () => {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const configureTestCase = () => msal = new UserAgentApplication({
                 auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
                     // @ts-ignore
@@ -163,7 +164,6 @@ describe("UserAgentApplication.ts Class", function () {
                     }
                 }
             });
-
             expect(configureTestCase).to.throw(ClientConfigurationError);
         });
         it("telemetry manager exists in UAA when configured", () => {
@@ -226,6 +226,29 @@ describe("UserAgentApplication.ts Class", function () {
         it("throws error if null argument is passed to either argument of setRedirectCallbacks", (done) => {
             expect(() => msal.handleRedirectCallback(null)).to.throw(ClientConfigurationError);
             done();
+        });
+
+        it("navigates user to redirectURI passed in the  request config", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "/oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).to.include("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
+                        expect(url).to.include("&state");
+                        expect(url).to.include("&client_info=1");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            msal.handleRedirectCallback(authCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+
+            const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
+            msal.loginRedirect(request);
         });
 
         it("navigates user to login and prompt parameter is not passed by default", (done) => {
@@ -546,7 +569,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("exits login function with error if interaction is true", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, RequestStatus.IN_PROGRESS);
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
@@ -674,7 +698,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Calls the error callback if two callbacks are sent", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, accountState: string) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
@@ -689,7 +713,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the token callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
@@ -705,7 +729,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the response callback if single callback is sent", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM);
 
@@ -1011,7 +1035,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
             const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                 expect(cacheCallSpy.notCalled).to.be.true;
                 expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -1053,7 +1077,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of response", function(done) {
             const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
             const checkRespFromServer = function(response: AuthResponse) {
@@ -1069,7 +1093,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of error", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
@@ -1086,7 +1110,7 @@ describe("UserAgentApplication.ts Class", function () {
         // TEST_SERVER_ERROR_SUBCODE_CANCEL
         it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof ServerError).to.be.true;
@@ -1100,7 +1124,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
                 done();
@@ -1110,7 +1134,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_ERROR_HASH + TEST_USER_STATE_URL);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_URL);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_URL);
                 done();
@@ -1132,7 +1156,7 @@ describe("UserAgentApplication.ts Class", function () {
             const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             const successHash = TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_ACQ_TOKEN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
 
@@ -1152,7 +1176,7 @@ describe("UserAgentApplication.ts Class", function () {
             const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             const successHash = TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, successHash);
             const checkRespFromServer = function(response: AuthResponse) {
@@ -1190,7 +1214,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of interaction_required error code", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
@@ -1206,7 +1230,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of interaction_required error code and description", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
@@ -1224,7 +1248,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of login_required error code", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
@@ -1240,7 +1264,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of login_required error code and description", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
@@ -1258,7 +1282,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of consent_required error code", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
@@ -1274,7 +1298,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of consent_required error code and description", function(done) {
             cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM);
-            cacheStorage.setItem(TemporaryCacheKeys.STATE_LOGIN, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM-GUID-HERE|${TEST_USER_STATE_NUM}`, "RANDOM-GUID-HERE|" + TEST_USER_STATE_NUM);
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
                 expect(error instanceof InteractionRequiredAuthError).to.be.true;
@@ -1504,18 +1528,6 @@ describe("UserAgentApplication.ts Class", function () {
             expect(acquireTokenPromise instanceof Promise).to.be.true;
             acquireTokenPromise.catch(error => {});
         });
-
-        it("throws an error if configured with a null request", () => {
-            let correctError;
-            try {
-                // @ts-ignore
-                msal.acquireTokenPopup();
-            } catch (e) {
-                expect(e).to.be.instanceOf(ClientConfigurationError);
-                correctError = true;
-            }
-            expect(correctError).to.be.true;
-        });
     });
 
     describe("Silent Flow", function () {
@@ -1541,18 +1553,31 @@ describe("UserAgentApplication.ts Class", function () {
             expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
             acquireTokenSilentPromise.catch(error => {});
         });
+    });
 
-        it("throws an error if configured with a null request", () => {
-            let correctError;
-            try {
-                // @ts-ignore
-                msal.acquireTokenSilent();
-            } catch (e) {
-                expect(e).to.be.instanceOf(ClientConfigurationError);
-                correctError = true;
+    describe("Test null request calls for acquireTokenSilent and acquireTokenPopup", () => {
+        const config: Configuration = {
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                redirectUri: TEST_URIS.TEST_REDIR_URI
             }
-            expect(correctError).to.be.true;
+        };
+
+        msal = new UserAgentApplication(config);
+        it("throws an error if configured with a null request", () => {
+            try {
+                msal.acquireTokenSilent(null);
+            } catch(e) {
+                () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
+            };
         });
 
+        it("throws an error if configured with a null request", () => {
+            try {
+                msal.acquireTokenPopup(null);
+            } catch(e) {
+                () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
+            };
+        });
     });
 });

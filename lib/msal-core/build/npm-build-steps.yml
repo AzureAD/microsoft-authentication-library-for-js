@@ -30,8 +30,10 @@ steps:
     command: 'custom'
     workingDir: 'lib/msal-core'
     customCommand: 'run build'
-  
+
 - task: Npm@1
+  env:
+    COVERALLS_REPO_TOKEN: $(COVERALLS_REPO_TOKEN)
   inputs:
     command: 'custom'
     workingDir: 'lib/msal-core'

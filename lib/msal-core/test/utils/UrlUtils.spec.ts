@@ -53,10 +53,11 @@ describe("UrlUtils.ts class", () => {
         const req = new ServerRequestParameters(
             authority,
             TEST_CONFIG.MSAL_CLIENT_ID,
-            scopes,
             TEST_RESPONSE_TYPE.token,
             TEST_URIS.TEST_REDIR_URI,
-            TEST_CONFIG.STATE
+            scopes,
+            TEST_CONFIG.STATE,
+            TEST_CONFIG.CorrelationId
         );
         const uriString = UrlUtils.createNavigateUrl(req);
 

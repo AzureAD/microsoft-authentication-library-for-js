@@ -5,11 +5,10 @@
 
 import { Authority } from "./authority/Authority";
 import { CryptoUtils } from "./utils/CryptoUtils";
-import { AuthenticationParameters, validateClaimsRequest } from "./AuthenticationParameters";
+import { AuthenticationParameters } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, BlacklistedEQParams, libraryVersion } from "./utils/Constants";
-import { ClientConfigurationError } from "./error/ClientConfigurationError";
+import { SSOTypes, Constants, PromptState, libraryVersion } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
 
 /**
@@ -53,20 +52,19 @@ export class ServerRequestParameters {
      * @param redirectUri
      * @param state
      */
-    constructor (authority: Authority, clientId: string, scope: Array<string>, responseType: string, redirectUri: string, state: string) {
+    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, scopes: Array<string>, state: string, correlationId: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
-        if (!scope) {
-            this.scopes = [clientId];
-        } else {
-            this.scopes = [ ...scope ];
-        }
-
         this.nonce = CryptoUtils.createNewGuid();
-        this.state = state && !StringUtils.isEmpty(state) ?  CryptoUtils.createNewGuid() + "|" + state   : CryptoUtils.createNewGuid();
 
-        // TODO: Change this to user passed vs generated with the new PR
-        this.correlationId = CryptoUtils.createNewGuid();
+        // set scope to clientId if null
+        this.scopes = scopes? [ ...scopes] : [clientId];
+
+        // set state (already set at top level)
+        this.state = state;
+
+        // set correlationId
+        this.correlationId = correlationId;
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
@@ -90,13 +88,11 @@ export class ServerRequestParameters {
         if (request) {
             // add the prompt parameter to serverRequestParameters if passed
             if (request.prompt) {
-                this.validatePromptParameter(request.prompt);
                 this.promptValue = request.prompt;
             }
 
             // Add claims challenge to serverRequestParameters if passed
             if (request.claimsRequest) {
-                validateClaimsRequest(request);
                 this.claimsValue = request.claimsRequest;
             }
 
@@ -117,10 +113,7 @@ export class ServerRequestParameters {
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        let eQParams: StringDict;
-        if (request) {
-            eQParams = this.sanitizeEQParams(request);
-        }
+        const eQParams: StringDict = request.extraQueryParameters;
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
@@ -128,19 +121,6 @@ export class ServerRequestParameters {
     }
 
     // #region QueryParam helpers
-
-    /**
-     * @hidden
-     * @ignore
-     *
-     * Utility to test if valid prompt value is passed in the request
-     * @param request
-     */
-    private validatePromptParameter (prompt: string) {
-        if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
-            throw ClientConfigurationError.createInvalidPromptError(prompt);
-        }
-    }
 
     /**
      * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
@@ -311,30 +291,6 @@ export class ServerRequestParameters {
     }
 
     /**
-     * @hidden
-     * @ignore
-     * Removes unnecessary or duplicate query parameters from extraQueryParameters
-     * @param request
-     */
-    private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
-        const eQParams : StringDict = request.extraQueryParameters;
-        if (!eQParams) {
-            return null;
-        }
-        if (request.claimsRequest) {
-            // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-            delete eQParams[Constants.claims];
-        }
-        BlacklistedEQParams.forEach(param => {
-            if (eQParams[param]) {
-                // this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
-                delete eQParams[param];
-            }
-        });
-        return eQParams;
-    }
-
-    /**
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
@@ -354,7 +310,6 @@ export class ServerRequestParameters {
 
         return paramsString;
     }
-
     // #endregion
 
     /**
