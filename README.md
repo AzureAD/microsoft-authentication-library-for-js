@@ -1,6 +1,18 @@
 
 # Microsoft Authentication Library for JavaScript (MSAL.js)
 
+1. [About](#about)
+2. [Libraries](#core-and-wrapper-libraries)
+3. [Samples](#samples)
+4. [Roadmap](#roadmap)
+5. [Community Help And Support](#community-help-and-support)
+6. [Contribute](#contribute)
+7. [Security Reporting](#security-reporting)
+8. [License](#license)
+9. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+
+## About
+
 The Microsoft Authentication Library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 ## Repository Details

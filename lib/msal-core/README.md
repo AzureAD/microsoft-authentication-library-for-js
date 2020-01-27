@@ -1,6 +1,5 @@
 
-Microsoft Authentication Library for JavaScript (MSAL.js)
-=========================================================
+# Microsoft Authentication Library for JavaScript (MSAL.js) Core Library
 [![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
 | [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-core/) | [Support](README.md#community-help-and-support) | [Samples](./samples)
@@ -94,7 +93,7 @@ The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-
 | [React Sample using MSAL.js Core 1.x Library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/react-sample-app) | Javascript sample application written using the React framework and the MSAL.js Core 1.x library. |
 
 ## OAuth 2.0 and the Implicit Flow
-Msal implements the [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and is [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc) compliant.
+MSAL.js 1.x implements the [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and is [OpenID](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc) compliant.
 
 Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective.
 The implicit flow runs in the context of a web browser which cannot manage client secrets securely. It is optimized for single page apps and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure.
