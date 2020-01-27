@@ -13,7 +13,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 | Library | Description |
 | ------- | ----------- |
-| [Microsoft Authentication Library for JavaScript](lib/msal-core/README.md) | A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc) |
+| [Microsoft Authentication Library for JavaScript](lib/msal-core/README.md) | A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc). |
 | [Microsoft Authentication Library for Angular](lib/msal-angular/README.md) | A wrapper of the core library for apps using Angular framework. |
 | [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/README.md) | A wrapper of the core library for apps using AngularJS framework. |
 
