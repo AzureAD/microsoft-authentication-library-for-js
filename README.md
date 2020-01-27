@@ -15,9 +15,7 @@
 
 The Microsoft Authentication Library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-## Repository Details
-
-### Core and wrapper libraries
+## Core and wrapper libraries
 
 The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
 
@@ -29,7 +27,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 | [Microsoft Authentication Library for Angular](lib/msal-angular/README.md) | A wrapper of the core library for apps using Angular framework. |
 | [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/README.md) | A wrapper of the core library for apps using AngularJS framework. |
 
-### Samples
+## Samples
 
 The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. For a complete list of samples, please go to the folder for that library (see [above](#core-and-wrapper-libraries) for links).
 
