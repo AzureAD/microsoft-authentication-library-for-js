@@ -17,7 +17,7 @@ The Microsoft Authentication Library for JavaScript enables client-side JavaScri
 
 ## Core and wrapper libraries
 
-The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
+The [`lib`](./lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
 
 All of our libraries follow [semantic versioning](https://semver.org). We recommend using the latest version of each libary to ensure you have the latest security patches and bug fixes.
 
