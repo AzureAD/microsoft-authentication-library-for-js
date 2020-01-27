@@ -29,7 +29,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ## Samples
 
-The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. For a complete list of samples, please go to the folder for that library (see [above](#core-and-wrapper-libraries) for links).
+The [`samples`](./samples) folder contains sample applications for our libaries. For a complete list of samples, please go to the folder for that library (see [above](#core-and-wrapper-libraries) for links).
 
 ## Roadmap
 What we are working on and future releases.
