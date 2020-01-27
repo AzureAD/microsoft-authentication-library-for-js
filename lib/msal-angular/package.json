@@ -49,6 +49,7 @@
     "babel-polyfill": "^6.26.0",
     "bluebird": "^3.5.1",
     "core-js": "^2.4.1",
+    "gh-pages": "^2.2.0",
     "grunt": "^1.0.3",
     "grunt-banner": "^0.6.0",
     "grunt-contrib-uglify": "^2.3.0",
@@ -91,7 +92,9 @@
   },
   "scripts": {
     "clean": "shx rm -rf dist docs",
-    "doc": "typedoc --out ./docs ./src/ --gitRevision dev",
+    "doc": "npm run doc:generate && npm run doc:deploy",
+    "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
+    "doc:deploy": "gh-pages -d ref -a -e ref/msal-angular",
     "build:modules": "ngc -p tsconfig.json",
     "build": "npm run clean && npm run doc && npm run build:modules",
     "test": "npm run test:verify-build && npm run test:unit",
