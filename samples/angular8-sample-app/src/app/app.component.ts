@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BroadcastService, MsalService } from '@azure/msal-angular';
+import { Logger, CryptoUtils } from 'msal';
 
 
 @Component({
@@ -31,6 +32,13 @@ export class AppComponent implements OnInit {
 
       console.log('Redirect Success: ', response.accessToken);
     });
+
+    this.authService.setLogger(new Logger((logLevel, message, piiEnabled) => {
+      console.log('MSAL Logging: ', message);
+    }, {
+      correlationId: CryptoUtils.createNewGuid(),
+      piiLoggingEnabled: false
+    }));
   }
 
   checkoutAccount() {

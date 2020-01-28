@@ -6,16 +6,11 @@ import { NgModule } from '@angular/core';
 import { MatToolbarModule, MatButtonModule, MatListModule } from '@angular/material';
 
 import { MsalModule, MsalInterceptor } from '@azure/msal-angular';
-import { Logger } from "msal";
 
 import { AppComponent } from './app.component';
 import { appRoutes } from './app.routes';
 import { ProfileComponent } from './profile/profile.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-
-export function loggerCallback(logLevel, message, piiEnabled) {
-  console.log("client logging: " + message);
-}
 
 export const protectedResourceMap: [string, string[]][] = [
   ['https://graph.microsoft.com/v1.0/me', ['user.read']]
@@ -53,12 +48,6 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
         unprotectedResources: ["https://www.microsoft.com/en-us/"],
         protectedResourceMap: new Map(protectedResourceMap)
       },
-      system: {
-        logger: new Logger(loggerCallback, {
-          correlationId: '1234',
-          piiLoggingEnabled: true
-        })
-      }
     },
       {
         popUp: !isIE,
