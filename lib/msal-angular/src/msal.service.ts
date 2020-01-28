@@ -1,7 +1,4 @@
 import {Inject, Injectable, InjectionToken} from "@angular/core";
-import "rxjs/add/observable/of";
-import "rxjs/add/operator/do";
-import "rxjs/add/operator/delay";
 import {
     UserAgentApplication,
     Configuration,

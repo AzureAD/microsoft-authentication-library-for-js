@@ -1,6 +1,6 @@
-# Microsoft Authentication Library for Angular Preview
+# Microsoft Authentication Library for Angular
 
-The MSAL library preview for Angular is a wrapper of the core MSAL.js library which enables Angular(4.3 to 5) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://www.microsoft.com/enterprise) OR [Microsoft Graph](https://graph.microsoft.io).
+The MSAL for Angular library is a wrapper of the core MSAL.js library which enables Angular (6+) applications to authenticate enterprise users using Microsoft Azure Active Directory (AAD), Microsoft account users (MSA), users using social identity providers like Facebook, Google, LinkedIn etc. and get access to [Microsoft Cloud](https://www.microsoft.com/enterprise) OR [Microsoft Graph](https://graph.microsoft.io).
 
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)
 
@@ -12,7 +12,7 @@ This is an early preview library and we are tracking certain [known issues and r
 
 ## Installation
 
-The msal-angular package is available on NPM:
+The MSAL Angular package is available on NPM:
 
 `npm install msal @azure/msal-angular --save`
 
@@ -21,8 +21,6 @@ The msal-angular package is available on NPM:
 #### Prerequisite
 
 Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get your clientId.
-
-> NOTE: To use MSAL Angular with Angular 6, please install the `rxjs-compat` NPM module for now. In future, we plan to add support for Angular 6 in the library and you can track this [issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/421) for more information.
 
 #### 1. Include and initialize the MSAL module in your app module.
 
