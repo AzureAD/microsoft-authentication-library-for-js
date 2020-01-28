@@ -265,6 +265,8 @@ export class PublicClientApplication {
         }
     }
 
+    // #endregion
+
     // #region Silent Flow
 
     /**

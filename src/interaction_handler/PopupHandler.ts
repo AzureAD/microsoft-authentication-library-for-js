@@ -2,16 +2,26 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, TokenResponse } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, TokenResponse, AuthorizationCodeModule } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
 /**
  * This class implements the interaction handler base class for browsers. It is written specifically for handling
  * popup window scenarios. It includes functions for monitoring the popup window for a hash.
  */
 export class PopupHandler extends InteractionHandler {
+
+    private currentWindow: Window;
+
+    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
+        super(authCodeModule, storageImpl);
+
+        // Properly sets this reference for the unload event.
+        this.unloadWindow = this.unloadWindow.bind(this);
+    }
 
     /**
      * Opens a popup window with given request Url.
@@ -139,11 +149,8 @@ export class PopupHandler extends InteractionHandler {
             if (popupWindow.focus) {
                 popupWindow.focus();
             }
-            window.onbeforeunload = (): void => {
-                this.authModule.cancelRequest();
-                this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-                popupWindow.close();
-            };
+            this.currentWindow = popupWindow;
+            window.addEventListener("beforeunload", this.unloadWindow);
 
             return popupWindow;
         } catch (e) {
@@ -153,13 +160,29 @@ export class PopupHandler extends InteractionHandler {
         }
     }
 
+    /**
+     * Event callback to unload main window.
+     */
+    unloadWindow(e: Event): void {
+        this.authModule.cancelRequest();
+        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.currentWindow.close();
+        // Guarantees browser unload will happen, so no other errors will be thrown.
+        delete e["returnValue"];
+    }
+
+    /**
+     * Closes popup, removes any state vars created during popup calls.
+     * @param popupWindow 
+     */
     private cleanPopup(popupWindow?: Window): void {
         if (popupWindow) {
             // Close window.
             popupWindow.close();
         }
         // Remove window unload function
-        window.onbeforeunload = null;
+        window.removeEventListener("beforeunload", this.unloadWindow);
+
         // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
     }
