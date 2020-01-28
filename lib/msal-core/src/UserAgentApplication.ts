@@ -1899,7 +1899,15 @@ export class UserAgentApplication {
      * returns the logger handle
      */
     protected getLogger() {
-        return this.config.system.logger;
+        return this.logger;
+    }
+
+    /**
+     * Sets the logger callback.
+     * @param logger Logger callback
+     */
+    setLogger(logger: Logger) {
+        this.logger = logger;
     }
 
     // #endregion
