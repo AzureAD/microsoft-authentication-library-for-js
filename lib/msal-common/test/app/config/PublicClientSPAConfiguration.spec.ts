@@ -11,7 +11,7 @@ import { LogLevel } from "../../../src/logger/Logger";
 
 describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
 
-    it("buildConfiguration assigns default functions", async () => {
+    it("buildPublicClientSPAConfiguration assigns default functions", async () => {
         let emptyConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({auth: null});
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
@@ -86,7 +86,7 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
     };
 
     const testKeySet = ["testKey1", "testKey2"];
-    it("buildConfiguration correctly assigns new values", () => {
+    it("buildPublicClientSPAConfiguration correctly assigns new values", () => {
         let newConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,

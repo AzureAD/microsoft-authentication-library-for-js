@@ -41,7 +41,7 @@
     };
 
     const tokenRequest = {
-        scopes: ["Mail.Read"],
+        scopes: ["User.Read"],
         forceRefresh: true
     };
 
@@ -53,11 +53,15 @@
     // instantiate MSAL
     const myMSALObj = new msal.PublicClientApplication(msalConfig);
     // register callback for redirect usecases
-    myMSALObj.handleRedirectCallback(authRedirectCallBack);
+    // myMSALObj.handleRedirectCallback(authRedirectCallBack);
     // signin and acquire a token silently with POPUP flow. Fall back in case of failure with silent acquisition to popup
     function signIn() {
         try {
-            myMSALObj.loginRedirect(loginRequest);
+            myMSALObj.loginPopup(loginRequest).then(tokenResponse => {
+                console.log("Response: " + JSON.stringify(tokenResponse));
+            }).catch(error => {
+                console.error("Auth Error: " + error);
+            });
         } catch (e) {
             console.log(e);
         }

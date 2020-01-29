@@ -2,10 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, TokenResponse } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, TokenResponse, AuthorizationCodeModule } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
 /**
  * This class implements the interaction handler base class for browsers. It is written specifically for handling
@@ -13,8 +14,14 @@ import { BrowserConstants } from "../utils/BrowserConstants";
  */
 export class PopupHandler extends InteractionHandler {
 
-    // Currently opened window handle.
     private currentWindow: Window;
+
+    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
+        super(authCodeModule, storageImpl);
+
+        // Properly sets this reference for the unload event.
+        this.unloadWindow = this.unloadWindow.bind(this);
+    }
 
     /**
      * Opens a popup window with given request Url.
@@ -25,13 +32,9 @@ export class PopupHandler extends InteractionHandler {
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.
             this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-            // Open the popup window to requestUrl.
-            const popupWindow = this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
-            // Save the window handle.
-            this.currentWindow = popupWindow;
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
-            // Return popup window handle.
-            return popupWindow;
+            // Open the popup window to requestUrl.
+            return this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.error("Navigate url is empty");
@@ -49,12 +52,9 @@ export class PopupHandler extends InteractionHandler {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
-        // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
         // Handle code response.
         const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-        // Close window.
-        this.currentWindow.close();
+        
         // Acquire token with retrieved code.
         return this.authModule.acquireToken(codeResponse);
     }
@@ -72,6 +72,8 @@ export class PopupHandler extends InteractionHandler {
 
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
+                    // Window is closed
+                    this.cleanPopup();
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createUserCancelledError());
                     return;
@@ -96,12 +98,18 @@ export class PopupHandler extends InteractionHandler {
                 ticks++;
 
                 if (UrlString.hashContainsKnownProperties(href)) {
+                    // Success case
+                    const contentHash = contentWindow.location.hash;
+                    this.cleanPopup(contentWindow);
                     clearInterval(intervalId);
-                    resolve(contentWindow.location.hash);
+                    resolve(contentHash);
+                    return;
                 } else if (ticks > maxTicks) {
+                    // Timeout error
+                    this.cleanPopup(contentWindow);
                     clearInterval(intervalId);
-                    contentWindow.close();
-                    reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate)); // better error?
+                    reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate));
+                    return;
                 }
             }, BrowserConstants.POPUP_POLL_INTERVAL_MS);
         });
@@ -144,6 +152,8 @@ export class PopupHandler extends InteractionHandler {
             if (popupWindow.focus) {
                 popupWindow.focus();
             }
+            this.currentWindow = popupWindow;
+            window.addEventListener("beforeunload", this.unloadWindow);
 
             return popupWindow;
         } catch (e) {
@@ -151,5 +161,32 @@ export class PopupHandler extends InteractionHandler {
             this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
             throw BrowserAuthError.createPopupWindowError(e.toString());
         }
+    }
+
+    /**
+     * Event callback to unload main window.
+     */
+    unloadWindow(e: Event): void {
+        this.authModule.cancelRequest();
+        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.currentWindow.close();
+        // Guarantees browser unload will happen, so no other errors will be thrown.
+        delete e["returnValue"];
+    }
+
+    /**
+     * Closes popup, removes any state vars created during popup calls.
+     * @param popupWindow 
+     */
+    private cleanPopup(popupWindow?: Window): void {
+        if (popupWindow) {
+            // Close window.
+            popupWindow.close();
+        }
+        // Remove window unload function
+        window.removeEventListener("beforeunload", this.unloadWindow);
+
+        // Interaction is completed - remove interaction status.
+        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
     }
 }

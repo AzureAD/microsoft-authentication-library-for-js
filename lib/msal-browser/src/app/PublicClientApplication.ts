@@ -93,6 +93,9 @@ export class PublicClientApplication {
 
     /**
      * Set the callback functions for the redirect flow to send back the success or error object.
+     * IMPORTANT: Please do not use this function when using the popup APIs, as it will break the response handling
+     * in the main window.
+     * 
      * @param {@link (AuthCallback:type)} authCallback - Callback which contains
      * an AuthError object, containing error data from either the server
      * or the library, depending on the origin of the error, or the AuthResponse object 
@@ -110,12 +113,14 @@ export class PublicClientApplication {
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         try {
-            // If hash exists, handle in window. Otherwise, continue execution.
+            // If hash exists, handle in window. Otherwise, cancel any current requests and continue.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
             const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
             if (responseHash) {
                 const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
                 this.authCallback(null, tokenResponse);
+            } else {
+                this.cleanRequest();
             }
         } catch (err) {
             this.authCallback(err);
@@ -139,14 +144,19 @@ export class PublicClientApplication {
             return;
         }
 
-        // Create redirect interaction handler.
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+        try {
+            // Create redirect interaction handler.
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
 
-        // Create login url, which will by default append the client id scope to the call.
-        this.authModule.createLoginUrl(request).then((navigateUrl) => {
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.showUI(navigateUrl);
-        });
+            // Create login url, which will by default append the client id scope to the call.
+            this.authModule.createLoginUrl(request).then((navigateUrl) => {
+                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+                interactionHandler.showUI(navigateUrl);
+            });
+        } catch (e) {
+            this.cleanRequest();
+            throw e;
+        }
     }
 
     /**
@@ -168,13 +178,19 @@ export class PublicClientApplication {
             return;
         }
 
-        // Create redirect interaction handler.
-        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
-        // Create acquire token url.
-        this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.showUI(navigateUrl);
-        });
+        try {
+            // Create redirect interaction handler.
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+
+            // Create acquire token url.
+            this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
+                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+                interactionHandler.showUI(navigateUrl);
+            });
+        } catch (e) {
+            this.cleanRequest();
+            throw e;
+        }
     }
 
     // #endregion
@@ -226,15 +242,22 @@ export class PublicClientApplication {
      * @param navigateUrl 
      */
     private async popupTokenHelper(navigateUrl: string): Promise<TokenResponse> {
-        // Create popup interaction handler.
-        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
-        // Show the UI once the url has been created. Get the window handle for the popup.
-        const popupWindow = interactionHandler.showUI(navigateUrl);
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
-        // Handle response from hash string.
-        return interactionHandler.handleCodeResponse(hash);
+        try {
+            // Create popup interaction handler.
+            const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+            // Show the UI once the url has been created. Get the window handle for the popup.
+            const popupWindow = interactionHandler.showUI(navigateUrl);
+            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
+            // Handle response from hash string.
+            return interactionHandler.handleCodeResponse(hash);
+        } catch (e) {
+            this.cleanRequest();
+            throw e;
+        }
     }
+
+    // #endregion
 
     // #region Silent Flow
 
@@ -309,9 +332,21 @@ export class PublicClientApplication {
 
     // #region Helpers
 
+    /**
+     * Helper to check whether interaction is in progress
+     */
     private interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+    }
+
+    /**
+     * Helper to remove interaction status and remove tempoarary request data.
+     */
+    private cleanRequest(): void {
+        // Interaction is completed - remove interaction status.
+        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.authModule.cancelRequest();
     }
 
     // #endregion
