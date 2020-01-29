@@ -112,6 +112,7 @@ export class CacheHelpers {
         });
         // delete generic interactive request parameters
         this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
+        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
         this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
         this.cacheStorage.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
     }
