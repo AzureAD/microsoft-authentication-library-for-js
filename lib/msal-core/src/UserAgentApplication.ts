@@ -1898,7 +1898,7 @@ export class UserAgentApplication {
      *
      * returns the logger handle
      */
-    protected getLogger() {
+    getLogger() {
         return this.logger;
     }
 
