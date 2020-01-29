@@ -120,9 +120,7 @@ export class PublicClientApplication {
                 const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
                 this.authCallback(null, tokenResponse);
             } else {
-                // Interaction is completed - remove interaction status.
-                this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-                this.authModule.cancelRequest();
+                this.cleanRequest();
             }
         } catch (err) {
             this.authCallback(err);
@@ -156,9 +154,7 @@ export class PublicClientApplication {
                 interactionHandler.showUI(navigateUrl);
             });
         } catch (e) {
-            // Interaction is completed - remove interaction status.
-            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-            this.authModule.cancelRequest();
+            this.cleanRequest();
             throw e;
         }
     }
@@ -192,9 +188,7 @@ export class PublicClientApplication {
                 interactionHandler.showUI(navigateUrl);
             });
         } catch (e) {
-            // Interaction is completed - remove interaction status.
-            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-            this.authModule.cancelRequest();
+            this.cleanRequest();
             throw e;
         }
     }
@@ -258,9 +252,7 @@ export class PublicClientApplication {
             // Handle response from hash string.
             return interactionHandler.handleCodeResponse(hash);
         } catch (e) {
-            // Interaction is completed - remove interaction status.
-            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-            this.authModule.cancelRequest();
+            this.cleanRequest();
             throw e;
         }
     }
@@ -340,9 +332,21 @@ export class PublicClientApplication {
 
     // #region Helpers
 
+    /**
+     * Helper to check whether interaction is in progress
+     */
     private interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+    }
+
+    /**
+     * Helper to remove interaction status and remove tempoarary request data.
+     */
+    private cleanRequest(): void {
+        // Interaction is completed - remove interaction status.
+        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.authModule.cancelRequest();
     }
 
     // #endregion
