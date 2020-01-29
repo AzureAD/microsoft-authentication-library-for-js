@@ -72,6 +72,7 @@ export class PopupHandler extends InteractionHandler {
 
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
+                    // Window is closed
                     this.cleanPopup();
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createUserCancelledError());
@@ -97,12 +98,14 @@ export class PopupHandler extends InteractionHandler {
                 ticks++;
 
                 if (UrlString.hashContainsKnownProperties(href)) {
+                    // Success case
                     const contentHash = contentWindow.location.hash;
                     this.cleanPopup(contentWindow);
                     clearInterval(intervalId);
                     resolve(contentHash);
                     return;
                 } else if (ticks > maxTicks) {
+                    // Timeout error
                     this.cleanPopup(contentWindow);
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate));
