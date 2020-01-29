@@ -22,8 +22,9 @@ describe('Msal Angular Pubic API tests', function () {
     let authService: MsalService;
     let broadcastService: BroadcastService;
 
-    beforeAll(() => {
+    const clientId = "6226576d-37e9-49eb-b201-ec1eeb0029b6";
 
+    beforeAll(() => {
         TestBed.configureTestingModule({
             imports: [RouterTestingModule],
             providers: [
@@ -32,7 +33,7 @@ describe('Msal Angular Pubic API tests', function () {
                     provide: MSAL_CONFIG,
                     useValue: {
                         auth: {
-                            clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+                            clientId,
                             authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
                             validateAuthority: true,
                             redirectUri: "http://localhost:4200/",
@@ -50,7 +51,10 @@ describe('Msal Angular Pubic API tests', function () {
                     useValue: {
                         popUp: false,
                         consentScopes: ["user.read", "mail.send"],
-                        unprotectedResources: ["https:google.com"],
+                        unprotectedResources: ["https://google.com"],
+                        protectedResourceMap: [
+                            ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
+                        ]
                     } as MsalAngularConfiguration
                 },
                 BroadcastService,
@@ -61,7 +65,7 @@ describe('Msal Angular Pubic API tests', function () {
                     }
                 }
             ]
-        })
+        });
 
         getTestBed().initTestEnvironment(
             BrowserDynamicTestingModule,
@@ -264,6 +268,32 @@ describe('Msal Angular Pubic API tests', function () {
             });
 
             expect(UserAgentApplication.prototype.acquireTokenPopup).toHaveBeenCalledWith(request);
+        });
+    });
+
+    describe("getScopesForEndpoint", () => {
+        it("protected resource", () => {
+            const scopes = authService.getScopesForEndpoint("https://graph.microsoft.com/v1.0/me");
+
+            expect(scopes).toEqual([ "user.read" ]);
+        });
+
+        it("unprotected resource", () => {
+            const scopes = authService.getScopesForEndpoint("https://google.com");
+
+            expect(scopes).toBeNull;
+        });
+
+        it("not listed as protected or unprotected", () => {
+            const scopes = authService.getScopesForEndpoint("https://microsoft.com");
+
+            expect(scopes).toBeNull;
+        });
+
+        it("own domain", () => {
+            const scopes = authService.getScopesForEndpoint("http://localhost:4200/api");
+
+            expect(scopes).toEqual([ clientId ]);
         });
     });
 });
