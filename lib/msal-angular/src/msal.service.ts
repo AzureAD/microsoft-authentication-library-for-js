@@ -165,10 +165,6 @@ export class MsalService extends UserAgentApplication {
         });
     }
 
-    public getLogger(): Logger {
-        return super.getLogger();
-    }
-
     public getScopesForEndpoint(endpoint: string): string[] {
         return super.getScopesForEndpoint(endpoint);
     }
