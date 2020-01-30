@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-beta.2
+
+Fixes two issues related to `aot` mode.
+
+* Requires `msal@1.2.2-beta.0`, which adds `setLogger` function to dynamically set the logger callback when running in `aot` mode. (#1213).
+* Moves `protectedResourceMap` and `unprotectedResources` to MSAL Angular-specific configuration object. `protectedResourceMap` can now be `[string, string[]][]` or a `Map`. This is also to mitigate issues with `aot` mode. (#1213).
+
 ## 1.0.0-beta.1
 
 Initial upgrade to be compatible with new version of Angular (6+).
