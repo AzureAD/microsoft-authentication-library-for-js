@@ -91,7 +91,7 @@
     "test": "tests"
   },
   "scripts": {
-    "clean": "shx rm -rf dist docs",
+    "clean": "shx rm -rf dist ref",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
     "doc:deploy": "gh-pages -d ref -a -e ref/msal-angular",
