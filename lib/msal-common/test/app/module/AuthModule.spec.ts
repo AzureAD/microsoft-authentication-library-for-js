@@ -9,11 +9,18 @@ import { AuthenticationParameters } from "../../../src/request/AuthenticationPar
 import { TokenResponse } from "../../../src/response/TokenResponse";
 import { CodeResponse } from "../../../src/response/CodeResponse";
 import { TokenRenewParameters } from "../../../src/request/TokenRenewParameters";
+import sinon from "sinon";
+import { Account, PkceCodes, PersistentCacheKeys, ICrypto } from "../../../src";
+import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG, RANDOM_TEST_GUID } from "../../utils/StringConstants";
+import { buildClientInfo, ClientInfo } from "../../../src/auth/ClientInfo";
+import { IdToken } from "../../../src/auth/IdToken";
+import { IdTokenClaims } from "../../../src/auth/IdTokenClaims";
 
 class TestAuthModule extends AuthModule {
     
-    constructor(config: ModuleConfiguration) {
+    constructor(config: ModuleConfiguration, testAccount: Account) {
         super(config);
+        this.account = testAccount
     }
 
     handleFragmentResponse(hashFragment: string): CodeResponse {
@@ -42,28 +49,117 @@ class TestAuthModule extends AuthModule {
 }
 
 describe("AuthModule.ts Class Unit Tests", () => {
-
-    let config: ModuleConfiguration = {
-        systemOptions: null,
-        cryptoInterface: null,
-        networkInterface: null,
-        storageInterface: null,
-        loggerOptions: null
-    }
-    let authModule = new TestAuthModule(config);
-
     describe("Constructor", () => {
 
         it("Creates a valid AuthModule object", () => {
+            let config: ModuleConfiguration = {
+                systemOptions: null,
+                cryptoInterface: null,
+                networkInterface: null,
+                storageInterface: null,
+                loggerOptions: null
+            };
+            let authModule = new TestAuthModule(config, null);
             expect(authModule).to.be.not.null;
             expect(authModule instanceof AuthModule).to.be.true;
         });
     });
 
     describe("getAccount()", () => {
+        let store;
+        let config: ModuleConfiguration;
+        let authModule: TestAuthModule;
+        let idToken: IdToken;
+        let clientInfo: ClientInfo;
+        let testAccount: Account;
+        beforeEach(() => {
+            store = {};
+            config = {
+                systemOptions: null,
+                cryptoInterface: {
+                    createNewGuid(): string {
+                        return RANDOM_TEST_GUID;
+                    },
+                    base64Decode(input: string): string {
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    },
+                    base64Encode(input: string): string {
+                        switch (input) {
+                            case "123-test-uid":
+                                return "MTIzLXRlc3QtdWlk";
+                            case "456-test-utid":
+                                return "NDU2LXRlc3QtdXRpZA==";
+                            default:
+                                return "";
+                        }
+                    },
+                    async generatePkceCodes(): Promise<PkceCodes> {
+                        return {
+                            challenge: TEST_CONFIG.TEST_CHALLENGE,
+                            verifier: TEST_CONFIG.TEST_VERIFIER
+                        }
+                    }
+                },
+                networkInterface: null,
+                storageInterface: {
+                    setItem(key: string, value: string): void {
+                        store[key] = value;
+                    },
+                    getItem(key: string): string {
+                        return store[key];
+                    },
+                    removeItem(key: string): void {
+                        delete store[key];
+                    },
+                    containsKey(key: string): boolean {
+                        return !!store[key];
+                    },
+                    getKeys(): string[] {
+                        return Object.keys(store);
+                    },
+                    clear(): void {
+                        store = {};
+                    }
+                },
+                loggerOptions: null
+            };
+
+            const idTokenClaims: IdTokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
+            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.cryptoInterface);
+            testAccount = Account.createAccount(idToken, clientInfo, config.cryptoInterface);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
 
         it("returns null if nothing is in the cache", () => {
+            authModule = new TestAuthModule(config, null);
+            expect(authModule.getAccount()).to.be.null;
+        });
 
+        it("returns the current account if it exists", () => {
+            authModule = new TestAuthModule(config, testAccount);
+            expect(Account.compareAccounts(authModule.getAccount(), testAccount)).to.be.true;
+        });
+        
+        it("Creates account object from cached id token and client info", () => {
+            store[PersistentCacheKeys.ID_TOKEN] = idToken;
+            store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
+            authModule = new TestAuthModule(config, null);
+            expect(Account.compareAccounts(authModule.getAccount(), testAccount)).to.be.true;
         });
     });
 });
