@@ -4,11 +4,11 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { AuthorizationCodeModule } from "../../../src/app/module/AuthorizationCodeModule";
-import { TEST_CONFIG, TEST_URIS } from "../../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID } from "../../utils/StringConstants";
 import { AuthModule } from "../../../src/app/module/AuthModule";
 import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
 import { ClientConfigurationError } from "../../../src/error/ClientConfigurationError";
-import { LogLevel } from "../../../src";
+import { LogLevel, PkceCodes, NetworkRequestOptions } from "../../../src";
 
 describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
@@ -18,6 +18,8 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         }
     }
 
+    let store = {};
+
     let authModule = new AuthorizationCodeModule({
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -26,9 +28,51 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
         },
-        storageInterface: null,
-        networkInterface: null,
-        cryptoInterface: null,
+        storageInterface: {
+            setItem(key: string, value: string): void {
+                store[key] = value;
+            },
+            getItem(key: string): string {
+                return store[key];
+            },
+            removeItem(key: string): void {
+                delete store[key];
+            },
+            containsKey(key: string): boolean {
+                return !!store[key];
+            },
+            getKeys(): string[] {
+                return Object.keys(store);
+            },
+            clear(): void {
+                store = {};
+            }
+        },
+        networkInterface: {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        },
+        cryptoInterface: {
+            createNewGuid(): string {
+                return RANDOM_TEST_GUID;
+            },
+            base64Decode(input: string): string {
+                return input;
+            },
+            base64Encode(input: string): string {
+                return input;
+            },
+            async generatePkceCodes(): Promise<PkceCodes> {
+                return {
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                }
+            }
+        },
         loggerOptions: {
             loggerCallback: testLoggerCallback
         }
