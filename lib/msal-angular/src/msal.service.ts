@@ -15,6 +15,7 @@ import {MSALError} from "./MSALError";
 import { AuthCache } from "msal/lib-commonjs/cache/AuthCache";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { authResponseCallback, errorReceivedCallback, tokenReceivedCallback } from "msal/lib-commonjs/UserAgentApplication";
+import { UrlUtils } from "msal/lib-commonjs/utils/UrlUtils";
 
 export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
 export const MSAL_CONFIG_ANGULAR = new InjectionToken<string>("MSAL_CONFIG_ANGULAR");
@@ -26,8 +27,8 @@ const buildMsalConfig = (config: Configuration) : Configuration => {
             ...config.framework,
             isAngular: true
         }
-    }
-}
+    };
+};
 
 @Injectable()
 export class MsalService extends UserAgentApplication {
@@ -60,26 +61,20 @@ export class MsalService extends UserAgentApplication {
         this.router.events.subscribe(event => {
             for (var i = 0; i < router.config.length; i++) {
                 if (!router.config[i].canActivate) {
-                    if (this.msalConfig.framework.unprotectedResources) {
+                    if (this.msalAngularConfig.unprotectedResources) {
                         if (!this.isUnprotectedResource(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
-                            this.msalConfig.framework.unprotectedResources.push(router.config[i].path);
+                            this.msalAngularConfig.unprotectedResources.push(router.config[i].path);
                         }
                     }
                 }
             }
-        })
-
+        });
     }
 
-    private isUnprotectedResource(url: string) {
-        if (this.msalConfig && this.msalConfig.framework.unprotectedResources) {
-            for (var i = 0; i < this.msalConfig.framework.unprotectedResources.length; i++) {
-                if (url.indexOf(this.msalConfig.framework.unprotectedResources[i]) > -1) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    private isUnprotectedResource(url: string): boolean {
+        const unprotectedResources = (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) || this.msalAngularConfig.unprotectedResources;
+
+        return unprotectedResources.some(resource => url.indexOf(resource) > -1);
     }
 
     private isEmpty(str: string): boolean {
@@ -165,12 +160,52 @@ export class MsalService extends UserAgentApplication {
         });
     }
 
-    public getScopesForEndpoint(endpoint: string): string[] {
-        return super.getScopesForEndpoint(endpoint);
-    }
-
     public clearCacheForScope(accessToken: string) {
         return super.clearCacheForScope(accessToken);
+    }
+
+    public getScopesForEndpoint(endpoint: string) : Array<string> {
+        if (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) {
+            this.getLogger().info("msalConfig.framework.unprotectedResources is deprecated, use msalAngularConfig.unprotectedResources");
+        }
+
+        // if user specified list of unprotectedResources, no need to send token to these endpoints, return null.
+        const isUnprotected = this.isUnprotectedResource(endpoint);
+        if (isUnprotected) {
+            return null;
+        }
+
+        if (this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap) {
+            this.getLogger().info("msalConfig.framework.protectedResourceMap is deprecated, use msalAngularConfig.protectedResourceMap");
+        }
+
+        const protectedResourceMap = (this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap) || new Map(this.msalAngularConfig.protectedResourceMap);
+
+        // process all protected resources and send the matched one
+        const keyForEndpoint = Array.from(protectedResourceMap.keys()).find(key => endpoint.indexOf(key) > -1);
+        if (keyForEndpoint) {
+            return protectedResourceMap.get(keyForEndpoint);
+        }
+
+        /*
+         * default resource will be clientid if nothing specified
+         * App will use idtoken for calls to itself
+         * check if it's staring from http or https, needs to match with app host
+         */
+        if (endpoint.indexOf("http://") > -1 || endpoint.indexOf("https://") > -1) {
+            if (UrlUtils.getHostFromUri(endpoint) === UrlUtils.getHostFromUri(super.getRedirectUri())) {
+                return new Array<string>(this.msalConfig.auth.clientId);
+            }
+        } else {
+            /*
+             * in angular level, the url for $http interceptor call could be relative url,
+             * if it's relative call, we'll treat it as app backend call.
+             */
+            return new Array<string>(this.msalConfig.auth.clientId);
+        }
+
+        // if not the app's own backend or not a domain listed in the endpoints structure
+        return null;
     }
 }
 
