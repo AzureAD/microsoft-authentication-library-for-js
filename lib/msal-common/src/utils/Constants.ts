@@ -7,6 +7,8 @@ export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
+    // default authority
+    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects

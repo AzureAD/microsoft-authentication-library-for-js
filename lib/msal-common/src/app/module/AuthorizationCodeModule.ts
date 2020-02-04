@@ -20,7 +20,7 @@ import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { IdToken } from "../../auth/IdToken";
 import { ScopeSet } from "../../auth/ScopeSet";
-import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../../utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
@@ -53,7 +53,7 @@ export class AuthorizationCodeModule extends AuthModule {
         }
 
         // Initialize default authority instance
-        this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || AuthorityFactory.DEFAULT_AUTHORITY, this.networkClient);
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
     }
 
     /**
@@ -105,6 +105,7 @@ export class AuthorizationCodeModule extends AuthModule {
             // Check for SSO.
             let adalIdToken: IdToken = null;
             if (!requestParameters.hasSSOParam()) {
+                // Only check for adal token if no SSO params are being used
                 const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (!StringUtils.isEmpty(adalIdTokenString)) {
                     adalIdToken = new IdToken(adalIdTokenString, this.cryptoObj);
