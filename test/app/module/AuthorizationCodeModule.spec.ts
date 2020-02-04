@@ -465,8 +465,8 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         scope: "openid profile offline_access",
                         expires_in: 3599,
                         ext_expires_in: 3599,
-                        access_token: TEST_TOKENS.ACCESSTOKEN,
-                        refresh_token: "",
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                         id_token: TEST_TOKENS.IDTOKEN_V1
                     };
                 };
@@ -486,6 +486,21 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     code: "This is an auth code",
                     userRequestState: RANDOM_TEST_GUID
                 };
+
+                const idTokenClaims: IdTokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "exp": "1536361411",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                };
+                sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+                // TODO: Set client info in cache
+                defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`, "123523");
                 console.log(await authModule.acquireToken(codeResponse));
             });
 
