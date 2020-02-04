@@ -149,13 +149,13 @@ export class AuthorizationCodeModule extends AuthModule {
      */
     async acquireToken(codeResponse: CodeResponse): Promise<TokenResponse> {
         try {
-            // Get request from cache
-            const tokenRequest: TokenExchangeParameters = this.getCachedRequest(codeResponse.userRequestState);
-
             // If no code response is given, we cannot acquire a token.
-            if (!codeResponse || !codeResponse.code) {
+            if (!codeResponse || StringUtils.isEmpty(codeResponse.code)) {
                 throw ClientAuthError.createTokenRequestCannotBeMadeError();
             }
+
+            // Get request from cache
+            const tokenRequest: TokenExchangeParameters = this.getCachedRequest(codeResponse.userRequestState);
 
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthorityInstance;
@@ -273,14 +273,6 @@ export class AuthorizationCodeModule extends AuthModule {
         }
     }
 
-    /**
-     * Clears cache of items related to current request.
-     */
-    public cancelRequest(): void {
-        const cachedState = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
-        this.cacheManager.resetTempCacheItems(cachedState || "");
-    }
-
     // #region Logout
 
     /**
@@ -341,6 +333,14 @@ export class AuthorizationCodeModule extends AuthModule {
     // #endregion
 
     // #region Helpers
+
+    /**
+     * Clears cache of items related to current request.
+     */
+    public cancelRequest(): void {
+        const cachedState = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
+        this.cacheManager.resetTempCacheItems(cachedState || "");
+    }
 
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
