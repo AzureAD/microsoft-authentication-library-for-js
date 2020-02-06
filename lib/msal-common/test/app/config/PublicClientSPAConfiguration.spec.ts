@@ -18,7 +18,6 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth.clientId).to.be.empty;
         expect(emptyConfig.auth.tmp_clientSecret).to.be.empty;
         expect(emptyConfig.auth.authority).to.be.null;
-        expect(emptyConfig.auth.validateAuthority).to.be.true;
         expect(emptyConfig.auth.redirectUri).to.be.empty;
         expect(emptyConfig.auth.postLogoutRedirectUri).to.be.empty;
         // Crypto interface checks
@@ -92,7 +91,6 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority,
-                validateAuthority: false,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
             },
@@ -146,7 +144,6 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
         expect(newConfig.auth.tmp_clientSecret).to.be.eq(TEST_CONFIG.MSAL_CLIENT_SECRET);
         expect(newConfig.auth.authority).to.be.eq(TEST_CONFIG.validAuthority);
-        expect(newConfig.auth.validateAuthority).to.be.false;
         expect(newConfig.auth.redirectUri).to.be.eq(TEST_URIS.TEST_REDIR_URI);
         expect(newConfig.auth.postLogoutRedirectUri).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
         // Crypto interface tests

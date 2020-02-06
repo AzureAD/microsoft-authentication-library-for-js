@@ -26,8 +26,6 @@ export abstract class Authority {
 
     // See above for AuthorityType
     public abstract get authorityType(): AuthorityType;
-    // Boolean value to check for authority validation. If validation is disabled, we do not check known authorities.
-    public abstract get isValidationEnabled(): boolean;
 
     /**
      * A URL that is the authority set by the developer
@@ -146,13 +144,13 @@ export abstract class Authority {
     /**
      * Abstract function which will get the OpenID configuration endpoint.
      */
-    public abstract async getOpenIdConfigurationAsync(): Promise<string>;
+    public abstract async getOpenIdConfigurationEndpointAsync(): Promise<string>;
 
     /**
      * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        const openIdConfigEndpoint = await this.getOpenIdConfigurationAsync();
+        const openIdConfigEndpoint = await this.getOpenIdConfigurationEndpointAsync();
         this.tenantDiscoveryResponse = await this.discoverEndpoints(openIdConfigEndpoint);
     }
 }
