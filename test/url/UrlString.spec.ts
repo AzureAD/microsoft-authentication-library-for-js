@@ -12,7 +12,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("validateAsUri throws error if uri is not secure", () => {
-        const insecureUrlString = "http://login.microsoft.com";
+        const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.authorityUriInsecure.desc} Given URI: ${insecureUrlString}`);
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
