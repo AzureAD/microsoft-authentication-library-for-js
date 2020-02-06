@@ -1286,9 +1286,10 @@ export class UserAgentApplication {
      */
     private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         const scope = scopes.join(" ").toLowerCase();
-        this.logger.verbose("renewToken is called for scope:" + scope);
+        this.logger.verbose("renewToken is called for scope: " + scope + " authority: " + serverAuthenticationRequest.authority);
 
-        const frameName = `msalRenewFrame${scope}`;
+        const frameName = `msalRenewFrame${Constants.resourceDelimiter}${scope}${Constants.resourceDelimiter}${serverAuthenticationRequest.authority}`;
+
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
@@ -1312,7 +1313,8 @@ export class UserAgentApplication {
      */
     private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.info("renewidToken is called");
-        const frameName = "msalIdTokenFrame";
+
+        const frameName = `msalIdTokenFrame${Constants.resourceDelimiter}${scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${serverAuthenticationRequest.authority}`;
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
