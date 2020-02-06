@@ -16,7 +16,7 @@ class TestAuthority extends Authority {
     }
 };
 
-describe.only("Authority.ts Class Unit Tests", () => {
+describe("Authority.ts Class Unit Tests", () => {
     
     describe("Constructor", () => {
 

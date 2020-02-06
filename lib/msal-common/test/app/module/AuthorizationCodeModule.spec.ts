@@ -409,7 +409,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
     describe("Token Acquisition", () => {
 
-        describe.only("Exchange code for token with acquireToken()", () => {
+        describe("Exchange code for token with acquireToken()", () => {
             let authModule: AuthorizationCodeModule;
             beforeEach(() => {
                 authModule = new AuthorizationCodeModule(defaultAuthConfig);
