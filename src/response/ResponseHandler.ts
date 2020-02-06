@@ -157,6 +157,7 @@ export class ResponseHandler {
         // Save tokens in response and return
         return {
             ...originalTokenResponse,
+            tokenType: serverTokenResponse.token_type,
             scopes: responseScopeArray,
             accessToken: serverTokenResponse.access_token,
             refreshToken: serverTokenResponse.refresh_token,

@@ -90,7 +90,7 @@ describe("AuthModule.ts Class Unit Tests", () => {
                             case "456-test-utid":
                                 return "NDU2LXRlc3QtdXRpZA==";
                             default:
-                                return "";
+                                return input;
                         }
                     },
                     async generatePkceCodes(): Promise<PkceCodes> {

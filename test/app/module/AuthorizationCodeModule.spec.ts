@@ -4,7 +4,7 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { AuthorizationCodeModule } from "../../../src/app/module/AuthorizationCodeModule";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE } from "../../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../../utils/StringConstants";
 import { AuthModule } from "../../../src/app/module/AuthModule";
 import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src/error/ClientConfigurationError";
@@ -15,14 +15,16 @@ import { IdTokenClaims } from "../../../src/auth/IdTokenClaims";
 import { IdToken } from "../../../src/auth/IdToken";
 import { LogLevel } from "../../../src/logger/Logger";
 import { PublicClientSPAConfiguration } from "../../../src/app/config/PublicClientSPAConfiguration";
-import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
+import { NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { Authority } from "../../../src/auth/authority/Authority";
 import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { TokenExchangeParameters } from "../../../src/request/TokenExchangeParameters";
 import { ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { AuthError } from "../../../src/error/AuthError";
 import { CodeResponse } from "../../../src/response/CodeResponse";
-import { ServerAuthorizationTokenResponse } from "../../../src/server/ServerAuthorizationTokenResponse";
+import { TokenResponse, Account } from "../../../src";
+import { buildClientInfo } from "../../../src/auth/ClientInfo";
+import { TimeUtils } from "../../../src/utils/TimeUtils";
 
 describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
@@ -459,17 +461,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             });
 
             it("Retrieves valid token response given valid code and state", async () => {
-                defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
-                    return {
-                        token_type: "Bearer",
-                        scope: "openid profile offline_access",
-                        expires_in: 3599,
-                        ext_expires_in: 3599,
-                        access_token: TEST_TOKENS.ACCESS_TOKEN,
-                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                        id_token: TEST_TOKENS.IDTOKEN_V1
-                    };
-                };
+                // Set up required objects and mocked return values
                 authModule = new AuthorizationCodeModule(defaultAuthConfig);
                 const cachedRequest: TokenExchangeParameters = {
                     authority: Constants.DEFAULT_AUTHORITY,
@@ -478,13 +470,11 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 };
                 const stringifiedRequest = JSON.stringify(cachedRequest);
-                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
-                
-                sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
 
+                const testState = "{stateObject}";
                 const codeResponse: CodeResponse = {
                     code: "This is an auth code",
-                    userRequestState: RANDOM_TEST_GUID
+                    userRequestState: `${RANDOM_TEST_GUID}|${testState}`
                 };
 
                 const idTokenClaims: IdTokenClaims = {
@@ -498,10 +488,63 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                     "nonce": "123523",
                 };
+                
+                // Set up stubs
                 sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-                // TODO: Set client info in cache
-                defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`, "123523");
-                console.log(await authModule.acquireToken(codeResponse));
+                sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                        id_token: TEST_TOKENS.IDTOKEN_V2
+                    };
+                };
+                defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
+                    switch (input) {
+                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                        default:
+                            return input;
+                    }
+                };
+                defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
+                    switch (input) {
+                        case "123-test-uid":
+                            return "MTIzLXRlc3QtdWlk";
+                        case "456-test-utid":
+                            return "NDU2LXRlc3QtdXRpZA==";
+                        default:
+                            return input;
+                    }
+                };
+
+                 // Set up cache
+                 defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
+                 defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${codeResponse.userRequestState}`, "123523");
+                 defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+                
+                // Build Test account
+                const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
+                const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
+                const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
+                
+                // Perform test
+                const tokenResponse: TokenResponse = await authModule.acquireToken(codeResponse);
+                expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
+                expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
+                expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
+                expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
+                expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
+                expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESS_TOKEN);
+                expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
+                expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
+                expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
+                expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
+                expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
             });
 
             it("Uses authority from cache if not present in cached request", () => {
