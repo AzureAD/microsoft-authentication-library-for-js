@@ -80,6 +80,23 @@ export const TEST_CONFIG = {
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
 
+export const TEST_HOST_LIST = [
+    "login.windows.net",
+    "login.chinacloudapi.cn",
+    "login.cloudgovapi.us",
+    "login.microsoftonline.com",
+    "login.microsoftonline.de",
+    "login.microsoftonline.us"
+];
+
+export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
+    "tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+};
+
+export const TEST_TENANT_DISCOVERY_RESPONSE = {
+    "tenant_discovery_endpoint":"https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+};
+
 export const DEFAULT_OPENID_CONFIG_RESPONSE = { 
     "token_endpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     "token_endpoint_auth_methods_supported": [
