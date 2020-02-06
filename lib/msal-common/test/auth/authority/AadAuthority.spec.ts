@@ -4,8 +4,7 @@ import { Constants } from "../../../src/utils/Constants";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { Authority } from "../../../src/auth/authority/Authority";
 import { AuthorityType } from "../../../src/auth/authority/AuthorityType";
-import { TEST_HOST_LIST, DEFAULT_TENANT_DISCOVERY_RESPONSE, TEST_TENANT_DISCOVERY_RESPONSE } from "../../utils/StringConstants";
-import sinon from "sinon";
+import { TEST_HOST_LIST, TEST_TENANT_DISCOVERY_RESPONSE } from "../../utils/StringConstants";
 
 describe("AadAuthority.ts Class Unit Tests", () => {
     

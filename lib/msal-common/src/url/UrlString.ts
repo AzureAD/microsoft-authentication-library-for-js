@@ -55,14 +55,14 @@ export class UrlString {
             throw ClientConfigurationError.createUrlParseError(e);
         }
 
+        // Throw error if URI or path segments are not parseable.
+        if (!components.HostNameAndPort || !components.PathSegments || components.PathSegments.length < 1) {
+            throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
+        }
+
         // Throw error if uri is insecure.
         if(!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
             throw ClientConfigurationError.createInsecureAuthorityUriError(this.urlString);
-        }
-
-        // Throw error if path segments are not parseable.
-        if (!components.PathSegments || components.PathSegments.length < 1) {
-            throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
     }
 
