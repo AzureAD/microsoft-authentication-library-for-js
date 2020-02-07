@@ -73,12 +73,16 @@ See here for more details on [supported browsers and known compatability issues]
 ## Usage
 
 1. [Initialization](./docs/initialization.md)
-2. [Login](./docs/login.md)
+2. [Login/Logout](./docs/login.md)
 3. [Acquire and Renew Tokens](./docs/acquire-and-renew-tokens.md)
 4. [Accounts](./docs/account-object.md)
 5. [Using Tokens](./docs/using-tokens.md)
 6. [Error Handling](./docs/error-handling.md)
-7. [Error Codes](./docs/error-codes.md)
+
+### Advanced Topics
+
+1. [Logging](./docs/logging.md)
+2. [Single Sign-On](./docs/sso.md)
 
 ## Samples
 
