@@ -19,12 +19,13 @@ import { NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { Authority } from "../../../src/auth/authority/Authority";
 import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { TokenExchangeParameters } from "../../../src/request/TokenExchangeParameters";
-import { ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../../src/error/ClientAuthError";
 import { AuthError } from "../../../src/error/AuthError";
 import { CodeResponse } from "../../../src/response/CodeResponse";
-import { TokenResponse, Account } from "../../../src";
+import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "../../../src";
 import { buildClientInfo } from "../../../src/auth/ClientInfo";
 import { TimeUtils } from "../../../src/utils/TimeUtils";
+import { CacheHelpers } from "../../../src/cache/CacheHelpers";
 
 describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
@@ -38,7 +39,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     let defaultAuthConfig: PublicClientSPAConfiguration;
 
     beforeEach(() => {
-        let store = {};
         defaultAuthConfig = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -111,7 +111,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     describe("Login Url Creation", () => {
 
         let authModule: AuthorizationCodeModule;
-
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             authModule = new AuthorizationCodeModule(defaultAuthConfig);
@@ -420,140 +419,247 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 store = {};
             });
 
-            it("Throws error if null code response is passed", async () => {
-                await expect(authModule.acquireToken(null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-                expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
-            });
+            describe("Error Cases", () => {
 
-            it("Throws error if code response does not contain PKCE code", async () => {
-                const codeResponse: CodeResponse = {
-                    code: null,
-                    userRequestState: RANDOM_TEST_GUID
-                };
-                await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-                expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
-            });
+                it("Throws error if null code response is passed", async () => {
+                    await expect(authModule.acquireToken(null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+                    expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
+                });
 
-            it("Throws error if request cannot be retrieved from cache", async () => {
-                const codeResponse: CodeResponse = {
-                    code: "This is an auth code",
-                    userRequestState: RANDOM_TEST_GUID
-                };
-                await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
-                expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
-            });
-
-            it("Throws error if cached request cannot be parsed correctly", async () => {
-                const cachedRequest: TokenExchangeParameters = {
-                    authority: TEST_URIS.DEFAULT_INSTANCE,
-                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                    correlationId: RANDOM_TEST_GUID,
-                    scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-                };
-                const stringifiedRequest = JSON.stringify(cachedRequest);
-                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest.substring(0, stringifiedRequest.length / 2));
-                const codeResponse: CodeResponse = {
-                    code: "This is an auth code",
-                    userRequestState: RANDOM_TEST_GUID
-                };
-                await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
-                expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
-            });
-
-            it("Retrieves valid token response given valid code and state", async () => {
-                // Set up required objects and mocked return values
-                authModule = new AuthorizationCodeModule(defaultAuthConfig);
-                const cachedRequest: TokenExchangeParameters = {
-                    authority: Constants.DEFAULT_AUTHORITY,
-                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                    correlationId: RANDOM_TEST_GUID,
-                    scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-                };
-                const stringifiedRequest = JSON.stringify(cachedRequest);
-
-                const testState = "{stateObject}";
-                const codeResponse: CodeResponse = {
-                    code: "This is an auth code",
-                    userRequestState: `${RANDOM_TEST_GUID}|${testState}`
-                };
-
-                const idTokenClaims: IdTokenClaims = {
-                    "ver": "2.0",
-                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": "1536361411",
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
-                };
-                
-                // Set up stubs
-                sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-                sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-                defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
-                    return {
-                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                        access_token: TEST_TOKENS.ACCESS_TOKEN,
-                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                        id_token: TEST_TOKENS.IDTOKEN_V2
+                it("Throws error if code response does not contain PKCE code", async () => {
+                    const codeResponse: CodeResponse = {
+                        code: null,
+                        userRequestState: RANDOM_TEST_GUID
                     };
-                };
-                defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
-                    switch (input) {
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                };
-                defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        default:
-                            return input;
-                    }
-                };
+                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+                    expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
+                });
 
-                 // Set up cache
-                 defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
-                 defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${codeResponse.userRequestState}`, "123523");
-                 defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-                
-                // Build Test account
-                const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
-                const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
-                const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
-                
-                // Perform test
-                const tokenResponse: TokenResponse = await authModule.acquireToken(codeResponse);
-                expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
-                expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
-                expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
-                expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
-                expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
-                expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESS_TOKEN);
-                expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
-                expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
-                expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
-                expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
-                expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
+                it("Throws error if request cannot be retrieved from cache", async () => {
+                    const codeResponse: CodeResponse = {
+                        code: "This is an auth code",
+                        userRequestState: RANDOM_TEST_GUID
+                    };
+                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
+                    expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
+                });
+
+                it("Throws error if cached request cannot be parsed correctly", async () => {
+                    const cachedRequest: TokenExchangeParameters = {
+                        authority: TEST_URIS.DEFAULT_INSTANCE,
+                        codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                        correlationId: RANDOM_TEST_GUID,
+                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+                    };
+                    const stringifiedRequest = JSON.stringify(cachedRequest);
+                    defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest.substring(0, stringifiedRequest.length / 2));
+                    const codeResponse: CodeResponse = {
+                        code: "This is an auth code",
+                        userRequestState: RANDOM_TEST_GUID
+                    };
+                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
+                    expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
+                });
+
+                it("Throws error if authority endpoint resolution fails", async () => {
+                    const codeResponse = {
+                        code: "This is an auth code",
+                        userRequestState: RANDOM_TEST_GUID
+                    };
+                    const exceptionString = "Could not make a network request."
+                    sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
+                    
+                    const cachedRequest: TokenExchangeParameters = {
+                        authority: Constants.DEFAULT_AUTHORITY,
+                        codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                        correlationId: RANDOM_TEST_GUID,
+                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+                    };
+                    const stringifiedRequest = JSON.stringify(cachedRequest);
+                    defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
+                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                });
             });
+            
+            describe("Success Cases", () => {
 
-            it("Uses authority from cache if not present in cached request", () => {
+                let codeResponse: CodeResponse;
+                let testState: string;
+                beforeEach(() => {
+                    // Set up required objects and mocked return values
+                    defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                        return {
+                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                            ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                            access_token: TEST_TOKENS.LOGIN_AT_STRING,
+                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                            id_token: TEST_TOKENS.IDTOKEN_V2
+                        };
+                    };
+                    defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
+                        switch (input) {
+                            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                            default:
+                                return input;
+                        }
+                    };
+                    defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
+                        switch (input) {
+                            case "123-test-uid":
+                                return "MTIzLXRlc3QtdWlk";
+                            case "456-test-utid":
+                                return "NDU2LXRlc3QtdXRpZA==";
+                            default:
+                                return input;
+                        }
+                    };
+                    authModule = new AuthorizationCodeModule(defaultAuthConfig);
 
+                    testState = "{stateObject}";
+                    codeResponse = {
+                        code: "This is an auth code",
+                        userRequestState: `${RANDOM_TEST_GUID}|${testState}`
+                    };
+                });
+
+                it("Retrieves valid token response given valid code and state", async () => {
+                    // Set up stubs
+                    const idTokenClaims = {
+                        "ver": "2.0",
+                        "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                        "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                        "exp": "1536361411",
+                        "name": "Abe Lincoln",
+                        "preferred_username": "AbeLi@microsoft.com",
+                        "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                        "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                        "nonce": "123523",
+                    };
+                    sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+
+                    // Set up cache
+                    defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${codeResponse.userRequestState}`, "123523");
+                    defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+                    
+                    // Build Test account
+                    const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
+                    const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
+                    const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface); 
+                    
+                    const cachedRequest: TokenExchangeParameters = {
+                        authority: Constants.DEFAULT_AUTHORITY,
+                        codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                        correlationId: RANDOM_TEST_GUID,
+                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+                    };
+                    const stringifiedRequest = JSON.stringify(cachedRequest);
+                    defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
+                    defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, `${TEST_URIS.DEFAULT_INSTANCE}/common/`);
+                    
+                    // Perform test
+                    const tokenResponse: TokenResponse = await authModule.acquireToken(codeResponse);
+                    expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
+                    expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
+                    expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
+                    expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
+                    expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
+                    expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.LOGIN_AT_STRING);
+                    expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
+                    expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
+                    expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
+                    expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
+                    expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
+                    expect(Account.compareAccounts(authModule.getAccount(), testAccount)).to.be.true;
+                });
+
+                it("Uses authority from cache if not present in cached request", async () => {
+                    // Set up stubs
+                    const idTokenClaims = {
+                        "ver": "2.0",
+                        "iss": `${TEST_URIS.ALTERNATE_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                        "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                        "exp": "1536361411",
+                        "name": "Abe Lincoln",
+                        "preferred_username": "AbeLi@microsoft.com",
+                        "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                        "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                        "nonce": "123523",
+                    };
+                    sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+                    const authoritySpy = sinon.spy(AuthorityFactory, "createInstance");
+
+                    // Set up cache
+                    defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${codeResponse.userRequestState}`, "123523");
+                    defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+
+                    const cachedRequest: TokenExchangeParameters = {
+                        codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                        correlationId: RANDOM_TEST_GUID,
+                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+                    };
+                    const stringifiedRequest = JSON.stringify(cachedRequest);
+                    defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
+                    defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${codeResponse.userRequestState}`, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
+                    
+                    // Perform test
+                    await authModule.acquireToken(codeResponse);
+                    expect(authoritySpy.calledOnceWith(`${TEST_URIS.ALTERNATE_INSTANCE}/common/`, defaultAuthConfig.networkInterface)).to.be.true;
+                });
             });
         });
 
         describe("Renew token", () => {
 
+            let authModule: AuthorizationCodeModule;
+            beforeEach(() => {
+                authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+                store = {};
+            });
+
+            describe("Error cases", () => {
+
+                it("Throws error if request object is null or undefined", async () => {
+                    await expect(authModule.renewToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authModule.renewToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                });
+
+                it("Throws error if scopes are not included in request object", async () => {
+                    await expect(authModule.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.scopesRequiredError.desc);
+                });
+
+                it("Throws error if scopes are empty in request object", async () => {
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: []
+                    };
+                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                });
+
+                it("Throws error if login hasn't been completed and client id is passed as scope", async () => {
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+                    };
+                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
+                });
+
+                it("Throws error if endpoint discovery could not be completed", async () => {
+                    const exceptionString = "Could not make a network request."
+                    sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
+
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: ["scope1"]
+                    };
+                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                });
+            });
         });
     });
 
