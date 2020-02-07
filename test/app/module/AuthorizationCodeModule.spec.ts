@@ -659,6 +659,24 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     };
                     await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
+
+                it("Throws error if it does not find token in cache", async () => {
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: ["scope1"]
+                    };
+                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                });
+
+                it("Throws error if it finds too many tokens in cache for the same scope and client id", async () => {
+                    
+                    defaultAuthConfig.storageInterface.setItem("", "");
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: ["scope1"]
+                    };
+                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                })
             });
         });
     });
