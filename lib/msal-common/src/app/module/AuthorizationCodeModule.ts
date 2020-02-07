@@ -261,7 +261,7 @@ export class AuthorizationCodeModule extends AuthModule {
                     this.cryptoObj,
                     cachedTokenItem.value.refreshToken
                 );
- 
+
                 // User helper to retrieve token response.
                 return this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
             }
@@ -351,9 +351,8 @@ export class AuthorizationCodeModule extends AuthModule {
             const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
             const parsedRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-
-            // Get cached authority and use if no authority is given.
-            if (!parsedRequest.authority) {
+            // Get cached authority and use if no authority is cached with request.
+            if (StringUtils.isEmpty(parsedRequest.authority)) {
                 const authorityKey: string = this.cacheManager.generateAuthorityKey(state);
                 const cachedAuthority: string = this.cacheStorage.getItem(authorityKey);
                 parsedRequest.authority = cachedAuthority;
