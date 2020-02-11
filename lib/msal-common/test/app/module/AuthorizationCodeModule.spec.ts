@@ -26,6 +26,8 @@ import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "
 import { buildClientInfo } from "../../../src/auth/ClientInfo";
 import { TimeUtils } from "../../../src/utils/TimeUtils";
 import { CacheHelpers } from "../../../src/cache/CacheHelpers";
+import { AccessTokenKey } from "../../../src/cache/AccessTokenKey";
+import { AccessTokenValue } from "../../../src/cache/AccessTokenValue";
 
 describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
@@ -660,7 +662,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
 
-                it("Throws error if it does not find token in cache", async () => {
+                it("Throws error if it does not find token in empty cache", async () => {
                     sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
@@ -668,15 +670,103 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
-                it("Throws error if it finds too many tokens in cache for the same scope and client id", async () => {
-                    
-                    defaultAuthConfig.storageInterface.setItem("", "");
+                it("Throws error if it does not find token in non-empty cache", async () => {
+                    const testScope1 = "scope1";
+                    const testScope2 = "scope2";
+                    const accessTokenKey1: AccessTokenKey = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: testScope1,
+                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        resource: "Resource1"
+                    };
+                    const atValue: AccessTokenValue = {
+                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                        idToken: "",
+                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                        tokenType: "Bearer",
+                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
+                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
+                    };
+                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
                     sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                     const tokenRequest: TokenRenewParameters = {
-                        scopes: ["scope1"]
+                        scopes: [testScope2]
                     };
                     await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
-                })
+                });
+
+                it("Throws error if it finds too many tokens in cache for the same scope and client id", async () => {
+                    const testScope = "scope1";
+                    const accessTokenKey1: AccessTokenKey = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: testScope,
+                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        resource: "Resource1"
+                    };
+                    const accessTokenKey2: AccessTokenKey = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: testScope,
+                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        resource: "Resource2"
+                    };
+                    const atValue: AccessTokenValue = {
+                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                        idToken: "",
+                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                        tokenType: "Bearer",
+                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
+                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
+                    };
+                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
+                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey2), JSON.stringify(atValue));
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: [testScope]
+                    };
+                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                });
+            });
+
+            describe("Success cases", () => {
+
+                it("Returns correct access token entry if it does not need to be renewed", async () => {
+                    const testScope1 = "scope1";
+                    const accessTokenKey1: AccessTokenKey = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: testScope1,
+                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        resource: "Resource1"
+                    };
+                    const atValue: AccessTokenValue = {
+                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                        idToken: "",
+                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                        tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
+                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
+                    };
+                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: [testScope1]
+                    };
+                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    expect(tokenResponse.uniqueId).to.be.empty;
+                    expect(tokenResponse.tenantId).to.be.empty;
+                    expect(tokenResponse.scopes).to.be.deep.eq([testScope1, Constants.OFFLINE_ACCESS_SCOPE]);
+                    expect(tokenResponse.tokenType).to.be.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
+                    expect(tokenResponse.idToken).to.be.empty;
+                    expect(tokenResponse.idTokenClaims).to.be.null;
+                    expect(tokenResponse.accessToken).to.be.eq(TEST_TOKENS.ACCESS_TOKEN);
+                    expect(tokenResponse.refreshToken).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
+                    expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
+                    expect(tokenResponse.account).to.be.null;
+                    expect(tokenResponse.userRequestState).to.be.empty;
+                });
             });
         });
     });
