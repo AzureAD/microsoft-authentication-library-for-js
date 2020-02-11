@@ -178,7 +178,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 this.getRedirectUri(),
                 this.cryptoObj
             );
-            
+
             // User helper to retrieve token response.
             return this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
         } catch (e) {
