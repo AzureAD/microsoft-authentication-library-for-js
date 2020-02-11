@@ -27,10 +27,10 @@ export class ScopeSet {
         this.validateInputScopes(inputScopes);
         const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
         this.scopes = new Set<string>(scopeArr);
-        this.originalScopes = new Set<string>(this.scopes);
         if (!this.scopesRequired) {
             this.appendScope(this.clientId);
         }
+        this.originalScopes = new Set<string>(this.scopes);
         this.replaceDefaultScopes();
     }
 

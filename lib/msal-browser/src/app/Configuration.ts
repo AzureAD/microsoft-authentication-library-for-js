@@ -58,7 +58,6 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     tmp_clientSecret: "",
     authority: null,
-    validateAuthority: true,
     redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
     postLogoutRedirectUri: () => BrowserUtils.getDefaultRedirectUri(),
     navigateToLoginRequestUrl: true

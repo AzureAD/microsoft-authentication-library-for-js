@@ -730,13 +730,13 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 });
             });
 
-            describe("Success cases", () => {
+            describe.only("Success cases", () => {
 
                 it("Returns correct access token entry if it does not need to be renewed", async () => {
                     const testScope1 = "scope1";
                     const accessTokenKey1: AccessTokenKey = {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        scopes: testScope1,
+                        scopes: `${testScope1} ${Constants.OFFLINE_ACCESS_SCOPE}`,
                         authority: `${Constants.DEFAULT_AUTHORITY}/`,
                         homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                         resource: "Resource1"
@@ -766,6 +766,76 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
                     expect(tokenResponse.account).to.be.null;
                     expect(tokenResponse.userRequestState).to.be.empty;
+                });
+
+                it("Returns correct entry for id and access token if it does not need to be renewed", async () => {
+                    defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
+                        switch (input) {
+                            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                            default:
+                                return input;
+                        }
+                    };
+                    defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
+                        switch (input) {
+                            case "123-test-uid":
+                                return "MTIzLXRlc3QtdWlk";
+                            case "456-test-utid":
+                                return "NDU2LXRlc3QtdXRpZA==";
+                            default:
+                                return input;
+                        }
+                    };
+                    authModule = new AuthorizationCodeModule(defaultAuthConfig);
+                    const idTokenClaims = {
+                        "ver": "2.0",
+                        "iss": `${TEST_URIS.ALTERNATE_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                        "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                        "exp": "1536361411",
+                        "name": "Abe Lincoln",
+                        "preferred_username": "AbeLi@microsoft.com",
+                        "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                        "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                        "nonce": "123523",
+                    };
+                    sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+                    const testScopes = ["scope1", "openid", "profile", "offline_access"];
+                    const accessTokenKey1: AccessTokenKey = {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: testScopes.join(" "),
+                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        resource: "Resource1"
+                    };
+                    const atValue: AccessTokenValue = {
+                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                        idToken: TEST_TOKENS.IDTOKEN_V2,
+                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                        tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
+                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
+                    };
+                    defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ID_TOKEN, TEST_TOKENS.IDTOKEN_V2);
+                    defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                    const tokenRequest: TokenRenewParameters = {
+                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+                    };
+                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    console.log(tokenResponse);
+                    // expect(tokenResponse.uniqueId).to.be.empty;
+                    // expect(tokenResponse.tenantId).to.be.empty;
+                    // expect(tokenResponse.scopes).to.be.deep.eq([testScopes]);
+                    // expect(tokenResponse.tokenType).to.be.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
+                    // expect(tokenResponse.idToken).to.be.empty;
+                    // expect(tokenResponse.idTokenClaims).to.be.null;
+                    // expect(tokenResponse.accessToken).to.be.eq(TEST_TOKENS.ACCESS_TOKEN);
+                    // expect(tokenResponse.refreshToken).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
+                    // expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
+                    // expect(tokenResponse.account).to.be.null;
+                    // expect(tokenResponse.userRequestState).to.be.empty;
                 });
             });
         });
