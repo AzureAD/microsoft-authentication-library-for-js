@@ -39,6 +39,7 @@ export abstract class Authority {
      */
     public set canonicalAuthority(url: string) {
         this._canonicalAuthority = new UrlString(url);
+        this._canonicalAuthority.validateAsUri();
         this._canonicalAuthorityUrlComponents = null;
     }
 
@@ -57,7 +58,7 @@ export abstract class Authority {
      * Get tenant for authority.
      */
     public get tenant(): string {
-        return this._canonicalAuthorityUrlComponents.PathSegments[0];
+        return this.canonicalAuthorityUrlComponents.PathSegments[0];
     }
 
     /**

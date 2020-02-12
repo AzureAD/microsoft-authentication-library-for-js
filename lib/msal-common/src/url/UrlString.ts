@@ -22,8 +22,11 @@ export class UrlString {
     
     constructor(url: string) {
         this._urlString = url;
-        if(this._urlString && StringUtils.isEmpty(this.getHash())) {
+        if (!StringUtils.isEmpty(this._urlString) && StringUtils.isEmpty(this.getHash())) {
             this._urlString = this.canonicalizeUri(url);
+        } else if (StringUtils.isEmpty(this._urlString)) {
+            // Throws error if url is empty
+            throw ClientConfigurationError.createUrlEmptyError();
         }
     }
 
@@ -72,10 +75,6 @@ export class UrlString {
      * @param name
      */
     urlRemoveQueryStringParameter(name: string): string {
-        if (StringUtils.isEmpty(this.urlString)) {
-            throw ClientConfigurationError.createUrlEmptyError();
-        }
-
         let regex = new RegExp("(\\&" + name + "=)[^\&]+");
         this._urlString = this.urlString.replace(regex, "");
         // name=value&
@@ -132,11 +131,6 @@ export class UrlString {
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
      */
     getUrlComponents(): IUri {
-        // Throws error if url is empty
-        if (!this.urlString) {
-            throw ClientConfigurationError.createUrlEmptyError();
-        }
-
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
         const regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
 

@@ -11,6 +11,14 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(urlObj.urlString).to.be.eq(TEST_URIS.TEST_REDIR_URI + "/");
     });
 
+    it("constructor throws error if uri is empty or null", () => {
+        expect(() => new UrlString(null)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        expect(() => new UrlString(null)).to.throw(ClientConfigurationError);
+
+        expect(() => new UrlString("")).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        expect(() => new UrlString("")).to.throw(ClientConfigurationError);
+    });
+
     it("validateAsUri throws error if uri is not secure", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString);
@@ -23,16 +31,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         let urlObj = new UrlString(shortPathUrlString);
         expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: Given url string: ${shortPathUrlString}/`);
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
-    });
-
-    it("validateAsUri throws error if uri is empty or null", () => {
-        let urlObj1 = new UrlString(null);
-        expect(() => urlObj1.validateAsUri()).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        expect(() => urlObj1.validateAsUri()).to.throw(ClientConfigurationError);
-
-        let urlObj2 = new UrlString("");
-        expect(() => urlObj2.validateAsUri()).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        expect(() => urlObj2.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
     it("urlRemoveQueryStringParameter removes required path components",() => {
@@ -50,16 +48,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         urlObj2.urlRemoveQueryStringParameter("param1");
         expect(urlObj2.urlString).to.not.contain("param1=value1");
         expect(urlObj2.urlString).to.not.contain("param2=value2");
-    });
-
-    it("urlRemoveQueryStringParameter throws error if urlString is null", () => {
-        let urlObj1 = new UrlString(null);
-        let urlObj2 = new UrlString("");
-        expect(() => urlObj1.urlRemoveQueryStringParameter("param1")).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        expect(() => urlObj1.urlRemoveQueryStringParameter("param1")).to.throw(ClientConfigurationError);
-
-        expect(() => urlObj2.urlRemoveQueryStringParameter("param1")).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        expect(() => urlObj2.urlRemoveQueryStringParameter("param1")).to.throw(ClientConfigurationError);
     });
 
     it("replaceTenantPath correctly replaces common with tenant id", () => {
