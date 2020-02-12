@@ -1314,7 +1314,7 @@ export class UserAgentApplication {
     private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.info("renewidToken is called");
 
-        const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, scopes, serverAuthenticationRequest.authority);
+        const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, scopes, serverAuthenticationRequest.authority);
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
