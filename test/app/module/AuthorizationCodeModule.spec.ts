@@ -127,7 +127,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const emptyRequest: AuthenticationParameters = {};
             const loginUrl = await authModule.createLoginUrl(emptyRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -156,7 +156,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const emptyRequest: AuthenticationParameters = {};
             await authModule.createLoginUrl(emptyRequest);
             const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
-            expect(cachedRequest.scopes).to.be.empty;
+            expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
             expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
             expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
@@ -264,7 +264,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await authModule.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -277,7 +277,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await authModule.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -297,8 +297,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         });
 
         it("Updates cache entries correctly", async () => {
+            const testScope = "testscope";
             const tokenRequest: AuthenticationParameters = {
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+                scopes: [testScope]
             };
             await authModule.createAcquireTokenUrl(tokenRequest);
             expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
@@ -307,12 +308,13 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         });
 
         it("Caches token request correctly", async () => {
+            const testScope = "testscope";
             const tokenRequest: AuthenticationParameters = {
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+                scopes: [testScope]
             };
             await authModule.createAcquireTokenUrl(tokenRequest);
             const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
-            expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
+            expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
             expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
             expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
@@ -730,7 +732,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 });
             });
 
-            describe.only("Success cases", () => {
+            describe("Success cases", () => {
 
                 it("Returns correct access token entry if it does not need to be renewed", async () => {
                     const testScope1 = "scope1";
@@ -824,7 +826,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
                     };
                     const tokenResponse = await authModule.renewToken(tokenRequest);
-                    console.log(tokenResponse);
                     // expect(tokenResponse.uniqueId).to.be.empty;
                     // expect(tokenResponse.tenantId).to.be.empty;
                     // expect(tokenResponse.scopes).to.be.deep.eq([testScopes]);

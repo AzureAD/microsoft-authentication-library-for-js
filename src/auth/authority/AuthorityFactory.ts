@@ -6,6 +6,7 @@ import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+import { ClientAuthError } from "../../error/ClientAuthError";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
@@ -34,9 +35,9 @@ export class AuthorityFactory {
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
     public static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
-        // Return null if authority url is empty
+        // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
-            return null;
+            throw ClientConfigurationError.createUrlEmptyError();
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
@@ -45,7 +46,7 @@ export class AuthorityFactory {
             case AuthorityType.Aad:
                 return new AadAuthority(authorityUrl, networkInterface);
             default:
-                throw ClientConfigurationError.createInvalidAuthorityTypeError(`Given Url: ${authorityUrl}`);
+                throw ClientAuthError.createInvalidAuthorityTypeError(`Given Url: ${authorityUrl}`);
         }
     }
 }
