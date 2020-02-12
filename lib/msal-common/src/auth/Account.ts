@@ -55,7 +55,6 @@ export class Account {
      * @param clientInfo
      */
     static createAccount(idToken: IdToken, clientInfo: ClientInfo, crypto: ICrypto): Account {
-
         // create accountIdentifier
         const accountIdentifier: string = idToken.claims.oid ||  idToken.claims.sub;
 

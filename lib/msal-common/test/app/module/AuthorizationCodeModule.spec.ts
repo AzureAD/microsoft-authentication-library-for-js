@@ -19,13 +19,12 @@ import { NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { Authority } from "../../../src/auth/authority/Authority";
 import { PkceCodes } from "../../../src/crypto/ICrypto";
 import { TokenExchangeParameters } from "../../../src/request/TokenExchangeParameters";
-import { ClientAuthErrorMessage, ClientAuthError } from "../../../src/error/ClientAuthError";
+import { ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { AuthError } from "../../../src/error/AuthError";
 import { CodeResponse } from "../../../src/response/CodeResponse";
 import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "../../../src";
 import { buildClientInfo } from "../../../src/auth/ClientInfo";
 import { TimeUtils } from "../../../src/utils/TimeUtils";
-import { CacheHelpers } from "../../../src/cache/CacheHelpers";
 import { AccessTokenKey } from "../../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../../src/cache/AccessTokenValue";
 
