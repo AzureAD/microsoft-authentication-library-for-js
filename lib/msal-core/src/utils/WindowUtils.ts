@@ -32,6 +32,17 @@ export class WindowUtils {
 
     /**
      * @hidden
+     * @param prefix
+     * @param scopes
+     * @param authority
+     */
+    static generateFrameName(prefix: string, scopes: string[], authority: string): string {
+        const scope = scopes.join(" ").toLowerCase();
+        return `${prefix}${Constants.resourceDelimiter}${scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${authority}`;
+    }
+
+    /**
+     * @hidden
      * Monitors a window until it loads a url with a hash
      * @ignore
      */

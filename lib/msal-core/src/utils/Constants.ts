@@ -145,7 +145,15 @@ export const PromptState = {
     LOGIN: "login",
     SELECT_ACCOUNT: "select_account",
     CONSENT: "consent",
-    NONE: "none",
+    NONE: "none"
+};
+
+/**
+ * Frame name prefixes for the hidden iframe created in silent frames
+ */
+export const FramePrefix = {
+    ID_TOKEN_FRAME: "msalIdTokenFrame",
+    TOKEN_FRAME: "msalRenewFrame"
 };
 
 /**
@@ -153,4 +161,4 @@ export const PromptState = {
  */
 export function libraryVersion(): string {
     return "1.2.1";
-}
+};

@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { WindowUtils } from "../../src/utils/WindowUtils";
+import { FramePrefix } from "../../src/utils/Constants";
+import { TEST_CONFIG } from "../TestConstants";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("WindowUtils", () => {
@@ -68,6 +70,19 @@ describe("WindowUtils", () => {
             setTimeout(() => {
                 iframe.contentWindow.closed = true;
             }, 500);
+        });
+    });
+
+    describe("generateFrameName", () => {
+        it("test idToken frame name created", () => {
+            const scopes = ["s1", "s2", "s3"];
+            const authority = TEST_CONFIG.validAuthority;
+
+            const idTokenFrameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, scopes, authority);
+            const tokenFrameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, scopes, authority);
+
+            expect(idTokenFrameName).to.equal(`${FramePrefix.ID_TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
+            expect(tokenFrameName).to.equal(`${FramePrefix.TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
         });
     });
 });
