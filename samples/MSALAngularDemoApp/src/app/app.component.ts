@@ -3,7 +3,6 @@ import {BroadcastService} from "@azure/msal-angular";
 import { MsalService} from "@azure/msal-angular";
 import {ProductService} from "./product/product.service";
 import {Subscription} from "rxjs/Subscription";
-import { AuthError, AuthResponse } from 'msal';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   {
     //  This is to avoid reload during acquireTokenSilent() because of hidden iframe
     this.isIframe = window !== window.parent && !window.opener;
-   if(this.authService.getAccount())
+   if(this.authService.getUser())
     {
       this.loggedIn = true;
     }
@@ -58,15 +57,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.broadcastService.subscribe("msal:loginSuccess", (payload) => {
       console.log("login success " + JSON.stringify(payload));
       this.loggedIn = true;
-    });
-
-    this.authService.handleRedirectCallback((redirectError: AuthError, redirectResponse: AuthResponse) => {
-      if (redirectError) {
-        console.error("Redirect error: ", redirectError);
-        return;
-      }
-
-      console.log("Redirect success: ", redirectResponse);
     });
   }
 
