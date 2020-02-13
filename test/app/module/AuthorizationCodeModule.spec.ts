@@ -697,7 +697,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
-                it("Throws error if it finds too many tokens in cache for the same scope and client id", async () => {
+                it("Throws error if it finds too many tokens in cache for the same scope and client id but no authority, resource or account is given", async () => {
                     const testScope = "scope1";
                     const accessTokenKey1: AccessTokenKey = {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
