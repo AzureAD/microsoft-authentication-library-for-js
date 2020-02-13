@@ -12,6 +12,7 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { MsalModule, MsalInterceptor } from '@azure/msal-angular';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HomeComponent } from './home/home.component';
 
 export const protectedResourceMap: [string, string[]][] = [
   ['https://graph.microsoft.com/v1.0/me', ['user.read']]
@@ -23,6 +24,7 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
   declarations: [
     AppComponent,
     ProfileComponent,
+    HomeComponent,
   ],
   imports: [
     BrowserModule,

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { MsalGuard } from '@azure/msal-angular';
+import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
   {
@@ -10,6 +11,10 @@ const routes: Routes = [
     canActivate: [
       MsalGuard
     ]
+  },
+  {
+    path: '',
+    component: HomeComponent
   }
 ];
 
