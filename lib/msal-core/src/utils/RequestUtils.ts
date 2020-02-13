@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Account } from "../Account";
 import { AuthenticationParameters } from "../AuthenticationParameters";
 import { Constants, PromptState, BlacklistedEQParams } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
@@ -10,6 +11,7 @@ import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
 import { StringUtils } from "../utils/StringUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
+import { ServerRequestParameters } from '../ServerRequestParameters';
 
 /**
  * @hidden
@@ -155,5 +157,25 @@ export class RequestUtils {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
         return CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+    }
+
+    /**
+     * @ignore
+     * 
+     * compute a logical identifier to represent a token request made by a specified account.
+     * if two tuples of <ServerRequestParameters, Account> have the same "uniqueness identifier"
+     * then they can be treated as the same overall request and merged together as an optimization.
+     * @param request 
+     * @param account 
+     */
+    static computeTokenRequestUniquenessIdentifier(request: ServerRequestParameters, account: Account): string {
+        // TODO - resolve exact information that should disambiguate a request
+        let parts = [
+            account.accountIdentifier,
+            request.authority,
+            request.scopes.sort().join(Constants.resourceDelimiter),
+            request.promptValue // a token request to prompt consent should be distinct from one that does not require consent
+        ];
+        return parts.join(Constants.resourceDelimiter).toLowerCase();
     }
 }

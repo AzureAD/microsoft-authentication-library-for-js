@@ -466,7 +466,6 @@ export class UserAgentApplication {
     private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
@@ -537,7 +536,8 @@ export class UserAgentApplication {
                 window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
 
                 // Register callback to capture results from server
-                this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
+                const requestUid = RequestUtils.computeTokenRequestUniquenessIdentifier(serverAuthenticationRequest, account);
+                this.registerCallback(serverAuthenticationRequest.state, requestUid, resolve, reject);
             } else {
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
@@ -691,12 +691,13 @@ export class UserAgentApplication {
                     .then(() => {
                         /*
                          * refresh attempt with iframe
-                         * Already renewing for this scope, callback when we get the token.
+                         * Already renewing for this request, callback when we get the token.
                          */
-                        if (window.activeRenewals[scope]) {
-                            this.logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+                        const requestUid = RequestUtils.computeTokenRequestUniquenessIdentifier(serverAuthenticationRequest, account);
+                        if (window.activeRenewals[requestUid]) {
+                            this.logger.verbose("Renew token for request: '" + requestUid + "' is in progress. Registering callback");
                             // Active renewals contains the state for each renewal.
-                            this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+                            this.registerCallback(window.activeRenewals[requestUid], requestUid, resolve, reject);
                         }
                         else {
                             if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
@@ -706,11 +707,11 @@ export class UserAgentApplication {
                                  */
                                 this.logger.verbose("renewing idToken");
                                 this.silentLogin = true;
-                                this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+                                this.renewIdToken(resolve, reject, account, serverAuthenticationRequest);
                             } else {
                                 // renew access token
                                 this.logger.verbose("renewing accesstoken");
-                                this.renewToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+                                this.renewToken(resolve, reject, account, serverAuthenticationRequest);
                             }
                         }
                     }).catch((err) => {
@@ -785,10 +786,10 @@ export class UserAgentApplication {
      * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
      * @ignore
      */
-    private async loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): Promise<void> {
+    private async loadIframeTimeout(urlNavigate: string, frameName: string, requestUid: string): Promise<void> {
         // set iframe session to pending
-        const expectedState = window.activeRenewals[scope];
-        this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
+        const expectedState = window.activeRenewals[requestUid];
+        this.logger.verbose("Set loading state to pending for: " + requestUid + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
@@ -802,7 +803,7 @@ export class UserAgentApplication {
         } catch (error) {
             if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.inProgress) {
                 // fail the iframe session if it's in pending state
-                this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
+                this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for request " + requestUid + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
                     window.callbackMappedToRenewStates[expectedState](null, error);
@@ -843,14 +844,14 @@ export class UserAgentApplication {
      * @hidden
      * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
      * @param {string} expectedState - Unique state identifier (guid).
-     * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+     * @param {string} requestUid - Request uniqueness identifier.
      * @param {Function} resolve - The resolve function of the promise object.
      * @param {Function} reject - The reject function of the promise object.
      * @ignore
      */
-    private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
+    private registerCallback(expectedState: string, requestUid: string, resolve: Function, reject: Function): void {
         // track active renewals
-        window.activeRenewals[scope] = expectedState;
+        window.activeRenewals[requestUid] = expectedState;
 
         // initialize callbacks mapped array
         if (!window.promiseMappedToRenewStates[expectedState]) {
@@ -863,7 +864,7 @@ export class UserAgentApplication {
         if (!window.callbackMappedToRenewStates[expectedState]) {
             window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
                 // reset active renewals
-                window.activeRenewals[scope] = null;
+                window.activeRenewals[requestUid] = null;
 
                 // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
                 for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
@@ -1284,11 +1285,11 @@ export class UserAgentApplication {
      * Acquires access token using a hidden iframe.
      * @ignore
      */
-    private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        const scope = scopes.join(" ").toLowerCase();
-        this.logger.verbose("renewToken is called for scope:" + scope);
+    private renewToken(resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+        const requestUid = RequestUtils.computeTokenRequestUniquenessIdentifier(serverAuthenticationRequest, account);
+        this.logger.verbose("renewToken is called for request: " + requestUid);
 
-        const frameName = `msalRenewFrame${scope}`;
+        const frameName = `msalRenewFrame${requestUid}`;
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account);
@@ -1299,10 +1300,10 @@ export class UserAgentApplication {
 
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = Constants.renewToken;
-        this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
+        this.registerCallback(serverAuthenticationRequest.state, requestUid, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, frameName, scope).catch(error => reject(error));
+        this.loadIframeTimeout(urlNavigate, frameName, requestUid).catch(error => reject(error));
     }
 
     /**
@@ -1310,7 +1311,7 @@ export class UserAgentApplication {
      * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
      * @ignore
      */
-    private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+    private renewIdToken(resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.info("renewidToken is called");
         const frameName = "msalIdTokenFrame";
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
@@ -1330,11 +1331,11 @@ export class UserAgentApplication {
             window.renewStates.push(serverAuthenticationRequest.state);
         }
 
-        // note: scope here is clientId
-        this.registerCallback(serverAuthenticationRequest.state, this.clientId, resolve, reject);
+        const requestUid = RequestUtils.computeTokenRequestUniquenessIdentifier(serverAuthenticationRequest, account);
+        this.registerCallback(serverAuthenticationRequest.state, requestUid, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, frameName, this.clientId).catch(error => reject(error));
+        this.loadIframeTimeout(urlNavigate, frameName, requestUid).catch(error => reject(error));
     }
 
     /**
