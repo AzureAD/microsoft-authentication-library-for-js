@@ -109,6 +109,23 @@ export class WindowUtils {
 
     /**
      * @hidden
+     * Loads the iframe synchronously when the navigateTimeFrame is set to `0`
+     * @param urlNavigate
+     * @param frameName
+     * @param logger
+     */
+    static syncLoadFrame(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+        if (frameHandle.src === "" || frameHandle.src === "about:blank") {
+            frameHandle.src = urlNavigate;
+            logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
+        }
+
+        return frameHandle;
+    }
+
+    /**
+     * @hidden
      * Adds the hidden iframe for silent token renewal.
      * @ignore
      */
