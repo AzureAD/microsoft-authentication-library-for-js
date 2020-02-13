@@ -8,7 +8,7 @@ import { MatListModule } from '@angular/material/list';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-// import { ProfileComponent } from './profile/profile.component';
+import { ProfileComponent } from './profile/profile.component';
 
 import { MsalModule, MsalInterceptor } from '@azure/msal-angular';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -22,7 +22,7 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
 @NgModule({
   declarations: [
     AppComponent,
-    // ProfileComponent
+    ProfileComponent,
   ],
   imports: [
     BrowserModule,
