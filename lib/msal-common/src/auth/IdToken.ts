@@ -38,9 +38,9 @@ export class IdToken {
             return null;
         }
         try {
-            const base64IdToken = decodedToken.JWSPayload;
+            const base64IdTokenPayload = decodedToken.JWSPayload;
             // base64Decode() should throw an error if there is an issue
-            const base64Decoded = crypto.base64Decode(base64IdToken);
+            const base64Decoded = crypto.base64Decode(base64IdTokenPayload);
             return JSON.parse(base64Decoded) as IdTokenClaims;
         } catch (err) {
             throw ClientAuthError.createIdTokenParsingError(JSON.stringify(err));
