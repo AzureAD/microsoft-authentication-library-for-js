@@ -1,7 +1,6 @@
-
 # Accounts in MSAL
 
-The MSAL SDKs have supported the notion of authenticating multiple user accounts. To align with this model, MSAL.js 1.x uses **Account** object. The object will surface the information about the authenticated user account.
+The MSAL SDKs have supported the notion of authenticating multiple user accounts. To align with this model, MSAL.js 1.x uses `Account` object. The object will surface the information about the authenticated user account.
 
 ```javascript
 // Account Class

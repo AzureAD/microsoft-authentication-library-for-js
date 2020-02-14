@@ -17,10 +17,10 @@ userAgentApplication.loginRedirect(request);
 
 The following prompt values can be passed when authenticating with Azure AD:
 
-**login:** This value will force the user to enter credentials on the authentication request.
+- `login`: This value will force the user to enter credentials on the authentication request.
 
-**select_account:** This value will provide the user with an account selection experience listing all the accounts in session.
+- `select_account`: This value will provide the user with an account selection experience listing all the accounts in session.
 
-**consent:** This value will invoke the OAuth consent dialogue that allows users to grant permissions to the app.
+- `consent`: This value will invoke the OAuth consent dialogue that allows users to grant permissions to the app.
 
-**none:** This value will ensure that the user does not see any interactive prompt. It is recommended not to pass this value to interactive methods in MSAL.js as it can have unexpected behaviors. Instead, use the `acquireTokenSilent` method to achieve silent calls.
+- `none`: This value will ensure that the user does not see any interactive prompt. It is recommended not to pass this value to interactive methods in MSAL.js as it can have unexpected behaviors. Instead, use the `acquireTokenSilent` method to achieve silent calls.

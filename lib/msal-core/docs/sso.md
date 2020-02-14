@@ -79,9 +79,9 @@ userAgentApplication.loginRedirect(request);
 
 You can get the values for login_hint and domain_hint by reading the claims returned in the ID token for the user.
 
-* **loginHint** should be set to the `preferred_username` claim in the ID token.
+* `loginHint` should be set to the `preferred_username` claim in the ID token.
 
-* **domain_hint** is only required to be passed when using the /common authority. The domain hint is determined by tenant ID(tid).  If the `tid` claim in the ID token is `9188040d-6c67-4c5b-b112-36a304b66dad` it is consumers. Otherwise, it is organizations.
+* `domain_hint` is only required to be passed when using the /common authority. The domain hint is determined by tenant ID(tid).  If the `tid` claim in the ID token is `9188040d-6c67-4c5b-b112-36a304b66dad` it is consumers. Otherwise, it is organizations.
 
 Read [here](v2-oauth2-implicit-grant-flow.md) for more information on the values for login hint and domain hint.
 

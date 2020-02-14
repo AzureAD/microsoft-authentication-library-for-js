@@ -35,11 +35,14 @@ The cause for most of these issues is as follows. The session storage and local 
 - **Infinite redirect loops and page reloads during authentication**  
 When users login to the application on Edge, they are redirected back from the AAD login page and are stuck in an infinite redirect loop resulting in repeated page reloads. This is usually accompanied by an `invalid_state` error in the session storage.
 
-- **Infinite acquire token loops and AADSTS50058 error**  
+- **Infinite acquire token loops and AADSTS50058 error**
 When an application running on Edge tries to acquire a token for a resource, the application may get stuck in an infinite loop of the acquire token call along with the error below from AAD in your network trace.  
-`Error :login_required; Error description:AADSTS50058: A silent sign-in request was sent but no user is signed in. The cookies used to represent the user's session were not sent in the request to Azure AD. This can happen if the user is using Internet Explorer or Edge, and the web app sending the silent sign-in request is in different IE security zone than the Azure AD endpoint (login.microsoftonline.com)`
+```
+Error: login_required; 
+Error description: AADSTS50058: A silent sign-in request was sent but no user is signed in. The cookies used to represent the user's session were not sent in the request to Azure AD. This can happen if the user is using Internet Explorer or Edge, and the web app sending the silent sign-in request is in different IE security zone than the Azure AD endpoint (login.microsoftonline.com)
+```
 
-- **Popup window doesn't close or is stuck when using login through Popup to authenticate**
+- **Popup window doesn't close or is stuck when using login through Popup to authenticate**     
 When authenticating through popup window in Edge or IE(InPrivate), after entering credentials and signing in, if multiple domains across security zones are involved in the navigation, the popup window doesn't close because MSAL.js loses the handle to the popup window.  
 
 Here are links to these issues in the Edge issue tracker:  
