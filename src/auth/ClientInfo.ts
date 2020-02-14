@@ -20,7 +20,7 @@ export type ClientInfo = {
  * @param crypto 
  */
 export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientInfo {
-    if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
+    if (StringUtils.isEmpty(rawClientInfo)) {
         throw ClientAuthError.createClientInfoEmptyError(rawClientInfo);
     }
 
