@@ -32,13 +32,9 @@ export const ClientConfigurationErrorMessage = {
         code: "empty_url_error",
         desc: "URL was empty or null."
     },
-    scopesRequiredError: {
-        code: "scopes_required",
-        desc: "Scopes are required to obtain an access token."
-    },
     emptyScopesError: {
         code: "empty_input_scopes_error",
-        desc: "Scopes cannot be passed as empty array."
+        desc: "Scopes cannot be passed as null, undefined or empty array because they are required to obtain an access token."
     },
     nonArrayScopesError: {
         code: "nonarray_input_scopes_error",
@@ -120,21 +116,12 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Error thrown when input scopes are required.
-     * @param inputScopes 
-     */
-    static createScopesRequiredError(inputScopes: Array<string>): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequiredError.code,
-            `${ClientConfigurationErrorMessage.scopesRequiredError.desc} Given Scopes: ${inputScopes}`);
-    }
-
-    /**
      * Error thrown when scopes are not an array
      * @param inputScopes 
      */
     static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
-            `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes.toString()}`);
+            `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes}`);
     }
 
     /**
@@ -143,7 +130,7 @@ export class ClientConfigurationError extends ClientAuthError {
      */
     static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
-            `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes.toString()}`);
+            `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes}`);
     }
 
     /**
@@ -152,7 +139,7 @@ export class ClientConfigurationError extends ClientAuthError {
      */
     static createClientIdSingleScopeError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.clientIdSingleScopeError.code,
-            `${ClientConfigurationErrorMessage.clientIdSingleScopeError.desc} Given Scopes: ${inputScopes.toString()}`);
+            `${ClientConfigurationErrorMessage.clientIdSingleScopeError.desc} Given Scopes: ${inputScopes}`);
     }
 
     /**

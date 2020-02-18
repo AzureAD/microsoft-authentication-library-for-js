@@ -23,9 +23,11 @@ export class ScopeSet {
     constructor(inputScopes: Array<string>, appClientId: string, scopesRequired: boolean) {
         this.clientId = appClientId;
         this.scopesRequired = scopesRequired;
+        // Filter empty string and null/undefined array items
+        const filteredInput = inputScopes ? StringUtils.removeEmptyStringsFromArray(inputScopes) : inputScopes;
         // Validate and filter scopes (validate function throws if validation fails)
-        this.validateInputScopes(inputScopes);
-        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
+        this.validateInputScopes(filteredInput);
+        const scopeArr = filteredInput ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...filteredInput]) : [];
         this.scopes = new Set<string>(scopeArr);
         if (!this.scopesRequired) {
             this.appendScope(this.clientId);
@@ -35,12 +37,13 @@ export class ScopeSet {
     }
 
     /**
-     * Factory method to create ScopeSet from string
+     * Factory method to create ScopeSet from space-delimited string
      * @param inputScopeString 
      * @param appClientId 
      * @param scopesRequired 
      */
     static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean): ScopeSet {
+        inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
         return new ScopeSet(inputScopes, appClientId, scopesRequired);
     }
@@ -64,19 +67,14 @@ export class ScopeSet {
      */
     private validateInputScopes(inputScopes: Array<string>): void {
         if (this.scopesRequired) {
-            // Scopes are required but not given
-            if (!inputScopes) {
-                throw ClientConfigurationError.createScopesRequiredError(inputScopes);
-            }
-
-            // Check that scopes is not an empty array
-            if (inputScopes.length < 1) {
+            // Check if scopes are required but not given or is an empty array
+            if (!inputScopes || inputScopes.length < 1) {
                 throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
             }
         }
 
         // Check that scopes is an array object
-        if (inputScopes && !Array.isArray(inputScopes)) {
+        if (!Array.isArray(inputScopes)) {
             throw ClientConfigurationError.createScopesNonArrayError(inputScopes);
         }
     }
