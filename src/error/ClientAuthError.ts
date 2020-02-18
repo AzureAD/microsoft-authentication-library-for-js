@@ -82,6 +82,14 @@ export const ClientAuthErrorMessage = {
         code: "request_cannot_be_made",
         desc: "Token request cannot be made without authorization code or refresh token."
     },
+    appendEmptyScopeError: {
+        code: "cannot_append_empty_scope",
+        desc: "Cannot append null or empty scope to ScopeSet. Please check the stack trace for more info."
+    },
+    appendScopeSetError: {
+        code: "cannot_append_scopeset",
+        desc: "Cannot append ScopeSet due to error."
+    }
 };
 
 /**
@@ -238,5 +246,21 @@ export class ClientAuthError extends AuthError {
      */
     static createTokenRequestCannotBeMadeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCannotBeMade.code, ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+    }
+
+    /**
+     * Throws error when attempting to append a null, undefined or empty scope to a set
+     * @param givenScope 
+     */
+    static createAppendEmptyScopeToSetError(givenScope: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.appendEmptyScopeError.code, `${ClientAuthErrorMessage.appendEmptyScopeError.desc} Given Scope: ${givenScope}`);
+    }
+
+    /**
+     * Throws error when attempting to append ScopeSet.
+     * @param appendError 
+     */
+    static createAppendScopeSetError(appendError: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.appendScopeSetError.code, `${ClientAuthErrorMessage.appendScopeSetError.desc} Detail Error: ${appendError}`);
     }
 }
