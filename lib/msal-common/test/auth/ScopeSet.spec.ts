@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { ScopeSet } from "../../src/auth/ScopeSet";
 import { TEST_CONFIG } from "../utils/StringConstants";
-import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants } from "../../src";
+import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
+import sinon from "sinon";
 
 describe("ScopeSet.ts", () => {
     
@@ -115,12 +116,12 @@ describe("ScopeSet.ts", () => {
             expect(scopeSet.asArray()).to.deep.eq([testScope, Constants.OFFLINE_ACCESS_SCOPE]);
         });
 
-        it("Converts array string values to lower case", () => {
-            const testScope1 = "TestScope1";
+        it("Trims and converts array string values to lower case", () => {
+            const testScope1 = "   TestScope1";
             const lowerCaseScope1 = "testscope1";
-            const testScope2 = "TeStScOpE2";
+            const testScope2 = "TeStScOpE2   ";
             const lowerCaseScope2 = "testscope2";
-            const testScope3 = "TESTSCOPE3";
+            const testScope3 = "   TESTSCOPE3  ";
             const lowerCaseScope3 = "testscope3";
             const scopeSet = ScopeSet.fromString(`${testScope1} ${testScope2} ${testScope3}`, TEST_CONFIG.MSAL_CLIENT_ID, true);
             expect(scopeSet.getOriginalScopesAsArray()).to.deep.eq([lowerCaseScope1, lowerCaseScope2, lowerCaseScope3]);
@@ -129,8 +130,8 @@ describe("ScopeSet.ts", () => {
 
         it("Removes duplicates from input scope array", () => {
             const testScope1 = "TestScope";
-            const testScope2 = "TeStScOpE";
-            const testScope3 = "TESTSCOPE";
+            const testScope2 = "TeStScOpE  ";
+            const testScope3 = "  TESTSCOPE ";
             const testScope4 = "testscope";
             const testScope5 = "testscope";
             const lowerCaseScope = "testscope";
@@ -140,7 +141,119 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe("Getters and Setters", () => {
+    describe.only("Set functions", () => {
 
+        let requiredScopeSet: ScopeSet;
+        let nonRequiredScopeSet: ScopeSet;
+        let testScope: string;
+        beforeEach(() => {
+            testScope = "testscope";
+            requiredScopeSet = new ScopeSet([testScope], TEST_CONFIG.MSAL_CLIENT_ID, true);
+            nonRequiredScopeSet = new ScopeSet([testScope], TEST_CONFIG.MSAL_CLIENT_ID, false);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("containsScope() checks if a given scope is present in the set of scopes", () => {
+            expect(requiredScopeSet.containsScope(Constants.OPENID_SCOPE)).to.be.false;
+            expect(requiredScopeSet.containsScope("notinset")).to.be.false;
+
+            expect(nonRequiredScopeSet.containsScope(Constants.OPENID_SCOPE)).to.be.true;
+            expect(nonRequiredScopeSet.containsScope(testScope)).to.be.true;
+            expect(nonRequiredScopeSet.containsScope("notinset")).to.be.false;
+        });
+
+        it("containsScope() returns false if null or empty scope is passed to it", () => {
+            expect(requiredScopeSet.containsScope("")).to.be.false;
+            expect(requiredScopeSet.containsScope(null)).to.be.false;
+            expect(requiredScopeSet.containsScope(undefined)).to.be.false;
+        });
+
+        it("containsScopeSet() checks if a given ScopeSet is fully contained in another - returns false otherwise", () => {
+            expect(nonRequiredScopeSet.containsScopeSet(requiredScopeSet)).to.be.true;
+
+            const scopeSet = new ScopeSet(["testScope2"], TEST_CONFIG.MSAL_CLIENT_ID, true);
+            expect(nonRequiredScopeSet.containsScopeSet(scopeSet)).to.be.false;
+        });
+
+        it("containsScopeSet() returns false if given ScopeSet is null or undefined", () => {
+            expect(nonRequiredScopeSet.containsScope(null)).to.be.false;
+            expect(nonRequiredScopeSet.containsScope(undefined)).to.be.false;
+        });
+
+        it("appendScope() adds scope to set after trimming and converting to lower case", () => {
+            expect(nonRequiredScopeSet.asArray()).to.contain(testScope);
+            nonRequiredScopeSet.appendScope("   testScope2   ");
+            expect(nonRequiredScopeSet.asArray()).to.contain("testscope2");
+        });
+
+        it("appendScope() does not add duplicates to ScopeSet", () => {
+            const scopeArr = nonRequiredScopeSet.asArray();
+            nonRequiredScopeSet.appendScope(testScope);
+            const newScopeArr = nonRequiredScopeSet.asArray();
+            expect(newScopeArr).to.be.deep.eq(scopeArr);
+        });
+        
+        it("appendScope() does nothing if given scope is empty, null or undefined", () => {
+            const setAddSpy = sinon.spy(Set.prototype, "add");
+            
+            expect(() => nonRequiredScopeSet.appendScope("")).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
+            expect(setAddSpy.called).to.be.false;
+
+            expect(() => nonRequiredScopeSet.appendScope(null)).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
+            expect(setAddSpy.called).to.be.false;
+            
+            expect(() => nonRequiredScopeSet.appendScope(undefined)).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
+            expect(setAddSpy.called).to.be.false;
+        });
+
+        it("appendScopes() throws error if given array is null or empty", () => {
+            const setUnionSpy = sinon.spy(ScopeSet.prototype, "unionScopeSets");
+            expect(() => requiredScopeSet.appendScopes(null)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
+            expect(setUnionSpy.called).to.be.false;
+            
+            expect(() => requiredScopeSet.appendScopes(undefined)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
+            expect(setUnionSpy.called).to.be.false;
+
+            expect(() => requiredScopeSet.appendScopes([])).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
+            expect(setUnionSpy.called).to.be.false;
+            
+            expect(() => nonRequiredScopeSet.appendScopes(null)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
+            expect(setUnionSpy.called).to.be.false;
+
+            expect(() => nonRequiredScopeSet.appendScopes(undefined)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
+            expect(setUnionSpy.called).to.be.false;
+        });
+
+        it("appendScopes() does not change ScopeSet if given array is empty", () => {
+            const setUnionSpy = sinon.spy(ScopeSet.prototype, "unionScopeSets");
+            const scopeArr = nonRequiredScopeSet.asArray();
+            nonRequiredScopeSet.appendScopes([]);
+            for (let i = 0; i < scopeArr.length; i++) {
+                expect(nonRequiredScopeSet.asArray()).to.contain(scopeArr[i]);
+            }
+            expect(setUnionSpy.calledOnce).to.be.true;
+        });
+
+        it("appendScopes() adds multiple scopes to ScopeSet", () => {
+            const testScope2 = "testscope2";
+            const testScope3 = "testscope3";
+            requiredScopeSet.appendScopes([testScope2, testScope3]);
+            expect(requiredScopeSet.asArray()).to.contain(testScope2);
+            expect(requiredScopeSet.asArray()).to.contain(testScope3);
+        });
+
+        it("appendScopes() does not add duplicate scopes", () => {
+            const testScope2 = "testscope2";
+            const scopeArr = requiredScopeSet.asArray();
+            requiredScopeSet.appendScopes([testScope, Constants.OFFLINE_ACCESS_SCOPE]);
+            expect(requiredScopeSet.asArray().length).to.be.eq(scopeArr.length);
+        });
+    });
+
+    describe("Getters and Setters", () => {
+        
     });
 });

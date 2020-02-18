@@ -5,6 +5,7 @@
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -84,7 +85,7 @@ export class ScopeSet {
      * @param scope 
      */
     containsScope(scope: string): boolean {
-        return this.scopes.has(scope);
+        return !StringUtils.isEmpty(scope) ? this.scopes.has(scope) : false;
     }
 
     /**
@@ -92,6 +93,9 @@ export class ScopeSet {
      * @param scopeSet 
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
+        if (!scopeSet) {
+            return false;
+        }
         return this.scopes.size >= scopeSet.scopes.size && scopeSet.asArray().every(scope => this.containsScope(scope));
     }
 
@@ -100,7 +104,10 @@ export class ScopeSet {
      * @param newScope 
      */
     appendScope(newScope: string): void {
-        this.scopes.add(newScope);
+        if (StringUtils.isEmpty(newScope)) {
+            throw ClientAuthError.createAppendEmptyScopeToSetError(newScope);
+        }
+        this.scopes.add(newScope.trim().toLowerCase());
     }
 
     /**
@@ -108,8 +115,12 @@ export class ScopeSet {
      * @param newScopes 
      */
     appendScopes(newScopes: Array<string>): void {
-        const newScopeSet = new ScopeSet(newScopes, this.clientId, false);
-        this.scopes = this.unionScopeSets(newScopeSet);
+        try {
+            const newScopeSet = new ScopeSet(newScopes, this.clientId, this.scopesRequired);
+            this.scopes = this.unionScopeSets(newScopeSet);
+        } catch (e) {
+            throw ClientAuthError.createAppendScopeSetError(e);
+        }
     }
 
     /**
