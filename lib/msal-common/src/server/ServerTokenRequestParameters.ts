@@ -30,7 +30,11 @@ export class ServerTokenRequestParameters extends ServerRequestParameters {
         this.refreshToken = refreshToken;
 
         // Set scopes, always required for token request/exchange
-        this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, true);
+        this.scopes = new ScopeSet(
+            (this.tokenRequest && this.tokenRequest.scopes) || [], 
+            this.clientId, 
+            true
+        );
 
         // Set correlation id
         this.correlationId = this.tokenRequest.correlationId || this.cryptoObj.createNewGuid();

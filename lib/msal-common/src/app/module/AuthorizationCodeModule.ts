@@ -204,7 +204,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
             // Get account object for this request.
             const account = request.account || this.getAccount();
-            const requestScopes = new ScopeSet(request.scopes, this.clientConfig.auth.clientId, true);
+            const requestScopes = new ScopeSet(request.scopes || [], this.clientConfig.auth.clientId, true);
             // If this is an id token renewal, and no account is present, throw an error.
             if (requestScopes.isLoginScopeSet()) {
                 if (!account) {

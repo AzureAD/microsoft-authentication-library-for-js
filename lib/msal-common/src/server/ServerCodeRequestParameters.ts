@@ -44,7 +44,11 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
         this.account = (userRequest && userRequest.account) || cachedAccount;
 
         // Set scopes, append extra scopes if there is a login call.
-        this.scopes = new ScopeSet(this.userRequest && this.userRequest.scopes, this.clientId, !isLoginCall);
+        this.scopes = new ScopeSet(
+            (this.userRequest && this.userRequest.scopes) || [], 
+            this.clientId, 
+            !isLoginCall
+        );
         if (isLoginCall) {
             this.appendExtraScopes();
         }
