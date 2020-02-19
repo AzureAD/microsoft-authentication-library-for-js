@@ -72,7 +72,7 @@ export class MsalService extends UserAgentApplication {
     }
 
     private isUnprotectedResource(url: string): boolean {
-        const unprotectedResources = (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) || this.msalAngularConfig.unprotectedResources;
+        const unprotectedResources = (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) || this.msalAngularConfig.unprotectedResources || [];
 
         return unprotectedResources.some(resource => url.indexOf(resource) > -1);
     }
