@@ -362,7 +362,7 @@ describe("ScopeSet.ts", () => {
 
         it("getOriginalScopesAsArray() returns the original scopes as an array", () => {
             const scopeArr = nonRequiredScopeSet.getOriginalScopesAsArray();
-            expect()
+            expect(scopeArr);
         });
 
         it("printScopes() prints space-delimited string of scopes", () => {
