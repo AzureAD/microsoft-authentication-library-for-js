@@ -141,7 +141,7 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe.only("Set functions", () => {
+    describe("Set functions", () => {
 
         let requiredScopeSet: ScopeSet;
         let nonRequiredScopeSet: ScopeSet;
@@ -246,14 +246,127 @@ describe("ScopeSet.ts", () => {
         });
 
         it("appendScopes() does not add duplicate scopes", () => {
-            const testScope2 = "testscope2";
             const scopeArr = requiredScopeSet.asArray();
             requiredScopeSet.appendScopes([testScope, Constants.OFFLINE_ACCESS_SCOPE]);
-            expect(requiredScopeSet.asArray().length).to.be.eq(scopeArr.length);
+            expect(requiredScopeSet.asArray()).to.be.deep.eq(scopeArr);
+        });
+
+        it("removeScopes() throws error if scope is null, undefined or empty", () => {
+            expect(() => requiredScopeSet.removeScope(null)).to.throw(ClientAuthErrorMessage.removeEmptyScopeError.desc);
+            expect(() => requiredScopeSet.removeScope(null)).to.throw(ClientAuthError);
+
+            expect(() => requiredScopeSet.removeScope(undefined)).to.throw(ClientAuthErrorMessage.removeEmptyScopeError.desc);
+            expect(() => requiredScopeSet.removeScope(undefined)).to.throw(ClientAuthError);
+
+            expect(() => requiredScopeSet.removeScope("")).to.throw(ClientAuthErrorMessage.removeEmptyScopeError.desc);
+            expect(() => requiredScopeSet.removeScope("")).to.throw(ClientAuthError);
+        });
+
+        it("removeScopes() correctly removes scopes", () => {
+            const scopeArr = requiredScopeSet.asArray();
+            requiredScopeSet.removeScope("testScope2");
+            expect(requiredScopeSet.asArray()).to.be.deep.eq(scopeArr);
+            requiredScopeSet.removeScope(testScope);
+            expect(requiredScopeSet.asArray()).to.be.deep.eq([Constants.OFFLINE_ACCESS_SCOPE]);
+        });
+
+        it("unionScopeSets() throws error if input is null or undefined", () => {
+            expect(() => requiredScopeSet.unionScopeSets(null)).to.throw(ClientAuthErrorMessage.emptyInputScopeSetError.desc);
+            expect(() => requiredScopeSet.unionScopeSets(null)).to.throw(ClientAuthError);
+
+            expect(() => requiredScopeSet.unionScopeSets(undefined)).to.throw(ClientAuthErrorMessage.emptyInputScopeSetError.desc);
+            expect(() => requiredScopeSet.unionScopeSets(undefined)).to.throw(ClientAuthError);
+        });
+
+        it("unionScopeSets() combines multiple sets and returns new Set of scopes", () => {
+            const testScope2 = "testScope2";
+            const testScope3 = "testScope3";
+            const newScopeSet = new ScopeSet([testScope2, testScope3], TEST_CONFIG.MSAL_CLIENT_ID, true);
+            newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            
+            const unionSet = newScopeSet.unionScopeSets(requiredScopeSet);
+            const unionArray = Array.from(unionSet);
+            expect(unionSet instanceof Set).to.be.true;
+            expect(unionSet.size).to.be.eq(newScopeSet.getScopeCount() + requiredScopeSet.getScopeCount());
+            for(let i = 0; i < unionArray.length; i++) {
+                expect(newScopeSet.containsScope(unionArray[i]) || requiredScopeSet.containsScope(unionArray[i])).to.be.true;
+            }
+        });
+
+        it("intersectingScopeSets() throws error if input is null or undefined", () => {
+            expect(() => requiredScopeSet.intersectingScopeSets(null)).to.throw(ClientAuthErrorMessage.emptyInputScopeSetError.desc);
+            expect(() => requiredScopeSet.intersectingScopeSets(null)).to.throw(ClientAuthError);
+
+            expect(() => requiredScopeSet.intersectingScopeSets(undefined)).to.throw(ClientAuthErrorMessage.emptyInputScopeSetError.desc);
+            expect(() => requiredScopeSet.intersectingScopeSets(undefined)).to.throw(ClientAuthError);
+        });
+
+        it("intersectingScopeSets() returns true if ScopeSets have one or more scopes in common", () => {
+            const testScope2 = "testScope2";
+            const newScopeSet = new ScopeSet([testScope, testScope2], TEST_CONFIG.MSAL_CLIENT_ID, true);
+            expect(newScopeSet.intersectingScopeSets(requiredScopeSet)).to.be.true;
+        });
+
+        it("intersectingScopeSets() returns false if ScopeSets have no scopes in common", () => {
+            const testScope2 = "testScope2";
+            const testScope3 = "testScope3";
+            const newScopeSet = new ScopeSet([testScope2, testScope3], TEST_CONFIG.MSAL_CLIENT_ID, true);
+            newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+
+            expect(newScopeSet.intersectingScopeSets(requiredScopeSet)).to.be.false;
+        });
+
+        it("getScopeCount() correctly returns the size of the ScopeSet", () => {
+            expect(requiredScopeSet.getScopeCount()).to.be.eq(2);
+            expect(nonRequiredScopeSet.getScopeCount()).to.be.eq(4);
+
+            requiredScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            expect(requiredScopeSet.getScopeCount()).to.be.eq(1);
+
+            nonRequiredScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            expect(nonRequiredScopeSet.getScopeCount()).to.be.eq(3);
+        });
+
+        it("isLoginScopeSet() returns true if client id, openid or profile scope are present in the set of scopes", () => {
+            expect(nonRequiredScopeSet.isLoginScopeSet()).to.be.true;
+        });
+
+        it("isLoginScopeSet() returns false if original scopes do not have any scopes pertaining to a login call", () => {
+            expect(requiredScopeSet.isLoginScopeSet()).to.be.false;
         });
     });
 
     describe("Getters and Setters", () => {
+
+        let requiredScopeSet: ScopeSet;
+        let nonRequiredScopeSet: ScopeSet;
+        let testScope: string;
+        beforeEach(() => {
+            testScope = "testscope";
+            requiredScopeSet = new ScopeSet([testScope], TEST_CONFIG.MSAL_CLIENT_ID, true);
+            nonRequiredScopeSet = new ScopeSet([testScope], TEST_CONFIG.MSAL_CLIENT_ID, false);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
         
+        it("asArray() returns ScopeSet as an array", () => {
+            const scopeArr = nonRequiredScopeSet.asArray();
+            expect(Array.isArray(scopeArr)).to.be.true;
+            expect(scopeArr.length).to.be.eq(nonRequiredScopeSet.getScopeCount());
+            for (let i = 0; i < scopeArr.length; i++) {
+                expect(nonRequiredScopeSet.containsScope(scopeArr[i])).to.be.true;
+            }
+        });
+
+        it("getOriginalScopesAsArray() returns the original scopes as an array", () => {
+            const scopeArr = nonRequiredScopeSet.getOriginalScopesAsArray();
+            expect()
+        });
+
+        it("printScopes() prints space-delimited string of scopes", () => {
+
+        });
     });
 });
