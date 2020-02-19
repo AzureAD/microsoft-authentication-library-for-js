@@ -128,14 +128,20 @@ export class ScopeSet {
      * @param scope 
      */
     removeScope(scope: string): void {
-        this.scopes.delete(scope);
+        if (StringUtils.isEmpty(scope)) {
+            throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
+        }
+        this.scopes.delete(scope.trim().toLowerCase());
     }
-    
+
     /**
      * Combines an array of scopes with the current set of scopes.
      * @param otherScopes 
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
+        if (!otherScopes) {
+            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
+        }
         return new Set<string>([...otherScopes.asArray(), ...Array.from(this.scopes)]);
     }
 
@@ -144,6 +150,9 @@ export class ScopeSet {
      * @param otherScopes 
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
+        if (!otherScopes) {
+            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
+        }
         return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.getScopeCount());
     }
 
