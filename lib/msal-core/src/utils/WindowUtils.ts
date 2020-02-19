@@ -90,16 +90,11 @@ export class WindowUtils {
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+                const frameHandle = this.loadFrameSync(urlNavigate, frameName, logger);
 
                 if (!frameHandle) {
                     reject(`Unable to load iframe with name: ${frameName}`);
                     return;
-                }
-
-                if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-                    frameHandle.src = urlNavigate;
-                    logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
                 }
 
                 resolve(frameHandle);
@@ -114,9 +109,14 @@ export class WindowUtils {
      * @param frameName
      * @param logger
      */
-    static syncLoadFrame(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
+    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
-        if (frameHandle.src === "" || frameHandle.src === "about:blank") {
+
+        // returning to handle null in loadFrame, also to avoid null object access errors
+        if (!frameHandle) {
+            return null;
+        }
+        else if (frameHandle.src === "" || frameHandle.src === "about:blank") {
             frameHandle.src = urlNavigate;
             logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
         }
