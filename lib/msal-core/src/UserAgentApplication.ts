@@ -2124,8 +2124,8 @@ export class UserAgentApplication {
      * @param knownAuthorities
      */
     private setKnownAuthorities(authorityType: string, validateAuthority: boolean, knownAuthorities: Array<string>): void {
-        if (this.config.auth.authorityType.toLowerCase() === "b2c" && this.config.auth.validateAuthority && !Object.keys(B2CTrustedHostList).length){
-            if (!this.config.auth.knownAuthorities.length) {
+        if (authorityType.toLowerCase() === "b2c" && validateAuthority && !Object.keys(B2CTrustedHostList).length){
+            if (!knownAuthorities.length) {
                 throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
             }
 
