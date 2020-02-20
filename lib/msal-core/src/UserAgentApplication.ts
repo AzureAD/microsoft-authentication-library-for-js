@@ -793,8 +793,8 @@ export class UserAgentApplication {
 
         // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
         const iframe: HTMLIFrameElement = this.config.system.navigateFrameWait ?
-            WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger):
-            await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
+            await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger):
+            WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
             const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
