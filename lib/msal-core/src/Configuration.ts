@@ -36,8 +36,6 @@ export type AuthOptions = {
     clientId: string;
     authority?: string;
     validateAuthority?: boolean;
-    authorityType?: string;
-    knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
@@ -98,6 +96,17 @@ export type FrameworkOptions = {
 };
 
 /**
+ * Use this to configure the below authority data configuration options:
+ *
+ * - authType           - Used to specify the authority type. Valid values are "b2c" and "aad"
+ * - knownAuthorities   - If type is set to b2c and validateAuthority is set to True, this will be used to set the Trusted Host list. Defaults to empty array
+ */
+export type AuthorityDataOptions = {
+    type?: string;
+    knownAuthorities?: Array<string>;
+};
+
+/**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
  * This object allows you to configure important elements of MSAL functionality:
@@ -110,15 +119,14 @@ export type Configuration = {
     auth: AuthOptions,
     cache?: CacheOptions,
     system?: SystemOptions,
-    framework?: FrameworkOptions
+    framework?: FrameworkOptions,
+    authorityData?: AuthorityDataOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
-    authorityType: "aad",
-    knownAuthorities: [],
     redirectUri: () => UrlUtils.getDefaultRedirectUri(),
     postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
     navigateToLoginRequestUrl: true
@@ -142,6 +150,11 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
     protectedResourceMap: new Map<string, Array<string>>()
 };
 
+const DEFAULT_AUTHORITYDATA_OPTIONS: AuthorityDataOptions = {
+    type: "aad",
+    knownAuthorities: []
+};
+
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
@@ -149,16 +162,18 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
  * @param TCacheOptions
  * @param TSystemOptions
  * @param TFrameworkOptions
+ * @param TAuthorityDataOptions
  *
  * @returns TConfiguration object
  */
 
-export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
+export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}, authorityData = {}}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
+        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework },
+        authorityData: { ...DEFAULT_AUTHORITYDATA_OPTIONS, ...authorityData}
     };
     return overlayedConfig;
 }
