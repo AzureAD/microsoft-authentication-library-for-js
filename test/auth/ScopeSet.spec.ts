@@ -361,12 +361,25 @@ describe("ScopeSet.ts", () => {
         });
 
         it("getOriginalScopesAsArray() returns the original scopes as an array", () => {
-            const scopeArr = nonRequiredScopeSet.getOriginalScopesAsArray();
-            expect(scopeArr);
+            const originalScopeArr = nonRequiredScopeSet.getOriginalScopesAsArray();
+            const scopeArr = nonRequiredScopeSet.asArray();
+            expect(scopeArr).to.contain(Constants.OPENID_SCOPE);
+            expect(scopeArr).to.contain(Constants.PROFILE_SCOPE);
+            expect(scopeArr).to.contain(Constants.OFFLINE_ACCESS_SCOPE);
+            expect(scopeArr).to.contain(testScope);
+            expect(originalScopeArr).to.contain(testScope);
+            expect(originalScopeArr).to.contain(TEST_CONFIG.MSAL_CLIENT_ID);
         });
 
         it("printScopes() prints space-delimited string of scopes", () => {
+            const scopeArr = nonRequiredScopeSet.asArray();
+            expect(nonRequiredScopeSet.printScopes()).to.be.eq(scopeArr.join(" "));
+        });
 
+        it("printScopes() prints empty string if ScopeSet is empty", () => {
+            requiredScopeSet.removeScope(testScope);
+            requiredScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            expect(requiredScopeSet.printScopes()).to.be.eq("");
         });
     });
 });
