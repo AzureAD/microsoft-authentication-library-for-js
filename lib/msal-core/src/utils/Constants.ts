@@ -107,6 +107,8 @@ export const AADTrustedHostList =  {
     "login.microsoftonline.us": "login.microsoftonline.us"
 };
 
+export const B2CTrustedHostList = {};
+
 /**
  * @hidden
  * SSO Types - generated to populate hints

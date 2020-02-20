@@ -6,7 +6,7 @@
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
-import { AADTrustedHostList } from "../utils/Constants";
+import { B2CTrustedHostList } from "../utils/Constants";
 
 /**
  * @hidden
@@ -37,7 +37,6 @@ export class B2cAuthority extends Authority {
      * @param {string} The host to look up
      */
     public IsInTrustedHostList(host: string): boolean {
-        // Change this when we implement Known Authorities
-        return AADTrustedHostList[host.toLowerCase()];
+        return B2CTrustedHostList[host.toLowerCase()];
     }
 }

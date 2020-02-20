@@ -36,6 +36,8 @@ export type AuthOptions = {
     clientId: string;
     authority?: string;
     validateAuthority?: boolean;
+    authorityType?: string;
+    knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
@@ -115,6 +117,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
+    authorityType: "aad",
+    knownAuthorities: [],
     redirectUri: () => UrlUtils.getDefaultRedirectUri(),
     postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
     navigateToLoginRequestUrl: true

@@ -66,6 +66,10 @@ export const ClientConfigurationErrorMessage = {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
     },
+    b2cKnownAuthoritiesNotSet: {
+        code: "b2c_known_authorities_not_set",
+        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
+    },
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
         desc: "Could not parse the given claims request object."
@@ -152,6 +156,11 @@ export class ClientConfigurationError extends ClientAuthError {
     static createInvalidCorrelationIdError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCorrelationIdError.code,
             ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
+    }
+
+    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
+            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
     }
 
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
