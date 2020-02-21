@@ -22,24 +22,3 @@ export type ServerAuthorizationCodeResponse = {
     error?: string,
     error_description?: string;
 };
-
-/**
- * Function which validates server authorization code response.
- * @param serverResponseHash 
- * @param cachedState 
- * @param cryptoObj 
- */
-export function validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
-    if (serverResponseHash.state !== cachedState) {
-        throw ClientAuthError.createStateMismatchError();
-    }
-
-    // Check for error
-    if (serverResponseHash.error || serverResponseHash.error_description) {
-        throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
-    }
-
-    if (serverResponseHash.client_info) {
-        buildClientInfo(serverResponseHash.client_info, cryptoObj);
-    }
-}
