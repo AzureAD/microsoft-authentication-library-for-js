@@ -52,7 +52,6 @@ export enum TemporaryCacheKeys {
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
-    REDIRECT_REQUEST = "redirect.request",
     SCOPES = "scopes"
 };
 
