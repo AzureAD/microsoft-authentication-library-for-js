@@ -7,5 +7,6 @@ describe("AuthResponse.ts Unit Tests", () => {
     it("buildResponseState creates a new response with only state parameter", () => {
         let stateOnlyResponse: AuthResponse = buildResponseStateOnly(TEST_CONFIG.STATE);
         expect(stateOnlyResponse).to.be.not.null;
+        expect(stateOnlyResponse.userRequestState).to.be.eq(TEST_CONFIG.STATE);
     });
 });

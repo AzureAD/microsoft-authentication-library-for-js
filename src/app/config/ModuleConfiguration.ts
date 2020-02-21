@@ -6,7 +6,7 @@ import { ICacheStorage } from "../../cache/ICacheStorage";
 import { INetworkModule } from "../../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
 import { AuthError } from "../../error/AuthError";
-import { ILoggerCallback } from "../../logger/Logger";
+import { ILoggerCallback, LogLevel } from "../../logger/Logger";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -56,7 +56,8 @@ export type SystemOptions = {
  */
 export type LoggerOptions = {
     loggerCallback?: ILoggerCallback,
-    piiLoggingEnabled?: boolean
+    piiLoggingEnabled?: boolean,
+    logLevel?: LogLevel
 };
 
 // Default module system options
@@ -71,7 +72,8 @@ const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
         const notImplErr = "Logger - loggerCallbackInterface() has not been implemented.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    piiLoggingEnabled: false
+    piiLoggingEnabled: false,
+    logLevel: LogLevel.Info
 };
 
 // Default storage implementation

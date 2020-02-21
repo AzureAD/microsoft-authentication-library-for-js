@@ -18,9 +18,10 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerAuthorizationCodeResponse, validateServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { CodeResponse } from "./CodeResponse";
 import { Logger } from "../logger/Logger";
+import { ServerError } from "../error/ServerError";
 
 /**
  * Class that handles response parsing.
@@ -77,7 +78,7 @@ export class ResponseHandler {
     public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): CodeResponse {
         try {
             // Validate hash fragment response parameters
-            validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
+            this.validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
 
             // Cache client info
             if (serverParams.client_info) {
@@ -94,6 +95,27 @@ export class ResponseHandler {
         } catch(e) {
             this.cacheManager.resetTempCacheItems(serverParams && serverParams.state);
             throw e;
+        }
+    }
+
+    /**
+     * Function which validates server authorization code response.
+     * @param serverResponseHash 
+     * @param cachedState 
+     * @param cryptoObj 
+     */
+    private validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
+        if (serverResponseHash.state !== cachedState) {
+            throw ClientAuthError.createStateMismatchError();
+        }
+    
+        // Check for error
+        if (serverResponseHash.error || serverResponseHash.error_description) {
+            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
+        }
+    
+        if (serverResponseHash.client_info) {
+            buildClientInfo(serverResponseHash.client_info, cryptoObj);
         }
     }
 
