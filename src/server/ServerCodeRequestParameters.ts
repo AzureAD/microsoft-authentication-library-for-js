@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerRequestParameters } from "./ServerRequestParameters";
+import pkg from "../../package.json";
 import { Authority } from "../auth/authority/Authority";
 import { Account } from "../auth/Account";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
@@ -18,9 +18,20 @@ import { StringDict } from "../utils/MsalTypes";
 /**
  * This class extends the ServerRequestParameters class. This class validates URL request parameters, checks for SSO and generates required URL.
  */
-export class ServerCodeRequestParameters extends ServerRequestParameters {
+export class ServerCodeRequestParameters {
+
+    // Crypto functions
+    private cryptoObj: ICrypto;    
+
+    // Telemetry Info
+    xClientVer: string;
+    xClientSku: string;
+    correlationId: string;
 
     // Params
+    clientId: string;
+    scopes: ScopeSet;
+    redirectUri: string;
     authorityInstance: Authority;
     responseType: string;
     userRequest: AuthenticationParameters;
@@ -31,13 +42,21 @@ export class ServerCodeRequestParameters extends ServerRequestParameters {
     generatedPkce: PkceCodes;
     
     // Validity checks
+    state: string;
     nonce: string;
 
     // Account
     account: Account;
 
     constructor(authority: Authority, clientId: string, userRequest: AuthenticationParameters, cachedAccount: Account, redirectUri: string, cryptoImpl: ICrypto, isLoginCall: boolean) {
-        super(clientId, redirectUri, cryptoImpl);
+        this.clientId = clientId;
+        this.cryptoObj = cryptoImpl;
+        this.redirectUri = redirectUri;
+
+        // Telemetry Info
+        this.xClientSku = Constants.LIBRARY_NAME;
+        this.xClientVer = pkg.version;
+
         this.authorityInstance = authority;
         this.userRequest = userRequest;
         this.responseType = Constants.CODE_RESPONSE_TYPE;

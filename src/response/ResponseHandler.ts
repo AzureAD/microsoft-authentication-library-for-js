@@ -120,6 +120,18 @@ export class ResponseHandler {
     }
 
     /**
+     * Function which validates server authorization token response.
+     * @param serverResponse 
+     */
+    public validateServerAuthorizationTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
+        // Check for error
+        if (serverResponse.error || serverResponse.error_description) {
+            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            throw new ServerError(serverResponse.error, errString);
+        }
+    }
+
+    /**
      * Helper function which saves or updates the token in the cache and constructs the final token response to send back to the user.
      * @param originalTokenResponse 
      * @param authority 

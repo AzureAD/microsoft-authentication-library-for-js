@@ -246,6 +246,24 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
         });
     });
 
+    describe("validateServerAuthorizationTokenResponse()", () => {
+
+        it("throws server error if it detects error values", () => {
+            const testServerParams: ServerAuthorizationTokenResponse = {
+                error: "TEST_CODE",
+                error_description: "this is an error",
+                error_codes: [],
+                timestamp: "",
+                trace_id: TEST_CONFIG.MSAL_CLIENT_ID,
+                correlation_id: RANDOM_TEST_GUID
+            };
+
+            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
+        });
+    });
+
     describe("createTokenResponse()", () => {
 
         let responseHandler: ResponseHandler;
