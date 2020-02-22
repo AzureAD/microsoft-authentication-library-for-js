@@ -242,7 +242,7 @@ export class ResponseHandler {
             if (!StringUtils.isEmpty(state)) {
                 this.logger.info("State was detected - nonce should be available.");
                 // check nonce integrity if refresh token is not used - throw an error if not matched        
-                if (!idTokenObj.claims.nonce) {
+                if (StringUtils.isEmpty(idTokenObj.claims.nonce)) {
                     throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
                 }
 
