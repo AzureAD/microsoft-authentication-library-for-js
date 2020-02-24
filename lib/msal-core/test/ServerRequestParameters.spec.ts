@@ -128,4 +128,22 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
         });
     });
+
+    describe("Query Parameters", function () {
+
+        it("test hints populated using queryParameters", function () {
+            const eQParams = {domain_hint: "Coke.com", locale: "en-us"};
+            const extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams);
+            expect(extraQueryParameters).to.include("domain_hint");
+            expect(extraQueryParameters).to.include("locale");
+        });
+
+        it("test hints populated using queryParameters", function () {
+            const eQParams = {domain_hint: "Coke.com", locale: "en-us"};
+            const extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams, true);
+            expect(extraQueryParameters).to.not.include("domain_hint");
+            expect(extraQueryParameters).to.include("locale");
+        });
+
+    });
 });

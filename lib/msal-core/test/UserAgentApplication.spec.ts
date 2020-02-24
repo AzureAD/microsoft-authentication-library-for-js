@@ -345,9 +345,7 @@ describe("UserAgentApplication.ts Class", function () {
                         expect(url).to.include("&state");
                         expect(url).to.include("&client_info=1");
                         expect(url).to.include("&login_hint=" + "some_id");
-                        expect(url).to.include("&login_req=1234");
-                        expect(url).to.include("&domain_req=5678");
-                        expect(url).to.include("&domain_hint");
+                        expect(url).to.not.include("&domain_hint");
                         expect(url).to.include(Constants.prompt_select_account);
                         expect(url).to.not.include(Constants.prompt_none);
                         done();
