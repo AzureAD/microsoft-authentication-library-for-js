@@ -1,13 +1,27 @@
-Microsoft Authentication Library for JavaScript (MSAL.js) (DRAFT)
-=========================================================
+# Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications
+[![npm version](https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-browser/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-browser.svg)](https://nodei.co/npm/@azure/msal-browser/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
-| [Getting Started](https://docs.microsoft.com/en-us/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/classes/_useragentapplication_.useragentapplication.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-core/" target="_blank">Library Reference</a> |
 | --- | --- | --- | --- | --- |
 
+1. [About](#about)
+2. [FAQ](./FAQ.md)
+3. [Releases](#releases)
+4. [Prerequisites](#prerequisites)
+5. [Installation](#installation)
+6. [Usage](#usage)
+    - [Advanced Topics](#advanced-topics)
+7. [Samples](#samples)
+8. [Authorization Code vs Implicit](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce)
+9. [Security Reporting](#security-reporting)
+10. [License](#license)
+11. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+
+## About
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-[![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js.png?branch=dev)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-js)[![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)
+The msal-browser package described by the code in this folder uses the msal-common package as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [msal-core library](../msal-core/README.md).
 
 ## Installation
 ### Via NPM (Not available yet):
@@ -45,6 +59,10 @@ This is an improvement upon the current `msal-core` library which will utilize t
 The current VanillaJSTestApp sample is set up to run the authorization code flow in the browser. However, there are a few pre-requisites that you will need to complete before being able to run the VanillaJS sample. 
 
 ### Pre-requisites
+
+- MSAL.js is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-overview).
+
+- Before using MSAL.js you will need to [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 
 1. Create a new application registration in the portal. Use whatever audience you wish, as long as it is testable on your machine. It is recommended to use the common audience (a.k.a. accounts in any Azure tenant) for simplest use.
     - Go to the Authentication tab. Register the redirect URI for the application as "http://localhost:30662/". Also select "Yes" when asked if you would like to treat this application as a public client.
