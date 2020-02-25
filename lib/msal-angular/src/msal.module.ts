@@ -5,7 +5,6 @@ import { MsalService, MSAL_CONFIG} from "./msal.service";
 import {MsalGuard} from "./msal-guard.service";
 import {BroadcastService} from "./broadcast.service";
 
-
 Injectable()
 export class WindowWrapper extends Window {
 
@@ -18,11 +17,17 @@ export class WindowWrapper extends Window {
   providers: [MsalGuard, BroadcastService],
 })
 export class MsalModule {
-   static forRoot(config: MsalConfig ): ModuleWithProviders {
+   static forRoot(config: (MsalConfig | (() => MsalConfig))): ModuleWithProviders {
     return {
       ngModule: MsalModule,
       providers: [
-          {provide: MSAL_CONFIG, useValue: config} ,   MsalService ,{provide :WindowWrapper, useValue: window}
+        {
+            provide: MSAL_CONFIG,
+            useValue: typeof config === 'function' ? undefined : config,
+            useFactory: typeof config === 'function' ? config : undefined,
+        },
+        MsalService ,
+        {provide :WindowWrapper, useValue: window}
       ]
     }
   }
