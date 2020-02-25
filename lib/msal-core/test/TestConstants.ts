@@ -65,6 +65,13 @@ export const TEST_CONFIG = {
     CorrelationId: "ed2a3125-a597-416f-9d12-68b9add1c268"
 };
 
+export const B2C_TEST_CONFIG = {
+    validAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
+    MSAL_CLIENT_ID: "e760cab2-b9a1-4c0d-86fb-ff7084abd902",
+    authorityType: "b2c",
+    knownAuthorities: ["fabrikamb2c.b2clogin.com"]
+};
+
 export const TEST_RESPONSE_TYPE = {
     id_token: "id_token",
     token: "token",
