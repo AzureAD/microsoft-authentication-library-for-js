@@ -165,7 +165,7 @@ export class ServerCodeRequestParameters {
     /**
      * Create a query parameter string.
      */
-    protected async createParamString(): Promise<Array<string>> {
+    private async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         str.push(`${AADServerParamKeys.RESPONSE_TYPE}=${this.responseType}`);
         str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
