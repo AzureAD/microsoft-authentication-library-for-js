@@ -73,14 +73,15 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(err.stack).to.include("StringUtils.spec.ts");
     });
 
-    it("isEmpty Unit Tests", () => {
+    it("isEmpty correctly identifies empty strings", () => {
         expect(StringUtils.isEmpty(undefined)).to.be.true;
         expect(StringUtils.isEmpty(null)).to.be.true;
         expect(StringUtils.isEmpty("")).to.be.true;
         expect(StringUtils.isEmpty("Non-empty string")).to.be.false;
     });
 
-    it("deserialize Unit Tests", () => {
+
+    it("queryStringToObject correctly deserializes query string into object", () => {
         const serializedObj = "param1=value1&param2=value2&param3=value3";
         const deserializedObj = {
             "param1": "value1",
@@ -90,4 +91,11 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.queryStringToObject(serializedObj)).to.be.deep.eq(deserializedObj);        
     });
 
+    it("trimAndConvertArrayEntriesToLowerCase() converts entries to lower case and trims them", () => {
+
+    });
+
+    it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
+
+    });
 });
