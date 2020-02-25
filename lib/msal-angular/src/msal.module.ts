@@ -18,14 +18,18 @@ export class WindowWrapper extends Window {
 })
 export class MsalModule {
    static forRoot(config: (MsalConfig | (() => MsalConfig))): ModuleWithProviders {
+
+        const tokenConfig = typeof config === 'function' ? {
+            provide: MSAL_CONFIG,
+            useFactory: config,
+        } : {
+            provide: MSAL_CONFIG,
+            useValue: config,
+        }
     return {
       ngModule: MsalModule,
       providers: [
-        {
-            provide: MSAL_CONFIG,
-            useValue: typeof config === 'function' ? undefined : config,
-            useFactory: typeof config === 'function' ? config : undefined,
-        },
+        tokenConfig,
         MsalService ,
         {provide :WindowWrapper, useValue: window}
       ]
