@@ -250,7 +250,8 @@ export class ServerRequestParameters {
 
         if (queryParameters) {
             Object.keys(queryParameters).forEach((key: string) => {
-                if(silentCall && key == "domain_hint") {
+                // sid cannot be passed along with login_hint or domain_hint
+                if(key == "domain_hint" && (silentCall || paramsString.match("sid"))) {
                     return;
                 }
 

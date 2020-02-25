@@ -111,7 +111,7 @@ export class UrlUtils {
         url = url.toLowerCase();
         const urlObject = this.GetUrlComponents(url);
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
+        if (tenantId && (pathArray.length !== 0 && pathArray[0] === Constants.common)) {
             pathArray[0] = tenantId;
         }
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
