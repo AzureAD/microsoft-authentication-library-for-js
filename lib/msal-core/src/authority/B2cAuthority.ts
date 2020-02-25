@@ -5,7 +5,7 @@
 
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { B2CTrustedHostList } from "../utils/Constants";
 
 /**
@@ -29,7 +29,7 @@ export class B2cAuthority extends Authority {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
 
-        throw ClientConfigurationErrorMessage.unsupportedAuthorityValidation;
+        throw ClientConfigurationError.createUnsupportedAuthorityValidationError();
     }
 
     /**

@@ -163,6 +163,16 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
     }
 
+    static createInvalidAuthorityTypeError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityType.code,
+            ClientConfigurationErrorMessage.invalidAuthorityType.desc);
+    }
+
+    static createUnsupportedAuthorityValidationError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.unsupportedAuthorityValidation.code,
+            ClientConfigurationErrorMessage.unsupportedAuthorityValidation.desc);
+    }
+
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
         const { code, desc } = ClientConfigurationErrorMessage.telemetryConfigError;
         const requiredKeys = {

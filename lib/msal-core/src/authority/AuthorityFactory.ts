@@ -9,7 +9,7 @@
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority } from "./Authority";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 
 export class AuthorityFactory {
@@ -30,7 +30,7 @@ export class AuthorityFactory {
             case "aad":
                 return new AadAuthority(authorityUrl, validateAuthority);
             default:
-                throw ClientConfigurationErrorMessage.invalidAuthorityType;
+                throw ClientConfigurationError.createInvalidAuthorityTypeError();
         }
     }
 
