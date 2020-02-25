@@ -2,7 +2,7 @@
   "lerna": "3.16.4",
   "command": {
     "run": {
-      "scope": ["msal", "@azure/msal-common", "@azure/msal-browser"]
+      "scope": ["msal", "@azure/msal-common", "@azure/msal-browser", "@azure/msal-node"]
     }
   },
   "packages": [
