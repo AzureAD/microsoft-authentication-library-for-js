@@ -1,15 +1,15 @@
 import { expect } from "chai";
+import sinon from "sinon";
 import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
 import { AadAuthority } from "../../src/auth/authority/AadAuthority";
-import { Constants, SSOTypes, PromptValue } from "../../src/utils/Constants";
+import { Constants, SSOTypes, PromptValue, AADServerParamKeys } from "../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_TOKENS, TEST_DATA_CLIENT_INFO, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
 import { IdToken } from "../../src/auth/IdToken";
 import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
-import sinon from "sinon";
 import { Account } from "../../src/auth/Account";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
@@ -603,28 +603,257 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
 
     describe("createNavigateUrl()", () => {
 
-        it("creates a url with default parameters if no request or SSO is being done", () => {
-
+        let idToken: IdToken;
+        let clientInfo: ClientInfo;
+        let loginRequest: AuthenticationParameters;
+        let testAccount: Account;
+        let idTokenClaims: IdTokenClaims;
+        beforeEach(() => {
+            idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "sid": "test_session_id",
+                "nonce": "123523"
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
+            loginRequest = {};
+            testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface);
+            sinon.stub(AadAuthority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
         });
 
-        it("creates a url with the resource from the request", () => {
-
+        it("creates a url with default parameters if no request or SSO is being done", async () => {
+            await aadAuthority.resolveEndpointsAsync();
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            const navUrl = await codeRequestParams.createNavigateUrl();
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.PROMPT}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.CLAIMS}`);
+            expect(codeRequestParams.queryParameters).to.be.empty;
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
         });
 
-        it("creates a url with the prompt value from the request", () => {
-
+        it("creates a url with the resource from the request", async () => {
+            await aadAuthority.resolveEndpointsAsync();
+            loginRequest = {
+                resource: "https://www.contoso.com/resource"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            const navUrl = await codeRequestParams.createNavigateUrl();
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESOURCE}=${encodeURIComponent(loginRequest.resource)}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.PROMPT}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.CLAIMS}`);
+            expect(codeRequestParams.queryParameters).to.be.empty;
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
         });
 
-        it("creates a url with the claims request from the request", () => {
-
+        it("creates a url with the prompt value from the request", async () => {
+            await aadAuthority.resolveEndpointsAsync();
+            loginRequest = {
+                prompt: PromptValue.SELECT_ACCOUNT
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            const navUrl = await codeRequestParams.createNavigateUrl();
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.PROMPT}=${encodeURIComponent(loginRequest.prompt)}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.CLAIMS}`);
+            expect(codeRequestParams.queryParameters).to.be.empty;
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
         });
 
-        it("creates a url with the SSO parameters in query parameters", () => {
-
+        it("creates a url with the claims request from the request", async () => {
+            await aadAuthority.resolveEndpointsAsync();
+            const claimsString = JSON.stringify({
+                "param1": "val1",
+                "param2": "val2"
+            });
+            loginRequest = {
+                claimsRequest: claimsString
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            const navUrl = await codeRequestParams.createNavigateUrl();
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.PROMPT}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(loginRequest.claimsRequest)}`);
+            expect(codeRequestParams.queryParameters).to.be.empty;
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
         });
 
-        it("creates a url with the extraQueryParameters from the request", () => {
+        it("creates a url with the SSO parameters in query parameters", async () => {
+            await aadAuthority.resolveEndpointsAsync();
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                testAccount,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            const navUrl = await codeRequestParams.createNavigateUrl();
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
+            expect(navUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(idTokenClaims.preferred_username)}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.PROMPT}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.CLAIMS}`);
+            expect(codeRequestParams.queryParameters).to.be.eq(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(idTokenClaims.preferred_username)}`);
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
+        });
 
+        it("creates a url with the extraQueryParameters from the request", async () => {
+            await aadAuthority.resolveEndpointsAsync();
+            const val1 = "val1";
+            const val2 = "val2";
+            loginRequest = {
+                extraQueryParameters: {
+                    param1: val1,
+                    param2: val2
+                }
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            const navUrl = await codeRequestParams.createNavigateUrl();
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.PROMPT}`);
+            expect(navUrl).to.not.contain(`${AADServerParamKeys.CLAIMS}`);
+            expect(navUrl).to.include(`param1=${val1}&param2=${val2}`);
+            expect(codeRequestParams.queryParameters).to.empty;
+            expect(codeRequestParams.extraQueryParameters).to.be.eq(`param1=${val1}&param2=${val2}`);
         });
     });
 });
