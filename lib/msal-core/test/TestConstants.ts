@@ -76,5 +76,5 @@ export const TEST_RESPONSE_TYPE = {
     id_token: "id_token",
     token: "token",
     id_token_token: "id_token token"
-}
+};
 
