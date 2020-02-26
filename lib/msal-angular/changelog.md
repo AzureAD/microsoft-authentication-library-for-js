@@ -11,8 +11,8 @@ Fixes two issues related to `aot` mode.
 
 Initial upgrade to be compatible with new version of Angular (6+).
 
-* Requires `msal@1.2.1`, `rxjs@6`, `@angular/core@>=6`, `@angular/common@>=6` as a peer dependencies.
-* `rxjs-compat` is no longer required.
+* Requires `msal@1.2.1`, `rxjs@6`, `@angular/core@>=6`, `@angular/common@>=6` as peer dependencies.
+* `rxjs-compat` is no longer required by MSAL Angular.
 
 ### Known issues
 
