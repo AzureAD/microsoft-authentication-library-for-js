@@ -12,13 +12,10 @@ export class WindowWrapper extends Window {
 }
 @NgModule({
   imports: [CommonModule],
-    declarations: [
-
-    ],
+  declarations: [],
   providers: [MsalGuard, BroadcastService],
 })
 export class MsalModule {
-<<<<<<< HEAD
    static forRoot(
        config: Configuration,
        angularConfig: MsalAngularConfiguration = defaultMsalAngularConfiguration
@@ -39,25 +36,31 @@ export class MsalModule {
             provide: WindowWrapper,
             useValue: window
         }
-=======
-   static forRoot(config: (MsalConfig | (() => MsalConfig))): ModuleWithProviders {
-
-        const tokenConfig = typeof config === 'function' ? {
-            provide: MSAL_CONFIG,
-            useFactory: config,
-        } : {
-            provide: MSAL_CONFIG,
-            useValue: config,
-        }
-    return {
-      ngModule: MsalModule,
-      providers: [
-        tokenConfig,
-        MsalService ,
-        {provide :WindowWrapper, useValue: window}
->>>>>>> placeeholder
-      ]
+    ]
     }
+}
+  static forRootAtRuntime(
+      config: () => Configuration,
+      angularConfig: MsalAngularConfiguration = defaultMsalAngularConfiguration
+    ): ModuleWithProviders {
+    return {
+        ngModule: MsalModule,
+        providers: [
+            {
+                provide: MSAL_CONFIG,
+                useFactory: config
+            },
+            {
+                provide: MSAL_CONFIG_ANGULAR,
+                useValue: angularConfig
+            },
+            MsalService,
+            {
+                provide: WindowWrapper,
+                useValue: window
+            }
+        ]
+    };
   }
 }
 
