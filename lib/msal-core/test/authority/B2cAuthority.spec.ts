@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { AuthorityType } from "../../src/authority/Authority";
 import { B2cAuthority } from "../../src/authority/B2cAuthority";
 import { B2C_TEST_CONFIG } from "../TestConstants";
 import { B2CTrustedHostList } from "../../src/utils/Constants";
@@ -10,13 +11,14 @@ describe("B2cAuthority.ts Class", function () {
         const authority = new B2cAuthority(B2C_TEST_CONFIG.validAuthority, false);
 
         expect(authority).to.be.instanceOf(B2cAuthority);
+        expect(authority.AuthorityType).to.be.equal(AuthorityType.B2C);
     });
 
     it("tests GetOpenIdConfigurationEndpointAsync with validateAuthority false", async function () {
         const authority = new B2cAuthority(B2C_TEST_CONFIG.validAuthority, false);
-        const endpoint = await authority.GetOpenIdConfigurationEndpointAsync()
+        const endpoint = await authority.GetOpenIdConfigurationEndpointAsync();
 
-        expect(endpoint).to.include("/v2.0/.well-known/openid-configuration")
+        expect(endpoint).to.include("/v2.0/.well-known/openid-configuration");
     });
 
     it("throws error when authority not in trusted host list", async function () {
@@ -24,7 +26,7 @@ describe("B2cAuthority.ts Class", function () {
 
         let err:ClientConfigurationError;
         try{
-            const endpoint = await authority.GetOpenIdConfigurationEndpointAsync()
+            const endpoint = await authority.GetOpenIdConfigurationEndpointAsync();
         }catch(e) {
             expect(e).to.be.instanceOf(ClientConfigurationError);
             err = e;
@@ -41,9 +43,9 @@ describe("B2cAuthority.ts Class", function () {
         });
 
         const authority = new B2cAuthority(B2C_TEST_CONFIG.validAuthority, true);
-        const endpoint = await authority.GetOpenIdConfigurationEndpointAsync()
+        const endpoint = await authority.GetOpenIdConfigurationEndpointAsync();
 
-        expect(endpoint).to.include("/v2.0/.well-known/openid-configuration")
+        expect(endpoint).to.include("/v2.0/.well-known/openid-configuration");
     });
 
 });
