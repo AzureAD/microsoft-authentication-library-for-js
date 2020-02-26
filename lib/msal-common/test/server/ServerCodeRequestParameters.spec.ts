@@ -1,70 +1,69 @@
 import { expect } from "chai";
 import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
 import { AadAuthority } from "../../src/auth/authority/AadAuthority";
-import { Constants } from "../../src/utils/Constants";
+import { Constants, SSOTypes, PromptValue } from "../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
 import { IdToken } from "../../src/auth/IdToken";
-import { buildClientInfo } from "../../src/auth/ClientInfo";
+import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
 import sinon from "sinon";
 import { Account } from "../../src/auth/Account";
-import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
-describe.only("ServerCodeRequestParameters.ts Class Unit Tests", () => {
+describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
+
+    let networkInterface: INetworkModule;
+    let cryptoInterface: ICrypto;
+    let aadAuthority: AadAuthority;
+    beforeEach(() => {
+        networkInterface = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+        cryptoInterface = {
+            createNewGuid(): string {
+                return RANDOM_TEST_GUID;
+            },
+            base64Decode(input: string): string {
+                switch (input) {
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            },
+            base64Encode(input: string): string {
+                switch (input) {
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    default:
+                        return input;
+                }
+            },
+            async generatePkceCodes(): Promise<PkceCodes> {
+                return {
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                }
+            }
+        };
+        aadAuthority = new AadAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
 
     describe("Constructor", () => {
-
-        let networkInterface: INetworkModule;
-        let cryptoInterface: ICrypto;
-        let aadAuthority: AadAuthority;
-        beforeEach(() => {
-            networkInterface = {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
-                    return null;
-                },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
-                    return null;
-                }
-            };
-            cryptoInterface = {
-                createNewGuid(): string {
-                    return RANDOM_TEST_GUID;
-                },
-                base64Decode(input: string): string {
-                    switch (input) {
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                },
-                base64Encode(input: string): string {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        default:
-                            return input;
-                    }
-                },
-                async generatePkceCodes(): Promise<PkceCodes> {
-                    return {
-                        challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER
-                    }
-                }
-            };
-            aadAuthority = new AadAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
-            
-        });
-
-        afterEach(() => {
-            sinon.restore();
-        });
 
         it("correctly assigns request parameter values", () => {
             const testScope1 = "scope1";
@@ -202,13 +201,430 @@ describe.only("ServerCodeRequestParameters.ts Class Unit Tests", () => {
 
     describe("hasSSOParam()", () => {
 
+        let idToken: IdToken;
+        let clientInfo: ClientInfo;
+        let loginRequest: AuthenticationParameters;
+        let testAccount: Account;
+        beforeEach(() => {
+            const idTokenClaims: IdTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "sid": "test_session_id",
+                "nonce": "123523"
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
+            loginRequest = {};
+            testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface);
+        });
+
+        it("Returns true if account is given in constructor", () => {
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                testAccount,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(codeRequestParams.hasSSOParam()).to.be.true;
+        });
+
+        it("Returns true if account is provided in the request", () => {
+            loginRequest = {
+                account: testAccount
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(codeRequestParams.hasSSOParam()).to.be.true;
+        });
+
+        it("Returns true if sid is provided in the request", () => {
+            loginRequest = {
+                sid: "testSid"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(codeRequestParams.hasSSOParam()).to.be.true;
+        });
+
+        it("Returns true if login_hint is provided in the request", () => {
+            loginRequest = {
+                loginHint: "thisIsALoginHint"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(codeRequestParams.hasSSOParam()).to.be.true;
+        });
+
+        it("Returns false if no account object reference is available and no sid or login_hint is given in the request", () => {
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(codeRequestParams.hasSSOParam()).to.be.false;
+        });
     });
 
     describe("populateQueryParams()", () => {
 
+        let idToken: IdToken;
+        let clientInfo: ClientInfo;
+        let loginRequest: AuthenticationParameters;
+        let testAccount: Account;
+        let idTokenClaims: IdTokenClaims;
+        beforeEach(() => {
+            idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "sid": "test_session_id",
+                "nonce": "123523"
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
+            loginRequest = {};
+            testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface);
+        });
+
+        it("throws error if prompt is not valid", () => {
+            loginRequest = {
+                prompt: "thisIsNotAValidPromptVal"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationErrorMessage.invalidPrompt.desc);
+            expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationError);
+        });
+
+        it("throws error if claimsRequest is not a a valid JSON object", () => {
+            loginRequest = {
+                claimsRequest: "notAClaimsRequest"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationErrorMessage.claimsRequestParsingError.desc);
+            expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationError);
+        });
+
+        it("adds sid from account claims to query parameters if prompt === NONE", () => {
+            loginRequest = {
+                prompt: PromptValue.NONE
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                testAccount,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.SID}=${idTokenClaims.sid}`);
+        });
+
+        it("does not add sid from account claims to query parameters if prompt != NONE", () => {
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                testAccount,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.not.include(`${SSOTypes.SID}=${idTokenClaims.sid}`);
+        });
+
+        it("adds login_hint from account claims to query parameters if sid is not present", () => {
+            sinon.restore();
+            idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523"
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+            testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface);
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                testAccount,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(idTokenClaims.preferred_username)}`);
+        });
+
+        it("adds sid from request to query parameters if prompt === NONE", () => {
+            loginRequest = {
+                sid: "thisIsASid",
+                prompt: PromptValue.NONE
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.SID}=${loginRequest.sid}`);
+        });
+
+        it("does not add sid from request to query parameters if prompt != NONE", () => {
+            loginRequest = {
+                sid: "thisIsASid"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.not.include(`${SSOTypes.SID}=${idTokenClaims.sid}`);
+        });
+
+        it("adds login_hint from request to query parameters if sid is not present", () => {
+            loginRequest = {
+                loginHint: "thisIsALoginHint"
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.LOGIN_HINT}=${loginRequest.loginHint}`);
+        });
+
+        it("adds upn from adal token to query parameters as login_hint", () => {
+            sinon.restore();
+            const adalTokenClaims = {
+                "iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f29522229/",
+                "exp": "1537237006",
+                "name": "abeli",
+                "oid": "02223b6b-aa1d-42d4-9ec0-1b2bb9194438",
+                "sub": "l3_roISQU222bULS9yi2k0XpqpOiMz5H3ZACo1GeXA",
+                "tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+                "upn": "abeli@microsoft.com",
+                "ver": "1.0"
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(adalTokenClaims);
+            const adalToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, cryptoInterface);
+            
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+
+            codeRequestParams.populateQueryParams(adalToken);
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(adalTokenClaims.upn)}`);
+        });
+
+        it("sanitizeEQParams() removes claims from extraQueryParameters string if claims are provided in request", () => {
+            const param1 = "param1";
+            const val1 = "val1";
+            const claimsString = JSON.stringify({
+                param1: val1
+            });
+            loginRequest = {
+                claimsRequest: claimsString,
+                extraQueryParameters: {
+                    "claims": claimsString
+                }
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.be.empty;
+            expect(codeRequestParams.extraQueryParameters).to.not.include(`${Constants.CLAIMS}=${claimsString}`);
+        });
+
+        it("sanitizeEQParams() removes BlacklistedEQParams from extraQueryParameters string", () => {
+            const sidVal = "thisIsASid";
+            const loginHintVal = "thisIsALoginHint";
+            loginRequest = {
+                extraQueryParameters: {
+                    sid: sidVal,
+                    login_hint: loginHintVal
+                }
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.be.empty;
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
+        });
+
+        it("sanitizeEQParams() removes domain hint if sid is provided", () => {
+            const sidVal = "thisIsASid";
+            loginRequest = {
+                sid: sidVal,
+                prompt: PromptValue.NONE,
+                extraQueryParameters: {
+                    domain_hint: "domainHintTest"
+                }
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.SID}=${loginRequest.sid}`);
+            expect(codeRequestParams.extraQueryParameters).to.be.empty;
+        });
+
+        it("extraQueryParameters from request are successfully added to extraQueryParameters string", () => {
+            const sidVal = "thisIsASid";
+            const val1 = "val1";
+            const val2 = "val2";
+            loginRequest = {
+                sid: sidVal,
+                prompt: PromptValue.NONE,
+                extraQueryParameters: {
+                    param1: val1,
+                    param2: val2
+                }
+            };
+            const codeRequestParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                loginRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+            codeRequestParams.populateQueryParams();
+            expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.SID}=${loginRequest.sid}`);
+            expect(codeRequestParams.extraQueryParameters).to.include(`param1=${val1}&param2=${val2}`);
+        });
     });
 
     describe("createNavigateUrl()", () => {
 
+        it("creates a url with default parameters if no request or SSO is being done", () => {
+
+        });
+
+        it("creates a url with the resource from the request", () => {
+
+        });
+
+        it("creates a url with the prompt value from the request", () => {
+
+        });
+
+        it("creates a url with the claims request from the request", () => {
+
+        });
+
+        it("creates a url with the SSO parameters in query parameters", () => {
+
+        });
+
+        it("creates a url with the extraQueryParameters from the request", () => {
+
+        });
     });
 });
