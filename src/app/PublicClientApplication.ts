@@ -114,8 +114,19 @@ export class PublicClientApplication {
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         try {
             // If hash exists, handle in window. Otherwise, cancel any current requests and continue.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
-            const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
+            let responseHash: string;
+            if (this.config.auth.navigateToLoginRequestUrl && UrlString.hashContainsKnownProperties(hash)) {
+                this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
+                interactionHandler.navigateToRequestUrl();
+                return;
+            } else if (!this.config.auth.navigateToLoginRequestUrl) {
+                responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
+                window.location.hash = "";
+            } else {
+                responseHash = cachedHash;
+            }
+
             if (responseHash) {
                 const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
                 this.authCallback(null, tokenResponse);
@@ -146,7 +157,7 @@ export class PublicClientApplication {
 
         try {
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create login url, which will by default append the client id scope to the call.
             this.authModule.createLoginUrl(request).then((navigateUrl) => {
@@ -180,7 +191,7 @@ export class PublicClientApplication {
 
         try {
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create acquire token url.
             this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
