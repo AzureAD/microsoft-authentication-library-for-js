@@ -2,14 +2,14 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { TokenExchangeParameters } from "../../src/request/TokenExchangeParameters";
 import { ServerTokenRequestParameters } from "../../src/server/ServerTokenRequestParameters";
-import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS } from "../utils/StringConstants";
 import { AadAuthority } from "../../src/auth/authority/AadAuthority";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
-import { Constants } from "../../src/utils/Constants";
+import { Constants, HEADER_NAMES, AADServerParamKeys } from "../../src/utils/Constants";
 import { CodeResponse } from "../../src/response/CodeResponse";
-import { ClientConfigurationErrorMessage } from "../../src";
-
+import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
 
@@ -114,6 +114,135 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
                 cryptoInterface,
                 null
             )).to.throw(ClientConfigurationErrorMessage.emptyScopesError.desc);
+        });
+    });
+
+    describe("createRequestHeaders()" , () => {
+
+        it("Returns string:string map that contains default headers", () => {
+            const testScope1 = "scope1";
+            const testScope2 = "scope2";
+            const clientSecret = "thisIsASecret";
+            const tokenRequest: TokenExchangeParameters = {
+                scopes: [testScope1, testScope2],
+            };
+            const codeResponse: CodeResponse = {
+                code: "thisIsACode",
+                userRequestState: "testState"
+            };
+
+            const tokenRequestParams = new ServerTokenRequestParameters(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                clientSecret,
+                tokenRequest,
+                codeResponse,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                null
+            );
+            const headers = tokenRequestParams.createRequestHeaders();
+            expect(headers instanceof Map).to.be.true;
+            expect(headers.size).to.be.eq(1);
+            expect(headers.get(HEADER_NAMES.CONTENT_TYPE)).to.be.eq(Constants.URL_FORM_CONTENT_TYPE);
+        })
+    });
+
+    describe("createRequestBody()", () => {
+
+        it("throws an error if both codeResponse and refresh token are null or empty", () => {
+            const testScope1 = "scope1";
+            const testScope2 = "scope2";
+            const clientSecret = "thisIsASecret";
+            const tokenRequest: TokenExchangeParameters = {
+                scopes: [testScope1, testScope2],
+            };
+
+            const tokenRequestParams = new ServerTokenRequestParameters(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                clientSecret,
+                tokenRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                null
+            );
+            expect(() => tokenRequestParams.createRequestBody()).to.throw(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+            expect(() => tokenRequestParams.createRequestBody()).to.throw(ClientAuthError);
+        });
+
+        it("creates a string of query params created from CodeResponse to send in request body", () => {
+            const testScope1 = "scope1";
+            const testScope2 = "scope2";
+            const clientSecret = "thisIsASecret";
+            const tokenRequest: TokenExchangeParameters = {
+                scopes: [testScope1, testScope2],
+                codeVerifier: "verifyThatCode"
+            };
+            const codeResponse: CodeResponse = {
+                code: "thisIsACode",
+                userRequestState: "testState"
+            };
+
+            const tokenRequestParams = new ServerTokenRequestParameters(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                clientSecret,
+                tokenRequest,
+                codeResponse,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                null
+            );
+            tokenRequest.scopes.push(Constants.OFFLINE_ACCESS_SCOPE);
+            const reqParams = tokenRequestParams.createRequestBody();
+            const expectedClientIdString = `${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`;
+            const expectedScopeString = `${AADServerParamKeys.SCOPE}=${encodeURIComponent(tokenRequestParams.scopes.printScopes())}`;
+            const expectedRedirectUriString = `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`;
+            const expectedAuthCodeString = `${AADServerParamKeys.CODE}=${encodeURIComponent(codeResponse.code)}`;
+            const expectedCodeVerifierString = `${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(tokenRequest.codeVerifier)}`;
+            const expectedGrantTypeString = `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`;
+            const expectedClientSecretString = `client_secret=${clientSecret}`;
+            expect(reqParams).to.be.include(expectedClientIdString);
+            expect(reqParams).to.be.include(expectedScopeString);
+            expect(reqParams).to.be.include(expectedRedirectUriString);
+            expect(reqParams).to.be.include(expectedAuthCodeString);
+            expect(reqParams).to.be.include(expectedCodeVerifierString);
+            expect(reqParams).to.be.include(expectedGrantTypeString);
+            expect(reqParams).to.be.include(expectedClientSecretString);
+            expect(reqParams).to.be.eq(`${expectedClientIdString}&${expectedScopeString}&${expectedRedirectUriString}&${expectedAuthCodeString}&${expectedCodeVerifierString}&${expectedGrantTypeString}&${expectedClientSecretString}`);
+        });
+
+        it("creates a string of query params created from refresh token to send in request body", () => {
+            const testScope1 = "scope1";
+            const testScope2 = "scope2";
+            const clientSecret = "thisIsASecret";
+            const tokenRequest: TokenExchangeParameters = {
+                scopes: [testScope1, testScope2],
+            };
+
+            const tokenRequestParams = new ServerTokenRequestParameters(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                clientSecret,
+                tokenRequest,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                TEST_TOKENS.REFRESH_TOKEN
+            );
+            tokenRequest.scopes.push(Constants.OFFLINE_ACCESS_SCOPE);
+            const reqParams = tokenRequestParams.createRequestBody();
+            const expectedClientIdString = `${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`;
+            const expectedScopeString = `${AADServerParamKeys.SCOPE}=${encodeURIComponent(tokenRequestParams.scopes.printScopes())}`
+            const expectedRedirectUriString = `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`;
+            const expectedRefreshTokenString = `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`;
+            const expectedGrantTypeString = `${AADServerParamKeys.GRANT_TYPE}=${Constants.RT_GRANT_TYPE}`;
+            const expectedClientSecretString = `client_secret=${clientSecret}`;
+            expect(reqParams).to.be.include(expectedClientIdString);
+            expect(reqParams).to.be.include(expectedScopeString);
+            expect(reqParams).to.be.include(expectedRedirectUriString);
+            expect(reqParams).to.be.include(expectedRefreshTokenString);
+            expect(reqParams).to.be.include(expectedGrantTypeString);
+            expect(reqParams).to.be.include(expectedClientSecretString);
+            expect(reqParams).to.be.eq(`${expectedClientIdString}&${expectedScopeString}&${expectedRedirectUriString}&${expectedRefreshTokenString}&${expectedGrantTypeString}&${expectedClientSecretString}`)
         });
     });
 });
