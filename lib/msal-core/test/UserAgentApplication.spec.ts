@@ -12,7 +12,10 @@ import {
     ServerError,
     Authority,
     AuthResponse,
-    InteractionRequiredAuthError
+    InteractionRequiredAuthError,
+    Logger,
+    CryptoUtils,
+    LogLevel
 } from "../src/index";
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
@@ -1580,4 +1583,39 @@ describe("UserAgentApplication.ts Class", function () {
             };
         });
     });
+
+    describe('Logger', () => {
+        it('getLogger and setLogger', done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+
+            const correlationId = CryptoUtils.createNewGuid();
+
+            const logger = new Logger((level, message, containsPii) => {
+                expect(message).to.contain('Message');
+                expect(message).to.contain(correlationId);
+                expect(message).to.contain(LogLevel.Info);
+
+                expect(level).to.equal(LogLevel.Info);
+                expect(containsPii).to.be.false;
+
+                done();
+            }, {
+                correlationId,
+                piiLoggingEnabled: false
+            });
+
+            msal.setLogger(logger);
+
+            expect(msal.getLogger()).to.equal(logger);
+
+            msal.getLogger().info('Message');
+        });
+    })
 });
