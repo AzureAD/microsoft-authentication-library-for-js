@@ -3,8 +3,13 @@ import { TEST_URIS, TEST_HASHES } from "../utils/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
+import sinon from "sinon";
 
 describe("UrlString.ts Class Unit Tests", () => {
+
+    afterEach(() => {
+        sinon.restore();
+    });
     
     it("Creates a valid UrlString object", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI.toUpperCase());
@@ -17,6 +22,14 @@ describe("UrlString.ts Class Unit Tests", () => {
 
         expect(() => new UrlString("")).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
         expect(() => new UrlString("")).to.throw(ClientConfigurationError);
+    });
+
+    it("validateAsUri throws error if uri components could not be extracted", () => {
+        const urlComponentError = "Error getting url components"
+        sinon.stub(UrlString.prototype, "getUrlComponents").throws(urlComponentError);
+        let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
+        expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlComponentError}`);
+        expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
     it("validateAsUri throws error if uri is not secure", () => {
