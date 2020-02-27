@@ -17,6 +17,7 @@ const port = 30662; // process.env.PORT || 30662;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
+app.use("/dist", express.static(path.join(__dirname, "../../lib/msal-core/dist")));
 app.use(express.static('JavaScriptSPA'))
 
 // Set up a route for index.html.
