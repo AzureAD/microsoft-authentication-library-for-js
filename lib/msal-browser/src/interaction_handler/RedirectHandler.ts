@@ -2,22 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, TokenResponse } from "@azure/msal-common";
+import { StringUtils, TemporaryCacheKeys, TokenResponse } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 
 export class RedirectHandler extends InteractionHandler {
-
-    // Config to navigate to login request url. Set by user, default is true.
-    private navigateToLoginRequestUrl: boolean;
-
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage, navigateToLoginRequestUrl: boolean) {
-        super(authCodeModule, storageImpl);
-        this.navigateToLoginRequestUrl = navigateToLoginRequestUrl;
-    }
 
     /**
      * Redirects window to given URL.
@@ -41,6 +32,20 @@ export class RedirectHandler extends InteractionHandler {
         return window;
     }
 
+    navigateToRequestUrl(): void {
+        if (window.parent === window) {
+            const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
+
+            // Redirect to home page if login request url is null (real null or the string null)
+            if (!loginRequestUrl || loginRequestUrl === "null") {
+                this.authModule.logger.error("Unable to get valid login request url from cache, redirecting to home page");
+                window.location.href = "/";
+            } else {
+                window.location.href = loginRequestUrl;
+            }
+        }
+    }
+
     /**
      * Handle authorization code response in the window.
      * @param hash 
@@ -51,29 +56,12 @@ export class RedirectHandler extends InteractionHandler {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
-        // If navigateToLoginRequestUrl is true, then cache the hash and navigate to cached request URI.
-        if (this.navigateToLoginRequestUrl) {
-            this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
-            if (window.parent === window) {
-                const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
-
-                // Redirect to home page if login request url is null (real null or the string null)
-                if (!loginRequestUrl || loginRequestUrl === "null") {
-                    this.authModule.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                    window.location.href = "/";
-                } else {
-                    window.location.href = loginRequestUrl;
-                }
-            }
-            return null;
-        } else {
-            window.location.hash = "";
-        }
-
         // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
         // Handle code response.
         const codeResponse = this.authModule.handleFragmentResponse(locationHash);
+        // Hash was processed successfully - remove from cache
+        this.browserStorage.removeItem(TemporaryCacheKeys.URL_HASH);
         // Acquire token with retrieved code.
         return this.authModule.acquireToken(codeResponse);
     }
