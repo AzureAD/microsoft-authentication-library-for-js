@@ -165,9 +165,17 @@ export class CacheHelpers {
         });
     }
 
+    /**
+     * Checks that any parameters are exact matches for key value, since key.match in the above functions only do contains checks, not exact matches.
+     * @param atKey 
+     * @param clientId 
+     * @param authority 
+     * @param resource 
+     * @param homeAccountIdentifier 
+     */
     private checkForExactKeyMatch(atKey: AccessTokenKey, clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): boolean {
         const hasClientId = (atKey.clientId === clientId);
-        const hasAuthorityUri = (atKey.authority === authority);
+        const hasAuthorityUri = !StringUtils.isEmpty(authority) ? (atKey.authority === authority) : true;
         const hasResourceUri = !StringUtils.isEmpty(resource) ? (atKey.resource === resource) : true;
         const hasHomeAccountId = !StringUtils.isEmpty(homeAccountIdentifier) ? (atKey.homeAccountIdentifier === homeAccountIdentifier) : true;
 
