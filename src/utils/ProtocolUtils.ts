@@ -16,7 +16,7 @@ export class ProtocolUtils {
      * @param randomGuid 
      */
     static setRequestState(userState: string, randomGuid: string): string {
-        return userState && !StringUtils.isEmpty(userState) ? `${randomGuid}${Constants.RESOURCE_DELIM}${userState}` : randomGuid;
+        return !StringUtils.isEmpty(userState) ? `${randomGuid}${Constants.RESOURCE_DELIM}${userState}` : randomGuid;
     }
 
     /**
@@ -26,7 +26,7 @@ export class ProtocolUtils {
      * @ignore
      */
     static getUserRequestState(serverResponseState: string): string {
-        if (serverResponseState) {
+        if (!StringUtils.isEmpty(serverResponseState)) {
             const splitIndex = serverResponseState.indexOf(Constants.RESOURCE_DELIM);
             if (splitIndex > -1 && splitIndex + 1 < serverResponseState.length) {
                 return serverResponseState.substring(splitIndex + 1);

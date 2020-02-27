@@ -17,10 +17,7 @@ import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants"
 export class ServerTokenRequestParameters {
 
     // Crypto functions
-    protected cryptoObj: ICrypto;
-
-    // Validity checks
-    state: string;
+    private cryptoObj: ICrypto;
 
     // Telemetry Info
     xClientVer: string;
