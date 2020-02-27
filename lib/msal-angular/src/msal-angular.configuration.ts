@@ -13,3 +13,13 @@ export const defaultMsalAngularConfiguration : MsalAngularConfiguration = {
     unprotectedResources: [],
     protectedResourceMap: []
 };
+
+export function defaultMsalAngularConfigurationFactory(): MsalAngularConfiguration {
+    return {
+        consentScopes: [],
+        popUp: false,
+        extraQueryParameters: {},
+        unprotectedResources: [],
+        protectedResourceMap: []
+    };
+}

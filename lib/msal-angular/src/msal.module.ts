@@ -4,7 +4,7 @@ import { MsalService, MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./msal.service";
 import { MsalGuard } from "./msal-guard.service";
 import { BroadcastService } from "./broadcast.service";
 import { Configuration } from "msal";
-import { MsalAngularConfiguration, defaultMsalAngularConfiguration } from "./msal-angular.configuration";
+import { MsalAngularConfiguration, defaultMsalAngularConfiguration, defaultMsalAngularConfigurationFactory } from './msal-angular.configuration';
 
 Injectable()
 export class WindowWrapper extends Window {
@@ -41,7 +41,7 @@ export class MsalModule {
 }
   static forRootAtRuntime(
       config: () => Configuration,
-      angularConfig: MsalAngularConfiguration = defaultMsalAngularConfiguration
+      angularConfig: () => MsalAngularConfiguration = defaultMsalAngularConfigurationFactory
     ): ModuleWithProviders {
     return {
         ngModule: MsalModule,
@@ -52,7 +52,7 @@ export class MsalModule {
             },
             {
                 provide: MSAL_CONFIG_ANGULAR,
-                useValue: angularConfig
+                useFactory: angularConfig
             },
             MsalService,
             {
