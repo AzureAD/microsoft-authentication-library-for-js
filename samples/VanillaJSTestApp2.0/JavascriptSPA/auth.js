@@ -12,7 +12,7 @@ let signInType;
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-const myMSALObj = new Msal.UserAgentApplication(msalConfig); 
+const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
 // Register Callbacks for Redirect flow
 myMSALObj.handleRedirectCallback(authRedirectCallBack);
@@ -21,7 +21,7 @@ function authRedirectCallBack(error, response) {
     if (error) {
         console.log(error);
     } else {
-        if (response.tokenType === "id_token" && myMSALObj.getAccount() && !myMSALObj.isCallback(window.location.hash)) {
+        if (myMSALObj.getAccount()) {
             console.log('id_token acquired at: ' + new Date().toString());
             showWelcomeMessage(myMSALObj.getAccount());
             getTokenRedirect(loginRequest);
@@ -34,7 +34,7 @@ function authRedirectCallBack(error, response) {
 }
 
 // Redirect: once login is successful and redirects with tokens, call Graph API
-if (myMSALObj.getAccount() && !myMSALObj.isCallback(window.location.hash)) {
+if (myMSALObj.getAccount()) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
     showWelcomeMessage(myMSALObj.getAccount());
 }
