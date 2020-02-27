@@ -12,7 +12,7 @@ import { AuthenticationParameters, validateClaimsRequest } from "../request/Auth
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
-import { Constants, BlacklistedEQParams, SSOTypes, PromptState, AADServerParamKeys } from "../utils/Constants";
+import { Constants, BlacklistedEQParams, SSOTypes, PromptValue, AADServerParamKeys } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 
 /**
@@ -100,6 +100,55 @@ export class ServerCodeRequestParameters {
     }
 
     /**
+     * Adds SSO parameter to query parameters:
+     * - sid of the account object used to identify the session of the user on the service
+     * - login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
+     * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
+     *
+     * @param {@link Account} account - Account for which the token is requested
+     * @param queryparams
+     * @param {@link ServerRequestParameters}
+     */
+    private addSSOQueryParameters(adalIdToken: IdToken): StringDict {
+        /*
+         * This is a final check for all queryParams added so far; preference order: sid > login_hint
+         * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
+         */
+        // preference order: account > sid > login_hint
+        const serverReqParam: StringDict = {};
+
+        // if account info is passed, account.sid > account.login_hint
+        if (this.account) {
+            // sid can only be passed if prompt = none
+            if (this.account.sid && this.userRequest && this.userRequest.prompt === PromptValue.NONE) {
+                serverReqParam[SSOTypes.SID] = this.account.sid;
+            }
+            else if (this.account.userName) {
+                serverReqParam[SSOTypes.LOGIN_HINT] = this.account.userName;
+            }
+        }
+        // if no account info available, request.sid > request.login_hint
+        else if (this.userRequest) {
+            // sid from request - can only be passed if prompt = none
+            if (this.userRequest.sid && this.userRequest.prompt === PromptValue.NONE) {
+                serverReqParam[SSOTypes.SID] = this.userRequest.sid;
+            }
+            // loginHint from request
+            else if (this.userRequest.loginHint) {
+                serverReqParam[SSOTypes.LOGIN_HINT] = this.userRequest.loginHint;
+            }
+        }
+        // adalIdToken retrieved from cache
+        if (adalIdToken && StringUtils.isEmpty(serverReqParam[SSOTypes.SID]) && StringUtils.isEmpty(serverReqParam[SSOTypes.LOGIN_HINT])) {
+            if (adalIdToken.claims && adalIdToken.claims.upn) {
+                serverReqParam[SSOTypes.LOGIN_HINT] = adalIdToken.claims.upn;
+            }
+        }
+
+        return serverReqParam;
+    }
+
+    /**
      * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
      * @param adalIdTokenObject 
      */
@@ -116,28 +165,20 @@ export class ServerCodeRequestParameters {
             if (this.userRequest.claimsRequest) {
                 validateClaimsRequest(this.userRequest);
             }
-
-            // if the developer provides one of these, give preference to developer choice
-            if (this.hasSSOParam()) {
-                queryParameters = this.constructUnifiedCacheQueryParameter(null);
-            }
-        }
-
-        // ADAL token SSO
-        if (adalIdTokenObject) {
-            queryParameters = this.constructUnifiedCacheQueryParameter(adalIdTokenObject);
         }
 
         /*
-         * adds sid/login_hint if not populated; populates domain_hint
+         * adds sid/login_hint if an SSO Parameter is available
          * this.logger.verbose("Calling addHint parameters");
          */
-        queryParameters = this.addHintParameters(queryParameters);
+        if (this.hasSSOParam() || adalIdTokenObject) {
+            queryParameters = this.addSSOQueryParameters(adalIdTokenObject);
+        }
 
         // sanity check for developer passed extraQueryParameters
         let eQParams: StringDict;
         if (this.userRequest) {
-            eQParams = this.sanitizeEQParams(this.userRequest);
+            eQParams = this.sanitizeEQParams(this.userRequest, queryParameters);
         }
 
         // Populate the extraQueryParameters to be sent to the server
@@ -149,7 +190,7 @@ export class ServerCodeRequestParameters {
      * Create navigation url.
      */
     async createNavigateUrl(): Promise<string> {
-        const str = await this.createParamString();
+        const paramStrings = await this.createParamString();
         let authEndpoint: string = this.authorityInstance.authorizationEndpoint;
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
         if (authEndpoint.indexOf("?") < 0) {
@@ -158,14 +199,14 @@ export class ServerCodeRequestParameters {
             authEndpoint += "&";
         }
 
-        const requestUrl: string = `${authEndpoint}${str.join("&")}`;
+        const requestUrl: string = `${authEndpoint}${paramStrings.join("&")}`;
         return requestUrl;
     }
 
     /**
      * Create a query parameter string.
      */
-    protected async createParamString(): Promise<Array<string>> {
+    private async createParamString(): Promise<Array<string>> {
         const str: Array<string> = [];
         str.push(`${AADServerParamKeys.RESPONSE_TYPE}=${this.responseType}`);
         str.push(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(this.scopes.printScopes())}`);
@@ -219,177 +260,47 @@ export class ServerCodeRequestParameters {
      * @param request
      */
     private validatePromptParameter(prompt: string): void {
-        if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
+        if ([PromptValue.LOGIN, PromptValue.SELECT_ACCOUNT, PromptValue.CONSENT, PromptValue.NONE].indexOf(prompt) < 0) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
-    }
-
-    /**
-     * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
-     * in any login() or acquireToken() calls
-     * @param idTokenObject
-     * @param extraQueryParameters
-     * @param sid
-     * @param loginHint
-     */
-    // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(idTokenObject: IdToken): StringDict {
-
-        // preference order: account > sid > login_hint
-        let ssoType;
-        let ssoData;
-        let serverReqParam: StringDict = {};
-        // if account info is passed, account.sid > account.login_hint
-        if (this.userRequest) {
-            if (this.account) {
-                const account: Account = this.account;
-                if (account.sid) {
-                    ssoType = SSOTypes.SID;
-                    ssoData = account.sid;
-                }
-                else if (account.userName) {
-                    ssoType = SSOTypes.LOGIN_HINT;
-                    ssoData = account.userName;
-                }
-            }
-            // sid from request
-            else if (this.userRequest.sid) {
-                ssoType = SSOTypes.SID;
-                ssoData = this.userRequest.sid;
-            }
-            // loginHint from request
-            else if (this.userRequest.loginHint) {
-                ssoType = SSOTypes.LOGIN_HINT;
-                ssoData = this.userRequest.loginHint;
-            }
-        }
-        // adalIdToken retrieved from cache
-        else if (idTokenObject) {
-            if (idTokenObject.claims && idTokenObject.claims.preferred_username) {
-                ssoType = SSOTypes.ID_TOKEN;
-                ssoData = idTokenObject.claims.preferred_username;
-            }
-            else {
-                ssoType = SSOTypes.ORGANIZATIONS;
-                ssoData = null;
-            }
-        }
-
-        serverReqParam = this.addSSOParameter(ssoType, ssoData);
-
-        // add the HomeAccountIdentifier info/ domain_hint
-        if (this.account && this.account.homeAccountIdentifier) {
-            serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, this.account.homeAccountIdentifier, serverReqParam);
-        }
-
-        return serverReqParam;
-    }
-
-    /**
-     * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
-     * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
-     * domain_req utid received as part of the clientInfo
-     * login_req uid received as part of clientInfo
-     * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
-     *
-     * @param {@link Account} account - Account for which the token is requested
-     * @param queryparams
-     * @param {@link ServerRequestParameters}
-     */
-    private addHintParameters(qParams: StringDict): StringDict {
-        /*
-         * This is a final check for all queryParams added so far; preference order: sid > login_hint
-         * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
-         */
-        if (this.account && !qParams[SSOTypes.SID]) {
-            // sid - populate only if login_hint is not already populated and the account has sid
-            const populateSID = !qParams[SSOTypes.LOGIN_HINT] && this.account.sid && this.userRequest.prompt === PromptState.NONE;
-            if (populateSID) {
-                qParams = this.addSSOParameter(SSOTypes.SID, this.account.sid, qParams);
-            }
-            // login_hint - account.userName
-            else {
-                const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && this.account.userName && !StringUtils.isEmpty(this.account.userName);
-                if (populateLoginHint) {
-                    qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, this.account.userName, qParams);
-                }
-            }
-        }
-
-        return qParams;
-    }
-
-    /**
-     * Add SID to extraQueryParameters
-     * @param sid
-     */
-    private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
-        if (!ssoParam) {
-            ssoParam = {};
-        }
-
-        if (!ssoData) {
-            return ssoParam;
-        }
-
-        switch (ssoType) {
-            case SSOTypes.SID: {
-                ssoParam[SSOTypes.SID] = ssoData;
-                break;
-            }
-            case SSOTypes.ID_TOKEN: {
-                ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
-                ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
-                break;
-            }
-            case SSOTypes.LOGIN_HINT: {
-                ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
-                break;
-            }
-            case SSOTypes.ORGANIZATIONS: {
-                ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
-                break;
-            }
-            case SSOTypes.CONSUMERS: {
-                ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
-                break;
-            }
-            case SSOTypes.HOMEACCOUNT_ID: {
-                const homeAccountId = ssoData.split(".");
-                const utid = this.cryptoObj.base64Decode(homeAccountId[1]);
-
-                if (utid === Constants.CONSUMER_UTID) {
-                    ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
-                }
-                else {
-                    ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
-                }
-                break;
-            }
-        }
-
-        return ssoParam;
     }
 
     /**
      * Removes unnecessary or duplicate query parameters from extraQueryParameters
      * @param request
      */
-    private sanitizeEQParams(request: AuthenticationParameters) : StringDict {
+    private sanitizeEQParams(request: AuthenticationParameters, ssoQueryParams: StringDict) : StringDict {
         const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
             return null;
         }
+
         if (request.claimsRequest) {
-            // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
+            // TODO: this.logger.error("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
             delete eQParams[Constants.CLAIMS];
         }
+
+        // Remove any query parameters that are blacklisted
         BlacklistedEQParams.forEach(param => {
             if (eQParams[param]) {
-                // this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
+                // TODO: this.logger.error("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
                 delete eQParams[param];
             }
         });
+
+        // Remove any query parameters already included in SSO params
+        Object.keys(ssoQueryParams).forEach(key => {
+            if (eQParams[key]) {
+                // TODO: this.logger.error("Removed param " + key + " from extraQueryParameters since it was already present in library query parameters.")
+                delete eQParams[key];
+            }
+
+            if (key === SSOTypes.SID) {
+                // TODO: this.logger.error("Removed domain hint since sid was provided.")
+                delete eQParams[SSOTypes.DOMAIN_HINT];
+            }
+        });
+
         return eQParams;
     }
 
@@ -398,11 +309,11 @@ export class ServerCodeRequestParameters {
      * @param extraQueryParameters
      */
     private generateQueryParametersString(queryParameters: StringDict): string {
-        let paramsString: string = null;
+        let paramsString: string = "";
 
         if (queryParameters) {
             Object.keys(queryParameters).forEach((key: string) => {
-                if (paramsString == null) {
+                if (StringUtils.isEmpty(paramsString)) {
                     paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
                 }
                 else {
