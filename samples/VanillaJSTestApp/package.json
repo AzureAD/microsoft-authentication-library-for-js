@@ -5,7 +5,9 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:core": "cd ../../lib/msal-core && npm run build",
+    "start:build": "npm run build:core && npm start"
   },
   "dependencies": {
     "express": "^4.12.3",
