@@ -2,11 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage } from "../../cache/ICacheStorage";
-import { INetworkModule } from "../../network/INetworkModule";
-import { ICrypto, PkceCodes } from "../../crypto/ICrypto";
-import { AuthError } from "../../error/AuthError";
-import { ILoggerCallback, LogLevel } from "../../logger/Logger";
+import { ICacheStorage } from "../cache/ICacheStorage";
+import { INetworkModule } from "../network/INetworkModule";
+import { ICrypto, PkceCodes } from "../crypto/ICrypto";
+import { AuthError } from "../error/AuthError";
+import { ILoggerCallback, LogLevel } from "../logger/Logger";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -20,7 +20,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - network: this is where you can configure network implementation.
  * - crypto: implementation of crypto functions
  */
-export type ModuleConfiguration = {
+export type Configuration = {
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,
@@ -145,8 +145,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildModuleConfiguration({ systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: ModuleConfiguration): ModuleConfiguration {
-    const overlayedConfig: ModuleConfiguration = {
+export function buildConfiguration({ systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: Configuration): Configuration {
+    const overlayedConfig: Configuration = {
         systemOptions: userSystemOptions || DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,

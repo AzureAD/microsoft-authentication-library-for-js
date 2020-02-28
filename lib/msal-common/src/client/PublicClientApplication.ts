@@ -2,41 +2,41 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthModule } from "./AuthModule";
-import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../config/PublicClientSPAConfiguration";
-import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-import { TokenExchangeParameters } from "../../request/TokenExchangeParameters";
-import { TokenRenewParameters } from "../../request/TokenRenewParameters";
-import { ServerCodeRequestParameters } from "../../server/ServerCodeRequestParameters";
-import { ServerTokenRequestParameters } from "../../server/ServerTokenRequestParameters";
-import { CodeResponse } from "../../response/CodeResponse";
-import { TokenResponse } from "../../response/TokenResponse";
-import { ResponseHandler } from "../../response/ResponseHandler";
-import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
-import { ServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
-import { ClientAuthError } from "../../error/ClientAuthError";
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
-import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
-import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
-import { IdToken } from "../../auth/IdToken";
-import { ScopeSet } from "../../auth/ScopeSet";
-import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../../utils/Constants";
-import { TimeUtils } from "../../utils/TimeUtils";
-import { StringUtils } from "../../utils/StringUtils";
-import { UrlString } from "../../url/UrlString";
+import { ClientApplication } from "./ClientApplication";
+import { PublicClientConfiguration, buildPublicClientConfiguration } from "../config/PublicClientConfiguration";
+import { AuthenticationParameters } from "../request/AuthenticationParameters";
+import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
+import { TokenRenewParameters } from "../request/TokenRenewParameters";
+import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
+import { ServerTokenRequestParameters } from "../server/ServerTokenRequestParameters";
+import { CodeResponse } from "../response/CodeResponse";
+import { TokenResponse } from "../response/TokenResponse";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
+import { AuthorityFactory } from "../auth/authority/AuthorityFactory";
+import { IdToken } from "../auth/IdToken";
+import { ScopeSet } from "../auth/ScopeSet";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../utils/Constants";
+import { TimeUtils } from "../utils/TimeUtils";
+import { StringUtils } from "../utils/StringUtils";
+import { UrlString } from "../url/UrlString";
 
 /**
  * AuthorizationCodeModule class
- * 
+ *
  * Object instance which will construct requests to send to and handle responses
- * from the Microsoft STS using the authorization code flow. 
+ * from the Microsoft STS using the authorization code flow.
  */
-export class AuthorizationCodeModule extends AuthModule {
+export class AuthorizationCodeModule extends ClientApplication {
 
     // Application config
-    private clientConfig: PublicClientSPAConfiguration;
+    private clientConfig: PublicClientConfiguration;
 
-    constructor(configuration: PublicClientSPAConfiguration) {
+    constructor(configuration: PublicClientConfiguration) {
         // Implement base module
         super({
             systemOptions: configuration.systemOptions,
@@ -46,7 +46,7 @@ export class AuthorizationCodeModule extends AuthModule {
             cryptoInterface: configuration.cryptoInterface
         });
         // Implement defaults in config
-        this.clientConfig = buildPublicClientSPAConfiguration(configuration);
+        this.clientConfig = buildPublicClientConfiguration(configuration);
 
         if (this.clientConfig.auth.tmp_clientSecret) {
             this.logger.warning("Client secret is a temporary parameter that will not be carried forward in production versions of this library.");
@@ -57,10 +57,10 @@ export class AuthorizationCodeModule extends AuthModule {
     }
 
     /**
-     * Creates a url for logging in a user. This will by default append the client id to the list of scopes, 
+     * Creates a url for logging in a user. This will by default append the client id to the list of scopes,
      * allowing you to retrieve an id token in the subsequent code exchange. Also performs validation of the request parameters.
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request 
+     * @param request
      */
     async createLoginUrl(request: AuthenticationParameters): Promise<string> {
         return this.createUrl(request, true);
@@ -69,7 +69,7 @@ export class AuthorizationCodeModule extends AuthModule {
     /**
      * Creates a url for logging in a user. Also performs validation of the request parameters.
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request 
+     * @param request
      */
     async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         return this.createUrl(request, false);
@@ -77,8 +77,8 @@ export class AuthorizationCodeModule extends AuthModule {
 
     /**
      * Helper function which creates URL. If isLoginCall is true, MSAL appends client id scope to retrieve id token from the service.
-     * @param request 
-     * @param isLoginCall 
+     * @param request
+     * @param isLoginCall
      */
     private async createUrl(request: AuthenticationParameters, isLoginCall: boolean): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
@@ -145,7 +145,7 @@ export class AuthorizationCodeModule extends AuthModule {
      * Given an authorization code, it will perform a token exchange using cached values from a previous call to
      * createLoginUrl() or createAcquireTokenUrl(). You must call this AFTER using one of those APIs first. You should
      * also use the handleFragmentResponse() API to pass the codeResponse to this function afterwards.
-     * @param codeResponse 
+     * @param codeResponse
      */
     async acquireToken(codeResponse: CodeResponse): Promise<TokenResponse> {
         try {
@@ -193,7 +193,7 @@ export class AuthorizationCodeModule extends AuthModule {
      * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
      * the given token and returns the renewed token. Will throw an error if login is not completed (unless
      * id tokens are not being renewed).
-     * @param request 
+     * @param request
      */
     async renewToken(request: TokenRenewParameters): Promise<TokenResponse> {
         try {
@@ -244,7 +244,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 };
 
                 // Only populate id token if it exists in cache item.
-                return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse : 
+                return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse :
                     ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoObj));
             } else {
                 // Renew the tokens.
@@ -278,7 +278,7 @@ export class AuthorizationCodeModule extends AuthModule {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param authorityUri 
+     * @param authorityUri
      */
     async logout(authorityUri?: string): Promise<string> {
         const currentAccount = this.getAccount();
@@ -318,7 +318,7 @@ export class AuthorizationCodeModule extends AuthModule {
     /**
      * Handles the hash fragment response from public client code request. Returns a code response used by
      * the client to exchange for a token in acquireToken.
-     * @param hashFragment 
+     * @param hashFragment
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
@@ -365,10 +365,10 @@ export class AuthorizationCodeModule extends AuthModule {
 
     /**
      * Gets all cached tokens based on the given criteria.
-     * @param requestScopes 
-     * @param authorityUri 
-     * @param resourceId 
-     * @param homeAccountIdentifier 
+     * @param requestScopes
+     * @param authorityUri
+     * @param resourceId
+     * @param homeAccountIdentifier
      */
     private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): AccessTokenCacheItem {
         // Get all access tokens with matching authority, resource id and home account ID
@@ -396,10 +396,10 @@ export class AuthorizationCodeModule extends AuthModule {
 
     /**
      * Makes a request to the token endpoint with the given parameters and parses the response.
-     * @param tokenEndpoint 
-     * @param tokenReqParams 
-     * @param tokenRequest 
-     * @param codeResponse 
+     * @param tokenEndpoint
+     * @param tokenReqParams
+     * @param tokenRequest
+     * @param codeResponse
      */
     private async getTokenResponse(tokenEndpoint: string, tokenReqParams: ServerTokenRequestParameters, tokenRequest: TokenExchangeParameters, codeResponse?: CodeResponse): Promise<TokenResponse> {
         // Perform token request.
@@ -440,7 +440,7 @@ export class AuthorizationCodeModule extends AuthModule {
             } else if (!StringUtils.isEmpty(this.clientConfig.auth.redirectUri)) {
                 return this.clientConfig.auth.redirectUri;
             }
-        } 
+        }
         // This should never throw unless window.location.href is returning empty.
         throw ClientConfigurationError.createRedirectUriEmptyError();
     }
@@ -458,7 +458,7 @@ export class AuthorizationCodeModule extends AuthModule {
             } else if (!StringUtils.isEmpty(this.clientConfig.auth.postLogoutRedirectUri)) {
                 return this.clientConfig.auth.postLogoutRedirectUri;
             }
-        } 
+        }
         // This should never throw unless window.location.href is returning empty.
         throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
     }
