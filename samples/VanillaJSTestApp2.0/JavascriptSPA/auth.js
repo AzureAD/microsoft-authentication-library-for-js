@@ -39,18 +39,16 @@ if (myMSALObj.getAccount()) {
     showWelcomeMessage(myMSALObj.getAccount());
 }
 
-function signIn(method) {
+async function signIn(method) {
     signInType = isIE ? "Redirect" : method;
     if (signInType === "Popup") {
-        myMSALObj.loginPopup(loginRequest)
-            .then(loginResponse => {  
-            console.log(loginResponse);
-            if (myMSALObj.getAccount()) {
-                showWelcomeMessage(myMSALObj.getAccount());
-            }
-        }).catch(function (error) {
+        const loginResponse = await myMSALObj.loginPopup(loginRequest).catch(function (error) {
             console.log(error);
         });
+        console.log(loginResponse);
+        if (myMSALObj.getAccount()) {
+            showWelcomeMessage(myMSALObj.getAccount());
+        }
     } else if (signInType === "Redirect") {
         myMSALObj.loginRedirect(loginRequest)
     }
@@ -60,11 +58,11 @@ function signOut() {
     myMSALObj.logout();
 }
 
-function getTokenPopup(request) {
-    return myMSALObj.acquireTokenSilent(request).catch(error => {
+async function getTokenPopup(request) {
+    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails. acquiring token using popup");
         // fallback to interaction when silent call fails
-        return myMSALObj.acquireTokenPopup(request).then(tokenResponse => {
+        return await myMSALObj.acquireTokenPopup(request).then(tokenResponse => {
             console.log(tokenResponse);
         }).catch(error => {
             console.log(error);
@@ -73,8 +71,8 @@ function getTokenPopup(request) {
 }
 
 // This function can be removed if you do not need to support IE
-function getTokenRedirect(request) {
-    return myMSALObj.acquireTokenSilent(request).then((response) => {
+async function getTokenRedirect(request) {
+    return await myMSALObj.acquireTokenSilent(request).then((response) => {
         console.log(response);
     }).catch(error => {
         console.log("silent token acquisition fails. acquiring token using redirect");
