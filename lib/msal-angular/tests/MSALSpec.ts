@@ -56,7 +56,6 @@ describe('Msal Angular Pubic API tests', function () {
                     useValue: {
                         popUp: false,
                         consentScopes: ["user.read", "mail.send"],
-                        unprotectedResources: ["https://google.com"],
                         protectedResourceMap: [
                             ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
                         ]
