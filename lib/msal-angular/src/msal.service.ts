@@ -16,9 +16,7 @@ import { AuthCache } from "msal/lib-commonjs/cache/AuthCache";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { authResponseCallback, errorReceivedCallback, tokenReceivedCallback } from "msal/lib-commonjs/UserAgentApplication";
 import { UrlUtils } from "msal/lib-commonjs/utils/UrlUtils";
-
-export const MSAL_CONFIG = new InjectionToken<string>("MSAL_CONFIG");
-export const MSAL_CONFIG_ANGULAR = new InjectionToken<string>("MSAL_CONFIG_ANGULAR");
+import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
 const buildMsalConfig = (config: Configuration) : Configuration => {
     return {
