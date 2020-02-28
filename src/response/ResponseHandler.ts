@@ -145,9 +145,9 @@ export class ResponseHandler {
         const responseScopeArray = responseScopes.asArray();
 
         // Expiration calculation
-        const expiresIn = TimeUtils.parseExpiresInSeconds(serverTokenResponse.expires_in);
+        const expiresIn = serverTokenResponse.expires_in;
         const expirationSec = TimeUtils.nowSeconds() + expiresIn;
-        const extendedExpirationSec = expirationSec + TimeUtils.parseExpiresInSeconds(serverTokenResponse.ext_expires_in);
+        const extendedExpirationSec = expirationSec + serverTokenResponse.ext_expires_in;
 
         // Get id token
         if (!StringUtils.isEmpty(originalTokenResponse.idToken)) {
