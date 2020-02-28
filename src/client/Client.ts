@@ -35,7 +35,7 @@ export type ResponseStateInfo = {
  * Parent object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
  *
  */
-export abstract class ClientApplication {
+export abstract class Client {
 
     // Logger object
     public logger: Logger;
