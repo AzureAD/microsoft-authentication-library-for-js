@@ -2,22 +2,22 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ModuleConfiguration, buildModuleConfiguration } from "../config/ModuleConfiguration";
-import { AuthenticationParameters } from "../../request/AuthenticationParameters";
-import { TokenRenewParameters } from "../../request/TokenRenewParameters";
-import { CodeResponse } from "../../response/CodeResponse";
-import { TokenResponse } from "../../response/TokenResponse";
-import { ICacheStorage } from "../../cache/ICacheStorage";
-import { CacheHelpers } from "../../cache/CacheHelpers";
-import { INetworkModule } from "../../network/INetworkModule";
-import { ICrypto } from "../../crypto/ICrypto";
-import { Account } from "../../auth/Account";
-import { Authority } from "../../auth/authority/Authority";
-import { IdToken } from "../../auth/IdToken";
-import { buildClientInfo } from "../../auth/ClientInfo";
-import { StringUtils } from "../../utils/StringUtils";
-import { Logger } from "../../logger/Logger";
-import { PersistentCacheKeys } from "../../utils/Constants";
+import { Configuration, buildConfiguration } from "../config/Configuration";
+import { AuthenticationParameters } from "../request/AuthenticationParameters";
+import { TokenRenewParameters } from "../request/TokenRenewParameters";
+import { CodeResponse } from "../response/CodeResponse";
+import { TokenResponse } from "../response/TokenResponse";
+import { ICacheStorage } from "../cache/ICacheStorage";
+import { CacheHelpers } from "../cache/CacheHelpers";
+import { INetworkModule } from "../network/INetworkModule";
+import { ICrypto } from "../crypto/ICrypto";
+import { Account } from "../auth/Account";
+import { Authority } from "../auth/authority/Authority";
+import { IdToken } from "../auth/IdToken";
+import { buildClientInfo } from "../auth/ClientInfo";
+import { StringUtils } from "../utils/StringUtils";
+import { Logger } from "../logger/Logger";
+import { PersistentCacheKeys } from "../utils/Constants";
 
 /**
  * @hidden
@@ -31,18 +31,18 @@ export type ResponseStateInfo = {
 
 /**
  * AuthModule class
- * 
+ *
  * Parent object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
- * 
+ *
  */
-export abstract class AuthModule {
+export abstract class ClientApplication {
 
     // Logger object
     public logger: Logger;
 
     // Application config
-    private config: ModuleConfiguration;
-    
+    private config: Configuration;
+
     // Crypto Interface
     protected cryptoObj: ICrypto;
 
@@ -61,9 +61,9 @@ export abstract class AuthModule {
     // Default authority object
     protected defaultAuthorityInstance: Authority;
 
-    constructor(configuration: ModuleConfiguration) {
+    constructor(configuration: Configuration) {
         // Set the configuration
-        this.config = buildModuleConfiguration(configuration);
+        this.config = buildConfiguration(configuration);
 
         // Initialize the logger
         this.logger = new Logger(this.config.loggerOptions);
@@ -84,24 +84,24 @@ export abstract class AuthModule {
     // #region Abstract Functions
 
     /**
-     * Creates a url for logging in a user. This will by default append the client id to the list of scopes, 
+     * Creates a url for logging in a user. This will by default append the client id to the list of scopes,
      * allowing you to retrieve an id token in the subsequent code exchange. Also performs validation of the request parameters.
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request 
+     * @param request
      */
     abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
 
     /**
      * Creates a url for logging in a user. Also performs validation of the request parameters.
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request 
+     * @param request
      */
     abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
 
     /**
      * Handles the hash fragment response from public client code request. Returns a code response used by
      * the client to exchange for a token in acquireToken.
-     * @param hashFragment 
+     * @param hashFragment
      */
     abstract handleFragmentResponse(hashFragment: string): CodeResponse;
 
@@ -109,7 +109,7 @@ export abstract class AuthModule {
      * Given an authorization code, it will perform a token exchange using cached values from a previous call to
      * createLoginUrl() or createAcquireTokenUrl(). You must call this AFTER using one of those APIs first. You should
      * also use the handleFragmentResponse() API to pass the codeResponse to this function afterwards.
-     * @param codeResponse 
+     * @param codeResponse
      */
     abstract async acquireToken(codeResponse: CodeResponse): Promise<TokenResponse>;
 
@@ -117,19 +117,19 @@ export abstract class AuthModule {
      * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
      * the given token and returns the renewed token. Will throw an error if login is not completed (unless
      * id tokens are not being renewed).
-     * @param request 
+     * @param request
      */
     abstract async renewToken(request: TokenRenewParameters): Promise<TokenResponse>;
 
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param authorityUri 
+     * @param authorityUri
      */
     abstract async logout(authorityUri?: string): Promise<string>;
 
     // #endregion
-    
+
     // #region Getters and Setters
 
     /**

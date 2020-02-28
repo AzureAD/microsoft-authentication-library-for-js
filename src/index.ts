@@ -1,7 +1,7 @@
 // App Auth Modules and Configuration
-export { AuthorizationCodeModule } from "./app/module/AuthorizationCodeModule";
-export { PublicClientSPAConfiguration, AuthOptions } from "./app/config/PublicClientSPAConfiguration";
-export { SystemOptions, LoggerOptions, TelemetryOptions } from "./app/config/ModuleConfiguration";
+export { AuthorizationCodeModule } from "./client/PublicClientApplication";
+export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientConfiguration";
+export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account
 export { Account } from "./auth/Account";
 // Authority
