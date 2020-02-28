@@ -17,6 +17,7 @@ export class Constants {
 
     static get no_account(): string { return "NO_ACCOUNT"; }
     static get upn(): string { return "upn"; }
+    static get domain_hint(): string { return "domain_hint"; }
 
     static get prompt_select_account(): string { return "&prompt=select_account"; }
     static get prompt_none(): string { return "&prompt=none"; }
@@ -115,13 +116,8 @@ export enum SSOTypes {
     SID = "sid",
     LOGIN_HINT = "login_hint",
     ID_TOKEN ="id_token",
-    DOMAIN_HINT = "domain_hint",
-    ORGANIZATIONS = "organizations",
-    CONSUMERS = "consumers",
     ACCOUNT_ID = "accountIdentifier",
-    HOMEACCOUNT_ID = "homeAccountIdentifier",
-    LOGIN_REQ = "login_req",
-    DOMAIN_REQ = "domain_req"
+    HOMEACCOUNT_ID = "homeAccountIdentifier"
 };
 
 /**
