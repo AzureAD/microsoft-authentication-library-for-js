@@ -19,24 +19,22 @@ function callMSGraph(endpoint, accessToken, callback) {
         .catch(error => console.log(error));
 }
 
-function seeProfile() {
+async function seeProfile() {
     if (myMSALObj.getAccount()) {
-        getTokenPopup(loginRequest).then(response => {
-            callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
-            profileButton.style.display = 'none';
-        }).catch(error => {
+        const response = await getTokenPopup(loginRequest).catch(error => {
             console.log(error);
         });
+        callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
+        profileButton.style.display = 'none';
     }
 }
 
-function readMail() {
+async function readMail() {
     if (myMSALObj.getAccount()) {
-        getTokenPopup(tokenRequest).then(response => {
-            callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);
-            mailButton.style.display = 'none';
-        }).catch(error => {
+        const response = await getTokenPopup(tokenRequest).catch(error => {
             console.log(error);
         });
+        callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);
+        mailButton.style.display = 'none';
     }
 }

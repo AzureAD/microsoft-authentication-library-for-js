@@ -14,14 +14,14 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["openid", "profile", "User.Read"],
+    scopes: ["User.Read"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
-    graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
+    graphMeEndpoint: "Enter_the_Graph_Endpoint_Herev1.0/me",
+    graphMailEndpoint: "Enter_the_Graph_Endpoint_Herev1.0/me/messages"
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
