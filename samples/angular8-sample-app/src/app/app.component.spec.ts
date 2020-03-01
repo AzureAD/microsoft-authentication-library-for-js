@@ -16,7 +16,8 @@ describe('AppComponent', () => {
   mockBroadcastService = jasmine.createSpyObj(['subscribe']);
 
   function getMockLoggedInAccount() {
-    return new Account('mockAccountId', 'mockHomeAccountId', 'mockUserName', 'mockName', { "mockClaimKey": "mockClaimValue",}, 'mockSid', 'mockEnvironment')
+    return new Account('mockAccountId', 'mockHomeAccountId', 'mockUserName',
+    'mockName', { mockClaimKey: 'mockClaimValue' }, 'mockSid', 'mockEnvironment');
   }
 
   beforeEach(async(() => {

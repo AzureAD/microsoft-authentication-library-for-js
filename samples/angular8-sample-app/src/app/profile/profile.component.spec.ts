@@ -9,6 +9,7 @@ describe('ProfileComponent', () => {
   let fixture: ComponentFixture<ProfileComponent>;
   let nativeElement: any;
   let httpTestingController: HttpTestingController;
+  // tslint:disable-next-line: prefer-const
   let mockMsalService: any;
 
   beforeEach(async(() => {
