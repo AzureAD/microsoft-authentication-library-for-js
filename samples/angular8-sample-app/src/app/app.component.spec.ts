@@ -1,35 +1,64 @@
-import { TestBed, async } from '@angular/core/testing';
+import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { BroadcastService, MsalService } from '@azure/msal-angular';
+import { Account } from 'msal';
+import { MatToolbarModule } from '@angular/material';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let nativeElement: any;
+  let mockMsalService: any;
+  let mockBroadcastService: any;
+
+  mockMsalService = jasmine.createSpyObj(['getAccount', 'handleRedirectCallback', 'setLogger']);
+  mockBroadcastService = jasmine.createSpyObj(['subscribe']);
+
+  function getMockLoggedInAccount() {
+    return new Account('mockAccountId', 'mockHomeAccountId', 'mockUserName', 'mockName', { "mockClaimKey": "mockClaimValue",}, 'mockSid', 'mockEnvironment')
+  }
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        RouterTestingModule, MatToolbarModule
       ],
       declarations: [
         AppComponent
       ],
+      providers: [
+        { provide: BroadcastService, useValue: mockBroadcastService },
+        { provide: MsalService, useValue: mockMsalService }
+      ],
     }).compileComponents();
   }));
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    nativeElement = fixture.debugElement.nativeElement;
   });
 
-  it(`should have as title 'angular8-sample-app'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('angular8-sample-app');
+  it('should create the app', () => {
+    expect(component).toBeTruthy();
   });
 
   it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('angular8-sample-app app is running!');
+    expect(nativeElement.querySelector('.title').textContent).toContain('MSAL - Angular 8 Sample App');
   });
+
+  it('should show Login button when user is not logged in', () => {
+    mockMsalService.getAccount.and.returnValue(null);
+    fixture.detectChanges();
+    expect(nativeElement.querySelector('button').textContent).toContain('Login');
+  });
+
+  it('should show Logout button when user is logged in', () => {
+    mockMsalService.getAccount.and.returnValue(getMockLoggedInAccount());
+    fixture.detectChanges();
+    expect(nativeElement.querySelector('button').textContent).toContain('Logout');
+  });
+
 });
