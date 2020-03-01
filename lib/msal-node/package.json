@@ -27,7 +27,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "tsdx test",
+    "test": "tsdx test \"__tests__/**/*.spec.js\" --coverage",
     "lint": "tsdx lint",
     "prepare": "tsdx build"
   },
