@@ -24,12 +24,7 @@ export class AuthorityFactory {
         }
 
         // Depending on above detection, create the right type.
-        if (Object.keys(B2CTrustedHostList).length) {
-            return new B2cAuthority(authorityUrl, validateAuthority);
-        }
-        else {
-            return new AadAuthority(authorityUrl, validateAuthority);
-        }
+        return Object.keys(B2CTrustedHostList).length? new B2cAuthority(authorityUrl, validateAuthority): new AadAuthority(authorityUrl, validateAuthority);
     }
 
 }
