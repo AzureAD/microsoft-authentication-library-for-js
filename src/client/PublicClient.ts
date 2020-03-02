@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Client } from "./Client";
+import { BaseClient } from "./BaseClient";
 import { PublicClientConfiguration, buildPublicClientConfiguration } from "../config/PublicClientConfiguration";
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
@@ -31,7 +31,7 @@ import { UrlString } from "../url/UrlString";
  * Object instance which will construct requests to send to and handle responses
  * from the Microsoft STS using the authorization code flow.
  */
-export class PublicClient extends Client {
+export class PublicClient extends BaseClient {
 
     // Application config
     private clientConfig: PublicClientConfiguration;

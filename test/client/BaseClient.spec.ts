@@ -3,7 +3,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { Client } from "../../src/client/Client";
+import { BaseClient } from "../../src/client/BaseClient";
 import { Configuration } from "../../src/config/Configuration";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { TokenResponse } from "../../src/response/TokenResponse";
@@ -16,7 +16,7 @@ import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
 import { IdToken } from "../../src/auth/IdToken";
 import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
 
-class TestClient extends Client {
+class TestClient extends BaseClient {
 
     constructor(config: Configuration, testAccount: Account) {
         super(config);
@@ -61,7 +61,7 @@ describe("AuthModule.ts Class Unit Tests", () => {
             };
             let client = new TestClient(config, null);
             expect(client).to.be.not.null;
-            expect(client instanceof Client).to.be.true;
+            expect(client instanceof BaseClient).to.be.true;
         });
     });
 
