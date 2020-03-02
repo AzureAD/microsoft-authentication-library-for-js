@@ -48,7 +48,7 @@ describe("UrlUtils.ts class", () => {
 
     it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
         const scopes = ["S1"];
-        const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false, TEST_CONFIG.authorityType);
+        const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
         const req = new ServerRequestParameters(
             authority,

@@ -27,6 +27,7 @@ const NAVIGATE_FRAME_WAIT = 500;
  *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
+ *  - knownAuthorities            - If validateAuthority is set to True, this will be used to set the Trusted Host list. Defaults to empty array
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
  *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
@@ -36,6 +37,7 @@ export type AuthOptions = {
     clientId: string;
     authority?: string;
     validateAuthority?: boolean;
+    knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
@@ -96,17 +98,6 @@ export type FrameworkOptions = {
 };
 
 /**
- * Use this to configure the below authority data configuration options:
- *
- * - authType           - Used to specify the authority type. Valid values are "b2c" and "aad"
- * - knownAuthorities   - If type is set to b2c and validateAuthority is set to True, this will be used to set the Trusted Host list. Defaults to empty array
- */
-export type AuthorityDataOptions = {
-    type?: string;
-    knownAuthorities?: Array<string>;
-};
-
-/**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
  * This object allows you to configure important elements of MSAL functionality:
@@ -119,14 +110,14 @@ export type Configuration = {
     auth: AuthOptions,
     cache?: CacheOptions,
     system?: SystemOptions,
-    framework?: FrameworkOptions,
-    authorityData?: AuthorityDataOptions
+    framework?: FrameworkOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
+    knownAuthorities: [],
     redirectUri: () => UrlUtils.getDefaultRedirectUri(),
     postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
     navigateToLoginRequestUrl: true
@@ -150,11 +141,6 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
     protectedResourceMap: new Map<string, Array<string>>()
 };
 
-const DEFAULT_AUTHORITYDATA_OPTIONS: AuthorityDataOptions = {
-    type: "aad",
-    knownAuthorities: []
-};
-
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
@@ -167,13 +153,12 @@ const DEFAULT_AUTHORITYDATA_OPTIONS: AuthorityDataOptions = {
  * @returns TConfiguration object
  */
 
-export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}, authorityData = {}}: Configuration): Configuration {
+export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework },
-        authorityData: { ...DEFAULT_AUTHORITYDATA_OPTIONS, ...authorityData}
+        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
     };
     return overlayedConfig;
 }

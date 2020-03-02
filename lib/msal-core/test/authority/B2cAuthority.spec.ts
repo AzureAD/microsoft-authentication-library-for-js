@@ -20,8 +20,13 @@ describe("B2cAuthority.ts Class", function () {
 
         expect(endpoint).to.include("/v2.0/.well-known/openid-configuration");
     });
-
+    
     it("throws error when authority not in trusted host list", async function () {
+        for (var host in B2CTrustedHostList) {
+            delete B2CTrustedHostList[host];
+        };
+        B2CTrustedHostList["fake.b2clogin.com"] = "fake.b2clogin.com";
+
         const authority = new B2cAuthority(B2C_TEST_CONFIG.validAuthority, true);
 
         let err:ClientConfigurationError;

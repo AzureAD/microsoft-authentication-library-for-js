@@ -9,8 +9,8 @@
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority } from "./Authority";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
+import { B2CTrustedHostList } from "../utils/Constants";
 
 export class AuthorityFactory {
 
@@ -18,19 +18,17 @@ export class AuthorityFactory {
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityType: string): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
 
         // Depending on above detection, create the right type.
-        switch (authorityType.toLowerCase()) {
-            case "b2c":
-                return new B2cAuthority(authorityUrl, validateAuthority);
-            case "aad":
-                return new AadAuthority(authorityUrl, validateAuthority);
-            default:
-                throw ClientConfigurationError.createInvalidAuthorityTypeError();
+        if (Object.keys(B2CTrustedHostList).length) {
+            return new B2cAuthority(authorityUrl, validateAuthority);
+        }
+        else {
+            return new AadAuthority(authorityUrl, validateAuthority);
         }
     }
 
