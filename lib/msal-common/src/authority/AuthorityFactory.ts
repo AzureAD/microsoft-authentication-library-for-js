@@ -5,11 +5,11 @@
 import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
 import { AuthorityType } from "./AuthorityType";
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
-import { ClientAuthError } from "../../error/ClientAuthError";
-import { INetworkModule } from "../../network/INetworkModule";
-import { StringUtils } from "../../utils/StringUtils";
-import { UrlString } from "../../url/UrlString";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientAuthError } from "./../error/ClientAuthError";
+import { INetworkModule } from "./../network/INetworkModule";
+import { StringUtils } from "./../utils/StringUtils";
+import { UrlString } from "./../url/UrlString";
 
 export class AuthorityFactory {
 

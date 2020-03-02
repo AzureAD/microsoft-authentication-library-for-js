@@ -17,9 +17,9 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
-import { AuthorityFactory } from "../auth/authority/AuthorityFactory";
-import { IdToken } from "../auth/IdToken";
-import { ScopeSet } from "../auth/ScopeSet";
+import { AuthorityFactory } from "../authority/AuthorityFactory";
+import { IdToken } from "../account/IdToken";
+import { ScopeSet } from "../request/ScopeSet";
 import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../utils/Constants";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";

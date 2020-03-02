@@ -5,8 +5,8 @@
 import { Authority } from "./Authority";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { AuthorityType } from "./AuthorityType";
-import { AADTrustedHostList, Constants } from "../../utils/Constants";
-import { INetworkModule } from "../../network/INetworkModule";
+import { AADTrustedHostList, Constants } from "./../utils/Constants";
+import { INetworkModule } from "./../network/INetworkModule";
 
 /**
  * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
