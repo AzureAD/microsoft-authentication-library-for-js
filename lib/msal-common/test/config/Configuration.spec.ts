@@ -9,9 +9,9 @@ import { LogLevel } from "../../src/logger/Logger";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe("ModuleConfiguration.ts Class Unit Tests", () => {
+describe("Configuration.ts Class Unit Tests", () => {
 
-    it("buildModuleConfiguration assigns default functions", async () => {
+    it("buildConfiguration assigns default functions", async () => {
         let emptyConfig: Configuration = buildConfiguration({});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;

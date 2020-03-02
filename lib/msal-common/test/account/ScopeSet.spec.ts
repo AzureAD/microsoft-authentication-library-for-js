@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import { ScopeSet } from "../../src/auth/ScopeSet";
+import { ScopeSet } from "../../src/request/ScopeSet";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
 
 describe("ScopeSet.ts", () => {
-    
+
     describe("Constructor and scope validation", () => {
 
         it("Throws error if scopes are null or empty and required", () => {
@@ -195,16 +195,16 @@ describe("ScopeSet.ts", () => {
             const newScopeArr = nonRequiredScopeSet.asArray();
             expect(newScopeArr).to.be.deep.eq(scopeArr);
         });
-        
+
         it("appendScope() does nothing if given scope is empty, null or undefined", () => {
             const setAddSpy = sinon.spy(Set.prototype, "add");
-            
+
             expect(() => nonRequiredScopeSet.appendScope("")).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
             expect(setAddSpy.called).to.be.false;
 
             expect(() => nonRequiredScopeSet.appendScope(null)).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
             expect(setAddSpy.called).to.be.false;
-            
+
             expect(() => nonRequiredScopeSet.appendScope(undefined)).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
             expect(setAddSpy.called).to.be.false;
         });
@@ -213,13 +213,13 @@ describe("ScopeSet.ts", () => {
             const setUnionSpy = sinon.spy(ScopeSet.prototype, "unionScopeSets");
             expect(() => requiredScopeSet.appendScopes(null)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
             expect(setUnionSpy.called).to.be.false;
-            
+
             expect(() => requiredScopeSet.appendScopes(undefined)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
             expect(setUnionSpy.called).to.be.false;
 
             expect(() => requiredScopeSet.appendScopes([])).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
             expect(setUnionSpy.called).to.be.false;
-            
+
             expect(() => nonRequiredScopeSet.appendScopes(null)).to.throw(ClientAuthErrorMessage.appendScopeSetError.desc);
             expect(setUnionSpy.called).to.be.false;
 
@@ -283,7 +283,7 @@ describe("ScopeSet.ts", () => {
             const testScope3 = "testScope3";
             const newScopeSet = new ScopeSet([testScope2, testScope3], TEST_CONFIG.MSAL_CLIENT_ID, true);
             newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
-            
+
             const unionSet = newScopeSet.unionScopeSets(requiredScopeSet);
             const unionArray = Array.from(unionSet);
             expect(unionSet instanceof Set).to.be.true;
@@ -350,7 +350,7 @@ describe("ScopeSet.ts", () => {
         afterEach(() => {
             sinon.restore();
         });
-        
+
         it("asArray() returns ScopeSet as an array", () => {
             const scopeArr = nonRequiredScopeSet.asArray();
             expect(Array.isArray(scopeArr)).to.be.true;
