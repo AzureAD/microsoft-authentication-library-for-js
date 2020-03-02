@@ -32,20 +32,6 @@ export class RedirectHandler extends InteractionHandler {
         return window;
     }
 
-    navigateToRequestUrl(): void {
-        if (window.parent === window) {
-            const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
-
-            // Redirect to home page if login request url is null (real null or the string null)
-            if (!loginRequestUrl || loginRequestUrl === "null") {
-                this.authModule.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                window.location.href = "/";
-            } else {
-                window.location.href = loginRequestUrl;
-            }
-        }
-    }
-
     /**
      * Handle authorization code response in the window.
      * @param hash 

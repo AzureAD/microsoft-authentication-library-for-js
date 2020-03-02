@@ -48,6 +48,10 @@ export const BrowserAuthErrorMessage = {
         code: "popup_window_timeout",
         desc: "Popup window token acquisition operation failed due to timeout."
     },
+    redirectInIframeError: {
+        code: "redirect_in_iframe",
+        desc: "Code flow is not supported inside an iframe. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
+    }
 };
 
 /**
@@ -83,7 +87,7 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code, 
+        return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code,
             `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`);
     }
 
@@ -137,12 +141,21 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the 
+     * Creates an error thrown when monitorWindowFromHash times out for a given popup.
      * @param urlNavigate 
      */
     static createPopupWindowTimeoutError(urlNavigate: string): BrowserAuthError {
         const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.popupWindowTimeoutError.desc}`;
         return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowTimeoutError.code,
             errorMessage);
+    }
+
+    /**
+     * Creates an error thrown when navigateWindow is called inside an iframe.
+     * @param windowParentCheck 
+     */
+    static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.redirectInIframeError.code, 
+            `${BrowserAuthErrorMessage.redirectInIframeError.desc} (window.parent !== window) => ${windowParentCheck}`);
     }
 }
