@@ -1,4 +1,0 @@
-{
-    "require": ["./test/mochaSetup.js", "@babel/polyfill"],
-    "spec":  ["./test/**/*.spec.ts"]
-}
