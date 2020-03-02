@@ -4,6 +4,7 @@
  */
 import { AuthError } from "./AuthError";
 import { IdToken } from "../auth/IdToken";
+import { ScopeSet } from "../auth/ScopeSet";
 
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
@@ -82,6 +83,22 @@ export const ClientAuthErrorMessage = {
         code: "request_cannot_be_made",
         desc: "Token request cannot be made without authorization code or refresh token."
     },
+    appendEmptyScopeError: {
+        code: "cannot_append_empty_scope",
+        desc: "Cannot append null or empty scope to ScopeSet. Please check the stack trace for more info."
+    },
+    removeEmptyScopeError: {
+        code: "cannot_remove_empty_scope",
+        desc: "Cannot remove null or empty scope from ScopeSet. Please check the stack trace for more info."
+    },
+    appendScopeSetError: {
+        code: "cannot_append_scopeset",
+        desc: "Cannot append ScopeSet due to error."
+    },
+    emptyInputScopeSetError: {
+        code: "empty_input_scopeset",
+        desc: "Empty input ScopeSet cannot be processed."
+    }
 };
 
 /**
@@ -238,5 +255,37 @@ export class ClientAuthError extends AuthError {
      */
     static createTokenRequestCannotBeMadeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCannotBeMade.code, ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+    }
+
+    /**
+     * Throws error when attempting to append a null, undefined or empty scope to a set
+     * @param givenScope 
+     */
+    static createAppendEmptyScopeToSetError(givenScope: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.appendEmptyScopeError.code, `${ClientAuthErrorMessage.appendEmptyScopeError.desc} Given Scope: ${givenScope}`);
+    }
+
+    /**
+     * Throws error when attempting to append a null, undefined or empty scope to a set
+     * @param givenScope 
+     */
+    static createRemoveEmptyScopeFromSetError(givenScope: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.removeEmptyScopeError.code, `${ClientAuthErrorMessage.removeEmptyScopeError.desc} Given Scope: ${givenScope}`);
+    }
+
+    /**
+     * Throws error when attempting to append null or empty ScopeSet.
+     * @param appendError 
+     */
+    static createAppendScopeSetError(appendError: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.appendScopeSetError.code, `${ClientAuthErrorMessage.appendScopeSetError.desc} Detail Error: ${appendError}`);
+    }
+
+    /**
+     * Throws error if ScopeSet is null or undefined.
+     * @param givenScopeSet 
+     */
+    static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
     }
 }

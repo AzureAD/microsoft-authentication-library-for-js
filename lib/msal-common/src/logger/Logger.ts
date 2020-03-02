@@ -53,6 +53,7 @@ export class Logger {
         if (loggerOptions) {
             this.localCallback = loggerOptions.loggerCallback;
             this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
+            this.level = loggerOptions.logLevel;
         }
     }
 
@@ -170,6 +171,6 @@ export class Logger {
      * Returns whether PII Logging is enabled or not.
      */
     isPiiLoggingEnabled(): boolean {
-        return this.piiLoggingEnabled;
+        return this.piiLoggingEnabled || false;
     }
 }

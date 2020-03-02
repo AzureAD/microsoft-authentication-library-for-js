@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerError } from "../error/ServerError";
 
 /**
  * Deserialized response object from server authorization code request.
@@ -39,15 +38,3 @@ export type ServerAuthorizationTokenResponse = {
     trace_id?: string;
     correlation_id?: string;
 };
-
-/**
- * Function which validates server authorization token response.
- * @param serverResponse 
- */
-export function validateServerAuthorizationTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
-    // Check for error
-    if (serverResponse.error || serverResponse.error_description) {
-        const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-        throw new ServerError(serverResponse.error, errString);
-    }
-}

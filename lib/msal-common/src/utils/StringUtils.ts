@@ -68,4 +68,14 @@ export class StringUtils {
     static trimAndConvertArrayEntriesToLowerCase(arr: Array<string>): Array<string> {
         return arr.map(entry => entry.trim().toLowerCase());
     }
+
+    /**
+     * Removes empty strings from array
+     * @param arr 
+     */
+    static removeEmptyStringsFromArray(arr: Array<string>): Array<string> {
+        return arr.filter(entry => {
+            return !StringUtils.isEmpty(entry);
+        });
+    }
 }

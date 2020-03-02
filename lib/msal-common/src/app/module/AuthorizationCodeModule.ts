@@ -13,7 +13,7 @@ import { CodeResponse } from "../../response/CodeResponse";
 import { TokenResponse } from "../../response/TokenResponse";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
-import { ServerAuthorizationTokenResponse, validateServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
@@ -204,7 +204,7 @@ export class AuthorizationCodeModule extends AuthModule {
 
             // Get account object for this request.
             const account = request.account || this.getAccount();
-            const requestScopes = new ScopeSet(request.scopes, this.clientConfig.auth.clientId, true);
+            const requestScopes = new ScopeSet(request.scopes || [], this.clientConfig.auth.clientId, true);
             // If this is an id token renewal, and no account is present, throw an error.
             if (requestScopes.isLoginScopeSet()) {
                 if (!account) {
@@ -411,10 +411,11 @@ export class AuthorizationCodeModule extends AuthModule {
             }
         );
 
-        // Validate response. This function throws a server error if an error is returned by the server.
-        validateServerAuthorizationTokenResponse(acquiredTokenResponse);
-        // Create response handler and return token response with given parameters
+        // Create response handler
         const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        // Validate response. This function throws a server error if an error is returned by the server.
+        responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse);
+        // Return token response with given parameters
         const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;

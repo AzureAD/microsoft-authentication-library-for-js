@@ -114,7 +114,6 @@ export class CacheHelpers {
         this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
         this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
         this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
-        this.cacheStorage.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
     }
 
     /**
@@ -130,8 +129,10 @@ export class CacheHelpers {
                 if (value) {
                     try {
                         const parseAtKey = JSON.parse(key) as AccessTokenKey;
-                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
-                        return tokens.concat([ newAccessTokenCacheItem ]);
+                        if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, resource, homeAccountIdentifier)) {
+                            const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
+                            return tokens.concat([ newAccessTokenCacheItem ]);
+                        }
                     } catch (e) {
                         throw ClientAuthError.createCacheParseError(key);
                     }
@@ -152,8 +153,24 @@ export class CacheHelpers {
         this.cacheStorage.getKeys().forEach((key) => {
             const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
             if (keyMatches) {
-                this.cacheStorage.removeItem(key);
+                try {
+                    const parseAtKey = JSON.parse(key) as AccessTokenKey;
+                    if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, resource, homeAccountIdentifier)) {
+                        this.cacheStorage.removeItem(key);
+                    }
+                } catch (e) {
+                    throw ClientAuthError.createCacheParseError(key);
+                }
             }
         });
+    }
+
+    private checkForExactKeyMatch(atKey: AccessTokenKey, clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): boolean {
+        const hasClientId = (atKey.clientId === clientId);
+        const hasAuthorityUri = (atKey.authority === authority);
+        const hasResourceUri = !StringUtils.isEmpty(resource) ? (atKey.resource === resource) : true;
+        const hasHomeAccountId = !StringUtils.isEmpty(homeAccountIdentifier) ? (atKey.homeAccountIdentifier === homeAccountIdentifier) : true;
+
+        return hasClientId && hasAuthorityUri && hasResourceUri && hasHomeAccountId;
     }
 }

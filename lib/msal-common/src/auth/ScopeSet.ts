@@ -5,6 +5,7 @@
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -23,9 +24,11 @@ export class ScopeSet {
     constructor(inputScopes: Array<string>, appClientId: string, scopesRequired: boolean) {
         this.clientId = appClientId;
         this.scopesRequired = scopesRequired;
+        // Filter empty string and null/undefined array items
+        const filteredInput = inputScopes ? StringUtils.removeEmptyStringsFromArray(inputScopes) : inputScopes;
         // Validate and filter scopes (validate function throws if validation fails)
-        this.validateInputScopes(inputScopes);
-        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
+        this.validateInputScopes(filteredInput);
+        const scopeArr = filteredInput ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...filteredInput]) : [];
         this.scopes = new Set<string>(scopeArr);
         if (!this.scopesRequired) {
             this.appendScope(this.clientId);
@@ -35,12 +38,13 @@ export class ScopeSet {
     }
 
     /**
-     * Factory method to create ScopeSet from string
+     * Factory method to create ScopeSet from space-delimited string
      * @param inputScopeString 
      * @param appClientId 
      * @param scopesRequired 
      */
     static fromString(inputScopeString: string, appClientId: string, scopesRequired: boolean): ScopeSet {
+        inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
         return new ScopeSet(inputScopes, appClientId, scopesRequired);
     }
@@ -64,19 +68,14 @@ export class ScopeSet {
      */
     private validateInputScopes(inputScopes: Array<string>): void {
         if (this.scopesRequired) {
-            // Scopes are required but not given
-            if (!inputScopes) {
-                throw ClientConfigurationError.createScopesRequiredError(inputScopes);
-            }
-
-            // Check that scopes is not an empty array
-            if (inputScopes.length < 1) {
+            // Check if scopes are required but not given or is an empty array
+            if (!inputScopes || inputScopes.length < 1) {
                 throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
             }
         }
 
         // Check that scopes is an array object
-        if (inputScopes && !Array.isArray(inputScopes)) {
+        if (!Array.isArray(inputScopes)) {
             throw ClientConfigurationError.createScopesNonArrayError(inputScopes);
         }
     }
@@ -86,7 +85,7 @@ export class ScopeSet {
      * @param scope 
      */
     containsScope(scope: string): boolean {
-        return this.scopes.has(scope);
+        return !StringUtils.isEmpty(scope) ? this.scopes.has(scope) : false;
     }
 
     /**
@@ -94,6 +93,9 @@ export class ScopeSet {
      * @param scopeSet 
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
+        if (!scopeSet) {
+            return false;
+        }
         return this.scopes.size >= scopeSet.scopes.size && scopeSet.asArray().every(scope => this.containsScope(scope));
     }
 
@@ -102,7 +104,10 @@ export class ScopeSet {
      * @param newScope 
      */
     appendScope(newScope: string): void {
-        this.scopes.add(newScope);
+        if (StringUtils.isEmpty(newScope)) {
+            throw ClientAuthError.createAppendEmptyScopeToSetError(newScope);
+        }
+        this.scopes.add(newScope.trim().toLowerCase());
     }
 
     /**
@@ -110,8 +115,12 @@ export class ScopeSet {
      * @param newScopes 
      */
     appendScopes(newScopes: Array<string>): void {
-        const newScopeSet = new ScopeSet(newScopes, this.clientId, false);
-        this.scopes = this.unionScopeSets(newScopeSet);
+        try {
+            const newScopeSet = new ScopeSet(newScopes, this.clientId, this.scopesRequired);
+            this.scopes = this.unionScopeSets(newScopeSet);
+        } catch (e) {
+            throw ClientAuthError.createAppendScopeSetError(e);
+        }
     }
 
     /**
@@ -119,14 +128,20 @@ export class ScopeSet {
      * @param scope 
      */
     removeScope(scope: string): void {
-        this.scopes.delete(scope);
+        if (StringUtils.isEmpty(scope)) {
+            throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
+        }
+        this.scopes.delete(scope.trim().toLowerCase());
     }
-    
+
     /**
      * Combines an array of scopes with the current set of scopes.
      * @param otherScopes 
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
+        if (!otherScopes) {
+            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
+        }
         return new Set<string>([...otherScopes.asArray(), ...Array.from(this.scopes)]);
     }
 
@@ -135,6 +150,9 @@ export class ScopeSet {
      * @param otherScopes 
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
+        if (!otherScopes) {
+            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
+        }
         return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.getScopeCount());
     }
 

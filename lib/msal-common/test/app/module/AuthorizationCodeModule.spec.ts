@@ -285,7 +285,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
         it("Throws error if no scopes are passed to createAcquireTokenUrl", async () => {
             const emptyRequest: AuthenticationParameters = {};
-            await expect(authModule.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.scopesRequiredError.desc);
+            await expect(authModule.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
 
         it("Throws error if empty scopes are passed to createAcquireTokenUrl", async () => {
@@ -636,7 +636,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 });
 
                 it("Throws error if scopes are not included in request object", async () => {
-                    await expect(authModule.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.scopesRequiredError.desc);
+                    await expect(authModule.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
@@ -791,7 +791,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     authModule = new AuthorizationCodeModule(defaultAuthConfig);
                     const idTokenClaims = {
                         "ver": "2.0",
-                        "iss": `${TEST_URIS.ALTERNATE_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                        "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                         "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
                         "exp": "1536361411",
                         "name": "Abe Lincoln",
@@ -801,7 +801,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         "nonce": "123523",
                     };
                     sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-                    const testScopes = ["scope1", "openid", "profile", "offline_access"];
+                    const testScopes = ["scope1", "openid", "profile"];
                     const accessTokenKey1: AccessTokenKey = {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                         scopes: testScopes.join(" "),
@@ -822,20 +822,26 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
                     sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                     const tokenRequest: TokenRenewParameters = {
-                        scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+                        scopes: [testScopes[0]]
                     };
                     const tokenResponse = await authModule.renewToken(tokenRequest);
-                    // expect(tokenResponse.uniqueId).to.be.empty;
-                    // expect(tokenResponse.tenantId).to.be.empty;
-                    // expect(tokenResponse.scopes).to.be.deep.eq([testScopes]);
-                    // expect(tokenResponse.tokenType).to.be.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
-                    // expect(tokenResponse.idToken).to.be.empty;
-                    // expect(tokenResponse.idTokenClaims).to.be.null;
-                    // expect(tokenResponse.accessToken).to.be.eq(TEST_TOKENS.ACCESS_TOKEN);
-                    // expect(tokenResponse.refreshToken).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
-                    // expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
-                    // expect(tokenResponse.account).to.be.null;
-                    // expect(tokenResponse.userRequestState).to.be.empty;
+
+                    // Build Test account
+                    const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
+                    const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
+                    const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
+                    testScopes.push(Constants.OFFLINE_ACCESS_SCOPE)
+                    expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
+                    expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
+                    expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
+                    expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
+                    expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
+                    expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESS_TOKEN);
+                    expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
+                    expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
+                    expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
+                    expect(tokenResponse.scopes).to.be.deep.eq(testScopes);
+                    expect(tokenResponse.userRequestState).to.be.empty;
                 });
             });
         });

@@ -52,7 +52,6 @@ export enum TemporaryCacheKeys {
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
-    REDIRECT_REQUEST = "redirect.request",
     SCOPES = "scopes"
 };
 
@@ -144,7 +143,7 @@ export enum IdTokenClaimName {
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
  * internal partners too, hence the choice of generic "string" type instead of the "enum"
  */
-export const PromptState = {
+export const PromptValue = {
     LOGIN: "login",
     SELECT_ACCOUNT: "select_account",
     CONSENT: "consent",

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerRequestParameters } from "./ServerRequestParameters";
+import pkg from "../../package.json";
 import { ScopeSet } from "../auth/ScopeSet";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { CodeResponse } from "../response/CodeResponse";
@@ -14,23 +14,45 @@ import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants"
 /**
  * This class extends the ServerRequestParameters class. This class validates token request parameters and generates a form body and headers required for the request.
  */
-export class ServerTokenRequestParameters extends ServerRequestParameters {
+export class ServerTokenRequestParameters {
+
+    // Crypto functions
+    private cryptoObj: ICrypto;
+
+    // Telemetry Info
+    xClientVer: string;
+    xClientSku: string;
+    correlationId: string;
 
     // Params
+    clientId: string;
+    scopes: ScopeSet;
+    redirectUri: string;
     clientSecret: string;
     tokenRequest: TokenExchangeParameters;
     codeResponse: CodeResponse;
     refreshToken: string;
 
     constructor(clientId: string, clientSecret: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
-        super(clientId, redirectUri, cryptoImpl);
+        this.clientId = clientId;
+        this.cryptoObj = cryptoImpl;
+        this.redirectUri = redirectUri;
+
+        // Telemetry Info
+        this.xClientSku = Constants.LIBRARY_NAME;
+        this.xClientVer = pkg.version;
+
         this.clientSecret = clientSecret;
         this.tokenRequest = tokenRequest;
         this.codeResponse = codeResponse;
         this.refreshToken = refreshToken;
 
         // Set scopes, always required for token request/exchange
-        this.scopes = new ScopeSet(this.tokenRequest && this.tokenRequest.scopes, this.clientId, true);
+        this.scopes = new ScopeSet(
+            (this.tokenRequest && this.tokenRequest.scopes) || [], 
+            this.clientId, 
+            true
+        );
 
         // Set correlation id
         this.correlationId = this.tokenRequest.correlationId || this.cryptoObj.createNewGuid();
