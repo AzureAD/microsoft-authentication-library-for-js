@@ -48,10 +48,10 @@ class TestClient extends BaseClient {
     }
 }
 
-describe("AuthModule.ts Class Unit Tests", () => {
+describe("BaseClient.ts Class Unit Tests", () => {
     describe("Constructor", () => {
 
-        it("Creates a valid AuthModule object", () => {
+        it("Creates a valid BaseClient object", () => {
             let config: Configuration = {
                 systemOptions: null,
                 cryptoInterface: null,
