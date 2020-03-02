@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import pkg from "../../package.json";
-import { ScopeSet } from "../auth/ScopeSet";
+import { ScopeSet } from "../request/ScopeSet";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { CodeResponse } from "../response/CodeResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -49,8 +49,8 @@ export class ServerTokenRequestParameters {
 
         // Set scopes, always required for token request/exchange
         this.scopes = new ScopeSet(
-            (this.tokenRequest && this.tokenRequest.scopes) || [], 
-            this.clientId, 
+            (this.tokenRequest && this.tokenRequest.scopes) || [],
+            this.clientId,
             true
         );
 

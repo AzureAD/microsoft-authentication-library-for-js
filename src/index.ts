@@ -3,10 +3,10 @@ export { PublicClient } from "./client/PublicClient";
 export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientConfiguration";
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account
-export { Account } from "./auth/Account";
+export { Account } from "./account/Account";
 // Authority
-export { Authority } from "./auth/authority/Authority";
-export { AuthorityFactory } from "./auth/authority/AuthorityFactory";
+export { Authority } from "./authority/Authority";
+export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 // Network Interface
