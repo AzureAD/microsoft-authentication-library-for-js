@@ -5,7 +5,7 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { PublicClient } from "../../src/client/PublicClient";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
-import { Client } from "../../src/client/Client";
+import { BaseClient } from "../../src/client/BaseClient";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import sinon from "sinon";
@@ -105,7 +105,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             const client = new PublicClient(defaultAuthConfig);
             expect(client).to.be.not.null;
             expect(client instanceof PublicClient).to.be.true;
-            expect(client instanceof Client).to.be.true;
+            expect(client instanceof BaseClient).to.be.true;
         });
     });
 
