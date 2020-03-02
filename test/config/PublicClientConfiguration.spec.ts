@@ -9,9 +9,9 @@ import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 
-describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
+describe("PublicClientConfiguration.ts Class Unit Tests", () => {
 
-    it("buildPublicClientSPAConfiguration assigns default functions", async () => {
+    it("buildPublicClientConfiguration assigns default functions", async () => {
         let emptyConfig: PublicClientConfiguration = buildPublicClientConfiguration({auth: null});
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;

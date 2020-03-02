@@ -1,14 +1,14 @@
 import { expect } from "chai";
-import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
-import { Account } from "../../src/auth/Account";
+import { Account } from "../../src/account/Account";
 import sinon from "sinon";
-import { IdToken } from "../../src/auth/IdToken";
+import { IdToken } from "../../src/account/IdToken";
 import { ICrypto, PkceCodes } from "../../src";
-import { buildClientInfo } from "../../src/auth/ClientInfo";
+import { buildClientInfo } from "../../src/account/ClientInfo";
 
 describe("Account.ts Class Unit Tests", () => {
-    
+
     describe("Constructor", () => {
 
         it("creates an account with given parameters", () => {
@@ -75,7 +75,7 @@ describe("Account.ts Class Unit Tests", () => {
         afterEach(() => {
             sinon.restore();
         });
-        
+
         it("Returns a valid account with given idToken and client info object", () => {
             const idTokenClaims: IdTokenClaims = {
                 "ver": "2.0",
@@ -141,7 +141,7 @@ describe("Account.ts Class Unit Tests", () => {
             const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
             const clientInfo1 = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
             const clientInfo2 = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
-            
+
             clientInfo1.uid = "";
             clientInfo2.utid = "";
 
@@ -237,7 +237,7 @@ describe("Account.ts Class Unit Tests", () => {
             const clientInfo1 = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
             const clientInfo2 = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
             const clientInfo3 = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
-            
+
             clientInfo1.uid = "";
             clientInfo2.utid = "";
 

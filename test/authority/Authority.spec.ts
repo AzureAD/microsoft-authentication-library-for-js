@@ -1,18 +1,18 @@
 import { expect } from "chai";
-import { Authority } from "../../../src/auth/authority/Authority";
-import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { Constants } from "../../../src/utils/Constants";
-import { AuthorityType } from "../../../src/auth/authority/AuthorityType";
-import { DEFAULT_TENANT_DISCOVERY_RESPONSE, TEST_URIS, RANDOM_TEST_GUID, TEST_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../../utils/StringConstants";
-import { ClientConfigurationErrorMessage } from "../../../src/error/ClientConfigurationError";
 import sinon from "sinon";
-import { ClientAuthErrorMessage } from "../../../src";
+import { Authority } from "../../src/authority/Authority";
+import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { Constants } from "../../src/utils/Constants";
+import { AuthorityType } from "../../src/authority/AuthorityType";
+import { DEFAULT_TENANT_DISCOVERY_RESPONSE, TEST_URIS, RANDOM_TEST_GUID, TEST_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientAuthErrorMessage } from "../../src";
 
 class TestAuthority extends Authority {
     public get authorityType(): AuthorityType {
         return null;
-    }    
-    
+    }
+
     public async getOpenIdConfigurationEndpointAsync(): Promise<string> {
         return DEFAULT_TENANT_DISCOVERY_RESPONSE.tenant_discovery_endpoint;
     }
@@ -65,7 +65,7 @@ describe("Authority.ts Class Unit Tests", () => {
         beforeEach(() => {
             authority = new TestAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
         });
-        
+
         it("Gets canonical authority that ends in '/'", () => {
             expect(authority.canonicalAuthority.endsWith("/")).to.be.true;
             expect(authority.canonicalAuthority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -75,7 +75,7 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(() => authority.canonicalAuthority = `http://login.microsoftonline.com/common`).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
             expect(() => authority.canonicalAuthority = `https://login.microsoftonline.com/`).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
             expect(() => authority.canonicalAuthority = "This is not a URI").to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
-            
+
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`
             expect(authority.canonicalAuthority.endsWith("/")).to.be.true;
             expect(authority.canonicalAuthority).to.be.eq(`${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}/`);
@@ -105,7 +105,7 @@ describe("Authority.ts Class Unit Tests", () => {
             afterEach(() => {
                 sinon.restore();
             });
-            
+
             it ("Returns authorization_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             });
@@ -146,7 +146,7 @@ describe("Authority.ts Class Unit Tests", () => {
         beforeEach(() => {
             authority = new TestAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
         });
-        
+
         it("discoveryComplete returns false if endpoint discovery has not been completed", () => {
             expect(authority.discoveryComplete()).to.be.false;
         });
@@ -156,7 +156,7 @@ describe("Authority.ts Class Unit Tests", () => {
             await authority.resolveEndpointsAsync();
             expect(authority.discoveryComplete()).to.be.true;
             sinon.restore();
-        }); 
+        });
 
         it("resolveEndpoints returns the openIdConfigurationEndpoint and then obtains the tenant discovery response from that endpoint", async () => {
             networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
