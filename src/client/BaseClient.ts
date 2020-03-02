@@ -30,7 +30,7 @@ export type ResponseStateInfo = {
 };
 
 /**
- * AuthModule class
+ * BaseClient class
  *
  * Parent object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
  *
