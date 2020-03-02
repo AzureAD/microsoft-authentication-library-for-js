@@ -3,32 +3,32 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { AuthorizationCodeModule } from "../../../src/app/module/AuthorizationCodeModule";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../../utils/StringConstants";
-import { AuthModule } from "../../../src/app/module/AuthModule";
-import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
-import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src/error/ClientConfigurationError";
+import { PublicClient } from "../../src/client/PublicClient";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
+import { Client } from "../../src/client/Client";
+import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import sinon from "sinon";
-import { AADServerParamKeys, TemporaryCacheKeys, PersistentCacheKeys, Constants } from "../../../src/utils/Constants";
-import { ServerCodeRequestParameters } from "../../../src/server/ServerCodeRequestParameters";
-import { IdTokenClaims } from "../../../src/auth/IdTokenClaims";
-import { IdToken } from "../../../src/auth/IdToken";
-import { LogLevel } from "../../../src/logger/Logger";
-import { PublicClientSPAConfiguration } from "../../../src/app/config/PublicClientSPAConfiguration";
-import { NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { Authority } from "../../../src/auth/authority/Authority";
-import { PkceCodes } from "../../../src/crypto/ICrypto";
-import { TokenExchangeParameters } from "../../../src/request/TokenExchangeParameters";
-import { ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
-import { AuthError } from "../../../src/error/AuthError";
-import { CodeResponse } from "../../../src/response/CodeResponse";
-import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "../../../src";
-import { buildClientInfo } from "../../../src/auth/ClientInfo";
-import { TimeUtils } from "../../../src/utils/TimeUtils";
-import { AccessTokenKey } from "../../../src/cache/AccessTokenKey";
-import { AccessTokenValue } from "../../../src/cache/AccessTokenValue";
+import { AADServerParamKeys, TemporaryCacheKeys, PersistentCacheKeys, Constants } from "../../src/utils/Constants";
+import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
+import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
+import { IdToken } from "../../src/auth/IdToken";
+import { LogLevel } from "../../src/logger/Logger";
+import { PublicClientConfiguration } from "../../src/config/PublicClientConfiguration";
+import { NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { Authority } from "../../src/auth/authority/Authority";
+import { PkceCodes } from "../../src/crypto/ICrypto";
+import { TokenExchangeParameters } from "../../src/request/TokenExchangeParameters";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { AuthError } from "../../src/error/AuthError";
+import { CodeResponse } from "../../src/response/CodeResponse";
+import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "../../src";
+import { buildClientInfo } from "../../src/auth/ClientInfo";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
+import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 
-describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
+describe("PublicClient.ts Class Unit Tests", () => {
 
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -37,7 +37,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     }
 
     let store = {};
-    let defaultAuthConfig: PublicClientSPAConfiguration;
+    let defaultAuthConfig: PublicClientConfiguration;
 
     beforeEach(() => {
         defaultAuthConfig = {
@@ -101,30 +101,30 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
     describe("Constructor", () => {
 
-        it("creates an AuthorizationCodeModule that extends the AuthModule", () => {
-            const authModule = new AuthorizationCodeModule(defaultAuthConfig);
-            expect(authModule).to.be.not.null;
-            expect(authModule instanceof AuthorizationCodeModule).to.be.true;
-            expect(authModule instanceof AuthModule).to.be.true;
+        it("creates an PublicClient that extends the Client", () => {
+            const client = new PublicClient(defaultAuthConfig);
+            expect(client).to.be.not.null;
+            expect(client instanceof PublicClient).to.be.true;
+            expect(client instanceof Client).to.be.true;
         });
     });
 
     describe("Login Url Creation", () => {
 
-        let authModule: AuthorizationCodeModule;
+        let Client: PublicClient;
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            Client = new PublicClient(defaultAuthConfig);
         });
 
         afterEach(() => {
             sinon.restore();
             store = {};
         });
-        
+
         it("Creates a login URL with default scopes", async () => {
             const emptyRequest: AuthenticationParameters = {};
-            const loginUrl = await authModule.createLoginUrl(emptyRequest);
+            const loginUrl = await Client.createLoginUrl(emptyRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
             expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
@@ -139,13 +139,13 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const loginRequest: AuthenticationParameters = {
                 scopes: [testScope1, testScope2]
             };
-            const loginUrl = await authModule.createLoginUrl(loginRequest);
+            const loginUrl = await Client.createLoginUrl(loginRequest);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
         });
 
         it("Updates cache entries correctly", async () => {
             const emptyRequest: AuthenticationParameters = {};
-            await authModule.createLoginUrl(emptyRequest);
+            await Client.createLoginUrl(emptyRequest);
             expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
             expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
             expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -153,7 +153,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
         it("Caches token request correctly", async () => {
             const emptyRequest: AuthenticationParameters = {};
-            await authModule.createLoginUrl(emptyRequest);
+            await Client.createLoginUrl(emptyRequest);
             const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
             expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
             expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
@@ -169,7 +169,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const loginRequest: AuthenticationParameters = {
                 authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`
             };
-            const loginUrl = await authModule.createLoginUrl(loginRequest);
+            const loginUrl = await Client.createLoginUrl(loginRequest);
             expect(loginUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
             expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.authorization_endpoint);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
@@ -183,7 +183,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const exceptionString = "Could not make a network request."
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const emptyRequest: AuthenticationParameters = {};
-            await expect(authModule.createLoginUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+            await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
         });
 
         it("Cleans cache before error is thrown", async () => {
@@ -192,8 +192,8 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
                 throw AuthError.createUnexpectedError(guidCreationErr);
             };
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
-            await expect(authModule.createLoginUrl(emptyRequest)).to.be.rejectedWith(guidCreationErr);
+            Client = new PublicClient(defaultAuthConfig);
+            await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(guidCreationErr);
             expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
         });
 
@@ -212,9 +212,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            Client = new PublicClient(defaultAuthConfig);
             const emptyRequest: AuthenticationParameters = {};
-            await authModule.createLoginUrl(emptyRequest);
+            await Client.createLoginUrl(emptyRequest);
             expect(queryParamSpy.calledWith(testToken)).to.be.true;
         });
 
@@ -233,35 +233,35 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            Client = new PublicClient(defaultAuthConfig);
             const loginRequest: AuthenticationParameters = {
                 loginHint: "AbeLi@microsoft.com"
             };
-            await authModule.createLoginUrl(loginRequest);
+            await Client.createLoginUrl(loginRequest);
             expect(queryParamSpy.calledWith(testToken)).to.be.false;
             expect(queryParamSpy.calledWith(null)).to.be.true;
         });
     });
 
     describe("Acquire Token Url Creation", () => {
-        let authModule: AuthorizationCodeModule;
+        let Client: PublicClient;
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            Client = new PublicClient(defaultAuthConfig);
         });
 
         afterEach(() => {
             sinon.restore();
             store = {};
         });
-        
+
         it("Creates a acquire token URL with scopes from given token request", async () => {
             const testScope1 = "testscope1";
             const testScope2 = "testscope2";
             const tokenRequest: AuthenticationParameters = {
                 scopes: [testScope1, testScope2]
             };
-            const acquireTokenUrl = await authModule.createAcquireTokenUrl(tokenRequest);
+            const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
             expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
@@ -274,7 +274,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             };
-            const acquireTokenUrl = await authModule.createAcquireTokenUrl(tokenRequest);
+            const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
             expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
@@ -285,14 +285,14 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
         it("Throws error if no scopes are passed to createAcquireTokenUrl", async () => {
             const emptyRequest: AuthenticationParameters = {};
-            await expect(authModule.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+            await expect(Client.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
 
         it("Throws error if empty scopes are passed to createAcquireTokenUrl", async () => {
             const emptyRequest: AuthenticationParameters = {
                 scopes: []
             };
-            await expect(authModule.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+            await expect(Client.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
 
         it("Updates cache entries correctly", async () => {
@@ -300,7 +300,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const tokenRequest: AuthenticationParameters = {
                 scopes: [testScope]
             };
-            await authModule.createAcquireTokenUrl(tokenRequest);
+            await Client.createAcquireTokenUrl(tokenRequest);
             expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
             expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
             expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -311,7 +311,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const tokenRequest: AuthenticationParameters = {
                 scopes: [testScope]
             };
-            await authModule.createAcquireTokenUrl(tokenRequest);
+            await Client.createAcquireTokenUrl(tokenRequest);
             const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
             expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
             expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
@@ -328,7 +328,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`,
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             };
-            const acquireTokenUrl = await authModule.createAcquireTokenUrl(tokenRequest);
+            const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
             expect(acquireTokenUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.authorization_endpoint);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
@@ -342,9 +342,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             const exceptionString = "Could not make a network request."
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const tokenRequest: AuthenticationParameters = {
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID] 
+                scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             };
-            await expect(authModule.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+            await expect(Client.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
         });
 
         it("Cleans cache before error is thrown", async () => {
@@ -355,8 +355,8 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
                 throw AuthError.createUnexpectedError(guidCreationErr);
             };
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
-            await expect(authModule.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(guidCreationErr);
+            Client = new PublicClient(defaultAuthConfig);
+            await expect(Client.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(guidCreationErr);
             expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
         });
 
@@ -375,11 +375,11 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            Client = new PublicClient(defaultAuthConfig);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             };
-            await authModule.createAcquireTokenUrl(tokenRequest);
+            await Client.createAcquireTokenUrl(tokenRequest);
             expect(queryParamSpy.calledWith(testToken)).to.be.true;
         });
 
@@ -398,12 +398,12 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            Client = new PublicClient(defaultAuthConfig);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 loginHint: "AbeLi@microsoft.com"
             };
-            await authModule.createAcquireTokenUrl(tokenRequest);
+            await Client.createAcquireTokenUrl(tokenRequest);
             expect(queryParamSpy.calledWith(testToken)).to.be.false;
             expect(queryParamSpy.calledWith(null)).to.be.true;
         });
@@ -412,9 +412,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     describe("Token Acquisition", () => {
 
         describe("Exchange code for token with acquireToken()", () => {
-            let authModule: AuthorizationCodeModule;
+            let Client: PublicClient;
             beforeEach(() => {
-                authModule = new AuthorizationCodeModule(defaultAuthConfig);
+                Client = new PublicClient(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -425,7 +425,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             describe("Error Cases", () => {
 
                 it("Throws error if null code response is passed", async () => {
-                    await expect(authModule.acquireToken(null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+                    await expect(Client.acquireToken(null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -434,7 +434,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         code: null,
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -443,7 +443,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         code: "This is an auth code",
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
+                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -460,7 +460,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         code: "This is an auth code",
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
+                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -471,7 +471,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     };
                     const exceptionString = "Could not make a network request."
                     sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
-                    
+
                     const cachedRequest: TokenExchangeParameters = {
                         authority: Constants.DEFAULT_AUTHORITY,
                         codeVerifier: TEST_CONFIG.TEST_VERIFIER,
@@ -480,10 +480,10 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     };
                     const stringifiedRequest = JSON.stringify(cachedRequest);
                     defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
-                    await expect(authModule.acquireToken(codeResponse)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
             });
-            
+
             describe("Success Cases", () => {
 
                 let codeResponse: CodeResponse;
@@ -519,7 +519,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    authModule = new AuthorizationCodeModule(defaultAuthConfig);
+                    Client = new PublicClient(defaultAuthConfig);
 
                     testState = "{stateObject}";
                     codeResponse = {
@@ -547,12 +547,12 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     // Set up cache
                     defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${codeResponse.userRequestState}`, "123523");
                     defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-                    
+
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
                     const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
-                    const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface); 
-                    
+                    const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
+
                     const cachedRequest: TokenExchangeParameters = {
                         authority: Constants.DEFAULT_AUTHORITY,
                         codeVerifier: TEST_CONFIG.TEST_VERIFIER,
@@ -562,9 +562,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const stringifiedRequest = JSON.stringify(cachedRequest);
                     defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
                     defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, `${TEST_URIS.DEFAULT_INSTANCE}/common/`);
-                    
+
                     // Perform test
-                    const tokenResponse: TokenResponse = await authModule.acquireToken(codeResponse);
+                    const tokenResponse: TokenResponse = await Client.acquireToken(codeResponse);
                     expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
                     expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
                     expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
@@ -576,7 +576,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
                     expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
                     expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
-                    expect(Account.compareAccounts(authModule.getAccount(), testAccount)).to.be.true;
+                    expect(Account.compareAccounts(Client.getAccount(), testAccount)).to.be.true;
                 });
 
                 it("Uses authority from cache if not present in cached request", async () => {
@@ -608,9 +608,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const stringifiedRequest = JSON.stringify(cachedRequest);
                     defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
                     defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${codeResponse.userRequestState}`, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
-                    
+
                     // Perform test
-                    await authModule.acquireToken(codeResponse);
+                    await Client.acquireToken(codeResponse);
                     expect(authoritySpy.calledOnceWith(`${TEST_URIS.ALTERNATE_INSTANCE}/common/`, defaultAuthConfig.networkInterface)).to.be.true;
                 });
             });
@@ -618,9 +618,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
         describe("Renew token", () => {
 
-            let authModule: AuthorizationCodeModule;
+            let Client: PublicClient;
             beforeEach(() => {
-                authModule = new AuthorizationCodeModule(defaultAuthConfig);
+                Client = new PublicClient(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -631,26 +631,26 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             describe("Error cases", () => {
 
                 it("Throws error if request object is null or undefined", async () => {
-                    await expect(authModule.renewToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-                    await expect(authModule.renewToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(Client.renewToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(Client.renewToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
                 });
 
                 it("Throws error if scopes are not included in request object", async () => {
-                    await expect(authModule.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(Client.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: []
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if login hasn't been completed and client id is passed as scope", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
+                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
                 });
 
                 it("Throws error if endpoint discovery could not be completed", async () => {
@@ -660,7 +660,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
 
                 it("Throws error if it does not find token in empty cache", async () => {
@@ -668,7 +668,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it does not find token in non-empty cache", async () => {
@@ -694,7 +694,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope2]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it finds too many tokens in cache for the same scope and client id but no authority, resource or account is given", async () => {
@@ -727,7 +727,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 });
             });
 
@@ -755,7 +755,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope1]
                     };
-                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    const tokenResponse = await Client.renewToken(tokenRequest);
                     expect(tokenResponse.uniqueId).to.be.empty;
                     expect(tokenResponse.tenantId).to.be.empty;
                     expect(tokenResponse.scopes).to.be.deep.eq([testScope1, Constants.OFFLINE_ACCESS_SCOPE]);
@@ -788,7 +788,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    authModule = new AuthorizationCodeModule(defaultAuthConfig);
+                    Client = new PublicClient(defaultAuthConfig);
                     const idTokenClaims = {
                         "ver": "2.0",
                         "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -824,7 +824,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScopes[0]]
                     };
-                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    const tokenResponse = await Client.renewToken(tokenRequest);
 
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
@@ -857,7 +857,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             return TEST_URIS.TEST_LOGOUT_URI;
         };
 
-        let authModule_functionRedirectUris = new AuthorizationCodeModule({
+        let Client_functionRedirectUris = new PublicClient({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
@@ -873,7 +873,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             }
         });
 
-        let authModule_noRedirectUris = new AuthorizationCodeModule({
+        let Client_noRedirectUris = new PublicClient({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
@@ -888,29 +888,29 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         });
 
         it("gets configured redirect uri", () => {
-            const authModule = new AuthorizationCodeModule(defaultAuthConfig);
-            expect(authModule.getRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_REDIR_URI);
+            const Client = new PublicClient(defaultAuthConfig);
+            expect(Client.getRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_REDIR_URI);
         });
 
         it("gets configured redirect uri if uri is a function", () => {
-            expect(authModule_functionRedirectUris.getRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_REDIR_URI);
+            expect(Client_functionRedirectUris.getRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_REDIR_URI);
         });
 
         it("throws error if redirect uri is null/empty", () => {
-            expect(() => authModule_noRedirectUris.getRedirectUri()).to.throw(ClientConfigurationError.createRedirectUriEmptyError().message);
+            expect(() => Client_noRedirectUris.getRedirectUri()).to.throw(ClientConfigurationError.createRedirectUriEmptyError().message);
         });
 
         it("gets configured post logout redirect uri", () => {
-            const authModule = new AuthorizationCodeModule(defaultAuthConfig);
-            expect(authModule.getPostLogoutRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_LOGOUT_URI);
+            const Client = new PublicClient(defaultAuthConfig);
+            expect(Client.getPostLogoutRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
 
         it("gets configured post logout redirect uri if uri is a function", () => {
-            expect(authModule_functionRedirectUris.getPostLogoutRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_LOGOUT_URI);
+            expect(Client_functionRedirectUris.getPostLogoutRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
 
         it("throws error if post logout redirect uri is null/empty", () => {
-            expect(() => authModule_noRedirectUris.getPostLogoutRedirectUri()).to.throw(ClientConfigurationError.createPostLogoutRedirectUriEmptyError().message);
+            expect(() => Client_noRedirectUris.getPostLogoutRedirectUri()).to.throw(ClientConfigurationError.createPostLogoutRedirectUriEmptyError().message);
         });
     });
 });
