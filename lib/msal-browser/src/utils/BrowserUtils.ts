@@ -17,6 +17,7 @@ export class BrowserUtils {
     /**
      * Used to redirect the browser to the STS authorization endpoint
      * @param {string} urlNavigate - URL of the authorization endpoint
+     * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
      */
     static navigateWindow(urlNavigate: string, noHistory?: boolean): void {
         const windowParentCheck = (window.parent !== window);
