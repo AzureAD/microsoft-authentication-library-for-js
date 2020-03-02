@@ -136,7 +136,7 @@ export class PublicClientApplication {
             const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
-                this.authModule.logger.error("Unable to get valid login request url from cache, redirecting to home page");
+                this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow("/", true);
             } else {
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
