@@ -175,9 +175,10 @@ export class CacheHelpers {
      */
     private checkForExactKeyMatch(atKey: AccessTokenKey, clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): boolean {
         const hasClientId = (atKey.clientId === clientId);
-        const hasAuthorityUri = !StringUtils.isEmpty(authority) ? (atKey.authority === authority) : true;
-        const hasResourceUri = !StringUtils.isEmpty(resource) ? (atKey.resource === resource) : true;
-        const hasHomeAccountId = !StringUtils.isEmpty(homeAccountIdentifier) ? (atKey.homeAccountIdentifier === homeAccountIdentifier) : true;
+        // If any inputs are empty, return true so we don't fail the check.
+        const hasAuthorityUri = StringUtils.isEmpty(authority) || (atKey.authority === authority);
+        const hasResourceUri = StringUtils.isEmpty(resource) || (atKey.resource === resource);
+        const hasHomeAccountId = StringUtils.isEmpty(homeAccountIdentifier) || (atKey.homeAccountIdentifier === homeAccountIdentifier);
 
         return hasClientId && hasAuthorityUri && hasResourceUri && hasHomeAccountId;
     }
