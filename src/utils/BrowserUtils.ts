@@ -5,7 +5,6 @@
 import { INetworkModule } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
-import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * Utility class for browser specific functions
@@ -20,11 +19,6 @@ export class BrowserUtils {
      * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
      */
     static navigateWindow(urlNavigate: string, noHistory?: boolean): void {
-        const windowParentCheck = (window.parent !== window);
-        if (windowParentCheck) {
-            // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
-            throw BrowserAuthError.createRedirectInIframeError(windowParentCheck);
-        }
         if (noHistory) {
             window.location.replace(urlNavigate);
         } else {
@@ -37,6 +31,13 @@ export class BrowserUtils {
      */
     static clearHash(): void {
         window.location.hash = "";
+    }
+
+    /**
+     * Returns boolean of whether the current window is in an iframe or not.
+     */
+    static isInIframe(): boolean {
+        return window.parent !== window;
     }
 
     // #endregion

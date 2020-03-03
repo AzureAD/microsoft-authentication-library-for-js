@@ -99,7 +99,7 @@ export class BrowserStorage implements ICacheStorage {
      */
     private generateCacheKey(key: string): string {
         try {
-            // Defined schemas do not need the key appended
+            // Defined schemas do not need the key migrated
             this.validateObjectKey(key);
             return key;
         } catch (e) {
