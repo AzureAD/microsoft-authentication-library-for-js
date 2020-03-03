@@ -13,7 +13,6 @@ import { CodeResponse } from "../../response/CodeResponse";
 import { TokenResponse } from "../../response/TokenResponse";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { ServerAuthorizationCodeResponse } from "../../server/ServerAuthorizationCodeResponse";
-import { ServerAuthorizationTokenResponse } from "../../server/ServerAuthorizationTokenResponse";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
@@ -24,6 +23,8 @@ import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants 
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
+import { NetworkManager } from "../../network/NetworkManager";
+import { buildClientInfo } from "../../auth/ClientInfo";
 
 /**
  * AuthorizationCodeModule class
@@ -402,14 +403,10 @@ export class AuthorizationCodeModule extends AuthModule {
      * @param codeResponse 
      */
     private async getTokenResponse(tokenEndpoint: string, tokenReqParams: ServerTokenRequestParameters, tokenRequest: TokenExchangeParameters, codeResponse?: CodeResponse): Promise<TokenResponse> {
-        // Perform token request.
-        const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
-            tokenEndpoint,
-            {
-                body: tokenReqParams.createRequestBody(),
-                headers: tokenReqParams.createRequestHeaders()
-            }
-        );
+        const clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
+
+        const networkManager = new NetworkManager(this.cacheStorage, this.networkClient, this.cryptoObj);
+        const acquiredTokenResponse = await networkManager.sendPostRequest(tokenEndpoint, tokenReqParams, tokenRequest, clientInfo, this.clientConfig.auth.clientId);
 
         // Create response handler
         const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);

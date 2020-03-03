@@ -29,7 +29,9 @@ export const Constants = {
     RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
-    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded",
+    DEFAULT_THROTTLE_TIME_MS: "120000",
+    DEFAULT_MAX_THROTTLE_TIME_MS: "3600000"
 };
 
 /**

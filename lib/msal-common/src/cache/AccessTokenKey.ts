@@ -16,13 +16,15 @@ export class AccessTokenKey {
     scopes: string;
     resource: string;
     homeAccountIdentifier: string;
+    throttleTime: string;
 
-    constructor(authority: string, clientId: string, scopes: string, resource: string, uid: string, utid: string, cryptoObj: ICrypto) {
+    constructor(authority: string, clientId: string, scopes: string, resource: string, throttleTime: string, uid: string, utid: string, cryptoObj: ICrypto) {
         const authorityUri = new UrlString(authority);
         this.authority = authorityUri.urlString;
         this.clientId = clientId;
         this.scopes = scopes;
         this.resource = resource;
+        this.throttleTime = throttleTime;
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             this.homeAccountIdentifier = `${cryptoObj.base64Encode(uid)}.${cryptoObj.base64Encode(utid)}`;
         }

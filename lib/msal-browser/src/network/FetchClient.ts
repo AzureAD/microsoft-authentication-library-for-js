@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule, NetworkRequestOptions } from "@azure/msal-common";
+import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**
@@ -30,7 +30,7 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+    async sendPostRequestAsync(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse> {
         const reqBody = (options && options.body) || "";
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.POST,
@@ -38,7 +38,11 @@ export class FetchClient implements INetworkModule {
             credentials: "include",
             body: reqBody
         });
-        return await response.json() as T;
+        return {
+            headers: response.headers,
+            body: await response.json(),
+            status: response.status
+        };
     }
 
     /**

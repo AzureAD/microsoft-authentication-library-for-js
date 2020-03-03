@@ -1,3 +1,5 @@
+import { NetworkResponse } from "./NetworkManager";
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -31,5 +33,5 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T>;
+    sendPostRequestAsync(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse>;
 }

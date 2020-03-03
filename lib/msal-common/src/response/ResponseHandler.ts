@@ -167,6 +167,7 @@ export class ResponseHandler {
                 this.clientId, 
                 serverTokenResponse.scope, 
                 resource, 
+                null,
                 clientInfo && clientInfo.uid, 
                 clientInfo && clientInfo.utid, 
                 this.cryptoObj
