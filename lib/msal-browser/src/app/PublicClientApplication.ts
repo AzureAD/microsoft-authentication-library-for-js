@@ -130,7 +130,7 @@ export class PublicClientApplication {
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
 
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
-        if (this.config.auth.navigateToLoginRequestUrl && isResponseHash) {
+        if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
             const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
