@@ -102,7 +102,7 @@ export class PublicClientApplication {
      * or the library, depending on the origin of the error, or the AuthResponse object 
      * containing data from the server (returned with a null or non-blocking error).
      */
-    async handleRedirectWithCallback(authCallback: AuthCallback): Promise<void> {
+    async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
         // Check whether callback object was passed.
         if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
