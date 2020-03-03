@@ -1,11 +1,11 @@
 import { expect } from "chai";
+import sinon from "sinon";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
-import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/app/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import sinon from "sinon";
-import { ICacheStorage, Constants, PersistentCacheKeys } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "@azure/msal-common";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 
 class TestCacheStorage implements ICacheStorage {
@@ -44,6 +44,8 @@ describe("BrowserStorage() tests", () => {
     afterEach(() => {
         sinon.restore();
         window = windowRef;
+        window.sessionStorage.clear();
+        window.localStorage.clear();
     });
 
     describe("Constructor", () => {
@@ -106,13 +108,26 @@ describe("BrowserStorage() tests", () => {
 
     describe("Interface functions", () => {
 
-        it("setItem()", () => {
-            const browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+        let browserSessionStorage: BrowserStorage;
+        let browserLocalStorage: BrowserStorage;
+        let cacheKey: string;
+        let cacheVal: string;
+        let msalCacheKey: string;
+        beforeEach(() => {
+            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
-            const browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            const cacheKey = "cacheKey";
-            const cacheVal = "cacheVal";
-            const msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            cacheKey = "cacheKey";
+            cacheVal = "cacheVal";
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+        });
+
+        afterEach(() => {
+            browserSessionStorage.clear();
+            browserLocalStorage.clear();
+        });
+
+        it("setItem()", () => {
             browserSessionStorage.setItem(cacheKey, cacheVal);
             browserLocalStorage.setItem(cacheKey, cacheVal);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
@@ -120,46 +135,179 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("getItem()", () => {
-
+            window.sessionStorage.setItem(msalCacheKey, cacheVal);
+            window.localStorage.setItem(msalCacheKey, cacheVal);
+            expect(browserSessionStorage.getItem(cacheKey)).to.be.eq(cacheVal);
+            expect(browserLocalStorage.getItem(cacheKey)).to.be.eq(cacheVal);
         });
 
         it("removeItem()", () => {
-
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.removeItem(cacheKey);
+            browserLocalStorage.removeItem(cacheKey);
+            expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
+            expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
         });
 
         it("containsKey()", () => {
-
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            expect(browserSessionStorage.containsKey(cacheKey)).to.be.true;
+            expect(browserLocalStorage.containsKey(cacheKey)).to.be.true;
         });
 
         it("getKeys()", () => {
-
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            expect(browserSessionStorage.getKeys()).to.be.deep.eq([msalCacheKey]);
+            expect(browserLocalStorage.getKeys()).to.be.deep.eq([msalCacheKey]);
         });
 
         it("clear()", () => {
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.clear();
+            browserLocalStorage.clear();
+            expect(browserSessionStorage.getKeys()).to.be.empty;
+            expect(browserLocalStorage.getKeys()).to.be.empty;
+        });
+    });
 
+    describe("Interface functions with storeAuthStateInCookie=true", () => {
+
+        let browserSessionStorage: BrowserStorage;
+        let browserLocalStorage: BrowserStorage;
+        let cacheKey: string;
+        let cacheVal: string;
+        let msalCacheKey: string;
+        beforeEach(() => {
+            cacheConfig.storeAuthStateInCookie = true;
+            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
+            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            cacheKey = "cacheKey";
+            cacheVal = "cacheVal";
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+        });
+
+        afterEach(() => {
+            browserSessionStorage.clear();
+            browserLocalStorage.clear();
+        });
+
+        it("setItem()", () => {
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
+            expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
+            browserSessionStorage.clearItemCookie(cacheKey);
+            expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
+            expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
+        });
+
+        it("getItem()", () => {
+            const getCookieSpy = sinon.spy(BrowserStorage.prototype, "getItemCookie");
+            window.sessionStorage.setItem(msalCacheKey, cacheVal);
+            window.localStorage.setItem(msalCacheKey, cacheVal);
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(browserSessionStorage.getItem(cacheKey)).to.be.eq(cacheVal);
+            expect(getCookieSpy.returned(cacheVal)).to.be.true;
+            expect(getCookieSpy.calledOnce).to.be.true;
+            expect(browserLocalStorage.getItem(cacheKey)).to.be.eq(cacheVal);
+            expect(getCookieSpy.returned(cacheVal)).to.be.true;
+            expect(getCookieSpy.calledTwice).to.be.true;
+        });
+
+        it("removeItem()", () => {
+            const clearCookieSpy = sinon.spy(BrowserStorage.prototype, "clearItemCookie");
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.removeItem(cacheKey);
+            expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
+            expect(document.cookie).to.be.empty;
+            expect(clearCookieSpy.calledOnce).to.be.true;
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.removeItem(cacheKey);
+            expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
+            expect(document.cookie).to.be.empty;
+            expect(clearCookieSpy.calledTwice).to.be.true;
+        });
+
+        it("clear()", () => {
+            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.clear();
+            expect(browserSessionStorage.getKeys()).to.be.empty;
+            expect(document.cookie).to.be.empty;
+            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.clear();
+            expect(browserLocalStorage.getKeys()).to.be.empty;
+            expect(document.cookie).to.be.empty;
         });
     });
 
     describe("Cookie operations", () => {
 
-        it("setItemCookie()", () => {
+        let browserSessionStorage: BrowserStorage;
+        let browserLocalStorage: BrowserStorage;
+        let cacheKey: string;
+        let cacheVal: string;
+        let msalCacheKey: string;
+        beforeEach(() => {
+            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
+            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            cacheKey = "cacheKey";
+            cacheVal = "cacheVal";
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+        });
 
+        it("setItemCookie()", () => {
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
+            browserSessionStorage.clearItemCookie(msalCacheKey);
+            browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
         });
 
         it("getItemCookie()", () => {
-
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(browserSessionStorage.getItemCookie(msalCacheKey)).to.be.eq(cacheVal);
+            expect(browserLocalStorage.getItemCookie(msalCacheKey)).to.be.eq(cacheVal);
         });
 
         it("clearItemCookie()", () => {
-
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            browserSessionStorage.clearItemCookie(msalCacheKey);
+            expect(document.cookie).to.be.empty;
+            
+            browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
+            browserSessionStorage.clearItemCookie(msalCacheKey);
+            expect(document.cookie).to.be.empty;
         });
 
         it("clearMsalCookie()", () => {
-
+            const nonceKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`;
+            const stateKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`;
+            const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
+            browserSessionStorage.setItemCookie(nonceKey, "thisIsANonce");
+            browserSessionStorage.setItemCookie(stateKey, RANDOM_TEST_GUID);
+            browserSessionStorage.setItemCookie(originUriKey, "https://contoso.com");
+            browserSessionStorage.clearMsalCookie(RANDOM_TEST_GUID);
+            expect(document.cookie).to.be.empty;
+            browserSessionStorage.setItemCookie(nonceKey, "thisIsANonce");
+            browserSessionStorage.setItemCookie(stateKey, RANDOM_TEST_GUID);
+            browserSessionStorage.setItemCookie(originUriKey, "https://contoso.com");
+            browserSessionStorage.clearMsalCookie(RANDOM_TEST_GUID);
+            expect(document.cookie).to.be.empty;
         });
 
         it("getCookieExpirationTime()", () => {
-
+            const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
+            const currentTime = new Date().getTime();
+            sinon.stub(Date.prototype, "getTime").returns(currentTime);
+            const cookieLifeDays = 1;
+            const expectedDate = new Date(currentTime + (cookieLifeDays * COOKIE_LIFE_MULTIPLIER));
+            expect(browserLocalStorage.getCookieExpirationTime(cookieLifeDays)).to.be.eq(expectedDate.toUTCString());
         });
     });
 });

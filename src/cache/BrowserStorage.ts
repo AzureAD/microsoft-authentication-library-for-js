@@ -237,9 +237,9 @@ export class BrowserStorage implements ICacheStorage {
      */
     clearMsalCookie(state?: string): void {
         const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
-        this.clearItemCookie(nonceKey);
-        this.clearItemCookie(TemporaryCacheKeys.REQUEST_STATE);
-        this.clearItemCookie(TemporaryCacheKeys.ORIGIN_URI);
+        this.clearItemCookie(this.generateCacheKey(nonceKey));
+        this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE));
+        this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
     }
 
     /**
