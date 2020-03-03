@@ -135,7 +135,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         for (key in storage) {
             if (!state || key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.resourceDelimiter);
-                const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
+                const keyState = splitKey.length > 1 ?  splitKey.slice(1).join("|"): null;
                 if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
                     this.removeItem(key);
                     this.setItemCookie(key, "", -1);
