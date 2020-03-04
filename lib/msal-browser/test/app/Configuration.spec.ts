@@ -2,12 +2,12 @@ import { expect } from "chai";
 import { Configuration, buildConfiguration } from "../../src/app/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { LogLevel } from "@azure/msal-common";
+import sinon from "sinon";
 
 /**
  * Defaults for the Configuration Options
  */
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const OFFSET = 300;
 
 /**
  * Test values for the Configuration Options
@@ -51,6 +51,25 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
         expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.undefined;
         expect(emptyConfig.system.telemetry).to.be.undefined;
+    });
+
+    it("Tests default logger", () => {
+        const consoleErrorSpy = sinon.spy(console, "error");
+        const consoleInfoSpy = sinon.spy(console, "info");
+        const consoleDebugSpy = sinon.spy(console, "debug");
+        const consoleWarnSpy = sinon.spy(console, "warn");
+        const message = "log message";
+        let emptyConfig: Configuration = buildConfiguration({auth: null});
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, true)
+        expect(consoleErrorSpy.called).to.be.false;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, false)
+        expect(consoleErrorSpy.calledOnce).to.be.true;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Info, message, false)
+        expect(consoleInfoSpy.calledOnce).to.be.true;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Verbose, message, false)
+        expect(consoleDebugSpy.calledOnce).to.be.true;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Warning, message, false)
+        expect(consoleWarnSpy.calledOnce).to.be.true;
     });
 
     const testAppName = "MSAL.js App";
