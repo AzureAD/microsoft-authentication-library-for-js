@@ -1,12 +1,12 @@
 import { expect } from "chai";
-import { buildClientInfo } from "../../src/auth/ClientInfo";
+import { buildClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
-    
+
     describe("buildClientInfo()", () => {
         let cryptoInterface: ICrypto;
         beforeEach(() => {
@@ -46,7 +46,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         afterEach(() => {
             sinon.restore();
         });
-        
+
         it("Throws error if clientInfo is null or empty", () => {
             expect(() => buildClientInfo(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.clientInfoEmptyError.desc);
             expect(() => buildClientInfo(null, cryptoInterface)).to.throw(ClientAuthError);

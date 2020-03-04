@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { ClientRequestParameters } from "./ClientRequestParameters";
-import { Account } from "../auth/Account";
+import { Account } from "../account/Account";
 
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.

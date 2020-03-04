@@ -12,9 +12,9 @@ import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
 import sinon from "sinon";
 import { Account, PkceCodes, PersistentCacheKeys, ICrypto } from "../../src";
 import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG, RANDOM_TEST_GUID } from "../utils/StringConstants";
-import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
-import { IdToken } from "../../src/auth/IdToken";
-import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
+import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
+import { IdToken } from "../../src/account/IdToken";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 
 class TestClient extends BaseClient {
 

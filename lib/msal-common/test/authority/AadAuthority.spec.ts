@@ -1,13 +1,13 @@
 import { expect } from "chai";
-import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
-import { Constants } from "../../../src/utils/Constants";
-import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { Authority } from "../../../src/auth/authority/Authority";
-import { AuthorityType } from "../../../src/auth/authority/AuthorityType";
-import { TEST_HOST_LIST, TEST_TENANT_DISCOVERY_RESPONSE } from "../../utils/StringConstants";
+import { AadAuthority } from "../../src/authority/AadAuthority";
+import { Constants } from "../../src/utils/Constants";
+import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { Authority } from "../../src/authority/Authority";
+import { AuthorityType } from "../../src/authority/AuthorityType";
+import { TEST_HOST_LIST, TEST_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
 
 describe("AadAuthority.ts Class Unit Tests", () => {
-    
+
     describe("Constructor", () => {
 
         let aadAuthority: AadAuthority;
@@ -52,7 +52,7 @@ describe("AadAuthority.ts Class Unit Tests", () => {
                 const hostUri = TEST_HOST_LIST[i];
                 const aadAuthority = new AadAuthority(`https://${hostUri}/common`, networkInterface);
                 await expect(aadAuthority.getOpenIdConfigurationEndpointAsync()).to.eventually.eq(`https://${hostUri}/common/v2.0/.well-known/openid-configuration`);
-            } 
+            }
         });
 
         it("Makes a request to get OpenID endpoint if given authority is NOT in trusted host list", async () => {

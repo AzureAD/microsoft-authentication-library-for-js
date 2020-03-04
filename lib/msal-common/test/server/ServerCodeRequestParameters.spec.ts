@@ -1,16 +1,16 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
-import { AadAuthority } from "../../src/auth/authority/AadAuthority";
+import { AadAuthority } from "../../src/authority/AadAuthority";
 import { Constants, SSOTypes, PromptValue, AADServerParamKeys } from "../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_TOKENS, TEST_DATA_CLIENT_INFO, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
-import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
-import { IdToken } from "../../src/auth/IdToken";
-import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
-import { Account } from "../../src/auth/Account";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
+import { IdToken } from "../../src/account/IdToken";
+import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
+import { Account } from "../../src/account/Account";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
 describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
@@ -487,7 +487,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             };
             sinon.stub(IdToken, "extractIdToken").returns(adalTokenClaims);
             const adalToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, cryptoInterface);
-            
+
             const codeRequestParams = new ServerCodeRequestParameters(
                 aadAuthority,
                 TEST_CONFIG.MSAL_CLIENT_ID,

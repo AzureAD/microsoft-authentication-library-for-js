@@ -6,8 +6,8 @@ import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 import { ICacheStorage } from "./ICacheStorage";
-import { Account } from "../auth/Account";
-import { Authority } from "../auth/authority/Authority";
+import { Account } from "../account/Account";
+import { Authority } from "../authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
@@ -44,7 +44,7 @@ export class CacheHelpers {
 
     /**
      * Create Nonce key to cache nonce
-     * @param state 
+     * @param state
      */
     generateNonceKey(state: string): string {
         return `${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${state}`;
@@ -97,7 +97,7 @@ export class CacheHelpers {
 
     /**
      * Reset all temporary cache items
-     * @param state 
+     * @param state
      */
     resetTempCacheItems(state?: string): void {
         // check state and remove associated cache items

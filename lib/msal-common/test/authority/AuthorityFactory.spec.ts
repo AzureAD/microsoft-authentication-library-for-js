@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
-import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { ClientConfigurationErrorMessage, ClientAuthErrorMessage, Constants, Authority } from "../../../src";
-import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
+import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
+import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { ClientConfigurationErrorMessage, ClientAuthErrorMessage, Constants, Authority } from "../../src";
+import { AadAuthority } from "../../src/authority/AadAuthority";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
 
@@ -14,7 +14,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             return null;
         }
     };
-    
+
     it("AuthorityFactory returns null if given url is null or empty", () => {
         expect(() => AuthorityFactory.createInstance("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
         expect(() => AuthorityFactory.createInstance(null, networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
