@@ -273,8 +273,8 @@ MSAL will get access tokens using a hidden Iframe for given CORS API endpoints i
 
 ```js
 var endpointsMap = new Map();
-map.set(applicationConfig.apiEndpoint, applicationConfig.apiScope);
-map.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
+endpointsMap.set(applicationConfig.apiEndpoint, applicationConfig.apiScope);
+endpointsMap.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
 
 app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
    msalProvider.init(
@@ -283,7 +283,7 @@ app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msal
         tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
 
         },
-        configOptions: {
+        optionalParams: {
            protectedResourceMap: endpointsMap
         },
     }, $httpProvider);
