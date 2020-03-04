@@ -1,4 +1,10 @@
-import {BroadcastService, MsalService, MsalAngularConfiguration} from "../src";
+import {
+    BroadcastService,
+    MsalService,
+    MsalAngularConfiguration,
+    MSAL_CONFIG,
+    MSAL_CONFIG_ANGULAR
+} from "../public_api";
 import 'zone.js/dist/zone';
 import 'zone.js/dist/long-stack-trace-zone';
 import 'zone.js/dist/proxy'; // since zone.js 0.6.15
@@ -12,7 +18,6 @@ import {
     BrowserDynamicTestingModule,
     platformBrowserDynamicTesting
 } from "@angular/platform-browser-dynamic/testing";
-import {MSAL_CONFIG, MSAL_CONFIG_ANGULAR} from "../src/msal.service";
 import {RouterTestingModule} from '@angular/router/testing';
 import {} from 'jasmine';
 import { Configuration, UserAgentApplication, AuthResponse, AuthError } from "msal";
