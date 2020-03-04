@@ -22,7 +22,7 @@ export type AuthOptions = {
 };
 
 /**
- * Use the configuration object to configure MSAL and initialize the AuthorizationCodeModule.
+ * Use the configuration object to configure MSAL and initialize the Clients.
  *
  * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
