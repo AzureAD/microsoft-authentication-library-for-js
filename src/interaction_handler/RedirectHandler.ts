@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeModule, TemporaryCacheKeys, TokenResponse } from "@azure/msal-common";
+import { StringUtils, PublicClient, TemporaryCacheKeys, TokenResponse } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -14,14 +14,14 @@ export class RedirectHandler extends InteractionHandler {
     // Config to navigate to login request url. Set by user, default is true.
     private navigateToLoginRequestUrl: boolean;
 
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage, navigateToLoginRequestUrl: boolean) {
+    constructor(authCodeModule: PublicClient, storageImpl: BrowserStorage, navigateToLoginRequestUrl: boolean) {
         super(authCodeModule, storageImpl);
         this.navigateToLoginRequestUrl = navigateToLoginRequestUrl;
     }
 
     /**
      * Redirects window to given URL.
-     * @param urlNavigate 
+     * @param urlNavigate
      */
     showUI(requestUrl: string): Window {
         // Navigate if valid URL
@@ -43,7 +43,7 @@ export class RedirectHandler extends InteractionHandler {
 
     /**
      * Handle authorization code response in the window.
-     * @param hash 
+     * @param hash
      */
     async handleCodeResponse(locationHash: string): Promise<TokenResponse> {
         // Check that location hash isn't empty.

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { LogLevel } from "@azure/msal-common";
 

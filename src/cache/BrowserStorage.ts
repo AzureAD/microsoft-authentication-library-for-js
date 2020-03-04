@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "@azure/msal-common";
-import { CacheOptions } from "../app/Configuration";
+import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -12,8 +12,8 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
 /**
- * This class implements the cache storage interface for MSAL through browser local or session storage. 
- * Cookies are only used if storeAuthStateInCookie is true, and are only used for 
+ * This class implements the cache storage interface for MSAL through browser local or session storage.
+ * Cookies are only used if storeAuthStateInCookie is true, and are only used for
  * parameters such as state and nonce, generally.
  */
 export class BrowserStorage implements ICacheStorage {
@@ -42,7 +42,7 @@ export class BrowserStorage implements ICacheStorage {
      * - localStorage
      * - sessionStorage (default)
      * Also validates if given cacheLocation is supported on the browser.
-     * @param cacheLocation 
+     * @param cacheLocation
      */
     private validateWindowStorage(cacheLocation: string): void {
         if (typeof window === "undefined" || !window) {
@@ -112,18 +112,18 @@ export class BrowserStorage implements ICacheStorage {
 
     /**
      * Parses key as JSON object, JSON.parse() will throw an error.
-     * @param key 
+     * @param key
      */
     private validateObjectKey(key: string): void {
         JSON.parse(key);
     }
 
     /**
-     * Sets the cache item with the key and value given. 
+     * Sets the cache item with the key and value given.
      * Stores in cookie if storeAuthStateInCookie is set to true.
      * This can cause cookie overflow if used incorrectly.
-     * @param key 
-     * @param value 
+     * @param key
+     * @param value
      */
     setItem(key: string, value: string): void {
         const msalKey = this.generateCacheKey(key);
@@ -132,11 +132,11 @@ export class BrowserStorage implements ICacheStorage {
             this.setItemCookie(msalKey, value);
         }
     }
-    
+
     /**
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
-     * @param key 
+     * @param key
      */
     getItem(key: string): string {
         const msalKey = this.generateCacheKey(key);
@@ -146,11 +146,11 @@ export class BrowserStorage implements ICacheStorage {
         }
         return this.windowStorage.getItem(msalKey);
     }
-    
+
     /**
      * Removes the cache item with the given key.
      * Will also clear the cookie item if storeAuthStateInCookie is set to true.
-     * @param key 
+     * @param key
      */
     removeItem(key: string): void {
         const msalKey = this.generateCacheKey(key);
@@ -159,16 +159,16 @@ export class BrowserStorage implements ICacheStorage {
             this.clearItemCookie(msalKey);
         }
     }
-    
+
     /**
      * Checks whether key is in cache.
-     * @param key 
+     * @param key
      */
     containsKey(key: string): boolean {
         const msalKey = this.generateCacheKey(key);
         return this.windowStorage.hasOwnProperty(msalKey) || this.windowStorage.hasOwnProperty(key);
     }
-    
+
     /**
      * Gets all keys in window.
      */

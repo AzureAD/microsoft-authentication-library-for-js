@@ -1,7 +1,7 @@
 import * as Mocha from "mocha";
 import sinon from "sinon";
 import { expect } from "chai";
-import { PublicClientApplication } from "../../src/app/PublicClientApplication";
+import { PublicClientApplication } from "../../src/client/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { AuthError, AuthResponse, LogLevel } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
@@ -13,7 +13,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
         }
     });
-    
+
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
             console.log(`Log level: ${level} Message: ${message}`);
@@ -67,5 +67,5 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(pca_alternate_redirUris.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
-    }); 
+    });
 });
