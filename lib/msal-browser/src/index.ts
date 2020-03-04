@@ -1,6 +1,6 @@
 // App and config
-export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration } from "./app/Configuration";
+export { PublicClientApplication } from "./client/PublicClientApplication";
+export { Configuration } from "./config/Configuration";
 
 // Common Object Formats
 export {

@@ -26,7 +26,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 
 /**
- * AuthorizationCodeModule class
+ * PublicClient class
  *
  * Object instance which will construct requests to send to and handle responses
  * from the Microsoft STS using the authorization code flow.

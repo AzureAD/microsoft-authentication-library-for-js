@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
-import { Configuration, buildConfiguration } from "./Configuration";
+import { Account, PublicClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -24,7 +24,7 @@ export class PublicClientApplication {
     private config: Configuration;
 
     // auth functions imported from @azure/msal-common module
-    private authModule: AuthorizationCodeModule;
+    private authModule: PublicClient;
 
     // callback for error/token response
     private authCallback: AuthCallback = null;
@@ -73,7 +73,7 @@ export class PublicClientApplication {
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Create auth module.
-        this.authModule = new AuthorizationCodeModule({
+        this.authModule = new PublicClient({
             auth: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
@@ -95,10 +95,10 @@ export class PublicClientApplication {
      * Set the callback functions for the redirect flow to send back the success or error object.
      * IMPORTANT: Please do not use this function when using the popup APIs, as it will break the response handling
      * in the main window.
-     * 
+     *
      * @param {@link (AuthCallback:type)} authCallback - Callback which contains
      * an AuthError object, containing error data from either the server
-     * or the library, depending on the origin of the error, or the AuthResponse object 
+     * or the library, depending on the origin of the error, or the AuthResponse object
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
@@ -128,7 +128,7 @@ export class PublicClientApplication {
     }
 
     /**
-     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so 
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      */
@@ -160,7 +160,7 @@ export class PublicClientApplication {
     }
 
     /**
-     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects 
+     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
      * the page, so any code that follows this function will not execute.
      * @param {@link (AuthenticationParameters:type)}
      *
@@ -195,7 +195,7 @@ export class PublicClientApplication {
 
     // #endregion
 
-    // #region Popup Flow 
+    // #region Popup Flow
 
     /**
      * Use when initiating the login process via opening a popup window in the user's browser
@@ -239,7 +239,7 @@ export class PublicClientApplication {
 
     /**
      * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
-     * @param navigateUrl 
+     * @param navigateUrl
      */
     private async popupTokenHelper(navigateUrl: string): Promise<TokenResponse> {
         try {
