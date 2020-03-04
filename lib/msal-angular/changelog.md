@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.0.0-beta.2
+
+Fixes two issues related to `aot` mode.
+
+* Requires `msal@1.2.2-beta.0`, which adds `setLogger` function to dynamically set the logger callback when running in `aot` mode. (#1213).
+* Moves `protectedResourceMap` and `unprotectedResources` to MSAL Angular-specific configuration object. `protectedResourceMap` can now be `[string, string[]][]` or a `Map`. This is also to mitigate issues with `aot` mode. (#1213).
+
+## 1.0.0-beta.1
+
+Initial upgrade to be compatible with new version of Angular (6+).
+
+* Requires `msal@1.2.1`, `rxjs@6`, `@angular/core@>=6`, `@angular/common@>=6` as peer dependencies.
+* `rxjs-compat` is no longer required by MSAL Angular.
+
+### Known issues
+
+* `aot` compiling will throw errors for `new Logger()` and `new Map()` ("Function calls are not supported in decorators but 'Logger/Map' was called."). This will be addressed in a follow up release.
+
+## 1.0.0-alpha.1
+
+* Requires `msal@1.2.0-beta.1`, which includes fixes for bugs with redirect methods.
+* `handleRedirectCallback` will now emit events after returning from the redirect.
+
+## 1.0.0-alpha.0
+
+Initial upgrade to use `msal@1.2.0`.
+
+* `msal@1.2.0` package is now a peer dependency, and must be installed alongside `@azure/msal-angular`: `npm install msal@1.2.0 @azure/msal-angular@alpha`
+* `MsalModule.forRoot` now takes two arguement.
+    * The first argument is the configuration object, which is the [same `Configuration` object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Configuration.ts) you would pass to `msal`.
+    * The second argument is a `MsalAngularConfiguration` object, containing the values for `consentScopes`, `popUp`, and `extraQueryParameters`.
+    * See the [updated sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/angular6-sample-app/src/app/app.module.ts) for an example of how to pass these configuration objects.
+* The `acquireToken` and `login` methods now take a single `AuthenticationParameters` object as parameters.
+* `getUser()` is now `getAccount()`.
+* Broadcast events now emit objects, instead of just strings.
+* Applications using `Redirect` methods must implement the `handleRedirectCallback` method (and have it run on every page load), which will capture the result of redirect operations. See the [Angular sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/angular6-sample-app/src/app/app.component.ts) for an example of how to implement.
+
 ## 0.1.4
 * Fix msal-angular to transpile for IE11 compatibility: https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/868
 * Upgrade to msal-core version 0.2.2, namely including support for `storeAuthStateInCookie` for IE11.

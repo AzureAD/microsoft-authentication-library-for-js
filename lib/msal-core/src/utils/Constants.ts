@@ -152,5 +152,5 @@ export const PromptState = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.2.1";
+    return "1.2.2";
 }
