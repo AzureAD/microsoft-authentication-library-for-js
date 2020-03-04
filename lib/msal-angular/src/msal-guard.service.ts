@@ -38,7 +38,10 @@ export class MsalGuard implements CanActivate {
                     .catch(() => false);
             }
 
+            const routePath = `${window.location.origin}${state.url}`;
+
             this.authService.loginRedirect({
+                redirectStartPage: routePath,
                 scopes: this.msalAngularConfig.consentScopes,
                 extraQueryParameters: this.msalAngularConfig.extraQueryParameters
             });
