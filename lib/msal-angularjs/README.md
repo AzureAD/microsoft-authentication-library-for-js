@@ -146,7 +146,7 @@ You can use the `userInfor.isAuthenticated` property to alter login/logout UX el
 MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). This httpInterceptor will obtain token and attach it to all Http requests to web APIs except the API endpoints listed as `unprotectedResources`.
 
 ```js
-app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
+app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider, $httpProvider) {
    msalProvider.init(
     	{
             clientID: applicationConfig.clientID,
