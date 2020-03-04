@@ -99,7 +99,7 @@ export class BrowserStorage implements ICacheStorage {
      */
     private generateCacheKey(key: string): string {
         try {
-            // Defined schemas do not need the key appended
+            // Defined schemas do not need the key migrated
             this.validateObjectKey(key);
             return key;
         } catch (e) {
@@ -237,9 +237,9 @@ export class BrowserStorage implements ICacheStorage {
      */
     clearMsalCookie(state?: string): void {
         const nonceKey = state ? `${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}` : TemporaryCacheKeys.NONCE_IDTOKEN;
-        this.clearItemCookie(nonceKey);
-        this.clearItemCookie(TemporaryCacheKeys.REQUEST_STATE);
-        this.clearItemCookie(TemporaryCacheKeys.ORIGIN_URI);
+        this.clearItemCookie(this.generateCacheKey(nonceKey));
+        this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE));
+        this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
     }
 
     /**
