@@ -4,6 +4,7 @@
  */
 import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
@@ -30,7 +31,7 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse> {
+    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || "";
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.POST,
@@ -39,8 +40,8 @@ export class FetchClient implements INetworkModule {
             body: reqBody
         });
         return {
-            headers: response.headers,
-            body: await response.json(),
+            headers: BrowserUtils.headersToMap(response.headers),
+            body: await response.json() as T,
             status: response.status
         };
     }

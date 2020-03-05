@@ -59,4 +59,12 @@ export class BrowserUtils {
             return new XhrClient();
         }
     }
+
+    static headersToMap(headers: Headers): Map<string, string> {
+        const map = new Map<string, string>();
+        headers.forEach((value, key) => {
+            map.set(key, value);
+        });
+        return map;
+    }
 }
