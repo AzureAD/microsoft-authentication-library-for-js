@@ -5,11 +5,13 @@
 export class ErrorValue {
     error: string;
     errorDescription: string;
-    errorCodes: string; // delimited by " "
+    errorCodes: string;         // delimited by " "
+    throttleTime: string;       // in ms
 
-    constructor(error: string, errorDescripton: string, errorCodes: string) {
+    constructor(error: string, errorDescripton: string, errorCodes: string, throttleTime: string) {
         this.error = error;
         this.errorDescription = errorDescripton;
         this.errorCodes = errorCodes;
+        this.throttleTime = throttleTime;
     }
 }

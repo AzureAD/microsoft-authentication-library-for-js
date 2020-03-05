@@ -7,7 +7,6 @@ import { INetworkModule } from "./INetworkModule";
 import { ServerTokenRequestParameters } from "../server/ServerTokenRequestParameters";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
-import { RequestThumbprint } from "./RequestThumbprint";
 import { Constants } from "../utils/Constants";
 import { ICrypto } from "../crypto/ICrypto";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
@@ -32,7 +31,15 @@ export class NetworkManager {
     }
 
     async sendPostRequest(tokenEndpoint: string, tokenReqParams: ServerTokenRequestParameters, tokenRequest: TokenExchangeParameters, clientInfo: ClientInfo, clientId: string): Promise<ServerAuthorizationTokenResponse> {
-        const thumbprint = new RequestThumbprint(tokenRequest.authority, clientId, tokenRequest.scopes, tokenRequest.resource, clientInfo, this.cryptoObj);
+        const thumbprint = new AccessTokenKey(
+            tokenRequest.authority, 
+            clientId, 
+            tokenRequest.scopes.join(" "), 
+            tokenRequest.resource, 
+            clientInfo && clientInfo.uid, 
+            clientInfo && clientInfo.utid, 
+            this.cryptoObj
+        );
 
         const options = {
             body: tokenReqParams.createRequestBody(),
@@ -43,34 +50,23 @@ export class NetworkManager {
 
         const networkResponse = await this.networkClient.sendPostRequestAsync(tokenEndpoint, options);
 
-        this.postProcess(networkResponse, thumbprint, clientInfo);
+        this.postProcess(networkResponse, thumbprint);
 
         return networkResponse.body as ServerAuthorizationTokenResponse;
     }
 
-    private postProcess(response: NetworkResponse<ServerAuthorizationTokenResponse>, thumbprint: RequestThumbprint, clientInfo: ClientInfo): void {
+    private postProcess(response: NetworkResponse<ServerAuthorizationTokenResponse>, thumbprint: AccessTokenKey): void {
         if (response.status >= 500 || response.status == 429 || response.status >= 300 && response.headers.has("Retry-After")) {
             const throttleTime = response.headers.get("Retry-After") || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS;
-            // const responseBody = JSON.parse(response.body);
-
-            const accessTokenKey = new AccessTokenKey(
-                thumbprint.authority,
-                thumbprint.clientId,
-                thumbprint.scopes.join(" "),
-                thumbprint.resource,
-                throttleTime,
-                clientInfo && clientInfo.uid, 
-                clientInfo && clientInfo.utid, 
-                this.cryptoObj
-            );
 
             const errorValue = new ErrorValue(
                 response.body.error,
                 response.body.error_description,
-                response.body.error_codes.join(" ")
+                response.body.error_codes.join(" "),
+                throttleTime
             );
 
-            this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(errorValue));
+            this.cacheStorage.setItem(JSON.stringify(thumbprint), JSON.stringify(errorValue));
         }
     }
 
