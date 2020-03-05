@@ -33,5 +33,5 @@ export interface INetworkModule {
      * @param requestParams 
      * @param enableCaching 
      */
-    sendPostRequestAsync(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse>;
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
 }

@@ -14,9 +14,9 @@ import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { ClientInfo } from "../auth/ClientInfo";
 import { ErrorValue } from "../cache/ErrorValue";
 
-export type NetworkResponse = {
-    headers: Headers;
-    body: string;
+export type NetworkResponse<T> = {
+    headers: Map<string, string>;
+    body: T;
     status: number;
 };
 
@@ -48,10 +48,10 @@ export class NetworkManager {
         return networkResponse.body as ServerAuthorizationTokenResponse;
     }
 
-    private postProcess(response: NetworkResponse, thumbprint: RequestThumbprint, clientInfo: ClientInfo): void {
+    private postProcess(response: NetworkResponse<ServerAuthorizationTokenResponse>, thumbprint: RequestThumbprint, clientInfo: ClientInfo): void {
         if (response.status >= 500 || response.status == 429 || response.status >= 300 && response.headers.has("Retry-After")) {
             const throttleTime = response.headers.get("Retry-After") || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS;
-            const responseBody = JSON.parse(response.body);
+            // const responseBody = JSON.parse(response.body);
 
             const accessTokenKey = new AccessTokenKey(
                 thumbprint.authority,
@@ -65,9 +65,9 @@ export class NetworkManager {
             );
 
             const errorValue = new ErrorValue(
-                responseBody.error,
-                responseBody.error_description,
-                responseBody.error_codes.join(" ")
+                response.body.error,
+                response.body.error_description,
+                response.body.error_codes.join(" ")
             );
 
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(errorValue));
