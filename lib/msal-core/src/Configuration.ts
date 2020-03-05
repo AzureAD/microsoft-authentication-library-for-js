@@ -30,7 +30,8 @@ const NAVIGATE_FRAME_WAIT = 500;
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
  *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
- *
+ *  - endPointVersion             - Used to define endpoint version of AAD. Default : 2
+ * 
  */
 export type AuthOptions = {
     clientId: string;
@@ -39,6 +40,7 @@ export type AuthOptions = {
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
+    endPointVersion?: number;
 };
 
 /**
@@ -117,7 +119,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     validateAuthority: true,
     redirectUri: () => UrlUtils.getDefaultRedirectUri(),
     postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
-    navigateToLoginRequestUrl: true
+    navigateToLoginRequestUrl: true,
+    endPointVersion: 2
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {

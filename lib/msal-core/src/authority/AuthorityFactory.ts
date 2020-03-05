@@ -7,6 +7,7 @@
  * @hidden
  */
 import { AadAuthority } from "./AadAuthority";
+import {AadV1Authority} from "./AadV1Authority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
 import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
@@ -33,7 +34,7 @@ export class AuthorityFactory {
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, endPointVersion?: number): Authority {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
@@ -43,7 +44,7 @@ export class AuthorityFactory {
             case AuthorityType.B2C:
                 return new B2cAuthority(authorityUrl, validateAuthority);
             case AuthorityType.Aad:
-                return new AadAuthority(authorityUrl, validateAuthority);
+                return endPointVersion === 1 ? new AadV1Authority(authorityUrl, validateAuthority) : new AadAuthority(authorityUrl, validateAuthority);
             default:
                 throw ClientConfigurationErrorMessage.invalidAuthorityType;
         }

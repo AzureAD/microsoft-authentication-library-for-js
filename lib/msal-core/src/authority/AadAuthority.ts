@@ -11,9 +11,9 @@ import { AADTrustedHostList } from "../utils/Constants";
  * @hidden
  */
 export class AadAuthority extends Authority {
-    private static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
+    protected static readonly AadInstanceDiscoveryEndpoint: string = "https://login.microsoftonline.com/common/discovery/instance";
 
-    private get AadInstanceDiscoveryEndpointUrl(): string {
+    protected get AadInstanceDiscoveryEndpointUrl(): string {
         return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
     }
 

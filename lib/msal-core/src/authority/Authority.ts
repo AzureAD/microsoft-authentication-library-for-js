@@ -14,6 +14,7 @@ import { UrlUtils } from "../utils/UrlUtils";
  */
 export enum AuthorityType {
     Aad,
+    AadV1,
     Adfs,
     B2C
 }
