@@ -157,12 +157,13 @@ export class ResponseHandler {
         // Save access token in cache
         const newAccessTokenValue = new AccessTokenValue(
             serverTokenResponse.token_type,
-             serverTokenResponse.access_token,
+            serverTokenResponse.access_token,
             originalTokenResponse.idToken,
             serverTokenResponse.refresh_token,
             expirationSec.toString(),
             extendedExpirationSec.toString(),
-            );
+        );
+        
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
         const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
 
