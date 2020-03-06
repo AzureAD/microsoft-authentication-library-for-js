@@ -135,7 +135,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            const windowObj = redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            expect(window).to.be.eq(windowObj);
             expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
@@ -182,11 +183,15 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 uniqueId: idTokenClaims.oid,
                 userRequestState: "testState"
             };
+            browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             sinon.stub(AuthorizationCodeModule.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeModule.prototype, "acquireToken").resolves(testTokenResponse);
             
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
+            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;
+            expect(browserStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
         });
     });
 });
