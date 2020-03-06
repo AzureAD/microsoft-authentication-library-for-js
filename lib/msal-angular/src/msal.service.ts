@@ -173,11 +173,12 @@ export class MsalService extends UserAgentApplication {
             return null;
         }
 
-        if (this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap) {
+        const frameworkProtectedResourceMap = this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap;
+        if (frameworkProtectedResourceMap) {
             this.getLogger().info("msalConfig.framework.protectedResourceMap is deprecated, use msalAngularConfig.protectedResourceMap");
         }
 
-        const protectedResourceMap = (this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap) || new Map(this.msalAngularConfig.protectedResourceMap);
+        const protectedResourceMap = frameworkProtectedResourceMap && frameworkProtectedResourceMap.size ? frameworkProtectedResourceMap : new Map(this.msalAngularConfig.protectedResourceMap);
 
         // process all protected resources and send the matched one
         const keyForEndpoint = Array.from(protectedResourceMap.keys()).find(key => endpoint.indexOf(key) > -1);
