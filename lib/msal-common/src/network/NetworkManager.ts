@@ -56,7 +56,7 @@ export class NetworkManager {
     }
 
     private postProcess(response: NetworkResponse<ServerAuthorizationTokenResponse>, thumbprint: AccessTokenKey): void {
-        if (response.status >= 500 || response.status == 429 || response.status < 200 && response.status >= 300 && response.headers.has("Retry-After")) {
+        if (response.status >= 500 || response.status == 429 || (response.status < 200 || response.status >= 300) && response.headers.has("Retry-After")) {
             const throttleTime = parseInt(response.headers.get("Retry-After")) || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS;
 
             const cacheKey = JSON.stringify(thumbprint);
