@@ -148,7 +148,8 @@ export class UserAgentApplication {
     // state variables
     private silentAuthenticationState: string;
     private silentLogin: boolean;
-    private redirectCallbacksSet: boolean;
+    private redirectResponse: AuthResponse;
+    private redirectError: AuthError;
 
     // Authority Functionality
     protected authorityInstance: Authority;
@@ -206,9 +207,6 @@ export class UserAgentApplication {
         // Set the Configuration
         this.config = buildConfiguration(configuration);
 
-        // Set the callback boolean
-        this.redirectCallbacksSet = false;
-
         this.logger = this.config.system.logger;
         this.clientId = this.config.auth.clientId;
         this.inCookie = this.config.cache.storeAuthStateInCookie;
@@ -253,7 +251,6 @@ export class UserAgentApplication {
     handleRedirectCallback(authCallback: authResponseCallback): void;
     handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
         if (!authOrTokenCallback) {
-            this.redirectCallbacksSet = false;
             throw ClientConfigurationError.createInvalidCallbackObjectError(authOrTokenCallback);
         }
 
@@ -266,12 +263,10 @@ export class UserAgentApplication {
             this.authResponseCallback = authOrTokenCallback as authResponseCallback;
         }
 
-        this.redirectCallbacksSet = true;
-
-        // On the server 302 - Redirect, handle this
-        const cachedHash = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
-        if (cachedHash) {
-            this.processCallBack(cachedHash, null);
+        if (this.redirectError) {
+            this.authErrorHandler(Constants.interactionTypeRedirect, this.redirectError, this.redirectResponse);
+        } else if (this.redirectResponse) {
+            this.authResponseHandler(Constants.interactionTypeRedirect, this.redirectResponse);
         }
     }
 
@@ -320,7 +315,7 @@ export class UserAgentApplication {
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -332,7 +327,7 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -345,7 +340,7 @@ export class UserAgentApplication {
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -364,7 +359,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -1000,12 +995,13 @@ export class UserAgentApplication {
                     response.tokenType = ServerHashParamKeys.ID_TOKEN;
                 }
                 if (!parentCallback) {
-                    this.authResponseHandler(Constants.interactionTypeRedirect, response);
+                    this.redirectResponse = response;
                     return;
                 }
             } else if (!parentCallback) {
+                this.redirectResponse = buildResponseStateOnly(accountState);
+                this.redirectError = authErr;
                 this.cacheStorage.resetTempCacheItems(stateInfo.state);
-                this.authErrorHandler(Constants.interactionTypeRedirect, authErr, buildResponseStateOnly(accountState));
                 return;
             }
 
@@ -1043,29 +1039,22 @@ export class UserAgentApplication {
         } else {
             // Redirect cases
             tokenResponseCallback = null;
+            window.location.hash = "";
             // if set to navigate to loginRequest page post login
             if (this.config.auth.navigateToLoginRequestUrl) {
                 this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
                 if (window.parent === window) {
                     const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
+                    const currentUrl = this.getCurrentUrl();
 
                     // Redirect to home page if login request url is null (real null or the string null)
                     if (!loginRequestUrl || loginRequestUrl === "null") {
                         this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
                         window.location.href = "/";
-                    } else {
-                        window.location.href = loginRequestUrl;
+                    } else if (currentUrl != loginRequestUrl) {
+                        window.location.href = loginRequestUrl + locationHash;
                     }
                 }
-                return;
-            }
-            else {
-                window.location.hash = "";
-            }
-
-            if (!this.redirectCallbacksSet) {
-                // We reached this point too early - cache hash, return and process in handleRedirectCallbacks
-                this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
                 return;
             }
         }
@@ -1920,6 +1909,16 @@ export class UserAgentApplication {
             return this.config.auth.redirectUri();
         }
         return this.config.auth.redirectUri;
+    }
+
+    /**
+     * Use to get the current url without the hash.
+     * This will be compared to request url to determine if redirect is needed
+     *
+     * @returns {string} current URL
+     */
+    public getCurrentUrl(): string {
+        return window.location.href.split("#")[0];
     }
 
     /**
