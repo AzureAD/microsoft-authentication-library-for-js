@@ -1,6 +1,8 @@
 /**
  * This file contains the string constants used by the test classes.
  */
+export const NUM_TESTS = 100;
+
 // Test URIs
 export const TEST_URIS = {
     DEFAULT_INSTANCE: "https://login.microsoftonline.com/",
@@ -21,7 +23,9 @@ export const TEST_CONFIG = {
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
-    STATE: "1234"
+    STATE: "1234",
+    TEST_VERIFIER: "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
+    TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
 };
 
 // Test Tokens
@@ -52,14 +56,16 @@ export const TEST_TOKEN_LIFETIMES = {
 // Test CLIENT_INFO
 export const TEST_DATA_CLIENT_INFO = {
     TEST_UID: "123-test-uid",
+    TEST_UID_ENCODED: "MTIzLXRlc3QtdWlk",
     TEST_UTID: "456-test-utid",
+    TEST_UTID_ENCODED: "NDU2LXRlc3QtdXRpZA==",
+    TEST_UTID_URLENCODED: "NDU2LXRlc3QtdXRpZA",
     TEST_DECODED_CLIENT_INFO: `{"uid":"123-test-uid","utid":"456-test-utid"}`,
     TEST_INVALID_JSON_CLIENT_INFO: `{"uid":"123-test-uid""utid":"456-test-utid"}`,
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA=="
 };
-
 
 // Test Hashes
 export const TEST_HASHES = {
