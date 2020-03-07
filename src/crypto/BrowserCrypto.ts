@@ -27,19 +27,7 @@ export class BrowserCrypto {
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
 
-        if (this.hasIECrypto()) {
-            return new Promise((resolve, reject) => {
-                const digestOperation = window["msCrypto"].subtle.digest(HASH_ALG, data.buffer);
-                digestOperation.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
-                    resolve(e.target.result);
-                });
-                digestOperation.addEventListener("error", (error: string) => {
-                    reject(error);
-                });
-            });
-        }
-
-        return window.crypto.subtle.digest(HASH_ALG, data);
+        return this.hasIECrypto() ? this.getMSCryptoDigest(HASH_ALG, data) : this.getSubtleCryptoDigest(HASH_ALG, data);
     }
 
     /**
@@ -73,5 +61,31 @@ export class BrowserCrypto {
      */
     private hasCryptoAPI(): boolean {
         return this.hasIECrypto() || this.hasBrowserCrypto();
+    }
+
+    /**
+     * Helper function for SHA digest.
+     * @param algorithm 
+     * @param data 
+     */
+    private async getSubtleCryptoDigest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer> {
+        return window.crypto.subtle.digest(algorithm, data);
+    }
+
+    /**
+     * Helper function for SHA digest.
+     * @param algorithm 
+     * @param data 
+     */
+    private async getMSCryptoDigest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer> {
+        return new Promise((resolve, reject) => {
+            const digestOperation = window["msCrypto"].subtle.digest(algorithm, data.buffer);
+            digestOperation.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
+                resolve(e.target.result);
+            });
+            digestOperation.addEventListener("error", (error: string) => {
+                reject(error);
+            });
+        });
     }
 }
