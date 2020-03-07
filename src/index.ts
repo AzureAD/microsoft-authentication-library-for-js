@@ -4,6 +4,7 @@ export { PublicClientSPAConfiguration, AuthOptions } from "./app/config/PublicCl
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./app/config/ModuleConfiguration";
 // Account
 export { Account } from "./auth/Account";
+export { IdTokenClaims } from "./auth/IdTokenClaims";
 // Authority
 export { Authority } from "./auth/authority/Authority";
 export { AuthorityFactory } from "./auth/authority/AuthorityFactory";
