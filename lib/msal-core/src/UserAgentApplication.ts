@@ -791,7 +791,10 @@ export class UserAgentApplication {
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
-        const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
+        // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
+        const iframe: HTMLIFrameElement = this.config.system.navigateFrameWait ?
+            await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger):
+            WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
             const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
@@ -1898,8 +1901,16 @@ export class UserAgentApplication {
      *
      * returns the logger handle
      */
-    protected getLogger() {
-        return this.config.system.logger;
+    getLogger() {
+        return this.logger;
+    }
+
+    /**
+     * Sets the logger callback.
+     * @param logger Logger callback
+     */
+    setLogger(logger: Logger) {
+        this.logger = logger;
     }
 
     // #endregion

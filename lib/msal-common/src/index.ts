@@ -4,6 +4,7 @@ export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientCon
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account
 export { Account } from "./account/Account";
+export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";

@@ -1,4 +1,4 @@
-import {BroadcastService, MsalService} from "../src";
+import {BroadcastService, MsalService, MsalAngularConfiguration} from "../src";
 import 'zone.js/dist/zone';
 import 'zone.js/dist/long-stack-trace-zone';
 import 'zone.js/dist/proxy'; // since zone.js 0.6.15
@@ -12,198 +12,287 @@ import {
     BrowserDynamicTestingModule,
     platformBrowserDynamicTesting
 } from "@angular/platform-browser-dynamic/testing";
-import {MSAL_CONFIG} from "../src/msal.service";
+import {MSAL_CONFIG, MSAL_CONFIG_ANGULAR} from "../src/msal.service";
 import {RouterTestingModule} from '@angular/router/testing';
 import {} from 'jasmine';
+import { Configuration, UserAgentApplication, AuthResponse, AuthError } from "msal";
 
 describe('Msal Angular Pubic API tests', function () {
 
     let authService: MsalService;
     let broadcastService: BroadcastService;
 
-    beforeAll(() => {
+    const clientId = "6226576d-37e9-49eb-b201-ec1eeb0029b6";
 
+    beforeAll(() => {
         TestBed.configureTestingModule({
             imports: [RouterTestingModule],
-            providers: [MsalService, {
-                provide: MSAL_CONFIG, useValue: {
-                    clientID: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-                    authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
-                    validateAuthority: true,
-                    redirectUri: "http://localhost:4200/",
-                    cacheLocation: "localStorage",
-                    postLogoutRedirectUri: "http://localhost:4200/",
-                    navigateToLoginRequestUrl: true,
-                    popUp: false,
-                    consentScopes: ["user.read", "mail.send"],
-                    unprotectedResources: ["https:google.com"],
-                    correlationId: '1234',
-                    piiLoggingEnabled: true
+            providers: [
+                MsalService,
+                {
+                    provide: MSAL_CONFIG,
+                    useValue: {
+                        auth: {
+                            clientId,
+                            authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
+                            validateAuthority: true,
+                            redirectUri: "http://localhost:4200/",
+                            postLogoutRedirectUri: "http://localhost:4200/",
+                            navigateToLoginRequestUrl: true,
+                        },
+                        cache: {
+                            cacheLocation: "localStorage",
+                            storeAuthStateInCookie: false
+                        }
+                    } as Configuration
+                },
+                {
+                    provide: MSAL_CONFIG_ANGULAR,
+                    useValue: {
+                        popUp: false,
+                        consentScopes: ["user.read", "mail.send"],
+                        protectedResourceMap: [
+                            ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
+                        ]
+                    } as MsalAngularConfiguration
+                },
+                BroadcastService,
+                {
+                    provide: Storage,
+                    useClass: {
+                        mockLocalStorage: "localStorage"
+                    }
                 }
-            }, BroadcastService, {provide: Storage, useClass: {mockLocalStorage: "localStorage"}}
             ]
-        })
+        });
 
         getTestBed().initTestEnvironment(
             BrowserDynamicTestingModule,
             platformBrowserDynamicTesting()
         );
 
-        var store = {};
-
-        spyOn(localStorage, 'getItem').and.callFake((key: any) => {
-            return store[key];
-        });
-        spyOn(localStorage, 'setItem').and.callFake((key: any, value: any) => {
-            return store[key] = value + '';
-        });
-        spyOn(localStorage, 'clear').and.callFake(() => {
-            store = {};
-        });
         authService = TestBed.get(MsalService);
         broadcastService = TestBed.get(BroadcastService);
     });
 
-    const pSuccessPromise = new Promise((resolve, reject) => {
-        resolve("911");
-    });
+    describe('loginPopup', () => {
+        it('success', done => {
+            const sampleIdToken = {
+                idToken: "123abc"
+            };
 
-    const pFailurePromise = new Promise((resolve, reject) => {
-        reject("invalid scopes");
-    });
+            spyOn(UserAgentApplication.prototype, 'loginPopup').and.returnValue((
+                new Promise((resolve) => {
+                    resolve(sampleIdToken);
+                })
+            ));
 
-    it('1: test login_popup success', () => {
-        console.log(" 1: test login_popup success");
-        const pSuccessPromise = new Promise((resolve, reject) => {
-            resolve("login_popup_success");
-        });
-        spyOn(authService, 'loginPopup').and.returnValue(pSuccessPromise);
-        authService.loginPopup(["user.read"]).then((idtoken) => {
-            expect(idtoken).toBe('login_popup_success');
-        }).catch((error) => {
-            //This should not get executed for success case. If it does, something is wrong. Fix it.
-            expect(true).toBe(false);
-        });
-        expect(authService.loginPopup).toHaveBeenCalled();
-        broadcastService.subscribe("msal:loginSuccess", (payload: any) => {
-            expect(payload.idToken).toBe('login_popup_success');
-        });
+            broadcastService.subscribe("msal:loginSuccess", (payload: AuthResponse) => {
+                expect(payload.idToken).toBe(sampleIdToken.idToken);
 
-    });
+                done();
+            });
 
-    it('2: test login_popup failure', () => {
-        console.log(" 2: test login_popup failure");
-        spyOn(authService, 'loginPopup').and.returnValue(pFailurePromise);
-        authService.loginPopup(["wrong.scope"]).then((idtoken) => {
-            //This should not get executed for success case. If it does, something is wrong. Fix it.
-            expect(true).toBe(false);
-        }).catch((error) => {
-            expect(error).toBe("invalid scopes");
-        });
-        expect(authService.loginPopup).toHaveBeenCalled();
+            const request = {
+                scopes: ["user.read"]
+            };
 
-        broadcastService.subscribe("msal:loginFailure", (payload: any) => {
-            expect(payload.error).toBe('invalid scopes');
-        });
-    });
+            authService.loginPopup(request)
+            .then((response: AuthResponse) => {
+                expect(response.idToken).toBe(sampleIdToken.idToken);
+            });
 
-
-    it('3: test login_redirect success', () => {
-        console.log("3: test login_redirect success");
-        spyOn(authService, 'loginRedirect').and.returnValue(pSuccessPromise);
-        authService.loginRedirect(["user.read"]);
-        expect(authService.loginRedirect).toHaveBeenCalled();
-        //can't test broadcast in unit test. Can be tested only in endToEnd test
-    });
-
-
-    it('4: test login_redirect failure', () => {
-        console.log("4: test login_redirect success");
-        spyOn(authService, 'loginRedirect').and.returnValue(pFailurePromise);
-        authService.loginRedirect(["wrong.scope"]);
-        expect(authService.loginRedirect).toHaveBeenCalled();
-        //can't test broadcast in unit test. Can be tested only in endToEnd test
-    });
-
-    it('5: test acquire_token_silent success', () => {
-        console.log("5: test login_redirect success");
-        spyOn(authService, 'acquireTokenSilent').and.returnValue(pSuccessPromise);
-        authService.acquireTokenSilent(["user.read"]).then((error) => {
-            expect(error).toBe('911');
-        }).catch((error) => {
-            //This should not get executed for success case. If it does, something is wrong. Fix it.
-            expect(true).toBe(false);
-        });
-        expect(authService.acquireTokenSilent).toHaveBeenCalled();
-
-        broadcastService.subscribe("msal:acquireTokenSuccess", (payload: any) => {
-            expect(payload).toBe('911');
+            expect(UserAgentApplication.prototype.loginPopup).toHaveBeenCalledWith(request);
         });
 
-    });
+        it('failure', done => {
+            const sampleError = new AuthError("123", "message");
 
-    it('6: test acquire_token_silent failure', () => {
-        console.log("6: test acquire_token_silent failure");
-        spyOn(authService, 'acquireTokenSilent').and.returnValue(pFailurePromise);
-        authService.acquireTokenSilent(["wrong.scope"]).then((payloaf) => {
-            //This should not get executed for success case. If it does, something is wrong. Fix it.
-            expect(true).toBe(false);
-        }).catch((error) => {
-            expect(error).toBe("invalid scopes");
-        });
-        expect(authService.acquireTokenSilent).toHaveBeenCalled();
+            spyOn(UserAgentApplication.prototype, 'loginPopup').and.returnValue((
+                new Promise((resolve, reject) => {
+                    reject(sampleError);
+                })
+            ));
 
-        broadcastService.subscribe("msal:acquireTokenFailure", (payload: any) => {
-            expect(payload).toBe('invalid scopes');
+            broadcastService.subscribe("msal:loginFailure", (error: AuthError) => {
+                expect(error.message).toBe(sampleError.message);
+                done();
+            });
+
+            const request = {
+                scopes: ["wrong.scope"]
+            };
+
+            authService.loginPopup(request)
+            .catch((error: AuthError) => {
+                expect(error.message).toBe(sampleError.message);
+            });
+
+            expect(UserAgentApplication.prototype.loginPopup).toHaveBeenCalledWith(request);
         });
     });
 
-    it('7: test acquire_token_redirect success', () => {
-        console.log("7: test acquire_token_redirect success");
-        spyOn(authService, 'acquireTokenRedirect').and.returnValue(pSuccessPromise);
-        authService.acquireTokenRedirect(["user.read"]);
-        expect(authService.acquireTokenRedirect).toHaveBeenCalled();
-    });
+    describe('loginRedirect', () => {
+        it('success', () => {
+            spyOn(UserAgentApplication.prototype, 'loginRedirect');
 
-    it('8: test acquire_token_redirect failure', () => {
-        console.log("8: test acquire_token_redirect failure");
-        spyOn(authService, 'acquireTokenRedirect').and.returnValue(pFailurePromise);
-        authService.acquireTokenRedirect(["wrong.scope"]);
-        expect(authService.acquireTokenRedirect).toHaveBeenCalled();
-    });
+            authService.loginRedirect({
+                scopes: ["user.read"]
+            });
 
-
-    it('9 : test acquire_token_popup success', () => {
-        console.log("9 : test acquire_token_popup success");
-        spyOn(authService, 'acquireTokenPopup').and.returnValue(pSuccessPromise);
-        authService.acquireTokenPopup(["user.read"]).then((payload) => {
-            expect(payload).toBe('911');
-        }).catch((error) => {
-            //This should not get executed for success case. If it does, something is wrong. Fix it.
-            expect(true).toBe(false);
-        });
-        expect(authService.acquireTokenPopup).toHaveBeenCalled();
-
-        broadcastService.subscribe("msal:acquireTokenSuccess", (payload: any) => {
-            expect(payload).toBe('911');
+            expect(UserAgentApplication.prototype.loginRedirect).toHaveBeenCalled();
         });
     });
 
-    it('10 : test acquire_token_popup failure', () => {
-        console.log("10 : test acquire_token_popup failure");
-        spyOn(authService, 'acquireTokenPopup').and.returnValue(pFailurePromise);
-        authService.acquireTokenPopup(["user.read"]).then((payload) => {
-            //This should not get executed for success case. If it does, something is wrong. Fix it.
-            expect(true).toBe(false);
-        }).catch((error) => {
-            expect(error).toBe("invalid scopes");
-        });
-        expect(authService.acquireTokenPopup).toHaveBeenCalled();
+    describe('acquireTokenSilent', () => {
+        it('success', done => {
+            const sampleAccessToken = {
+                accessToken: "123abc"
+            };
 
-        broadcastService.subscribe("msal:acquireTokenFailure", (payload: any) => {
-            expect(payload).toBe('invalid scopes');
+            spyOn(UserAgentApplication.prototype, 'acquireTokenSilent').and.returnValue((
+                new Promise((resolve) => {
+                    resolve(sampleAccessToken);
+                })
+            ));
+
+            broadcastService.subscribe("msal:acquireTokenSuccess", (payload: any) => {
+                expect(payload.accessToken).toBe(sampleAccessToken.accessToken);
+
+                done();
+            });
+
+            const request = {
+                scopes: ["user.read"]
+            };
+
+            authService.acquireTokenSilent(request)
+            .then((response) => {
+                expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+            });
+
+            expect(UserAgentApplication.prototype.acquireTokenSilent).toHaveBeenCalledWith(request);
         });
 
+        it('failure', function(done) {
+            const sampleError = new AuthError("123", "message");
+
+            spyOn(UserAgentApplication.prototype, 'acquireTokenSilent').and.returnValue((
+                new Promise((resolve, reject) => {
+                    reject(sampleError);
+                })
+            ));
+
+            broadcastService.subscribe("msal:acquireTokenFailure", (error: AuthError) => {
+                expect(error.message).toBe(sampleError.message);
+                done();
+            });
+
+            const request = {
+                scopes: ["wrong.scope"]
+            };
+
+            authService.acquireTokenSilent(request)
+            .catch((error: AuthError) => {
+                expect(error.message).toBe(sampleError.message);
+            });
+
+            expect(UserAgentApplication.prototype.acquireTokenSilent).toHaveBeenCalledWith(request);
+        });
     });
 
+    describe('acquireTokenRedirect', () => {
+        it('success', () => {
+            spyOn(UserAgentApplication.prototype, 'acquireTokenRedirect');
+
+            authService.acquireTokenRedirect({
+                scopes: ["user.read"]
+            });
+
+            expect(UserAgentApplication.prototype.acquireTokenRedirect).toHaveBeenCalled();
+        });
+    });
+
+    describe('acquireTokenPopup', () => {
+        it('success', done => {
+            const sampleAccessToken = {
+                accessToken: "123abc"
+            };
+
+            spyOn(UserAgentApplication.prototype, 'acquireTokenPopup').and.returnValue((
+                new Promise((resolve) => {
+                    resolve(sampleAccessToken);
+                })
+            ));
+
+            broadcastService.subscribe("msal:acquireTokenSuccess", (payload: AuthResponse) => {
+                expect(payload.accessToken).toBe(sampleAccessToken.accessToken);
+
+                done();
+            });
+
+            const request = {
+                scopes: ["user.read"]
+            };
+
+            authService.acquireTokenPopup(request)
+            .then((response: AuthResponse) => {
+                expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+            });
+
+            expect(UserAgentApplication.prototype.acquireTokenPopup).toHaveBeenCalledWith(request);
+        });
+
+        it('failure', done => {
+            const sampleError = new AuthError("123", "message");
+
+            spyOn(UserAgentApplication.prototype, 'acquireTokenPopup').and.returnValue((
+                new Promise((resolve, reject) => {
+                    reject(sampleError);
+                })
+            ));
+
+            broadcastService.subscribe("msal:acquireTokenFailure", (error: AuthError) => {
+                expect(error.message).toBe(sampleError.message);
+                done();
+            });
+
+            const request = {
+                scopes: ["wrong.scope"]
+            };
+
+            authService.acquireTokenPopup(request)
+            .catch((error: AuthError) => {
+                expect(error.message).toBe(sampleError.message);
+            });
+
+            expect(UserAgentApplication.prototype.acquireTokenPopup).toHaveBeenCalledWith(request);
+        });
+    });
+
+    describe("getScopesForEndpoint", () => {
+        it("protected resource", () => {
+            const scopes = authService.getScopesForEndpoint("https://graph.microsoft.com/v1.0/me");
+
+            expect(scopes).toEqual([ "user.read" ]);
+        });
+
+        it("unprotected resource", () => {
+            const scopes = authService.getScopesForEndpoint("https://google.com");
+
+            expect(scopes).toBeNull;
+        });
+
+        it("not listed as protected or unprotected", () => {
+            const scopes = authService.getScopesForEndpoint("https://microsoft.com");
+
+            expect(scopes).toBeNull;
+        });
+
+        it("own domain", () => {
+            const scopes = authService.getScopesForEndpoint("http://localhost:4200/api");
+
+            expect(scopes).toEqual([ clientId ]);
+        });
+    });
 });
