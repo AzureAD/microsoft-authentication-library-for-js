@@ -8,7 +8,7 @@ import { ServerTokenRequestParameters } from "../server/ServerTokenRequestParame
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
-import { Constants } from "../utils/Constants";
+import { Constants, HEADER_NAMES } from "../utils/Constants";
 import { ICrypto } from "../crypto/ICrypto";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { ClientInfo } from "../auth/ClientInfo";
@@ -49,8 +49,8 @@ export class NetworkManager {
     }
 
     private postProcess(response: NetworkResponse<ServerAuthorizationTokenResponse>, thumbprint: AccessTokenKey): void {
-        if (response.status >= 500 || response.status == 429 || (response.status < 200 || response.status >= 300) && response.headers.has("Retry-After")) {
-            const throttleTime = parseInt(response.headers.get("Retry-After")) || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS;
+        if (response.status >= 500 || response.status == 429 || (response.status < 200 || response.status >= 300) && response.headers.has(HEADER_NAMES.RETRY_AFTER)) {
+            const throttleTime = parseInt(response.headers.get(HEADER_NAMES.RETRY_AFTER)) || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS;
 
             const accessTokenValue = this.getThumbprintValueFromCache(thumbprint);
 

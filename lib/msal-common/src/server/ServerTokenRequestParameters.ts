@@ -64,6 +64,7 @@ export class ServerTokenRequestParameters {
     createRequestHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
         headers.set(HEADER_NAMES.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+        headers.set(HEADER_NAMES.X_MS_LIB_CAPABILITY, Constants.X_MS_LIB_CAPABILITY_VALUE);
         return headers;
     }
 

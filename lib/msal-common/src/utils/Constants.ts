@@ -30,6 +30,7 @@ export const Constants = {
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded",
+    X_MS_LIB_CAPABILITY_VALUE: "retry-after, h429",
     DEFAULT_THROTTLE_TIME_MS: 120000,
     DEFAULT_MAX_THROTTLE_TIME_MS: 3600000
 };
@@ -38,7 +39,9 @@ export const Constants = {
  * Request header names
  */
 export enum HEADER_NAMES {
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "Content-Type",
+    RETRY_AFTER = "Retry-After",
+    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
 };
 
 /**
