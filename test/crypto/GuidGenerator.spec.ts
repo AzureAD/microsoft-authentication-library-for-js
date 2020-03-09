@@ -11,6 +11,10 @@ describe("GuidGenerator Unit Tests", () => {
         browserCrypto = new BrowserCrypto();
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("test if a string is GUID", () => {
 
         it("Regular text", () => {

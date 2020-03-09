@@ -147,7 +147,7 @@ export class PopupHandler extends InteractionHandler {
             // open the window
             const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
             if (!popupWindow) {
-                throw BrowserAuthError.createPopupWindowError();
+                throw BrowserAuthError.createEmptyWindowCreatedError();
             }
             if (popupWindow.focus) {
                 popupWindow.focus();

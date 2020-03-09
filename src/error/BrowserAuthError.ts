@@ -40,6 +40,10 @@ export const BrowserAuthErrorMessage = {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
+    emptyWindowError: {
+        code: "empty_window_error",
+        desc: "window.open returned null or undefined window object."
+    },
     userCancelledError: {
         code: "user_cancelled",
         desc: "User cancelled the flow."
@@ -130,6 +134,14 @@ export class BrowserAuthError extends AuthError {
         let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
         return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+    }
+
+    /**
+     * Creates an error thrown when window.open returns an empty window object.
+     * @param errDetail 
+     */
+    static createEmptyWindowCreatedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.emptyWindowError.code, BrowserAuthErrorMessage.emptyWindowError.desc);
     }
 
     /**

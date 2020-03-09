@@ -1,5 +1,4 @@
 import * as Mocha from "mocha";
-import sinon from "sinon";
 import { expect } from "chai";
 import { PublicClientApplication } from "../../src/client/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";

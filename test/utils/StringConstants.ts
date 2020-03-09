@@ -1,6 +1,8 @@
 /**
  * This file contains the string constants used by the test classes.
  */
+export const NUM_TESTS = 100;
+
 // Test URIs
 export const TEST_URIS = {
     DEFAULT_INSTANCE: "https://login.microsoftonline.com/",
@@ -21,7 +23,9 @@ export const TEST_CONFIG = {
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
-    STATE: "1234"
+    STATE: "1234",
+    TEST_VERIFIER: "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
+    TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
 };
 
 // Test Tokens
@@ -41,15 +45,40 @@ export const TEST_TOKENS = {
     SAMPLE_JWT_SIG: "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 };
 
+
+// Test Expiration Vals
+export const TEST_TOKEN_LIFETIMES = {
+    DEFAULT_EXPIRES_IN: 3599,
+    TEST_ID_TOKEN_EXP: 1536361411,
+    TEST_ACCESS_TOKEN_EXP: 1537234948
+};
+
 // Test CLIENT_INFO
 export const TEST_DATA_CLIENT_INFO = {
     TEST_UID: "123-test-uid",
+    TEST_UID_ENCODED: "MTIzLXRlc3QtdWlk",
     TEST_UTID: "456-test-utid",
+    TEST_UTID_ENCODED: "NDU2LXRlc3QtdXRpZA==",
+    TEST_UTID_URLENCODED: "NDU2LXRlc3QtdXRpZA",
     TEST_DECODED_CLIENT_INFO: `{"uid":"123-test-uid","utid":"456-test-utid"}`,
     TEST_INVALID_JSON_CLIENT_INFO: `{"uid":"123-test-uid""utid":"456-test-utid"}`,
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA=="
+};
+
+// Test Hashes
+export const TEST_HASHES = {
+    TEST_SUCCESS_ID_TOKEN_HASH: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
+    TEST_SUCCESS_ACCESS_TOKEN_HASH: `#access_token=${TEST_TOKENS.ACCESS_TOKEN}&id_token=${TEST_TOKENS.IDTOKEN_V2}&scope=test&expiresIn=${TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
+    TEST_SUCCESS_CODE_HASH: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
+    TEST_ERROR_HASH: "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
+    TEST_INTERACTION_REQ_ERROR_HASH1: "#error=interaction_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
+    TEST_INTERACTION_REQ_ERROR_HASH2: "#error=interaction_required&error_description=msal+error+description+interaction_required&state=RANDOM-GUID-HERE|",
+    TEST_LOGIN_REQ_ERROR_HASH1: "#error=login_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
+    TEST_LOGIN_REQ_ERROR_HASH2: "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|",
+    TEST_CONSENT_REQ_ERROR_HASH1: "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
+    TEST_CONSENT_REQ_ERROR_HASH2: "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
