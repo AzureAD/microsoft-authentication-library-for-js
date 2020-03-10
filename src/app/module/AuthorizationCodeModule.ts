@@ -48,10 +48,6 @@ export class AuthorizationCodeModule extends AuthModule {
         // Implement defaults in config
         this.clientConfig = buildPublicClientSPAConfiguration(configuration);
 
-        if (this.clientConfig.auth.tmp_clientSecret) {
-            this.logger.warning("Client secret is a temporary parameter that will not be carried forward in production versions of this library.");
-        }
-
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
     }
@@ -172,7 +168,6 @@ export class AuthorizationCodeModule extends AuthModule {
             // Initialize request parameters.
             const tokenReqParams = new ServerTokenRequestParameters(
                 this.clientConfig.auth.clientId,
-                this.clientConfig.auth.tmp_clientSecret,
                 tokenRequest,
                 codeResponse,
                 this.getRedirectUri(),
@@ -256,7 +251,6 @@ export class AuthorizationCodeModule extends AuthModule {
                 // Initialize request parameters.
                 const tokenReqParams = new ServerTokenRequestParameters(
                     this.clientConfig.auth.clientId,
-                    this.clientConfig.auth.tmp_clientSecret,
                     request,
                     null,
                     this.getRedirectUri(),
