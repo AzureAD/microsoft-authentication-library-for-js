@@ -497,17 +497,8 @@ export class UserAgentApplication {
         acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
-            let loginStartPage: string;
 
-            if (isLoginCall) {
-                // if the user sets the login start page - angular only??
-                loginStartPage = this.cacheStorage.getItem(`${TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST}${Constants.resourceDelimiter}${request.state}`);
-                if (!loginStartPage || loginStartPage === "") {
-                    loginStartPage = window.location.href;
-                } else {
-                    this.cacheStorage.setItem(`${TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST}${Constants.resourceDelimiter}${request.state}`, "");
-                }
-            }
+            const loginStartPage = request.redirectStartPage || window.location.href;
 
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
