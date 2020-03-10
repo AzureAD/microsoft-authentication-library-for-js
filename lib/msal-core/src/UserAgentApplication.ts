@@ -1486,6 +1486,11 @@ export class UserAgentApplication {
                 // Process access_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
                     this.logger.info("Fragment has access token");
+                    response.accessToken = hashParams[ServerHashParamKeys.ACCESS_TOKEN];
+
+                    if (hashParams.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
+                        response.scopes = hashParams[ServerHashParamKeys.SCOPE].split(" ");
+                    }
 
                     // retrieve the id_token from response if present
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
