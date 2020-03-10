@@ -180,7 +180,9 @@ export class AuthorizationCodeModule extends AuthModule {
             );
 
             // User helper to retrieve token response.
-            return this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
+            // Need to await function call before return to catch any thrown errors.
+            // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
+            return await this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.
             this.cacheManager.resetTempCacheItems(codeResponse && codeResponse.userRequestState);
@@ -263,7 +265,9 @@ export class AuthorizationCodeModule extends AuthModule {
                 );
 
                 // User helper to retrieve token response.
-                return this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
+                // Need to await function call before return to catch any thrown errors.
+                // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
+                return await this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
             }
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.

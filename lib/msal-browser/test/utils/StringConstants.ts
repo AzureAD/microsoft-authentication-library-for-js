@@ -2,6 +2,7 @@
  * This file contains the string constants used by the test classes.
  */
 export const NUM_TESTS = 100;
+export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
 
 // Test URIs
 export const TEST_URIS = {
@@ -26,6 +27,8 @@ export const TEST_CONFIG = {
     STATE: "1234",
     TEST_VERIFIER: "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
+    TOKEN_TYPE_BEARER: "Bearer",
+    DEFAULT_SCOPES: ["openid", "profile", "offline_access"]
 };
 
 // Test Tokens
@@ -44,7 +47,6 @@ export const TEST_TOKENS = {
     SAMPLE_JWT_PAYLOAD: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
     SAMPLE_JWT_SIG: "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 };
-
 
 // Test Expiration Vals
 export const TEST_TOKEN_LIFETIMES = {
@@ -71,8 +73,8 @@ export const TEST_DATA_CLIENT_INFO = {
 export const TEST_HASHES = {
     TEST_SUCCESS_ID_TOKEN_HASH: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
     TEST_SUCCESS_ACCESS_TOKEN_HASH: `#access_token=${TEST_TOKENS.ACCESS_TOKEN}&id_token=${TEST_TOKENS.IDTOKEN_V2}&scope=test&expiresIn=${TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
-    TEST_SUCCESS_CODE_HASH: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
-    TEST_ERROR_HASH: "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
+    TEST_SUCCESS_CODE_HASH: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${RANDOM_TEST_GUID}`,
+    TEST_ERROR_HASH: `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`,
     TEST_INTERACTION_REQ_ERROR_HASH1: "#error=interaction_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
     TEST_INTERACTION_REQ_ERROR_HASH2: "#error=interaction_required&error_description=msal+error+description+interaction_required&state=RANDOM-GUID-HERE|",
     TEST_LOGIN_REQ_ERROR_HASH1: "#error=login_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
@@ -81,4 +83,37 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|"
 };
 
-export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
+export const DEFAULT_OPENID_CONFIG_RESPONSE = { 
+    "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+    "token_endpoint_auth_methods_supported": [
+        "client_secret_post", 
+        "private_key_jwt", 
+        "client_secret_basic"
+    ],
+    "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys", 
+    "response_modes_supported": [
+        "query", 
+        "fragment", 
+        "form_post"
+    ], 
+    "subject_types_supported": ["pairwise"], 
+    "id_token_signing_alg_values_supported": ["RS256"], 
+    "response_types_supported": ["code", "id_token", "code id_token", "id_token token"], 
+    "scopes_supported": ["openid", "profile", "email", "offline_access"], 
+    "issuer": "https://login.microsoftonline.com/{tenant}/v2.0", 
+    "request_uri_parameter_supported": false, 
+    "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo", 
+    "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize", 
+    "http_logout_supported": true, 
+    "frontchannel_logout_supported": true, 
+    "end_session_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout", 
+    "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"], 
+    "tenant_region_scope": null, 
+    "cloud_instance_name": "microsoftonline.com", 
+    "cloud_graph_host_name": "graph.windows.net", 
+    "msgraph_host": "graph.microsoft.com", 
+    "rbac_url": "https://pas.windows.net" 
+};
+
+export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=code&scope=user.read%20openid%20profile%20offline_access&client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&redirect_uri=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}&state=${RANDOM_TEST_GUID}&nonce=${123534}&client_info=1&x-client-SKU=MSAL.JS&x-client-Ver=1.0.0-alpha.0&code_challenge=RDo6MYd6scbtZaFlOPqT77HdseP9kLP36YMkhASP_oA&code_challenge_method=S256&client-request-id=${RANDOM_TEST_GUID}&response_mode=fragment&sso_reload=true`;
+export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`;
