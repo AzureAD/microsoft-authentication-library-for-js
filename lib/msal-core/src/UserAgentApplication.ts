@@ -1052,8 +1052,8 @@ export class UserAgentApplication {
                         this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
                         window.location.href = "/";
                         return;
-                    } else if (currentUrl != loginRequestUrl) {
-                        window.location.href = loginRequestUrl + locationHash;
+                    } else if (currentUrl !== loginRequestUrl) {
+                        window.location.href = `${loginRequestUrl}${locationHash}`;
                         return;
                     }
                 }
