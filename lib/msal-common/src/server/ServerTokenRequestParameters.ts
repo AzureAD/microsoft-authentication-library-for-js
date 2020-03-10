@@ -28,12 +28,11 @@ export class ServerTokenRequestParameters {
     clientId: string;
     scopes: ScopeSet;
     redirectUri: string;
-    clientSecret: string;
     tokenRequest: TokenExchangeParameters;
     codeResponse: CodeResponse;
     refreshToken: string;
 
-    constructor(clientId: string, clientSecret: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
+    constructor(clientId: string, tokenRequest: TokenExchangeParameters, codeResponse: CodeResponse, redirectUri: string, cryptoImpl: ICrypto, refreshToken?: string) {
         this.clientId = clientId;
         this.cryptoObj = cryptoImpl;
         this.redirectUri = redirectUri;
@@ -42,7 +41,6 @@ export class ServerTokenRequestParameters {
         this.xClientSku = Constants.LIBRARY_NAME;
         this.xClientVer = pkg.version;
 
-        this.clientSecret = clientSecret;
         this.tokenRequest = tokenRequest;
         this.codeResponse = codeResponse;
         this.refreshToken = refreshToken;
@@ -95,9 +93,6 @@ export class ServerTokenRequestParameters {
         } else {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
-
-        // Temporary until server allows CORS requests from browser without client secret
-        str.push(`client_secret=${this.clientSecret}`);
 
         return str;
     }
