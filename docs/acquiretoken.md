@@ -1,49 +1,73 @@
+# Acquiring and Using an Access Token
 
-#### 4. Get an access token to call an API
+Before you start here, make sure you understand how to [initialize the application object](./initialization.md).
 
-In MSAL, you can get access tokens for the APIs your app needs to call using the `acquireTokenSilent` method which makes a silent request(without prompting the user with UI) to Azure AD to obtain an access token. The Azure AD service then returns an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
+In MSAL, you can get access tokens for the APIs your app needs to call using the acquireToken methods provided by the library which make requests to Azure AD to obtain an `authorization code`. The MSAL library then exchanges that code for an [`access token`](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
 
-You can use `acquireTokenRedirect` or `acquireTokenPopup` to initiate interactive requests, although, it is best practice to only show interactive experiences if you are unable to obtain a token silently due to interaction required errors. If you are using an interactive token call, it must match the login method used in your application. (`loginPopup`=> `acquireTokenPopup`, `loginRedirect` => `acquireTokenRedirect`).
+You can read more about access tokens [here](https://docs.microsoft.com/azure/active-directory/develop/access-tokens).
 
-If the `acquireTokenSilent` call fails, you may need to initiate an interactive request. This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes.
+## Choosing an Interaction Type
 
+See [here](./initialization.md#choosing-an-interaction-type) if you are uncertain about the differences between `acquireTokenRedirect` and `acquireTokenPopup`.
+
+## Acquiring an Access Token
+
+MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
+
+It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs. This allows you to prevent unnecessary user interactions. 
 `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you.
 
-See [Request and Response Data Types]() for reference.
+If the `acquireTokenSilent` call fails, you need to initiate an interactive request. This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes.
 
-```JavaScript
-    // if the user is already logged in you can acquire a token
-    if (msalInstance.getAccount()) {
-        var tokenRequest = {
-            scopes: ["user.read", "mail.send"]
-        };
-        msalInstance.acquireTokenSilent(tokenRequest)
-            .then(response => {
-                // get access token from response
-                // response.accessToken
-            })
-            .catch(err => {
-                // handle error
-            });
-    } else {
-        // user is not logged in, you will need to log them in to acquire a token
-    }
+You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./requestresponseobject.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
+
+- Popup
+```javascript
+var request = {
+    scopes: ["Mail.Read"]
+};
+
+const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async (error) => {
+    // fallback to interaction when silent call fails
+    return await myMSALObj.acquireTokenPopup(request).catch(error => {
+        console.log(error);
+    });
+});
 ```
 
-#### 5. Use the token as a bearer in an HTTP request to call the Microsoft Graph or a Web API
+- Redirect
+```javascript
+var request = {
+    scopes: ["Mail.Read"]
+};
+
+const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(error => {
+    console.log("silent token acquisition fails. acquiring token using redirect");
+    // fallback to interaction when silent call fails
+    return myMSALObj.acquireTokenRedirect(request)
+});
+```
+
+## Using the Access Token
+
+Once you have retrieved the access token, you must include it in the `Authorization` header as a bearer token for the request to the resource you obtained the token for, as shown below:
 
 ```JavaScript
-    var headers = new Headers();
-    var bearer = "Bearer " + token;
-    headers.append("Authorization", bearer);
-    var options = {
-         method: "GET",
-         headers: headers
-    };
-    var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
+var headers = new Headers();
+var bearer = "Bearer " + tokenResponse.accessToken;
+headers.append("Authorization", bearer);
+var options = {
+        method: "GET",
+        headers: headers
+};
+var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
 
-    fetch(graphEndpoint, options)
-        .then(resp => {
-             //do something with response
-        });
+fetch(graphEndpoint, options)
+    .then(resp => {
+            //do something with response
+    });
 ```
+
+# Next Steps
+
+Learn about [token lifetimes, expiration and renewal](./renewtoken.md).
