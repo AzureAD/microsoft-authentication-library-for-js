@@ -1045,7 +1045,7 @@ export class UserAgentApplication {
                 this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
                 if (window.parent === window) {
                     const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
-                    const currentUrl = this.getCurrentUrl();
+                    const currentUrl = UrlUtils.getCurrentUrl();
 
                     // Redirect to home page if login request url is null (real null or the string null)
                     if (!loginRequestUrl || loginRequestUrl === "null") {
@@ -1910,16 +1910,6 @@ export class UserAgentApplication {
             return this.config.auth.redirectUri();
         }
         return this.config.auth.redirectUri;
-    }
-
-    /**
-     * Use to get the current url without the hash.
-     * This will be compared to request url to determine if redirect is needed
-     *
-     * @returns {string} current URL
-     */
-    public getCurrentUrl(): string {
-        return window.location.href.split("#")[0];
     }
 
     /**
