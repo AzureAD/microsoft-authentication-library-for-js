@@ -4,11 +4,12 @@ import {
     ActivatedRouteSnapshot, CanActivate, Router,
     RouterStateSnapshot,
 } from "@angular/router";
-import { MSAL_CONFIG, MsalService, MSAL_CONFIG_ANGULAR } from "./msal.service";
+import { MsalService } from "./msal.service";
 import { Location, PlatformLocation } from "@angular/common";
 import { BroadcastService } from "./broadcast.service";
 import { Configuration, AuthResponse, AuthError } from "msal";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
+import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
@@ -37,7 +38,10 @@ export class MsalGuard implements CanActivate {
                     .catch(() => false);
             }
 
+            const routePath = `${window.location.origin}${state.url}`;
+
             this.authService.loginRedirect({
+                redirectStartPage: routePath,
                 scopes: this.msalAngularConfig.consentScopes,
                 extraQueryParameters: this.msalAngularConfig.extraQueryParameters
             });
