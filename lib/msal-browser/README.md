@@ -10,7 +10,7 @@
 4. [Prerequisites](#prerequisites)
 5. [Installation](#installation)
 6. [Usage](#usage)
-    - [Migrating from MSAL 1.x](#migrating-from-msal-1\.x)
+    - [Migrating from Previous MSAL Versions](#migrating-from-previous-msal-versions)
     - [MSAL Basics](#msal-basics)
     - [Advanced Topics](#advanced-topics)
 7. [Samples](#samples)
@@ -68,7 +68,7 @@ npm install @azure/msal-browser
 
 ## Usage
 
-### Migrating from MSAL 1.x
+### Migrating from Previous MSAL Versions
 
 If you have MSAL v1.x currently running in your application, you can follow the instructions [here](./docs/v1migration.md) to migrate your application to using the `msal-browser` package.
 
