@@ -4,4 +4,4 @@ Before you start here, make sure you understand how to [login](./login.md) and [
 
 # Next Steps
 
-Learn how to do [log out](./logout.md).
+Learn how to perform [log out](./logout.md).
