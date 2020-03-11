@@ -93,7 +93,7 @@ The [`samples`](../samples) folder contains samples applications for our librari
 
 | Sample | Description |
 | ------ | ----------- |
-| [Vanilla JS Sample](../samples/VanillaJSTestApp2.0) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`msal-browser` package) with the Microsoft Graph API. |
+| [Vanilla JS Sample](../../samples/VanillaJSTestApp2.0) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`msal-browser` package) with the Microsoft Graph API. |
 
 Instructions to run the samples can be found in the respective READMEs.
 
