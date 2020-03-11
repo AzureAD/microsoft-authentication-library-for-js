@@ -40,8 +40,8 @@ if (myMSALObj.getAccount() && !myMSALObj.isCallback(window.location.hash)) {
 }
 
 function signIn(method) {
-    signInType = isIE ? "Redirect" : method;
-    if (signInType === "Popup") {
+    signInType = isIE ? "loginRedirect" : method;
+    if (signInType === "loginPopup") {
         myMSALObj.loginPopup(loginRequest)
             .then(loginResponse => {  
             console.log(loginResponse);
@@ -51,7 +51,7 @@ function signIn(method) {
         }).catch(function (error) {
             console.log(error);
         });
-    } else if (signInType === "Redirect") {
+    } else if (signInType === "loginRedirect") {
         myMSALObj.loginRedirect(loginRequest)
     }
 }
