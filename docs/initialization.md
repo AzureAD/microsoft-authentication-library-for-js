@@ -4,9 +4,9 @@ Before you get started, please ensure you have completed all the [prerequisites]
 
 In this document:
 - [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
-- [Configure Authority](#configure-authority)
-- [Configure Redirect URI](#configure-redirect-uri)
-- [Additional Configuration](./configuration.md)
+- [(Optional) Configure Authority](#optional-configure-authority)
+- [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
+- [(Optional) Additional Configuration](./configuration.md)
 - [Choosing an Interaction Type](#choosing-an-interaction-type)
 
 ## Initializing the PublicClientApplication object
@@ -24,14 +24,14 @@ const msalConfig = {
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 ```
 
-## Configure Authority
+## (Optional) Configure Authority
 
 By default, MSAL is configured with the `common` tenant, which is used for multi-tenant applications and applications allowing personal accounts (not B2C).
 ```javascript
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/{your_tenant_id}'
+        authority: 'https://login.microsoftonline.con/common/'
     }
 };
 ```
@@ -46,7 +46,7 @@ const msalConfig = {
 };
 ```
 
-## Configure Redirect URI
+## (Optional) Configure Redirect URI
 
 By default, MSAL is configured to set the redirect URI to the current page that it is running on. If you would like to receive the authorization code on a different page than the one running MSAL, you can set this in the configuration:
 ```javascript
@@ -61,7 +61,7 @@ const msalConfig = {
 
 Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./loginuser.md) and [request APIs](./acquiretoken.md).
 
-## Additional Configuration
+## (Optional) Additional Configuration
 
 MSAL has additional configuration options which you can review [here](./configuration.md).
 
