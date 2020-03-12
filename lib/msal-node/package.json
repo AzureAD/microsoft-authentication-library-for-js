@@ -15,6 +15,8 @@
   "keywords": [
     "implicit",
     "js",
+    "ts",
+    "node",
     "AAD",
     "msal",
     "oauth"
@@ -28,8 +30,9 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test .*.spec.*",
-    "test:watch": "tsdx test .*.spec.* --watch",
-    "test:coverage": "tsdx test .*.spec.* --coverage",
+    "test:n": "tsdx test",
+    "test:w": "tsdx test .*.spec.* --watch",
+    "test:c": "tsdx test .*.spec.* --coverage",
     "lint": "tsdx lint",
     "prepare": "tsdx build"
   },
@@ -43,7 +46,15 @@
     "printWidth": 80,
     "semi": true,
     "singleQuote": true,
-    "trailingComma": "es5"
+    "trailingComma": "es5",
+    "endOfLine": "lf"
+  },
+  "jest": {
+    "verbose": true,
+    "moduleFileExtensions": [ "ts", "tsx", "js", "json", "jsx", "node"],
+    "testMatch": [
+        "<rootDir>/test/**/?(*.)(spec|test).(ts|js)?(x)"
+      ]
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {

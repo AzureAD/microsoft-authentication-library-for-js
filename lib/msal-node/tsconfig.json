@@ -25,6 +25,7 @@
       "*": ["src/*", "node_modules/*"]
     },
     "jsx": "react",
+    "allowJs": true,
     "esModuleInterop": true
   }
 }

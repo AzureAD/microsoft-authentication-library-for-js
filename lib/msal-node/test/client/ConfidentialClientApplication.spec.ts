@@ -1,4 +1,6 @@
-const { ConfidentialClientApplication } = require('./../dist/');
+const {
+    ConfidentialClientApplication,
+} = require('./../../src/client/ConfidentialClientApplication');
 
 describe('ConfidentialClientApplication', () => {
     test('exports a class', () => {
