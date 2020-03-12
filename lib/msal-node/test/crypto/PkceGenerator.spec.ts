@@ -1,6 +1,6 @@
 import { PkceCodes } from '@azure/msal-common';
 import { TESTS } from './../TestConstants';
-const { PkceGenerator } = require('./../../src/crypto/PkceGenerator');
+import { PkceGenerator } from './../../src/crypto/PkceGenerator';
 
 describe('PkceGenerator', () => {
     // tests generatePkceCodes

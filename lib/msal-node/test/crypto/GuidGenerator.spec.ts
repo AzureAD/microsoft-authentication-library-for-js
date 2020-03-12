@@ -1,4 +1,4 @@
-const { GuidGenerator } = require('./../../src/crypto/GuidGenerator');
+import { GuidGenerator } from './../../src/crypto/GuidGenerator';
 
 describe('GuidGenerator', () => {
     // tests correctness of isGuid()

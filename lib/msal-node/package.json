@@ -33,7 +33,7 @@
     "test:n": "tsdx test",
     "test:w": "tsdx test .*.spec.* --watch",
     "test:c": "tsdx test .*.spec.* --coverage",
-    "lint": "tsdx lint",
+    "lint": "tsdx lint --fix",
     "prepare": "tsdx build"
   },
   "peerDependencies": {},
