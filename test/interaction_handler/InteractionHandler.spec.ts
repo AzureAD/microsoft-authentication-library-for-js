@@ -48,8 +48,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
     it("Constructor", () => {
         const appConfig: Configuration = {
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: "testSecret"
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
         const configObj = buildConfiguration(appConfig);

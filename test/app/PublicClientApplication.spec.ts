@@ -39,8 +39,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
     });
@@ -84,8 +83,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 pca = new PublicClientApplication({
                     auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
                     }
                 });
                 pca.handleRedirectCallback(authCallback);
@@ -145,8 +143,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
                     }
                 });
                 
@@ -183,8 +180,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 pca = new PublicClientApplication({
                     auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
                     }
                 });
                 pca.handleRedirectCallback((authErr: AuthError, response: AuthResponse) => {
@@ -247,7 +243,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                         navigateToLoginRequestUrl: false
                     }
                 });
@@ -598,7 +593,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         let pca_alternate_redirUris = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
             }
