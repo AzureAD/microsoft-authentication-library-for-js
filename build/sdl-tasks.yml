@@ -11,8 +11,9 @@ steps:
     optionsHMENABLE: 0
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
-  displayName: 'Run CredScan'
+  displayName: 'Run CredScan2'
   inputs:
+    toolMajorVersion: 'V2'
     scanFolder: './'
     debugMode: false
 
