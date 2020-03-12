@@ -67,7 +67,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
             const testScope1 = "scope1";
             const testScope2 = "scope2";
             const corrId = "thisIsCorrelationId";
-            const clientSecret = "thisIsASecret";
             const tokenRequest: TokenExchangeParameters = {
                 scopes: [testScope1, testScope2],
                 correlationId: corrId
@@ -79,7 +78,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
 
             const tokenRequestParams = new ServerTokenRequestParameters(
                 TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret,
                 tokenRequest,
                 codeResponse,
                 TEST_URIS.TEST_REDIR_URI,
@@ -93,7 +91,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
             expect(tokenRequestParams.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
             expect(tokenRequestParams.scopes.printScopes()).to.be.eq(tokenRequest.scopes.join(" "));
             expect(tokenRequestParams.redirectUri).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(tokenRequestParams.clientSecret).to.be.eq(clientSecret);
             expect(tokenRequestParams.tokenRequest).to.be.deep.eq(tokenRequest);
             expect(tokenRequestParams.refreshToken).to.be.null;
         });
@@ -103,11 +100,9 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
                 code: "thisIsACode",
                 userRequestState: "testState"
             };
-            const clientSecret = "thisIsASecret";
             const tokenRequest: TokenExchangeParameters = {};
             expect(() => new ServerTokenRequestParameters(
                 TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret,
                 tokenRequest,
                 codeResponse,
                 TEST_URIS.TEST_REDIR_URI,
@@ -122,7 +117,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
         it("Returns string:string map that contains default headers", () => {
             const testScope1 = "scope1";
             const testScope2 = "scope2";
-            const clientSecret = "thisIsASecret";
             const tokenRequest: TokenExchangeParameters = {
                 scopes: [testScope1, testScope2],
             };
@@ -133,7 +127,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
 
             const tokenRequestParams = new ServerTokenRequestParameters(
                 TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret,
                 tokenRequest,
                 codeResponse,
                 TEST_URIS.TEST_REDIR_URI,
@@ -152,14 +145,12 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
         it("throws an error if both codeResponse and refresh token are null or empty", () => {
             const testScope1 = "scope1";
             const testScope2 = "scope2";
-            const clientSecret = "thisIsASecret";
             const tokenRequest: TokenExchangeParameters = {
                 scopes: [testScope1, testScope2],
             };
 
             const tokenRequestParams = new ServerTokenRequestParameters(
                 TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret,
                 tokenRequest,
                 null,
                 TEST_URIS.TEST_REDIR_URI,
@@ -173,7 +164,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
         it("creates a string of query params created from CodeResponse to send in request body", () => {
             const testScope1 = "scope1";
             const testScope2 = "scope2";
-            const clientSecret = "thisIsASecret";
             const tokenRequest: TokenExchangeParameters = {
                 scopes: [testScope1, testScope2],
                 codeVerifier: "verifyThatCode"
@@ -185,7 +175,6 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
 
             const tokenRequestParams = new ServerTokenRequestParameters(
                 TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret,
                 tokenRequest,
                 codeResponse,
                 TEST_URIS.TEST_REDIR_URI,
@@ -200,28 +189,24 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
             const expectedAuthCodeString = `${AADServerParamKeys.CODE}=${encodeURIComponent(codeResponse.code)}`;
             const expectedCodeVerifierString = `${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(tokenRequest.codeVerifier)}`;
             const expectedGrantTypeString = `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`;
-            const expectedClientSecretString = `client_secret=${clientSecret}`;
             expect(reqParams).to.be.include(expectedClientIdString);
             expect(reqParams).to.be.include(expectedScopeString);
             expect(reqParams).to.be.include(expectedRedirectUriString);
             expect(reqParams).to.be.include(expectedAuthCodeString);
             expect(reqParams).to.be.include(expectedCodeVerifierString);
             expect(reqParams).to.be.include(expectedGrantTypeString);
-            expect(reqParams).to.be.include(expectedClientSecretString);
-            expect(reqParams).to.be.eq(`${expectedClientIdString}&${expectedScopeString}&${expectedRedirectUriString}&${expectedAuthCodeString}&${expectedCodeVerifierString}&${expectedGrantTypeString}&${expectedClientSecretString}`);
+            expect(reqParams).to.be.eq(`${expectedClientIdString}&${expectedScopeString}&${expectedRedirectUriString}&${expectedAuthCodeString}&${expectedCodeVerifierString}&${expectedGrantTypeString}`);
         });
 
         it("creates a string of query params created from refresh token to send in request body", () => {
             const testScope1 = "scope1";
             const testScope2 = "scope2";
-            const clientSecret = "thisIsASecret";
             const tokenRequest: TokenExchangeParameters = {
                 scopes: [testScope1, testScope2],
             };
 
             const tokenRequestParams = new ServerTokenRequestParameters(
                 TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret,
                 tokenRequest,
                 null,
                 TEST_URIS.TEST_REDIR_URI,
@@ -235,14 +220,12 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
             const expectedRedirectUriString = `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`;
             const expectedRefreshTokenString = `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`;
             const expectedGrantTypeString = `${AADServerParamKeys.GRANT_TYPE}=${Constants.RT_GRANT_TYPE}`;
-            const expectedClientSecretString = `client_secret=${clientSecret}`;
             expect(reqParams).to.be.include(expectedClientIdString);
             expect(reqParams).to.be.include(expectedScopeString);
             expect(reqParams).to.be.include(expectedRedirectUriString);
             expect(reqParams).to.be.include(expectedRefreshTokenString);
             expect(reqParams).to.be.include(expectedGrantTypeString);
-            expect(reqParams).to.be.include(expectedClientSecretString);
-            expect(reqParams).to.be.eq(`${expectedClientIdString}&${expectedScopeString}&${expectedRedirectUriString}&${expectedRefreshTokenString}&${expectedGrantTypeString}&${expectedClientSecretString}`)
+            expect(reqParams).to.be.eq(`${expectedClientIdString}&${expectedScopeString}&${expectedRedirectUriString}&${expectedRefreshTokenString}&${expectedGrantTypeString}`)
         });
     });
 });
