@@ -14,7 +14,7 @@ steps:
   displayName: 'Run CredScan2'
   inputs:
     toolMajorVersion: 'V2'
-    scanFolder: '$(Build.SourcesDirectory)/**/src/'
+    scanFolder: './'
     debugMode: false
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
