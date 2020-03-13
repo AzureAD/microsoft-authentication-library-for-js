@@ -17,9 +17,9 @@ export class PkceGenerator {
      * reference: https://tools.ietf.org/html/rfc7636#section-4.1 and https://tools.ietf.org/html/rfc7636#section-4.2
      */
     async generatePkceCodes(): Promise<PkceCodes> {
-        const v: string = this.generateCodeVerifier();
-        const c: string = this.generateCodeChallengeFromVerifier(v);
-        return { verifier: v, challenge: c };
+        const verifier: string = this.generateCodeVerifier();
+        const challenge: string = this.generateCodeChallengeFromVerifier(verifier);
+        return { verifier, challenge };
     }
 
     /**
