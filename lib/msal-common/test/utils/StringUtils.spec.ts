@@ -7,7 +7,8 @@ import { AuthError } from "../../src/error/AuthError";
 describe("StringUtils.ts Class Unit Tests", () => {
     
     it("decodeJwt returns a correctly crackedToken.", () => {
-        const decodedJwt = StringUtils.decodeJwt(TEST_TOKENS.SAMPLE_JWT);
+        const sampleJwt = `${TEST_TOKENS.SAMPLE_JWT_HEADER}.${TEST_TOKENS.SAMPLE_JWT_PAYLOAD}.${TEST_TOKENS.SAMPLE_JWT_SIG}`;
+        const decodedJwt = StringUtils.decodeJwt(sampleJwt);
 
         expect(decodedJwt).to.be.deep.eq({
             header: TEST_TOKENS.SAMPLE_JWT_HEADER,

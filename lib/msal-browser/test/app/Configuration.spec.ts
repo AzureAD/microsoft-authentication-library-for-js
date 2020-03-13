@@ -2,12 +2,12 @@ import { expect } from "chai";
 import { Configuration, buildConfiguration } from "../../src/app/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { LogLevel } from "@azure/msal-common";
+import sinon from "sinon";
 
 /**
  * Defaults for the Configuration Options
  */
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const OFFSET = 300;
 
 /**
  * Test values for the Configuration Options
@@ -28,9 +28,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.tmp_clientSecret).to.be.empty;
         expect(emptyConfig.auth.authority).to.be.null;
-        expect(emptyConfig.auth.validateAuthority).to.be.true;
         let redirUriResult: string = emptyConfig.auth.redirectUri instanceof Function ? emptyConfig.auth.redirectUri() : emptyConfig.auth.redirectUri;
         let postLogoutRediUriResult: string = emptyConfig.auth.postLogoutRedirectUri instanceof Function ? emptyConfig.auth.postLogoutRedirectUri() : emptyConfig.auth.postLogoutRedirectUri;
         expect(redirUriResult).to.be.eq(TEST_URIS.TEST_REDIR_URI);
@@ -54,6 +52,25 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.telemetry).to.be.undefined;
     });
 
+    it("Tests default logger", () => {
+        const consoleErrorSpy = sinon.spy(console, "error");
+        const consoleInfoSpy = sinon.spy(console, "info");
+        const consoleDebugSpy = sinon.spy(console, "debug");
+        const consoleWarnSpy = sinon.spy(console, "warn");
+        const message = "log message";
+        let emptyConfig: Configuration = buildConfiguration({auth: null});
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, true)
+        expect(consoleErrorSpy.called).to.be.false;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, false)
+        expect(consoleErrorSpy.calledOnce).to.be.true;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Info, message, false)
+        expect(consoleInfoSpy.calledOnce).to.be.true;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Verbose, message, false)
+        expect(consoleDebugSpy.calledOnce).to.be.true;
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Warning, message, false)
+        expect(consoleWarnSpy.calledOnce).to.be.true;
+    });
+
     const testAppName = "MSAL.js App";
     const testAppVersion = "v1.0.0";
     let testProtectedResourceMap = new Map<string, Array<string>>();
@@ -62,9 +79,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         let newConfig: Configuration = buildConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority,
-                validateAuthority: false,
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false
@@ -89,9 +104,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(newConfig.auth).to.be.not.null;
         expect(newConfig.auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
-        expect(newConfig.auth.tmp_clientSecret).to.be.eq(TEST_CONFIG.MSAL_CLIENT_SECRET);
         expect(newConfig.auth.authority).to.be.eq(TEST_CONFIG.validAuthority);
-        expect(newConfig.auth.validateAuthority).to.be.false;
         expect(newConfig.auth.redirectUri).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
         expect(newConfig.auth.postLogoutRedirectUri).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
         expect(newConfig.auth.navigateToLoginRequestUrl).to.be.false;

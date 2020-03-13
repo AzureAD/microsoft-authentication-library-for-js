@@ -40,6 +40,10 @@ export const BrowserAuthErrorMessage = {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
+    emptyWindowError: {
+        code: "empty_window_error",
+        desc: "window.open returned null or undefined window object."
+    },
     userCancelledError: {
         code: "user_cancelled",
         desc: "User cancelled the flow."
@@ -48,6 +52,10 @@ export const BrowserAuthErrorMessage = {
         code: "popup_window_timeout",
         desc: "Popup window token acquisition operation failed due to timeout."
     },
+    redirectInIframeError: {
+        code: "redirect_in_iframe",
+        desc: "Code flow is not supported inside an iframe. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
+    }
 };
 
 /**
@@ -83,7 +91,7 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code, 
+        return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code,
             `${BrowserAuthErrorMessage.cryptoDoesNotExist.desc} Detail:${errDetail}`);
     }
 
@@ -129,6 +137,14 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when window.open returns an empty window object.
+     * @param errDetail 
+     */
+    static createEmptyWindowCreatedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.emptyWindowError.code, BrowserAuthErrorMessage.emptyWindowError.desc);
+    }
+
+    /**
      * Creates an error thrown when the user closes a popup.
      */
     static createUserCancelledError(): BrowserAuthError {
@@ -137,12 +153,21 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the 
+     * Creates an error thrown when monitorWindowFromHash times out for a given popup.
      * @param urlNavigate 
      */
     static createPopupWindowTimeoutError(urlNavigate: string): BrowserAuthError {
         const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.popupWindowTimeoutError.desc}`;
         return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowTimeoutError.code,
             errorMessage);
+    }
+
+    /**
+     * Creates an error thrown when navigateWindow is called inside an iframe.
+     * @param windowParentCheck 
+     */
+    static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.redirectInIframeError.code, 
+            `${BrowserAuthErrorMessage.redirectInIframeError.desc} (window.parent !== window) => ${windowParentCheck}`);
     }
 }

@@ -31,7 +31,7 @@ export class BrowserConfigurationAuthError extends AuthError {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
-        this.name = "BrowserAuthError";
+        this.name = "BrowserConfigurationAuthError";
 
         Object.setPrototypeOf(this, BrowserConfigurationAuthError.prototype);
     }
@@ -57,6 +57,7 @@ export class BrowserConfigurationAuthError extends AuthError {
      * Creates error thrown when redirect callbacks are not set before calling loginRedirect() or acquireTokenRedirect().
      */
     static createRedirectCallbacksNotSetError(): BrowserConfigurationAuthError {
-        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.code, BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.code, 
+            BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
     }
 }

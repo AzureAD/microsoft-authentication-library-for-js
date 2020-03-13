@@ -1,3 +1,9 @@
+# 1.2.2
+
+## Features
+
+* Add `setLogger` function to `UserAgentApplication`. (#1251)
+
 # 1.2.1
 
 ## Bugs

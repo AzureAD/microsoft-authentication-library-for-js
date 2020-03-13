@@ -261,3 +261,4 @@ lib/msal-core/lib-commonjs
 lib/msal-core/lib-es6
 *.tgz
 *.zip
+samples/**/test/screenshots
