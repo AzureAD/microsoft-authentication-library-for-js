@@ -18,18 +18,17 @@ export class HttpClient implements INetworkModule {
      * @param body
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-        // setHeaders
-        this.setHeaders(options);
 
         // axios config
         const config = {
             method: HttpMethod.GET,
-            url: url
+            url: url,
+            headers: (options && options.headers)
         };
 
         // GET call
         const response = await axios(config);
-        return await response as unknown as T;
+        return await response.data as T;
     }
 
     /**
@@ -39,27 +38,16 @@ export class HttpClient implements INetworkModule {
      * @param body
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-        // set Headers
-        this.setHeaders(options);
 
         // axios config
         const config = {
             method: HttpMethod.POST,
             url: url,
-            body: (options && options.body) || ''
+            body: (options && options.body) || '',
+            headers: (options && options.headers)
         };
 
         const response = await axios(config);
-        return await response as unknown as T;
-    }
-
-    private setHeaders(options?: NetworkRequestOptions): void {
-        if (!(options && options.headers)) {
-            return;
-        }
-
-        options.headers.forEach((val, key) => {
-            axios.defaults.headers.common[key] = val;
-        });;
+        return await response.data as T;
     }
 }

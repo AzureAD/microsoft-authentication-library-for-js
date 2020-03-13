@@ -36,6 +36,7 @@ describe('HttpClient', () => {
         },
     };
 
+    // test GET
     test('sendGetRequestAsync', async () => {
 
         //Mocking axios function rather than a method
@@ -45,19 +46,10 @@ describe('HttpClient', () => {
         const result = await httpClient.sendGetRequestAsync('url');
 
         //Assert
-        expect(result).toStrictEqual({
-            data: {
-                title: 'mock axios response',
-                body: 'Well .. this is mock data',
-            },
-            status: 200,
-            statusText: 'OK',
-            config: {},
-            headers: {},
-        });
-
+         expect(result).toMatchObject(axiosResponse.data);
     });
 
+    // test POST success
     test('sendPostRequestAsync resolves', async () => {
 
         //Mocking axios function rather than a method
@@ -67,18 +59,11 @@ describe('HttpClient', () => {
         const result = await httpClient.sendPostRequestAsync('url');
 
         //Assert
-        expect(result).toStrictEqual({
-            data: {
-                title: 'mock axios response',
-                body: 'Well .. this is mock data',
-            },
-            status: 200,
-            statusText: 'OK',
-            config: {},
-            headers: {},
-        });
+         console.log('result: ', result);
+        expect(result).toMatchObject(axiosResponse.data);
     });
 
+    // test POST failure
     test('sendPostRequestAsync rejects ', async () => {
 
         //Mocking axios function rather than a method
@@ -91,21 +76,9 @@ describe('HttpClient', () => {
                 headers: new Map<string, string>().set('key', 'value'),
             });
         } catch (e) {
+            console.log("error: ", e);
             //Assert
-            expect(e).toStrictEqual({
-                message: 'axios request failed',
-                response: {
-                    data: {
-                        errorCode: 'invalid_client',
-                        errorSummary:
-                            "Invalid value for 'client_id' parameter.",
-                    },
-                    status: 400,
-                    statusText: 'Bad Request',
-                    headers: {},
-                    config: {},
-                },
-            });
+            expect(e).toMatchObject(axiosErrorResponse);
         }
     });
 });
