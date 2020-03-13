@@ -1,7 +1,49 @@
-import { Base64Decode } from './../../src/encode/Base64Decode';
-import { Base64Encode } from './../../src/encode/Base64Encode';
+import { EncodingUtils } from '../../src/utils/EncodingUtils';
 
 describe('Base64Decode() tests', () => {
+
+    describe('test Base64 encode decode', () => {
+        test('english', () => {
+            const EN_PLAINTEXT = 'msaljs';
+            const EN_B64_ENCODED = 'bXNhbGpz';
+
+            expect(EncodingUtils.base64Encode(EN_PLAINTEXT)).toBe(EN_B64_ENCODED);
+            expect(EncodingUtils.base64Decode(EN_B64_ENCODED)).toBe(EN_PLAINTEXT);
+        });
+
+        test('Icelandic', () => {
+            const ISL_PLAINTEXT = 'Björn Ironside';
+            const ISL_B64_ENCODED = 'QmrDtnJuIElyb25zaWRl';
+
+            expect(EncodingUtils.base64Encode(ISL_PLAINTEXT)).toBe(ISL_B64_ENCODED);
+            expect(EncodingUtils.base64Decode(ISL_B64_ENCODED)).toBe(ISL_PLAINTEXT);
+        });
+
+        test('hebrew', () => {
+            const HE_PLAINTEXT = 'בְּצַלְאֵל';
+            const HE_B64_ENCODED = '15HWsNa816bWt9ec1rDXkNa115w=';
+
+            expect(EncodingUtils.base64Encode(HE_PLAINTEXT)).toBe(HE_B64_ENCODED);
+            expect(EncodingUtils.base64Decode(HE_B64_ENCODED)).toBe(HE_PLAINTEXT);
+        });
+
+        test('spanish', () => {
+            const ES_PLAINTEXT = 'Avrán';
+            const ES_B64_ENCODED = 'QXZyw6Fu';
+
+            expect(EncodingUtils.base64Encode(ES_PLAINTEXT)).toBe(ES_B64_ENCODED);
+            expect(EncodingUtils.base64Decode(ES_B64_ENCODED)).toBe(ES_PLAINTEXT);
+        });
+
+        test('japanese', () => {
+            const JA_PLAINTEXT = '日本語憂鬱髙';
+            const JA_B64_ENCODED = '5pel5pys6Kqe5oaC6ayx6auZ';
+
+            expect(EncodingUtils.base64Encode(JA_PLAINTEXT)).toBe(JA_B64_ENCODED);
+            expect(EncodingUtils.base64Decode(JA_B64_ENCODED)).toBe(JA_PLAINTEXT);
+        });
+    });
+
     // tests a sample idToken to be decoded correctly
     test('id token', () => {
         const ID_TOKEN_STRING =
@@ -26,7 +68,7 @@ describe('Base64Decode() tests', () => {
             ver: '2.0',
         };
 
-        expect(Base64Decode.decode(ID_TOKEN_STRING)).toBe(
+        expect(EncodingUtils.base64Decode(ID_TOKEN_STRING)).toBe(
             JSON.stringify(ID_TOKEN)
         );
     });
@@ -35,7 +77,7 @@ describe('Base64Decode() tests', () => {
     test('Base64DecodeUrl()', () => {
         const url =
             'https://www.google.com/search?client=firefox-b-1-d&ei=I6lqXoDcCsu60PEPlvKZyAQ&q=url+with+query+parameters&oq=url+with+query+params+&gs_l=psy-ab.3.1.0i22i30l10.9625.13641..15121...1.2..0.134.962.14j1......0....1..gws-wiz.......0i71j0j0i67j0i22i10i30.028jqS94ztI';
-        const encodedUrl = Base64Encode.encodeUrl(url);
-        expect(Base64Decode.decodeUrl(encodedUrl)).toBe(url);
+        const encodedUrl = EncodingUtils.base64EncodeUrl(url);
+        expect(EncodingUtils.base64DecodeUrl(encodedUrl)).toBe(url);
     });
 });

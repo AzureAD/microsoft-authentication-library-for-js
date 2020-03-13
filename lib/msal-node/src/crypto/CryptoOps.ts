@@ -5,8 +5,7 @@
 
 import { ICrypto, PkceCodes } from '@azure/msal-common';
 import { GuidGenerator } from './GUidGenerator';
-import { Base64Encode } from './../encode/Base64Encode';
-import { Base64Decode } from './../encode/Base64Decode';
+import { EncodingUtils } from './../utils/EnCodingUtils';
 import { PkceGenerator } from './PkceGenerator';
 
 /**
@@ -34,7 +33,7 @@ export class CryptoOps implements ICrypto {
      * @param input
      */
     base64Encode(input: string): string {
-        return Base64Encode.encode(input);
+        return EncodingUtils.base64Encode(input);
     }
 
     /**
@@ -42,7 +41,7 @@ export class CryptoOps implements ICrypto {
      * @param input
      */
     base64Decode(input: string): string {
-        return Base64Decode.decode(input);
+        return EncodingUtils.base64Decode(input);
     }
 
     /**

@@ -30,11 +30,10 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test .*.spec.*",
-    "test:n": "tsdx test",
-    "test:w": "tsdx test .*.spec.* --watch",
-    "test:c": "tsdx test .*.spec.* --coverage",
-    "lint": "tsdx lint --fix",
-    "prepare": "tsdx build"
+    "test:watch": "tsdx test .*.spec.* --watch",
+    "test:coverage": "tsdx test .*.spec.* --coverage",
+    "lint": "tsdx lint",
+    "lint:fix": "tsdx lint --fix"
   },
   "peerDependencies": {},
   "husky": {
@@ -51,10 +50,17 @@
   },
   "jest": {
     "verbose": true,
-    "moduleFileExtensions": [ "ts", "tsx", "js", "json", "jsx", "node"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json",
+      "jsx",
+      "node"
+    ],
     "testMatch": [
-        "<rootDir>/test/**/?(*.)(spec|test).(ts|js)?(x)"
-      ]
+      "<rootDir>/test/**/?(*.)(spec|test).(ts|js)?(x)"
+    ]
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
@@ -63,5 +69,8 @@
     "tsdx": "^0.12.3",
     "tslib": "^1.10.0",
     "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@types/uuid": "^7.0.0"
   }
 }

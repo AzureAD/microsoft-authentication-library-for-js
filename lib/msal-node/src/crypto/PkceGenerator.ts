@@ -4,9 +4,9 @@
  */
 
 import { PkceCodes } from '@azure/msal-common';
-import { PKCEConstants } from './../utils/NodeConstants';
-import { Base64Encode } from './../encode/Base64Encode';
-const crypto = require('crypto');
+import { CharSet, Hash, RANDOM_OCTET_SIZE } from '../utils/Constants';
+import { EncodingUtils } from './../utils/EncodingUtils';
+import crypto from 'crypto';
 
 /**
  * https://tools.ietf.org/html/rfc7636#page-8
@@ -27,10 +27,10 @@ export class PkceGenerator {
      */
     private generateCodeVerifier(): string {
         const buffer: Uint8Array = crypto.randomBytes(
-            PKCEConstants.RANDOM_OCTET_SIZE
+            RANDOM_OCTET_SIZE
         );
         const verifier: string = this.bufferToCVString(buffer);
-        return Base64Encode.encodeUrl(verifier);
+        return EncodingUtils.base64EncodeUrl(verifier);
     }
 
     /**
@@ -38,18 +38,15 @@ export class PkceGenerator {
      * @param codeVerifier
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
-        return Base64Encode.encodeUrl(this.sha256(codeVerifier));
+        return EncodingUtils.base64EncodeUrl(this.sha256(codeVerifier).toString('ascii'));
     }
 
     /**
      * generate 'SHA256' hash
      * @param buffer
      */
-    private sha256(buffer: string): string {
-        return crypto
-            .createHash(PKCEConstants.SHA256)
-            .update(buffer)
-            .digest();
+    private sha256(buffer: string): Buffer {
+        return crypto.createHash(Hash.SHA256).update(buffer).digest();
     }
 
     /**
@@ -59,8 +56,8 @@ export class PkceGenerator {
     private bufferToCVString(buffer: Uint8Array): string {
         const charArr = [];
         for (let i = 0; i < buffer.byteLength; i += 1) {
-            const index = buffer[i] % PKCEConstants.CV_CHARSET.length;
-            charArr.push(PKCEConstants.CV_CHARSET[index]);
+            const index = buffer[i] % CharSet.CV_CHARSET.length;
+            charArr.push(CharSet.CV_CHARSET[index]);
         }
         return charArr.join('');
     }
