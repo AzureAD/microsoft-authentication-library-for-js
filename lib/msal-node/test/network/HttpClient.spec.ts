@@ -42,11 +42,8 @@ describe('HttpClient', () => {
         //Mocking axios function rather than a method
         mocked(axios).mockResolvedValue(axiosResponse);
 
-        // Call
         const result = await httpClient.sendGetRequestAsync('url');
-
-        //Assert
-         expect(result).toMatchObject(axiosResponse.data);
+        expect(result).toMatchObject(axiosResponse.data);
     });
 
     // test POST success
@@ -55,11 +52,7 @@ describe('HttpClient', () => {
         //Mocking axios function rather than a method
         mocked(axios).mockResolvedValue(axiosResponse);
 
-        // Call
         const result = await httpClient.sendPostRequestAsync('url');
-
-        //Assert
-         console.log('result: ', result);
         expect(result).toMatchObject(axiosResponse.data);
     });
 
@@ -69,15 +62,12 @@ describe('HttpClient', () => {
         //Mocking axios function rather than a method
         mocked(axios).mockRejectedValue(axiosErrorResponse);
 
-        // Call
         try {
             await httpClient.sendPostRequestAsync('url', {
                 body: 'randomData',
                 headers: new Map<string, string>().set('key', 'value'),
             });
         } catch (e) {
-            console.log("error: ", e);
-            //Assert
             expect(e).toMatchObject(axiosErrorResponse);
         }
     });

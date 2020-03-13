@@ -20,14 +20,14 @@ export class HttpClient implements INetworkModule {
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
 
         // axios config
-        const config = {
+        const request = {
             method: HttpMethod.GET,
             url: url,
             headers: (options && options.headers)
         };
 
         // GET call
-        const response = await axios(config);
+        const response = await axios(request);
         return await response.data as T;
     }
 
@@ -40,14 +40,14 @@ export class HttpClient implements INetworkModule {
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
 
         // axios config
-        const config = {
+        const request = {
             method: HttpMethod.POST,
             url: url,
             body: (options && options.body) || '',
             headers: (options && options.headers)
         };
 
-        const response = await axios(config);
+        const response = await axios(request);
         return await response.data as T;
     }
 }
