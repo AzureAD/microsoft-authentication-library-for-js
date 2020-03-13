@@ -133,14 +133,10 @@ export class AuthCache extends BrowserStorage {// Singleton
         let key: string;
         // check state and remove associated cache
         for (key in storage) {
-            if (!state || key.indexOf(state) !== -1) {
-                const splitKey = key.split(Constants.resourceDelimiter);
-                const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state && !this.tokenRenewalInProgress(keyState)) {
-                    this.removeItem(key);
-                    this.setItemCookie(key, "", -1);
-                    this.clearMsalCookie(state);
-                }
+            if ((!state || key.indexOf(state) !== -1) && !this.tokenRenewalInProgress(state)) {
+                this.removeItem(key);
+                this.setItemCookie(key, "", -1);
+                this.clearMsalCookie(state);
             }
         }
         // delete the interaction status cache

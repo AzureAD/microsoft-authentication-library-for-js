@@ -1,8 +1,10 @@
 What are the dev apps?
 ----------------------
-index_loginPopup.html shows how to send an email with the Microsoft Graph, using msal.js loginPopup()/acquireTokenSilent-acquireTokenPopup() APIs. The authentication happens in a popup window of the browser.
+index.html shows how to get profile data and read email with the Microsoft Graph, using msal.js loginRedirect()/loginPopup()/acquireTokenSilent-acquireTokenPopup() APIs. 
 
-indexRedirect.html shows how to send an email with the Microsoft Graph, using msal.js loginRedirect()/acquireTokenSilent-acquireTokenRedirect() APIs. The page for the application is replaced by the authentication page, and when authentication has happened, the application is called back (on its redirectUri) with the user's idToken.
+If loginRedirect() is used, the web page redirects to the Azure AD or Azure AD B2C login screen for authentication. Once authentication is completed, the page redirects back to the redirect uri given with the requested tokens.
+
+If loginPopup() is used, the authentication occurs inside a popup window created by the browser. The main window will handle token retrieval once authentication has been completed in the popup.
 
 How to run the dev apps:
 --------------------
@@ -16,6 +18,8 @@ Resolving the server.js references
 Running the sample
 - In a command prompt, run `npm start`
 
-- Navigate to http://localhost:1530 with the browser of your choice
+You may also run `npm run start:build` to build the `msal-core` project and start the server in one command.
 
-- In the web page, click on the “Login” button
+- Navigate to http://localhost:30662 with the browser of your choice
+
+- In the web page, click on the "Sign In" button and select either `Sign in using Popup` or `Sign in using Redirect`
