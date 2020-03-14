@@ -9,7 +9,7 @@
 export enum HttpMethod {
     GET = 'get',
     POST = 'post',
-};
+}
 
 /**
  * Constant used for PKCE

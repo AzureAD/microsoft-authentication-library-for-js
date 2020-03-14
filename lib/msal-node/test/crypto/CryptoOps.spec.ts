@@ -1,5 +1,5 @@
 import { PkceCodes } from '@azure/msal-common';
-import { CryptoOps } from './../../src/crypto/CryptoOps';
+import { CryptoOps } from './../../src/index';
 import { GuidGenerator } from './../../src/crypto/GuidGenerator';
 
 describe('CryptoOps', () => {
