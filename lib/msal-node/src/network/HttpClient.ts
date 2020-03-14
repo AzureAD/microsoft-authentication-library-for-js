@@ -28,7 +28,7 @@ export class HttpClient implements INetworkModule {
 
         // GET call
         const response = await axios(request);
-        return await response.data as T;
+        return response.data as T;
     }
 
     /**
@@ -48,6 +48,6 @@ export class HttpClient implements INetworkModule {
         };
 
         const response = await axios(request);
-        return await response.data as T;
+        return response.data as T;
     }
 }
