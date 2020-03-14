@@ -12,7 +12,7 @@ import axios from 'axios';
  */
 export class HttpClient implements INetworkModule {
     /**
-     * Axios library for REST endpoints - Get request
+     * Axios CLient library for REST endpoints - Get request
      * @param url
      * @param headers
      * @param body
