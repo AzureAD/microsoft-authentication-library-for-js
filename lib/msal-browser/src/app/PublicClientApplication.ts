@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
+import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -92,8 +92,9 @@ export class PublicClientApplication {
     // #region Redirect Flow
 
     /**
-     * Set the callback functions for the redirect flow to send back the success or error object.
-     * IMPORTANT: Please do not use this function when using the popup APIs, as it will break the response handling
+     * Set the callback functions for the redirect flow to send back the success or error object, and process
+     * any redirect-related data.
+     * IMPORTANT: Please do not use this function when using the popup APIs, as it may break the response handling
      * in the main window.
      * 
      * @param {@link (AuthCallback:type)} authCallback - Callback which contains
@@ -109,21 +110,65 @@ export class PublicClientApplication {
 
         // Set the callback object.
         this.authCallback = authCallback;
+
+        // Check if we need to navigate, otherwise handle hash
+        try {
+            await this.handleRedirectResponse();
+        } catch (err) {
+            this.authCallback(err);
+        }
+    }
+
+    /**
+     * Checks if navigateToLoginRequestUrl is set, and:
+     * - if true, performs logic to cache and navigate 
+     * - if false, handles hash string and parses response
+     */
+    private async handleRedirectResponse(): Promise<void> {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
-        try {
-            // If hash exists, handle in window. Otherwise, cancel any current requests and continue.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
-            const responseHash = UrlString.hashContainsKnownProperties(hash) ? hash : cachedHash;
-            if (responseHash) {
-                const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
-                this.authCallback(null, tokenResponse);
+        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+        if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
+            // Returned from authority using redirect - need to perform navigation before processing response
+            this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
+            const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
+            if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
+                // Redirect to home page if login request url is null (real null or the string null)
+                this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
+                BrowserUtils.navigateWindow("/", true);
             } else {
-                this.cleanRequest();
+                BrowserUtils.navigateWindow(loginRequestUrl, true);
             }
-        } catch (err) {
-            this.authCallback(err);
+            return;
+        }
+
+        if (!isResponseHash) {
+            // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
+            return this.handleHash(cachedHash);
+        }
+
+        if (!this.config.auth.navigateToLoginRequestUrl) {
+            // We don't need to navigate - check for hash and prepare to process
+            BrowserUtils.clearHash();
+            return this.handleHash(hash);
+        }
+    }
+
+    /**
+     * Checks if hash exists and handles in window. Otherwise, cancel any current requests and continue.
+     * @param responseHash 
+     * @param interactionHandler 
+     */
+    private async handleHash(responseHash: string): Promise<void> {
+        const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
+        if (!StringUtils.isEmpty(responseHash)) {
+            // Hash contains known properties - handle and return in callback
+            const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
+            this.authCallback(null, tokenResponse);
+        } else {
+            // There is no hash - assume we are in clean state and clear any current request data.
+            this.cleanRequest();
         }
     }
 
@@ -146,7 +191,7 @@ export class PublicClientApplication {
 
         try {
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create login url, which will by default append the client id scope to the call.
             this.authModule.createLoginUrl(request).then((navigateUrl) => {
@@ -180,7 +225,7 @@ export class PublicClientApplication {
 
         try {
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage, this.config.auth.navigateToLoginRequestUrl);
+            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create acquire token url.
             this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
@@ -250,7 +295,7 @@ export class PublicClientApplication {
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
             // Handle response from hash string.
-            return interactionHandler.handleCodeResponse(hash);
+            return await interactionHandler.handleCodeResponse(hash);
         } catch (e) {
             this.cleanRequest();
             throw e;

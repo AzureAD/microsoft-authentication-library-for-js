@@ -1,0 +1,17 @@
+{
+  "name": "vanilla-js-test-app-2.0",
+  "version": "1.1.0",
+  "license": "MIT",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build:core": "cd ../../lib/msal-core && npm run build",
+    "start:build": "npm run build:core && npm start"
+  },
+  "dependencies": {
+    "express": "^4.12.3",
+    "morgan": "^1.5.2",
+    "path": "^0.11.14"
+  }
+}

@@ -82,7 +82,6 @@ export enum TemporaryCacheKeys {
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    ANGULAR_LOGIN_REQUEST = "angular.login.request",
     INTERACTION_STATUS = "interaction_status",
     REDIRECT_REQUEST = "redirect_request"
 }
@@ -152,5 +151,5 @@ export const PromptState = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.2.1";
+    return "1.2.2";
 }

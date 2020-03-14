@@ -39,7 +39,7 @@ export class Base64Encode {
     encode(input: string): string {
         const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(encodeURIComponent(input));
         return this.base64EncArr(inputUtf8Arr);
-    }    
+    }
 
     /**
      * Base64 encode byte array

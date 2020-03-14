@@ -13,6 +13,4 @@ describe("MathUtils.ts Class Unit Tests", () => {
         expect(MathUtils.decimalToHex(8400)).to.be.eq("20d0");
         expect(MathUtils.decimalToHex(17000)).to.be.eq("4268");
     });
-
-    
 });

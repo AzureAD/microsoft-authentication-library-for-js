@@ -4,6 +4,7 @@ export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientCon
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account
 export { Account } from "./account/Account";
+export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
@@ -26,6 +27,7 @@ export { CodeResponse } from "./response/CodeResponse";
 export { ILoggerCallback, LogLevel } from "./logger/Logger";
 // Errors
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
+export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
