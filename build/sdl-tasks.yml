@@ -5,15 +5,16 @@ steps:
   displayName: 'Run PoliCheck'
   inputs:
     targetType: F
-    targetArgument: '$(Build.SourcesDirectory)/lib/msal-core'
+    targetArgument: '$(Build.SourcesDirectory)/lib/'
     optionsFC: 1
     optionsXS: 1
     optionsHMENABLE: 0
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
-  displayName: 'Run CredScan'
+  displayName: 'Run CredScan2'
   inputs:
-    scanFolder: 'lib/msal-core'
+    toolMajorVersion: 'V2'
+    scanFolder: './'
     debugMode: false
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1

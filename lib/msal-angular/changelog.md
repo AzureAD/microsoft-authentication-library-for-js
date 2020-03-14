@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0-beta.3
+
+Fixes issues related to support for Angular 9 and Ivy.
+
+* Library is now built using the Angular 9 CLI and `ng-packagr`. (#1323)
+* Angular 9 sample now available in the [samples folder](../../samples/angular9-sample-app/). (#1312)
+* `MSAL_CONFIG` and `MSAL_CONFIG_ANGULAR` available from the package's main export. (#1323)
+* Removes the `WindowWrapper` class. (#1323)
+
 ## 1.0.0-beta.2
 
 Fixes two issues related to `aot` mode.

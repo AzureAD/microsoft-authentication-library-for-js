@@ -26,9 +26,7 @@ export class PkceGenerator {
      * generates the codeVerfier; reference: https://tools.ietf.org/html/rfc7636#section-4.1
      */
     private generateCodeVerifier(): string {
-        const buffer: Uint8Array = crypto.randomBytes(
-            RANDOM_OCTET_SIZE
-        );
+        const buffer: Uint8Array = crypto.randomBytes(RANDOM_OCTET_SIZE);
         const verifier: string = this.bufferToCVString(buffer);
         return EncodingUtils.base64EncodeUrl(verifier);
     }
@@ -38,7 +36,9 @@ export class PkceGenerator {
      * @param codeVerifier
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
-        return EncodingUtils.base64EncodeUrl(this.sha256(codeVerifier).toString('ascii'));
+        return EncodingUtils.base64EncodeUrl(
+            this.sha256(codeVerifier).toString('ascii')
+        );
     }
 
     /**
@@ -46,7 +46,10 @@ export class PkceGenerator {
      * @param buffer
      */
     private sha256(buffer: string): Buffer {
-        return crypto.createHash(Hash.SHA256).update(buffer).digest();
+        return crypto
+            .createHash(Hash.SHA256)
+            .update(buffer)
+            .digest();
     }
 
     /**

@@ -28,7 +28,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.tmp_clientSecret).to.be.empty;
         expect(emptyConfig.auth.authority).to.be.null;
         let redirUriResult: string = emptyConfig.auth.redirectUri instanceof Function ? emptyConfig.auth.redirectUri() : emptyConfig.auth.redirectUri;
         let postLogoutRediUriResult: string = emptyConfig.auth.postLogoutRedirectUri instanceof Function ? emptyConfig.auth.postLogoutRedirectUri() : emptyConfig.auth.postLogoutRedirectUri;
@@ -80,7 +79,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         let newConfig: Configuration = buildConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
@@ -106,7 +104,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(newConfig.auth).to.be.not.null;
         expect(newConfig.auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
-        expect(newConfig.auth.tmp_clientSecret).to.be.eq(TEST_CONFIG.MSAL_CLIENT_SECRET);
         expect(newConfig.auth.authority).to.be.eq(TEST_CONFIG.validAuthority);
         expect(newConfig.auth.redirectUri).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
         expect(newConfig.auth.postLogoutRedirectUri).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);

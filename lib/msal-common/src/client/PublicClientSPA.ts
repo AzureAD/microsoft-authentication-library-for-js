@@ -26,12 +26,12 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 
 /**
- * PublicClient class
+ * PublicClientSPA class
  *
  * Object instance which will construct requests to send to and handle responses
  * from the Microsoft STS using the authorization code flow.
  */
-export class PublicClient extends BaseClient {
+export class PublicClientSPA extends BaseClient {
 
     // Application config
     private clientConfig: PublicClientConfiguration;
@@ -47,10 +47,6 @@ export class PublicClient extends BaseClient {
         });
         // Implement defaults in config
         this.clientConfig = buildPublicClientConfiguration(configuration);
-
-        if (this.clientConfig.auth.tmp_clientSecret) {
-            this.logger.warning("Client secret is a temporary parameter that will not be carried forward in production versions of this library.");
-        }
 
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
@@ -172,7 +168,6 @@ export class PublicClient extends BaseClient {
             // Initialize request parameters.
             const tokenReqParams = new ServerTokenRequestParameters(
                 this.clientConfig.auth.clientId,
-                this.clientConfig.auth.tmp_clientSecret,
                 tokenRequest,
                 codeResponse,
                 this.getRedirectUri(),
@@ -180,7 +175,9 @@ export class PublicClient extends BaseClient {
             );
 
             // User helper to retrieve token response.
-            return this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
+            // Need to await function call before return to catch any thrown errors.
+            // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
+            return await this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.
             this.cacheManager.resetTempCacheItems(codeResponse && codeResponse.userRequestState);
@@ -254,7 +251,6 @@ export class PublicClient extends BaseClient {
                 // Initialize request parameters.
                 const tokenReqParams = new ServerTokenRequestParameters(
                     this.clientConfig.auth.clientId,
-                    this.clientConfig.auth.tmp_clientSecret,
                     request,
                     null,
                     this.getRedirectUri(),
@@ -263,7 +259,9 @@ export class PublicClient extends BaseClient {
                 );
 
                 // User helper to retrieve token response.
-                return this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
+                // Need to await function call before return to catch any thrown errors.
+                // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
+                return await this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
             }
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.

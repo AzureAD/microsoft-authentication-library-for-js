@@ -19,10 +19,10 @@ export class EncodingUtils {
      * @param str
      */
     static base64EncodeUrl(str: string): string {
-         return EncodingUtils.base64Encode(str)
-             .replace(/=/g, '')
-             .replace(/\+/g, '-')
-             .replace(/\//g, '_');
+        return EncodingUtils.base64Encode(str)
+            .replace(/=/g, '')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_');
     }
 
     /**
@@ -30,14 +30,14 @@ export class EncodingUtils {
      * 'base64': Base64 encoding.
      *
      * @param base64Str Base64 encoded text
-    */
+     */
     static base64Decode(base64Str: string): string {
         return Buffer.from(base64Str, 'base64').toString('utf8');
     }
 
     /**
      * @param base64Str Base64 encoded Url
-    */
+     */
     static base64DecodeUrl(base64Str: string): string {
         let str = base64Str.replace(/-/g, '+').replace(/_/g, '/');
         while (str.length % 4) {

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { PublicClient, TokenResponse } from "@azure/msal-common";
+import { PublicClientSPA, TokenResponse } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 
 /**
@@ -10,10 +10,10 @@ import { BrowserStorage } from "../cache/BrowserStorage";
  */
 export abstract class InteractionHandler {
 
-    protected authModule: PublicClient;
+    protected authModule: PublicClientSPA;
     protected browserStorage: BrowserStorage;
 
-    constructor(authCodeModule: PublicClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: PublicClientSPA, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }
