@@ -26,12 +26,12 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 
 /**
- * PublicClient class
+ * PublicClientSPA class
  *
  * Object instance which will construct requests to send to and handle responses
  * from the Microsoft STS using the authorization code flow.
  */
-export class PublicClient extends BaseClient {
+export class PublicClientSPA extends BaseClient {
 
     // Application config
     private clientConfig: PublicClientConfiguration;

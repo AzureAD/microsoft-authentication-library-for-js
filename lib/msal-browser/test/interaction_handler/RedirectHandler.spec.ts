@@ -2,8 +2,8 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
-import { AuthorizationCodeModule, PkceCodes, NetworkRequestOptions, LogLevel, TemporaryCacheKeys, CodeResponse, TokenResponse, Account } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
+import { PublicClientSPA, PkceCodes, NetworkRequestOptions, LogLevel, TemporaryCacheKeys, CodeResponse, TokenResponse, Account } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -47,7 +47,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authCodeModule = new AuthorizationCodeModule({
+        const authCodeModule = new PublicClientSPA({
             auth: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
@@ -184,9 +184,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            sinon.stub(AuthorizationCodeModule.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(AuthorizationCodeModule.prototype, "acquireToken").resolves(testTokenResponse);
-            
+            sinon.stub(PublicClientSPA.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(PublicClientSPA.prototype, "acquireToken").resolves(testTokenResponse);
+
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;

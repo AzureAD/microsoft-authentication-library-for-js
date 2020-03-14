@@ -1,5 +1,5 @@
 // App Auth Modules and Configuration
-export { PublicClient } from "./client/PublicClient";
+export { PublicClientSPA } from "./client/PublicClientSPA";
 export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientConfiguration";
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account

@@ -31,6 +31,7 @@
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "tsdx lint",
+    "lint:fix": "tsdx lint --fix",
     "prepare": "tsdx build"
   },
   "peerDependencies": {},

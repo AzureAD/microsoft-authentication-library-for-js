@@ -29,7 +29,7 @@ import {
     Account,
     TokenExchangeParameters,
     IdTokenClaims,
-    PublicClient
+    PublicClientSPA
 } from "@azure/msal-common";
 
 import { AuthCallback } from "../../src/types/AuthCallback";
@@ -317,7 +317,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("loginRedirect navigates to created login url", async () => {
-                sinon.stub(PublicClient.prototype, "createLoginUrl").resolves(testNavUrl);
+                sinon.stub(PublicClientSPA.prototype, "createLoginUrl").resolves(testNavUrl);
                 sinon.stub(RedirectHandler.prototype, "showUI").callsFake((navigateUrl): Window => {
                     expect(navigateUrl).to.be.eq(testNavUrl);
                     return window;
@@ -338,7 +338,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
-                sinon.stub(PublicClient.prototype, "createLoginUrl").throws(testError);
+                sinon.stub(PublicClientSPA.prototype, "createLoginUrl").throws(testError);
                 try {
                     pca.loginRedirect({});
                 } catch (e) {
@@ -365,7 +365,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("acquireTokenRedirect navigates to created login url", async () => {
-                sinon.stub(PublicClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+                sinon.stub(PublicClientSPA.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
                 sinon.stub(RedirectHandler.prototype, "showUI").callsFake((navigateUrl): Window => {
                     expect(navigateUrl).to.be.eq(testNavUrl);
                     return window;
@@ -387,7 +387,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
-                sinon.stub(PublicClient.prototype, "createAcquireTokenUrl").throws(testError);
+                sinon.stub(PublicClientSPA.prototype, "createAcquireTokenUrl").throws(testError);
                 try {
                     pca.acquireTokenRedirect({
                         scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -444,7 +444,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     userRequestState: ""
                 };
-                sinon.stub(PublicClient.prototype, "createLoginUrl").resolves(testNavUrl);
+                sinon.stub(PublicClientSPA.prototype, "createLoginUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "showUI").callsFake((requestUrl: string): Window => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
@@ -460,7 +460,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
-                sinon.stub(PublicClient.prototype, "createLoginUrl").resolves(testNavUrl);
+                sinon.stub(PublicClientSPA.prototype, "createLoginUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "showUI").throws(testError);
                 try {
                     const tokenResp = await pca.loginPopup({});
@@ -513,7 +513,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     userRequestState: ""
                 };
-                sinon.stub(PublicClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+                sinon.stub(PublicClientSPA.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "showUI").callsFake((requestUrl: string): Window => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
@@ -531,7 +531,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
-                sinon.stub(PublicClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+                sinon.stub(PublicClientSPA.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "showUI").throws(testError);
                 try {
                     const tokenResp = await pca.acquireTokenPopup({
@@ -581,7 +581,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 userRequestState: ""
             };
-            sinon.stub(PublicClient.prototype, "renewToken").resolves(testTokenResponse);
+            sinon.stub(PublicClientSPA.prototype, "renewToken").resolves(testTokenResponse);
             const tokenResp = await pca.acquireTokenSilent({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES
             });
@@ -590,7 +590,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("throws error that renewToken throws", async () => {
             const testError = "Error in creating a login url";
-            sinon.stub(PublicClient.prototype, "renewToken").throws(testError);
+            sinon.stub(PublicClientSPA.prototype, "renewToken").throws(testError);
             try {
                 const tokenResp = await pca.acquireTokenSilent({
                     scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -605,7 +605,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("logout", () => {
 
         it("passes logoutUri from authModule to window nav util", () => {
-            sinon.stub(PublicClient.prototype, "logout").resolves(testLogoutUrl);
+            sinon.stub(PublicClientSPA.prototype, "logout").resolves(testLogoutUrl);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory: boolean) => {
                 expect(urlNavigate).to.be.eq(testLogoutUrl);
                 console.log(noHistory);
