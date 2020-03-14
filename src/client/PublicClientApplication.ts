@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, PublicClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters } from "@azure/msal-common";
+import { Account, PublicClientSPA, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -24,7 +24,7 @@ export class PublicClientApplication {
     private config: Configuration;
 
     // auth functions imported from @azure/msal-common module
-    private authModule: PublicClient;
+    private authModule: PublicClientSPA;
 
     // callback for error/token response
     private authCallback: AuthCallback = null;
@@ -73,7 +73,7 @@ export class PublicClientApplication {
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Create auth module.
-        this.authModule = new PublicClient({
+        this.authModule = new PublicClientSPA({
             auth: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
@@ -128,7 +128,6 @@ export class PublicClientApplication {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
-
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
@@ -296,7 +295,7 @@ export class PublicClientApplication {
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
             // Handle response from hash string.
-            return interactionHandler.handleCodeResponse(hash);
+            return await interactionHandler.handleCodeResponse(hash);
         } catch (e) {
             this.cleanRequest();
             throw e;
