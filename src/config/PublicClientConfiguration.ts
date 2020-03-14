@@ -14,8 +14,6 @@ import { Configuration, buildConfiguration } from "./Configuration";
  */
 export type AuthOptions = {
     clientId: string;
-    // Temporary until server allows CORS for public clients
-    tmp_clientSecret: string;
     authority?: string;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
@@ -33,8 +31,6 @@ export type PublicClientConfiguration = Configuration & {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    // Temporary until server allows CORS for public clients
-    tmp_clientSecret: "",
     authority: null,
     redirectUri: "",
     postLogoutRedirectUri: ""

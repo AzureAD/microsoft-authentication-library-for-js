@@ -43,7 +43,6 @@ describe("PublicClient.ts Class Unit Tests", () => {
         defaultAuthConfig = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
@@ -860,7 +859,6 @@ describe("PublicClient.ts Class Unit Tests", () => {
         let Client_functionRedirectUris = new PublicClient({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: redirectUriFunc,
                 postLogoutRedirectUri: postLogoutRedirectUriFunc
@@ -876,7 +874,6 @@ describe("PublicClient.ts Class Unit Tests", () => {
         let Client_noRedirectUris = new PublicClient({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
                 authority: TEST_CONFIG.validAuthority
             },
             storageInterface: null,
