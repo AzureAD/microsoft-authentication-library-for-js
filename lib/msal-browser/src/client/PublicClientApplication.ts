@@ -128,7 +128,6 @@ export class PublicClientApplication {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
-
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
@@ -296,7 +295,7 @@ export class PublicClientApplication {
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
             // Handle response from hash string.
-            return interactionHandler.handleCodeResponse(hash);
+            return await interactionHandler.handleCodeResponse(hash);
         } catch (e) {
             this.cleanRequest();
             throw e;

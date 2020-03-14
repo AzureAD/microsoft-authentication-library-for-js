@@ -35,7 +35,6 @@ export class FetchClient implements INetworkModule {
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.POST,
             headers: this.getFetchHeaders(options),
-            credentials: "include",
             body: reqBody
         });
         return await response.json() as T;

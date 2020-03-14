@@ -56,7 +56,6 @@ export type Configuration = {
 // Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
-    tmp_clientSecret: "",
     authority: null,
     redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
     postLogoutRedirectUri: () => BrowserUtils.getDefaultRedirectUri(),

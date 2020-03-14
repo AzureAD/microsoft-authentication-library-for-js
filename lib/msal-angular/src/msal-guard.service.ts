@@ -4,11 +4,14 @@ import {
     ActivatedRouteSnapshot, CanActivate, Router,
     RouterStateSnapshot,
 } from "@angular/router";
-import { MSAL_CONFIG, MsalService, MSAL_CONFIG_ANGULAR } from "./msal.service";
+import { MsalService } from "./msal.service";
 import { Location, PlatformLocation } from "@angular/common";
 import { BroadcastService } from "./broadcast.service";
 import { Configuration, AuthResponse, AuthError } from "msal";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
+import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
+import { UrlUtils } from "msal/lib-commonjs/utils/UrlUtils";
+import { WindowUtils } from "msal/lib-commonjs/utils/WindowUtils";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
@@ -27,6 +30,13 @@ export class MsalGuard implements CanActivate {
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
+        // If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
+        // short-circuit to prevent redirecting or popups.
+        if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
+            this.authService.getLogger().warning("redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
+            return false;
+        }
+
         if (!this.authService.getAccount()) {
             if (this.msalAngularConfig.popUp) {
                 return this.authService.loginPopup({
@@ -37,7 +47,10 @@ export class MsalGuard implements CanActivate {
                     .catch(() => false);
             }
 
+            const routePath = `${window.location.origin}${state.url}`;
+
             this.authService.loginRedirect({
+                redirectStartPage: routePath,
                 scopes: this.msalAngularConfig.consentScopes,
                 extraQueryParameters: this.msalAngularConfig.extraQueryParameters
             });

@@ -43,8 +43,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                tmp_clientSecret: "testSecret"
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
         const configObj = buildConfiguration(appConfig);
