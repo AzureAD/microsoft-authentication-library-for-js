@@ -7,11 +7,29 @@
   "scripts": {
     "start": "node server.js",
     "build:core": "cd ../../lib/msal-core && npm run build",
-    "start:build": "npm run build:core && npm start"
+    "start:build": "npm run build:core && npm start",
+    "test": "npm run clean:test && mocha",
+    "clean:test": "rimraf ./test/screenshots/*"
   },
   "dependencies": {
     "express": "^4.12.3",
     "morgan": "^1.5.2",
     "path": "^0.11.14"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/polyfill": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-typescript": "^7.8.3",
+    "@babel/register": "^7.8.6",
+    "@types/chai": "^4.2.10",
+    "@types/mocha": "^7.0.2",
+    "@types/puppeteer": "^2.0.1",
+    "chai": "^4.2.0",
+    "mocha": "^7.1.0",
+    "playwright": "^0.11.1",
+    "puppeteer": "^2.1.1"
   }
 }

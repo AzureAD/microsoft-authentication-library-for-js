@@ -1,12 +1,10 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "Enter_the_Application_Id_Here",
-        authority: "Enter_the_Cloud_Instance_Id_HereEnter_the_Tenant_Info_Here",
-        redirectUri: "Enter_the_Redirect_Uri_Here",
+        clientId: "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
     },
     cache: {
-        cacheLocation: "sessionStorage", // This configures where your cache will be stored
+        cacheLocation: "localStorage", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     }
 };  

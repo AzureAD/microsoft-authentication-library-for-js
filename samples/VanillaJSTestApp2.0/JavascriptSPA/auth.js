@@ -62,9 +62,7 @@ async function getTokenPopup(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails. acquiring token using popup");
         // fallback to interaction when silent call fails
-        return await myMSALObj.acquireTokenPopup(request).then(tokenResponse => {
-            console.log(tokenResponse);
-        }).catch(error => {
+        return await myMSALObj.acquireTokenPopup(request).catch(error => {
             console.log(error);
         });
     });
@@ -72,9 +70,7 @@ async function getTokenPopup(request) {
 
 // This function can be removed if you do not need to support IE
 async function getTokenRedirect(request) {
-    return await myMSALObj.acquireTokenSilent(request).then((response) => {
-        console.log(response);
-    }).catch(error => {
+    return await myMSALObj.acquireTokenSilent(request).catch(error => {
         console.log("silent token acquisition fails. acquiring token using redirect");
         // fallback to interaction when silent call fails
         return myMSALObj.acquireTokenRedirect(request)

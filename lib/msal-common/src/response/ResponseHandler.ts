@@ -240,16 +240,7 @@ export class ResponseHandler {
         if (serverTokenResponse.id_token) {
             idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
             tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
-        } else if (cachedIdToken) {
-            idTokenObj = new IdToken(cachedIdToken, this.cryptoObj);
-            tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
-        } else {
-            idTokenObj = null;
-        }
 
-        let clientInfo: ClientInfo = null;
-        let cachedAccount: Account = null;
-        if (idTokenObj) {
             // If state is empty, refresh token is being used
             if (!StringUtils.isEmpty(state)) {
                 this.logger.info("State was detected - nonce should be available.");
@@ -263,7 +254,16 @@ export class ResponseHandler {
                     throw ClientAuthError.createNonceMismatchError();
                 }
             }
+        } else if (cachedIdToken) {
+            idTokenObj = new IdToken(cachedIdToken, this.cryptoObj);
+            tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
+        } else {
+            idTokenObj = null;
+        }
 
+        let clientInfo: ClientInfo = null;
+        let cachedAccount: Account = null;
+        if (idTokenObj) {
             // Retrieve client info
             clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
 

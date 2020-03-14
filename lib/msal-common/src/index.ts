@@ -1,5 +1,5 @@
 // App Auth Modules and Configuration
-export { PublicClient } from "./client/PublicClient";
+export { PublicClientSPA } from "./client/PublicClientSPA";
 export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientConfiguration";
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account
@@ -27,6 +27,7 @@ export { CodeResponse } from "./response/CodeResponse";
 export { ILoggerCallback, LogLevel } from "./logger/Logger";
 // Errors
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
+export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils

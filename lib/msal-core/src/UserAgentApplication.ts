@@ -497,17 +497,8 @@ export class UserAgentApplication {
         acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
-            let loginStartPage: string;
 
-            if (isLoginCall) {
-                // if the user sets the login start page - angular only??
-                loginStartPage = this.cacheStorage.getItem(`${TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST}${Constants.resourceDelimiter}${request.state}`);
-                if (!loginStartPage || loginStartPage === "") {
-                    loginStartPage = window.location.href;
-                } else {
-                    this.cacheStorage.setItem(`${TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST}${Constants.resourceDelimiter}${request.state}`, "");
-                }
-            }
+            const loginStartPage = request.redirectStartPage || window.location.href;
 
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
@@ -797,7 +788,7 @@ export class UserAgentApplication {
             WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -1495,6 +1486,11 @@ export class UserAgentApplication {
                 // Process access_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
                     this.logger.info("Fragment has access token");
+                    response.accessToken = hashParams[ServerHashParamKeys.ACCESS_TOKEN];
+
+                    if (hashParams.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
+                        response.scopes = hashParams[ServerHashParamKeys.SCOPE].split(" ");
+                    }
 
                     // retrieve the id_token from response if present
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {

@@ -1,6 +1,19 @@
-# TSDX Bootstrap
+# Microsoft Authentication Library for JavaScript for Node(msal-node) for Node.js based Web apps
 
-This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
+Currently `msal-node` library is under development, Please track the project progress [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4).
+### Build Library
+
+```javascript
+// Change to the msal-node package directory
+cd lib/msal-node/
+
+// Ensure you are using the local build of msal-common
+npm link @azure/msal-common
+
+// To run build only for node package
+npm run build
+```
+TBD: Add lerna bootstrap to build common/node in one step
 
 ## Local Development
 
@@ -25,9 +38,13 @@ The package is optimized and bundled with Rollup into multiple formats (CommonJS
 
 Runs eslint with Prettier
 
-### `npm test`, `npm run test:coverage`
+### `npm test`, `npm run test:coverage`, `npm run test:watch`
 
 Runs the test watcher (Jest) in an interactive mode.
 By default, runs tests related to files changed since the last commit.
 Generate code coverage by adding the flag --coverage. No additional setup needed. Jest can collect code coverage information from entire projects, including untested files.
+
+## TSDX Bootstrap
+
+This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
 
