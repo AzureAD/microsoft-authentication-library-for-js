@@ -1,6 +1,8 @@
 // App Auth Modules and Configuration
 export { PublicClientSPA } from "./client/PublicClientSPA";
-export { PublicClientConfiguration, AuthOptions } from "./config/PublicClientConfiguration";
+export { AuthorizationCodeFlow } from "./client/AuthorizationCodeFlow";
+export { PublicClientSPAConfiguration, SPAAuthOptions } from "./config/PublicClientSPAConfiguration";
+export { AuthorizationClientConfiguration, AuthOptions } from "./config/AuthorizationClientConfiguration";
 export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 // Account
 export { Account } from "./account/Account";
@@ -18,6 +20,7 @@ export { UrlString } from "./url/UrlString";
 export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
+export { AuthorizationCodeUrlParameters } from "./request/AuthorizationCodeUrlParameters";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";

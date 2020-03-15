@@ -14,7 +14,7 @@ import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestP
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
 import { LogLevel } from "../../src/logger/Logger";
-import { PublicClientConfiguration } from "../../src/config/PublicClientConfiguration";
+import { PublicClientSPAConfiguration } from "../../src/config/PublicClientSPAConfiguration";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
@@ -27,6 +27,8 @@ import { buildClientInfo } from "../../src/account/ClientInfo";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
+import { Configuration } from "../../src/config/Configuration";
+import { ClientInfo } from "../../src/account/ClientInfo";
 
 describe("PublicClient.ts Class Unit Tests", () => {
 
@@ -34,10 +36,10 @@ describe("PublicClient.ts Class Unit Tests", () => {
         if (containsPii) {
             console.log(`Log level: ${level} Message: ${message}`);
         }
-    }
+    };
 
     let store = {};
-    let defaultAuthConfig: PublicClientConfiguration;
+    let defaultAuthConfig: PublicClientSPAConfiguration;
 
     beforeEach(() => {
         defaultAuthConfig = {
@@ -89,7 +91,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                     return {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
                         verifier: TEST_CONFIG.TEST_VERIFIER
-                    }
+                    };
                 }
             },
             loggerOptions: {
@@ -179,7 +181,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         it("Throws endpoint discovery error if resolveEndpointsAsync fails", async () => {
             sinon.restore();
-            const exceptionString = "Could not make a network request."
+            const exceptionString = "Could not make a network request.";
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const emptyRequest: AuthenticationParameters = {};
             await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
@@ -338,7 +340,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         it("Throws endpoint discovery error if resolveEndpointsAsync fails", async () => {
             sinon.restore();
-            const exceptionString = "Could not make a network request."
+            const exceptionString = "Could not make a network request.";
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
@@ -468,7 +470,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                         code: "This is an auth code",
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    const exceptionString = "Could not make a network request."
+                    const exceptionString = "Could not make a network request.";
                     sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
 
                     const cachedRequest: TokenExchangeParameters = {
@@ -653,7 +655,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                 });
 
                 it("Throws error if endpoint discovery could not be completed", async () => {
-                    const exceptionString = "Could not make a network request."
+                    const exceptionString = "Could not make a network request.";
                     sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
 
                     const tokenRequest: TokenRenewParameters = {
@@ -829,7 +831,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
                     const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
                     const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
-                    testScopes.push(Constants.OFFLINE_ACCESS_SCOPE)
+                    testScopes.push(Constants.OFFLINE_ACCESS_SCOPE);
                     expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
                     expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
                     expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
@@ -848,15 +850,15 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
     describe("Getters and setters", () => {
 
-        let redirectUriFunc = () => {
+        const redirectUriFunc = () => {
             return TEST_URIS.TEST_REDIR_URI;
         };
 
-        let postLogoutRedirectUriFunc = () => {
+        const postLogoutRedirectUriFunc = () => {
             return TEST_URIS.TEST_LOGOUT_URI;
         };
 
-        let Client_functionRedirectUris = new PublicClientSPA({
+        const Client_functionRedirectUris = new PublicClientSPA({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -871,7 +873,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             }
         });
 
-        let Client_noRedirectUris = new PublicClientSPA({
+        const Client_noRedirectUris = new PublicClientSPA({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority
@@ -908,6 +910,106 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         it("throws error if post logout redirect uri is null/empty", () => {
             expect(() => Client_noRedirectUris.getPostLogoutRedirectUri()).to.throw(ClientConfigurationError.createPostLogoutRedirectUriEmptyError().message);
+        });
+    });
+
+    describe("getAccount()", () => {
+        let store;
+        let config: Configuration;
+        let client: PublicClientSPA;
+        let idToken: IdToken;
+        let clientInfo: ClientInfo;
+        let testAccount: Account;
+        beforeEach(() => {
+            store = {};
+            config = {
+                auth: {},
+                systemOptions: null,
+                cryptoInterface: {
+                    createNewGuid(): string {
+                        return RANDOM_TEST_GUID;
+                    },
+                    base64Decode(input: string): string {
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    },
+                    base64Encode(input: string): string {
+                        switch (input) {
+                            case "123-test-uid":
+                                return "MTIzLXRlc3QtdWlk";
+                            case "456-test-utid":
+                                return "NDU2LXRlc3QtdXRpZA==";
+                            default:
+                                return input;
+                        }
+                    },
+                    async generatePkceCodes(): Promise<PkceCodes> {
+                        return {
+                            challenge: TEST_CONFIG.TEST_CHALLENGE,
+                            verifier: TEST_CONFIG.TEST_VERIFIER
+                        };
+                    }
+                },
+                networkInterface: null,
+                storageInterface: {
+                    setItem(key: string, value: string): void {
+                        store[key] = value;
+                    },
+                    getItem(key: string): string {
+                        return store[key];
+                    },
+                    removeItem(key: string): void {
+                        delete store[key];
+                    },
+                    containsKey(key: string): boolean {
+                        return !!store[key];
+                    },
+                    getKeys(): string[] {
+                        return Object.keys(store);
+                    },
+                    clear(): void {
+                        store = {};
+                    }
+                },
+                loggerOptions: null
+            };
+
+            const idTokenClaims: IdTokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
+            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.cryptoInterface);
+            testAccount = Account.createAccount(idToken, clientInfo, config.cryptoInterface);
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            client = new PublicClientSPA(defaultAuthConfig);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+            store = {};
+        });
+
+        it("returns null if nothing is in the cache", () => {
+            expect(client.getAccount()).to.be.null;
+        });
+
+        it("returns the current account if it exists", () => {
+
+            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
+        });
+
+        it("Creates account object from cached id token and client info", () => {
+            store[PersistentCacheKeys.ID_TOKEN] = idToken;
+            store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
+            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
         });
     });
 });

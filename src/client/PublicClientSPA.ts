@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 import { BaseClient } from "./BaseClient";
-import { PublicClientConfiguration, buildPublicClientConfiguration } from "../config/PublicClientConfiguration";
+import {
+    PublicClientSPAConfiguration,
+    buildPublicClientSPAConfiguration
+} from "../config/PublicClientSPAConfiguration";
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { TokenRenewParameters } from "../request/TokenRenewParameters";
@@ -24,6 +27,8 @@ import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants 
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
+import { Account } from "../account/Account";
+import { buildClientInfo } from "../account/ClientInfo";
 
 /**
  * PublicClientSPA class
@@ -34,9 +39,9 @@ import { UrlString } from "../url/UrlString";
 export class PublicClientSPA extends BaseClient {
 
     // Application config
-    private clientConfig: PublicClientConfiguration;
+    private clientConfig: PublicClientSPAConfiguration;
 
-    constructor(configuration: PublicClientConfiguration) {
+    constructor(configuration: PublicClientSPAConfiguration) {
         // Implement base module
         super({
             systemOptions: configuration.systemOptions,
@@ -46,7 +51,7 @@ export class PublicClientSPA extends BaseClient {
             cryptoInterface: configuration.cryptoInterface
         });
         // Implement defaults in config
-        this.clientConfig = buildPublicClientConfiguration(configuration);
+        this.clientConfig = buildPublicClientSPAConfiguration(configuration);
 
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
@@ -459,6 +464,33 @@ export class PublicClientSPA extends BaseClient {
         }
         // This should never throw unless window.location.href is returning empty.
         throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
+    }
+
+    /**
+     * Returns the signed in account
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link Account} - the account object stored in MSAL
+     */
+    getAccount(): Account {
+        if (this.account) {
+            return this.account;
+        }
+
+        // Get id token and client info from cache
+        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
+
+        if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
+            const idToken = new IdToken(rawIdToken, this.cryptoObj);
+            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoObj);
+
+            this.account = Account.createAccount(idToken, clientInfo, this.cryptoObj);
+            return this.account;
+        }
+
+        // if login is not yet done, return null
+        return null;
     }
 
     // #endregion

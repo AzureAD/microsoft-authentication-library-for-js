@@ -3,21 +3,13 @@
  * Licensed under the MIT License.
  */
 import { Configuration, buildConfiguration } from "../config/Configuration";
-import { AuthenticationParameters } from "../request/AuthenticationParameters";
-import { TokenRenewParameters } from "../request/TokenRenewParameters";
-import { CodeResponse } from "../response/CodeResponse";
-import { TokenResponse } from "../response/TokenResponse";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { CacheHelpers } from "../cache/CacheHelpers";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
-import { IdToken } from "../account/IdToken";
-import { buildClientInfo } from "../account/ClientInfo";
-import { StringUtils } from "../utils/StringUtils";
 import { Logger } from "../logger/Logger";
-import { PersistentCacheKeys } from "../utils/Constants";
 
 /**
  * @hidden
@@ -80,84 +72,4 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
     }
-
-    // #region Abstract Functions
-
-    /**
-     * Creates a url for logging in a user. This will by default append the client id to the list of scopes,
-     * allowing you to retrieve an id token in the subsequent code exchange. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request
-     */
-    abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
-
-    /**
-     * Creates a url for logging in a user. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request
-     */
-    abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
-
-    /**
-     * Handles the hash fragment response from public client code request. Returns a code response used by
-     * the client to exchange for a token in acquireToken.
-     * @param hashFragment
-     */
-    abstract handleFragmentResponse(hashFragment: string): CodeResponse;
-
-    /**
-     * Given an authorization code, it will perform a token exchange using cached values from a previous call to
-     * createLoginUrl() or createAcquireTokenUrl(). You must call this AFTER using one of those APIs first. You should
-     * also use the handleFragmentResponse() API to pass the codeResponse to this function afterwards.
-     * @param codeResponse
-     */
-    abstract async acquireToken(codeResponse: CodeResponse): Promise<TokenResponse>;
-
-    /**
-     * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
-     * the given token and returns the renewed token. Will throw an error if login is not completed (unless
-     * id tokens are not being renewed).
-     * @param request
-     */
-    abstract async renewToken(request: TokenRenewParameters): Promise<TokenResponse>;
-
-    /**
-     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
-     * Default behaviour is to redirect the user to `window.location.href`.
-     * @param authorityUri
-     */
-    abstract async logout(authorityUri?: string): Promise<string>;
-
-    // #endregion
-
-    // #region Getters and Setters
-
-    /**
-     * Returns the signed in account
-     * (the account object is created at the time of successful login)
-     * or null when no state is found
-     * @returns {@link Account} - the account object stored in MSAL
-     */
-    getAccount(): Account {
-        if (this.account) {
-            return this.account;
-        }
-
-        // Get id token and client info from cache
-        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
-        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
-
-        if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
-            const idToken = new IdToken(rawIdToken, this.cryptoObj);
-            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoObj);
-
-            this.account = Account.createAccount(idToken, clientInfo, this.cryptoObj);
-            return this.account;
-        }
-
-        // if login is not yet done, return null
-        return null;
-    }
-
-    // #endregion
 }
