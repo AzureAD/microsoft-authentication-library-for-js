@@ -30,3 +30,11 @@ export const CharSet = {
     CV_CHARSET:
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~',
 };
+
+/**
+ * Cache Constants
+ */
+export const CACHE = {
+    FILE_CACHE: 'file_cache',
+    EXTENSION_LIB: 'extenstion_library'
+};

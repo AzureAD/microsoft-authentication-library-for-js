@@ -1,0 +1,11 @@
+{
+  "name": "msal-node-sample-app",
+  "version": "1.0.0",
+  "description": "sample app for msal-node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sameerag",
+  "license": "MIT"
+}

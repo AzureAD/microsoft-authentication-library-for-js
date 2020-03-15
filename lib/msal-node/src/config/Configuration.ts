@@ -2,15 +2,17 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SPAAuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
-import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserConstants } from "../utils/BrowserConstants";
+import {
+    AuthOptions,
+    SystemOptions,
+    LoggerOptions,
+    INetworkModule,
+    LogLevel,
+} from '@azure/msal-common';
+import { NetworkUtils } from './../utils/NetworkUtils';
+import { CACHE } from './../utils/Constants';
 
-// Default timeout for popup windows in milliseconds
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-
-export type BrowserAuthOptions = SPAAuthOptions & {
-    navigateToLoginRequestUrl?: boolean;
+export type NodeAuthOptions = AuthOptions & {
 };
 
 /**
@@ -33,10 +35,9 @@ export type CacheOptions = {
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
  * - telemetry                    - Telemetry options for library network requests
  */
-export type BrowserSystemOptions = SystemOptions & {
+export type NodeSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
-    windowHashTimeout?: number;
 };
 
 /**
@@ -48,29 +49,30 @@ export type BrowserSystemOptions = SystemOptions & {
  * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
  */
 export type Configuration = {
-    auth?: BrowserAuthOptions,
-    cache?: CacheOptions,
-    system?: BrowserSystemOptions
+    auth?: NodeAuthOptions;
+    cache?: CacheOptions;
+    system?: NodeSystemOptions;
 };
 
 // Default auth options for browser
-const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
-    clientId: "",
-    authority: null,
-    redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
-    postLogoutRedirectUri: () => BrowserUtils.getDefaultRedirectUri(),
-    navigateToLoginRequestUrl: true
+const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
+    clientId: '',
+    authority: '',
 };
 
 // Default cache options for browser
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
+    cacheLocation: CACHE.FILE_CACHE,
     storeAuthStateInCookie: false
 };
 
 // Default logger options for browser
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+    loggerCallback: (
+        level: LogLevel,
+        message: string,
+        containsPii: boolean
+    ): void => {
         if (containsPii) {
             return;
         }
@@ -89,14 +91,13 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
                 return;
         }
     },
-    piiLoggingEnabled: false
+    piiLoggingEnabled: false,
 };
 
 // Default system options for browser
-const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
+const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
-    networkClient: BrowserUtils.getBrowserNetworkClient(),
-    windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS
+    networkClient: NetworkUtils.getNetworkClient()
 };
 
 /**
@@ -109,11 +110,15 @@ const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
  *
  * @returns TConfiguration object
  */
-export function buildConfiguration({ auth, cache = {}, system = {}}: Configuration): Configuration {
+export function buildConfiguration({
+    auth,
+    cache = {},
+    system = {},
+}: Configuration): Configuration {
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system }
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
     };
     return overlayedConfig;
 }
