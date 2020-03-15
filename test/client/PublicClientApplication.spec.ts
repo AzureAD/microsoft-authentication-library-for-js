@@ -1,6 +1,6 @@
 import * as Mocha from "mocha";
 import chai from "chai";
-import chaiAsPromised from "chai-as-promised"
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
@@ -49,7 +49,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         if (containsPii) {
             console.log(`Log level: ${level} Message: ${message}`);
         }
-    }
+    };
 
     const authCallback: AuthCallback = (authErr: AuthError, response: AuthResponse) => {
         if (authErr) {
@@ -616,7 +616,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("Getters and Setters Unit Tests", () => {
 
-        let pca_alternate_redirUris = new PublicClientApplication({
+        const pca_alternate_redirUris = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
