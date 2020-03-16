@@ -13,6 +13,7 @@ import { Configuration, buildConfiguration } from "./Configuration";
  */
 export type AuthOptions = {
     clientId: string;
+    redirectUri: string;
     authority?: string;
 };
 
@@ -28,6 +29,7 @@ export type AuthorizationClientConfiguration = Configuration & {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
+    redirectUri: "",
     authority: null
 };
 
