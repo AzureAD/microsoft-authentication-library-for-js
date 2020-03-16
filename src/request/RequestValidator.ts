@@ -6,14 +6,14 @@
 import { ScopeSet } from "./ScopeSet";
 import { StringUtils } from "./../utils/StringUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
-import { PromptValue } from "./../utils/Constants";
+import { PromptValue, CodeChallengeMethodValues } from "./../utils/Constants";
 
 /**
  * Validates server consumable params from the "request" objects
  */
 export class RequestValidator {
     /**
-     * Utility to validate scopes and add them to the queryParams
+     * Utility to validate scopes passed by the user in the request
      */
     static validateAndGenerateScopes(
         scopes: Array<string>,
@@ -25,7 +25,7 @@ export class RequestValidator {
     }
 
     /**
-     *
+     * Utility to check if the `redirectUri` in the request is a non-null value
      * @param redirectUri
      */
     static validateRedirectUri(redirectUri: string) {
@@ -36,7 +36,7 @@ export class RequestValidator {
     }
 
     /**
-     * Utility to validate and add prompt to the queryParams
+     * Utility to validate prompt sent by the user in the request
      * @param prompt
      */
     static validatePrompt(prompt: string) {
@@ -50,6 +50,35 @@ export class RequestValidator {
             ].indexOf(prompt) < 0
         ) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
+        }
+    }
+
+    /**
+     * Utility to validate code_challenge and code_challenge_method
+     * @param codeChallenge
+     * @param codeChallengeMethod
+     */
+    static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) {
+        if (!(codeChallenge && codeChallengeMethod)) {
+            throw ClientConfigurationError.createInvalidCodeChallengeParams();
+        } else {
+            this.validateCodeChallengeMethod(codeChallengeMethod);
+        }
+    }
+
+    /**
+     * Utlity to validate code_challenge_method
+     * @param codeChallengeMethod
+     */
+    static validateCodeChallengeMethod(codeChallengeMethod: string) {
+        // validate prompt parameter
+        if (
+            [
+                CodeChallengeMethodValues.PLAIN,
+                CodeChallengeMethodValues.S256
+            ].indexOf(codeChallengeMethod) < 0
+        ) {
+            throw ClientConfigurationError.createInvalidCodeChallengeMethodError();
         }
     }
 }

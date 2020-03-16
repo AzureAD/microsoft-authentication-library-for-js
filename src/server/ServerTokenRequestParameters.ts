@@ -9,7 +9,7 @@ import { CodeResponse } from "../response/CodeResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICrypto } from "../crypto/ICrypto";
 import { StringUtils } from "../utils/StringUtils";
-import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants";
+import { Constants, HeaderNames, AADServerParamKeys } from "../utils/Constants";
 
 /**
  * This class extends the ServerRequestParameters class. This class validates token request parameters and generates a form body and headers required for the request.
@@ -61,7 +61,7 @@ export class ServerTokenRequestParameters {
      */
     createRequestHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
-        headers.set(HEADER_NAMES.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
         return headers;
     }
 

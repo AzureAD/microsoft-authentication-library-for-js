@@ -51,6 +51,14 @@ export const ClientConfigurationErrorMessage = {
     tokenRequestEmptyError: {
         code: "token_request_empty",
         desc: "Token request was empty and not found in cache."
+    },
+    invalidCodeChallengeMethod: {
+        code: "invalid_code_challenge_method",
+        desc: "code_challenge_method passed is invalid. Valid values are \"plain\" and \"S256\"."
+    },
+    invalidCodeChallengeParams: {
+        code: "one_of_code_challenge_code_challenge_method_params_missing",
+        desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
     }
 };
 
@@ -58,7 +66,7 @@ export const ClientConfigurationErrorMessage = {
  * Error thrown when there is an error in configuration of the MSAL.js library.
  */
 export class ClientConfigurationError extends ClientAuthError {
-    
+
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientConfigurationError";
@@ -91,7 +99,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if authority uri is given an insecure protocol.
-     * @param urlString 
+     * @param urlString
      */
     static createInsecureAuthorityUriError(urlString: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityUriInsecure.code,
@@ -100,7 +108,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if URL string does not parse into separate segments.
-     * @param urlString 
+     * @param urlString
      */
     static createUrlParseError(urlParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlParseError.code,
@@ -109,15 +117,16 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if URL string is empty or null.
-     * @param urlString 
+     * @param urlString
      */
     static createUrlEmptyError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code, ClientConfigurationErrorMessage.urlEmptyError.desc);
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code,
+            ClientConfigurationErrorMessage.urlEmptyError.desc);
     }
 
     /**
      * Error thrown when scopes are not an array
-     * @param inputScopes 
+     * @param inputScopes
      */
     static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
@@ -126,7 +135,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when scopes are empty.
-     * @param scopesValue 
+     * @param scopesValue
      */
     static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
@@ -135,7 +144,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when client id scope is not provided as single scope.
-     * @param inputScopes 
+     * @param inputScopes
      */
     static createClientIdSingleScopeError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.clientIdSingleScopeError.code,
@@ -144,7 +153,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when prompt is not an allowed type.
-     * @param promptValue 
+     * @param promptValue
      */
     static createInvalidPromptError(promptValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
@@ -155,6 +164,29 @@ export class ClientConfigurationError extends ClientAuthError {
      * Throws error when token request is empty and nothing cached in storage.
      */
     static createEmptyTokenRequestError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.tokenRequestEmptyError.code, ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.tokenRequestEmptyError.code,
+            ClientConfigurationErrorMessage.tokenRequestEmptyError.desc
+        );
+    }
+
+    /**
+     * Throws error when an invalid code_challenge_method is passed by the user
+     */
+    static createInvalidCodeChallengeMethodError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.invalidCodeChallengeMethod.code,
+            ClientConfigurationErrorMessage.invalidCodeChallengeMethod.desc
+        );
+    }
+
+    /**
+     * Throws error when both params: code_challenge and code_challenge_method are not passed together
+     */
+    static createInvalidCodeChallengeParams(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.invalidCodeChallengeParams.code,
+            ClientConfigurationErrorMessage.invalidCodeChallengeParams.desc
+        );
     }
 }

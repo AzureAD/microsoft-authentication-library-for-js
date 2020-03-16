@@ -21,6 +21,7 @@ export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthorizationCodeUrlParameters } from "./request/AuthorizationCodeUrlParameters";
+export { AuthorizationCodeParameters } from "./request/AuthorizationCodeParameters";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";

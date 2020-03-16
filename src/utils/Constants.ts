@@ -35,7 +35,7 @@ export const Constants = {
 /**
  * Request header names
  */
-export enum HEADER_NAMES {
+export enum HeaderNames {
     CONTENT_TYPE = "Content-Type"
 };
 
@@ -67,7 +67,7 @@ export enum PersistentCacheKeys {
 };
 
 /**
- * List of pre-established trusted host URLs. 
+ * List of pre-established trusted host URLs.
  */
 export const AADTrustedHostList: string[] = [
     "login.windows.net",
@@ -114,6 +114,7 @@ export enum AADServerParamKeys {
     CODE_CHALLENGE = "code_challenge",
     CODE_CHALLENGE_METHOD = "code_challenge_method",
     CODE_VERIFIER = "code_verifier",
+    CLIENT_SECRET = "client_secret",
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
     X_CLIENT_VER = "x-client-Ver",
@@ -172,3 +173,32 @@ export const BlacklistedEQParams = [
     SSOTypes.SID,
     SSOTypes.LOGIN_HINT
 ];
+
+/**
+ * allowed values for codeVerifier
+ */
+export const CodeChallengeMethodValues = {
+    PLAIN: "plain",
+    S256: "S256"
+};
+
+/**
+ * allowed values for response_mode
+ */
+export enum ResponseModeValues {
+    QUERY = "query",
+    FRAGMENT = "fragment"
+}
+
+/**
+ * allowed grant_type
+ */
+export enum GrantType {
+    IMPLICIT_GRANT = "implicit",
+    AUTHORIZATION_CODE_GRANT = "authorization_code",
+    CLIENT_CREDENTIALS_GRANT = "client_credentials",
+    RESOURCE_OWNER_PASSWORD_GRANT = "password",
+    REFRESH_TOKEN_GRANT = "refresh_token",
+    DEVICE_CODE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
+};
+
