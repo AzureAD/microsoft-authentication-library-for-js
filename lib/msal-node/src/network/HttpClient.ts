@@ -39,7 +39,7 @@ export class HttpClient implements INetworkModule {
 
         const request = {
             method: HttpMethod.POST,
-            url: url,
+            url,
             body: (options && options.body) || '',
             headers: (options && options.headers)
         };
