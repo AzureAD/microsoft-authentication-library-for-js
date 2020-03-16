@@ -50,7 +50,7 @@ export class ScopeSet {
         this.originalScopes = new Set<string>(this.scopes);
 
         // add default scopes
-        nonSPA ? this.replaceDefaultScopes() : this.addDefaultScopes();
+        nonSPA ? this.addDefaultScopes() : this.replaceDefaultScopes();
     }
 
     /**
