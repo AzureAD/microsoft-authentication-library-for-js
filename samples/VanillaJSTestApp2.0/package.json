@@ -6,12 +6,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build:core": "cd ../../lib/msal-core && npm run build",
-    "start:build": "npm run build:core && npm start"
+    "build:package": "cd ../../lib/msal-browser && npm run build:all",
+    "start:build": "npm run build:package && npm start"
   },
   "dependencies": {
     "express": "^4.12.3",
     "morgan": "^1.5.2",
-    "path": "^0.11.14"
+    "path": "^0.11.14",
+    "yargs": "^15.3.0"
   }
 }

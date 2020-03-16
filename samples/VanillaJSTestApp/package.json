@@ -6,8 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build:core": "cd ../../lib/msal-core && npm run build",
-    "start:build": "npm run build:core && npm start",
+    "build:package": "cd ../../lib/msal-core && npm run build",
+    "start:build": "npm run build:package && npm start",
     "test": "npm run clean:test && mocha",
     "clean:test": "rimraf ./test/screenshots/*"
   },
