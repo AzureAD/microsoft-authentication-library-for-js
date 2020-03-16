@@ -79,6 +79,8 @@ export class AuthorizationCodeFlow extends BaseClient {
     }
 
     /**
+     * Create authority instance if not set already, resolve well-known-endpoint
+     * ADD discover authority instances
      * @param authority
      */
     private async setAuthority(authority: string): Promise<Authority> {
