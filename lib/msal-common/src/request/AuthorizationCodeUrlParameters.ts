@@ -98,8 +98,10 @@ export class AuthorizationCodeUrlParameters {
         ServerParamsGenerator.addRedirectUri(paramsMap, request.redirectUri);
 
         // validate and pass code_challenge Params
-        RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
-        ServerParamsGenerator.addCodeChallengeParams(paramsMap, request.codeChallenge, request.codeChallengeMethod);
+        if (request.codeChallenge) {
+            RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
+            ServerParamsGenerator.addCodeChallengeParams(paramsMap, request.codeChallenge, request.codeChallengeMethod);
+        }
 
         // add state - user set, no validation needed (preferably a UUID)
         if (request.state) {
