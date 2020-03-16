@@ -4,7 +4,6 @@ import { AuthorizationCodeUrlParameters } from './../../src/index';
 
 describe('PublicClientApplication', () => {
     test('exports a class', () => {
-
         const msalConfig: Configuration = {
             auth: {
                 clientId: 'b41a6fbb-c728-4e03-aa59-d25b0fd383b6',

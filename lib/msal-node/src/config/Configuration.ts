@@ -12,8 +12,7 @@ import {
 import { NetworkUtils } from './../utils/NetworkUtils';
 import { CACHE } from './../utils/Constants';
 
-export type NodeAuthOptions = AuthOptions & {
-};
+export type NodeAuthOptions = AuthOptions & {};
 
 /**
  * Use this to configure the below cache configuration options:
@@ -63,7 +62,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
 // Default cache options for browser
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: CACHE.FILE_CACHE,
-    storeAuthStateInCookie: false
+    storeAuthStateInCookie: false,
 };
 
 // Default logger options for browser
@@ -97,7 +96,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 // Default system options for browser
 const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
-    networkClient: NetworkUtils.getNetworkClient()
+    networkClient: NetworkUtils.getNetworkClient(),
 };
 
 /**

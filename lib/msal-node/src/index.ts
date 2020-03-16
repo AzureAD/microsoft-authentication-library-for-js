@@ -1,7 +1,7 @@
 export { PublicClientApplication } from './client/PublicClientApplication';
 export { ConfidentialClientApplication } from './client/ConfidentialClientApplication';
 export { Configuration, buildConfiguration } from './config/Configuration';
-export { Storage } from "./cache/Storage";
+export { Storage } from './cache/Storage';
 
 // crypto
 export { CryptoOps } from './crypto/CryptoOps';
@@ -16,5 +16,5 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
-    INetworkModule
-} from "@azure/msal-common";
+    INetworkModule,
+} from '@azure/msal-common';

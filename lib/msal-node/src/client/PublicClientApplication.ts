@@ -5,9 +5,10 @@
 import {
     AuthorizationCodeFlow,
     AuthorizationCodeUrlParameters,
+    AuthorizationCodeParameters,
     INetworkModule,
 } from '@azure/msal-common';
-import { Configuration, buildConfiguration } from "../config/Configuration";
+import { Configuration, buildConfiguration } from '../config/Configuration';
 import { CryptoOps } from '../crypto/CryptoOps';
 import { Storage } from '../cache/Storage';
 import { NetworkUtils } from './../utils/NetworkUtils';
@@ -17,7 +18,6 @@ import { NetworkUtils } from './../utils/NetworkUtils';
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
 export class PublicClientApplication {
-
     // Input configuration by developer/user
     private config: Configuration;
 
@@ -65,7 +65,10 @@ export class PublicClientApplication {
         this.networkClient = NetworkUtils.getNetworkClient();
 
         // Initialize the browser storage class.
-        this.storage = new Storage(this.config.auth.clientId, this.config.cache);
+        this.storage = new Storage(
+            this.config.auth.clientId,
+            this.config.cache
+        );
 
         // Create auth module.
         const authModule = {
@@ -93,8 +96,21 @@ export class PublicClientApplication {
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlParameters): Promise<string> {
+    async getAuthCodeUrl(
+        request: AuthorizationCodeUrlParameters
+    ): Promise<string> {
         const url = this.authModule.getAuthCodeUrl(request);
         return url;
+    }
+
+    /**
+     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
+     * @param request
+     */
+    async acquireTokenByCode(
+        request: AuthorizationCodeParameters
+    ): Promise<string> {
+        const tokenResponse = this.authModule.acquireTokenByCode(request);
+        return tokenResponse;
     }
 }

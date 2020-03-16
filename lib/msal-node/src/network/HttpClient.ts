@@ -17,13 +17,15 @@ export class HttpClient implements INetworkModule {
      * @param headers
      * @param body
      */
-    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-
+    async sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<T> {
         // axios config
         const request = {
             method: HttpMethod.GET,
             url: url,
-            headers: (options && options.headers)
+            headers: options && options.headers,
         };
 
         // GET call
@@ -37,14 +39,16 @@ export class HttpClient implements INetworkModule {
      * @param headers
      * @param body
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-
+    async sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<T> {
         // axios config
         const request = {
             method: HttpMethod.POST,
             url: url,
             body: (options && options.body) || '',
-            headers: (options && options.headers)
+            headers: options && options.headers,
         };
 
         const response = await axios(request);

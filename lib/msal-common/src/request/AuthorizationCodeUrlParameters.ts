@@ -5,7 +5,7 @@
 
 import { AuthorizationClientConfiguration } from "../config/AuthorizationClientConfiguration";
 import { RequestValidator } from "./RequestValidator";
-import { UrlGenerator } from "./../server/UrlGenerator";
+import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
 
 /**
  * @type AuthorizationCodeUrlParameters: Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
@@ -53,6 +53,8 @@ import { UrlGenerator } from "./../server/UrlGenerator";
  *                          resulting id_token value as a claim. The app can verify this value to mitigate token replay attacks.
  *                          The value typically is a randomized, unique string that can be used to identify the origin of the request.
  *
+ * correlationId:           Unique GUID set per request to trace a request end-to-end for telemetry purposes
+ *
  *
  * This "Request" parameter is called when `msal-node` makes the authorization code request to the service on behalf of the app
  */
@@ -71,54 +73,71 @@ export class AuthorizationCodeUrlParameters {
     correlationId?: string;
 
     /**
-            *
-            * @param request
-            * @param config
-            */
+     * This API validates the `AuthorizationCodeUrlParameters` and creates a URL to be sent to the server
+     * @param request
+     * @param config
+     */
     static generateAuthCodeUrlParams(
         request: AuthorizationCodeUrlParameters,
         config: AuthorizationClientConfiguration
     ) {
         const paramsMap: Map<string, string> = new Map<string, string>();
 
-        UrlGenerator.addClientId(paramsMap, config.auth.clientId);
+        // add clientId
+        ServerParamsGenerator.addClientId(paramsMap, config.auth.clientId);
 
+        // validate and add scopes
         const scopes = RequestValidator.validateAndGenerateScopes(
             request.scopes,
             config.auth.clientId
         );
-        UrlGenerator.addScopes(paramsMap, scopes);
+        ServerParamsGenerator.addScopes(paramsMap, scopes);
 
+        // validate the redirectUri (to be a non null value)
         RequestValidator.validateRedirectUri(request.redirectUri);
-        UrlGenerator.addRedirectUri(paramsMap, request.redirectUri);
+        ServerParamsGenerator.addRedirectUri(paramsMap, request.redirectUri);
 
+        // validate and pass code_challenge Params
+        RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
+        ServerParamsGenerator.addCodeChallengeParams(paramsMap, request.codeChallenge, request.codeChallengeMethod);
+
+        // add state - user set, no validation needed (preferably a UUID)
         if (request.state) {
-            UrlGenerator.addState(paramsMap, request.state);
+            ServerParamsGenerator.addState(paramsMap, request.state);
         }
 
+        // validate and add prompt
         if (request.prompt) {
             RequestValidator.validatePrompt(request.prompt);
-            UrlGenerator.addPrompt(paramsMap, request.prompt);
+            ServerParamsGenerator.addPrompt(paramsMap, request.prompt);
         }
 
+        // add login_hint: user set, no validation needed
         if (request.loginHint) {
-            UrlGenerator.addLoginHint(paramsMap, request.loginHint);
+            ServerParamsGenerator.addLoginHint(paramsMap, request.loginHint);
         }
 
+        // add domain_hint: user set, no validation needed
         if (request.domainHint) {
-            UrlGenerator.addDomainHint(paramsMap, request.domainHint);
+            ServerParamsGenerator.addDomainHint(paramsMap, request.domainHint);
         }
 
+        // add domain_hint: user set, no validation needed (preferably a UUID)
         if (request.nonce) {
-            UrlGenerator.addNonce(paramsMap, request.nonce);
+            ServerParamsGenerator.addNonce(paramsMap, request.nonce);
         }
 
+        // generate the correlationId if not set by the user and add
         const correlationId = request.correlationId
             ? request.correlationId
             : config.cryptoInterface.createNewGuid();
-        UrlGenerator.addCorrelationId(paramsMap, correlationId);
+        ServerParamsGenerator.addCorrelationId(paramsMap, correlationId);
 
-        UrlGenerator.authorizationCodeUrlBuilder(paramsMap, request);
+        // add response_mode = fragment (currently hardcoded, have a future option to pass 'query' if the user chooses to)
+        ServerParamsGenerator.addResponseMode(paramsMap);
+
+        // add response_type = code
+        ServerParamsGenerator.addResponseTypeCode(paramsMap);
 
         return paramsMap;
     }

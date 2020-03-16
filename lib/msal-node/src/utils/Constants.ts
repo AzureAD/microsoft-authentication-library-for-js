@@ -36,5 +36,5 @@ export const CharSet = {
  */
 export const CACHE = {
     FILE_CACHE: 'file_cache',
-    EXTENSION_LIB: 'extenstion_library'
+    EXTENSION_LIB: 'extenstion_library',
 };

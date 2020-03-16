@@ -30,15 +30,16 @@ export class Storage implements ICacheStorage {
     private clientId: string;
 
     constructor(clientId: string, cacheConfig: CacheOptions) {
-
         this.cacheConfig = cacheConfig;
-        this.fileStorage = this.initializeFileStorage(this.cacheConfig.cacheLocation);
+        this.fileStorage = this.initializeFileStorage(
+            this.cacheConfig.cacheLocation
+        );
         this.clientId = clientId;
     }
 
     private initializeFileStorage(cacheLocation: string) {
         if (cacheLocation == CACHE.FILE_CACHE) {
-            fs.open("NodeCache.txt", 'w', (err: Error) => {
+            fs.open('NodeCache.txt', 'w', (err: Error) => {
                 if (err) throw err;
             });
 
