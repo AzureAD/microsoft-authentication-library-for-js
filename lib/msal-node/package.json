@@ -29,6 +29,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
+    "build:modules:watch": "tsdx watch --verbose",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",

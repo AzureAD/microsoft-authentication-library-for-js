@@ -95,6 +95,7 @@ export class AuthorizationCodeFlow extends BaseClient {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
         }
 
+        console.log("printing authority: ", acquireTokenAuthority);
         return acquireTokenAuthority;
     }
 
