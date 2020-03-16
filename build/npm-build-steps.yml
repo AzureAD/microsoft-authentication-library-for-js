@@ -12,9 +12,9 @@ steps:
     customCommand: 'ci'
     verbose: true
 
-- task: CmdLine@2
-  inputs:
-    script: 'lerna bootstrap'
+# - task: CmdLine@2
+#   inputs:
+#     script: 'lerna bootstrap'
 
 - task: Npm@1
   inputs:
