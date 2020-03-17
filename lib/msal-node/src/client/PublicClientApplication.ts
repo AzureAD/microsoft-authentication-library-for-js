@@ -100,6 +100,7 @@ export class PublicClientApplication {
         request: AuthorizationCodeUrlParameters
     ): Promise<string> {
         const url = this.authModule.getAuthCodeUrl(request);
+        console.log('url: ', url);
         return url;
     }
 
