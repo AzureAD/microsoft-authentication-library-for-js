@@ -12,6 +12,9 @@
 * Always send back the accessToken and scopes if the response includes them. (#1351)
 * Ensure silent operations timeout if the iframe never returns to the app domain. (#1354)
 
+## Logging / Telemetry
+* Add telemetry for `acquireTokenSilent`. (#1388)
+
 # 1.2.1
 
 ## Bugs
