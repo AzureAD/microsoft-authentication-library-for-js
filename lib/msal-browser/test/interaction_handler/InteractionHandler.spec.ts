@@ -1,23 +1,23 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { AuthorizationCodeModule, PkceCodes, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
+import { PublicClientSPA, PkceCodes, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: PublicClientSPA, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
     }
 
     showUI(requestUrl: string): Window {
         throw new Error("Method not implemented.");
-    }    
-    
+    }
+
     handleCodeResponse(locationHash: string): Promise<import("@azure/msal-common").TokenResponse> {
         throw new Error("Method not implemented.");
-    }    
+    }
 }
 
 const clearFunc = (): void => {
@@ -52,7 +52,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authCodeModule = new AuthorizationCodeModule({
+        const authCodeModule = new PublicClientSPA({
             auth: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,

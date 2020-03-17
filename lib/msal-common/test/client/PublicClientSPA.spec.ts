@@ -3,7 +3,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { PublicClient } from "../../src/client/PublicClient";
+import { PublicClientSPA } from "../../src/client/PublicClientSPA";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
@@ -100,20 +100,20 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
     describe("Constructor", () => {
 
-        it("creates an PublicClient that extends the Client", () => {
-            const client = new PublicClient(defaultAuthConfig);
+        it("creates an PublicClientSPA that extends the Client", () => {
+            const client = new PublicClientSPA(defaultAuthConfig);
             expect(client).to.be.not.null;
-            expect(client instanceof PublicClient).to.be.true;
+            expect(client instanceof PublicClientSPA).to.be.true;
             expect(client instanceof BaseClient).to.be.true;
         });
     });
 
     describe("Login Url Creation", () => {
 
-        let Client: PublicClient;
+        let Client: PublicClientSPA;
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
         });
 
         afterEach(() => {
@@ -191,7 +191,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
                 throw AuthError.createUnexpectedError(guidCreationErr);
             };
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
             await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(guidCreationErr);
             expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
         });
@@ -211,7 +211,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
             const emptyRequest: AuthenticationParameters = {};
             await Client.createLoginUrl(emptyRequest);
             expect(queryParamSpy.calledWith(testToken)).to.be.true;
@@ -232,7 +232,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
             const loginRequest: AuthenticationParameters = {
                 loginHint: "AbeLi@microsoft.com"
             };
@@ -243,10 +243,10 @@ describe("PublicClient.ts Class Unit Tests", () => {
     });
 
     describe("Acquire Token Url Creation", () => {
-        let Client: PublicClient;
+        let Client: PublicClientSPA;
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
         });
 
         afterEach(() => {
@@ -354,7 +354,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
                 throw AuthError.createUnexpectedError(guidCreationErr);
             };
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
             await expect(Client.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(guidCreationErr);
             expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
         });
@@ -374,7 +374,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             };
@@ -397,7 +397,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClient(defaultAuthConfig);
+            Client = new PublicClientSPA(defaultAuthConfig);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 loginHint: "AbeLi@microsoft.com"
@@ -411,9 +411,9 @@ describe("PublicClient.ts Class Unit Tests", () => {
     describe("Token Acquisition", () => {
 
         describe("Exchange code for token with acquireToken()", () => {
-            let Client: PublicClient;
+            let Client: PublicClientSPA;
             beforeEach(() => {
-                Client = new PublicClient(defaultAuthConfig);
+                Client = new PublicClientSPA(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -518,7 +518,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    Client = new PublicClient(defaultAuthConfig);
+                    Client = new PublicClientSPA(defaultAuthConfig);
 
                     testState = "{stateObject}";
                     codeResponse = {
@@ -617,9 +617,9 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         describe("Renew token", () => {
 
-            let Client: PublicClient;
+            let Client: PublicClientSPA;
             beforeEach(() => {
-                Client = new PublicClient(defaultAuthConfig);
+                Client = new PublicClientSPA(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -787,7 +787,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    Client = new PublicClient(defaultAuthConfig);
+                    Client = new PublicClientSPA(defaultAuthConfig);
                     const idTokenClaims = {
                         "ver": "2.0",
                         "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -856,7 +856,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             return TEST_URIS.TEST_LOGOUT_URI;
         };
 
-        let Client_functionRedirectUris = new PublicClient({
+        let Client_functionRedirectUris = new PublicClientSPA({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -871,7 +871,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             }
         });
 
-        let Client_noRedirectUris = new PublicClient({
+        let Client_noRedirectUris = new PublicClientSPA({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority
@@ -885,7 +885,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
         });
 
         it("gets configured redirect uri", () => {
-            const Client = new PublicClient(defaultAuthConfig);
+            const Client = new PublicClientSPA(defaultAuthConfig);
             expect(Client.getRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_REDIR_URI);
         });
 
@@ -898,7 +898,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
         });
 
         it("gets configured post logout redirect uri", () => {
-            const Client = new PublicClient(defaultAuthConfig);
+            const Client = new PublicClientSPA(defaultAuthConfig);
             expect(Client.getPostLogoutRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
 
