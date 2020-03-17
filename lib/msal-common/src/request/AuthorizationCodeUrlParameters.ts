@@ -77,7 +77,7 @@ export class AuthorizationCodeUrlParameters {
      * @param request
      * @param config
      */
-    static generateAuthCodeUrlParams(
+    generateAuthCodeUrlParams(
         request: AuthorizationCodeUrlParameters,
         config: AuthorizationClientConfiguration
     ) {
