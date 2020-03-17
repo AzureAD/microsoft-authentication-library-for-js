@@ -169,7 +169,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
             expect(configureTestCase).to.throw(ClientConfigurationError);
         });
-        it("telemetry manager exists in UAA when configured", () => {
+        it("non stubbed telemetry manager exists in UAA when configured", () => {
             msal = new UserAgentApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -186,15 +186,21 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.telemetryManager).to.not.be.undefined;
             // @ts-ignore
             expect(msal.telemetryManager).to.not.be.null;
+            // @ts-ignore
+            expect(msal.telemetryManager.telemetryPlatform.applicationName).to.eq(TEST_CONFIG.applicationName);
         });
-        it("telemetry manager doesn't exis in UAA when not configured", () => {
+        it("stubbed telemetry manager exists in UAA when not configured", () => {
             msal = new UserAgentApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
             // @ts-ignore
-            expect(msal.telemetryManager).to.be.null;
+            expect(msal.telemetryManager).to.not.be.undefined;
+            // @ts-ignore
+            expect(msal.telemetryManager).to.not.be.null;
+            // @ts-ignore
+            expect(msal.telemetryManager.telemetryPlatform.applicationName).to.eq("UnSetStub");
         });
     });
 
