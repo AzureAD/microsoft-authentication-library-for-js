@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { TokenExchangeParameters } from "../../src/request/TokenExchangeParameters";
 import { ServerTokenRequestParameters } from "../../src/server/ServerTokenRequestParameters";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS } from "../utils/StringConstants";
-import { AadAuthority } from "../../src/auth/authority/AadAuthority";
+import { AadAuthority } from "../../src/authority/AadAuthority";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
 import { Constants, HEADER_NAMES, AADServerParamKeys } from "../../src/utils/Constants";

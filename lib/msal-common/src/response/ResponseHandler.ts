@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { IdToken } from "../auth/IdToken";
+import { IdToken } from "../account/IdToken";
 import { CacheHelpers } from "../cache/CacheHelpers";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { ScopeSet } from "../auth/ScopeSet";
-import { buildClientInfo, ClientInfo } from "../auth/ClientInfo";
-import { Account } from "../auth/Account";
+import { ScopeSet } from "../request/ScopeSet";
+import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
+import { Account } from "../account/Account";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
 import { ICacheStorage } from "../cache/ICacheStorage";
@@ -47,8 +47,8 @@ export class ResponseHandler {
      * - id token claims
      * - unique id (oid or sub claim of token)
      * - tenant id (tid claim of token)
-     * @param originalResponse 
-     * @param idTokenObj 
+     * @param originalResponse
+     * @param idTokenObj
      */
     static setResponseIdToken(originalResponse: TokenResponse, idTokenObj: IdToken) : TokenResponse {
         if (!originalResponse) {
@@ -56,12 +56,12 @@ export class ResponseHandler {
         } else if (!idTokenObj) {
             return originalResponse;
         }
-    
+
         const expiresSeconds = Number(idTokenObj.claims.exp);
         if (expiresSeconds && !originalResponse.expiresOn) {
             originalResponse.expiresOn = new Date(expiresSeconds * 1000);
         }
-    
+
         return {
             ...originalResponse,
             idToken: idTokenObj.rawIdToken,
@@ -73,7 +73,7 @@ export class ResponseHandler {
 
     /**
      * Validates and handles a response from the server, and returns a constructed object with the authorization code and state.
-     * @param serverParams 
+     * @param serverParams
      */
     public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): CodeResponse {
         try {
@@ -100,20 +100,20 @@ export class ResponseHandler {
 
     /**
      * Function which validates server authorization code response.
-     * @param serverResponseHash 
-     * @param cachedState 
-     * @param cryptoObj 
+     * @param serverResponseHash
+     * @param cachedState
+     * @param cryptoObj
      */
     private validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
         if (serverResponseHash.state !== cachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
-    
+
         // Check for error
         if (serverResponseHash.error || serverResponseHash.error_description) {
             throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
         }
-    
+
         if (serverResponseHash.client_info) {
             buildClientInfo(serverResponseHash.client_info, cryptoObj);
         }
@@ -121,7 +121,7 @@ export class ResponseHandler {
 
     /**
      * Function which validates server authorization token response.
-     * @param serverResponse 
+     * @param serverResponse
      */
     public validateServerAuthorizationTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
         // Check for error
@@ -133,11 +133,11 @@ export class ResponseHandler {
 
     /**
      * Helper function which saves or updates the token in the cache and constructs the final token response to send back to the user.
-     * @param originalTokenResponse 
-     * @param authority 
-     * @param resource 
-     * @param serverTokenResponse 
-     * @param clientInfo 
+     * @param originalTokenResponse
+     * @param authority
+     * @param resource
+     * @param serverTokenResponse
+     * @param clientInfo
      */
     private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
         // Set consented scopes in response
@@ -163,12 +163,12 @@ export class ResponseHandler {
         if (accessTokenCacheItems.length < 1) {
             this.logger.info("No tokens found, creating new item.");
             const newTokenKey = new AccessTokenKey(
-                authority, 
-                this.clientId, 
-                serverTokenResponse.scope, 
-                resource, 
-                clientInfo && clientInfo.uid, 
-                clientInfo && clientInfo.utid, 
+                authority,
+                this.clientId,
+                serverTokenResponse.scope,
+                resource,
+                clientInfo && clientInfo.uid,
+                clientInfo && clientInfo.utid,
                 this.cryptoObj
             );
             this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
@@ -201,7 +201,7 @@ export class ResponseHandler {
 
     /**
      * Gets account cached with given key. Returns null if parsing could not be completed.
-     * @param accountKey 
+     * @param accountKey
      */
     private getCachedAccount(accountKey: string): Account {
         try {
@@ -214,10 +214,10 @@ export class ResponseHandler {
 
     /**
      * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
-     * @param serverTokenResponse 
-     * @param authorityString 
-     * @param resource 
-     * @param state 
+     * @param serverTokenResponse
+     * @param authorityString
+     * @param resource
+     * @param state
      */
     public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): TokenResponse {
         let tokenResponse: TokenResponse = {
@@ -244,7 +244,7 @@ export class ResponseHandler {
             // If state is empty, refresh token is being used
             if (!StringUtils.isEmpty(state)) {
                 this.logger.info("State was detected - nonce should be available.");
-                // check nonce integrity if refresh token is not used - throw an error if not matched        
+                // check nonce integrity if refresh token is not used - throw an error if not matched
                 if (StringUtils.isEmpty(idTokenObj.claims.nonce)) {
                     throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
                 }
@@ -272,7 +272,7 @@ export class ResponseHandler {
 
             // Save the access token if it exists
             const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
-            
+
             // Get cached account
             cachedAccount = this.getCachedAccount(accountKey);
         }

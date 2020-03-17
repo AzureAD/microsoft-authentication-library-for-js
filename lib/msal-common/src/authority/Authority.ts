@@ -4,10 +4,10 @@
  */
 import { AuthorityType } from "./AuthorityType";
 import { TenantDiscoveryResponse } from "./TenantDiscoveryResponse";
-import { UrlString } from "../../url/UrlString";
-import { IUri } from "../../url/IUri";
-import { ClientAuthError } from "../../error/ClientAuthError";
-import { INetworkModule } from "../../network/INetworkModule";
+import { UrlString } from "./../url/UrlString";
+import { IUri } from "./../url/IUri";
+import { ClientAuthError } from "./../error/ClientAuthError";
+import { INetworkModule } from "./../network/INetworkModule";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -107,7 +107,7 @@ export abstract class Authority {
 
     /**
      * Replaces tenant in url path with current tenant. Defaults to common.
-     * @param urlString 
+     * @param urlString
      */
     private replaceTenant(urlString: string): string {
         return urlString.replace("{tenant}", this.tenant);
@@ -136,7 +136,7 @@ export abstract class Authority {
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
-     * @param openIdConfigurationEndpoint 
+     * @param openIdConfigurationEndpoint
      */
     private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<TenantDiscoveryResponse> {
         return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);

@@ -3,22 +3,22 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { AuthModule } from "../../../src/app/module/AuthModule";
-import { ModuleConfiguration } from "../../../src/app/config/ModuleConfiguration";
-import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
-import { TokenResponse } from "../../../src/response/TokenResponse";
-import { CodeResponse } from "../../../src/response/CodeResponse";
-import { TokenRenewParameters } from "../../../src/request/TokenRenewParameters";
+import { BaseClient } from "../../src/client/BaseClient";
+import { Configuration } from "../../src/config/Configuration";
+import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
+import { TokenResponse } from "../../src/response/TokenResponse";
+import { CodeResponse } from "../../src/response/CodeResponse";
+import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
 import sinon from "sinon";
-import { Account, PkceCodes, PersistentCacheKeys, ICrypto } from "../../../src";
-import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG, RANDOM_TEST_GUID } from "../../utils/StringConstants";
-import { buildClientInfo, ClientInfo } from "../../../src/auth/ClientInfo";
-import { IdToken } from "../../../src/auth/IdToken";
-import { IdTokenClaims } from "../../../src/auth/IdTokenClaims";
+import { Account, PkceCodes, PersistentCacheKeys, ICrypto } from "../../src";
+import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG, RANDOM_TEST_GUID } from "../utils/StringConstants";
+import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
+import { IdToken } from "../../src/account/IdToken";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 
-class TestAuthModule extends AuthModule {
-    
-    constructor(config: ModuleConfiguration, testAccount: Account) {
+class TestClient extends BaseClient {
+
+    constructor(config: Configuration, testAccount: Account) {
         super(config);
         this.account = testAccount
     }
@@ -29,8 +29,8 @@ class TestAuthModule extends AuthModule {
 
     createLoginUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
-    }    
-    
+    }
+
     createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
         throw new Error("Method not implemented.");
     }
@@ -48,27 +48,27 @@ class TestAuthModule extends AuthModule {
     }
 }
 
-describe("AuthModule.ts Class Unit Tests", () => {
+describe("BaseClient.ts Class Unit Tests", () => {
     describe("Constructor", () => {
 
-        it("Creates a valid AuthModule object", () => {
-            let config: ModuleConfiguration = {
+        it("Creates a valid BaseClient object", () => {
+            let config: Configuration = {
                 systemOptions: null,
                 cryptoInterface: null,
                 networkInterface: null,
                 storageInterface: null,
                 loggerOptions: null
             };
-            let authModule = new TestAuthModule(config, null);
-            expect(authModule).to.be.not.null;
-            expect(authModule instanceof AuthModule).to.be.true;
+            let client = new TestClient(config, null);
+            expect(client).to.be.not.null;
+            expect(client instanceof BaseClient).to.be.true;
         });
     });
 
     describe("getAccount()", () => {
         let store;
-        let config: ModuleConfiguration;
-        let authModule: TestAuthModule;
+        let config: Configuration;
+        let client: TestClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
         let testAccount: Account;
@@ -146,20 +146,20 @@ describe("AuthModule.ts Class Unit Tests", () => {
         });
 
         it("returns null if nothing is in the cache", () => {
-            authModule = new TestAuthModule(config, null);
-            expect(authModule.getAccount()).to.be.null;
+            client = new TestClient(config, null);
+            expect(client.getAccount()).to.be.null;
         });
 
         it("returns the current account if it exists", () => {
-            authModule = new TestAuthModule(config, testAccount);
-            expect(Account.compareAccounts(authModule.getAccount(), testAccount)).to.be.true;
+            client = new TestClient(config, testAccount);
+            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.true;
         });
-        
+
         it("Creates account object from cached id token and client info", () => {
             store[PersistentCacheKeys.ID_TOKEN] = idToken;
             store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
-            authModule = new TestAuthModule(config, null);
-            expect(Account.compareAccounts(authModule.getAccount(), testAccount)).to.be.true;
+            client = new TestClient(config, null);
+            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.true;
         });
     });
 });

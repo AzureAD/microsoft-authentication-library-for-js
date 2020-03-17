@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { IdToken } from "../../src/auth/IdToken";
+import { IdToken } from "../../src/account/IdToken";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS } from "../utils/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
-import { DecodedJwt } from "../../src/auth/DecodedJwt";
+import { DecodedJwt } from "../../src/account/DecodedJwt";
 
 // Set up stubs
 const idTokenClaims = {
@@ -63,9 +63,9 @@ describe("IdToken.ts Class Unit Tests", () => {
         afterEach(() => {
             sinon.restore();
         });
-    
+
     describe("Constructor", () => {
-        
+
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() => new IdToken("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
             expect(() => new IdToken("", cryptoInterface)).to.throw(ClientAuthError);

@@ -4,7 +4,7 @@
  */
 import pkg from "../../package.json";
 import { StringUtils } from "../utils/StringUtils";
-import { LoggerOptions } from "../app/config/ModuleConfiguration.js";
+import { LoggerOptions } from "../config/Configuration";
 
 /**
  * Options for logger messages.
