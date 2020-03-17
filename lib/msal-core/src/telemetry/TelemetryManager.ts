@@ -9,6 +9,7 @@ import {
     TelemetryEmitter
 } from "./TelemetryTypes";
 import DefaultEvent from "./DefaultEvent";
+import { libraryVersion } from "../utils/Constants";
 
 // for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
@@ -44,6 +45,24 @@ export default class TelemetryManager {
          * optional?
          */
         this.telemetryEmitter = telemetryEmitter;
+    }
+
+    static getTelemetrymanagerStub(clientId: string) : TelemetryManager {
+        const applicationName = "UnSetStub";
+        const applicationVersion = "0.0";
+        const telemetryEmitter = () => {};
+        const telemetryPlatform: TelemetryPlatform = {
+            sdk: "msal.js",
+            sdkVersion: libraryVersion(),
+            applicationName,
+            applicationVersion
+        };
+        const telemetryManagerConfig: TelemetryConfig = {
+            platform: telemetryPlatform,
+            clientId: clientId
+        };
+
+        return new this(telemetryManagerConfig, telemetryEmitter);
     }
 
     startEvent(event: TelemetryEvent) {

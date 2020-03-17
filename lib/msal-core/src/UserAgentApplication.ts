@@ -32,6 +32,7 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
+import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
 import { Constants,
     ServerHashParamKeys,
     InteractionType,
@@ -40,6 +41,7 @@ import { Constants,
     PersistentCacheKeys,
     ErrorCacheKeys,
 } from "./utils/Constants";
+import { CryptoUtils } from "./utils/CryptoUtils";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -589,7 +591,11 @@ export class UserAgentApplication {
      *
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
-
+        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
+        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
+        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.AcquireTokenSilent;
+        apiEvent.apiCode = API_CODE.AcquireTokenSilent;
+        this.telemetryManager.startEvent(apiEvent);
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId);
 
@@ -710,10 +716,21 @@ export class UserAgentApplication {
                         return null;
                     });
             }
-        }).catch((error: AuthError) => {
-            this.cacheStorage.resetTempCacheItems(request.state);
-            throw error;
-        });
+        })
+            .then(res => {
+                apiEvent.wasSuccessful = true;
+                return res;
+            })
+            .catch((error: AuthError) => {
+                this.cacheStorage.resetTempCacheItems(request.state);
+                apiEvent.apiErrorCode = error.errorCode;
+                apiEvent.wasSuccessful = false;
+                throw error;
+            })
+            .finally(() => {
+                this.telemetryManager.stopEvent(apiEvent);
+                this.telemetryManager.flush(requestCorrelationId);
+            });
     }
 
     // #endregion
@@ -2099,7 +2116,7 @@ export class UserAgentApplication {
      */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
-            return null;
+            return TelemetryManager.getTelemetrymanagerStub(clientId);
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
