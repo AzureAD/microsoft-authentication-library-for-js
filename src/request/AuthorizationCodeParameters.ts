@@ -52,7 +52,7 @@ export class AuthorizationCodeParameters {
      * @param request
      * @param config
      */
-    static generateAuthCodeParams(
+    generateAuthCodeParams(
         request: AuthorizationCodeParameters,
         config: AuthorizationClientConfiguration
     ) {

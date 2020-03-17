@@ -57,7 +57,7 @@ export class AuthorizationCodeFlow extends BaseClient {
      */
     async getAuthCodeUrl(request: AuthorizationCodeUrlParameters): Promise<string> {
         const authority: Authority = await this.setAuthority(request && request.authority);
-        const urlMap: Map<string, string> = AuthorizationCodeUrlParameters.generateAuthCodeUrlParams(
+        const urlMap: Map<string, string> = request.generateAuthCodeUrlParams(
             request,
             this.clientConfig
         );
@@ -106,7 +106,7 @@ export class AuthorizationCodeFlow extends BaseClient {
      */
     private async tokenRequest(tokenEndPoint: Authority, request: AuthorizationCodeParameters): Promise<string> {
         // generate the params
-        const urlMap: Map<string, string> = AuthorizationCodeParameters.generateAuthCodeParams(
+        const urlMap: Map<string, string> = request.generateAuthCodeParams(
             request,
             this.clientConfig
         );
