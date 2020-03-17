@@ -16,6 +16,9 @@ Please follow the issue template below.
 - [ ] `@azure/msal-angular@1.x.x`
 - [ ] `@azure/msal-angularjs@1.x.x`
 
+## Upcoming Library
+- [ ] `@azure/msal-node@1.x`
+
 ## Type
 - [ ] Bug
 - [ ] Feature

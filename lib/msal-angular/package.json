@@ -101,9 +101,8 @@
     "build:modules": "ng-packagr -p package.json",
     "build": "npm run clean && npm run build:modules",
     "deploy": "npm run build && npm publish dist && npm run doc",
-    "test": "npm run test:verify-build && npm run test:unit",
-    "test:unit": "karma start karma.conf.js",
-    "test:verify-build": "npm run build:modules",
+    "test": "karma start karma.conf.js",
+    "test:verify-build": "npm run build:modules && npm test",
     "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js",
     "prepack": "npm run build"
   },

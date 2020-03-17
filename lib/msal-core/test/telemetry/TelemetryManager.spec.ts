@@ -3,6 +3,7 @@ import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig, TelemetryPlatform } from "../../src/telemetry/TelemetryTypes";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { TEST_CONFIG } from "../TestConstants";
 
 const TEST_CLIENT_ID = CryptoUtils.createNewGuid();
 const TEST_PLATFORM: TelemetryPlatform = {
@@ -198,6 +199,12 @@ describe("TelemetryManager", () => {
         }, 100);
 
     });
+    it("Gets a stubbed Telemetry Manager", () => {
+        const manager: TelemetryManager = TelemetryManager.getTelemetrymanagerStub(TEST_CONFIG.MSAL_CLIENT_ID);
+        // @ts-ignore
+        expect(manager.telemetryPlatform.applicationName).to.eq("UnSetStub");
+
+    })
     it("if we decide that we want to get orphaned events even if there are no completed, implement that and add test here");
     it("gets the correct event counts of ui, http, cache");
 });
