@@ -24,7 +24,7 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await takeScreenshot(page, testName, `pwdInputPage`);
-    await page.type("#i0118", "Yoyi@948");
+    await page.type("#i0118", "");
     await page.click("#idSIButton9");
 }
 
