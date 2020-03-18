@@ -40,8 +40,8 @@ if (myMSALObj.getAccount()) {
 }
 
 async function signIn(method) {
-    signInType = isIE ? "Redirect" : method;
-    if (signInType === "Popup") {
+    signInType = isIE ? "loginRedirect" : method;
+    if (signInType === "loginPopup") {
         const loginResponse = await myMSALObj.loginPopup(loginRequest).catch(function (error) {
             console.log(error);
         });
@@ -49,7 +49,7 @@ async function signIn(method) {
         if (myMSALObj.getAccount()) {
             showWelcomeMessage(myMSALObj.getAccount());
         }
-    } else if (signInType === "Redirect") {
+    } else if (signInType === "loginRedirect") {
         myMSALObj.loginRedirect(loginRequest)
     }
 }

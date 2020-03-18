@@ -1,12 +1,15 @@
-import * as Mocha from "mocha";
+import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
-if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
-    fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
+
+function setupScreenshotDir() {
+    if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
+        fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
+    }
 }
 
 async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
@@ -20,11 +23,11 @@ async function takeScreenshot(page: puppeteer.Page, testName: string, screenshot
 async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await takeScreenshot(page, testName, `loginPage`);
-    await page.type("#i0116", "IDLAB@msidlab4.onmicrosoft.com");
+    await page.type("#i0116", "IDLAB@msidlab0.ccsctp.net");
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await takeScreenshot(page, testName, `pwdInputPage`);
-    await page.type("#i0118", "Yoyi@948");
+    await page.type("#i0118", "");
     await page.click("#idSIButton9");
 }
 
@@ -33,6 +36,7 @@ describe("Browser tests", function () {
 
     let browser: puppeteer.Browser;
     before(async () => {
+        setupScreenshotDir();
         browser = await puppeteer.launch();
     });
 
@@ -68,8 +72,8 @@ describe("Browser tests", function () {
         // Wait for return to page
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await takeScreenshot(page, testName, `samplePageLoggedIn`);
-        const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-        expect(Object.keys(localStorage).length).to.be.eq(5);
+        const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(Object.keys(sessionStorage).length).to.be.eq(3);
     });
 
     it("Performs loginPopup", async () => {
@@ -88,9 +92,11 @@ describe("Browser tests", function () {
         await enterCredentials(popupPage, testName);
         // Wait until popup window closes and see that we are logged in
         await popupWindowClosed;
-        await takeScreenshot(page, testName, `samplePageLoggedIn`);
-        const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-        expect(Object.keys(localStorage).length).to.be.eq(5);
+        // Wait for token acquisition
+        await page.waitFor(2000);
         expect(popupPage.isClosed()).to.be.true;
+        await takeScreenshot(page, testName, `samplePageLoggedIn`);
+        const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(Object.keys(sessionStorage).length).to.be.eq(3);
     });
 });

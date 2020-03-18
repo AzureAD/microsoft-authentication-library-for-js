@@ -19,6 +19,7 @@
     "test": "lerna run test",
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report | coveralls",
+    "test:browser": "lerna run test:browser",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*"
   },
