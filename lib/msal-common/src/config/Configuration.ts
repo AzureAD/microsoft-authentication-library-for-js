@@ -21,11 +21,24 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - crypto: implementation of crypto functions
  */
 export type Configuration = {
+    authOptions?: AuthOptions,
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto
+};
+
+/**
+ * @type AuthOptions: Use this to configure the auth options in the Configuration object
+ *
+ *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
+ *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
+ */
+export type AuthOptions = {
+    clientId: string;
+    authority?: string;
 };
 
 /**
@@ -58,6 +71,11 @@ export type LoggerOptions = {
     loggerCallback?: ILoggerCallback,
     piiLoggingEnabled?: boolean,
     logLevel?: LogLevel
+};
+
+const DEFAULT_AUTH_OPTIONS: AuthOptions = {
+    clientId: "",
+    authority: null
 };
 
 // Default module system options
@@ -145,8 +163,9 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
  *
  * @returns MsalConfiguration object
  */
-export function buildConfiguration({ systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: Configuration): Configuration {
+export function buildConfiguration({ authOptions: authOptions, systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: Configuration): Configuration {
     const overlayedConfig: Configuration = {
+        authOptions: authOptions || DEFAULT_AUTH_OPTIONS,
         systemOptions: userSystemOptions || DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,

@@ -9,8 +9,8 @@ import {
     INetworkModule,
     LogLevel,
 } from '@azure/msal-common';
-import { NetworkUtils } from './../utils/NetworkUtils';
-import { CACHE } from './../utils/Constants';
+import { NetworkUtils } from '../utils/NetworkUtils';
+import { CACHE } from '../utils/Constants';
 
 export type NodeAuthOptions = AuthOptions & {};
 
@@ -47,7 +47,7 @@ export type NodeSystemOptions = SystemOptions & {
  * - cache: this is where you configure cache location and whether to store cache in cookies
  * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
  */
-export type Configuration = {
+export type ClientConfiguration = {
     auth?: NodeAuthOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
@@ -113,8 +113,8 @@ export function buildConfiguration({
     auth,
     cache = {},
     system = {},
-}: Configuration): Configuration {
-    const overlayedConfig: Configuration = {
+}: ClientConfiguration): ClientConfiguration {
+    const overlayedConfig: ClientConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },

@@ -1,9 +1,10 @@
 // App Auth Modules and Configuration
 export { PublicClientSPA } from "./client/PublicClientSPA";
-export { AuthorizationCodeFlow } from "./client/AuthorizationCodeFlow";
+export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
+export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { PublicClientSPAConfiguration, SPAAuthOptions } from "./config/PublicClientSPAConfiguration";
-export { AuthorizationClientConfiguration, AuthOptions } from "./config/AuthorizationClientConfiguration";
-export { SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
+export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
+export { Configuration } from "./config/Configuration";
 // Account
 export { Account } from "./account/Account";
 export { IdTokenClaims } from "./account/IdTokenClaims";
@@ -22,11 +23,14 @@ export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthorizationCodeUrlParameters } from "./request/AuthorizationCodeUrlParameters";
 export { AuthorizationCodeParameters } from "./request/AuthorizationCodeParameters";
+export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
+export { CancellationToken } from "./request/CancellationToken";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
 export { TokenResponse } from "./response/TokenResponse";
 export { CodeResponse } from "./response/CodeResponse";
+export { DeviceCodeParameters } from "./request/DeviceCodeParameters";
 // Logger Callback
 export { ILoggerCallback, LogLevel } from "./logger/Logger";
 // Errors
