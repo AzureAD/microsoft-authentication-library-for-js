@@ -34,6 +34,8 @@ steps:
     customCommand: 'run test:report'
 
 - task: Npm@1
+  env:
+    AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
   inputs:
     command: 'custom'
     customCommand: 'run test:e2e'
