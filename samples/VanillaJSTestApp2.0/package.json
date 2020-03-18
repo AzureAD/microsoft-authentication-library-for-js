@@ -8,8 +8,7 @@
     "start": "node server.js",
     "build:package": "cd ../../lib/msal-browser && npm run build:all",
     "start:build": "npm run build:package && npm start",
-    "test:browser": "ts-node ./e2eTests/testRunner.ts",
-    "clean:test": "rimraf ./test/screenshots/*"
+    "test:browser": "ts-node ./e2eTests/testRunner.ts"
   },
   "dependencies": {
     "express": "^4.12.3",

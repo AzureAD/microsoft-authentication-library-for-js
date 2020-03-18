@@ -20,7 +20,7 @@ const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(fu
     return file.name;
 });
 
-// console.log(sampleFolders);
+// console.log(path.resolve(`${APP_DIR}/default/index.html`));
 
 //initialize express.
 const app = express();
@@ -32,7 +32,7 @@ let port = DEFAULT_PORT; // 30662;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-app.use("/lib", express.static(path.join(PARENT_DIR, "../../lib/msal-browser/lib")));
+app.use("/dist", express.static(path.join(PARENT_DIR, "../../lib/msal-core/dist")));
 
 // Clear require cache and create new mocha object to run new set of tests
 function createMochaObject(sampleName: string) {
@@ -63,7 +63,7 @@ function runMochaTests(sampleIndex: number) {
 
     // Set up a route for index.html.
     app.get('*', function (req, res) {
-        res.sendFile(path.join(`${APP_DIR}/${sampleName}/index.html`));
+        res.sendFile(path.resolve(`${APP_DIR}/${sampleName}/index.html`));
     });
 
     let server = app.listen(port);

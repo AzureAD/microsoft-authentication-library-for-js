@@ -5,10 +5,12 @@ import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
-if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
-    fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
-}
 
+function setupScreenshotDir() {
+    if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
+        fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
+    }
+}
 async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
     const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
     if (!fs.existsSync(`${screenshotFolderName}`)) {
@@ -33,6 +35,7 @@ describe("Browser tests", function () {
 
     let browser: puppeteer.Browser;
     before(async () => {
+        setupScreenshotDir();
         browser = await puppeteer.launch();
     });
 

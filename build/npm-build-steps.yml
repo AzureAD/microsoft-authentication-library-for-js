@@ -32,3 +32,8 @@ steps:
   inputs:
     command: 'custom'
     customCommand: 'run test:report'
+
+# - task: Npm@1
+#   inputs:
+#     command: 'custom'
+#     customCommand: 'run test:browser'
