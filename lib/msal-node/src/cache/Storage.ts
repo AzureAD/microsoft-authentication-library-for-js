@@ -38,7 +38,7 @@ export class Storage implements ICacheStorage {
     }
 
     private initializeFileStorage(cacheLocation: string) {
-        if (cacheLocation == CACHE.FILE_CACHE) {
+        if (cacheLocation === CACHE.FILE_CACHE) {
             fs.open('NodeCache.txt', 'w', (err: Error) => {
                 if (err) throw err;
             });

@@ -38,11 +38,7 @@ export class ScopeSet {
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
-        const scopeArr = filteredInput
-            ? StringUtils.trimAndConvertArrayEntriesToLowerCase([
-                ...filteredInput
-            ])
-            : [];
+        const scopeArr = filteredInput? StringUtils.trimAndConvertArrayEntriesToLowerCase([...filteredInput]): [];
         this.scopes = new Set<string>(scopeArr);
         if (!this.scopesRequired) {
             this.appendScope(this.clientId);
@@ -50,7 +46,7 @@ export class ScopeSet {
         this.originalScopes = new Set<string>(this.scopes);
 
         // add default scopes
-        nonSPA ? this.replaceDefaultScopes() : this.addDefaultScopes();
+        nonSPA ? this.addDefaultScopes() : this.replaceDefaultScopes();
     }
 
     /**
@@ -118,9 +114,7 @@ export class ScopeSet {
      * @param scope
      */
     containsScope(scope: string): boolean {
-        return !StringUtils.isEmpty(scope)
-            ? this.scopes.has(scope)
-            : false;
+        return !StringUtils.isEmpty(scope) ? this.scopes.has(scope) : false;
     }
 
     /**
@@ -207,8 +201,7 @@ export class ScopeSet {
             );
         }
         return (
-            this.unionScopeSets(otherScopes).size <
-                   this.scopes.size + otherScopes.getScopeCount()
+            this.unionScopeSets(otherScopes).size < this.scopes.size + otherScopes.getScopeCount()
         );
     }
 

@@ -56,6 +56,7 @@ export type ClientConfiguration = {
 // Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
+    redirectUri: '',
     authority: '',
 };
 
