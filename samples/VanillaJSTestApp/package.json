@@ -8,14 +8,16 @@
     "start": "node server.js",
     "build:package": "cd ../../lib/msal-core && npm run build",
     "start:build": "npm run build:package && npm start",
-    "test:browser": "ts-node ./e2eTests/testRunner.ts"
+    "test:e2e": "ts-node ./e2eTests/testRunner.ts"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "express": "^4.12.3",
     "morgan": "^1.5.2",
     "path": "^0.11.14"
   },
   "devDependencies": {
+    "@azure/identity": "^1.0.2",
     "@babel/core": "^7.8.7",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-proposal-object-rest-spread": "^7.8.3",

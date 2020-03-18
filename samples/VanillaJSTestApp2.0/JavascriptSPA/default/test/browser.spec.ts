@@ -2,14 +2,30 @@ import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
+import { TestCredential } from "../../../e2eTests/TestCredential";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
+let username = "";
+let accountPwd = "";
 
 function setupScreenshotDir() {
     if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
         fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
     }
+}
+
+async function setupCredentials() {
+    const testCreds = new TestCredential();
+    const envResponse = await testCreds.getUserVarsByCloudEnvironment("azureppe");
+    const testEnv = envResponse[0];
+    if (testEnv.upn) {
+        username = testEnv.upn;
+    }
+
+    const testPwdSecret = await testCreds.getSecret(testEnv.labName);
+
+    accountPwd = testPwdSecret.value;
 }
 
 async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
@@ -23,11 +39,11 @@ async function takeScreenshot(page: puppeteer.Page, testName: string, screenshot
 async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await takeScreenshot(page, testName, `loginPage`);
-    await page.type("#i0116", "IDLAB@msidlab0.ccsctp.net");
+    await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await takeScreenshot(page, testName, `pwdInputPage`);
-    await page.type("#i0118", "");
+    await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 }
 
@@ -37,6 +53,7 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         setupScreenshotDir();
+        setupCredentials();
         browser = await puppeteer.launch();
     });
 
