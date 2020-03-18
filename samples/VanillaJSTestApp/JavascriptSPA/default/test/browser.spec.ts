@@ -48,7 +48,8 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
 }
 
 describe("Browser tests", function () {
-    this.timeout(7000);
+    this.timeout(8000);
+    this.retries(1);
 
     let browser: puppeteer.Browser;
     before(async () => {
