@@ -118,7 +118,8 @@ export enum AADServerParamKeys {
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
     X_CLIENT_VER = "x-client-Ver",
-    POST_LOGOUT_URI = "post_logout_redirect_uri"
+    POST_LOGOUT_URI = "post_logout_redirect_uri",
+    DEVICE_CODE = "device_code"
 };
 
 /**
@@ -199,6 +200,6 @@ export enum GrantType {
     CLIENT_CREDENTIALS_GRANT = "client_credentials",
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
-    DEVICE_CODE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
+    DEVICE_CODE_GRANT = "device_code"
 };
 

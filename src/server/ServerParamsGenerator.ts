@@ -161,7 +161,16 @@ export class ServerParamsGenerator {
      * @param code
      */
     static addAuthorizationCode(params: Map<string, string>, code: string): void {
-        params.set(`${AADServerParamKeys.CODE}`, code);
+        params.set(`${AADServerParamKeys.CODE}`, encodeURIComponent(code));
+    }
+
+    /**
+     * add the `authorization_code` passed by the user to exchange for a token
+     * @param params
+     * @param code
+     */
+    static addDeviceCode(params: Map<string, string>, code: string): void {
+        params.set(`${AADServerParamKeys.CODE}`, encodeURIComponent(code));
     }
 
     /**
@@ -183,7 +192,7 @@ export class ServerParamsGenerator {
     }
 
     static addGrantType(params: Map<string, string>, grantType: string): void {
-        params.set(`${AADServerParamKeys.GRANT_TYPE}`, grantType);
+        params.set(`${AADServerParamKeys.GRANT_TYPE}`, encodeURIComponent(grantType));
     }
 
     /**
@@ -215,17 +224,8 @@ export class ServerParamsGenerator {
      * @param paramsMap
      * @param authority
      */
-    static createUrl(
-        paramsMap: Map<string, string>,
-        authority: Authority
-    ): string {
+    static createQueryString(paramsMap: Map<string, string>): string {
         let queryString: string;
-        let authEndpoint: string = authority.authorizationEndpoint;
-
-        // if the endpoint already has queryparams, lets add to it, otherwise add the first one
-        if (authEndpoint.indexOf("?") < 0) {
-            authEndpoint += "?";
-        }
 
         // generate a Query string from a map
         paramsMap.forEach((value, key) => {
@@ -236,7 +236,7 @@ export class ServerParamsGenerator {
             }
         });
 
-        return authEndpoint + queryString;
+        return queryString;
     }
 
     /**
@@ -253,5 +253,4 @@ export class ServerParamsGenerator {
 
         return headers;
     }
-
 }

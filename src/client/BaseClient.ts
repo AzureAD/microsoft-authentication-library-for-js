@@ -10,6 +10,8 @@ import { ICrypto } from "../crypto/ICrypto";
 import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
+import { AuthorityFactory } from "../authority/AuthorityFactory";
+import { Constants } from "../utils/Constants";
 
 /**
  * @hidden
@@ -33,7 +35,7 @@ export abstract class BaseClient {
     public logger: Logger;
 
     // Application config
-    private config: Configuration;
+    protected config: Configuration;
 
     // Crypto Interface
     protected cryptoObj: ICrypto;
@@ -71,5 +73,11 @@ export abstract class BaseClient {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
+
+        // Default authority instance.
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(
+            this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
+            this.networkClient
+        );
     }
 }

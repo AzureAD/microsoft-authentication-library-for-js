@@ -3,11 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationClientConfiguration } from "../config/AuthorizationClientConfiguration";
-import { RequestValidator } from "./RequestValidator";
-import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
-import { GrantType } from "../utils/Constants";
-
 /**
  * @type AuthorizationCodeParameters: Request object passed by user to retrieve a token from the server exchaging a valid authorization code (second leg of authorization code grant flow)
  *
@@ -38,7 +33,7 @@ import { GrantType } from "../utils/Constants";
  *
  * This "Request" parameter is called when `msal-node` makes the authorization code request to the service on behalf of the app
  */
-export class AuthorizationCodeParameters {
+export type AuthorizationCodeParameters = {
     scopes: Array<string>;
     authority: string;
     redirectUri: string;
@@ -46,48 +41,4 @@ export class AuthorizationCodeParameters {
     codeVerifier?: string;
     clientSecret?: string;
     correlationId?: string;
-
-    /**
-     * Generates a map for all the params to be sent to the service
-     * @param request
-     * @param config
-     */
-    static generateAuthCodeParams(
-        request: AuthorizationCodeParameters,
-        config: AuthorizationClientConfiguration
-    ) {
-        const paramsMap: Map<string, string> = new Map<string, string>();
-
-        // add clientId
-        ServerParamsGenerator.addClientId(paramsMap, config.auth.clientId);
-
-        // validate and add scopes
-        const scopes = RequestValidator.validateAndGenerateScopes(
-            request.scopes,
-            config.auth.clientId
-        );
-        ServerParamsGenerator.addScopes(paramsMap, scopes);
-
-        // validate the redirectUri (to be a non null value)
-        RequestValidator.validateRedirectUri(request.redirectUri);
-        ServerParamsGenerator.addRedirectUri(paramsMap, request.redirectUri);
-
-        // add code: user set, not validated
-        ServerParamsGenerator.addAuthorizationCode(paramsMap, request.code);
-
-        // add code_verifier if passed
-        if (request.codeVerifier) {
-            ServerParamsGenerator.addCodeVerifier(paramsMap, request.codeVerifier);
-        }
-
-        // add client_secret (needed for web apps)
-        if (request.clientSecret) {
-            ServerParamsGenerator.addClientSecret(paramsMap, request.clientSecret);
-        }
-
-        // add grant_type = authorization_code
-        ServerParamsGenerator.addGrantType(paramsMap, GrantType.AUTHORIZATION_CODE_GRANT);
-
-        return paramsMap;
-    }
-}
+};
