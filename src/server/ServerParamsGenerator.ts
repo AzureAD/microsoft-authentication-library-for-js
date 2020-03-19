@@ -170,7 +170,7 @@ export class ServerParamsGenerator {
      * @param code
      */
     static addDeviceCode(params: Map<string, string>, code: string): void {
-        params.set(`${AADServerParamKeys.CODE}`, encodeURIComponent(code));
+        params.set(`${AADServerParamKeys.DEVICE_CODE}`, encodeURIComponent(code));
     }
 
     /**
@@ -225,18 +225,14 @@ export class ServerParamsGenerator {
      * @param authority
      */
     static createQueryString(paramsMap: Map<string, string>): string {
-        let queryString: string;
+        let queryParameterArray: Array<string> = new Array<string>();
 
-        // generate a Query string from a map
         paramsMap.forEach((value, key) => {
-            if (queryString) {
-                queryString += `&${key}=${value}`;
-            } else {
-                queryString = `${key}=${value}`;
-            }
+            let keyValuePair = key + "=" + value;
+            queryParameterArray.push(keyValuePair);
         });
 
-        return queryString;
+        return queryParameterArray.join("&");
     }
 
     /**

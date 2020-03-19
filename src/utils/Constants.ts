@@ -29,14 +29,14 @@ export const Constants = {
     RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
-    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8"
 };
 
 /**
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "content-type"
 };
 
 /**

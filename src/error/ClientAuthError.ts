@@ -98,6 +98,14 @@ export const ClientAuthErrorMessage = {
     emptyInputScopeSetError: {
         code: "empty_input_scopeset",
         desc: "Empty input ScopeSet cannot be processed."
+    },
+    DeviceCodePollingCancelled: {
+        code: "device_code_polling_cancelled",
+        desc: "Caller has cancelled token endpoint polling during device code flow by setting CancellationToken.cancel = true."
+    },
+    DeviceCodeExpired: {
+        code: "device_code_expired",
+        desc: "Device code is expired."
     }
 };
 
@@ -287,5 +295,19 @@ export class ClientAuthError extends AuthError {
      */
     static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
+    }
+
+    /**
+     * Throws error if user sets CancellationToken.cancel = true during polling of token endpoint during device code flow
+     */
+    static createDeviceCodeCancelledError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodePollingCancelled.code, `${ClientAuthErrorMessage.DeviceCodePollingCancelled.desc}`);
+    }
+
+    /**
+     * Throws error if device code is expired
+     */
+    static createDeviceCodeExpiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
     }
 }

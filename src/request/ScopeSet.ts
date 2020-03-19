@@ -23,11 +23,11 @@ export class ScopeSet {
 
     constructor(
         inputScopes: Array<string>,
-        appClientId: string,
+        clientId: string,
         scopesRequired: boolean,
         nonSPA?: boolean
     ) {
-        this.clientId = appClientId;
+        this.clientId = clientId;
         this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items
