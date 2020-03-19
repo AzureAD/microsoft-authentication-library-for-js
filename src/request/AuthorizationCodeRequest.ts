@@ -4,7 +4,7 @@
  */
 
 /**
- * @type AuthorizationCodeParameters: Request object passed by user to retrieve a token from the server exchaging a valid authorization code (second leg of authorization code grant flow)
+ * @type AuthorizationCodeRequest: Request object passed by user to retrieve a token from the server exchaging a valid authorization code (second leg of authorization code grant flow)
  *
  * scopes:                  A space-separated list of scopes. For OpenID Connect, it must include the scope openid,
  *                          which translates to the "Sign you in" permission in the consent UI.
@@ -33,12 +33,11 @@
  *
  * This "Request" parameter is called when `msal-node` makes the authorization code request to the service on behalf of the app
  */
-export type AuthorizationCodeParameters = {
+export type AuthorizationCodeRequest = {
     scopes: Array<string>;
-    authority: string;
     redirectUri: string;
     code: string;
+    authority?: string;
     codeVerifier?: string;
-    clientSecret?: string;
     correlationId?: string;
 };

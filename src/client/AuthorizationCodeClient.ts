@@ -4,8 +4,8 @@
  */
 
 import { BaseClient } from "./BaseClient";
-import { AuthorizationCodeUrlParameters } from "../request/AuthorizationCodeUrlParameters";
-import { AuthorizationCodeParameters } from "../request/AuthorizationCodeParameters";
+import { AuthorizationCodeUrlRequest } from "../request/AuthorizationCodeUrlRequest";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
 import { RequestValidator } from "../request/RequestValidator";
@@ -13,11 +13,7 @@ import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 
 /**
- *
- * AuthorizationCodeFlow class
- *
- * Object instance which will construct requests to send to and handle responses
- * from the Microsoft STS using the authorization code flow.
+ * Oauth2.0 Authorization Code client
  */
 export class AuthorizationCodeClient extends BaseClient {
 
@@ -39,11 +35,11 @@ export class AuthorizationCodeClient extends BaseClient {
      *  - performs validation of the request parameters.
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlParameters): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
         const authority: Authority = await this.createAuthority(request && request.authority);
-        const queryParamMap: Map<string, string> = this.generateAuthCodeUrlParams(request);
-        const queryString: string = ServerParamsGenerator.createQueryString(queryParamMap);
+        const queryParams: Map<string, string> = this.generateAuthCodeUrlParams(request);
+        const queryString = ServerParamsGenerator.createQueryString(queryParams);
         return authority.authorizationEndpoint + "?" + queryString;
     }
 
@@ -51,7 +47,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeParameters): Promise<string> {
+    async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
 
         const authority: Authority = await this.createAuthority(request && request.authority);
         const acquiredTokenResponse = this.executeTokenRequest(authority, request);
@@ -61,24 +57,23 @@ export class AuthorizationCodeClient extends BaseClient {
     }
 
     /**
-     *
+     * Executes POST request to token endpoint
      * @param tokenEndPoint
      * @param body
      * @param headers
      */
-    private async executeTokenRequest(authority: Authority, requestParameters: AuthorizationCodeParameters): Promise<string> {
+    private async executeTokenRequest(authority: Authority, requestParameters: AuthorizationCodeRequest): Promise<string> {
 
         const tokenParameters: Map<string, string> = this.generateAuthCodeParams(requestParameters);
-
-        // generate body and headers for the POST request and perform token request
         const headers: Map<string, string> = new Map<string, string>();
+
         let acquiredTokenResponse;
         try {
             acquiredTokenResponse = this.networkClient.sendPostRequestAsync<string>(
                 authority.tokenEndpoint,
                 {
                     body: ServerParamsGenerator.createQueryString(tokenParameters),
-                    headers: ServerParamsGenerator.createHeaders(headers)
+                    headers: this.createDefaultTokenRequestHeaders()
                 }
             );
             return acquiredTokenResponse;
@@ -91,9 +86,8 @@ export class AuthorizationCodeClient extends BaseClient {
     /**
      * Generates a map for all the params to be sent to the service
      * @param request
-     * @param config
      */
-    private generateAuthCodeParams(request: AuthorizationCodeParameters) : Map<string, string> {
+    private generateAuthCodeParams(request: AuthorizationCodeRequest) : Map<string, string> {
         const paramsMap: Map<string, string> = new Map<string, string>();
 
         ServerParamsGenerator.addClientId(paramsMap, this.config.authOptions.clientId);
@@ -117,23 +111,18 @@ export class AuthorizationCodeClient extends BaseClient {
             ServerParamsGenerator.addCodeVerifier(paramsMap, request.codeVerifier);
         }
 
-        // add client_secret (needed for web apps)
-        if (request.clientSecret) {
-            ServerParamsGenerator.addClientSecret(paramsMap, request.clientSecret);
-        }
-
         ServerParamsGenerator.addGrantType(paramsMap, GrantType.AUTHORIZATION_CODE_GRANT);
 
         return paramsMap;
     }
 
     /**
-     * This API validates the `AuthorizationCodeUrlParameters` and creates a URL
+     * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      * @param config
      */
-    private generateAuthCodeUrlParams(request: AuthorizationCodeUrlParameters): Map<string, string>{
-        const paramsMap: Map<string, string> = new Map<string, string>();
+    private generateAuthCodeUrlParams(request: AuthorizationCodeUrlRequest): Map<string, string>{
+        const paramsMap = new Map<string, string>();
 
         ServerParamsGenerator.addClientId(paramsMap, this.config.authOptions.clientId);
 
@@ -148,38 +137,6 @@ export class AuthorizationCodeClient extends BaseClient {
         RequestValidator.validateRedirectUri(request.redirectUri);
         ServerParamsGenerator.addRedirectUri(paramsMap, request.redirectUri);
 
-        // validate and pass code_challenge Params
-        if (request.codeChallenge) {
-            RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
-            ServerParamsGenerator.addCodeChallengeParams(paramsMap, request.codeChallenge, request.codeChallengeMethod);
-        }
-
-        // add state - user set, no validation needed (preferably a UUID)
-        if (request.state) {
-            ServerParamsGenerator.addState(paramsMap, request.state);
-        }
-
-        // validate and add prompt
-        if (request.prompt) {
-            RequestValidator.validatePrompt(request.prompt);
-            ServerParamsGenerator.addPrompt(paramsMap, request.prompt);
-        }
-
-        // add login_hint: user set, no validation needed
-        if (request.loginHint) {
-            ServerParamsGenerator.addLoginHint(paramsMap, request.loginHint);
-        }
-
-        // add domain_hint: user set, no validation needed
-        if (request.domainHint) {
-            ServerParamsGenerator.addDomainHint(paramsMap, request.domainHint);
-        }
-
-        // add domain_hint: user set, no validation needed (preferably a UUID)
-        if (request.nonce) {
-            ServerParamsGenerator.addNonce(paramsMap, request.nonce);
-        }
-
         // generate the correlationId if not set by the user and add
         const correlationId = request.correlationId
             ? request.correlationId
@@ -191,6 +148,32 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add response_type = code
         ServerParamsGenerator.addResponseTypeCode(paramsMap);
+
+        if (request.codeChallenge) {
+            RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
+            ServerParamsGenerator.addCodeChallengeParams(paramsMap, request.codeChallenge, request.codeChallengeMethod);
+        }
+
+        if (request.state) {
+            ServerParamsGenerator.addState(paramsMap, request.state);
+        }
+
+        if (request.prompt) {
+            RequestValidator.validatePrompt(request.prompt);
+            ServerParamsGenerator.addPrompt(paramsMap, request.prompt);
+        }
+
+        if (request.loginHint) {
+            ServerParamsGenerator.addLoginHint(paramsMap, request.loginHint);
+        }
+
+        if (request.domainHint) {
+            ServerParamsGenerator.addDomainHint(paramsMap, request.domainHint);
+        }
+
+        if (request.nonce) {
+            ServerParamsGenerator.addNonce(paramsMap, request.nonce);
+        }
 
         return paramsMap;
     }
