@@ -12,6 +12,7 @@ import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { Constants } from "../utils/Constants";
+import {ClientAuthError} from "../error/ClientAuthError";
 
 /**
  * @hidden
@@ -79,5 +80,25 @@ export abstract class BaseClient {
             this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
             this.networkClient
         );
+    }
+
+    /**
+     * Create authority instance if not set already, resolve well-known-endpoint
+     * @param authorityString
+     */
+    protected async createAuthority(authorityString: string): Promise<Authority> {
+
+        // TODO expensive to resolve authority endpoints everytime.
+        const authority: Authority = authorityString
+            ? AuthorityFactory.createInstance(authorityString, this.networkClient)
+            : this.defaultAuthorityInstance;
+
+        try {
+            await authority.resolveEndpointsAsync();
+        } catch (error) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        }
+
+        return authority;
     }
 }

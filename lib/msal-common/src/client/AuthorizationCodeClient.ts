@@ -6,9 +6,7 @@
 import { BaseClient } from "./BaseClient";
 import { AuthorizationCodeUrlParameters } from "../request/AuthorizationCodeUrlParameters";
 import { AuthorizationCodeParameters } from "../request/AuthorizationCodeParameters";
-import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { Authority } from "../authority/Authority";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
@@ -38,11 +36,11 @@ export class AuthorizationCodeClient extends BaseClient {
     /**
      * Creates a url for logging in a user.
      *  - scopes added by default: openid, profile and offline_access.
-     *  - performs validation of the request parameters.     
+     *  - performs validation of the request parameters.
      * @param request
      */
     async getAuthCodeUrl(request: AuthorizationCodeUrlParameters): Promise<string> {
-        
+
         const authority: Authority = await this.createAuthority(request && request.authority);
         const queryParamMap: Map<string, string> = this.generateAuthCodeUrlParams(request);
         const queryString: string = ServerParamsGenerator.createQueryString(queryParamMap);
@@ -60,25 +58,6 @@ export class AuthorizationCodeClient extends BaseClient {
         return acquiredTokenResponse;
 
         // add response_handler here to send the response
-    }
-
-    /**
-     * Create authority instance if not set already, resolve well-known-endpoint
-     * @param authority
-     */
-    private async createAuthority(authorityString: string): Promise<Authority> {
-        // Initialize authority or use default, and perform discovery endpoint check.
-        const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(authorityString, this.networkClient)
-            : this.defaultAuthorityInstance;
-
-        try {
-            await authority.resolveEndpointsAsync();
-        } catch (e) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-        }
-
-        return authority;
     }
 
     /**

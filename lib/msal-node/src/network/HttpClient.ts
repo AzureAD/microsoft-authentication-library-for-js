@@ -5,7 +5,7 @@
 
 import { INetworkModule, NetworkRequestOptions } from '@azure/msal-common';
 import { HttpMethod } from './../utils/Constants';
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 
 /**
  * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
@@ -22,7 +22,7 @@ export class HttpClient implements INetworkModule {
         options?: NetworkRequestOptions
     ): Promise<T> {
         // axios config
-        const request = {
+        const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
             url: url,
             headers: options && options.headers,
@@ -43,11 +43,10 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<T> {
-        // axios config
-        const request = {
+        const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
             url: url,
-            body: (options && options.body) || '',
+            data: (options && options.body) || '',
             headers: options && options.headers,
         };
 

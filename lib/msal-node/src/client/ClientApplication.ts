@@ -131,7 +131,7 @@ export abstract class ClientApplication {
         const msalVersionHeaderKey: string = "x-client-VER";
         const cpuHeaderKey: string = "x-client-CPU";
         const osHeaderKey: string = "x-client-OS";
-        //const correlationId: string = "client-request_id";
+        // const correlationId: string = "client-request_id";
         // TODO will also add appName and appVersion
 
 
