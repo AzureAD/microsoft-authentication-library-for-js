@@ -94,6 +94,7 @@ export interface CacheResult {
  */
 export type ResponseStateInfo = {
     state: string;
+    iat: number,
     stateMatch: boolean;
     requestType: string;
 };
@@ -1103,9 +1104,12 @@ export class UserAgentApplication {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
         }
         if (parameters.hasOwnProperty("state")) {
+            const parsedState = RequestUtils.parseLibraryState(parameters.state);
+
             stateResponse = {
                 requestType: Constants.unknown,
-                state: parameters.state,
+                state: parsedState.state,
+                iat: parsedState.iat,
                 stateMatch: false
             };
         } else {
@@ -1389,7 +1393,8 @@ export class UserAgentApplication {
 
             // Generate and cache accessTokenKey and accessTokenValue
             const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
-            expiration = TimeUtils.now() + expiresIn;
+            const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
+            expiration = parsedState.iat + expiresIn;
             const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
             const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 

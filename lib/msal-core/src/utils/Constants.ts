@@ -58,6 +58,7 @@ export class Constants {
  */
 export enum ServerHashParamKeys {
     SCOPE = "scope",
+    STATE = "state",
     ERROR = "error",
     ERROR_DESCRIPTION = "error_description",
     ACCESS_TOKEN = "access_token",

@@ -10,6 +10,12 @@ import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
 import { StringUtils } from "../utils/StringUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
+import { TimeUtils } from './TimeUtils';
+
+export type StateObject = {
+    state: string,
+    iat: number
+}
 
 /**
  * @hidden
@@ -140,7 +146,33 @@ export class RequestUtils {
      */
     static validateAndGenerateState(state: string): string {
         // append GUID to user set state  or set one for the user if null
-        return !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+        return !StringUtils.isEmpty(state) ? RequestUtils.generateLibraryState() + "|" + state : RequestUtils.generateLibraryState();
+    }
+
+    static generateLibraryState(): string {
+        const stateObject: StateObject = {
+            state: CryptoUtils.createNewGuid(),
+            iat: TimeUtils.now()
+        };
+
+        const stateString = JSON.stringify(stateObject);
+
+        return CryptoUtils.base64Encode(stateString);
+    }
+
+    static parseLibraryState(state: string): StateObject {
+        if (CryptoUtils.isGuid(state)) {
+            return {
+                state,
+                iat: TimeUtils.now()
+            }
+        }
+
+        const stateString = CryptoUtils.base64Decode(state);
+
+        const stateObject = JSON.parse(stateString);
+
+        return stateObject;
     }
 
     /**
