@@ -5,8 +5,8 @@
 
 import {
     AuthorizationCodeClient,
-    AuthorizationCodeParameters,
-    AuthorizationCodeUrlParameters,
+    AuthorizationCodeUrlRequest,
+    AuthorizationCodeRequest,
     Configuration,
     INetworkModule,
 } from '@azure/msal-common';
@@ -31,10 +31,10 @@ export abstract class ClientApplication {
 
     /**
      * @constructor
-     * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
+     * Constructor for the ClientApplication to instantiate the PublicClientApplication object
      *
      * Important attributes in the Configuration object for auth are:
-     * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview
+     * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal
      * - authority: the authority URL for your application.
      * - redirect_uri: the uri of your application registered in the portal.
      *
@@ -73,12 +73,10 @@ export abstract class ClientApplication {
      * @param request
      */
     async getAuthCodeUrl(
-        request: AuthorizationCodeUrlParameters
+        request: AuthorizationCodeUrlRequest
     ): Promise<string> {
-        
-        // Create auth module.
+
         const authorizationCodeParameters: Configuration = {
-            
             authOptions: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
@@ -92,7 +90,7 @@ export abstract class ClientApplication {
             networkInterface: this.networkClient,
             storageInterface: this.storage,
         };
-        
+
         const authorizationCodeClient = new AuthorizationCodeClient(authorizationCodeParameters);
 
         return authorizationCodeClient.getAuthCodeUrl(request);
@@ -103,7 +101,7 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByCode(
-        requestParameters: AuthorizationCodeParameters
+        request: AuthorizationCodeRequest
     ): Promise<string> {
 
         const authorizationClientConfiguration: Configuration = {
@@ -122,8 +120,8 @@ export abstract class ClientApplication {
         };
 
         const authorizationCodeClient = new AuthorizationCodeClient(authorizationClientConfiguration);
-        
-        return authorizationCodeClient.acquireToken(requestParameters);
+
+        return authorizationCodeClient.acquireToken(request);
     }
 
     protected getNodeDefaultHeaders(): Map<string, string>{
@@ -133,7 +131,6 @@ export abstract class ClientApplication {
         const osHeaderKey: string = "x-client-OS";
         // const correlationId: string = "client-request_id";
         // TODO will also add appName and appVersion
-
 
         return new Map<string, string>([
             [msalSkuHeaderKey, "MSAL.node"],

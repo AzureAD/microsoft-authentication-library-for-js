@@ -21,8 +21,8 @@ export { UrlString } from "./url/UrlString";
 export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
-export { AuthorizationCodeUrlParameters } from "./request/AuthorizationCodeUrlParameters";
-export { AuthorizationCodeParameters } from "./request/AuthorizationCodeParameters";
+export { AuthorizationCodeUrlRequest } from "./request/AuthorizationCodeUrlRequest";
+export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
@@ -30,7 +30,7 @@ export { CancellationToken } from "./request/CancellationToken";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
 export { TokenResponse } from "./response/TokenResponse";
 export { CodeResponse } from "./response/CodeResponse";
-export { DeviceCodeParameters } from "./request/DeviceCodeParameters";
+export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 // Logger Callback
 export { ILoggerCallback, LogLevel } from "./logger/Logger";
 // Errors

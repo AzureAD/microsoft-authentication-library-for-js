@@ -29,7 +29,7 @@ export class ServerParamsGenerator {
     static addResponseMode(params: Map<string, string>, responseMode?: string): void {
         params.set(
             `${AADServerParamKeys.RESPONSE_MODE}`,
-            encodeURIComponent(Constants.FRAGMENT_RESPONSE_MODE)
+            encodeURIComponent(Constants.QUERY_RESPONSE_MODE)
         );
     }
 
@@ -233,20 +233,5 @@ export class ServerParamsGenerator {
         });
 
         return queryParameterArray.join("&");
-    }
-
-    /**
-     * adds headers needed for the POST request
-     * MSER Telemetry will go here
-     * @param headers
-     */
-    static createHeaders(headers: Map<string, string>): Map<string, string> {
-        // add Content-type header
-        this.addContentTypeHeader(headers);
-
-        // add Library dada
-        this.addLibrarydataHeaders(headers);
-
-        return headers;
     }
 }

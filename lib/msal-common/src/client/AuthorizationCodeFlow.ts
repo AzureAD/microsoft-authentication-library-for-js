@@ -8,8 +8,8 @@ import {
     AuthorizationClientConfiguration,
     buildAuthorizationClientConfiguration
 } from "../config/AuthorizationClientConfiguration";
-import { AuthorizationCodeUrlParameters } from "./../request/AuthorizationCodeUrlParameters";
-import { AuthorizationCodeParameters } from "./../request/AuthorizationCodeParameters";
+import { AuthorizationCodeUrlRequest } from "../request/AuthorizationCodeUrlRequest";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { AuthorityFactory } from "./../authority/AuthorityFactory";
 import { Authority } from "./../authority/Authority";
 import { Constants } from "./../utils/Constants";
@@ -55,7 +55,7 @@ export class AuthorizationCodeFlow extends BaseClient {
      *
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlParameters): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
         const authority: Authority = await this.setAuthority(request && request.authority);
         const urlMap: Map<string, string> = request.generateAuthCodeUrlParams(
             request,
@@ -69,7 +69,7 @@ export class AuthorizationCodeFlow extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
      * @param request
      */
-    async acquireTokenByCode(request: AuthorizationCodeParameters): Promise<string> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<string> {
 
         const tokenEndpoint: Authority = await this.setAuthority(request && request.authority);
         const acquiredTokenResponse = this.tokenRequest(tokenEndpoint, request);
@@ -104,7 +104,7 @@ export class AuthorizationCodeFlow extends BaseClient {
      * @param body
      * @param headers
      */
-    private async tokenRequest(tokenEndPoint: Authority, request: AuthorizationCodeParameters): Promise<string> {
+    private async tokenRequest(tokenEndPoint: Authority, request: AuthorizationCodeRequest): Promise<string> {
         // generate the params
         const urlMap: Map<string, string> = request.generateAuthCodeParams(
             request,

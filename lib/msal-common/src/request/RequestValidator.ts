@@ -17,7 +17,7 @@ export class RequestValidator {
      */
     static validateAndGenerateScopes(scopes: Array<string>, clientId: string): Array<string> {
         // Set scopes and append default scopes
-        const scopeSet = new ScopeSet(scopes || [], clientId, false, true);
+        const scopeSet = new ScopeSet(scopes || [], clientId, true, true);
         return scopeSet.asArray();
     }
 

@@ -13,6 +13,7 @@ import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { Constants } from "../utils/Constants";
 import {ClientAuthError} from "../error/ClientAuthError";
+import {ServerParamsGenerator} from "../server/ServerParamsGenerator";
 
 /**
  * @hidden
@@ -56,7 +57,7 @@ export abstract class BaseClient {
     // Default authority object
     protected defaultAuthorityInstance: Authority;
 
-    constructor(configuration: Configuration) {
+    protected constructor(configuration: Configuration) {
         // Set the configuration
         this.config = buildConfiguration(configuration);
 
@@ -100,5 +101,15 @@ export abstract class BaseClient {
         }
 
         return authority;
+    }
+
+    /**
+     * Creates default headers for requests to token endpoint
+     */
+    protected createDefaultTokenRequestHeaders(): Map<string, string> {
+        const headers = new Map<string, string>();
+        ServerParamsGenerator.addContentTypeHeader(headers);
+        ServerParamsGenerator.addLibrarydataHeaders(headers);
+        return headers;
     }
 }
