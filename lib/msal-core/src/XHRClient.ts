@@ -9,8 +9,9 @@
  * @hidden
  */
 export class XhrClient {
+
     public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<any>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             if (enableCaching) {
@@ -31,7 +32,10 @@ export class XhrClient {
                     reject(this.handleError(xhr.responseText));
                 }
 
-                resolve(jsonResponse);
+                resolve({
+                    client: xhr,
+                    responseBody: jsonResponse
+                });
             };
 
             xhr.onerror = (ev) => {

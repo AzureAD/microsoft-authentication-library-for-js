@@ -13,7 +13,8 @@ export const EVENT_KEYS = {
     REQUEST_ID_HEADER: prependEventNamePrefix("request_id_header"),
     SPE_INFO: prependEventNamePrefix("spe_info"),
     SERVER_ERROR_CODE: prependEventNamePrefix("server_error_code"),
-    SERVER_SUB_ERROR_CODE: prependEventNamePrefix("server_sub_error_code")
+    SERVER_SUB_ERROR_CODE: prependEventNamePrefix("server_sub_error_code"),
+    URL: prependEventNamePrefix("url")
 };
 
 export default class HttpEvent extends TelemetryEvent {
@@ -22,7 +23,10 @@ export default class HttpEvent extends TelemetryEvent {
         super(prependEventNamePrefix("http_event"), correlationId);
     }
 
-    // Believe this should be whole url, not just a path
+    public set url(url: string) {
+        this.event[EVENT_KEYS.URL] = scrubTenantFromUri(url).toLowerCase();
+    }
+
     public set httpPath(httpPath: string) {
         this.event[EVENT_KEYS.HTTP_PATH] = scrubTenantFromUri(httpPath).toLowerCase();
     }

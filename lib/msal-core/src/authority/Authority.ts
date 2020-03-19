@@ -8,6 +8,8 @@ import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
 import { XhrClient } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
+import TelemetryManager from "../telemetry/TelemetryManager";
+import HttpEvent from "../telemetry/HttpEvent";
 
 /**
  * @hidden
@@ -113,15 +115,30 @@ export abstract class Authority {
     /**
      * Calls the OIDC endpoint and returns the response
      */
-    private DiscoverEndpoints(openIdConfigurationEndpoint: string): Promise<ITenantDiscoveryResponse> {
+    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager?: TelemetryManager, correlationId?: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
-        return client.sendRequestAsync(openIdConfigurationEndpoint, "GET", /* enableCaching: */ true)
+
+        const httpMethod = "GET";
+        const httpEvent = new HttpEvent(correlationId);
+        httpEvent.url = openIdConfigurationEndpoint;
+        httpEvent.httpMethod = httpMethod;
+        telemetryManager.startEvent(httpEvent);
+
+        return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
             .then((response: any) => {
+                httpEvent.httpResponseStatus = response.client.status;
                 return <ITenantDiscoveryResponse>{
-                    AuthorizationEndpoint: response.authorization_endpoint,
-                    EndSessionEndpoint: response.end_session_endpoint,
-                    Issuer: response.issuer
+                    AuthorizationEndpoint: response.responseBody.authorization_endpoint,
+                    EndSessionEndpoint: response.responseBody.end_session_endpoint,
+                    Issuer: response.responseBody.issuer
                 };
+            })
+            .catch(err => {
+                httpEvent.serverErrorCode = err;
+                throw err;
+            })
+            .finally(() => {
+                telemetryManager.stopEvent(httpEvent);
             });
     }
 
@@ -131,9 +148,9 @@ export abstract class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public async resolveEndpointsAsync(): Promise<Authority> {
-        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpointAsync();
-        this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse);
+    public async resolveEndpointsAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Authority> {
+        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpointAsync(telemetryManager, correlationId);
+        this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 
         return this;
     }
@@ -141,5 +158,5 @@ export abstract class Authority {
     /**
      * Returns a promise with the TenantDiscoveryEndpoint
      */
-    public abstract GetOpenIdConfigurationEndpointAsync(): Promise<string>;
+    public abstract GetOpenIdConfigurationEndpointAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<string>;
 }

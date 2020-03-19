@@ -19,7 +19,8 @@ export enum API_CODE {
     AcquireTokenSilent = 2002,
     AcquireTokenPopup = 2003,
     LoginRedirect = 2004,
-    LoginPopup = 2005
+    LoginPopup = 2005,
+    Logout = 2006
 }
 
 export enum API_EVENT_IDENTIFIER {
@@ -27,7 +28,8 @@ export enum API_EVENT_IDENTIFIER {
     AcquireTokenSilent = "AcquireTokenSilent",
     AcquireTokenPopup = "AcquireTokenPopup",
     LoginRedirect = "LoginRedirect",
-    LoginPopup = "LoginPopup"
+    LoginPopup = "LoginPopup",
+    Logout = "Logout"
 }
 
 export default class ApiEvent extends TelemetryEvent {

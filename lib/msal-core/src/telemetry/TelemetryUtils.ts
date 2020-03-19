@@ -17,7 +17,7 @@ export const scrubTenantFromUri = (uri: string): String => {
     const pathParams = url.PathSegments;
 
     if (pathParams && pathParams.length >= 2) {
-        const tenantPosition = pathParams[1] ===  B2cAuthority.B2C_PREFIX ? 2 : 1;
+        const tenantPosition = pathParams[1] ===  "tfp" ? 2 : 1;
         if (tenantPosition < pathParams.length) {
             pathParams[tenantPosition] = TENANT_PLACEHOLDER;
         }

@@ -6,6 +6,8 @@
 import { Authority, AuthorityType } from "./Authority";
 import { XhrClient } from "../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
+import HttpEvent from "../telemetry/HttpEvent";
+import TelemetryManager from "../telemetry/TelemetryManager";
 
 /**
  * @hidden
@@ -29,7 +31,7 @@ export class AadAuthority extends Authority {
      * Returns a promise which resolves to the OIDC endpoint
      * Only responds with the endpoint
      */
-    public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+    public async GetOpenIdConfigurationEndpointAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<string> {
         if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
@@ -37,9 +39,22 @@ export class AadAuthority extends Authority {
         // for custom domains in AAD where we query the service for the Instance discovery
         const client: XhrClient = new XhrClient();
 
-        return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, "GET", true)
+        const httpMethod = "GET";
+        const httpEvent = new HttpEvent(correlationId);
+        httpEvent.url = this.AadInstanceDiscoveryEndpointUrl;
+        httpEvent.httpMethod = httpMethod;
+        telemetryManager.startEvent(httpEvent);
+        return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, httpMethod, true)
             .then((response) => {
-                return response.tenant_discovery_endpoint;
+                httpEvent.httpResponseStatus = response.client.status;
+                return response.responseBody.tenant_discovery_endpoint;
+            })
+            .catch(err => {
+                httpEvent.serverErrorCode = err;
+                throw err;
+            })
+            .finally(() => {
+                telemetryManager.stopEvent(httpEvent);
             });
     }
 
