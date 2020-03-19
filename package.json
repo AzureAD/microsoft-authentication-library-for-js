@@ -15,6 +15,7 @@
     "rimraf": "^3.0.0"
   },
   "scripts": {
+    "postinstall": "lerna bootstrap",
     "build": "lerna run build",
     "test": "lerna run test",
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
