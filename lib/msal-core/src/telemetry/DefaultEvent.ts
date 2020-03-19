@@ -12,6 +12,7 @@ export default class DefaultEvent extends TelemetryEvent {
         this.event[prependEventNamePrefix("sdk_version")] = platform.sdkVersion;
         this.event[prependEventNamePrefix("application_name")] = platform.applicationName;
         this.event[prependEventNamePrefix("application_version")] = platform.applicationVersion;
+        this.event[prependEventNamePrefix("effective_connection_speed")] = platform.networkInformation && platform.networkInformation.connectionSpeed;
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.UiEventCountTelemetryBatchKey}`] = this.getEventCount(prependEventNamePrefix("ui_event"), eventCount);
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.HttpEventCountTelemetryBatchKey}`] = this.getEventCount(prependEventNamePrefix("http_event"), eventCount);
         this.event[`${TELEMETRY_BLOB_EVENT_NAMES.CacheEventCountConstStrKey}`] = this.getEventCount(prependEventNamePrefix("cache_event"), eventCount);

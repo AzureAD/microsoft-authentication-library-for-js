@@ -1,7 +1,7 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
+        clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
         redirectUri: "http://localhost:30662/"
     },
     cache: {
