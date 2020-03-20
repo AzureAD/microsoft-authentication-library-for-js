@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import debug from "debug";
 import { StringUtils } from "./utils/StringUtils";
 import { libraryVersion } from "./utils/Constants";
 
@@ -67,7 +68,7 @@ export class Logger {// Singleton Class
     /**
      * @hidden
      */
-    private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
+    private logMessage(logLevel: LogLevel, logMessage: string, context: string, containsPii: boolean): void {
         if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
             return;
         }
@@ -79,6 +80,8 @@ export class Logger {// Singleton Class
         else {
             log = timestamp + ":" + libraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
         }
+
+        debug(`msal:${LogLevel[logLevel]}${containsPii ? `-Pii`: ""}${context ? `:${context}` : ""}`)(logMessage);
         this.executeCallback(logLevel, log, containsPii);
     }
 
@@ -94,57 +97,57 @@ export class Logger {// Singleton Class
     /**
      * @hidden
      */
-    error(message: string): void {
-        this.logMessage(LogLevel.Error, message, false);
+    error(message: string, context?: string): void {
+        this.logMessage(LogLevel.Error, message, context, false);
     }
 
     /**
      * @hidden
      */
-    errorPii(message: string): void {
-        this.logMessage(LogLevel.Error, message, true);
+    errorPii(message: string, context?: string): void {
+        this.logMessage(LogLevel.Error, message, context, true);
     }
 
     /**
      * @hidden
      */
-    warning(message: string): void {
-        this.logMessage(LogLevel.Warning, message, false);
+    warning(message: string, context?: string): void {
+        this.logMessage(LogLevel.Warning, message, context, false);
     }
 
     /**
      * @hidden
      */
-    warningPii(message: string): void {
-        this.logMessage(LogLevel.Warning, message, true);
+    warningPii(message: string, context:string): void {
+        this.logMessage(LogLevel.Warning, message, context, true);
     }
 
     /**
      * @hidden
      */
-    info(message: string): void {
-        this.logMessage(LogLevel.Info, message, false);
+    info(message: string, context?: string): void {
+        this.logMessage(LogLevel.Info, message, context, false);
     }
 
     /**
      * @hidden
      */
-    infoPii(message: string): void {
-        this.logMessage(LogLevel.Info, message, true);
+    infoPii(message: string, context?: string): void {
+        this.logMessage(LogLevel.Info, message, context, true);
     }
 
     /**
      * @hidden
      */
-    verbose(message: string): void {
-        this.logMessage(LogLevel.Verbose, message, false);
+    verbose(message: string, context?: string): void {
+        this.logMessage(LogLevel.Verbose, message, context, false);
     }
 
     /**
      * @hidden
      */
-    verbosePii(message: string): void {
-        this.logMessage(LogLevel.Verbose, message, true);
+    verbosePii(message: string, context?: string): void {
+        this.logMessage(LogLevel.Verbose, message, context, true);
     }
 
     isPiiLoggingEnabled(): boolean {
