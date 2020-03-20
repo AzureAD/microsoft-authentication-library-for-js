@@ -36,6 +36,7 @@ const NAVIGATE_FRAME_WAIT = 500;
 export type AuthOptions = {
     clientId: string;
     authority?: string;
+    authorityType?: string;
     validateAuthority?: boolean;
     knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
@@ -116,6 +117,7 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
+    authorityType: "aad",
     validateAuthority: true,
     knownAuthorities: [],
     redirectUri: () => UrlUtils.getDefaultRedirectUri(),

@@ -15,7 +15,7 @@ describe("ServerRequestParameters.ts Class", function () {
 
         it("Scope array pointer is not passed into constructor", function () {
             const scopes = ["S1"];
-            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false, TEST_CONFIG.authorityType);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
             const req = new ServerRequestParameters(
                 authority,
@@ -32,7 +32,7 @@ describe("ServerRequestParameters.ts Class", function () {
         });
 
         it("Scopes are set to client id if null or empty scopes object passed", function () {
-            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false, TEST_CONFIG.authorityType);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
             const req = new ServerRequestParameters(
                 authority,
@@ -54,7 +54,7 @@ describe("ServerRequestParameters.ts Class", function () {
         it("tests if if authenticateRequestParameter generates state correctly, if state is a number", function () {
             let authenticationRequestParameters: ServerRequestParameters;
             let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority, TEST_CONFIG.authorityType);
             const scopes = ["user.read"];
             authenticationRequestParameters = new ServerRequestParameters(
                 authority,
@@ -71,7 +71,7 @@ describe("ServerRequestParameters.ts Class", function () {
         it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
             let authenticationRequestParameters: ServerRequestParameters;
             let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority, TEST_CONFIG.authorityType);
 
             const scopes = ["user.read"];
             const state = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2";
@@ -93,7 +93,7 @@ describe("ServerRequestParameters.ts Class", function () {
         it("tests correlation Id passed by the user is set correctly", function () {
             let authenticationRequestParameters: ServerRequestParameters;
             let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority, TEST_CONFIG.authorityType);
 
             const scopes = ["user.read"];
             authenticationRequestParameters = new ServerRequestParameters(
@@ -113,7 +113,7 @@ describe("ServerRequestParameters.ts Class", function () {
             try {
                 let authenticationRequestParameters: ServerRequestParameters;
                 let authority: Authority;
-                authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+                authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority, TEST_CONFIG.authorityType);
 
                 const scopes = ["user.read"];
                 const request: AuthenticationParameters = { correlationId: "Hello"};
