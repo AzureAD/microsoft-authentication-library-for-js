@@ -61,10 +61,10 @@ describe("Authority.ts Class", function () {
 
     it("throws invalidAuthorityType on init if authority is not url", function () {
         try {
-            authority = new testAuthority("not a url", false);
+            authority = new testAuthority("", false);
         }
         catch(e) {
-            expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInsecure)
+            expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType)
         }
     });
 
