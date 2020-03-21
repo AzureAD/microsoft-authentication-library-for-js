@@ -5,7 +5,7 @@
 
 import { INetworkModule, NetworkRequestOptions } from '@azure/msal-common';
 import { HttpMethod } from './../utils/Constants';
-import axios, {AxiosRequestConfig} from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 /**
  * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API

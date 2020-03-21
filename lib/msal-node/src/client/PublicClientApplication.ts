@@ -3,8 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult, Configuration } from "@azure/msal-common";
-import { ClientConfiguration} from '../config/ClientConfiguration';
+import {
+    DeviceCodeClient,
+    DeviceCodeRequest,
+    AuthenticationResult,
+    Configuration,
+} from '@azure/msal-common';
+import { ClientConfiguration } from '../config/ClientConfiguration';
 import { ClientApplication } from './ClientApplication';
 
 /**
@@ -12,7 +17,6 @@ import { ClientApplication } from './ClientApplication';
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
  */
 export class PublicClientApplication extends ClientApplication {
-
     /**
      * @constructor
      * Constructor for the PublicClientApplication
@@ -46,24 +50,29 @@ export class PublicClientApplication extends ClientApplication {
      * until the end-user completes input of credentials.
      * @param requestParameters
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult>{
-
+    public async acquireTokenByDeviceCode(
+        request: DeviceCodeRequest
+    ): Promise<AuthenticationResult> {
         const deviceCodeClientConfiguration: Configuration = {
             authOptions: this.config.auth,
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
+                tokenRenewalOffsetSeconds: this.config.system
+                    .tokenRenewalOffsetSeconds,
                 telemetry: this.config.system.telemetry,
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
+                piiLoggingEnabled: this.config.system.loggerOptions
+                    .piiLoggingEnabled,
             },
             cryptoInterface: this.crypto,
             networkInterface: this.networkClient,
             storageInterface: this.storage,
         };
 
-        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(deviceCodeClientConfiguration);
+        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(
+            deviceCodeClientConfiguration
+        );
         return deviceCodeClient.acquireToken(request);
     }
 }

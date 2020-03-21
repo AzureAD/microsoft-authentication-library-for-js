@@ -225,10 +225,10 @@ export class ServerParamsGenerator {
      * @param authority
      */
     static createQueryString(paramsMap: Map<string, string>): string {
-        let queryParameterArray: Array<string> = new Array<string>();
+        const queryParameterArray: Array<string> = new Array<string>();
 
         paramsMap.forEach((value, key) => {
-            let keyValuePair = key + "=" + value;
+            const keyValuePair = key + "=" + value;
             queryParameterArray.push(keyValuePair);
         });
 

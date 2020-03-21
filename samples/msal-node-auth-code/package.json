@@ -10,6 +10,6 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^0.0.1",
-    "express": "4.17.1"
+    "express": "^4.17.1"
   }
 }

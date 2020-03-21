@@ -10,13 +10,15 @@ import {
     Configuration,
     INetworkModule,
 } from '@azure/msal-common';
-import { ClientConfiguration, buildConfiguration } from '../config/ClientConfiguration';
+import {
+    ClientConfiguration,
+    buildConfiguration,
+} from '../config/ClientConfiguration';
 import { CryptoOps } from '../crypto/CryptoOps';
 import { Storage } from '../cache/Storage';
 import { NetworkUtils } from './../utils/NetworkUtils';
 
 export abstract class ClientApplication {
-
     // Input configuration by developer/user
     protected config: ClientConfiguration;
 
@@ -67,7 +69,7 @@ export abstract class ClientApplication {
         );
     }
 
-        /**
+    /**
      * Creates a url for logging in a user. This will by default add scopes: openid, profile and offline_access. Also performs validation of the request parameters.
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
      * @param request
@@ -75,23 +77,26 @@ export abstract class ClientApplication {
     async getAuthCodeUrl(
         request: AuthorizationCodeUrlRequest
     ): Promise<string> {
-
         const authorizationCodeParameters: Configuration = {
             authOptions: this.config.auth,
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
+                tokenRenewalOffsetSeconds: this.config.system
+                    .tokenRenewalOffsetSeconds,
                 telemetry: this.config.system.telemetry,
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
+                piiLoggingEnabled: this.config.system.loggerOptions
+                    .piiLoggingEnabled,
             },
             cryptoInterface: this.crypto,
             networkInterface: this.networkClient,
             storageInterface: this.storage,
         };
 
-        const authorizationCodeClient = new AuthorizationCodeClient(authorizationCodeParameters);
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            authorizationCodeParameters
+        );
 
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
@@ -103,40 +108,43 @@ export abstract class ClientApplication {
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<string> {
-
         const authorizationClientConfiguration: Configuration = {
             authOptions: this.config.auth,
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
+                tokenRenewalOffsetSeconds: this.config.system
+                    .tokenRenewalOffsetSeconds,
                 telemetry: this.config.system.telemetry,
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
+                piiLoggingEnabled: this.config.system.loggerOptions
+                    .piiLoggingEnabled,
             },
             cryptoInterface: this.crypto,
             networkInterface: this.networkClient,
             storageInterface: this.storage,
         };
 
-        const authorizationCodeClient = new AuthorizationCodeClient(authorizationClientConfiguration);
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            authorizationClientConfiguration
+        );
 
         return authorizationCodeClient.acquireToken(request);
     }
 
-    protected getNodeDefaultHeaders(): Map<string, string>{
-        const msalSkuHeaderKey: string = "x-client-SKU";
-        const msalVersionHeaderKey: string = "x-client-VER";
-        const cpuHeaderKey: string = "x-client-CPU";
-        const osHeaderKey: string = "x-client-OS";
+    protected getNodeDefaultHeaders(): Map<string, string> {
+        const msalSkuHeaderKey: string = 'x-client-SKU';
+        const msalVersionHeaderKey: string = 'x-client-VER';
+        const cpuHeaderKey: string = 'x-client-CPU';
+        const osHeaderKey: string = 'x-client-OS';
         // const correlationId: string = "client-request_id";
         // TODO will also add appName and appVersion
 
         return new Map<string, string>([
-            [msalSkuHeaderKey, "MSAL.node"],
-            [msalVersionHeaderKey, "0.1.0"],
-            [cpuHeaderKey, ""],
-            [osHeaderKey, process.platform]
+            [msalSkuHeaderKey, 'MSAL.node'],
+            [msalVersionHeaderKey, '0.1.0'],
+            [cpuHeaderKey, ''],
+            [osHeaderKey, process.platform],
         ]);
     }
 }

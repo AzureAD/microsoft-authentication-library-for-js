@@ -49,6 +49,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
 
+        this.logger.info("in acquireToken call");
         const authority: Authority = await this.createAuthority(request && request.authority);
         const acquiredTokenResponse = this.executeTokenRequest(authority, request);
         return acquiredTokenResponse;
