@@ -12,6 +12,9 @@
  *
  * authority:               authorization endpoint that grants the code to the application
  *
+ * responseMode:            Specifies the method that should be used to send the authentication result to your app.
+ *                          Can be query, form_post, or fragment. If no value is passed in, it defaults to query.
+ *
  * redirectUri:             The redirect URI of your app, where authentication responses can be sent and received by your app.
  *                          It must exactly match one of the redirect URIs you registered in the portal,
  *                          except that it must be URL encoded. If not present, the endpoint will pick one registered
@@ -58,6 +61,7 @@ export type AuthorizationCodeUrlRequest = {
     redirectUri: string;
     scopes: Array<string>;
     authority?: string;
+    responseMode?: string;
     codeChallenge?: string;
     codeChallengeMethod?: string;
     state?: string;
