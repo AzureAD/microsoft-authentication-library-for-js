@@ -9,7 +9,8 @@ export { CryptoOps } from './crypto/CryptoOps';
 // Common Object Formats
 export {
     // Request
-    AuthorizationCodeUrlParameters,
+    AuthorizationCodeRequest,
+    DeviceCodeRequest,
     TokenExchangeParameters,
     // Response
     AuthResponse,

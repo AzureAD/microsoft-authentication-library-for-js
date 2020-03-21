@@ -12,6 +12,7 @@ import { PromptValue, CodeChallengeMethodValues } from "./../utils/Constants";
  * Validates server consumable params from the "request" objects
  */
 export class RequestValidator {
+
     /**
      * Utility to validate scopes passed by the user in the request
      */
@@ -25,7 +26,7 @@ export class RequestValidator {
      * Utility to check if the `redirectUri` in the request is a non-null value
      * @param redirectUri
      */
-    static validateRedirectUri(redirectUri: string) {
+    static validateRedirectUri(redirectUri: string) : void {
         // check if the redirectUri is null, set to default
         if (StringUtils.isEmpty(redirectUri)) {
             throw ClientConfigurationError.createUrlEmptyError();
@@ -36,7 +37,7 @@ export class RequestValidator {
      * Utility to validate prompt sent by the user in the request
      * @param prompt
      */
-    static validatePrompt(prompt: string) {
+    static validatePrompt(prompt: string) : void {
         // validate prompt parameter
         if (
             [
@@ -55,7 +56,7 @@ export class RequestValidator {
      * @param codeChallenge
      * @param codeChallengeMethod
      */
-    static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) {
+    static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) : void  {
         if (!(codeChallenge && codeChallengeMethod)) {
             throw ClientConfigurationError.createInvalidCodeChallengeParams();
         } else {
@@ -64,10 +65,10 @@ export class RequestValidator {
     }
 
     /**
-     * Utlity to validate code_challenge_method
+     * Utility to validate code_challenge_method
      * @param codeChallengeMethod
      */
-    static validateCodeChallengeMethod(codeChallengeMethod: string) {
+    static validateCodeChallengeMethod(codeChallengeMethod: string) : void {
         // validate prompt parameter
         if (
             [

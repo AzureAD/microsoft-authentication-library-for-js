@@ -3,13 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys, SSOTypes } from "../utils/Constants";
-import { Constants, HeaderNames } from "../utils/Constants";
+import { AADServerParamKeys, SSOTypes } from "./Constants";
+import { Constants, HeaderNames } from "./Constants";
 import { ScopeSet } from "../request/ScopeSet";
-import { Authority } from "../authority/Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
-export class ServerParamsGenerator {
+export class RequestUtils {
 
     /**
      * add response_type = code
@@ -23,13 +22,15 @@ export class ServerParamsGenerator {
     }
 
     /**
-     * add response_mode = fragment (currently hardcoded, have a future option to pass 'query' if the user chooses to)
+     * add response_mode. defaults to query.
      * @param params
+     * @param responseMode
      */
     static addResponseMode(params: Map<string, string>, responseMode?: string): void {
+
         params.set(
             `${AADServerParamKeys.RESPONSE_MODE}`,
-            encodeURIComponent(Constants.QUERY_RESPONSE_MODE)
+            encodeURIComponent((responseMode) ? responseMode : Constants.QUERY_RESPONSE_MODE)
         );
     }
 
@@ -225,10 +226,10 @@ export class ServerParamsGenerator {
      * @param authority
      */
     static createQueryString(paramsMap: Map<string, string>): string {
-        let queryParameterArray: Array<string> = new Array<string>();
+        const queryParameterArray: Array<string> = new Array<string>();
 
         paramsMap.forEach((value, key) => {
-            let keyValuePair = key + "=" + value;
+            const keyValuePair = key + "=" + value;
             queryParameterArray.push(keyValuePair);
         });
 

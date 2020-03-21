@@ -74,8 +74,12 @@ export class StringUtils {
      * @param arr
      */
     static removeEmptyStringsFromArray(arr: Array<string>): Array<string> {
-        return arr.filter(entry => {
-            return !StringUtils.isEmpty(entry);
-        });
+        if(arr.constructor === Array) {
+            return arr.filter(entry => {
+                return !StringUtils.isEmpty(entry);
+            });
+        }
+
+        return arr;
     }
 }

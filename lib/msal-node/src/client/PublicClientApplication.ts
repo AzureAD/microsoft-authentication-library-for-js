@@ -44,7 +44,7 @@ export class PublicClientApplication extends ClientApplication {
      * instructed to use another device to navigate to the verification URI to input credentials.
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
-     * @param requestParameters
+     * @param request
      */
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult>{
 

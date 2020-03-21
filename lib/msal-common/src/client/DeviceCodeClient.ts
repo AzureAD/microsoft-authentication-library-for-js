@@ -9,9 +9,9 @@ import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { Authority } from "../authority/Authority";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
+import { RequestUtils } from "../utils/RequestUtils";
 import { RequestValidator } from "../request/RequestValidator";
-import { GrantType } from "../utils/Constants";
+import {Constants, GrantType} from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 import { TimeUtils } from "../utils/TimeUtils";
 
@@ -53,7 +53,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const deviceCodeUrl = this.createDeviceCodeUrl(request);
         const headers: Map<string, string> = new Map<string, string>();
-        ServerParamsGenerator.addLibrarydataHeaders(headers);
+        RequestUtils.addLibrarydataHeaders(headers);
 
         let deviceCodeResponse;
         try {
@@ -76,7 +76,7 @@ export class DeviceCodeClient extends BaseClient {
      */
     private createDeviceCodeUrl(request: DeviceCodeRequest) : string {
         const params: Map<string, string> = this.createQueryParameters(request);
-        const queryString: string = ServerParamsGenerator.createQueryString(params);
+        const queryString: string = RequestUtils.createQueryString(params);
 
         // TODO add device code endpoint to authority class
         return this.authority.canonicalAuthority + "oauth2/v2.0/devicecode"  + "?" + queryString;
@@ -89,13 +89,13 @@ export class DeviceCodeClient extends BaseClient {
     private createQueryParameters(request: DeviceCodeRequest): Map<string, string>{
 
         const params: Map<string, string> = new Map<string, string>();
-        ServerParamsGenerator.addClientId(params, this.config.authOptions.clientId);
+        RequestUtils.addClientId(params, this.config.authOptions.clientId);
 
         const scopes = RequestValidator.validateAndGenerateScopes(
             request.scopes,
             this.config.authOptions.clientId
         );
-        ServerParamsGenerator.addScopes(params, scopes);
+        RequestUtils.addScopes(params, scopes);
 
         return params;
     }
@@ -110,7 +110,8 @@ export class DeviceCodeClient extends BaseClient {
         deviceCodeResponse: DeviceCodeResponse): Promise<AuthenticationResult> {
 
         const params: Map<string, string>  = this.createTokenParameters(request, deviceCodeResponse);
-        const requestBody = ServerParamsGenerator.createQueryString(params);
+        const requestBody = RequestUtils.createQueryString(params);
+        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expires_in;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
@@ -140,14 +141,14 @@ export class DeviceCodeClient extends BaseClient {
                             this.authority.tokenEndpoint,
                             {
                                 body: requestBody,
-                                headers: this.createDefaultTokenRequestHeaders()
+                                headers: headers
                             }
                         );
                         clearInterval(intervalId);
                         resolve(response);
                     }
                 } catch(error){
-                    if(error.response.data.error == "authorization_pending"){
+                    if(error.response.data.error == Constants.AUTHORIZATION_PENDING){
                         // user authorization is pending. Will sleep for polling interval and try again
                         // TODO use logger here
                     } else{
@@ -174,10 +175,10 @@ export class DeviceCodeClient extends BaseClient {
         );
 
         const params: Map<string, string> = new Map<string, string>();
-        ServerParamsGenerator.addScopes(params, scopes);
-        ServerParamsGenerator.addClientId(params, this.config.authOptions.clientId);
-        ServerParamsGenerator.addGrantType(params, GrantType.DEVICE_CODE_GRANT);
-        ServerParamsGenerator.addDeviceCode(params, deviceCodeResponse.device_code);
+        RequestUtils.addScopes(params, scopes);
+        RequestUtils.addClientId(params, this.config.authOptions.clientId);
+        RequestUtils.addGrantType(params, GrantType.DEVICE_CODE_GRANT);
+        RequestUtils.addDeviceCode(params, deviceCodeResponse.device_code);
         return params;
     }
 }

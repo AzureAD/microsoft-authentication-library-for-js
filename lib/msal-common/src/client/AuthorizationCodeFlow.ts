@@ -14,7 +14,7 @@ import { AuthorityFactory } from "./../authority/AuthorityFactory";
 import { Authority } from "./../authority/Authority";
 import { Constants } from "./../utils/Constants";
 import { ClientAuthError } from "./../error/ClientAuthError";
-import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
+import { RequestUtils } from "../utils/RequestUtils";
 
 /**
  *
@@ -61,7 +61,7 @@ export class AuthorizationCodeFlow extends BaseClient {
             request,
             this.clientConfig
         );
-        const url: string = ServerParamsGenerator.createUrl(urlMap, authority);
+        const url: string = RequestUtils.createUrl(urlMap, authority);
         return url;
     }
 
@@ -118,8 +118,8 @@ export class AuthorizationCodeFlow extends BaseClient {
             acquiredTokenResponse = this.networkClient.sendPostRequestAsync<string>(
                 tokenEndPoint.canonicalAuthority,
                 {
-                    body: ServerParamsGenerator.createUrl(urlMap, tokenEndPoint),
-                    headers: ServerParamsGenerator.createHeaders(headers)
+                    body: RequestUtils.createUrl(urlMap, tokenEndPoint),
+                    headers: RequestUtils.createHeaders(headers)
                 }
             );
             return acquiredTokenResponse;

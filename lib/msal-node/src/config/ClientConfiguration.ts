@@ -26,13 +26,10 @@ export type CacheOptions = {
 };
 
 /**
- * Library Specific Options
+ * Type for configuring logger and http client options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
- * - windowHashTimeout            - sets the wait time for hidden iFrame navigation
- * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- * - telemetry                    - Telemetry options for library network requests
  */
 export type NodeSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -53,19 +50,19 @@ export type ClientConfiguration = {
     system?: NodeSystemOptions;
 };
 
-// Default auth options for browser
+// Default auth options
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
 };
 
-// Default cache options for browser
+// Default cache options
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: CACHE.FILE_CACHE,
     storeAuthStateInCookie: false,
 };
 
-// Default logger options for browser
+// Default logger options
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (
         level: LogLevel,
@@ -93,7 +90,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     piiLoggingEnabled: false,
 };
 
-// Default system options for browser
+// Default system options
 const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),

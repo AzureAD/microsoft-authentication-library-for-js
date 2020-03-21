@@ -67,14 +67,17 @@ export abstract class ClientApplication {
         );
     }
 
-        /**
-     * Creates a url for logging in a user. This will by default add scopes: openid, profile and offline_access. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
+    /**
+     * Creates the URL of the authorization request letting the user input credentials and consent to the
+     * application. The URL target the /authorize endpoint of the authority configured in the
+     * application object.
+     *
+     * Once the user inputs their credentials and consents, the authority will send a response to the redirect URI
+     * sent in the request and should contain an authorization code, which can then be used to acquire tokens via
+     * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(
-        request: AuthorizationCodeUrlRequest
-    ): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
         const authorizationCodeParameters: Configuration = {
             authOptions: this.config.auth,
@@ -97,12 +100,16 @@ export abstract class ClientApplication {
     }
 
     /**
-     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
+     * Acquires a token by exchanging the Authorization Code received from the first step of OAuth2.0
+     * Authorization Code flow.
+     *
+     * getAuthCodeUrl(AuthorizationCodeUrlRequest) can be used to create the URL for the first step of OAuth2.0
+     * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
+     * AuthorizationCodeRequest are the same.
+     *
      * @param request
      */
-    async acquireTokenByCode(
-        request: AuthorizationCodeRequest
-    ): Promise<string> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<string> {
 
         const authorizationClientConfiguration: Configuration = {
             authOptions: this.config.auth,
@@ -122,21 +129,5 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(authorizationClientConfiguration);
 
         return authorizationCodeClient.acquireToken(request);
-    }
-
-    protected getNodeDefaultHeaders(): Map<string, string>{
-        const msalSkuHeaderKey: string = "x-client-SKU";
-        const msalVersionHeaderKey: string = "x-client-VER";
-        const cpuHeaderKey: string = "x-client-CPU";
-        const osHeaderKey: string = "x-client-OS";
-        // const correlationId: string = "client-request_id";
-        // TODO will also add appName and appVersion
-
-        return new Map<string, string>([
-            [msalSkuHeaderKey, "MSAL.node"],
-            [msalVersionHeaderKey, "0.1.0"],
-            [cpuHeaderKey, ""],
-            [osHeaderKey, process.platform]
-        ]);
     }
 }
