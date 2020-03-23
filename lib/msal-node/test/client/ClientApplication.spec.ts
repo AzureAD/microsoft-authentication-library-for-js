@@ -1,7 +1,11 @@
-import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { ClientConfiguration } from './../../src/index';
+import {ClientApplication} from "client/ClientApplication";
+import {ClientConfiguration} from "config/ClientConfiguration";
+import {PublicClientApplication} from "client/PublicClientApplication";
+import {AuthorizationCodeUrlRequest} from "@azure/msal-common";
 
-describe('PublicClientApplication', () => {
+
+
+describe('ClientApplication', () => {
     test('exports a class', () => {
         const msalConfig: ClientConfiguration= {
             auth: {
@@ -17,4 +21,14 @@ describe('PublicClientApplication', () => {
         const authApp = new PublicClientApplication(msalConfig);
         expect(authApp).toBeInstanceOf(PublicClientApplication);
     });
+
+    test('authorization code url', () => {
+        const authCodeUrlRequest: AuthorizationCodeUrlRequest
+
+
+    })
+
+
+
+
 });

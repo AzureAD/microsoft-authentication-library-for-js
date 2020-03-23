@@ -50,7 +50,7 @@ export abstract class ClientApplication {
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
-    constructor(configuration: ClientConfiguration) {
+    protected constructor(configuration: ClientConfiguration) {
         // Set the configuration.
         this.config = buildConfiguration(configuration);
 
@@ -79,23 +79,7 @@ export abstract class ClientApplication {
      */
     async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
-        const authorizationCodeParameters: Configuration = {
-            authOptions: this.config.auth,
-            systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry,
-            },
-            loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
-            },
-            cryptoInterface: this.crypto,
-            networkInterface: this.networkClient,
-            storageInterface: this.storage,
-        };
-
-        const authorizationCodeClient = new AuthorizationCodeClient(authorizationCodeParameters);
-
+        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
 
@@ -111,7 +95,12 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<string> {
 
-        const authorizationClientConfiguration: Configuration = {
+        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+        return authorizationCodeClient.acquireToken(request);
+    }
+
+    protected buildOauthClientConfiguration(): Configuration {
+        return {
             authOptions: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
@@ -125,9 +114,5 @@ export abstract class ClientApplication {
             networkInterface: this.networkClient,
             storageInterface: this.storage,
         };
-
-        const authorizationCodeClient = new AuthorizationCodeClient(authorizationClientConfiguration);
-
-        return authorizationCodeClient.acquireToken(request);
     }
 }

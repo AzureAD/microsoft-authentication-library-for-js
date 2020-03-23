@@ -38,7 +38,7 @@ export const Constants = {
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "content-type"
+    CONTENT_TYPE = "Content-Type"
 };
 
 /**
@@ -116,7 +116,6 @@ export enum AADServerParamKeys {
     CODE_CHALLENGE = "code_challenge",
     CODE_CHALLENGE_METHOD = "code_challenge_method",
     CODE_VERIFIER = "code_verifier",
-    CLIENT_SECRET = "client_secret",
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
     X_CLIENT_VER = "x-client-Ver",
