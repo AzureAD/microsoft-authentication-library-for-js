@@ -2125,8 +2125,6 @@ export class UserAgentApplication {
         }
         // if valid then construct
         const telemetryPlatform: TelemetryPlatform = {
-            sdk: "msal.js", // TODO need to be able to override this for angular, react, etc
-            sdkVersion: libraryVersion(),
             applicationName,
             applicationVersion
         };
