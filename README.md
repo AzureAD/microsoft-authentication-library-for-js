@@ -77,7 +77,7 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 1. [Initialization](./docs/initialization.md)
 2. [Logging in a User](./docs/loginuser.md)
 3. [Acquiring and Using an Access Token](./docs/acquiretoken.md)
-4. [Managing Token Lifetimes](./docs/renewtoken.md)
+4. [Managing Token Lifetimes](./docs/tokenlifetimes.md)
 5. [Logging Out a User](./docs/logout.md)
 
 ### Advanced Topics
