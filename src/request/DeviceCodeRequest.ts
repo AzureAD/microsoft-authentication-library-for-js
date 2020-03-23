@@ -30,5 +30,9 @@ export type DeviceCodeRequest = {
      */
     cancellationToken?: CancellationToken;
 
+    /**
+     * URI of the authority from which MSAL will acquire the tokens from. If this value is not set, MSAL defaults
+     * to the authority used when configuring the PublicClientApplication.
+     */
     authority?: string;
 };
