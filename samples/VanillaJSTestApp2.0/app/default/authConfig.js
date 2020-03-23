@@ -1,7 +1,8 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "16b0c3aa-11cc-4afc-a44a-12f25e5872b6"
+        clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
+        authority: "https://login.windows-ppe.net/common/"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -17,8 +18,8 @@ const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
-    graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
+    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me",
+    graphMailEndpoint: "https://graph.microsoft-ppe.com/v1.0/me/messages"
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
