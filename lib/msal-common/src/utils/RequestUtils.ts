@@ -188,9 +188,10 @@ export class RequestUtils {
      * @param params
      * @param clientSecret
      */
-    static addClientSecret(params: Map<string, string>, clientSecret: string): void {
-        params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
-    }
+    // TODO uncomment when confidential client flow is added.
+    // static addClientSecret(params: Map<string, string>, clientSecret: string): void {
+    //     params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
+    // }
 
     static addGrantType(params: Map<string, string>, grantType: string): void {
         params.set(`${AADServerParamKeys.GRANT_TYPE}`, encodeURIComponent(grantType));
