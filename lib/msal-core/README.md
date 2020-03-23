@@ -102,7 +102,7 @@ If you would like to skip a cached token and go to the server, please pass in th
 ## Usage
 The example below walks you through how to login a user and acquire a token to be used for Microsoft's Graph Api.
 
-#### Prerequisite
+#### Prerequisites
 
 Before using MSAL.js you will need to [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 

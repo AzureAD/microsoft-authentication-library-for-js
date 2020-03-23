@@ -16,7 +16,7 @@ const argv = require('yargs')
     .argv;
 
 const DEFAULT_PORT = 30662;
-const APP_DIR = __dirname + `/JavascriptSPA`;
+const APP_DIR = __dirname + `/app`;
 
 // Get all sample folders
 const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function(file) {
@@ -44,13 +44,13 @@ const sampleName = argv.sample;
 const isSample = sampleFolders.includes(sampleName);
 if (sampleName && isSample) {
     console.log(`Starting sample ${sampleName}`);
-    app.use(express.static('JavascriptSPA/' + sampleName));
+    app.use(express.static('app/' + sampleName));
 } else {
     if (sampleName && !isSample) {
         console.warn("WARNING: Sample not found.\n");
     }
     console.log("Running default sample.\n");
-    app.use(express.static('JavascriptSPA/default'));
+    app.use(express.static('app/default'));
 }
 
 // Set up a route for index.html.

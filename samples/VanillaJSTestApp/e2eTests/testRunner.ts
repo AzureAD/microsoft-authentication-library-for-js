@@ -11,7 +11,7 @@ const clearRequire = require("clear-module");
 // Set up constants
 const DEFAULT_PORT = 30662;
 const PARENT_DIR = path.dirname(".");
-const APP_DIR = PARENT_DIR + `/JavascriptSPA`;
+const APP_DIR = PARENT_DIR + `/app`;
 
 // Get all sample folders
 const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function(file) {
