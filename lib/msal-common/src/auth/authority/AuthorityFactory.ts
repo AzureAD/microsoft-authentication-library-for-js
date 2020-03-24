@@ -4,12 +4,14 @@
  */
 import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
+import { B2cAuthority } from "./B2cAuthority";
 import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
+import { B2CTrustedHostList } from "../../utils/Constants";
 
 export class AuthorityFactory {
 
@@ -20,14 +22,14 @@ export class AuthorityFactory {
         const authorityUrl = new UrlString(authorityString);
         const components = authorityUrl.getUrlComponents();
         const pathSegments = components.PathSegments;
-        switch (pathSegments[0]) {
-            case "tfp":
-                // tfp denotes a b2c url
-                return AuthorityType.B2C;
-            default:
-                // default authority is always AAD
-                return AuthorityType.Aad;
-        }
+
+        if (pathSegments[0] === "adfs")
+            return AuthorityType.Adfs;
+        else if (Object.keys(B2CTrustedHostList).length)
+            return AuthorityType.B2C;
+
+        // defaults to Aad
+        return AuthorityType.Aad;
     }
 
     /**
@@ -45,6 +47,9 @@ export class AuthorityFactory {
         switch (type) {
             case AuthorityType.Aad:
                 return new AadAuthority(authorityUrl, networkInterface);
+            case AuthorityType.B2C:
+                return new B2cAuthority(authorityUrl, networkInterface);
+            // TODO: Support ADFS here in a later PR
             default:
                 throw ClientAuthError.createInvalidAuthorityTypeError(`Given Url: ${authorityUrl}`);
         }
