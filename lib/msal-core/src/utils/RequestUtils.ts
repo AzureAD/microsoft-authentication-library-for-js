@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
-import { Constants, PromptState, BlacklistedEQParams } from "../utils/Constants";
+import { Constants, PromptState, BlacklistedEQParams, InteractionType } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
@@ -14,7 +14,8 @@ import { TimeUtils } from './TimeUtils';
 
 export type StateObject = {
     state: string,
-    ts: number
+    ts: number,
+    method?: string
 }
 
 /**
@@ -32,7 +33,7 @@ export class RequestUtils {
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
@@ -59,7 +60,7 @@ export class RequestUtils {
         }
 
         // validate and generate state and correlationId
-        const state = this.validateAndGenerateState(request && request.state);
+        const state = this.validateAndGenerateState(request && request.state, interactionType);
         const correlationId = this.validateAndGenerateCorrelationId(request && request.correlationId);
 
         const validatedRequest: AuthenticationParameters = {
@@ -137,9 +138,9 @@ export class RequestUtils {
      * generate unique state per request
      * @param request
      */
-    static validateAndGenerateState(state: string): string {
+    static validateAndGenerateState(state: string, interactionType: InteractionType): string {
         // append GUID to user set state  or set one for the user if null
-        return !StringUtils.isEmpty(state) ? RequestUtils.generateLibraryState() + "|" + state : RequestUtils.generateLibraryState();
+        return !StringUtils.isEmpty(state) ? RequestUtils.generateLibraryState(interactionType) + "|" + state : RequestUtils.generateLibraryState(interactionType);
     }
 
     /**
@@ -147,10 +148,11 @@ export class RequestUtils {
      *
      * @returns Base64 encoded string representing the state
      */
-    static generateLibraryState(): string {
+    static generateLibraryState(interactionType: InteractionType): string {
         const stateObject: StateObject = {
             state: CryptoUtils.createNewGuid(),
-            ts: TimeUtils.now()
+            ts: TimeUtils.now(),
+            method: interactionType
         };
 
         const stateString = JSON.stringify(stateObject);

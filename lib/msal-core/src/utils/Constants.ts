@@ -51,6 +51,7 @@ export class Constants {
 
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
+    static get interactionTypeSilent(): InteractionType { return "silentInteraction"; }
     static get inProgress(): string { return "inProgress"; }
 }
 
@@ -134,7 +135,7 @@ export const BlacklistedEQParams = [
     SSOTypes.LOGIN_HINT
 ];
 
-export type InteractionType = "redirectInteraction" | "popupInteraction";
+export type InteractionType = "redirectInteraction" | "popupInteraction" | "silentInteraction";
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of

@@ -94,6 +94,7 @@ export interface CacheResult {
  */
 export type ResponseStateInfo = {
     state: string;
+    method?: string;
     ts: number,
     stateMatch: boolean;
     requestType: string;
@@ -236,8 +237,11 @@ export class UserAgentApplication {
         WindowUtils.checkIfBackButtonIsPressed(this.cacheStorage);
 
         // On the server 302 - Redirect, handle this
-        if (urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
-            this.handleRedirectAuthenticationResponse(urlHash);
+        if (urlContainsHash) {
+            const stateInfo = this.getResponseState(urlHash);
+            if (stateInfo.method === Constants.interactionTypeRedirect) {
+                this.handleRedirectAuthenticationResponse(urlHash);
+            }
         }
     }
 
@@ -318,7 +322,7 @@ export class UserAgentApplication {
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -330,7 +334,7 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -343,7 +347,7 @@ export class UserAgentApplication {
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -362,7 +366,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -593,7 +597,7 @@ export class UserAgentApplication {
         apiEvent.apiCode = API_CODE.AcquireTokenSilent;
         this.telemetryManager.startEvent(apiEvent);
         // validate the request
-        const request = RequestUtils.validateRequest(userRequest, false, this.clientId);
+        const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
@@ -1023,7 +1027,7 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error 
+     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error
      * information and saves it in the cache. It then resolves the promises with the result.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
@@ -1043,13 +1047,13 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error 
+     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error
      * information and saves it in the cache. The result can then be accessed by user registered callbacks.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
     private handleRedirectAuthenticationResponse(hash: string): void {
         this.logger.info("Returned from redirect url");
-        
+
         // clear hash from window
         window.location.hash = "";
 
@@ -1095,6 +1099,7 @@ export class UserAgentApplication {
                 requestType: Constants.unknown,
                 state: parameters.state,
                 ts: parsedState.ts,
+                method: parsedState.method,
                 stateMatch: false
             };
         } else {
