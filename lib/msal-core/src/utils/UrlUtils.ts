@@ -52,7 +52,7 @@ export class UrlUtils {
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
         str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
 
-        str.push("state=" + encodeURIComponent(serverRequestParams.encodedState));
+        str.push("state=" + encodeURIComponent(serverRequestParams.state));
         str.push("nonce=" + encodeURIComponent(serverRequestParams.nonce));
 
         str.push("client_info=1");

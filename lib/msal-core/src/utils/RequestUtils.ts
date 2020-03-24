@@ -14,7 +14,7 @@ import { TimeUtils } from './TimeUtils';
 
 export type StateObject = {
     state: string,
-    iat: number
+    ts: number
 }
 
 /**
@@ -149,10 +149,15 @@ export class RequestUtils {
         return !StringUtils.isEmpty(state) ? RequestUtils.generateLibraryState() + "|" + state : RequestUtils.generateLibraryState();
     }
 
+    /**
+     * Generates the state value used by the library.
+     *
+     * @returns Base64 encoded string representing the state
+     */
     static generateLibraryState(): string {
         const stateObject: StateObject = {
             state: CryptoUtils.createNewGuid(),
-            iat: TimeUtils.now()
+            ts: TimeUtils.now()
         };
 
         const stateString = JSON.stringify(stateObject);
@@ -160,11 +165,17 @@ export class RequestUtils {
         return CryptoUtils.base64Encode(stateString);
     }
 
+    /**
+     * Decodes the state value into a StateObject
+     *
+     * @param state State value returned in the request
+     * @returns Parsed values from the encoded state value
+     */
     static parseLibraryState(state: string): StateObject {
         if (CryptoUtils.isGuid(state)) {
             return {
                 state,
-                iat: TimeUtils.now()
+                ts: TimeUtils.now()
             }
         }
 

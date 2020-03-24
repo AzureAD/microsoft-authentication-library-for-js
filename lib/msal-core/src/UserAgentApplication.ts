@@ -94,7 +94,7 @@ export interface CacheResult {
  */
 export type ResponseStateInfo = {
     state: string;
-    iat: number,
+    ts: number,
     stateMatch: boolean;
     requestType: string;
 };
@@ -1108,8 +1108,8 @@ export class UserAgentApplication {
 
             stateResponse = {
                 requestType: Constants.unknown,
-                state: parsedState.state,
-                iat: parsedState.iat,
+                state: parameters.state,
+                ts: parsedState.ts,
                 stateMatch: false
             };
         } else {
@@ -1394,7 +1394,7 @@ export class UserAgentApplication {
             // Generate and cache accessTokenKey and accessTokenValue
             const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
             const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
-            expiration = parsedState.iat + expiresIn;
+            expiration = parsedState.ts + expiresIn;
             const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
             const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 

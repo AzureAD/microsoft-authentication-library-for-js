@@ -25,7 +25,6 @@ export class ServerRequestParameters {
 
     nonce: string;
     state: string;
-    encodedState: string;
 
     // telemetry information
     xClientVer: string;
@@ -52,9 +51,9 @@ export class ServerRequestParameters {
      * @param scope
      * @param responseType
      * @param redirectUri
-     * @param encodedState
+     * @param state
      */
-    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, scopes: Array<string>, encodedState: string, correlationId: string) {
+    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, scopes: Array<string>, state: string, correlationId: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
         this.nonce = CryptoUtils.createNewGuid();
@@ -63,8 +62,7 @@ export class ServerRequestParameters {
         this.scopes = scopes? [ ...scopes] : [clientId];
 
         // set state (already set at top level)
-        this.encodedState = encodedState;
-        this.state = RequestUtils.parseLibraryState(encodedState).state;
+        this.state = state;
 
         // set correlationId
         this.correlationId = correlationId;
