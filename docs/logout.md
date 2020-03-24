@@ -1,6 +1,6 @@
 # Logging Out of MSAL
 
-Before you start here, make sure you understand how to [login](./login.md), [acquire tokens](./acquiretoken.md), and [manage token lifetimes](./tokenlifetimes.md).
+Before you start here, make sure you understand how to [login](./loginuser.md), [acquire tokens](./acquiretoken.md), and [manage token lifetimes](./tokenlifetimes.md).
 
 ## Logging out
 

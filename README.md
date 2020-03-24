@@ -1,7 +1,7 @@
-# Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications
+# (Preview) Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications
 [![npm version](https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-browser/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-browser.svg)](https://nodei.co/npm/@azure/msal-browser/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-core/" target="_blank">Library Reference</a> |
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/" target="_blank">Library Reference</a> |
 | --- | --- | --- |
 
 1. [About](#about)
@@ -28,7 +28,7 @@ The `msal-browser` package described by the code in this folder uses the [`msal-
 
 This is an improvement upon the current `msal-core` library which will utilize the authorization code flow in the browser. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `msal-browser` package does NOT support the implicit flow.
 
-**IMPORTANT:** Please be aware that this is not a production ready library. You are required to use a browser that disables CORS checks. The server will be making changes that will allow CORS requests and remove the requirement for client secret for applications which are registered using a `SPA` type redirect.
+**IMPORTANT:** Please be aware that this is not a production ready library. We are making changes in the portal to ensure we can deliver a polished end-to-end experience.
 
 ## FAQ
 
@@ -48,16 +48,9 @@ January 17, 2020 | msal-browser v2.0.0-alpha | No release notes yet | Alpha vers
 
 - Before using `msal-browser` you will need to [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 
-- You will also need a CORS-disabled browser until the AAD service has rolled out changes to introduce CORS requests on the `/token` endpoint. This is not a recommended production setting, but for the purposes of this alpha you should follow these instructions:
-    - We recommend using Chrome for this. 
-        - For Windows machines, you can do the following:
-            1. Right click on your desktop -> New -> Shortcut
-            2. Paste the following: 
-            ```javascript
-            "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --disable-gpu --user-data-dir=~/chromeTemp
-            ```
-            3. Click next and create a name for the shortcut (i.e. Chrome-no-cors)
-        - For other machines, you can follow the steps [here](https://alfilatov.com/posts/run-chrome-without-cors/) to figure out how to run Chrome withput CORS enabled for your OS.
+- Once you have registered your application, you will need to do two things in order to ensure MSAL 2.0 will successfully retrieve tokens:
+    1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the redirect URIs from the Authentication tab - that's OK! We are working on getting UI set up for this.
+    2. Ensure your `Default Client Type` settings have "Treat application as public client" set to "Yes". 
 
 ## Installation
 ### Via NPM:
@@ -89,7 +82,7 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 
 ## Samples
 
-The [`VanillaJSTestApp2.0` folder](../samples/VanillaJSTestApp2.0) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`. 
+The [`VanillaJSTestApp2.0` folder](../../samples/VanillaJSTestApp2.0) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`. 
 
 Here is a complete list of samples for the MSAL.js 2.x library:
 
@@ -97,11 +90,25 @@ Here is a complete list of samples for the MSAL.js 2.x library:
 | ------ | ----------- | ---------- |
 | [Basic Auth Sample](../../samples/VanillaJSTestApp2.0/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
 
-More instructions to run the sample can be found in the [`README.md` file](../samples/VanillaJSTestApp2.0/README.md) of the VanillaJSTestApp2.0 folder.
+More instructions to run the sample can be found in the [`README.md` file](../../samples/VanillaJSTestApp2.0/README.md) of the VanillaJSTestApp2.0 folder.
 
 ## Build and Test
 
 ### Build Library
+```javascript
+// Change to the root of the msal repo
+cd microsoft-authentication-library-for-js/
+// Install npm dependencies and bootstrap packages
+npm install
+// Build library
+npm run build
+// To run build only for the browser package
+npm run build -- --scope @azure/msal-browser
+```
+
+#### Alternate Build Instructions
+If you are having issues with `lerna`, you can try the following:
+
 ```javascript
 // Change to the msal-browser package directory
 cd lib/msal-browser/
@@ -122,6 +129,8 @@ npm test
 // To run tests with code coverage
 npm run test:coverage:only
 ```
+
+- If you are having issues with `lerna`, change to the msal-browser directory and run the commands directly there.
 
 ## OAuth 2.0 and the Implicit Flow vs Authorization Code Flow with PKCE
 MSAL.js 1.x implemented the [Implicit Grant Flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and [OpenID](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc).
