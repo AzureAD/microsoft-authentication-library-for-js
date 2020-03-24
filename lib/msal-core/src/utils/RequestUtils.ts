@@ -172,14 +172,16 @@ export class RequestUtils {
      * @returns Parsed values from the encoded state value
      */
     static parseLibraryState(state: string): StateObject {
-        if (CryptoUtils.isGuid(state)) {
+        const libraryState = state.split("|")[0];
+
+        if (CryptoUtils.isGuid(libraryState)) {
             return {
                 state,
                 ts: TimeUtils.now()
             }
         }
 
-        const stateString = CryptoUtils.base64Decode(state);
+        const stateString = CryptoUtils.base64Decode(libraryState);
 
         const stateObject = JSON.parse(stateString);
 
