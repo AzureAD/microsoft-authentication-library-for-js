@@ -4,7 +4,7 @@ export { ClientConfiguration, buildConfiguration } from './config/ClientConfigur
 export { Storage } from './cache/Storage';
 
 // crypto
-export { CryptoOps } from './crypto/CryptoOps';
+export { CryptoProvider } from './crypto/CryptoProvider';
 
 // Common Object Formats
 export {

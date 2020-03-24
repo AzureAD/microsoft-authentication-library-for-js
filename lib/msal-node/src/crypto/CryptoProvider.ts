@@ -12,7 +12,7 @@ import { PkceGenerator } from './PkceGenerator';
  * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
  */
-export class CryptoOps implements ICrypto {
+export class CryptoProvider implements ICrypto {
     private pkceGenerator: PkceGenerator;
 
     constructor() {

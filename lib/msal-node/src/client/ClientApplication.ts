@@ -11,7 +11,7 @@ import {
     INetworkModule,
 } from '@azure/msal-common';
 import { ClientConfiguration, buildConfiguration } from '../config/ClientConfiguration';
-import { CryptoOps } from '../crypto/CryptoOps';
+import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { NetworkUtils } from './../utils/NetworkUtils';
 
@@ -21,7 +21,7 @@ export abstract class ClientApplication {
     protected config: ClientConfiguration;
 
     // Crypto interface implementation
-    protected crypto: CryptoOps;
+    protected crypto: CryptoProvider;
 
     // Storage interface implementation
     protected storage: Storage;
@@ -55,7 +55,7 @@ export abstract class ClientApplication {
         this.config = buildConfiguration(configuration);
 
         // Initialize the crypto class.
-        this.crypto = new CryptoOps();
+        this.crypto = new CryptoProvider();
 
         // Initialize the network module class.
         this.networkClient = NetworkUtils.getNetworkClient();

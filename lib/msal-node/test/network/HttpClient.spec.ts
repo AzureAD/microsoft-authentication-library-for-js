@@ -1,10 +1,7 @@
 import { HttpClient } from '../../src/network/HttpClient';
 import axios, { AxiosResponse } from 'axios';
-<<<<<<< HEAD
-import { mocked } from 'ts-jest/dist/util/testing'; //<-- This allows to mock results
-=======
 import { mocked } from "ts-jest"; //<-- This allows to mock results
->>>>>>> msal-node-network
+
 
 jest.mock('axios');
 
