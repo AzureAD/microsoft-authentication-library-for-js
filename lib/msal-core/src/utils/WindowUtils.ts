@@ -178,7 +178,7 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        if (document.body !== iframe.parentNode) {
+        if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
     }
