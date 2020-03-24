@@ -9,8 +9,8 @@
     "@babel/preset-typescript": "^7.7.2",
     "@istanbuljs/nyc-config-babel": "^2.1.1",
     "babel-plugin-istanbul": "^5.2.0",
-    "coveralls": "^3.0.8",
-    "lerna": "^3.16.4",
+    "coveralls": "^3.0.11",
+    "lerna": "^3.20.2",
     "nyc": "^14.1.1",
     "rimraf": "^3.0.0"
   },
