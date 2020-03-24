@@ -12,7 +12,10 @@ import {
     ServerError,
     Authority,
     AuthResponse,
-    InteractionRequiredAuthError
+    InteractionRequiredAuthError,
+    Logger,
+    CryptoUtils,
+    LogLevel
 } from "../src/index";
 import sinon from "sinon";
 import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
@@ -167,7 +170,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
             expect(configureTestCase).to.throw(ClientConfigurationError);
         });
-        it("telemetry manager exists in UAA when configured", () => {
+        it("non stubbed telemetry manager exists in UAA when configured", () => {
             msal = new UserAgentApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -184,15 +187,21 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.telemetryManager).to.not.be.undefined;
             // @ts-ignore
             expect(msal.telemetryManager).to.not.be.null;
+            // @ts-ignore
+            expect(msal.telemetryManager.telemetryPlatform.applicationName).to.eq(TEST_CONFIG.applicationName);
         });
-        it("telemetry manager doesn't exis in UAA when not configured", () => {
+        it("stubbed telemetry manager exists in UAA when not configured", () => {
             msal = new UserAgentApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
             // @ts-ignore
-            expect(msal.telemetryManager).to.be.null;
+            expect(msal.telemetryManager).to.not.be.undefined;
+            // @ts-ignore
+            expect(msal.telemetryManager).to.not.be.null;
+            // @ts-ignore
+            expect(msal.telemetryManager.telemetryPlatform.applicationName).to.eq("UnSetStub");
         });
     });
 
@@ -1608,4 +1617,39 @@ describe("UserAgentApplication.ts Class", function () {
             };
         });
     });
+
+    describe('Logger', () => {
+        it('getLogger and setLogger', done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+
+            const correlationId = CryptoUtils.createNewGuid();
+
+            const logger = new Logger((level, message, containsPii) => {
+                expect(message).to.contain('Message');
+                expect(message).to.contain(correlationId);
+                expect(message).to.contain(LogLevel.Info);
+
+                expect(level).to.equal(LogLevel.Info);
+                expect(containsPii).to.be.false;
+
+                done();
+            }, {
+                correlationId,
+                piiLoggingEnabled: false
+            });
+
+            msal.setLogger(logger);
+
+            expect(msal.getLogger()).to.equal(logger);
+
+            msal.getLogger().info('Message');
+        });
+    })
 });

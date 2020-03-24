@@ -9,6 +9,7 @@ import {
     TelemetryEmitter
 } from "./TelemetryTypes";
 import DefaultEvent from "./DefaultEvent";
+import { libraryVersion, Constants } from "../utils/Constants";
 
 // for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
@@ -35,7 +36,15 @@ export default class TelemetryManager {
 
     constructor(config: TelemetryConfig, telemetryEmitter: TelemetryEmitter) {
         // TODO THROW if bad options
-        this.telemetryPlatform = config.platform;
+        this.telemetryPlatform = {
+            sdk: Constants.libraryName,
+            sdkVersion: libraryVersion(),
+            networkInformation: {
+                // @ts-ignore
+                connectionSpeed: navigator && navigator.connection && navigator.connection.effectiveType
+            },
+            ...config.platform
+        };
         this.clientId = config.clientId;
         this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
         /*
@@ -44,6 +53,22 @@ export default class TelemetryManager {
          * optional?
          */
         this.telemetryEmitter = telemetryEmitter;
+    }
+
+    static getTelemetrymanagerStub(clientId: string) : TelemetryManager {
+        const applicationName = "UnSetStub";
+        const applicationVersion = "0.0";
+        const telemetryEmitter = () => {};
+        const telemetryPlatform: TelemetryPlatform = {
+            applicationName,
+            applicationVersion
+        };
+        const telemetryManagerConfig: TelemetryConfig = {
+            platform: telemetryPlatform,
+            clientId: clientId
+        };
+
+        return new this(telemetryManagerConfig, telemetryEmitter);
     }
 
     startEvent(event: TelemetryEvent) {
