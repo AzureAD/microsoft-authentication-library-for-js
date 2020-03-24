@@ -38,7 +38,7 @@
         "clean:coverage": "rimraf ../../.nyc_output/*",
         "lint": "eslint src --ext .ts",
         "doc": "npm run doc:generate && npm run doc:deploy",
-        "doc:generate": "typedoc --mode modules --includeDeclarations --excludeExternals --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
+        "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
         "doc:deploy": "gh-pages -d ref -a -e ref/msal-browser",
         "pretest": "npm link @azure/msal-common",
         "test": "mocha",
