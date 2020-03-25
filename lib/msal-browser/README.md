@@ -38,9 +38,10 @@ See [here](./FAQ.md).
 
 *Expect us to detail our major and minor releases moving forward, while leaving out our patch releases.  Patch release notes can be found in our change log.*
 
-Date | Release | Announcement | Main features
-------| ------- | ---------| ---------
-January 17, 2020 | msal-browser v2.0.0-alpha | No release notes yet | Alpha version of the `msal-browser` package with authorization code flow for SPAs working in dev; relies on msal-common v1.0.0-alpha
+| Date | Release | Announcement | Main features |
+| ------| ------- | ---------| --------- |
+|  | msal-browser v2.0.0-beta | No release notes yet | Beta version of the `msal-browser` package; relies on `msal-common` v1.0.0-beta |
+| January 17, 2020 | msal-browser v2.0.0-alpha | No release notes yet | Alpha version of the `msal-browser` package with authorization code flow for SPAs working in dev; relies on msal-common v1.0.0-alpha |
 
 ## Prerequisites
 
