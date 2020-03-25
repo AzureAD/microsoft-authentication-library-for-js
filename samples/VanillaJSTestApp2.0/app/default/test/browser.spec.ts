@@ -55,7 +55,7 @@ describe("Browser tests", function () {
     before(async () => {
         setupScreenshotDir();
         setupCredentials();
-        browser = await puppeteer.launch();
+        browser = await puppeteer.launch({ignoreDefaultArgs: ['--disable-extensions']});
     });
 
     let context: puppeteer.BrowserContext;
