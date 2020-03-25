@@ -37,6 +37,10 @@ export class B2cAuthority extends Authority {
      * @param {string} The host to look up
      */
     public IsInTrustedHostList(host: string): boolean {
+        if (this.IsValidationEnabled && !Object.keys(B2CTrustedHostList).length) {
+            throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
+        }
+        
         return B2CTrustedHostList[host.toLowerCase()];
     }
 }

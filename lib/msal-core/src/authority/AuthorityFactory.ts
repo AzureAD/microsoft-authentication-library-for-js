@@ -8,27 +8,48 @@
  */
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
-import { Authority } from "./Authority";
+import { Authority, AuthorityType } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
+import { UrlUtils } from "../utils/UrlUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { B2CTrustedHostList } from "../utils/Constants";
 
 export class AuthorityFactory {
+
+    /**
+     * Parse the url and determine the type of authority
+     */
+    private static detectAuthorityFromUrl(authorityUrl: string): AuthorityType {
+        authorityUrl = UrlUtils.CanonicalizeUri(authorityUrl);
+        const components = UrlUtils.GetUrlComponents(authorityUrl);
+        const pathSegments = components.PathSegments;
+
+        if (pathSegments[0] === "adfs") {
+            return AuthorityType.Adfs;
+        }
+        else if (Object.keys(B2CTrustedHostList).length) {
+            return AuthorityType.B2C;
+        }
+
+        // Defaults to Aad
+        return AuthorityType.Aad;
+    }	    
 
     /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityType: string): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
-
+        const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
-        switch (authorityType.toLowerCase()) {
-            case "aad":
-                return new AadAuthority(authorityUrl, validateAuthority);
-            case "b2c":
+        switch (type) {
+            case AuthorityType.B2C:
                 return new B2cAuthority(authorityUrl, validateAuthority);
+            case AuthorityType.Aad:
+                return new AadAuthority(authorityUrl, validateAuthority);
             default:
                 throw ClientConfigurationError.createInvalidAuthorityTypeError();
         }
