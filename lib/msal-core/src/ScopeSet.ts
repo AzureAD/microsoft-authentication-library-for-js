@@ -4,7 +4,7 @@
  */
 
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-import { Constants } from './utils/Constants';
+import { Constants } from "./utils/Constants";
 
 export class ScopeSet {
 
