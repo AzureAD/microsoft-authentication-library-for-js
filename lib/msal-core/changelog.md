@@ -1,10 +1,28 @@
+# 1.2.2
+
+## Features
+* Add `setLogger` function to `UserAgentApplication`. (#1251)
+
+## Enhancements
+* Render hidden iframes synchronously if `navigateFrameWait` is set to `0`. (#1278)
+* Add `redirectStartPage` property to `AuthenticationParameters` to allow apps to indicate which page triggered the redirect. (#1343)
+
+## Bugs
+* Properly remove temporary cache entries. (#1339)
+* Always send back the accessToken and scopes if the response includes them. (#1351)
+* Ensure silent operations timeout if the iframe never returns to the app domain. (#1354)
+* Ensure hidden iframes are properly removed. (#1415)
+
+## Logging / Telemetry
+* Add telemetry for `acquireTokenSilent`. (#1388)
+
 # 1.2.1
 
 ## Bugs
 * `urlContainsHash()` is restored as a public API (#1202)
 * `allow-forms` added in sandbox properties for the iframes created by `msal js` to support certain B2C scenarios(#1191)
 
-## enhancements
+## Enhancements
 * `isAngular` flag removal from `redirect` use cases(#1193)
 
 # 1.2.0
@@ -134,7 +152,7 @@ As announced earlier @https://github.com/AzureAD/microsoft-authentication-librar
 ### Release notes:
 
 #### Configuration
-* Initialization of the MSAL JS library – We introduced a ‘Configuration’ object that can be sent through the constructor of UserAgentApplication() class.
+* Initialization of the MSAL JS library – We introduced a 'Configuration' object that can be sent through the constructor of UserAgentApplication() class.
 
 ##### Configuration datatype :
 
@@ -237,17 +255,17 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 
 #### Request Object
 
-* ‘Request’ object is introduced for all login/accessToken calls, this replaces previous overloading of login/acquireToken calls.
+* 'Request' object is introduced for all login/accessToken calls, this replaces previous overloading of login/acquireToken calls.
 * Users can choose to pass optional parameters to finetune their requests for authentication and authorization.
 * 'User' object is now replaced with 'Account' => the public API getUser() is now getAccount() with more enhanced data.
 
 ###### Request Object datatype
 
 ```javascript
-	export type QPDict = {[key: string]: string};
+    export type QPDict = {[key: string]: string};
 
     // Request type
-	export type AuthenticationParameters = {
+    export type AuthenticationParameters = {
         scopes?: Array<string>;
         extraScopesToConsent?: Array<string>;
         prompt?: string;
@@ -298,23 +316,23 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 ```
 
 #### Response Object
-* ‘Response’ and 'Error' objects are introduced for server responses and app failures
-    - For ‘Redirect’ usecases, explicit success and failure call backs should be passed to ‘handleRedirectCallbacks()’.
+* 'Response' and 'Error' objects are introduced for server responses and app failures
+    - For 'Redirect' usecases, explicit success and failure call backs should be passed to 'handleRedirectCallbacks()'.
     - For 'Popup' and 'Silent' usecases,  a promise pattern i.e.,' .then and .catch'  can be used.
 
 ###### Response Object datatype
 
 ```javascript
-	export type AuthResponse = {
-		uniqueId: string;
-		tenantId: string;
-		tokenType: string;
-		idToken: IdToken;
-		accessToken: string;
-		scopes: Array<string>;
-		expiresOn: Date;
-		account: Account;
-		accountState: string;
+    export type AuthResponse = {
+        uniqueId: string;
+        tenantId: string;
+        tokenType: string;
+        idToken: IdToken;
+        accessToken: string;
+        scopes: Array<string>;
+        expiresOn: Date;
+        account: Account;
+        accountState: string;
     };
 ```
 
@@ -322,11 +340,11 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 - Note: Error objects are better classified and messaged with this release. Detailed documentation for Error Handling will be added soon.
 
 ```javascript
-	export class AuthError extends Error {
-		errorCode: string;
-		errorMessage: string;
-		...
-	}
+    export class AuthError extends Error {
+        errorCode: string;
+        errorMessage: string;
+        ...
+    }
 ```
 
 ##### Before (<= 0.2.4)

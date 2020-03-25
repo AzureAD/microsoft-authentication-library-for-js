@@ -32,6 +32,7 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
+import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
 import { Constants,
     ServerHashParamKeys,
     InteractionType,
@@ -41,6 +42,7 @@ import { Constants,
     ErrorCacheKeys,
     B2CTrustedHostList
 } from "./utils/Constants";
+import { CryptoUtils } from "./utils/CryptoUtils";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -500,17 +502,8 @@ export class UserAgentApplication {
         acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
-            let loginStartPage: string;
 
-            if (isLoginCall) {
-                // if the user sets the login start page - angular only??
-                loginStartPage = this.cacheStorage.getItem(`${TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST}${Constants.resourceDelimiter}${request.state}`);
-                if (!loginStartPage || loginStartPage === "") {
-                    loginStartPage = window.location.href;
-                } else {
-                    this.cacheStorage.setItem(`${TemporaryCacheKeys.ANGULAR_LOGIN_REQUEST}${Constants.resourceDelimiter}${request.state}`, "");
-                }
-            }
+            const loginStartPage = request.redirectStartPage || window.location.href;
 
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
@@ -601,7 +594,11 @@ export class UserAgentApplication {
      *
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
-
+        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
+        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
+        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.AcquireTokenSilent;
+        apiEvent.apiCode = API_CODE.AcquireTokenSilent;
+        this.telemetryManager.startEvent(apiEvent);
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId);
 
@@ -722,10 +719,21 @@ export class UserAgentApplication {
                         return null;
                     });
             }
-        }).catch((error: AuthError) => {
-            this.cacheStorage.resetTempCacheItems(request.state);
-            throw error;
-        });
+        })
+            .then(res => {
+                apiEvent.wasSuccessful = true;
+                return res;
+            })
+            .catch((error: AuthError) => {
+                this.cacheStorage.resetTempCacheItems(request.state);
+                apiEvent.apiErrorCode = error.errorCode;
+                apiEvent.wasSuccessful = false;
+                throw error;
+            })
+            .finally(() => {
+                this.telemetryManager.stopEvent(apiEvent);
+                this.telemetryManager.flush(requestCorrelationId);
+            });
     }
 
     // #endregion
@@ -794,10 +802,13 @@ export class UserAgentApplication {
         this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
-        const iframe = await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger);
+        // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
+        const iframe: HTMLIFrameElement = this.config.system.navigateFrameWait ?
+            await WindowUtils.loadFrame(urlNavigate, frameName, this.config.system.navigateFrameWait, this.logger):
+            WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate);
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -1495,6 +1506,11 @@ export class UserAgentApplication {
                 // Process access_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
                     this.logger.info("Fragment has access token");
+                    response.accessToken = hashParams[ServerHashParamKeys.ACCESS_TOKEN];
+
+                    if (hashParams.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
+                        response.scopes = hashParams[ServerHashParamKeys.SCOPE].split(" ");
+                    }
 
                     // retrieve the id_token from response if present
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
@@ -1901,8 +1917,16 @@ export class UserAgentApplication {
      *
      * returns the logger handle
      */
-    protected getLogger() {
-        return this.config.system.logger;
+    getLogger() {
+        return this.logger;
+    }
+
+    /**
+     * Sets the logger callback.
+     * @param logger Logger callback
+     */
+    setLogger(logger: Logger) {
+        this.logger = logger;
     }
 
     // #endregion
@@ -2095,7 +2119,7 @@ export class UserAgentApplication {
      */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
-            return null;
+            return TelemetryManager.getTelemetrymanagerStub(clientId);
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
@@ -2104,8 +2128,6 @@ export class UserAgentApplication {
         }
         // if valid then construct
         const telemetryPlatform: TelemetryPlatform = {
-            sdk: "msal.js", // TODO need to be able to override this for angular, react, etc
-            sdkVersion: libraryVersion(),
             applicationName,
             applicationVersion
         };
