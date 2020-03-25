@@ -91,7 +91,7 @@ describe("RequestUtils.ts class", () => {
     });
 
     it("validate and generate state", () => {
-        sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
+        const nowStub = sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
         const userState: string = "abcd";
         const state: string = RequestUtils.validateAndGenerateState(userState);
         const now = TimeUtils.now();
@@ -101,6 +101,7 @@ describe("RequestUtils.ts class", () => {
         const parsedState = RequestUtils.parseLibraryState(state);
         expect(CryptoUtils.isGuid(parsedState.state)).to.be.equal(true);
         expect(parsedState.ts === now).to.be.equal(true);
+        nowStub.restore();
     });
 
     it("validate and generate correlationId", () => {

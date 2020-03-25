@@ -40,7 +40,9 @@ type kv = {
 describe("UserAgentApplication.ts Class", function () {
 
     // Test state params
+    sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     const TEST_LIBRARY_STATE = RequestUtils.generateLibraryState();
+
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
 
@@ -103,6 +105,7 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
         sinon.stub(WindowUtils, "isInIframe").returns(false);
+        sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     };
 
     const setUtilUnifiedCacheQPStubs = function (params: kv) {
@@ -1163,7 +1166,6 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests that expiresIn returns the correct date for access tokens", function (done) {
-            sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
             const acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
