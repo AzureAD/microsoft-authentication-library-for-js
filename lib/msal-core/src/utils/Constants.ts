@@ -8,6 +8,7 @@
  * Constants
  */
 export class Constants {
+    static get libraryName(): string { return "Msal.js"; } // used in telemetry sdkName
     static get claims(): string { return "claims"; }
     static get clientId(): string { return "clientId"; }
 

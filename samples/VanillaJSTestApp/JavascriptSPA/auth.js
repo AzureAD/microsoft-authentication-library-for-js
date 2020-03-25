@@ -12,7 +12,7 @@ let signInType;
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-const myMSALObj = new Msal.UserAgentApplication(msalConfig); 
+const myMSALObj = new Msal.UserAgentApplication(msalConfig);
 
 // Register Callbacks for Redirect flow
 myMSALObj.handleRedirectCallback(authRedirectCallBack);
@@ -43,7 +43,7 @@ function signIn(method) {
     signInType = isIE ? "loginRedirect" : method;
     if (signInType === "loginPopup") {
         myMSALObj.loginPopup(loginRequest)
-            .then(loginResponse => {  
+            .then(loginResponse => {
             console.log(loginResponse);
             if (myMSALObj.getAccount()) {
                 showWelcomeMessage(myMSALObj.getAccount());
@@ -66,6 +66,7 @@ function getTokenPopup(request) {
         // fallback to interaction when silent call fails
         return myMSALObj.acquireTokenPopup(request).then(tokenResponse => {
             console.log(tokenResponse);
+            return tokenResponse;
         }).catch(error => {
             console.log(error);
         });
@@ -76,6 +77,7 @@ function getTokenPopup(request) {
 function getTokenRedirect(request) {
     return myMSALObj.acquireTokenSilent(request).then((response) => {
         console.log(response);
+        return response;
     }).catch(error => {
         console.log("silent token acquisition fails. acquiring token using redirect");
         // fallback to interaction when silent call fails
