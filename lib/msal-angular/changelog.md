@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-beta.4
+
+* Requires `msal@1.2.2-beta.2`, which add `redirectStartUrl` to `AuthenticationParameters`, so that when a redirect operation from MSAL Guard is succesfully completed, redirect to the desired destination page. (#1343)
+* Short-circuit MSAL Guard if it detects it is loaded in an iframe, to prevent timeouts that occur as a result of redirecting. (#1337)
+* If framework.protectedResourceMap/unprotectedResources is empty, use msalAngularConfig.protectedResourceMap/unprotectedResources. (#1355)
+
 ## 1.0.0-beta.3
 
 Fixes issues related to support for Angular 9 and Ivy.

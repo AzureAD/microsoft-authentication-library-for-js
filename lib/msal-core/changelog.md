@@ -11,6 +11,7 @@
 * Properly remove temporary cache entries. (#1339)
 * Always send back the accessToken and scopes if the response includes them. (#1351)
 * Ensure silent operations timeout if the iframe never returns to the app domain. (#1354)
+* Ensure hidden iframes are properly removed. (#1415)
 
 ## Logging / Telemetry
 * Add telemetry for `acquireTokenSilent`. (#1388)
