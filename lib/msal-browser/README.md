@@ -79,6 +79,7 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 - [Request and Response Details](./docs/requestresponseobject.md)
 - [Cache Storage](./docs/caching.md)
 - [Logging](./docs/logging.md)
+- [Network Client](./docs/networkclient.md)
 
 ## Samples
 
