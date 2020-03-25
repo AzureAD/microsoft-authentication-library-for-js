@@ -10,12 +10,13 @@ import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
 import { StringUtils } from "../utils/StringUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
-import { TimeUtils } from './TimeUtils';
+import { TimeUtils } from "./TimeUtils";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 export type StateObject = {
     state: string,
     ts: number
-}
+};
 
 /**
  * @hidden
@@ -178,14 +179,18 @@ export class RequestUtils {
             return {
                 state,
                 ts: TimeUtils.now()
-            }
+            };
         }
 
-        const stateString = CryptoUtils.base64Decode(libraryState);
+        try {
+            const stateString = CryptoUtils.base64Decode(libraryState);
 
-        const stateObject = JSON.parse(stateString);
+            const stateObject = JSON.parse(stateString);
 
-        return stateObject;
+            return stateObject;
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(state, null);
+        }
     }
 
     /**
