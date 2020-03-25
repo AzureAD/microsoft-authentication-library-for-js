@@ -4,7 +4,7 @@
  */
 
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
-import { AuthenticationParameters } from "./AuthenticationParameters";
+import { Constants } from './utils/Constants';
 
 export class ScopeSet {
 
@@ -117,7 +117,7 @@ export class ScopeSet {
      */
     static getScopeFromState(state: string): string {
         if (state) {
-            const splitIndex = state.indexOf("|");
+            const splitIndex = state.indexOf(Constants.resourceDelimiter);
             if (splitIndex > -1 && splitIndex + 1 < state.length) {
                 return state.substring(splitIndex + 1);
             }

@@ -94,7 +94,7 @@ export interface CacheResult {
  */
 export type ResponseStateInfo = {
     state: string;
-    ts: number,
+    timestamp: number,
     stateMatch: boolean;
     requestType: string;
 };
@@ -1109,7 +1109,7 @@ export class UserAgentApplication {
             stateResponse = {
                 requestType: Constants.unknown,
                 state: parameters.state,
-                ts: parsedState.ts,
+                timestamp: parsedState.ts,
                 stateMatch: false
             };
         } else {
@@ -1706,7 +1706,7 @@ export class UserAgentApplication {
      */
     getAccountState (state: string) {
         if (state) {
-            const splitIndex = state.indexOf("|");
+            const splitIndex = state.indexOf(Constants.resourceDelimiter);
             if (splitIndex > -1 && splitIndex + 1 < state.length) {
                 return state.substring(splitIndex + 1);
             }

@@ -13,7 +13,7 @@ import { CryptoUtils } from "../utils/CryptoUtils";
 import { TimeUtils } from "./TimeUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
-export type StateObject = {
+export type LibraryStateObject = {
     state: string,
     ts: number
 };
@@ -143,11 +143,12 @@ export class RequestUtils {
      * @ignore
      *
      * generate unique state per request
-     * @param request
+     * @param userState User-provided state value
+     * @returns State string include library state and user state
      */
-    static validateAndGenerateState(state: string): string {
-        // append GUID to user set state  or set one for the user if null
-        return !StringUtils.isEmpty(state) ? RequestUtils.generateLibraryState() + "|" + state : RequestUtils.generateLibraryState();
+    static validateAndGenerateState(userState: string): string {
+        // append GUID to user set state or set one for the user if null
+        return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState()}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState();
     }
 
     /**
@@ -156,7 +157,7 @@ export class RequestUtils {
      * @returns Base64 encoded string representing the state
      */
     static generateLibraryState(): string {
-        const stateObject: StateObject = {
+        const stateObject: LibraryStateObject = {
             state: CryptoUtils.createNewGuid(),
             ts: TimeUtils.now()
         };
@@ -172,8 +173,8 @@ export class RequestUtils {
      * @param state State value returned in the request
      * @returns Parsed values from the encoded state value
      */
-    static parseLibraryState(state: string): StateObject {
-        const libraryState = state.split("|")[0];
+    static parseLibraryState(state: string): LibraryStateObject {
+        const libraryState = state.split(Constants.resourceDelimiter)[0];
 
         if (CryptoUtils.isGuid(libraryState)) {
             return {
