@@ -21,23 +21,16 @@ export class RequestUtils {
      *
      * @param request
      * @param isLoginCall
-     * @param requestType
-     * @param redirectCallbacksSet
      * @param cacheStorage
      * @param clientId
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, requestType?: string, redirectCallbacksSet?: boolean): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
             throw ClientConfigurationError.createEmptyRequestError();
-        }
-
-        // Throw error if callbacks are not set before redirect
-        if(requestType == Constants.interactionTypeRedirect && !redirectCallbacksSet) {
-            throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
 
         let scopes: Array<string>;
