@@ -20,7 +20,7 @@ In MSAL 1.x, you created an application instance as below:
 const msalInstance = new UserAgentApplication(config);
 ```
 
-In MSAL 2.x, you can simply update this to use the new `PublicClientApplication` object.
+In MSAL 2.x, you can update this to use the new `PublicClientApplication` object.
 
 ```javascript
 const msalInstance = new PublicClientApplication(config);
