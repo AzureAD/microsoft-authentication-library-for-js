@@ -30,14 +30,15 @@ export const Constants = {
     FRAGMENT_RESPONSE_MODE: "fragment",
     QUERY_RESPONSE_MODE: "query",
     S256_CODE_CHALLENGE_METHOD: "S256",
-    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8"
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
+    AUTHORIZATION_PENDING: "authorization_pending"
 };
 
 /**
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "content-type"
+    CONTENT_TYPE = "Content-Type"
 };
 
 /**
@@ -115,7 +116,6 @@ export enum AADServerParamKeys {
     CODE_CHALLENGE = "code_challenge",
     CODE_CHALLENGE_METHOD = "code_challenge_method",
     CODE_VERIFIER = "code_verifier",
-    CLIENT_SECRET = "client_secret",
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
     X_CLIENT_VER = "x-client-Ver",

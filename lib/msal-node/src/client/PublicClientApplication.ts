@@ -3,13 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import {
-    DeviceCodeClient,
-    DeviceCodeRequest,
-    AuthenticationResult,
-    Configuration,
-} from '@azure/msal-common';
-import { ClientConfiguration } from '../config/ClientConfiguration';
+import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from "@azure/msal-common";
+import { ClientConfiguration} from '../config/ClientConfiguration';
 import { ClientApplication } from './ClientApplication';
 
 /**
@@ -48,31 +43,11 @@ export class PublicClientApplication extends ClientApplication {
      * instructed to use another device to navigate to the verification URI to input credentials.
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
-     * @param requestParameters
+     * @param request
      */
-    public async acquireTokenByDeviceCode(
-        request: DeviceCodeRequest
-    ): Promise<AuthenticationResult> {
-        const deviceCodeClientConfiguration: Configuration = {
-            authOptions: this.config.auth,
-            systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system
-                    .tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry,
-            },
-            loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions
-                    .piiLoggingEnabled,
-            },
-            cryptoInterface: this.crypto,
-            networkInterface: this.networkClient,
-            storageInterface: this.storage,
-        };
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult>{
 
-        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(
-            deviceCodeClientConfiguration
-        );
+        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(this.buildOauthClientConfiguration());
         return deviceCodeClient.acquireToken(request);
     }
 }

@@ -1,12 +1,11 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration } from './../../src/index';
+import { ClientConfiguration } from './../../src/index';
 
 describe('PublicClientApplication', () => {
     test('exports a class', () => {
-        const msalConfig: Configuration = {
+        const msalConfig: ClientConfiguration= {
             auth: {
                 clientId: 'b41a6fbb-c728-4e03-aa59-d25b0fd383b6',
-                redirectUri: 'http://localhost:3000',
                 authority: 'https://login.microsoftonline.com/TenantId',
             },
             cache: {

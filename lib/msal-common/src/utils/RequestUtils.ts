@@ -3,13 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys, SSOTypes } from "../utils/Constants";
-import { Constants, HeaderNames } from "../utils/Constants";
+import { AADServerParamKeys, SSOTypes } from "./Constants";
+import { Constants, HeaderNames } from "./Constants";
 import { ScopeSet } from "../request/ScopeSet";
-import { Authority } from "../authority/Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
-export class ServerParamsGenerator {
+export class RequestUtils {
 
     /**
      * add response_type = code
@@ -23,13 +22,15 @@ export class ServerParamsGenerator {
     }
 
     /**
-     * add response_mode = fragment (currently hardcoded, have a future option to pass 'query' if the user chooses to)
+     * add response_mode. defaults to query.
      * @param params
+     * @param responseMode
      */
     static addResponseMode(params: Map<string, string>, responseMode?: string): void {
+
         params.set(
             `${AADServerParamKeys.RESPONSE_MODE}`,
-            encodeURIComponent(Constants.QUERY_RESPONSE_MODE)
+            encodeURIComponent((responseMode) ? responseMode : Constants.QUERY_RESPONSE_MODE)
         );
     }
 
@@ -85,6 +86,15 @@ export class ServerParamsGenerator {
      */
     static addLoginHint(params: Map<string, string>, loginHint: string): void {
         params.set(`${SSOTypes.LOGIN_HINT}`, encodeURIComponent(loginHint));
+    }
+
+    /**
+     * add claims
+     * @param params
+     * @param claims
+     */
+    static addClaims(params: Map<string, string>, claims: string): void {
+        params.set(`${AADServerParamKeys.CLAIMS}`, encodeURIComponent(claims));
     }
 
     /**
@@ -187,9 +197,10 @@ export class ServerParamsGenerator {
      * @param params
      * @param clientSecret
      */
-    static addClientSecret(params: Map<string, string>, clientSecret: string): void {
-        params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
-    }
+    // TODO uncomment when confidential client flow is added.
+    // static addClientSecret(params: Map<string, string>, clientSecret: string): void {
+    //     params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
+    // }
 
     static addGrantType(params: Map<string, string>, grantType: string): void {
         params.set(`${AADServerParamKeys.GRANT_TYPE}`, encodeURIComponent(grantType));
