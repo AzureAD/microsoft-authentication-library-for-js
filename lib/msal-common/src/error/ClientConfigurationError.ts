@@ -63,6 +63,10 @@ export const ClientConfigurationErrorMessage = {
     b2cKnownAuthoritiesNotSet: {
         code: "b2c_known_authorities_not_set",
         desc: "Must set known authorities when validateAuthority is set to True and using B2C"
+    },
+    unsupportedAuthorityValidation: {
+        code: "unsupported_authority_validation",
+        desc: "The authority validation is not supported for this authority type."
     }
 };
 
@@ -200,5 +204,13 @@ export class ClientConfigurationError extends ClientAuthError {
     static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
             ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
+    }
+
+    /**
+     * Throws an error when the user passes an authority not set in knownAuthorities
+     */
+    static createUnsupportedAuthorityValidationError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.unsupportedAuthorityValidation.code,
+            ClientConfigurationErrorMessage.unsupportedAuthorityValidation.desc);
     }
 }
