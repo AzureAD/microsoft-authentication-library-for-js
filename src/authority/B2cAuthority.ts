@@ -3,48 +3,34 @@
  * Licensed under the MIT License.
  */
 import { Authority } from "./Authority";
-import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
-import { AuthorityType } from "./AuthorityType";
-import { B2CTrustedHostList, Constants } from "../utils/Constants";
+import { B2CTrustedHostList } from "./AuthorityFactory";
 import { INetworkModule } from "../network/INetworkModule";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { AuthorityType } from './AuthorityType';
 
 /**
- * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
+ * The B2cAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
  */
 export class B2cAuthority extends Authority {
-    // Set authority type to AAD
+    /**
+     * Set authority type to B2C
+     */
     public get authorityType(): AuthorityType {
-        return AuthorityType.Aad;
+        return AuthorityType.B2C;
     }
-
-    // Default AAD Instance Discovery Endpoint
-    private get aadInstanceDiscoveryEndpointUrl(): string {
-        return `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}?api-version=1.0&authorization_endpoint=${this.canonicalAuthority}oauth2/v2.0/authorize`;
-    }
-
-    public constructor(authority: string, networkInterface: INetworkModule) {
+       public constructor(authority: string, networkInterface: INetworkModule) {
         super(authority, networkInterface);
     }
 
     /**
-     * Returns a promise which resolves to the OIDC endpoint
-     * Only responds with the endpoint
+     * Returns a promise with the TenantDiscoveryEndpoint
      */
     public async getOpenIdConfigurationEndpointAsync(): Promise<string> {
-        if (
-            this.isInTrustedHostList(
-                this.canonicalAuthorityUrlComponents.HostNameAndPort
-            )
-        ) {
+        if (this.isInTrustedHostList(this.canonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.defaultOpenIdConfigurationEndpoint;
         }
 
-        // for custom domains in AAD where we query the service for the Instance discovery
-        const response = await this.networkInterface.sendGetRequestAsync<
-        OpenIdConfigResponse
-        >(this.aadInstanceDiscoveryEndpointUrl);
-        return response.tenant_discovery_endpoint;
+        throw ClientConfigurationError.createUnsupportedAuthorityValidationError();
     }
 
     /**

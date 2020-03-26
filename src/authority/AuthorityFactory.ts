@@ -10,8 +10,12 @@ import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
 import { StringUtils } from "./../utils/StringUtils";
 import { UrlString } from "./../url/UrlString";
-import { B2CTrustedHostList } from "./../utils/Constants";
 import { B2cAuthority } from "./B2cAuthority";
+
+/**
+ * Initialize B2CTrustedHostList
+ */
+export const B2CTrustedHostList = {};
 
 export class AuthorityFactory {
 
@@ -30,6 +34,24 @@ export class AuthorityFactory {
 
         // defaults to Aad
         return AuthorityType.Aad;
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     * Use when Authority is B2C is set to True to provide list of allowed domains.
+     * @param knownAuthorities
+     */
+    public static setKnownAuthorities(knownAuthorities: Array<string>): void {
+        if (!Object.keys(B2CTrustedHostList).length){
+            if (!knownAuthorities.length) {
+                throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
+            }
+
+            knownAuthorities.forEach(function(authority){
+                B2CTrustedHostList[authority] = authority;
+            });
+        }
     }
 
     /**
