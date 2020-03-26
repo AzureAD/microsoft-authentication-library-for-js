@@ -32,12 +32,25 @@ export enum API_EVENT_IDENTIFIER {
     Logout = "Logout"
 }
 
+const mapEventIdentiferToCode = {
+    [API_EVENT_IDENTIFIER.AcquireTokenSilent]: API_CODE.AcquireTokenSilent,
+    [API_EVENT_IDENTIFIER.AcquireTokenPopup]: API_CODE.AcquireTokenPopup,
+    [API_EVENT_IDENTIFIER.AcquireTokenRedirect]: API_CODE.AcquireTokenRedirect,
+    [API_EVENT_IDENTIFIER.LoginPopup]: API_CODE.LoginPopup,
+    [API_EVENT_IDENTIFIER.LoginRedirect]: API_CODE.LoginRedirect,
+    [API_EVENT_IDENTIFIER.Logout]: API_CODE.Logout
+};
+
 export default class ApiEvent extends TelemetryEvent {
 
     private logger: Logger;
 
-    constructor(correlationId: string, logger: Logger) {
+    constructor(correlationId: string, logger: Logger, apiEventIdentifier?: API_EVENT_IDENTIFIER) {
         super(prependEventNamePrefix("api_event"), correlationId);
+        if (apiEventIdentifier) {
+            this.apiCode = mapEventIdentiferToCode[apiEventIdentifier];
+            this.apiEventIdentifier = apiEventIdentifier;
+        }
         this.logger = logger;
     }
 

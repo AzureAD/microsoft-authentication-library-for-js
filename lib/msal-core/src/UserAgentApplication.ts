@@ -325,13 +325,6 @@ export class UserAgentApplication {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
 
-        const requestCorrelationId = (userRequest && userRequest.correlationId) || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.LoginRedirect;
-        apiEvent.apiCode = API_CODE.LoginRedirect;
-        this.telemetryManager.startEvent(apiEvent);
-        this.telemetryManager.stopEvent(apiEvent);
-        this.telemetryManager.flush(requestCorrelationId);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -344,14 +337,6 @@ export class UserAgentApplication {
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
-
-        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.AcquireTokenRedirect;
-        apiEvent.apiCode = API_CODE.AcquireTokenRedirect;
-        this.telemetryManager.startEvent(apiEvent);
-        this.telemetryManager.stopEvent(apiEvent);
-        this.telemetryManager.flush(requestCorrelationId);
 
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
@@ -366,31 +351,19 @@ export class UserAgentApplication {
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
-
-        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.LoginPopup;
-        apiEvent.apiCode = API_CODE.LoginPopup;
-        this.telemetryManager.startEvent(apiEvent);
-
-        const requestWithCorrelation: AuthenticationParameters = { ...request, correlationId: requestCorrelationId };
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
-            this.acquireTokenInteractive(Constants.interactionTypePopup, true, requestWithCorrelation, resolve, reject);
+            this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
         })
             .then((resp) => {
-                apiEvent.wasSuccessful = true;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
             .catch((error: AuthError) => {
                 this.cacheStorage.resetTempCacheItems(request.state);
-                apiEvent.apiErrorCode = error.errorCode;
-                apiEvent.wasSuccessful = false;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
-            })
-            .finally(() => {
-                this.telemetryManager.stopEvent(apiEvent);
-                this.telemetryManager.flush(requestCorrelationId);
             });
     }
 
@@ -404,29 +377,19 @@ export class UserAgentApplication {
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
-
-        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.AcquireTokenPopup;
-        apiEvent.apiCode = API_CODE.AcquireTokenPopup;
-        this.telemetryManager.startEvent(apiEvent);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         })
             .then((resp) => {
-                apiEvent.wasSuccessful = true;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
             .catch((error: AuthError) => {
                 this.cacheStorage.resetTempCacheItems(request.state);
-                apiEvent.apiErrorCode = error.errorCode;
-                apiEvent.wasSuccessful = false;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
-            })
-            .finally(() => {
-                this.telemetryManager.stopEvent(apiEvent);
-                this.telemetryManager.flush(requestCorrelationId);
             });
     }
 
@@ -439,7 +402,7 @@ export class UserAgentApplication {
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
 
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
@@ -487,7 +450,7 @@ export class UserAgentApplication {
                         this.logger.error("Error occurred during unified cache ATS: " + error);
 
                         // proceed to login since ATS failed
-                        this.acquireTokenHelper(null, interactionType, isLoginCall, request,resolve, reject);
+                        this.acquireTokenHelper(null, interactionType, isLoginCall, request, resolve, reject);
                     });
                 }
                 // No ADAL token found, proceed to login
@@ -519,7 +482,7 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
@@ -528,8 +491,6 @@ export class UserAgentApplication {
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
 
         let popUpWindow: Window;
-
-        const requestCorrelationId = request.correlationId || CryptoUtils.createNewGuid();
 
         if (interactionType === Constants.interactionTypePopup) {
             // Generate a popup window
@@ -552,7 +513,7 @@ export class UserAgentApplication {
             }
         }
 
-        acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, requestCorrelationId).then(async () => {
+        acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
 
@@ -649,12 +610,7 @@ export class UserAgentApplication {
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId);
-
-        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.AcquireTokenSilent;
-        apiEvent.apiCode = API_CODE.AcquireTokenSilent;
-        this.telemetryManager.startEvent(apiEvent);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
@@ -743,7 +699,7 @@ export class UserAgentApplication {
                 // cache miss
 
                 // start http event
-                return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, requestCorrelationId)
+                return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, request.correlationId)
                     .then(() => {
                         /*
                          * refresh attempt with iframe
@@ -777,18 +733,13 @@ export class UserAgentApplication {
             }
         })
             .then(res => {
-                apiEvent.wasSuccessful = true;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return res;
             })
             .catch((error: AuthError) => {
                 this.cacheStorage.resetTempCacheItems(request.state);
-                apiEvent.apiErrorCode = error.errorCode;
-                apiEvent.wasSuccessful = false;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
-            })
-            .finally(() => {
-                this.telemetryManager.stopEvent(apiEvent);
-                this.telemetryManager.flush(requestCorrelationId);
             });
     }
 
@@ -967,11 +918,9 @@ export class UserAgentApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      */
     logout(correlationId?: string): void {
+        // TODO this new correlation id passed in, is not appended to logout request, should add
         const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.Logout;
-        apiEvent.apiCode = API_CODE.Logout;
-        this.telemetryManager.startEvent(apiEvent);
+        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
 
         this.clearCache();
         this.account = null;
@@ -984,16 +933,11 @@ export class UserAgentApplication {
                 const urlNavigate = authority.EndSessionEndpoint
                     ? `${authority.EndSessionEndpoint}?${logout}`
                     : `${this.authority}oauth2/v2.0/logout?${logout}`;
-                apiEvent.wasSuccessful = true;
-                this.telemetryManager.stopEvent(apiEvent);
-                this.telemetryManager.flush(requestCorrelationId);
+                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
                 this.navigateWindow(urlNavigate);
             })
             .catch((error: AuthError) => {
-                apiEvent.wasSuccessful = false;
-                apiEvent.apiErrorCode = error.errorCode;
-                this.telemetryManager.stopEvent(apiEvent);
-                this.telemetryManager.flush(requestCorrelationId);
+                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
             });
     }
 
