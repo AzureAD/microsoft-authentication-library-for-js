@@ -17,12 +17,7 @@ export const B2CTrustedHostList: object = {};
 
 export class AuthorityFactory {
     /**
-     * @hidden
-     * @ignore
      * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
-     * @param authorityType
-     * @param validateAuthority
-     * @param knownAuthorities
      */
     public static setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>): void {
         if (validateAuthority && !Object.keys(B2CTrustedHostList).length){
