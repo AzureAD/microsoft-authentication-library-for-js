@@ -68,16 +68,16 @@ export class AuthorizationCodeClient extends BaseClient {
     private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<string> {
 
         const tokenParameters: Map<string, string> = this.generateAuthCodeParams(request);
+        const requestBody = RequestUtils.createQueryString(tokenParameters);
+        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
         let acquiredTokenResponse;
         try {
-            acquiredTokenResponse = this.networkClient.sendPostRequestAsync<string>(
+            acquiredTokenResponse = this.executePostToTokenEndpoint(
                 authority.tokenEndpoint,
-                {
-                    body: RequestUtils.createQueryString(tokenParameters),
-                    headers: this.createDefaultTokenRequestHeaders()
-                }
-            );
+                requestBody,
+                headers);
+
             return acquiredTokenResponse;
         } catch (error) {
             console.log(error.response.data); // TODO use logger
@@ -174,6 +174,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.nonce) {
             RequestUtils.addNonce(paramsMap, request.nonce);
+        }
+
+        if(request.claims) {
+            RequestUtils.addClaims(paramsMap, request.claims);
         }
 
         return paramsMap;

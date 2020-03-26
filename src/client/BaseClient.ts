@@ -112,4 +112,23 @@ export abstract class BaseClient {
         RequestUtils.addLibrarydataHeaders(headers);
         return headers;
     }
+
+    /**
+     * Http post to token endpoint
+     * @param tokenEndpoint
+     * @param queryString
+     * @param headers
+     */
+    protected async executePostToTokenEndpoint(
+        tokenEndpoint: string,
+        queryString: string,
+        headers: Map<string, string> ): Promise<string> {
+
+        return this.networkClient.sendPostRequestAsync<string>(
+            tokenEndpoint,
+            {
+                body: queryString,
+                headers: headers,
+            });
+    }
 }
