@@ -12,10 +12,10 @@ import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { Constants } from "../utils/Constants";
-import { ClientAuthError } from "../error/ClientAuthError";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
+import {ClientAuthError} from "../error/ClientAuthError";
+import { RequestUtils } from "../utils/RequestUtils";
 import { B2CTrustedHostList } from "../utils/Constants";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -112,9 +112,28 @@ export abstract class BaseClient {
      */
     protected createDefaultTokenRequestHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
-        ServerParamsGenerator.addContentTypeHeader(headers);
-        ServerParamsGenerator.addLibrarydataHeaders(headers);
+        RequestUtils.addContentTypeHeader(headers);
+        RequestUtils.addLibrarydataHeaders(headers);
         return headers;
+    }
+
+    /**
+     * Http post to token endpoint
+     * @param tokenEndpoint
+     * @param queryString
+     * @param headers
+     */
+    protected async executePostToTokenEndpoint(
+        tokenEndpoint: string,
+        queryString: string,
+        headers: Map<string, string> ): Promise<string> {
+
+        return this.networkClient.sendPostRequestAsync<string>(
+            tokenEndpoint,
+            {
+                body: queryString,
+                headers: headers,
+            });
     }
 
     /**
