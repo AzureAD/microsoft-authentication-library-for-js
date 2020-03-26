@@ -94,8 +94,8 @@ export interface CacheResult {
  */
 export type ResponseStateInfo = {
     state: string;
+    timestamp: number,
     method?: string;
-    ts: number,
     stateMatch: boolean;
     requestType: string;
 };
@@ -1092,13 +1092,13 @@ export class UserAgentApplication {
         if (!parameters) {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
         }
-        if (parameters.hasOwnProperty("state")) {
+        if (parameters.hasOwnProperty(ServerHashParamKeys.STATE)) {
             const parsedState = RequestUtils.parseLibraryState(parameters.state);
 
             stateResponse = {
                 requestType: Constants.unknown,
                 state: parameters.state,
-                ts: parsedState.ts,
+                timestamp: parsedState.ts,
                 method: parsedState.method,
                 stateMatch: false
             };
@@ -1111,13 +1111,13 @@ export class UserAgentApplication {
          */
 
         // loginRedirect
-        if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie) || stateResponse.state === this.silentAuthenticationState) { // loginRedirect
+        if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie) || stateResponse.state === this.silentAuthenticationState) {
             stateResponse.requestType = Constants.login;
             stateResponse.stateMatch = true;
             return stateResponse;
         }
         // acquireTokenRedirect
-        else if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie)) { // acquireTokenRedirect
+        else if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie)) {
             stateResponse.requestType = Constants.renewToken;
             stateResponse.stateMatch = true;
             return stateResponse;
@@ -1696,7 +1696,7 @@ export class UserAgentApplication {
      */
     getAccountState (state: string) {
         if (state) {
-            const splitIndex = state.indexOf("|");
+            const splitIndex = state.indexOf(Constants.resourceDelimiter);
             if (splitIndex > -1 && splitIndex + 1 < state.length) {
                 return state.substring(splitIndex + 1);
             }
