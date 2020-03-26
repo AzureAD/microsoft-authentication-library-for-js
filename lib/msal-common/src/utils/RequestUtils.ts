@@ -89,6 +89,15 @@ export class RequestUtils {
     }
 
     /**
+     * add claims
+     * @param params
+     * @param claims
+     */
+    static addClaims(params: Map<string, string>, claims: string): void {
+        params.set(`${AADServerParamKeys.CLAIMS}`, encodeURIComponent(claims));
+    }
+
+    /**
      * add correlationId
      * @param params
      * @param correlationId
