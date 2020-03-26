@@ -99,7 +99,7 @@ describe("RequestUtils.ts class", () => {
         expect(splitKey[1]).to.contain("abcd");
 
         const parsedState = RequestUtils.parseLibraryState(state);
-        expect(CryptoUtils.isGuid(parsedState.state)).to.be.equal(true);
+        expect(CryptoUtils.isGuid(parsedState.id)).to.be.equal(true);
         expect(parsedState.ts === now).to.be.equal(true);
         nowStub.restore();
     });

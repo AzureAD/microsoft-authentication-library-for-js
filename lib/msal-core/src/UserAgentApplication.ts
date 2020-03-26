@@ -1023,7 +1023,7 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error 
+     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error
      * information and saves it in the cache. It then resolves the promises with the result.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
@@ -1043,13 +1043,13 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error 
+     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error
      * information and saves it in the cache. The result can then be accessed by user registered callbacks.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
     private handleRedirectAuthenticationResponse(hash: string): void {
         this.logger.info("Returned from redirect url");
-        
+
         // clear hash from window
         window.location.hash = "";
 
@@ -1088,7 +1088,7 @@ export class UserAgentApplication {
         if (!parameters) {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
         }
-        if (parameters.hasOwnProperty("state")) {
+        if (parameters.hasOwnProperty(ServerHashParamKeys.STATE)) {
             const parsedState = RequestUtils.parseLibraryState(parameters.state);
 
             stateResponse = {
@@ -1106,13 +1106,13 @@ export class UserAgentApplication {
          */
 
         // loginRedirect
-        if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie) || stateResponse.state === this.silentAuthenticationState) { // loginRedirect
+        if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie) || stateResponse.state === this.silentAuthenticationState) {
             stateResponse.requestType = Constants.login;
             stateResponse.stateMatch = true;
             return stateResponse;
         }
         // acquireTokenRedirect
-        else if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie)) { // acquireTokenRedirect
+        else if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie)) {
             stateResponse.requestType = Constants.renewToken;
             stateResponse.stateMatch = true;
             return stateResponse;

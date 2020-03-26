@@ -14,7 +14,7 @@ import { TimeUtils } from "./TimeUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 export type LibraryStateObject = {
-    state: string,
+    id: string,
     ts: number
 };
 
@@ -151,7 +151,7 @@ export class RequestUtils {
      */
     static generateLibraryState(): string {
         const stateObject: LibraryStateObject = {
-            state: CryptoUtils.createNewGuid(),
+            id: CryptoUtils.createNewGuid(),
             ts: TimeUtils.now()
         };
 
@@ -171,7 +171,7 @@ export class RequestUtils {
 
         if (CryptoUtils.isGuid(libraryState)) {
             return {
-                state,
+                id: libraryState,
                 ts: TimeUtils.now()
             };
         }
