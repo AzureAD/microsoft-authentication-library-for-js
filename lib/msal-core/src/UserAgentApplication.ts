@@ -150,7 +150,8 @@ export class UserAgentApplication {
     // state variables
     private silentAuthenticationState: string;
     private silentLogin: boolean;
-    private redirectCallbacksSet: boolean;
+    private redirectResponse: AuthResponse;
+    private redirectError: AuthError;
 
     // Authority Functionality
     protected authorityInstance: Authority;
@@ -208,9 +209,6 @@ export class UserAgentApplication {
         // Set the Configuration
         this.config = buildConfiguration(configuration);
 
-        // Set the callback boolean
-        this.redirectCallbacksSet = false;
-
         this.logger = this.config.system.logger;
         this.clientId = this.config.auth.clientId;
         this.inCookie = this.config.cache.storeAuthStateInCookie;
@@ -238,7 +236,7 @@ export class UserAgentApplication {
 
         // On the server 302 - Redirect, handle this
         if (urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
-            this.handleAuthenticationResponse(urlHash);
+            this.handleRedirectAuthenticationResponse(urlHash);
         }
     }
 
@@ -255,7 +253,6 @@ export class UserAgentApplication {
     handleRedirectCallback(authCallback: authResponseCallback): void;
     handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
         if (!authOrTokenCallback) {
-            this.redirectCallbacksSet = false;
             throw ClientConfigurationError.createInvalidCallbackObjectError(authOrTokenCallback);
         }
 
@@ -268,12 +265,10 @@ export class UserAgentApplication {
             this.authResponseCallback = authOrTokenCallback as authResponseCallback;
         }
 
-        this.redirectCallbacksSet = true;
-
-        // On the server 302 - Redirect, handle this
-        const cachedHash = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
-        if (cachedHash) {
-            this.processCallBack(cachedHash, null);
+        if (this.redirectError) {
+            this.authErrorHandler(Constants.interactionTypeRedirect, this.redirectError, this.redirectResponse);
+        } else if (this.redirectResponse) {
+            this.authResponseHandler(Constants.interactionTypeRedirect, this.redirectResponse);
         }
     }
 
@@ -322,7 +317,7 @@ export class UserAgentApplication {
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -334,7 +329,7 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect, this.redirectCallbacksSet);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -347,7 +342,7 @@ export class UserAgentApplication {
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -366,7 +361,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -991,9 +986,6 @@ export class UserAgentApplication {
             authErr = err;
         }
 
-        // remove hash from the cache
-        this.cacheStorage.removeItem(TemporaryCacheKeys.URL_HASH);
-
         try {
             // Clear the cookie in the hash
             this.cacheStorage.clearMsalCookie(stateInfo.state);
@@ -1011,12 +1003,13 @@ export class UserAgentApplication {
                     response.tokenType = ServerHashParamKeys.ID_TOKEN;
                 }
                 if (!parentCallback) {
-                    this.authResponseHandler(Constants.interactionTypeRedirect, response);
+                    this.redirectResponse = response;
                     return;
                 }
             } else if (!parentCallback) {
+                this.redirectResponse = buildResponseStateOnly(accountState);
+                this.redirectError = authErr;
                 this.cacheStorage.resetTempCacheItems(stateInfo.state);
-                this.authErrorHandler(Constants.interactionTypeRedirect, authErr, buildResponseStateOnly(accountState));
                 return;
             }
 
@@ -1029,64 +1022,56 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS. It extracts the hash, processes the token or error information and saves it in the cache. It then
-     * calls the registered callbacks in case of redirect or resolves the promises with the result.
+     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error 
+     * information and saves it in the cache. It then resolves the promises with the result.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
     private handleAuthenticationResponse(hash: string): void {
         // retrieve the hash
         const locationHash = hash || window.location.hash;
 
-        // Check if the current flow is popup or hidden iframe
-        const iframeWithHash = WindowUtils.getIframeWithHash(locationHash);
-        const popUpWithHash = WindowUtils.getPopUpWithHash(locationHash);
-        const isPopupOrIframe = !!(iframeWithHash || popUpWithHash);
-
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
         const stateInfo = this.getResponseState(locationHash);
 
-        let tokenResponseCallback: (response: AuthResponse, error: AuthError) => void = null;
-
-        this.logger.info("Returned from redirect url");
-        // If parent window is the msal instance which opened the current window (iframe)
-        if (isPopupOrIframe) {
-            tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
-        } else {
-            // Redirect cases
-            tokenResponseCallback = null;
-            // if set to navigate to loginRequest page post login
-            if (this.config.auth.navigateToLoginRequestUrl) {
-                this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
-                if (window.parent === window) {
-                    const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
-
-                    // Redirect to home page if login request url is null (real null or the string null)
-                    if (!loginRequestUrl || loginRequestUrl === "null") {
-                        this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                        window.location.href = "/";
-                    } else {
-                        window.location.href = loginRequestUrl;
-                    }
-                }
-                return;
-            }
-            else {
-                window.location.hash = "";
-            }
-
-            if (!this.redirectCallbacksSet) {
-                // We reached this point too early - cache hash, return and process in handleRedirectCallbacks
-                this.cacheStorage.setItem(TemporaryCacheKeys.URL_HASH, locationHash);
-                return;
-            }
-        }
-
+        const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
 
         // If current window is opener, close all windows
-        if (isPopupOrIframe) {
-            WindowUtils.closePopups();
+        WindowUtils.closePopups();
+    }
+
+    /**
+     * @hidden
+     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error 
+     * information and saves it in the cache. The result can then be accessed by user registered callbacks.
+     * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+     */
+    private handleRedirectAuthenticationResponse(hash: string): void {
+        this.logger.info("Returned from redirect url");
+        
+        // clear hash from window
+        window.location.hash = "";
+
+        // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
+        const stateInfo = this.getResponseState(hash);
+
+        // if set to navigate to loginRequest page post login
+        if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
+            const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
+            const currentUrl = UrlUtils.getCurrentUrl();
+
+            // Redirect to home page if login request url is null (real null or the string null)
+            if (!loginRequestUrl || loginRequestUrl === "null") {
+                this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
+                window.location.href = "/";
+                return;
+            } else if (currentUrl !== loginRequestUrl) {
+                window.location.href = `${loginRequestUrl}${hash}`;
+                return;
+            }
         }
+
+        this.processCallBack(hash, stateInfo, null);
     }
 
     /**
@@ -1857,10 +1842,6 @@ export class UserAgentApplication {
      * @returns {boolean} true/false
      */
     public getLoginInProgress(): boolean {
-        const pendingCallback = this.cacheStorage.getItem(TemporaryCacheKeys.URL_HASH);
-        if (pendingCallback) {
-            return true;
-        }
         return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.inProgress;
     }
 
