@@ -39,6 +39,7 @@ export type Configuration = {
 export type AuthOptions = {
     clientId: string;
     authority?: string;
+    knownAuthorities?: Array<string>
 };
 
 /**

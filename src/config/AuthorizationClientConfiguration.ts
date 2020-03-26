@@ -15,6 +15,7 @@ export type AuthOptions = {
     clientId: string;
     redirectUri: string;
     authority?: string;
+    knownAuthorities?: string;
 };
 
 /**

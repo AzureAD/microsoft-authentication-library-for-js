@@ -12,8 +12,10 @@ import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { Constants } from "../utils/Constants";
-import {ClientAuthError} from "../error/ClientAuthError";
-import {ServerParamsGenerator} from "../server/ServerParamsGenerator";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ServerParamsGenerator } from "../server/ServerParamsGenerator";
+import { B2CTrustedHostList } from "../utils/Constants";
 
 /**
  * @hidden
@@ -76,6 +78,8 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
+        this.setKnownAuthorities(this.config.authOptions.knownAuthorities);
+
         // Default authority instance.
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
             this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
@@ -111,5 +115,25 @@ export abstract class BaseClient {
         ServerParamsGenerator.addContentTypeHeader(headers);
         ServerParamsGenerator.addLibrarydataHeaders(headers);
         return headers;
+    }
+
+    /**
+     * @hidden
+     * @ignore
+     * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
+     * @param authorityType
+     * @param validateAuthority
+     * @param knownAuthorities
+     */
+    private setKnownAuthorities(knownAuthorities: Array<string>): void {
+        if (!Object.keys(B2CTrustedHostList).length){
+            if (!knownAuthorities.length) {
+                throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
+            }
+
+            knownAuthorities.forEach(function(authority){
+                B2CTrustedHostList[authority] = authority;
+            });
+        }
     }
 }

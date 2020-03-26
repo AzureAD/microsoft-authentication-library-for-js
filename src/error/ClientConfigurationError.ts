@@ -59,6 +59,10 @@ export const ClientConfigurationErrorMessage = {
     invalidCodeChallengeParams: {
         code: "one_of_code_challenge_code_challenge_method_params_missing",
         desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
+    },
+    b2cKnownAuthoritiesNotSet: {
+        code: "b2c_known_authorities_not_set",
+        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
     }
 };
 
@@ -188,5 +192,13 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidCodeChallengeParams.code,
             ClientConfigurationErrorMessage.invalidCodeChallengeParams.desc
         );
+    }
+
+    /**
+     * Throws an error when the user passes B2C authority and does not set knownAuthorities
+     */
+    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
+            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
     }
 }
