@@ -14,7 +14,7 @@ import {
     ClientConfiguration,
     buildConfiguration,
 } from '../config/ClientConfiguration';
-import { CryptoOps } from '../crypto/CryptoOps';
+import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { NetworkUtils } from './../utils/NetworkUtils';
 
@@ -23,7 +23,7 @@ export abstract class ClientApplication {
     protected config: ClientConfiguration;
 
     // Crypto interface implementation
-    protected crypto: CryptoOps;
+    protected crypto: CryptoProvider;
 
     // Storage interface implementation
     protected storage: Storage;
@@ -52,12 +52,12 @@ export abstract class ClientApplication {
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
-    constructor(configuration: ClientConfiguration) {
+    protected constructor(configuration: ClientConfiguration) {
         // Set the configuration.
         this.config = buildConfiguration(configuration);
 
         // Initialize the crypto class.
-        this.crypto = new CryptoOps();
+        this.crypto = new CryptoProvider();
 
         // Initialize the network module class.
         this.networkClient = NetworkUtils.getNetworkClient();
@@ -70,45 +70,45 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Creates a url for logging in a user. This will by default add scopes: openid, profile and offline_access. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
+     * Creates the URL of the authorization request letting the user input credentials and consent to the
+     * application. The URL target the /authorize endpoint of the authority configured in the
+     * application object.
+     *
+     * Once the user inputs their credentials and consents, the authority will send a response to the redirect URI
+     * sent in the request and should contain an authorization code, which can then be used to acquire tokens via
+     * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
     async getAuthCodeUrl(
         request: AuthorizationCodeUrlRequest
     ): Promise<string> {
-        const authorizationCodeParameters: Configuration = {
-            authOptions: this.config.auth,
-            systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system
-                    .tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry,
-            },
-            loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions
-                    .piiLoggingEnabled,
-            },
-            cryptoInterface: this.crypto,
-            networkInterface: this.networkClient,
-            storageInterface: this.storage,
-        };
-
         const authorizationCodeClient = new AuthorizationCodeClient(
-            authorizationCodeParameters
+            this.buildOauthClientConfiguration()
         );
-
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
 
     /**
-     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
+     * Acquires a token by exchanging the Authorization Code received from the first step of OAuth2.0
+     * Authorization Code flow.
+     *
+     * getAuthCodeUrl(AuthorizationCodeUrlRequest) can be used to create the URL for the first step of OAuth2.0
+     * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
+     * AuthorizationCodeRequest are the same.
+     *
      * @param request
      */
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<string> {
-        const authorizationClientConfiguration: Configuration = {
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            this.buildOauthClientConfiguration()
+        );
+        return authorizationCodeClient.acquireToken(request);
+    }
+
+    protected buildOauthClientConfiguration(): Configuration {
+        return {
             authOptions: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system
@@ -124,27 +124,5 @@ export abstract class ClientApplication {
             networkInterface: this.networkClient,
             storageInterface: this.storage,
         };
-
-        const authorizationCodeClient = new AuthorizationCodeClient(
-            authorizationClientConfiguration
-        );
-
-        return authorizationCodeClient.acquireToken(request);
-    }
-
-    protected getNodeDefaultHeaders(): Map<string, string> {
-        const msalSkuHeaderKey: string = 'x-client-SKU';
-        const msalVersionHeaderKey: string = 'x-client-VER';
-        const cpuHeaderKey: string = 'x-client-CPU';
-        const osHeaderKey: string = 'x-client-OS';
-        // const correlationId: string = "client-request_id";
-        // TODO will also add appName and appVersion
-
-        return new Map<string, string>([
-            [msalSkuHeaderKey, 'MSAL.node'],
-            [msalVersionHeaderKey, '0.1.0'],
-            [cpuHeaderKey, ''],
-            [osHeaderKey, process.platform],
-        ]);
     }
 }

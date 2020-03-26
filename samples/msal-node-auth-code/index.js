@@ -56,6 +56,7 @@ function acquireToken(req, res){
         console.log(JSON.stringify(response));
         res.send(200);
     }).catch((error) => {
+        res.send(500);
         console.log(JSON.stringify(error.response));
     })
 }

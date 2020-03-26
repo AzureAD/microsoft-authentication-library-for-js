@@ -7,12 +7,13 @@ export {
 export { Storage } from './cache/Storage';
 
 // crypto
-export { CryptoOps } from './crypto/CryptoOps';
+export { CryptoProvider } from './crypto/CryptoProvider';
 
 // Common Object Formats
 export {
     // Request
-    AuthorizationCodeUrlRequest,
+    AuthorizationCodeRequest,
+    DeviceCodeRequest,
     TokenExchangeParameters,
     // Response
     AuthResponse,

@@ -122,7 +122,6 @@ export abstract class Authority {
 
     constructor(authority: string, networkInterface: INetworkModule) {
         this.canonicalAuthority = authority;
-        console.log("Authority constructor: ", authority);
 
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
