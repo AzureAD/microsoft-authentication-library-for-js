@@ -20,7 +20,7 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<T> {
-     const request: AxiosRequestConfig = {
+        const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
             url: url,
             headers: options && options.headers,

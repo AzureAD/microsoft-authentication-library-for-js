@@ -10,7 +10,10 @@ import {
     Configuration,
     INetworkModule,
 } from '@azure/msal-common';
-import { ClientConfiguration, buildConfiguration } from '../config/ClientConfiguration';
+import {
+    ClientConfiguration,
+    buildConfiguration,
+} from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { NetworkUtils } from './../utils/NetworkUtils';
@@ -76,9 +79,12 @@ export abstract class ClientApplication {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
-
-        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+    async getAuthCodeUrl(
+        request: AuthorizationCodeUrlRequest
+    ): Promise<string> {
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            this.buildOauthClientConfiguration()
+        );
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
 
@@ -92,9 +98,12 @@ export abstract class ClientApplication {
      *
      * @param request
      */
-    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<string> {
-
-        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+    async acquireTokenByCode(
+        request: AuthorizationCodeRequest
+    ): Promise<string> {
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            this.buildOauthClientConfiguration()
+        );
         return authorizationCodeClient.acquireToken(request);
     }
 
