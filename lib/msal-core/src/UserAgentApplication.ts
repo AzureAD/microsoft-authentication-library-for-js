@@ -762,7 +762,7 @@ export class UserAgentApplication {
             const top = ((height / 2) - (popUpHeight / 2)) + winTop;
 
             // open the window
-            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
+            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left + ', scrollbars=yes');
             if (!popupWindow) {
                 throw ClientAuthError.createPopupWindowError();
             }
@@ -1022,7 +1022,7 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error 
+     * This method must be called for processing the response received from the STS if using popups or iframes. It extracts the hash, processes the token or error
      * information and saves it in the cache. It then resolves the promises with the result.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
@@ -1042,13 +1042,13 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error 
+     * This method must be called for processing the response received from the STS when using redirect flows. It extracts the hash, processes the token or error
      * information and saves it in the cache. The result can then be accessed by user registered callbacks.
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
     private handleRedirectAuthenticationResponse(hash: string): void {
         this.logger.info("Returned from redirect url");
-        
+
         // clear hash from window
         window.location.hash = "";
 
