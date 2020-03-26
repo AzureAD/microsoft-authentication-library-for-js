@@ -110,7 +110,7 @@ export abstract class Authority {
      * @param urlString
      */
     private replaceTenant(urlString: string): string {
-        return urlString.replace("{tenant}", this.tenant);
+        return urlString.replace(/{tenant}|{tenantid}/g, this.tenant);
     }
 
     /**

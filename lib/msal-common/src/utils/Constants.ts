@@ -204,3 +204,8 @@ export enum GrantType {
     DEVICE_CODE_GRANT = "device_code"
 };
 
+/**
+ * Initialize B2CTrustedHostList
+ */
+export const B2CTrustedHostList = {};
+
