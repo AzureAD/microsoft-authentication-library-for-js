@@ -9,6 +9,7 @@ import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
+import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -97,7 +98,7 @@ export class UrlUtils {
     /**
      * Returns current window URL as redirect uri
      */
-    static getDefaultRedirectUri(): string {
+    static getCurrentUrl(): string {
         return window.location.href.split("?")[0].split("#")[0];
     }
 
@@ -243,5 +244,19 @@ export class UrlUtils {
     static deserializeHash(urlFragment: string) {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
+    }
+
+    /**
+     * @ignore
+     * @param {string} URI
+     * @returns {string} host from the URI
+     *
+     * extract URI from the host
+     */
+    static getHostFromUri(uri: string): string {
+        // remove http:// or https:// from uri
+        let extractedUri = String(uri).replace(/^(https?:)\/\//, "");
+        extractedUri = extractedUri.split("/")[0];
+        return extractedUri;
     }
 }

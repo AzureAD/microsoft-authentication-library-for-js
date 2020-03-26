@@ -1,6 +1,8 @@
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
+import { AuthCache } from "../cache/AuthCache";
+import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 
 export class WindowUtils {
     /**
@@ -33,7 +35,7 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
@@ -55,15 +57,27 @@ export class WindowUtils {
                     href = contentWindow.location.href;
                 } catch (e) {}
 
-                // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
-                    return;
+                if (isSilentCall) {
+                    /*
+                     * Always run clock for silent calls
+                     * as silent operations should be short,
+                     * and to ensure they always at worst timeout.
+                     */
+                    ticks++;
+                } else {
+                    // Don't process blank pages or cross domain
+                    if (!href || href === "about:blank") {
+                        return;
+                    }
+
+                    /*
+                     * Only run clock when we are on same domain for popups
+                     * as popup operations can take a long time.
+                     */
+                    ticks++;
                 }
 
-                // Only run clock when we are on same domain
-                ticks++;
-
-                if (UrlUtils.urlContainsHash(href)) {
+                if (href && UrlUtils.urlContainsHash(href)) {
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
@@ -88,21 +102,38 @@ export class WindowUtils {
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+                const frameHandle = this.loadFrameSync(urlNavigate, frameName, logger);
 
                 if (!frameHandle) {
                     reject(`Unable to load iframe with name: ${frameName}`);
                     return;
                 }
 
-                if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-                    frameHandle.src = urlNavigate;
-                    logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
-                }
-
                 resolve(frameHandle);
             }, timeoutMs);
         });
+    }
+
+    /**
+     * @hidden
+     * Loads the iframe synchronously when the navigateTimeFrame is set to `0`
+     * @param urlNavigate
+     * @param frameName
+     * @param logger
+     */
+    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+
+        // returning to handle null in loadFrame, also to avoid null object access errors
+        if (!frameHandle) {
+            return null;
+        }
+        else if (frameHandle.src === "" || frameHandle.src === "about:blank") {
+            frameHandle.src = urlNavigate;
+            logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
+        }
+
+        return frameHandle;
     }
 
     /**
@@ -127,7 +158,7 @@ export class WindowUtils {
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";
                 ifr.style.border = "0";
-                ifr.setAttribute("sandbox", "allow-scripts allow-same-origin");
+                ifr.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
                 adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
             } else if (document.body && document.body.insertAdjacentHTML) {
                 document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
@@ -147,7 +178,7 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        if (document.body !== iframe.parentNode) {
+        if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
     }
@@ -216,4 +247,30 @@ export class WindowUtils {
         WindowUtils.getPopups().forEach(popup => popup.close());
     }
 
+    /**
+     * @ignore
+     *
+     * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
+     */
+    static blockReloadInHiddenIframes() {
+        // return an error if called from the hidden iframe created by the msal js silent calls
+        if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
+            throw ClientAuthError.createBlockTokenRequestsInHiddenIframeError();
+        }
+    }
+
+    /**
+     *
+     * @param cacheStorage
+     */
+    static checkIfBackButtonIsPressed(cacheStorage: AuthCache) {
+        const redirectCache = cacheStorage.getItem(TemporaryCacheKeys.REDIRECT_REQUEST);
+
+        // if redirect request is set and there is no hash
+        if(redirectCache && !UrlUtils.urlContainsHash(window.location.hash)) {
+            const splitCache = redirectCache.split(Constants.resourceDelimiter);
+            const state = splitCache.length > 1 ? splitCache[splitCache.length-1]: null;
+            cacheStorage.resetTempCacheItems(state);
+        }
+    }
 }
