@@ -1,10 +1,9 @@
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
-import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
+import { AuthorityFactory, B2CTrustedHostList } from "../../src/authority/AuthorityFactory";
 import { AadAuthority } from "../../src/authority/AadAuthority";
 import { B2cAuthority } from "../../src/authority/B2cAuthority";
 import { B2C_TEST_CONFIG, TEST_CONFIG } from "../TestConstants";
-import { B2CTrustedHostList } from "../../src/utils/Constants";
 
 describe("AuthorityFactory.ts Class", function () {
     let authority = null
@@ -30,9 +29,7 @@ describe("AuthorityFactory.ts Class", function () {
     });
 
     it("tests returns B2C Authority instance when knownAuthorities set", function() {
-        B2C_TEST_CONFIG.knownAuthorities.forEach(function(authority){
-            B2CTrustedHostList[authority] = authority;
-        });
+        AuthorityFactory.setKnownAuthorities(true, B2C_TEST_CONFIG.knownAuthorities)
         
         authority = AuthorityFactory.CreateInstance(B2C_TEST_CONFIG.validAuthority, false);
 
@@ -54,4 +51,11 @@ describe("AuthorityFactory.ts Class", function () {
         expect(err.errorMessage).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType.desc);
     });
 
+    it("Sets B2CTrustedHostList with Known Authorities", () => {
+        AuthorityFactory.setKnownAuthorities(true, B2C_TEST_CONFIG.knownAuthorities)
+
+        expect(B2CTrustedHostList["fabrikamb2c.b2clogin.com"]).to.be.equal("fabrikamb2c.b2clogin.com");
+        expect(Object.keys(B2CTrustedHostList)).to.have.length(1);
+
+    });
 });

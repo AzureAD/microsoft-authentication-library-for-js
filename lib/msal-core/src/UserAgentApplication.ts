@@ -39,8 +39,7 @@ import { Constants,
     libraryVersion,
     TemporaryCacheKeys,
     PersistentCacheKeys,
-    ErrorCacheKeys,
-    B2CTrustedHostList
+    ErrorCacheKeys
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 
@@ -218,7 +217,7 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
-        this.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
+        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -2136,22 +2135,6 @@ export class UserAgentApplication {
             clientId: clientId
         };
         return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
-    }
-
-    /**
-     * @hidden
-     * @ignore
-     * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
-     * @param authorityType
-     * @param validateAuthority
-     * @param knownAuthorities
-     */
-    private setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>): void {
-        if (validateAuthority && !Object.keys(B2CTrustedHostList).length){
-            knownAuthorities.forEach(function(authority){
-                B2CTrustedHostList[authority] = authority;
-            });
-        }
     }
 
     // #endregion

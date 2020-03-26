@@ -3,7 +3,7 @@ import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../..
 import { AuthorityType } from "../../src/authority/Authority";
 import { B2cAuthority } from "../../src/authority/B2cAuthority";
 import { B2C_TEST_CONFIG } from "../TestConstants";
-import { B2CTrustedHostList } from "../../src/utils/Constants";
+import { B2CTrustedHostList, AuthorityFactory } from "../../src/authority/AuthorityFactory";
 
 describe("B2cAuthority.ts Class", function () {
     let authority = null;
@@ -33,10 +33,7 @@ describe("B2cAuthority.ts Class", function () {
     });
 
     it("tests GetOpenIdConfigurationEndpointAsync with validateAuthority true", async function () {
-
-        B2C_TEST_CONFIG.knownAuthorities.forEach(function(authority){
-            B2CTrustedHostList[authority] = authority;
-        });
+        AuthorityFactory.setKnownAuthorities(true, B2C_TEST_CONFIG.knownAuthorities)
 
         authority = new B2cAuthority(B2C_TEST_CONFIG.validAuthority, true);
         endpoint = await authority.GetOpenIdConfigurationEndpointAsync();

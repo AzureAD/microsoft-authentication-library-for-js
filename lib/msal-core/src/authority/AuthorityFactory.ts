@@ -12,9 +12,25 @@ import { Authority, AuthorityType } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlUtils } from "../utils/UrlUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { B2CTrustedHostList } from "../utils/Constants";
+
+export const B2CTrustedHostList: object = {};
 
 export class AuthorityFactory {
+    /**
+     * @hidden
+     * @ignore
+     * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
+     * @param authorityType
+     * @param validateAuthority
+     * @param knownAuthorities
+     */
+    public static setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>): void {
+        if (validateAuthority && !Object.keys(B2CTrustedHostList).length){
+            knownAuthorities.forEach(function(authority){
+                B2CTrustedHostList[authority] = authority;
+            });
+        }
+    }
 
     /**
      * Parse the url and determine the type of authority

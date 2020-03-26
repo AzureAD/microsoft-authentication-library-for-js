@@ -6,7 +6,7 @@
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { B2CTrustedHostList } from "../utils/Constants";
+import { AuthorityFactory, B2CTrustedHostList } from "./AuthorityFactory";
 
 /**
  * @hidden

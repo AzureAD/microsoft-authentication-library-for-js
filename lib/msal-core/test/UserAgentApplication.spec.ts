@@ -22,7 +22,7 @@ import { ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryRespo
 import { AuthCache } from "../src/cache/AuthCache";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
-import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys, B2CTrustedHostList } from "../src/utils/Constants";
+import { SSOTypes, TemporaryCacheKeys, PersistentCacheKeys, ServerHashParamKeys } from "../src/utils/Constants";
 import { WindowUtils } from "../src/utils/WindowUtils";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
@@ -1587,23 +1587,6 @@ describe("UserAgentApplication.ts Class", function () {
             } catch(e) {
                 () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
             };
-        });
-    });
-
-    describe("Test Known Authorities", () => {
-        it("Sets B2CTrustedHostList with Known Authorities", () => {
-            let config: Configuration = {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    validateAuthority: true,
-                    knownAuthorities: ['fabrikamb2c.b2clogin.com']
-                }
-            }
-            msal = new UserAgentApplication(config);
-
-            expect(B2CTrustedHostList["fabrikamb2c.b2clogin.com"]).to.be.equal("fabrikamb2c.b2clogin.com");
-            expect(Object.keys(B2CTrustedHostList)).to.have.length(1);
-
         });
     });
   
