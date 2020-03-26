@@ -140,7 +140,6 @@ export class RequestUtils {
      * @returns State string include library state and user state
      */
     static validateAndGenerateState(userState: string): string {
-        // append GUID to user set state or set one for the user if null
         return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState()}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState();
     }
 
