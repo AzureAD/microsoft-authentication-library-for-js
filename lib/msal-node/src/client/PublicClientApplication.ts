@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    DeviceCodeClient,
-    DeviceCodeRequest,
-    AuthenticationResult,
-} from '@azure/msal-common';
+import { DeviceCodeClient, DeviceCodeRequest } from '@azure/msal-common';
 import { ClientConfiguration } from '../config/ClientConfiguration';
 import { ClientApplication } from './ClientApplication';
 
@@ -51,7 +47,7 @@ export class PublicClientApplication extends ClientApplication {
      */
     public async acquireTokenByDeviceCode(
         request: DeviceCodeRequest
-    ): Promise<AuthenticationResult> {
+    ): Promise<string> {
         let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(
             this.buildOauthClientConfiguration()
         );
