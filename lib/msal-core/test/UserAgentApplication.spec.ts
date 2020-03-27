@@ -32,6 +32,7 @@ import { TEST_URIS, TEST_DATA_CLIENT_INFO, testHashesForState, TEST_TOKENS, TEST
 import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { RequestUtils } from "../src/utils/RequestUtils";
+import { UrlUtils } from "../src/utils/UrlUtils";
 
 type kv = {
     [key: string]: string;
@@ -247,6 +248,35 @@ describe("UserAgentApplication.ts Class", function () {
                         expect(url).to.include("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
                         expect(url).to.include("&state");
                         expect(url).to.include("&client_info=1");
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+            msal.handleRedirectCallback(authCallback);
+            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+
+            const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
+            msal.loginRedirect(request);
+        });
+
+        it("state in returned hash contains expected fields", (done) => {
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.include("&state");
+                        let hash = UrlUtils.getHashFromUrl(url);
+                        let state = UrlUtils.deserializeHash(hash).state;
+                        let decodedState = CryptoUtils.base64Decode(state);
+                        let stateObj = JSON.parse(decodedState);
+
+                        expect(stateObj).to.include.keys("id");
+                        expect(stateObj).to.include.keys("ts");
+                        expect(stateObj).to.include.keys("method");
+                        expect(stateObj.method).to.equal(Constants.interactionTypeRedirect);
+
                         done();
                     } catch (e) {
                         console.error(e);
@@ -1087,8 +1117,10 @@ describe("UserAgentApplication.ts Class", function () {
     });
 
     describe("Processing Authentication Responses", function() {
+        let testsExecuted: boolean;
 
         beforeEach(function () {
+            testsExecuted = false;
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             config = {
                 auth: {
@@ -1103,6 +1135,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         afterEach(function() {
+            expect(testsExecuted).to.be.true;
+
             window.location.hash = "";
             config = {auth: {clientId: ""}};
             cacheStorage.clear();
@@ -1117,7 +1151,6 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
 
             msal = new UserAgentApplication(config);
-            let testsExecuted = false;
 
             const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
@@ -1129,7 +1162,6 @@ describe("UserAgentApplication.ts Class", function () {
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
-            expect(testsExecuted).to.be.true;
         });
 
         it("tests saveTokenForHash in case of error", function() {
@@ -1137,8 +1169,6 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
-
-            let testsExecuted = false;
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
@@ -1152,8 +1182,6 @@ describe("UserAgentApplication.ts Class", function () {
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkErrorFromServer);
-
-            expect(testsExecuted).to.be.true;
         });
 
         // TEST_SERVER_ERROR_SUBCODE_CANCEL
@@ -1162,8 +1190,6 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
-
-            let testsExecuted = false;
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
                 expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
@@ -1175,8 +1201,6 @@ describe("UserAgentApplication.ts Class", function () {
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkErrorFromServer);
-
-            expect(testsExecuted).to.be.true;
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function () {
@@ -1185,16 +1209,12 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal = new UserAgentApplication(config);
 
-            let testsExecuted = false;
-
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_NUM);
 
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkErrorHasState);
-
-            expect(testsExecuted).to.be.true;
         });
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function () {
@@ -1203,16 +1223,12 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal = new UserAgentApplication(config);
 
-            let testsExecuted = false;
-
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
                 expect(response.accountState).to.include(TEST_USER_STATE_URL);
 
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkErrorHasState);
-
-            expect(testsExecuted).to.be.true;
         });
 
         it("tests that isCallback correctly identifies url hash", function () {
@@ -1223,6 +1239,7 @@ describe("UserAgentApplication.ts Class", function () {
             expect(msal.isCallback("#/error_description=someting_wrong")).to.be.true;
             expect(msal.isCallback("#access_token=token123")).to.be.true;
             expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
+            testsExecuted = true;
         });
 
         it("tests that expiresIn returns the correct date for access tokens", function () {
@@ -1236,8 +1253,6 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal = new UserAgentApplication(config);
 
-            let testsExecuted = false;
-
             const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
@@ -1249,8 +1264,6 @@ describe("UserAgentApplication.ts Class", function () {
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
-
-            expect(testsExecuted).to.be.true;
         });
 
         it("tests that expiresIn returns the correct date for id tokens", function () {
@@ -1264,8 +1277,6 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal = new UserAgentApplication(config);
 
-            let testsExecuted = false;
-
             const checkRespFromServer = function(response: AuthResponse) {
                 expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
@@ -1277,8 +1288,6 @@ describe("UserAgentApplication.ts Class", function () {
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
-
-            expect(testsExecuted).to.be.true;
         });
     });
 
