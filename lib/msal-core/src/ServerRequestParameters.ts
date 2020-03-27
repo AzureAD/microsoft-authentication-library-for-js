@@ -82,7 +82,7 @@ export class ServerRequestParameters {
      * @param request
      * @param serverAuthenticationRequest
      */
-    populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: any, silentCall?: boolean): void {
+    populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: object, silentCall?: boolean): void {
         let queryParameters: StringDict = {};
 
         if (request) {
