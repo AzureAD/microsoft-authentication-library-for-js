@@ -804,6 +804,29 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal.handleRedirectCallback(checkResponseFromServer);
         });
+
+        it("Hash is processed in redirect case even if in popup or new tab", function () {
+            const oldWindowOpener = window.opener;
+            window.opener = "different_window";
+
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            msal = new UserAgentApplication(config);
+
+            const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+
+                testsExecuted = true;
+            };
+            msal.handleRedirectCallback(checkResponseFromServer);
+            window.opener = oldWindowOpener;
+        });
     });
 
     describe("Cache Storage Unit Tests", function () {
