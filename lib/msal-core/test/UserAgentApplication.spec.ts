@@ -42,7 +42,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     // Test state params
     sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
-    const TEST_LIBRARY_STATE = RequestUtils.generateLibraryState("redirectInteraction");
+    const TEST_LIBRARY_STATE = RequestUtils.generateLibraryState(Constants.interactionTypeRedirect);
 
     const TEST_USER_STATE_NUM = "1234";
     const TEST_USER_STATE_URL = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1";
@@ -825,6 +825,32 @@ describe("UserAgentApplication.ts Class", function () {
                 testsExecuted = true;
             };
             msal.handleRedirectCallback(checkResponseFromServer);
+            expect(window.location.hash).to.be.equal("");
+            window.opener = oldWindowOpener;
+        });
+
+        it("Hash is not processed in popup case" , function () {
+            const oldWindowOpener = window.opener;
+            window.opener = "different_window";
+            const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
+
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            window.location.hash = testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            let hashBeforeProcessing = window.location.hash;
+            let callbackExecuted = false
+            msal = new UserAgentApplication(config);
+
+            const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
+                callbackExecuted = true;
+            };
+
+            msal.handleRedirectCallback(checkResponseFromServer);
+
+            expect(callbackExecuted).to.be.false;
+            expect(window.location.hash).to.be.equal(hashBeforeProcessing);
+            testsExecuted = true;
             window.opener = oldWindowOpener;
         });
     });
