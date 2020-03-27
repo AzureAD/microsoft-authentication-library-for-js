@@ -59,7 +59,7 @@ export const ClientAuthErrorMessage = {
     },
     userLoginRequiredError: {
         code: "user_login_error",
-        desc: "User login is required."
+        desc: "User login is required. For silent calls, request must contain either sid of login_hint"
     },
     userDoesNotExistError: {
         code: "user_non_existent",

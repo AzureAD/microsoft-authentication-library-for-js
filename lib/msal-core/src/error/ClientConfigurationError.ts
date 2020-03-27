@@ -84,7 +84,7 @@ export const ClientConfigurationErrorMessage = {
     },
     ssoSilentError: {
         code: "sso_silent_error",
-        desc: "pass sid or login_hint for ssoSilent"
+        desc: "request must contain either sid of login_hint"
     }
 };
 
