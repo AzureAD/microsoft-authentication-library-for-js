@@ -35,7 +35,7 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
@@ -57,15 +57,27 @@ export class WindowUtils {
                     href = contentWindow.location.href;
                 } catch (e) {}
 
-                // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
-                    return;
+                if (isSilentCall) {
+                    /*
+                     * Always run clock for silent calls
+                     * as silent operations should be short,
+                     * and to ensure they always at worst timeout.
+                     */
+                    ticks++;
+                } else {
+                    // Don't process blank pages or cross domain
+                    if (!href || href === "about:blank") {
+                        return;
+                    }
+
+                    /*
+                     * Only run clock when we are on same domain for popups
+                     * as popup operations can take a long time.
+                     */
+                    ticks++;
                 }
 
-                // Only run clock when we are on same domain
-                ticks++;
-
-                if (UrlUtils.urlContainsHash(href)) {
+                if (href && UrlUtils.urlContainsHash(href)) {
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
@@ -90,21 +102,38 @@ export class WindowUtils {
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+                const frameHandle = this.loadFrameSync(urlNavigate, frameName, logger);
 
                 if (!frameHandle) {
                     reject(`Unable to load iframe with name: ${frameName}`);
                     return;
                 }
 
-                if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-                    frameHandle.src = urlNavigate;
-                    logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
-                }
-
                 resolve(frameHandle);
             }, timeoutMs);
         });
+    }
+
+    /**
+     * @hidden
+     * Loads the iframe synchronously when the navigateTimeFrame is set to `0`
+     * @param urlNavigate
+     * @param frameName
+     * @param logger
+     */
+    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
+        const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
+
+        // returning to handle null in loadFrame, also to avoid null object access errors
+        if (!frameHandle) {
+            return null;
+        }
+        else if (frameHandle.src === "" || frameHandle.src === "about:blank") {
+            frameHandle.src = urlNavigate;
+            logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
+        }
+
+        return frameHandle;
     }
 
     /**
@@ -149,7 +178,7 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        if (document.body !== iframe.parentNode) {
+        if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
     }

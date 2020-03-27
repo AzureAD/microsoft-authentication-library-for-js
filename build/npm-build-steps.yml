@@ -1,0 +1,30 @@
+# Steps to build and test npm project
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    customCommand: 'ci'
+    verbose: true
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    customCommand: 'run build'
+
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    customCommand: 'run test:coverage'
+
+- task: Npm@1
+  env:
+    COVERALLS_REPO_TOKEN: $(COVERALLS_REPO_TOKEN)
+  inputs:
+    command: 'custom'
+    customCommand: 'run test:report'

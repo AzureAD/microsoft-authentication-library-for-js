@@ -15,7 +15,10 @@ describe("DefaultEvent", () => {
             sdk: "javascript",
             sdkVersion: "1.0.0",
             applicationName: "mochaTest",
-            applicationVersion: "1.22"
+            applicationVersion: "1.22",
+            networkInformation: {
+                connectionSpeed: "4g"
+            }
         }
         const defaultEvent: DefaultEvent = new DefaultEvent(
             platformConfig,
@@ -31,5 +34,6 @@ describe("DefaultEvent", () => {
         expect(event["msal.event_name"]).to.eq("msal.default_event");
         expect(event["msal.application_name"]).to.eq("mochaTest");
         expect(event["msal.elapsed_time"]).to.eq(-1);
+        expect(event["msal.effective_connection_speed"]).to.eq("4g");
     });
 });

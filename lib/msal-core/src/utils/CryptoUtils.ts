@@ -9,7 +9,7 @@
 export class CryptoUtils {
 
     /**
-     * Creates a new random GUID - used to populate state?
+     * Creates a new random GUID
      * @returns string (GUID)
      */
     static createNewGuid(): string {
