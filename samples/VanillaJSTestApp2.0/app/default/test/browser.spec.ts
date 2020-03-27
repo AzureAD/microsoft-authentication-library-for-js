@@ -38,10 +38,12 @@ async function takeScreenshot(page: puppeteer.Page, testName: string, screenshot
 
 async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForSelector("#i0116");
     await takeScreenshot(page, testName, `loginPage`);
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForSelector("#i0118");
     await takeScreenshot(page, testName, `pwdInputPage`);
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
