@@ -9,6 +9,8 @@ export const Constants = {
     CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    // default B2C authority
+    DEFAULT_B2C_AUTHORITY: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
     // Resource delimiter - used for certain cache entries
