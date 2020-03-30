@@ -1,6 +1,6 @@
 # Request and Response Objects
 
-Before you start here, make sure you understand how to [initialize the `PublicClientApplication` object](./initialization.md), [login](./loginuser.md) and [acquire tokens](./acquiretoken.md).
+Before you start here, make sure you understand how to [initialize the `PublicClientApplication` object](./initialization.md), [login](./login-user.md) and [acquire tokens](./acquire-token.md).
 
 The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the [constructor of the `PublicClientApplication` object](./configuration.md) or as part of the request APIs. Here we describe the configuration object that can be passed to the login and acquireToken APIs, and the object returned representing the response.
 

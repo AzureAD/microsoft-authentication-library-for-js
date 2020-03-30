@@ -2,7 +2,7 @@
 
 Before you start here, make sure you understand how to [initialize an app object](./initialization.md).
 
-The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the `PublicClientApplication` object or as part of the [request APIs](./requestresponseobject.md). Here we describe the configuration object that can be passed into the `PublicClientApplication` constructor. 
+The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the `PublicClientApplication` object or as part of the [request APIs](./request-response-object.md). Here we describe the configuration object that can be passed into the `PublicClientApplication` constructor. 
 
 ## Using the config object
 
@@ -44,7 +44,6 @@ const msalConfig = {
             },
             piiLoggingEnabled: false
         },
-        networkClient: BrowserUtils.getBrowserNetworkClient(), // Uses fetch if available, XHR if not
         windowHashTimeout: 60000
     };
 }
@@ -73,7 +72,6 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
-| `networkClient` | Config object for custom network client implementations. | See [here](./networkclient.md). | See [here](./networkclient.md). |
 | `windowHashTimeout` | Timeout in milliseconds to wait for popup or iframe authentication to resolve. | integer (milliseconds) | `60000` |
 
 ### Logger Config Options

@@ -1,6 +1,6 @@
 # Token Lifetimes, Expiration, and Renewal
 
-Before you start here, make sure you understand how to [login](./loginuser.md) and [acquire tokens](./acquiretoken.md).
+Before you start here, make sure you understand how to [login](./login-user.md) and [acquire tokens](./acquire-token.md).
 
 While using MSAL.js, you should understand the implications of retrieving tokens for users and how to manage the lifetimes for these tokens.
 

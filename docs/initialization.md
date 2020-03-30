@@ -59,7 +59,7 @@ const msalConfig = {
 };
 ```
 
-Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./loginuser.md) and [request APIs](./acquiretoken.md).
+Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./login-user.md) and [request APIs](./acquire-token.md).
 
 ## (Optional) Additional Configuration
 
@@ -95,4 +95,4 @@ It is not recommended to use both interaction types in a single application.
 
 # Next Steps
 
-You are ready to perform a [login](./loginuser.md)!
+You are ready to perform a [login](./login-user.md)!
