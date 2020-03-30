@@ -4,10 +4,11 @@
  */
 
 import { Authority, AuthorityType } from "./Authority";
-import { XhrClient } from "../XHRClient";
+import { XhrClient, XhrResponse } from "../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
 import HttpEvent from "../telemetry/HttpEvent";
 import TelemetryManager from "../telemetry/TelemetryManager";
+import { url } from 'inspector';
 
 /**
  * @hidden
@@ -40,21 +41,17 @@ export class AadAuthority extends Authority {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = "GET";
-        const httpEvent = new HttpEvent(correlationId);
-        httpEvent.url = this.AadInstanceDiscoveryEndpointUrl;
-        httpEvent.httpMethod = httpMethod;
-        telemetryManager.startEvent(httpEvent);
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpointUrl);
         return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, httpMethod, true)
-            .then((response) => {
-                httpEvent.httpResponseStatus = response.client.status;
-                return response.responseBody.tenant_discovery_endpoint;
+            .then((response: XhrResponse) => {
+                httpEvent.httpResponseStatus = response.statusCode;
+                telemetryManager.stopEvent(httpEvent);
+                return response.body.tenant_discovery_endpoint;
             })
             .catch(err => {
                 httpEvent.serverErrorCode = err;
-                throw err;
-            })
-            .finally(() => {
                 telemetryManager.stopEvent(httpEvent);
+                throw err;
             });
     }
 

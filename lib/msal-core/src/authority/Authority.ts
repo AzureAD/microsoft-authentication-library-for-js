@@ -6,7 +6,7 @@
 import { IUri } from "../IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
-import { XhrClient } from "../XHRClient";
+import { XhrClient, XhrResponse } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
@@ -125,12 +125,12 @@ export abstract class Authority {
         telemetryManager.startEvent(httpEvent);
 
         return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
-            .then((response: any) => {
-                httpEvent.httpResponseStatus = response.client.status;
+            .then((response: XhrResponse) => {
+                httpEvent.httpResponseStatus = response.statusCode;
                 return <ITenantDiscoveryResponse>{
-                    AuthorizationEndpoint: response.responseBody.authorization_endpoint,
-                    EndSessionEndpoint: response.responseBody.end_session_endpoint,
-                    Issuer: response.responseBody.issuer
+                    AuthorizationEndpoint: response.body.authorization_endpoint,
+                    EndSessionEndpoint: response.body.end_session_endpoint,
+                    Issuer: response.body.issuer
                 };
             })
             .catch(err => {

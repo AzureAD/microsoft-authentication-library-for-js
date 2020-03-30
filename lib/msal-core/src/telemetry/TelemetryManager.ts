@@ -12,6 +12,7 @@ import DefaultEvent from "./DefaultEvent";
 import { libraryVersion, Constants } from "../utils/Constants";
 import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
 import { Logger } from "../Logger";
+import HttpEvent from './HttpEvent';
 
 // for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
@@ -145,6 +146,14 @@ export default class TelemetryManager {
         }
         this.stopEvent(apiEvent);
         this.flush(correlationId);
+    }
+
+    createAndStartHttpEvent(correlation: string, httpMethod: string, url: string): HttpEvent {
+        const httpEvent = new HttpEvent(correlation);
+        httpEvent.url = url;
+        httpEvent.httpMethod = httpMethod;
+        this.startEvent(httpEvent);
+        return httpEvent;
     }
 
     private incrementEventCount(event: TelemetryEvent): void {
