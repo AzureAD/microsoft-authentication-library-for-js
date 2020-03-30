@@ -1,8 +1,10 @@
 import { expect } from "chai";
-import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
+import { AuthorityFactory, B2CTrustedHostList } from "../../../src/auth/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { ClientConfigurationErrorMessage, ClientAuthErrorMessage, Constants, Authority } from "../../../src";
 import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
+import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority"
+import { IdToken } from "../../../src/auth/IdToken";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
 
@@ -20,10 +22,6 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(() => AuthorityFactory.createInstance(null, networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
-    it("Throws error for B2C url strings that contain tfp", () => {
-        expect(() => AuthorityFactory.createInstance("https://contoso.b2clogin.com/tfp/contoso.onmicrosoft.com/B2C_1_signupsignin1", networkInterface)).to.throw(ClientAuthErrorMessage.invalidAuthorityType.desc);
-    });
-
     it("Throws error for malformed url strings", () => {
         expect(() => AuthorityFactory.createInstance(`http://login.microsoftonline.com/common`, networkInterface)).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
         expect(() => AuthorityFactory.createInstance(`https://login.microsoftonline.com/`, networkInterface)).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
@@ -31,9 +29,25 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(() => AuthorityFactory.createInstance("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
-    it("createInstance returns an AAD instance for any valid url string that does not contain a tfp", () => {
+    it("createInstance returns an AAD instance if knownAuthorities not provided", () => {
         const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface);
         expect(authorityInstance instanceof AadAuthority);
         expect(authorityInstance instanceof Authority);
+    });
+
+    it("createInstance returns B2C instance if knownAuthorities is provided", () => {
+        AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+        const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_B2C_AUTHORITY, networkInterface);
+        expect(authorityInstance instanceof B2cAuthority);
+        expect(authorityInstance instanceof Authority);
+    });
+
+    it("Do not add additional authorities to trusted host list if it has already been populated", () => {
+        AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+        AuthorityFactory.setKnownAuthorities(["fake.b2clogin.com"]);
+
+        expect(B2CTrustedHostList).to.include("fabrikamb2c.b2clogin.com");
+        expect(B2CTrustedHostList).not.to.include("fake.b2clogin.com");
+        expect(B2CTrustedHostList.length).to.equal(1);
     });
 });
