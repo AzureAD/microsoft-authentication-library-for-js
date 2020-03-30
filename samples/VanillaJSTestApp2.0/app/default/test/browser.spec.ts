@@ -59,7 +59,7 @@ describe("Browser tests", function () {
         setupCredentials();
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ['--no-sandbox']
+            ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
         });
     });
 
