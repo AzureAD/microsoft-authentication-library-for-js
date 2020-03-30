@@ -7,6 +7,7 @@ import { TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "../TestConstants";
 import { StringDict } from "../../src/MsalTypes";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import sinon from "sinon";
+import { Constants } from "../../src/utils/Constants";
 
 
 describe("RequestUtils.ts class", () => {
@@ -17,7 +18,7 @@ describe("RequestUtils.ts class", () => {
 
         try {
             const userRequest: AuthenticationParameters = {scopes: null};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID);
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             undefinedScopesError = e;
         };
@@ -34,7 +35,7 @@ describe("RequestUtils.ts class", () => {
 
         try {
             const userRequest: AuthenticationParameters = {scopes: []};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID);
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             emptyScopesError = e;
         };
@@ -51,7 +52,7 @@ describe("RequestUtils.ts class", () => {
 
         try {
             const userRequest: AuthenticationParameters = {scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "newScope`"]};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID);
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             improperScopes = e;
         };
@@ -93,7 +94,7 @@ describe("RequestUtils.ts class", () => {
     it("validate and generate state", () => {
         const nowStub = sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
         const userState: string = "abcd";
-        const state: string = RequestUtils.validateAndGenerateState(userState);
+        const state: string = RequestUtils.validateAndGenerateState(userState, Constants.interactionTypeSilent);
         const now = TimeUtils.now();
         const splitKey: Array<string> = state.split("|");
         expect(splitKey[1]).to.contain("abcd");
@@ -104,6 +105,21 @@ describe("RequestUtils.ts class", () => {
         nowStub.restore();
     });
 
+    it("parses old guid state format", () => {
+        const now = TimeUtils.now();
+        const nowStub = sinon.stub(TimeUtils, "now").returns(now);
+
+        const stateGuid = CryptoUtils.createNewGuid();
+
+        const parsedState = RequestUtils.parseLibraryState(`${stateGuid}|user-state`);
+
+        expect(parsedState.id).to.be.equal(stateGuid);
+        expect(parsedState.method).to.be.equal(Constants.interactionTypeRedirect);
+        expect(parsedState.ts).to.be.equal(now);
+
+        nowStub.restore();
+    })
+
     it("generates expected state if there is a delay between generating and parsing", function(done) {
         this.timeout(5000);
 
@@ -112,7 +128,7 @@ describe("RequestUtils.ts class", () => {
         const nowStub = sinon.stub(TimeUtils, "now").returns(now);
 
         const userState: string = "abcd";
-        const state: string = RequestUtils.validateAndGenerateState(userState);
+        const state: string = RequestUtils.validateAndGenerateState(userState, Constants.interactionTypeSilent);
         nowStub.restore();
 
         // Mimicks tab suspending
@@ -132,7 +148,7 @@ describe("RequestUtils.ts class", () => {
 
     it("validate empty request", () => {
         const userRequest: AuthenticationParameters = null;
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, TEST_CONFIG.MSAL_CLIENT_ID);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
 
         expect(request.scopes).to.be.equal(undefined);
         expect(request.prompt).to.be.equal(undefined);
