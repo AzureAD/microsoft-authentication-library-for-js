@@ -17,18 +17,22 @@ See the [installation section of the README](../README.md#installation).
 In MSAL 1.x, you created an application instance as below:
 
 ```javascript
-const msalInstance = new UserAgentApplication(config);
+import * as msal from "msal";
+
+const msalInstance = new msal.UserAgentApplication(config);
 ```
 
 In MSAL 2.x, you can update this to use the new `PublicClientApplication` object.
 
 ```javascript
-const msalInstance = new PublicClientApplication(config);
+import * as msal from "@azure/msal-browser";
+
+const msalInstance = new msal.PublicClientApplication(config);
 ```
 
 There may be some small differences in the configuration object that is passed in. If you are passing a more advanced configuration to the `UserAgentApplication` object, see [here](./configuration.md) for more information on new app object configuration options.
 
-Request and response object signatures have changed - `acquireTokenSilent` now has a separate object signature from the interactive APIs. Please see [here](./requestresponseobject.md) for more information on configuring the request APIs. 
+Request and response object signatures have changed - `acquireTokenSilent` now has a separate object signature from the interactive APIs. Please see [here](./request-response-object.md) for more information on configuring the request APIs. 
 
 Most APIs from MSAL 1.x have been carried forward to MSAL 2.x without change. Some functions have been removed:
 - `urlContainsHash`
@@ -100,8 +104,8 @@ async function getTokenPopup(request) {
 }
 ```
 
-Please see the [login](./loginuser.md) and [acquire token](./acquiretoken.md) docs for more detailed information on usage.
+Please see the [login](./login-user.md) and [acquire token](./acquire-token.md) docs for more detailed information on usage.
 
-Refresh tokens are now returned as part of the token responses, and are used by the library to renew access tokens without interaction or the use of iframes. See the [token lifetimes docs](./tokenlifetimes.md) for more information on renewing tokens.
+Refresh tokens are now returned as part of the token responses, and are used by the library to renew access tokens without interaction or the use of iframes. See the [token lifetimes docs](./token-lifetimes.md) for more information on renewing tokens.
 
 All other APIs should work as before. It is recommended to take a look at the [default sample](../../../samples/VanillaJSTestApp2.0/default) to see a working example of MSAL 2.0.

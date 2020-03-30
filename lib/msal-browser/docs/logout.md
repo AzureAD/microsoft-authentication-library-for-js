@@ -1,6 +1,6 @@
 # Logging Out of MSAL
 
-Before you start here, make sure you understand how to [login](./loginuser.md), [acquire tokens](./acquiretoken.md), and [manage token lifetimes](./tokenlifetimes.md).
+Before you start here, make sure you understand how to [login](./login-user.md), [acquire tokens](./acquire-token.md), and [manage token lifetimes](./token-lifetimes.md).
 
 ## Logging out
 
@@ -33,7 +33,6 @@ const msalConfig = {
 Dig into more advanced topics, such as:
 
 - [Caching](./caching.md)
-- [Logging](./logging.md)
 - [Advanced Configuration Options](./configuration.md)
 
 ...and [more](../README.md#advanced-topics)!

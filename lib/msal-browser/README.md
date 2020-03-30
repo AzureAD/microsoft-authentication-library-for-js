@@ -24,11 +24,11 @@
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-The `msal-browser` package described by the code in this folder uses the [`msal-common` package](../msal-common/) as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-core` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
+The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](../msal-common/) as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-core` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
 
-This is an improvement upon the current `msal-core` library which will utilize the authorization code flow in the browser. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `msal-browser` package does NOT support the implicit flow.
+This is an improvement upon the current `msal-core` library which will utilize the authorization code flow in the browser. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `@azure/msal-browser` package does NOT support the implicit flow.
 
-**IMPORTANT:** Please be aware that this is not a production ready library. We are making changes in the portal to ensure we can deliver a polished end-to-end experience.
+**IMPORTANT:** Please be aware that this is not a production ready library. We are making changes in the [Azure portal](https://azure.microsoft.com/en-us/features/azure-portal/) to ensure we can deliver a polished end-to-end experience.
 
 ## FAQ
 
@@ -40,18 +40,23 @@ See [here](./FAQ.md).
 
 | Date | Release | Announcement | Main features |
 | ------| ------- | ---------| --------- |
-|  | msal-browser v2.0.0-beta | No release notes yet | Beta version of the `msal-browser` package; relies on `msal-common` v1.0.0-beta |
-| January 17, 2020 | msal-browser v2.0.0-alpha | No release notes yet | Alpha version of the `msal-browser` package with authorization code flow for SPAs working in dev; relies on msal-common v1.0.0-alpha |
+|  | @azure/msal-browser v2.0.0-beta | No release notes yet | Beta version of the `@azure/msal-browser` package; relies on `@azure/msal-common` v1.0.0-beta |
+| January 17, 2020 | @azure/msal-browser v2.0.0-alpha | No release notes yet | Alpha version of the `@azure/msal-browser` package with authorization code flow for SPAs working in dev; relies on msal-common v1.0.0-alpha |
 
 ## Prerequisites
 
-- `msal-browser` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
+- `@azure/msal-browser` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
 
-- Before using `msal-browser` you will need to [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+- Before using `@azure/msal-browser` you will need to [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 
 - Once you have registered your application, you will need to do two things in order to ensure MSAL 2.0 will successfully retrieve tokens:
-    1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the redirect URIs from the Authentication tab - that's OK! We are working on getting UI set up for this.
+    1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the affected redirect URIs from the Web platform Authentication tab - that's OK! We are working on getting UI set up for this.
+
+    ![Changing Redirect URI type](./docs/images/redirectURIRegistrationUpdate.png)
+
     2. Ensure your `Default Client Type` settings have "Treat application as public client" set to "Yes". 
+
+    ![Changing Default Client type](./docs/images/clientTypeRegistrationUpdate.png)
 
 ## Installation
 ### Via NPM:
@@ -64,23 +69,22 @@ npm install @azure/msal-browser
 
 ### Migrating from Previous MSAL Versions
 
-If you have MSAL v1.x currently running in your application, you can follow the instructions [here](./docs/v1migration.md) to migrate your application to using the `msal-browser` package.
+If you have MSAL v1.x currently running in your application, you can follow the instructions [here](./docs/v1-migration.md) to migrate your application to using the `@azure/msal-browser` package.
 
 ### MSAL Basics
 
 1. [Initialization](./docs/initialization.md)
-2. [Logging in a User](./docs/loginuser.md)
-3. [Acquiring and Using an Access Token](./docs/acquiretoken.md)
-4. [Managing Token Lifetimes](./docs/tokenlifetimes.md)
+2. [Logging in a User](./docs/login-user.md)
+3. [Acquiring and Using an Access Token](./docs/acquire-token.md)
+4. [Managing Token Lifetimes](./docs/token-lifetimes.md)
 5. [Logging Out a User](./docs/logout.md)
 
 ### Advanced Topics
 
 - [Configuration Options](./docs/configuration.md)
-- [Request and Response Details](./docs/requestresponseobject.md)
+- [Request and Response Details](./docs/request-response-object.md)
 - [Cache Storage](./docs/caching.md)
 - [Logging](./docs/logging.md)
-- [Network Client](./docs/networkclient.md)
 
 ## Samples
 
@@ -90,7 +94,7 @@ Here is a complete list of samples for the MSAL.js 2.x library:
 
 | Sample | Description | How to Run |
 | ------ | ----------- | ---------- |
-| [Basic Auth Sample](../../samples/VanillaJSTestApp2.0/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
+| [Basic Auth Sample](../../samples/VanillaJSTestApp2.0/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`@azure/msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
 
 More instructions to run the sample can be found in the [`README.md` file](../../samples/VanillaJSTestApp2.0/README.md) of the VanillaJSTestApp2.0 folder.
 
@@ -123,7 +127,7 @@ npm run build:all
 ```
 
 ### Running Tests
-`msal-browser` uses [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) to run unit tests, as well as Istanbul's [nyc](https://github.com/istanbuljs/nyc) tool for code coverage.
+`@azure/msal-browser` uses [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) to run unit tests, as well as Istanbul's [nyc](https://github.com/istanbuljs/nyc) tool for code coverage.
 
 ```javascript
 // To run tests
@@ -132,7 +136,7 @@ npm test
 npm run test:coverage:only
 ```
 
-- If you are having issues with `lerna`, change to the msal-browser directory and run the commands directly there.
+- If you are having issues with `lerna`, change to the `msal-browser` directory and run the commands directly there.
 
 ## OAuth 2.0 and the Implicit Flow vs Authorization Code Flow with PKCE
 MSAL.js 1.x implemented the [Implicit Grant Flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and [OpenID](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc).
@@ -142,7 +146,7 @@ Our goal is that the library abstracts enough of the protocol away so that you c
 The MSAL library will now support the Authorization Code Flow with PKCE for Browser-Based Applications without a backend web server. 
 We plan to continue support for the implicit flow in the `msal-core` library.
 
-You can learn further details about `msal-browser` functionality documented in our [docs folder](./docs) and find complete [code samples](#samples).
+You can learn further details about `@azure/msal-browser` functionality documented in our [docs folder](./docs) and find complete [code samples](#samples).
 
 ## Security Reporting
 
