@@ -100,8 +100,27 @@ describe("RequestUtils.ts class", () => {
 
         const parsedState = RequestUtils.parseLibraryState(state);
         expect(CryptoUtils.isGuid(parsedState.id)).to.be.equal(true);
-        expect(parsedState.ts === now).to.be.equal(true);
+        expect(parsedState.ts).to.be.equal(now);
         nowStub.restore();
+    });
+
+    it("generates expected state if there is a delay between generating and parsing", function(done) {
+        this.timeout(5000);
+
+        sinon.restore();
+        const now = TimeUtils.now();
+        const nowStub = sinon.stub(TimeUtils, "now").returns(now);
+
+        const userState: string = "abcd";
+        const state: string = RequestUtils.validateAndGenerateState(userState);
+        nowStub.restore();
+
+        // Mimicks tab suspending
+        setTimeout(() => {
+            const parsedState = RequestUtils.parseLibraryState(state);
+            expect(parsedState.ts).to.be.equal(now);
+            done();
+        }, 4000);
     });
 
     it("validate and generate correlationId", () => {
