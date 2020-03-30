@@ -11,6 +11,9 @@ export const Constants = {
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
+
+    // Device code endpoint path
+    DEVICE_CODE_ENDPOINT_PATH: "oauth2/v2.0/devicecode",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -187,9 +190,10 @@ export const CodeChallengeMethodValues = {
 /**
  * allowed values for response_mode
  */
-export enum ResponseModeValues {
+export enum ResponseMode {
     QUERY = "query",
-    FRAGMENT = "fragment"
+    FRAGMENT = "fragment",
+    FORM_POST = "form_post"
 }
 
 /**
