@@ -3,8 +3,10 @@ import { RequestUtils } from "../../src/utils/RequestUtils";
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { AuthenticationParameters } from "../../src/AuthenticationParameters";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
-import { TEST_CONFIG } from "../TestConstants";
+import { TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "../TestConstants";
 import { StringDict } from "../../src/MsalTypes";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import sinon from "sinon";
 
 
 describe("RequestUtils.ts class", () => {
@@ -89,13 +91,36 @@ describe("RequestUtils.ts class", () => {
     });
 
     it("validate and generate state", () => {
+        const nowStub = sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
         const userState: string = "abcd";
         const state: string = RequestUtils.validateAndGenerateState(userState);
+        const now = TimeUtils.now();
         const splitKey: Array<string> = state.split("|");
+        expect(splitKey[1]).to.contain("abcd");
 
-        expect(state).to.contain("|");
-        expect(state).to.contain("abcd");
-        expect(CryptoUtils.isGuid(splitKey[0])).to.be.equal(true);
+        const parsedState = RequestUtils.parseLibraryState(state);
+        expect(CryptoUtils.isGuid(parsedState.id)).to.be.equal(true);
+        expect(parsedState.ts).to.be.equal(now);
+        nowStub.restore();
+    });
+
+    it("generates expected state if there is a delay between generating and parsing", function(done) {
+        this.timeout(5000);
+
+        sinon.restore();
+        const now = TimeUtils.now();
+        const nowStub = sinon.stub(TimeUtils, "now").returns(now);
+
+        const userState: string = "abcd";
+        const state: string = RequestUtils.validateAndGenerateState(userState);
+        nowStub.restore();
+
+        // Mimicks tab suspending
+        setTimeout(() => {
+            const parsedState = RequestUtils.parseLibraryState(state);
+            expect(parsedState.ts).to.be.equal(now);
+            done();
+        }, 4000);
     });
 
     it("validate and generate correlationId", () => {
@@ -112,7 +137,7 @@ describe("RequestUtils.ts class", () => {
         expect(request.scopes).to.be.equal(undefined);
         expect(request.prompt).to.be.equal(undefined);
         expect(request.extraQueryParameters).to.be.equal(undefined);
-        expect(CryptoUtils.isGuid(request.state)).to.be.equal(true);
+        expect(typeof request.state).to.be.equal("string");
         expect(CryptoUtils.isGuid(request.correlationId)).to.be.equal(true);
     });
 
