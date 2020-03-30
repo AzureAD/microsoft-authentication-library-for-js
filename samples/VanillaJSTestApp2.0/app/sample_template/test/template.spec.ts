@@ -38,7 +38,10 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         setupScreenshotDir();
-        browser = await puppeteer.launch({ignoreDefaultArgs: ['--disable-extensions']});
+        browser = await puppeteer.launch({
+            headless: true,
+            ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
+        });
     });
 
     let context: puppeteer.BrowserContext;
