@@ -10,6 +10,13 @@ import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
 import { StringUtils } from "../utils/StringUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
+import { TimeUtils } from "./TimeUtils";
+import { ClientAuthError } from "../error/ClientAuthError";
+
+export type LibraryStateObject = {
+    id: string,
+    ts: number
+};
 
 /**
  * @hidden
@@ -129,11 +136,54 @@ export class RequestUtils {
      * @ignore
      *
      * generate unique state per request
-     * @param request
+     * @param userState User-provided state value
+     * @returns State string include library state and user state
      */
-    static validateAndGenerateState(state: string): string {
-        // append GUID to user set state  or set one for the user if null
-        return !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+    static validateAndGenerateState(userState: string): string {
+        return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState()}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState();
+    }
+
+    /**
+     * Generates the state value used by the library.
+     *
+     * @returns Base64 encoded string representing the state
+     */
+    static generateLibraryState(): string {
+        const stateObject: LibraryStateObject = {
+            id: CryptoUtils.createNewGuid(),
+            ts: TimeUtils.now()
+        };
+
+        const stateString = JSON.stringify(stateObject);
+
+        return CryptoUtils.base64Encode(stateString);
+    }
+
+    /**
+     * Decodes the state value into a StateObject
+     *
+     * @param state State value returned in the request
+     * @returns Parsed values from the encoded state value
+     */
+    static parseLibraryState(state: string): LibraryStateObject {
+        const libraryState = state.split(Constants.resourceDelimiter)[0];
+
+        if (CryptoUtils.isGuid(libraryState)) {
+            return {
+                id: libraryState,
+                ts: TimeUtils.now()
+            };
+        }
+
+        try {
+            const stateString = CryptoUtils.base64Decode(libraryState);
+
+            const stateObject = JSON.parse(stateString);
+
+            return stateObject;
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(state, null);
+        }
     }
 
     /**
