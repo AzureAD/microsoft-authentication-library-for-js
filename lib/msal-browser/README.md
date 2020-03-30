@@ -49,7 +49,7 @@ See [here](./FAQ.md).
 
 - Before using `@azure/msal-browser` you will need to [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 
-- Once you have registered your application, you will need to do two things in order to ensure MSAL 2.0 will successfully retrieve tokens:
+- Once you have registered your application, you will need to do two things in order to ensure `@azure/msal-browser` will successfully retrieve tokens:
     1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the affected redirect URIs from the Web platform Authentication tab - that's OK! We are working on getting UI set up for this.
 
     ![Changing Redirect URI type](./docs/images/redirectURIRegistrationUpdate.png)
@@ -84,7 +84,6 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 - [Configuration Options](./docs/configuration.md)
 - [Request and Response Details](./docs/request-response-object.md)
 - [Cache Storage](./docs/caching.md)
-- [Logging](./docs/logging.md)
 
 ## Samples
 
