@@ -172,8 +172,3 @@ export const BlacklistedEQParams = [
     SSOTypes.SID,
     SSOTypes.LOGIN_HINT
 ];
-
-/**
- * Initialize B2CTrustedHostList
- */
-export const B2CTrustedHostList = {};

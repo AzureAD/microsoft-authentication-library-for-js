@@ -11,9 +11,20 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
-import { B2CTrustedHostList } from "../../utils/Constants";
 
-export class AuthorityFactory {
+export const B2CTrustedHostList: string[] = [];
+
+export class AuthorityFactory {  
+    /**
+     * Use when Authority is B2C to provide list of trusted/allowed domains.
+     */
+    public static setKnownAuthorities(knownAuthorities: Array<string>): void {
+        if (!Object.keys(B2CTrustedHostList).length){
+            knownAuthorities.forEach(function(authority){
+                B2CTrustedHostList.push(authority);
+            });
+        }
+    }
 
     /**
      * Parse the url and determine the type of authority

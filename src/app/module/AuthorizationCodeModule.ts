@@ -24,8 +24,7 @@ import {
     TemporaryCacheKeys,
     PersistentCacheKeys,
     AADServerParamKeys,
-    Constants,
-    B2CTrustedHostList
+    Constants
 } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
@@ -54,7 +53,7 @@ export class AuthorizationCodeModule extends AuthModule {
         // Implement defaults in config
         this.clientConfig = buildPublicClientSPAConfiguration(configuration);
 
-        this.setKnownAuthorities(this.clientConfig.auth.knownAuthorities);
+        AuthorityFactory.setKnownAuthorities(this.clientConfig.auth.knownAuthorities);
 
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
@@ -467,26 +466,6 @@ export class AuthorizationCodeModule extends AuthModule {
         }
         // This should never throw unless window.location.href is returning empty.
         throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
-    }
-
-    /**
-     * @hidden
-     * @ignore
-     * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
-     * @param authorityType
-     * @param validateAuthority
-     * @param knownAuthorities
-     */
-    private setKnownAuthorities(knownAuthorities: Array<string>): void {
-        if (!Object.keys(B2CTrustedHostList).length){
-            if (!knownAuthorities.length) {
-                throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
-            }
-
-            knownAuthorities.forEach(function(authority){
-                B2CTrustedHostList[authority] = authority;
-            });
-        }
     }
 
     // #endregion

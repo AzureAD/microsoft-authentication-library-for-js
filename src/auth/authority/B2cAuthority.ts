@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 import { Authority } from "./Authority";
-import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { AuthorityType } from "./AuthorityType";
-import { AADTrustedHostList, Constants } from "../../utils/Constants";
+import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { INetworkModule } from "../../network/INetworkModule";
+import { B2CTrustedHostList } from './AuthorityFactory';
 
 /**
  * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
@@ -14,12 +14,7 @@ import { INetworkModule } from "../../network/INetworkModule";
 export class B2cAuthority extends Authority {
     // Set authority type to AAD
     public get authorityType(): AuthorityType {
-        return AuthorityType.Aad;
-    }
-
-    // Default AAD Instance Discovery Endpoint
-    private get aadInstanceDiscoveryEndpointUrl(): string {
-        return `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}?api-version=1.0&authorization_endpoint=${this.canonicalAuthority}oauth2/v2.0/authorize`;
+        return AuthorityType.B2C;
     }
 
     public constructor(authority: string, networkInterface: INetworkModule) {
@@ -31,19 +26,11 @@ export class B2cAuthority extends Authority {
      * Only responds with the endpoint
      */
     public async getOpenIdConfigurationEndpointAsync(): Promise<string> {
-        if (
-            this.isInTrustedHostList(
-                this.canonicalAuthorityUrlComponents.HostNameAndPort
-            )
-        ) {
+        if (this.isInTrustedHostList(this.canonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.defaultOpenIdConfigurationEndpoint;
         }
 
-        // for custom domains in AAD where we query the service for the Instance discovery
-        const response = await this.networkInterface.sendGetRequestAsync<
-        OpenIdConfigResponse
-        >(this.aadInstanceDiscoveryEndpointUrl);
-        return response.tenant_discovery_endpoint;
+        throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
     /**
@@ -51,7 +38,6 @@ export class B2cAuthority extends Authority {
      * @param {string} The host to look up
      */
     private isInTrustedHostList(host: string): boolean {
-        // TODO: Please replace with KnownAuthorities check
-        return false;
+        return B2CTrustedHostList.includes(host);
     }
 }

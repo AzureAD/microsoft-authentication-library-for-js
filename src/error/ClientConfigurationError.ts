@@ -55,6 +55,10 @@ export const ClientConfigurationErrorMessage = {
     b2cKnownAuthoritiesNotSet: {
         code: "b2c_known_authorities_not_set",
         desc: "Must set known authorities when validateAuthority is set to True and using B2C"
+    },
+    untrustedAuthority: {
+        code: "untrusted_authority",
+        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
     }
 };
 
@@ -168,5 +172,13 @@ export class ClientConfigurationError extends ClientAuthError {
     static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
             ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
+    }
+
+    /**
+     * Throws error when provided authority is not a member of the trusted host list
+     */
+    static createUntrustedAuthorityError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
+            ClientConfigurationErrorMessage.untrustedAuthority.desc);
     }
 }
