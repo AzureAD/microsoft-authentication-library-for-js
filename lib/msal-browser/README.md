@@ -89,13 +89,15 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 
 ## Samples
 
-The [`samples`](../samples) folder contains samples applications for our libraries. Here is a complete list of samples for the MSAL.js 2.x library:
+The [`VanillaJSTestApp2.0` folder](../samples/VanillaJSTestApp2.0) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`. 
 
-| Sample | Description |
-| ------ | ----------- |
-| [Vanilla JS Sample](../../samples/VanillaJSTestApp2.0) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`msal-browser` package) with the Microsoft Graph API. |
+Here is a complete list of samples for the MSAL.js 2.x library:
 
-Instructions to run the samples can be found in the respective READMEs.
+| Sample | Description | How to Run |
+| ------ | ----------- | ---------- |
+| [Basic Auth Sample](../../samples/VanillaJSTestApp2.0/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
+
+More instructions to run the sample can be found in the [`README.md` file](../samples/VanillaJSTestApp2.0/README.md) of the VanillaJSTestApp2.0 folder.
 
 ## Build and Test
 
