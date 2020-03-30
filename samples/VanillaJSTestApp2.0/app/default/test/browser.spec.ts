@@ -2,7 +2,7 @@ import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
-import { TestCredential } from "../../../e2eTests/TestCredential";
+import { LabClient } from "../../../e2eTests/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
@@ -16,7 +16,7 @@ function setupScreenshotDir() {
 }
 
 async function setupCredentials() {
-    const testCreds = new TestCredential();
+    const testCreds = new LabClient();
     const envResponse = await testCreds.getUserVarsByCloudEnvironment("azureppe");
     const testEnv = envResponse[0];
     if (testEnv.upn) {
