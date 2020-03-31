@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { AuthorityFactory, B2CTrustedHostList } from "../../../src/auth/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { ClientConfigurationErrorMessage, ClientAuthErrorMessage, Constants, Authority } from "../../../src";
+import { ClientConfigurationErrorMessage, Constants, Authority } from "../../../src";
 import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
 import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority"
-import { IdToken } from "../../../src/auth/IdToken";
+import { TEST_CONFIG } from "../../utils/StringConstants";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
 
@@ -37,7 +37,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
 
     it("createInstance returns B2C instance if knownAuthorities is provided", () => {
         AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
-        const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_B2C_AUTHORITY, networkInterface);
+        const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.b2cValidAuthority, networkInterface);
         expect(authorityInstance instanceof B2cAuthority);
         expect(authorityInstance instanceof Authority);
     });
