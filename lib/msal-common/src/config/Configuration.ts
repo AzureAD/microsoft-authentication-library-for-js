@@ -76,7 +76,8 @@ export type LoggerOptions = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: null
+    authority: null,
+    knownAuthorities: []
 };
 
 // Default module system options

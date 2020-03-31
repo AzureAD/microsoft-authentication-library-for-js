@@ -6,7 +6,7 @@ import { Authority } from "./Authority";
 import { B2CTrustedHostList } from "./AuthorityFactory";
 import { INetworkModule } from "../network/INetworkModule";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { AuthorityType } from './AuthorityType';
+import { AuthorityType } from "./AuthorityType";
 
 /**
  * The B2cAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
@@ -18,7 +18,7 @@ export class B2cAuthority extends Authority {
     public get authorityType(): AuthorityType {
         return AuthorityType.B2C;
     }
-       public constructor(authority: string, networkInterface: INetworkModule) {
+    public constructor(authority: string, networkInterface: INetworkModule) {
         super(authority, networkInterface);
     }
 
