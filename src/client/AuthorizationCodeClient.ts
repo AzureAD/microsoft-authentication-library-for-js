@@ -7,10 +7,12 @@ import { BaseClient } from "./BaseClient";
 import { AuthorizationCodeUrlRequest } from "../request/AuthorizationCodeUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
-import { RequestUtils } from "../utils/RequestUtils";
+import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
+import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
+import {NetworkResponse} from "../network/NetworkManager";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -18,15 +20,7 @@ import { Configuration } from "../config/Configuration";
 export class AuthorizationCodeClient extends BaseClient {
 
     constructor(configuration: Configuration) {
-
-        super({
-            authOptions: configuration.authOptions,
-            systemOptions: configuration.systemOptions,
-            loggerOptions: configuration.loggerOptions,
-            storageInterface: configuration.storageInterface,
-            networkInterface: configuration.networkInterface,
-            cryptoInterface: configuration.cryptoInterface
-        });
+        super(configuration);
     }
 
     /**
@@ -42,9 +36,8 @@ export class AuthorizationCodeClient extends BaseClient {
     async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
         const authority: Authority = await this.createAuthority(request && request.authority);
-        const queryParams: Map<string, string> = this.generateAuthCodeUrlParams(request);
-        const queryString = RequestUtils.createQueryString(queryParams);
-        return authority.authorizationEndpoint + "?" + queryString;
+        const queryString = this.createAuthCodeUrlQueryString(request);
+        return `${authority.authorizationEndpoint}?${queryString}`;
     }
 
     /**
@@ -55,10 +48,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
         this.logger.info("in acquireToken call");
         const authority: Authority = await this.createAuthority(request && request.authority);
-        const acquiredTokenResponse = this.executeTokenRequest(authority, request);
-        return acquiredTokenResponse;
-
-        // add response_handler here to send the response
+        const response = await this.executeTokenRequest(authority, request);
+        return JSON.stringify(response.body);
+        // TODO add response_handler here to send the response
     }
 
     /**
@@ -66,121 +58,109 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<string> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
-        const tokenParameters: Map<string, string> = this.generateAuthCodeParams(request);
-        const requestBody = RequestUtils.createQueryString(tokenParameters);
+        const requestBody = this.createTokenRequestBody(request);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
-        let acquiredTokenResponse;
-        try {
-            acquiredTokenResponse = this.executePostToTokenEndpoint(
-                authority.tokenEndpoint,
-                requestBody,
-                headers);
-
-            return acquiredTokenResponse;
-        } catch (error) {
-            console.log(error.response.data); // TODO use logger
-            return error.response.data;
-        }
+        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
 
     /**
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private generateAuthCodeParams(request: AuthorizationCodeRequest) : Map<string, string> {
-        const paramsMap: Map<string, string> = new Map<string, string>();
+    private createTokenRequestBody(request: AuthorizationCodeRequest) : string {
+        const parameterBuilder = new RequestParameterBuilder();
 
-        RequestUtils.addClientId(paramsMap, this.config.authOptions.clientId);
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         // validate and add scopes
         const scopes = RequestValidator.validateAndGenerateScopes(
             request.scopes,
             this.config.authOptions.clientId
         );
-        RequestUtils.addScopes(paramsMap, scopes);
+        parameterBuilder.addScopes(scopes);
 
         // validate the redirectUri (to be a non null value)
         RequestValidator.validateRedirectUri(request.redirectUri);
-        RequestUtils.addRedirectUri(paramsMap, request.redirectUri);
+        parameterBuilder.addRedirectUri(request.redirectUri);
 
         // add code: user set, not validated
-        RequestUtils.addAuthorizationCode(paramsMap, request.code);
+        parameterBuilder.addAuthorizationCode(request.code);
 
         // add code_verifier if passed
         if (request.codeVerifier) {
-            RequestUtils.addCodeVerifier(paramsMap, request.codeVerifier);
+            parameterBuilder.addCodeVerifier(request.codeVerifier);
         }
 
-        RequestUtils.addGrantType(paramsMap, GrantType.AUTHORIZATION_CODE_GRANT);
+        parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
 
-        return paramsMap;
+        return parameterBuilder.createQueryString();
     }
 
     /**
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private generateAuthCodeUrlParams(request: AuthorizationCodeUrlRequest): Map<string, string>{
-        const paramsMap = new Map<string, string>();
+    private createAuthCodeUrlQueryString(request: AuthorizationCodeUrlRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
 
-        RequestUtils.addClientId(paramsMap, this.config.authOptions.clientId);
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         // validate and add scopes
         const scopes = RequestValidator.validateAndGenerateScopes(
             request.scopes,
             this.config.authOptions.clientId
         );
-        RequestUtils.addScopes(paramsMap, scopes);
+        parameterBuilder.addScopes(scopes);
 
         // validate the redirectUri (to be a non null value)
         RequestValidator.validateRedirectUri(request.redirectUri);
-        RequestUtils.addRedirectUri(paramsMap, request.redirectUri);
+        parameterBuilder.addRedirectUri(request.redirectUri);
 
         // generate the correlationId if not set by the user and add
         const correlationId = request.correlationId
             ? request.correlationId
             : this.config.cryptoInterface.createNewGuid();
-        RequestUtils.addCorrelationId(paramsMap, correlationId);
+        parameterBuilder.addCorrelationId(correlationId);
 
-        // add response_mode = fragment (currently hardcoded, have a future option to pass 'query' if the user chooses to)
-        RequestUtils.addResponseMode(paramsMap, request.responseMode);
+        // add response_mode. If not passed in it defaults to query.
+        parameterBuilder.addResponseMode(request.responseMode);
 
         // add response_type = code
-        RequestUtils.addResponseTypeCode(paramsMap);
+        parameterBuilder.addResponseTypeCode();
 
         if (request.codeChallenge) {
             RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
-            RequestUtils.addCodeChallengeParams(paramsMap, request.codeChallenge, request.codeChallengeMethod);
+            parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
         }
 
         if (request.state) {
-            RequestUtils.addState(paramsMap, request.state);
+            parameterBuilder.addState(request.state);
         }
 
         if (request.prompt) {
             RequestValidator.validatePrompt(request.prompt);
-            RequestUtils.addPrompt(paramsMap, request.prompt);
+            parameterBuilder.addPrompt(request.prompt);
         }
 
         if (request.loginHint) {
-            RequestUtils.addLoginHint(paramsMap, request.loginHint);
+            parameterBuilder.addLoginHint(request.loginHint);
         }
 
         if (request.domainHint) {
-            RequestUtils.addDomainHint(paramsMap, request.domainHint);
+            parameterBuilder.addDomainHint(request.domainHint);
         }
 
         if (request.nonce) {
-            RequestUtils.addNonce(paramsMap, request.nonce);
+            parameterBuilder.addNonce(request.nonce);
         }
 
         if(request.claims) {
-            RequestUtils.addClaims(paramsMap, request.claims);
+            parameterBuilder.addClaims(request.claims);
         }
 
-        return paramsMap;
+        return parameterBuilder.createQueryString();
     }
 }
