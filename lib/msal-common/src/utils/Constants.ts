@@ -33,6 +33,15 @@ export const Constants = {
 };
 
 /**
+ * Denotes which way MSAL is being used per request
+ */
+export enum MsalMethod {
+    SILENT = "silent",
+    POPUP = "popup",
+    REDIRECT = "redirect"
+};
+
+/**
  * Request header names
  */
 export enum HEADER_NAMES {

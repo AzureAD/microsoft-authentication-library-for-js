@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils } from "@azure/msal-common";
+import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, ProtocolUtils, MsalMethod } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -189,6 +189,8 @@ export class PublicClientApplication {
             return;
         }
 
+        request.userRequestState = ProtocolUtils.setMethodInUserRequestState(request.userRequestState, MsalMethod.REDIRECT);
+
         try {
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
@@ -223,6 +225,8 @@ export class PublicClientApplication {
             return;
         }
 
+        request.userRequestState = ProtocolUtils.setMethodInUserRequestState(request.userRequestState, MsalMethod.REDIRECT);
+
         try {
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
@@ -255,6 +259,8 @@ export class PublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
 
+        request.userRequestState = ProtocolUtils.setMethodInUserRequestState(request.userRequestState, MsalMethod.POPUP);
+
         // Create login url, which will by default append the client id scope to the call.
         const navigateUrl = await this.authModule.createLoginUrl(request);
 
@@ -274,6 +280,8 @@ export class PublicClientApplication {
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
+
+        request.userRequestState = ProtocolUtils.setMethodInUserRequestState(request.userRequestState, MsalMethod.POPUP);
 
         // Create acquire token url.
         const navigateUrl = await this.authModule.createAcquireTokenUrl(request);

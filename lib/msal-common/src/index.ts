@@ -31,5 +31,6 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export { Constants, TemporaryCacheKeys, PersistentCacheKeys, MsalMethod } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
+export { ProtocolUtils } from "./utils/ProtocolUtils";

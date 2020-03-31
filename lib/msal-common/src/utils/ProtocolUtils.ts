@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { StringUtils } from "./StringUtils";
-import { Constants } from "./Constants";
+import { Constants, MsalMethod } from "./Constants";
 
 /**
  * Class which provides helpers for OAuth 2.0 protocol specific values
@@ -33,5 +33,9 @@ export class ProtocolUtils {
             }
         }
         return "";
+    }
+
+    static setMethodInUserRequestState(userRequestState: string, method: MsalMethod): string {
+        return !StringUtils.isEmpty(userRequestState) ? `${userRequestState}${Constants.RESOURCE_DELIM}${method}` : method;
     }
 }

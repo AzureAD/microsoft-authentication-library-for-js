@@ -20,7 +20,7 @@ import { AccessTokenCacheItem } from "../../cache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../../auth/authority/AuthorityFactory";
 import { IdToken } from "../../auth/IdToken";
 import { ScopeSet } from "../../auth/ScopeSet";
-import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../../utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants, MsalMethod } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
@@ -237,7 +237,7 @@ export class AuthorizationCodeModule extends AuthModule {
                     refreshToken: cachedTokenItem.value.refreshToken,
                     expiresOn: new Date(expirationSec * 1000),
                     account: account,
-                    userRequestState: ""
+                    userRequestState: MsalMethod.SILENT
                 };
 
                 // Only populate id token if it exists in cache item.
@@ -248,11 +248,17 @@ export class AuthorizationCodeModule extends AuthModule {
                 request.authority = cachedTokenItem.key.authority;
                 const { tokenEndpoint } = acquireTokenAuthority;
 
+                // Build CodeResponse containing state
+                const codeResponse = {
+                    code: "",
+                    userRequestState: MsalMethod.SILENT
+                };
+
                 // Initialize request parameters.
                 const tokenReqParams = new ServerTokenRequestParameters(
                     this.clientConfig.auth.clientId,
                     request,
-                    null,
+                    codeResponse,
                     this.getRedirectUri(),
                     this.cryptoObj,
                     cachedTokenItem.value.refreshToken
