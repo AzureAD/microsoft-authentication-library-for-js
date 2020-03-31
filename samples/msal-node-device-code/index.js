@@ -10,10 +10,6 @@ const msalConfig = {
         clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
         authority:
             "https://login.microsoftonline.com/sgonz.onmicrosoft.com",
-    },
-    cache: {
-        cacheLocation: "fileCache", // This configures where your cache will be stored
-        storeAuthStateInCookie: false // Set this to "true" if you are having issues on IE11 or Edge
     }
 };
 
