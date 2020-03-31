@@ -1,10 +1,32 @@
-import * as Mocha from "mocha";
+import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
+import { LabClient } from "../../../e2eTests/LabClient";
 
-const SCREENSHOT_BASE_FOLDER_NAME = "./test/screenshots";
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
+let username = "";
+let accountPwd = "";
+
+function setupScreenshotDir() {
+    if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
+        fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
+    }
+}
+
+async function setupCredentials() {
+    const testCreds = new LabClient();
+    const envResponse = await testCreds.getUserVarsByCloudEnvironment("azureppe");
+    const testEnv = envResponse[0];
+    if (testEnv.upn) {
+        username = testEnv.upn;
+    }
+
+    const testPwdSecret = await testCreds.getSecret(testEnv.labName);
+
+    accountPwd = testPwdSecret.value;
+}
 
 async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
     const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
@@ -16,20 +38,29 @@ async function takeScreenshot(page: puppeteer.Page, testName: string, screenshot
 
 async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForSelector("#i0116");
     await takeScreenshot(page, testName, `loginPage`);
-    await page.type("#i0116", "IDLAB@msidlab4.onmicrosoft.com");
+    await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForSelector("#i0118");
     await takeScreenshot(page, testName, `pwdInputPage`);
-    await page.type("#i0118", "");
+    await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 }
 
-describe("Browser tests", () => {
+describe("Browser tests", function () {
+    this.timeout(12000);
+    this.retries(1);
 
     let browser: puppeteer.Browser;
     before(async () => {
-        browser = await puppeteer.launch();
+        setupScreenshotDir();
+        setupCredentials();
+        browser = await puppeteer.launch({
+            headless: true,
+            ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
+        });
     });
 
     let context: puppeteer.BrowserContext;
@@ -64,9 +95,9 @@ describe("Browser tests", () => {
         // Wait for return to page
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await takeScreenshot(page, testName, `samplePageLoggedIn`);
-        const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-        expect(Object.keys(localStorage).length).to.be.eq(5);
-    }).timeout(7000);
+        const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(Object.keys(sessionStorage).length).to.be.eq(3);
+    });
 
     it("Performs loginPopup", async () => {
         const testName = "popupBaseCase";
@@ -84,9 +115,11 @@ describe("Browser tests", () => {
         await enterCredentials(popupPage, testName);
         // Wait until popup window closes and see that we are logged in
         await popupWindowClosed;
-        await takeScreenshot(page, testName, `samplePageLoggedIn`);
-        const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-        expect(Object.keys(localStorage).length).to.be.eq(5);
+        // Wait for token acquisition
+        await page.waitFor(2000);
         expect(popupPage.isClosed()).to.be.true;
-    }).timeout(7000);
+        await takeScreenshot(page, testName, `samplePageLoggedIn`);
+        const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(Object.keys(sessionStorage).length).to.be.eq(3);
+    });
 });
