@@ -11,25 +11,13 @@ import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
-import { Constants } from "../utils/Constants";
+import {AADServerParamKeys, Constants, HeaderNames} from "../utils/Constants";
 import {ClientAuthError} from "../error/ClientAuthError";
-import { RequestUtils } from "../utils/RequestUtils";
+import {NetworkResponse} from "../network/NetworkManager";
+import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
 
 /**
- * @hidden
- * @ignore
- * Data type to hold information about state returned from the server
- */
-export type ResponseStateInfo = {
-    state: string;
-    stateMatch: boolean;
-};
-
-/**
- * BaseClient class
- *
- * Parent object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
- *
+ * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
  */
 export abstract class BaseClient {
 
@@ -92,7 +80,7 @@ export abstract class BaseClient {
      */
     protected async createAuthority(authorityString: string): Promise<Authority> {
 
-        // TODO expensive to resolve authority endpoints everytime.
+        // TODO expensive to resolve authority endpoints every time.
         const authority: Authority = authorityString
             ? AuthorityFactory.createInstance(authorityString, this.networkClient)
             : this.defaultAuthorityInstance;
@@ -110,9 +98,21 @@ export abstract class BaseClient {
      * Creates default headers for requests to token endpoint
      */
     protected createDefaultTokenRequestHeaders(): Map<string, string> {
+
+        const headers = this.createDefaultLibraryHeaders();
+        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+
+        return headers;
+    }
+
+    /**
+     * addLibraryData
+     */
+    createDefaultLibraryHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
-        RequestUtils.addContentTypeHeader(headers);
-        RequestUtils.addLibrarydataHeaders(headers);
+        // library version
+        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, Constants.LIBRARY_NAME);
+        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, "0.0.1");
         return headers;
     }
 
@@ -122,12 +122,12 @@ export abstract class BaseClient {
      * @param queryString
      * @param headers
      */
-    protected async executePostToTokenEndpoint(
+    protected executePostToTokenEndpoint(
         tokenEndpoint: string,
         queryString: string,
-        headers: Map<string, string> ): Promise<string> {
+        headers: Map<string, string> ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
-        return this.networkClient.sendPostRequestAsync<string>(
+        return this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
             tokenEndpoint,
             {
                 body: queryString,
