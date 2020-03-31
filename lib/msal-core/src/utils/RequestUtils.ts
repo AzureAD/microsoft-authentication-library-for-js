@@ -16,7 +16,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 export type LibraryStateObject = {
     id: string,
     ts: number
-    method?: string
+    method: string
 };
 
 /**
@@ -171,9 +171,11 @@ export class RequestUtils {
         const libraryState = state.split(Constants.resourceDelimiter)[0];
 
         if (CryptoUtils.isGuid(libraryState)) {
+            // If state is guid, assume timestamp is now and is redirect, as redirect should be only method where this can happen.
             return {
                 id: libraryState,
-                ts: TimeUtils.now()
+                ts: TimeUtils.now(),
+                method: Constants.interactionTypeRedirect
             };
         }
 

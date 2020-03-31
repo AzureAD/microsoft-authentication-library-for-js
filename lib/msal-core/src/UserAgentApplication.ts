@@ -95,7 +95,7 @@ export interface CacheResult {
 export type ResponseStateInfo = {
     state: string;
     timestamp: number,
-    method?: string;
+    method: string;
     stateMatch: boolean;
     requestType: string;
 };
