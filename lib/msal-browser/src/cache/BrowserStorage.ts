@@ -8,6 +8,8 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
+// this is a fake pr
+
 // Cookie life calculation (hours * minutes * seconds * ms)
 const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
