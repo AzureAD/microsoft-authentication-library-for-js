@@ -27,7 +27,7 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl 
      */
-    showUI(requestUrl: string): Window {
+    initiateAuthRequest(requestUrl: string): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.

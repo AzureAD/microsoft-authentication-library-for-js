@@ -196,7 +196,7 @@ export class PublicClientApplication {
             // Create login url, which will by default append the client id scope to the call.
             this.authModule.createLoginUrl(request).then((navigateUrl) => {
                 // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-                interactionHandler.showUI(navigateUrl);
+                interactionHandler.initiateAuthRequest(navigateUrl);
             });
         } catch (e) {
             this.cleanRequest();
@@ -230,7 +230,7 @@ export class PublicClientApplication {
             // Create acquire token url.
             this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
                 // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-                interactionHandler.showUI(navigateUrl);
+                interactionHandler.initiateAuthRequest(navigateUrl);
             });
         } catch (e) {
             this.cleanRequest();
@@ -291,7 +291,7 @@ export class PublicClientApplication {
             // Create popup interaction handler.
             const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow = interactionHandler.showUI(navigateUrl);
+            const popupWindow = interactionHandler.initiateAuthRequest(navigateUrl);
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
             // Handle response from hash string.
