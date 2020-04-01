@@ -22,7 +22,7 @@ export abstract class InteractionHandler {
      * Function to enable user interaction.
      * @param requestUrl 
      */
-    abstract showUI(requestUrl: string): Window;
+    abstract initiateAuthRequest(requestUrl: string): Window;
 
     /**
      * Function to handle response parameters from hash.
