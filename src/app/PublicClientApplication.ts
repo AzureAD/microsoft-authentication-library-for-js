@@ -2,12 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils } from "@azure/msal-common";
+import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
+import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -178,6 +179,9 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
+        // block the request if made from the hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
@@ -194,7 +198,7 @@ export class PublicClientApplication {
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create login url, which will by default append the client id scope to the call.
-            this.authModule.createLoginUrl(request).then((navigateUrl) => {
+            this.authModule.createLoginUrl(request).then((navigateUrl: string) => {
                 // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
                 interactionHandler.initiateAuthRequest(navigateUrl);
             });
@@ -212,6 +216,9 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
+        // block the request if made from the hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
         if (!this.authCallback) {
             throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
@@ -228,7 +235,7 @@ export class PublicClientApplication {
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create acquire token url.
-            this.authModule.createAcquireTokenUrl(request).then((navigateUrl) => {
+            this.authModule.createAcquireTokenUrl(request).then((navigateUrl: string) => {
                 // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
                 interactionHandler.initiateAuthRequest(navigateUrl);
             });
@@ -250,6 +257,9 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
+        // block the request if made from the hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
         // Check if interaction is in progress. Throw error if true.
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
@@ -270,6 +280,9 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
+        // block the request if made from the hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
         // Check if interaction is in progress. Throw error if true.
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
@@ -291,7 +304,7 @@ export class PublicClientApplication {
             // Create popup interaction handler.
             const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow = interactionHandler.initiateAuthRequest(navigateUrl);
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl);
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
             // Handle response from hash string.
@@ -306,6 +319,30 @@ export class PublicClientApplication {
 
     // #region Silent Flow
 
+    async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
+        // block the request if made from the hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
+        // Can only use prompt=none if attempting to acquire code silently
+        request.prompt = PromptValue.NONE;
+
+        // Create acquire token url
+        const navigateUrl = await this.authModule.createLoginUrl(request);
+
+        try {
+            // Create silent handler
+            const silentHandler = new SilentHandler(this.authModule, this.browserStorage, this.config.system.loadFrameTimeout);
+            // Get the frame handle for the silent request
+            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
+            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
+            // Handle response from hash string.
+            return await silentHandler.handleCodeResponse(hash);
+        } catch(e) {
+            throw e;
+        }
+    }
+
     /**
      * Use this function to obtain a token before every call to the API / resource provider
      *
@@ -319,6 +356,9 @@ export class PublicClientApplication {
      *
      */
     async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+        // block the request if made from the hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return this.authModule.renewToken(tokenRequest);
     }
