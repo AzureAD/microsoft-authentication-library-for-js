@@ -20,7 +20,7 @@ export const BrowserConstants = {
     // Default popup window height
     POPUP_HEIGHT: 600,
     // Default popup monitor poll interval in milliseconds
-    POPUP_POLL_INTERVAL_MS: 50
+    POLL_INTERVAL_MS: 50
 };
 
 /**

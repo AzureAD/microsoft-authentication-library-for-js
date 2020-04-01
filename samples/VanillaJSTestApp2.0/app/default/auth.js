@@ -25,7 +25,7 @@ function authRedirectCallBack(error, response) {
             console.log('id_token acquired at: ' + new Date().toString());
             showWelcomeMessage(myMSALObj.getAccount());
             getTokenRedirect(loginRequest);
-        } else if (response.tokenType === "access_token") {
+        } else if (response.tokenType === "Bearer") {
             console.log('access_token acquired at: ' + new Date().toString());
         } else {
             console.log("token type is:" + response.tokenType);
@@ -37,6 +37,20 @@ function authRedirectCallBack(error, response) {
 if (myMSALObj.getAccount()) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
     showWelcomeMessage(myMSALObj.getAccount());
+} else {
+    myMSALObj.ssoSilent(loginRequest).then((tokenResponse) => {
+        if (myMSALObj.getAccount()) {
+            console.log('id_token acquired at: ' + new Date().toString());
+            showWelcomeMessage(myMSALObj.getAccount());
+            getTokenRedirect(loginRequest);
+        } else if (response.tokenType === "Bearer") {
+            console.log('access_token acquired at: ' + new Date().toString());
+        } else {
+            console.log("token type is:" + response.tokenType);
+        }
+    }).catch(error => {
+        console.log(error);
+    });
 }
 
 async function signIn(method) {
@@ -61,6 +75,7 @@ function signOut() {
 async function getTokenPopup(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails. acquiring token using popup");
+        console.error(error);
         // fallback to interaction when silent call fails
         return await myMSALObj.acquireTokenPopup(request).catch(error => {
             console.log(error);
