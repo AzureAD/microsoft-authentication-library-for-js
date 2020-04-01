@@ -4,8 +4,6 @@
  */
 import { APP_META_DATA, Separators } from "../../utils/Constants";
 
-export type AppMetaDataEntity = {};
-
 /**
  * APP_META_DATA Cache
  */
