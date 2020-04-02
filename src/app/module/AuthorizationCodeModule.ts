@@ -192,7 +192,7 @@ export class AuthorizationCodeModule extends AuthModule {
      * id tokens are not being renewed).
      * @param request 
      */
-    async renewToken(request: TokenRenewParameters): Promise<TokenResponse> {
+    async getValidToken(request: TokenRenewParameters): Promise<TokenResponse> {
         try {
             // Cannot renew token if no request object is given.
             if (!request) {

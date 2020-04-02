@@ -24,26 +24,8 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 export type AuthenticationParameters = ClientRequestParameters & {
     extraScopesToConsent?: Array<string>;
     prompt?: string;
-    claimsRequest?: string;
     userRequestState?: string;
     account?: Account;
     sid?: string;
     loginHint?: string;
 };
-
-/**
- * Function which validates claims request passed in by the user.
- * @param request 
- */
-export function validateClaimsRequest(request: AuthenticationParameters): void {
-    if (!request.claimsRequest) {
-        return;
-    }
-    try {
-        JSON.parse(request.claimsRequest);
-    } catch (e) {
-        throw ClientConfigurationError.createClaimsRequestParsingError(e);
-    }
-
-    // TODO: More validation will be added when the server team tells us how they have actually implemented claims
-}
