@@ -1,13 +1,15 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import {AuthorizationCodeRequest, ClientConfiguration} from './../../src/index';
 import { DeviceCodeRequest } from "@azure/msal-common/dist/src/request/DeviceCodeRequest";
-import {AuthorizationCodeUrlRequest, DeviceCodeClient} from "@azure/msal-common";
+import {AuthorizationCodeClient, AuthorizationCodeUrlRequest, DeviceCodeClient} from "@azure/msal-common";
 import {AUTHENTICATION_RESULT, TEST_CONSTANTS} from "../utils/TestConstants";
 
 describe('PublicClientApplication', () => {
 
     jest.mock("@azure/msal-common");
     DeviceCodeClient.prototype.acquireToken = jest.fn(() => new Promise<string>((resolve) => resolve(JSON.stringify(AUTHENTICATION_RESULT))));
+    AuthorizationCodeClient.prototype.acquireToken = jest.fn(() => new Promise<string>((resolve) => resolve(JSON.stringify(AUTHENTICATION_RESULT))));
+    AuthorizationCodeClient.prototype.getAuthCodeUrl = jest.fn(() => new Promise<string>((resolve) => resolve(TEST_CONSTANTS.AUTH_CODE_URL)));
 
     test('exports a class', () => {
         const msalConfig: ClientConfiguration = {
@@ -34,7 +36,7 @@ describe('PublicClientApplication', () => {
 
         const request: DeviceCodeRequest = {
             deviceCodeCallback: response => {console.log(response)},
-            scopes: ["user.read"]
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE
         };
 
 
@@ -85,10 +87,7 @@ describe('PublicClientApplication', () => {
         const authApp = new PublicClientApplication(msalConfig);
         authApp.getAuthCodeUrl(request)
             .then((response) => {
-                // expect(result).toBeInstanceOf(""); // TODO add check when response type is decided on
-                expect(response).toEqual(JSON.stringify(AUTHENTICATION_RESULT));
+                expect(response).toEqual(TEST_CONSTANTS.AUTH_CODE_URL);
             });
     });
-
-
 });
