@@ -319,15 +319,17 @@ export class PublicClientApplication {
 
     // #region Silent Flow
 
-    async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
+    async acquireTokenSilent(request: AuthenticationParameters): Promise<TokenResponse> {
         // block the request if made from the hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        // Can only use prompt=none if attempting to acquire code silently
-        request.prompt = PromptValue.NONE;
+        const silentRequest: AuthenticationParameters = {
+            ...request,
+            prompt: PromptValue.NONE
+        };
 
         // Create acquire token url
-        const navigateUrl = await this.authModule.createLoginUrl(request);
+        const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
 
         try {
             // Create silent handler
@@ -355,12 +357,16 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
-        // block the request if made from the hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
+    async getTokens(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-        return this.authModule.renewToken(tokenRequest);
+        try {
+            return await this.authModule.getValidToken(tokenRequest);
+        } catch(e) {
+            if ((e.errorCode === "invalid_grant" && e.errorMessage.includes("AADSTS700081")) || e.errorCode === "no_tokens_found") {
+                return this.acquireTokenSilent(tokenRequest);
+            }
+            throw e;
+        }
     }
 
     // #endregion
@@ -373,7 +379,7 @@ export class PublicClientApplication {
      */
     logout(): void {
         // create logout string and navigate user window to logout. Auth module will clear cache.
-        this.authModule.logout().then(logoutUri => {
+        this.authModule.logout().then((logoutUri: string) => {
             BrowserUtils.navigateWindow(logoutUri);
         });
     }
