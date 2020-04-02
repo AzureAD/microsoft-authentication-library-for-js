@@ -28,7 +28,7 @@ export abstract class BaseClient {
     protected config: Configuration;
 
     // Crypto Interface
-    protected cryptoObj: ICrypto;
+    protected cryptoUtils: ICrypto;
 
     // Storage Interface
     protected cacheStorage: ICacheStorage;
@@ -53,7 +53,7 @@ export abstract class BaseClient {
         this.logger = new Logger(this.config.loggerOptions);
 
         // Initialize crypto
-        this.cryptoObj = this.config.cryptoInterface;
+        this.cryptoUtils = this.config.cryptoInterface;
 
         // Initialize storage interface
         this.cacheStorage = this.config.storageInterface;
@@ -82,11 +82,9 @@ export abstract class BaseClient {
             ? AuthorityFactory.createInstance(authorityString, this.networkClient)
             : this.defaultAuthorityInstance;
 
-        try {
-            await authority.resolveEndpointsAsync();
-        } catch (error) {
+        await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
-        }
+        });
 
         return authority;
     }
@@ -105,7 +103,7 @@ export abstract class BaseClient {
     /**
      * addLibraryData
      */
-    createDefaultLibraryHeaders(): Map<string, string> {
+    protected createDefaultLibraryHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
         // library version
         headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, Constants.LIBRARY_NAME);
