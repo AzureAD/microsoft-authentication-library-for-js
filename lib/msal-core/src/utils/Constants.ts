@@ -17,8 +17,8 @@ export class Constants {
     static get scopes(): string { return "scopes"; }
 
     static get no_account(): string { return "NO_ACCOUNT"; }
-    static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
     static get upn(): string { return "upn"; }
+    static get domain_hint(): string { return "domain_hint"; }
 
     static get prompt_select_account(): string { return "&prompt=select_account"; }
     static get prompt_none(): string { return "&prompt=none"; }
@@ -118,13 +118,8 @@ export enum SSOTypes {
     SID = "sid",
     LOGIN_HINT = "login_hint",
     ID_TOKEN ="id_token",
-    DOMAIN_HINT = "domain_hint",
-    ORGANIZATIONS = "organizations",
-    CONSUMERS = "consumers",
     ACCOUNT_ID = "accountIdentifier",
-    HOMEACCOUNT_ID = "homeAccountIdentifier",
-    LOGIN_REQ = "login_req",
-    DOMAIN_REQ = "domain_req"
+    HOMEACCOUNT_ID = "homeAccountIdentifier"
 };
 
 /**
@@ -154,5 +149,5 @@ export const PromptState = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.2.2";
+    return "1.3.0";
 }

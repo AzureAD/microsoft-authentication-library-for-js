@@ -514,7 +514,7 @@ export class UserAgentApplication {
 
             this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
 
-            // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+            // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
 
             // Construct urlNavigate
@@ -632,16 +632,16 @@ export class UserAgentApplication {
                 request.correlationId,
             );
 
-            // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+            // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
-                serverAuthenticationRequest.populateQueryParams(account, request);
+                serverAuthenticationRequest.populateQueryParams(account, request, null, true);
             }
             // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
                 this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-                serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject);
+                serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
             }
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
