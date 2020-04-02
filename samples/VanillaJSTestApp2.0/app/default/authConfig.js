@@ -26,3 +26,8 @@ const tokenRequest = {
     scopes: ["Mail.Read"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
+
+const silentRequest = {
+    scopes: ["3fba556e-5d4a-48e3-8e1a-fd57c12cb82e", "User.Read"],
+    loginHint: "IDLAB@msidlab0.ccsctp.net"
+}
