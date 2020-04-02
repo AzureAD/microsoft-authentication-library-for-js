@@ -27,11 +27,12 @@ export class AuthorityFactory {
         const components = authorityUrl.getUrlComponents();
         const pathSegments = components.PathSegments;
 
-        if (pathSegments[0] === "adfs")
+        if (pathSegments[0] === "adfs") {
             return AuthorityType.Adfs;
-        else if (Object.keys(B2CTrustedHostList).length)
+        }
+        else if (Object.keys(B2CTrustedHostList).length) {
             return AuthorityType.B2C;
-
+        }
         // defaults to Aad
         return AuthorityType.Aad;
     }
@@ -43,12 +44,8 @@ export class AuthorityFactory {
      * @param knownAuthorities
      */
     public static setKnownAuthorities(knownAuthorities: Array<string>): void {
-        if (!Object.keys(B2CTrustedHostList).length){
-            if (!knownAuthorities.length) {
-                throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
-            }
-
-            knownAuthorities.forEach(function(authority){
+        if (!Object.keys(B2CTrustedHostList).length && knownAuthorities) {
+            knownAuthorities.forEach(function (authority) {
                 B2CTrustedHostList[authority] = authority;
             });
         }
@@ -65,6 +62,7 @@ export class AuthorityFactory {
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
+        console.log(type.toString());
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.Aad:
