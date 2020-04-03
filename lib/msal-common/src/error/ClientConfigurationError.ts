@@ -183,7 +183,7 @@ export class ClientConfigurationError extends ClientAuthError {
     /**
      * Throws error when both params: code_challenge and code_challenge_method are not passed together
      */
-    static createInvalidCodeChallengeParams(): ClientConfigurationError {
+    static createInvalidCodeChallengeParamsError(): ClientConfigurationError {
         return new ClientConfigurationError(
             ClientConfigurationErrorMessage.invalidCodeChallengeParams.code,
             ClientConfigurationErrorMessage.invalidCodeChallengeParams.desc

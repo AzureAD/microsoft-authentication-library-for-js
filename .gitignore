@@ -255,6 +255,9 @@ paket-files/
 .DS_Store
 .DS_Store?
 
+# Visual Studio code
+.vscode/
+
 # MSAL specific ignore files
 node_modules/
 .nyc_output/
