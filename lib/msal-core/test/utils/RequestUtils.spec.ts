@@ -105,6 +105,13 @@ describe("RequestUtils.ts class", () => {
         nowStub.restore();
     });
 
+    it("properly handles encoded state", () => {
+        const state = "eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello";
+
+        const parsedState = RequestUtils.parseLibraryState(state);
+        expect(CryptoUtils.isGuid(parsedState.id)).to.be.equal(true);
+    });
+
     it("parses old guid state format", () => {
         const now = TimeUtils.now();
         const nowStub = sinon.stub(TimeUtils, "now").returns(now);

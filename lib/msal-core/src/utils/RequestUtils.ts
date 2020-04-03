@@ -168,7 +168,7 @@ export class RequestUtils {
      * @returns Parsed values from the encoded state value
      */
     static parseLibraryState(state: string): LibraryStateObject {
-        const libraryState = state.split(Constants.resourceDelimiter)[0];
+        const libraryState = decodeURIComponent(state).split(Constants.resourceDelimiter)[0];
 
         if (CryptoUtils.isGuid(libraryState)) {
             // If state is guid, assume timestamp is now and is redirect, as redirect should be only method where this can happen.
