@@ -29,15 +29,15 @@ export class MsalGuard implements CanActivate {
 
     /**
      * Builds the absolute url for the destination page
-     * @param path Relative path of requested page
+     * @param url Relative path of requested page
      * @returns Full destination url
      */
-    getDestinationUrl(path: string): string {
+    getDestinationUrl(url: string): string {
         // Absolute base url for the application
         const baseUrl = this.location.normalize(document.getElementsByTagName("base")[0].href);
 
         // Path of page (including hash, if using hash routing)
-        const pathUrl = this.location.prepareExternalUrl(path);
+        const pathUrl = this.location.prepareExternalUrl(url);
 
         // Hash location strategy
         if (pathUrl.startsWith("#")) {
@@ -46,7 +46,30 @@ export class MsalGuard implements CanActivate {
 
         // If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
         // Since baseUrl also includes /base, can just concatentate baseUrl + path
-        return `${baseUrl}${path}`;
+        return `${baseUrl}${url}`;
+    }
+
+    /**
+     * Interactively prompt the user to login
+     * @param url Path of the requested page
+     */
+    async loginInteractively(url: string) {
+        if (this.msalAngularConfig.popUp) {
+            return this.authService.loginPopup({
+                scopes: this.msalAngularConfig.consentScopes,
+                extraQueryParameters: this.msalAngularConfig.extraQueryParameters
+            })
+                .then(() => true)
+                .catch(() => false);
+        }
+
+        const redirectStartPage = this.getDestinationUrl(url);
+
+        this.authService.loginRedirect({
+            redirectStartPage,
+            scopes: this.msalAngularConfig.consentScopes,
+            extraQueryParameters: this.msalAngularConfig.extraQueryParameters
+        });
     }
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
@@ -60,30 +83,14 @@ export class MsalGuard implements CanActivate {
         }
 
         if (!this.authService.getAccount()) {
-            if (this.msalAngularConfig.popUp) {
-                return this.authService.loginPopup({
-                    scopes: this.msalAngularConfig.consentScopes,
-                    extraQueryParameters: this.msalAngularConfig.extraQueryParameters
-                })
-                    .then(() => true)
-                    .catch(() => false);
-            }
-
-            const redirectStartPage = this.getDestinationUrl(state.url);
-
-            this.authService.loginRedirect({
-                redirectStartPage,
-                scopes: this.msalAngularConfig.consentScopes,
-                extraQueryParameters: this.msalAngularConfig.extraQueryParameters
-            });
-        } else {
-            return this.authService.acquireTokenSilent({
-                scopes: [this.msalConfig.auth.clientId]
-            })
-                .then(() => true)
-                .catch(() => false);
+            return this.loginInteractively(state.url);
         }
 
+        return this.authService.acquireTokenSilent({
+            scopes: [this.msalConfig.auth.clientId]
+        })
+            .then(() => true)
+            .catch(() => this.loginInteractively(state.url));
     }
 
 }
