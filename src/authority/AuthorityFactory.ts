@@ -62,7 +62,6 @@ export class AuthorityFactory {
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
-        console.log(type.toString());
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.Aad:
