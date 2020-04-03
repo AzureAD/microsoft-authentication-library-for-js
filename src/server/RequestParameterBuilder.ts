@@ -153,7 +153,7 @@ export class RequestParameterBuilder {
                 encodeURIComponent(codeChallengeMethod)
             );
         } else {
-            throw ClientConfigurationError.createInvalidCodeChallengeParams();
+            throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         }
     }
 
@@ -190,7 +190,11 @@ export class RequestParameterBuilder {
     //     params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
     // }
 
-    addGrantType( grantType: string): void {
+    /**
+     * add grant type
+     * @param grantType
+     */
+    addGrantType(grantType: string): void {
         this.parameters.set(`${AADServerParamKeys.GRANT_TYPE}`, encodeURIComponent(grantType));
     }
 

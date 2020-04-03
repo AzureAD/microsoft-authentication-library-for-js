@@ -58,7 +58,7 @@ export class RequestValidator {
      */
     static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) : void  {
         if (!(codeChallenge && codeChallengeMethod)) {
-            throw ClientConfigurationError.createInvalidCodeChallengeParams();
+            throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
         }
