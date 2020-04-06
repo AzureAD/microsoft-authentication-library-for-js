@@ -319,7 +319,7 @@ export class PublicClientApplication {
 
     // #region Silent Flow
 
-    async acquireTokenSilent(request: AuthenticationParameters): Promise<TokenResponse> {
+    async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
         // block the request if made from the hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -357,16 +357,9 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async getTokens(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+    async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-        try {
-            return await this.authModule.getValidToken(tokenRequest);
-        } catch(e) {
-            if ((e.errorCode === "invalid_grant" && e.errorMessage.includes("AADSTS700081")) || e.errorCode === "no_tokens_found") {
-                return this.acquireTokenSilent(tokenRequest);
-            }
-            throw e;
-        }
+        return await this.authModule.getValidToken(tokenRequest);
     }
 
     // #endregion
