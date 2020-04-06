@@ -14,22 +14,12 @@ import { PromptValue, CodeChallengeMethodValues } from "./../utils/Constants";
 export class RequestValidator {
 
     /**
-     * Utility to validate scopes passed by the user in the request
-     */
-    static validateAndGenerateScopes(scopes: Array<string>, clientId: string): Array<string> {
-        // Set scopes and append default scopes
-        const scopeSet = new ScopeSet(scopes || [], clientId, true, true);
-        return scopeSet.asArray();
-    }
-
-    /**
      * Utility to check if the `redirectUri` in the request is a non-null value
      * @param redirectUri
      */
     static validateRedirectUri(redirectUri: string) : void {
-        // check if the redirectUri is null, set to default
         if (StringUtils.isEmpty(redirectUri)) {
-            throw ClientConfigurationError.createUrlEmptyError();
+            throw ClientConfigurationError.createRedirectUriEmptyError();
         }
     }
 
@@ -38,7 +28,6 @@ export class RequestValidator {
      * @param prompt
      */
     static validatePrompt(prompt: string) : void {
-        // validate prompt parameter
         if (
             [
                 PromptValue.LOGIN,
@@ -69,7 +58,6 @@ export class RequestValidator {
      * @param codeChallengeMethod
      */
     static validateCodeChallengeMethod(codeChallengeMethod: string) : void {
-        // validate prompt parameter
         if (
             [
                 CodeChallengeMethodValues.PLAIN,

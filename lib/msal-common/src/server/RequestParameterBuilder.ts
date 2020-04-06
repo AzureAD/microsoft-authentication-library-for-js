@@ -39,12 +39,12 @@ export class RequestParameterBuilder {
 
     /**
      * add scopes
-     * @param scopes
+     * @param scopeSet
      */
-    addScopes(scopes: Array<string>): void {
+    addScopes(scopeSet: ScopeSet): void {
         this.parameters.set(
             `${AADServerParamKeys.SCOPE}`,
-            encodeURIComponent(ScopeSet.finalScopes(scopes))
+            encodeURIComponent(scopeSet.printScopes())
         );
     }
 
@@ -100,9 +100,7 @@ export class RequestParameterBuilder {
      * @param params
      * @param correlationId
      */
-    addCorrelationId(
-        correlationId: string
-    ): void {
+    addCorrelationId(correlationId: string): void {
         this.parameters.set(
             `${AADServerParamKeys.CLIENT_REQUEST_ID}`,
             encodeURIComponent(correlationId)
@@ -190,7 +188,7 @@ export class RequestParameterBuilder {
     //     params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
     // }
 
-    addGrantType( grantType: string): void {
+    addGrantType(grantType: string): void {
         this.parameters.set(`${AADServerParamKeys.GRANT_TYPE}`, encodeURIComponent(grantType));
     }
 
