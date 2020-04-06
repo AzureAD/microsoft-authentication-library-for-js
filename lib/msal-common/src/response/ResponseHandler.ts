@@ -12,7 +12,7 @@ import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
-import { PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
+import { PersistentCacheKeys, TemporaryCacheKeys, Constants } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
@@ -22,6 +22,7 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { CodeResponse } from "./CodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
+import { AuthenticationRequiredError } from "../error/AuthenticationRequiredError";
 
 /**
  * Class that handles response parsing.
@@ -111,9 +112,17 @@ export class ResponseHandler {
     
         // Check for error
         if (serverResponseHash.error || serverResponseHash.error_description) {
+            if (serverResponseHash.error === Constants.INVALID_GRANT_ERROR && serverResponseHash.error_description.indexOf(Constants.REFRESH_TOKEN_EXP_STS_CODE) > -1) {
+                throw AuthenticationRequiredError.createRefreshTokenExpiredError();
+            }
+
+            if (AuthenticationRequiredError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description)) {
+                throw new AuthenticationRequiredError(serverResponseHash.error, serverResponseHash.error_description);
+            }
+
             throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
         }
-    
+
         if (serverResponseHash.client_info) {
             buildClientInfo(serverResponseHash.client_info, cryptoObj);
         }

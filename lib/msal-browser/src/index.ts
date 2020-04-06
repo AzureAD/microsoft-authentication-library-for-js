@@ -10,6 +10,7 @@ export {
     // Response
     AuthResponse,
     // Error
+    AuthenticationRequiredError,
     AuthError,
     AuthErrorMessage,
     INetworkModule

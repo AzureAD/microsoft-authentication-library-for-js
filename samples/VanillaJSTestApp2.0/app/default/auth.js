@@ -38,7 +38,7 @@ if (myMSALObj.getAccount()) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
     showWelcomeMessage(myMSALObj.getAccount());
 } else {
-    myMSALObj.acquireTokenSilent(silentRequest).then((tokenResponse) => {
+    myMSALObj.ssoSilent(silentRequest).then((tokenResponse) => {
         if (myMSALObj.getAccount()) {
             console.log('id_token acquired at: ' + new Date().toString());
             showWelcomeMessage(myMSALObj.getAccount());
@@ -49,8 +49,8 @@ if (myMSALObj.getAccount()) {
             console.log("token type is:" + response.tokenType);
         }
     }).catch(error => {
-        if (error.errorCode !== "interaction_required") {
-            console.error(error);
+        if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+            signIn("loginPopup");
         }
     });
 }
@@ -75,31 +75,62 @@ function signOut() {
 }
 
 async function getTokenPopup(request) {
-    return await myMSALObj.getTokens(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error.errorCode === "interaction_required" || error.errorCode === "consent_required") {
-            console.log(error.errorCode);
-            console.log("acquiring token using popup");
-            // fallback to interaction when silent call fails
-            return await myMSALObj.acquireTokenPopup(request).catch(error => {
-                console.log(error);
-            });
+    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
+        console.log("token refresh fails.");
+        if (error instanceof AuthenticationRequiredError) {
+            if (!msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using silent iframe");
+                return myMSALObj.ssoSilent(request).catch(error => {
+                    console.log(error);
+                });
+            } else {
+                throw error;
+            }
         } else {
             console.error(error);
         }
+    }).catch(async (error) => {
+        console.log("silent token acquisition fails.");
+        if (error instanceof msal.AuthenticationRequiredError) {
+            if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using popup");
+                return myMSALObj.acquireTokenPopup(request).catch(error => {
+                    console.error(error);
+                });
+            }
+        }
+        console.error(error);
     });
 }
 
 // This function can be removed if you do not need to support IE
 async function getTokenRedirect(request) {
-    return await myMSALObj.getTokens(request).catch(error => {
-        console.log("silent token acquisition fails.");
-        if (error.errorCode === "interaction_required" || error.errorCode === "consent_required") {
-            console.log("acquiring token using redirect");
-            // fallback to interaction when silent call fails
-            return myMSALObj.acquireTokenRedirect(request)
+    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
+        console.log("token refresh fails.");
+        if (error instanceof AuthenticationRequiredError) {
+            if (!AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using silent iframe");
+                return myMSALObj.ssoSilent(request).catch(error => {
+                    console.log(error);
+                });
+            } else {
+                throw error;
+            }
         } else {
             console.error(error);
         }
+    }).catch(async (error) => {
+        console.log("silent token acquisition fails.");
+        if (error instanceof AuthenticationRequiredError) {
+            if (AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using redirect");
+                return myMSALObj.acquireTokenRedirect(request);
+            }
+        }
+        console.error(error);
     });
 }

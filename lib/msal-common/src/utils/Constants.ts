@@ -29,7 +29,10 @@ export const Constants = {
     RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
-    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded",
+    // Invalid grant error code
+    INVALID_GRANT_ERROR: "invalid_grant",
+    REFRESH_TOKEN_EXP_STS_CODE: "AADSTS700081"
 };
 
 /**
