@@ -4,7 +4,6 @@
  */
 import { ClientRequestParameters } from "./ClientRequestParameters";
 import { Account } from "../auth/Account";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.
