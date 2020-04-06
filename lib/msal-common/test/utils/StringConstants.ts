@@ -101,11 +101,15 @@ export const TEST_HOST_LIST = [
 ];
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
-    "tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+    body: {
+        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+    }
 };
 
 export const TEST_TENANT_DISCOVERY_RESPONSE = {
-    "tenant_discovery_endpoint":"https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+    body: {
+        "tenant_discovery_endpoint": "https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+    }
 };
 
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
