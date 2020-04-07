@@ -7,6 +7,7 @@ import {
     DEVICE_CODE_RESPONSE
 } from "../utils/StringConstants";
 import {RequestParameterBuilder} from "../../src/server/RequestParameterBuilder";
+import {ScopeSet} from "../../src/request/ScopeSet";
 
 describe("RequestParameterBuilder unit tests", () => {
 
@@ -19,7 +20,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addResponseTypeCode();
         requestParameterBuilder.addResponseMode(ResponseMode.FORM_POST);
-        requestParameterBuilder.addScopes(TEST_CONFIG.DEFAULT_SCOPES);
+        requestParameterBuilder.addScopes(new ScopeSet(TEST_CONFIG.DEFAULT_SCOPES, TEST_CONFIG.MSAL_CLIENT_ID, false));
         requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
         requestParameterBuilder.addRedirectUri(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST);
         requestParameterBuilder.addDomainHint(TEST_CONFIG.DOMAIN_HINT);

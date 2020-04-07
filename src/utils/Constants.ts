@@ -188,6 +188,14 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
+ *
+ */
+export const CodeChallengeMethodValuesArray: string[] = [
+    CodeChallengeMethodValues.PLAIN,
+    CodeChallengeMethodValues.S256
+];
+
+/**
  * allowed values for response_mode
  */
 export enum ResponseMode {
