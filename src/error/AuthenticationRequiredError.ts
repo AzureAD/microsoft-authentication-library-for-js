@@ -9,10 +9,6 @@ import { ClientAuthError } from "./ClientAuthError";
  * AuthenticationRequiredError class containing string constants used by error codes and messages.
  */
 export const AuthenticationRequiredErrorMessage = {
-    refreshTokenExpired: {
-        code: "refresh_token_expired",
-        desc: "Refresh token is expired. If you still have a session, you can call ssoSilent - otherwise you need to use an interactive API."
-    },
     interactionRequired: {
         code: "interaction_required"
     },
@@ -44,14 +40,5 @@ export class AuthenticationRequiredError extends ClientAuthError {
         const isInteractionRequiredErrorDesc = errorString && interactionRequiredCodes.indexOf(errorString) > -1;
 
         return isInteractionRequiredErrorCode || isInteractionRequiredErrorDesc;
-    }
-
-    /**
-     * Creates an error thrown when the requested token set has an expired access and refresh token.
-     * @param caughtError 
-     */
-    static createRefreshTokenExpiredError(): ClientAuthError {
-        return new ClientAuthError(AuthenticationRequiredErrorMessage.refreshTokenExpired.code,
-            AuthenticationRequiredErrorMessage.refreshTokenExpired.desc);
     }
 }
