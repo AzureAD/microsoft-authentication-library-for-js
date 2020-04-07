@@ -29,15 +29,16 @@ export class MsalGuard implements CanActivate {
 
     /**
      * Builds the absolute url for the destination page
-     * @param url Relative path of requested page
+     * @param path Relative path of requested page
      * @returns Full destination url
      */
-    getDestinationUrl(url: string): string {
-        // Absolute base url for the application
-        const baseUrl = this.location.normalize(document.getElementsByTagName("base")[0].href);
+    getDestinationUrl(path: string): string {
+        // Absolute base url for the application (default to origin if base element not present)
+        const baseElements = document.getElementsByTagName("base");
+        const baseUrl = this.location.normalize(baseElements.length ? baseElements[0].href : window.location.origin);
 
         // Path of page (including hash, if using hash routing)
-        const pathUrl = this.location.prepareExternalUrl(url);
+        const pathUrl = this.location.prepareExternalUrl(path);
 
         // Hash location strategy
         if (pathUrl.startsWith("#")) {
@@ -46,7 +47,7 @@ export class MsalGuard implements CanActivate {
 
         // If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
         // Since baseUrl also includes /base, can just concatentate baseUrl + path
-        return `${baseUrl}${url}`;
+        return `${baseUrl}${path}`;
     }
 
     /**
