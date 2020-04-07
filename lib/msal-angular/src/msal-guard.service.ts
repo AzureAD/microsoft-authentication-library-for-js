@@ -33,8 +33,9 @@ export class MsalGuard implements CanActivate {
      * @returns Full destination url
      */
     getDestinationUrl(path: string): string {
-        // Absolute base url for the application
-        const baseUrl = this.location.normalize(document.getElementsByTagName("base")[0].href);
+        // Absolute base url for the application (default to origin if base element not present)
+        const baseElements = document.getElementsByTagName("base");
+        const baseUrl = this.location.normalize(baseElements.length ? baseElements[0].href : window.location.origin);
 
         // Path of page (including hash, if using hash routing)
         const pathUrl = this.location.prepareExternalUrl(path);
