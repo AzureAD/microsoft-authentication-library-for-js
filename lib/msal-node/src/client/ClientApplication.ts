@@ -96,10 +96,6 @@ export abstract class ClientApplication {
     protected buildOauthClientConfiguration(): Configuration {
         return {
             authOptions: this.config.auth,
-            systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry,
-            },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
                 piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,

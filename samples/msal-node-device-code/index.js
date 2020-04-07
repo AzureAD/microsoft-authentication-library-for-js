@@ -25,6 +25,7 @@ pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
     console.log(JSON.stringify(error));
 });
 
-setTimeout(function() {
-    deviceCodeRequest.cancel = true;
-}, 12000);
+// Uncomment to test cancellation
+// setTimeout(function() {
+//     deviceCodeRequest.cancel = true;
+// }, 12000);
