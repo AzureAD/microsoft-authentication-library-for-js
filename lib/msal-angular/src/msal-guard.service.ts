@@ -7,7 +7,7 @@ import {
 import { MsalService } from "./msal.service";
 import { Location, PlatformLocation } from "@angular/common";
 import { BroadcastService } from "./broadcast.service";
-import { Configuration, AuthResponse, AuthError } from "msal";
+import { Configuration, AuthResponse, AuthError, InteractionRequiredAuthError } from "msal";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 import { UrlUtils } from "msal/lib-commonjs/utils/UrlUtils";
@@ -91,7 +91,15 @@ export class MsalGuard implements CanActivate {
             scopes: [this.msalConfig.auth.clientId]
         })
             .then(() => true)
-            .catch(() => this.loginInteractively(state.url));
+            .catch((error: AuthError) => {
+                if (InteractionRequiredAuthError.isInteractionRequiredError(error.errorCode)) {
+                    this.authService.getLogger().info(`Interaction required error in MSAL Guard, prompting for interaction.`);
+                    return this.loginInteractively(state.url);
+                }
+
+                this.authService.getLogger().error(`Non-interaction error in MSAL Guard: ${error.errorMessage}`);
+                throw error;
+            });
     }
 
 }
