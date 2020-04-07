@@ -4,9 +4,9 @@
  */
 import { BaseClient } from "./BaseClient";
 import {
-    PublicClientSPAConfiguration,
+    SPAConfiguration,
     buildPublicClientSPAConfiguration
-} from "../config/PublicClientSPAConfiguration";
+} from "../config/SPAConfiguration";
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { TokenRenewParameters } from "../request/TokenRenewParameters";
@@ -31,17 +31,17 @@ import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
 
 /**
- * PublicClientSPA class
+ * SPAClient class
  *
  * Object instance which will construct requests to send to and handle responses
  * from the Microsoft STS using the authorization code flow.
  */
-export class PublicClientSPA extends BaseClient {
+export class SPAClient extends BaseClient {
 
     // Application config
-    private clientConfig: PublicClientSPAConfiguration;
+    private clientConfig: SPAConfiguration;
 
-    constructor(configuration: PublicClientSPAConfiguration) {
+    constructor(configuration: SPAConfiguration) {
         // Implement base module
         super({
             systemOptions: configuration.systemOptions,

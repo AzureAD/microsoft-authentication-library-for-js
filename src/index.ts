@@ -1,8 +1,8 @@
 // App Auth Modules and Configuration
-export { PublicClientSPA } from "./client/PublicClientSPA";
+export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
-export { PublicClientSPAConfiguration, SPAAuthOptions } from "./config/PublicClientSPAConfiguration";
+export { SPAConfiguration, SPAAuthOptions } from "./config/SPAConfiguration";
 export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 export { Configuration } from "./config/Configuration";
 // Account
@@ -27,7 +27,6 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
-export { CancellationToken } from "./request/CancellationToken";
 export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
 export { TokenResponse } from "./response/TokenResponse";
 export { CodeResponse } from "./response/CodeResponse";
