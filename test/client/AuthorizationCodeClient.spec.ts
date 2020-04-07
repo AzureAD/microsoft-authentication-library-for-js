@@ -32,6 +32,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         config = ClientTestUtils.createTestClientConfiguration();
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("Constructor", () => {
 
         it("creates a AuthorizationCodeClient", () => {
@@ -43,11 +47,6 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     describe("Authorization url creation", () => {
-
-        afterEach(() => {
-            sinon.restore();
-        });
-
 
         it("Creates an authorization url with default parameters", async () => {
 
