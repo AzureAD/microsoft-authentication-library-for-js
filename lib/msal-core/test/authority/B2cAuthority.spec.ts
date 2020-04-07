@@ -53,8 +53,8 @@ describe("B2cAuthority.ts Class", function () {
             expect(e).to.be.instanceOf(ClientConfigurationError);
             err = e;
         }
-        expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.unsupportedAuthorityValidation.code);
-        expect(err.errorMessage).to.equal(ClientConfigurationErrorMessage.unsupportedAuthorityValidation.desc);
+        expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
+        expect(err.errorMessage).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
 
     });
 

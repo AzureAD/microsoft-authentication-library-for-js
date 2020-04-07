@@ -62,6 +62,10 @@ export const ClientConfigurationErrorMessage = {
         code: "unsupported_authority_validation",
         desc: "The authority validation is not supported for this authority type."
     },
+    untrustedAuthority: {
+        code: "untrusted_authority",
+        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+    },
     b2cAuthorityUriInvalidPath: {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
@@ -168,9 +172,9 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidAuthorityType.desc);
     }
 
-    static createUnsupportedAuthorityValidationError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.unsupportedAuthorityValidation.code,
-            ClientConfigurationErrorMessage.unsupportedAuthorityValidation.desc);
+    static createUntrustedAuthorityError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
+            ClientConfigurationErrorMessage.untrustedAuthority.desc);
     }
 
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {

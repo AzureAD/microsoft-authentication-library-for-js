@@ -29,7 +29,7 @@ export class B2cAuthority extends Authority {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
 
-        throw ClientConfigurationError.createUnsupportedAuthorityValidationError();
+        throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
     /**
