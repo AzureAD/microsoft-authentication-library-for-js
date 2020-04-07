@@ -20,6 +20,7 @@ export type NodeAuthOptions = AuthOptions & {};
  * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
+// TODO Temporary placeholder - this will be rewritten by cache PR.
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
@@ -50,50 +51,44 @@ export type ClientConfiguration = {
     system?: NodeSystemOptions;
 };
 
-// Default auth options
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
 };
 
-// Default cache options
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: CACHE.FILE_CACHE,
     storeAuthStateInCookie: false,
 };
 
-// Default logger options
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: () => {},
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
 };
 
-// Default system options
 const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),
 };
 
 /**
- * MSAL function that sets the default options when not explicitly configured from app developer
+ * Sets the default options when not explicitly configured from app developer
  *
- * @param TAuthOptions
- * @param TCacheOptions
- * @param TSystemOptions
- * @param TFrameworkOptions
+ * @param auth
+ * @param cache
+ * @param system
  *
- * @returns TConfiguration object
+ * @returns ClientConfiguration
  */
 export function buildConfiguration({
     auth,
-    cache = {},
-    system = {},
+    cache,
+    system,
 }: ClientConfiguration): ClientConfiguration {
-    const overlayedConfig: ClientConfiguration = {
+    return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
     };
-    return overlayedConfig;
 }

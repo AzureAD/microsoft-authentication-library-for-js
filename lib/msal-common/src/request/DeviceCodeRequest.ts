@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { CancellationToken } from "./CancellationToken";
 import { DeviceCodeResponse } from "../response/DeviceCodeResponse";
 
 /**
@@ -20,15 +19,15 @@ export type DeviceCodeRequest = {
     /**
      * Scopes to which the application is requesting access to.
      */
-    scopes?: Array<string>;
+    scopes: Array<string>;
 
     /**
-     * Cancellation token used for cancelling the device code request.
+     * Boolean to cancel polling of device code endpoint.
      *
      * While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval
-     * specified in the device code resonse (usually 15 minutes). To stop polling and cancel the request, set cancellationToken.cancel = true.
+     * specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true;
      */
-    cancellationToken?: CancellationToken;
+    cancel?: false;
 
     /**
      * URI of the authority from which MSAL will acquire the tokens from. If this value is not set, MSAL defaults

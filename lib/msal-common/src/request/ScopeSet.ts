@@ -25,7 +25,6 @@ export class ScopeSet {
         inputScopes: Array<string>,
         clientId: string,
         scopesRequired: boolean,
-        nonSPA?: boolean
     ) {
         this.clientId = clientId;
         this.scopesRequired = scopesRequired;
@@ -45,8 +44,7 @@ export class ScopeSet {
         }
         this.originalScopes = new Set<string>(this.scopes);
 
-        // add default scopes
-        nonSPA ? this.addDefaultScopes() : this.replaceDefaultScopes();
+        this.replaceDefaultScopes();
     }
 
     /**
@@ -74,15 +72,6 @@ export class ScopeSet {
             this.appendScope(Constants.OPENID_SCOPE);
             this.appendScope(Constants.PROFILE_SCOPE);
         }
-        this.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
-    }
-
-    /**
-     * Replace client id with the default scopes used for token acquisition.
-     */
-    private addDefaultScopes(): void {
-        this.appendScope(Constants.OPENID_SCOPE);
-        this.appendScope(Constants.PROFILE_SCOPE);
         this.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
     }
 
@@ -244,17 +233,6 @@ export class ScopeSet {
         if (this.scopes) {
             const scopeArr = this.asArray();
             return scopeArr.join(" ");
-        }
-        return "";
-    }
-
-    /**
-     * Prints scopes into a space-delimited string
-     * @param scopes
-     */
-    static finalScopes(scopes: Array<string>): string {
-        if (scopes) {
-            return scopes.join(" ");
         }
         return "";
     }
