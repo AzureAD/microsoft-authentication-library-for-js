@@ -2,17 +2,17 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { PublicClientSPAConfiguration, buildPublicClientSPAConfiguration } from "../../src/config/PublicClientSPAConfiguration";
+import { SPAConfiguration, buildPublicClientSPAConfiguration } from "../../src/config/SPAConfiguration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 
-describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
+describe("SPAConfiguration.ts Class Unit Tests", () => {
 
     it("buildPublicClientSPAConfiguration assigns default functions", async () => {
-        const emptyConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({auth: null});
+        const emptyConfig: SPAConfiguration = buildPublicClientSPAConfiguration({auth: null});
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
@@ -85,7 +85,7 @@ describe("PublicClientSPAConfiguration.ts Class Unit Tests", () => {
 
     const testKeySet = ["testKey1", "testKey2"];
     it("buildPublicClientSPAConfiguration correctly assigns new values", () => {
-        const newConfig: PublicClientSPAConfiguration = buildPublicClientSPAConfiguration({
+        const newConfig: SPAConfiguration = buildPublicClientSPAConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,

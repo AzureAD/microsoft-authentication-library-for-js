@@ -8,7 +8,6 @@ import {
     AuthorizationCodeUrlRequest,
     AuthorizationCodeRequest,
     Configuration,
-    INetworkModule,
 } from '@azure/msal-common';
 import {
     ClientConfiguration,
@@ -16,7 +15,6 @@ import {
 } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
-import { NetworkUtils } from './../utils/NetworkUtils';
 
 export abstract class ClientApplication {
     // Input configuration by developer/user
@@ -27,9 +25,6 @@ export abstract class ClientApplication {
 
     // Storage interface implementation
     protected storage: Storage;
-
-    // Network interface implementation
-    protected networkClient: INetworkModule;
 
     /**
      * @constructor
@@ -58,9 +53,7 @@ export abstract class ClientApplication {
 
         // Initialize the crypto class.
         this.crypto = new CryptoProvider();
-
         // Initialize the network module class.
-        this.networkClient = NetworkUtils.getNetworkClient();
 
         // Initialize the browser storage class.
         this.storage = new Storage(
@@ -121,7 +114,7 @@ export abstract class ClientApplication {
                     .piiLoggingEnabled,
             },
             cryptoInterface: this.crypto,
-            networkInterface: this.networkClient,
+            networkInterface: this.config.system.networkClient,
             storageInterface: this.storage,
         };
     }
