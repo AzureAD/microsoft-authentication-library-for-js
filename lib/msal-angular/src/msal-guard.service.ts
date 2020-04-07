@@ -27,6 +27,29 @@ export class MsalGuard implements CanActivate {
         private broadcastService: BroadcastService
     ) {}
 
+    /**
+     * Builds the absolute url for the destination page
+     * @param path Relative path of requested page
+     * @returns Full destination url
+     */
+    getDestinationUrl(path: string): string {
+        // Absolute base url for the application (default to origin if base element not present)
+        const baseElements = document.getElementsByTagName("base");
+        const baseUrl = this.location.normalize(baseElements.length ? baseElements[0].href : window.location.origin);
+
+        // Path of page (including hash, if using hash routing)
+        const pathUrl = this.location.prepareExternalUrl(path);
+
+        // Hash location strategy
+        if (pathUrl.startsWith("#")) {
+            return `${baseUrl}/${pathUrl}`;
+        }
+
+        // If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
+        // Since baseUrl also includes /base, can just concatentate baseUrl + path
+        return `${baseUrl}${path}`;
+    }
+
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
@@ -47,10 +70,10 @@ export class MsalGuard implements CanActivate {
                     .catch(() => false);
             }
 
-            const routePath = `${window.location.origin}${state.url}`;
+            const redirectStartPage = this.getDestinationUrl(state.url);
 
             this.authService.loginRedirect({
-                redirectStartPage: routePath,
+                redirectStartPage,
                 scopes: this.msalAngularConfig.consentScopes,
                 extraQueryParameters: this.msalAngularConfig.extraQueryParameters
             });

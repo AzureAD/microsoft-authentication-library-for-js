@@ -1071,7 +1071,14 @@ export class UserAgentApplication {
                 window.location.href = "/";
                 return;
             } else if (currentUrl !== loginRequestUrl) {
-                window.location.href = `${loginRequestUrl}${hash}`;
+                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
+                if (loginRequestUrl.indexOf("#") > -1) {
+                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
+                    this.processCallBack(hash, stateInfo, null);
+                    window.location.href = loginRequestUrl;
+                } else {
+                    window.location.href = `${loginRequestUrl}${hash}`;
+                }
                 return;
             }
         }
