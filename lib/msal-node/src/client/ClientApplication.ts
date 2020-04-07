@@ -26,7 +26,6 @@ export abstract class ClientApplication {
     // Storage interface implementation
     protected storage: Storage;
 
-
     /**
      * @constructor
      * Constructor for the ClientApplication to instantiate the PublicClientApplication object

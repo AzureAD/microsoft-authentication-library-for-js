@@ -52,8 +52,8 @@ export type ClientConfiguration = {
 };
 
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
-    clientId: "",
-    authority: "",
+    clientId: '',
+    authority: '',
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
