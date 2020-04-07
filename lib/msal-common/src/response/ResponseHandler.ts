@@ -112,10 +112,6 @@ export class ResponseHandler {
     
         // Check for error
         if (serverResponseHash.error || serverResponseHash.error_description) {
-            if (serverResponseHash.error === Constants.INVALID_GRANT_ERROR && serverResponseHash.error_description.indexOf(Constants.REFRESH_TOKEN_EXP_STS_CODE) > -1) {
-                throw AuthenticationRequiredError.createRefreshTokenExpiredError();
-            }
-
             if (AuthenticationRequiredError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description)) {
                 throw new AuthenticationRequiredError(serverResponseHash.error, serverResponseHash.error_description);
             }
