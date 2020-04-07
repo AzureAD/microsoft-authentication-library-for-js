@@ -101,7 +101,7 @@ const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     networkClient: BrowserUtils.getBrowserNetworkClient(),
     windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
     iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
-    loadFrameTimeout: 0
+    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0
 };
 
 /**
