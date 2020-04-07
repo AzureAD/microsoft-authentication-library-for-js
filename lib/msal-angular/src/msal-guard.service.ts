@@ -81,14 +81,8 @@ export class MsalGuard implements CanActivate {
             return this.authService.acquireTokenSilent({
                 scopes: [this.msalConfig.auth.clientId]
             })
-                .then((result: AuthResponse) => {
-                    this.broadcastService.broadcast("msal:loginSuccess",  result);
-                    return true;
-                })
-                .catch((error: AuthError) => {
-                    this.broadcastService.broadcast("msal:loginFailure", error);
-                    return false;
-                });
+                .then(() => true)
+                .catch(() => false);
         }
 
     }
