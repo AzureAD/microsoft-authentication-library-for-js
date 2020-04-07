@@ -9,13 +9,13 @@ import { Separators } from "../../utils/Constants";
 /**
  * REFRESH_TOKEN Cache
  */
-export class RefreshTokenCache extends Credential {
+export class RefreshTokenEntity extends Credential {
     familyId?: string;
 
     /**
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
-    generateRefreshTokenKey(): string {
+    generateRefreshTokenEntityKey(): string {
         const refreshTokenKeyArray: Array<string> = [
             this.homeAccountId,
             this.environment,
@@ -30,6 +30,7 @@ export class RefreshTokenCache extends Credential {
 
         // realm and target - empty string "" for REFRESH_TOKEN type
         refreshTokenKeyArray.push("");
+        // target (scopes) is added only if it is resource specific refresh token
         refreshTokenKeyArray.push("");
 
         return refreshTokenKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();

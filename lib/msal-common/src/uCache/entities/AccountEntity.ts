@@ -9,12 +9,11 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { Serializable } from "../serialize/Serializable";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
  */
-export class AccountCache extends Serializable{
+export class AccountEntity {
     homeAccountId: string;
     environment: string;
     realm: string;
@@ -26,11 +25,10 @@ export class AccountCache extends Serializable{
     lastModificationTime?: string;
     lastModificationApp?: string;
 
-
     /**
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
-    public generateAccountCacheKey(): string {
+    public generateAccountEntityKey(): string {
         const accountCacheKeyArray: Array<string> = [
             this.homeAccountId,
             this.environment,
@@ -47,8 +45,8 @@ export class AccountCache extends Serializable{
      * @param idToken
      * @param policy
      */
-    static createAccount(clientInfo: string, authority: Authority, idToken: IdToken, policy: string, crypto: ICrypto): AccountCache {
-        let account: AccountCache;
+    static createAccount(clientInfo: string, authority: Authority, idToken: IdToken, policy: string, crypto: ICrypto): AccountEntity {
+        let account: AccountEntity;
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
@@ -81,8 +79,8 @@ export class AccountCache extends Serializable{
      * @param authority
      * @param idToken
      */
-    static createADFSAccount(authority: Authority, idToken: IdToken): AccountCache {
-        let account: AccountCache;
+    static createADFSAccount(authority: Authority, idToken: IdToken): AccountEntity {
+        let account: AccountEntity;
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;

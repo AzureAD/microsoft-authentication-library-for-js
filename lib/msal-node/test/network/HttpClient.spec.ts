@@ -20,28 +20,15 @@ describe('HttpClient', () => {
         headers: {},
     };
 
-    // Mock error response
-    const axiosErrorResponse = {
-        message: 'axios request failed',
-        response: {
-            data: {
-                errorCode: 'invalid_client',
-                errorSummary: "Invalid value for 'client_id' parameter.",
-            },
-            status: 400,
-            statusText: 'Bad Request',
-            headers: {},
-            config: {},
-        },
-    };
-
     // test GET
     test('sendGetRequestAsync', async () => {
         //Mocking axios function rather than a method
         mocked(axios).mockResolvedValue(axiosResponse);
 
         const result = await httpClient.sendGetRequestAsync('url');
-        expect(result).toMatchObject(axiosResponse.data);
+        expect(result.body).toMatchObject(axiosResponse.data);
+        expect(result.headers).toMatchObject(axiosResponse.headers);
+        expect(result.status).toEqual(axiosResponse.status);
     });
 
     // test POST success
@@ -50,21 +37,8 @@ describe('HttpClient', () => {
         mocked(axios).mockResolvedValue(axiosResponse);
 
         const result = await httpClient.sendPostRequestAsync('url');
-        expect(result).toMatchObject(axiosResponse.data);
-    });
-
-    // test POST failure
-    test('sendPostRequestAsync rejects ', async () => {
-        //Mocking axios function rather than a method
-        mocked(axios).mockRejectedValue(axiosErrorResponse);
-
-        try {
-            await httpClient.sendPostRequestAsync('url', {
-                body: 'randomData',
-                headers: new Map<string, string>().set('key', 'value'),
-            });
-        } catch (e) {
-            expect(e).toMatchObject(axiosErrorResponse);
-        }
+        expect(result.body).toMatchObject(axiosResponse.data);
+        expect(result.headers).toMatchObject(axiosResponse.headers);
+        expect(result.status).toEqual(axiosResponse.status);
     });
 });

@@ -9,7 +9,7 @@ import { Separators } from "../../utils/Constants";
 /**
  * ACCESS_TOKEN Credential Type
  */
-export class AccessTokenCache extends Credential {
+export class AccessTokenEntity extends Credential {
     realm: string;
     target: string;
     cachedAt: string;
@@ -22,9 +22,9 @@ export class AccessTokenCache extends Credential {
     /**
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
-    public generateAccessTokenKey(): string {
+    public generateAccessTokenEntityKey(): string {
         const accessTokenKeyArray: Array<string> = [
-            this.homeAccountId, // homeAccountId
+            this.homeAccountId,
             this.environment,
             this.credentialType,
             this.clientId,
