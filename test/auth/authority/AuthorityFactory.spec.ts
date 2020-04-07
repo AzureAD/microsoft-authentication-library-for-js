@@ -1,5 +1,6 @@
 import { expect } from "chai";
-import { AuthorityFactory, B2CTrustedHostList } from "../../../src/auth/authority/AuthorityFactory";
+import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
+import { B2CTrustedHostList } from "../../../src/auth/authority/B2CTrustedHostList";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { ClientConfigurationErrorMessage, Constants, Authority, ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
