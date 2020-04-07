@@ -179,7 +179,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
-        // block the request if made from the hidden iframe
+        // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
@@ -216,7 +216,7 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
-        // block the request if made from the hidden iframe
+        // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
@@ -257,7 +257,7 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        // block the request if made from the hidden iframe
+        // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check if interaction is in progress. Throw error if true.
@@ -280,7 +280,7 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        // block the request if made from the hidden iframe
+        // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check if interaction is in progress. Throw error if true.
@@ -320,7 +320,7 @@ export class PublicClientApplication {
     // #region Silent Flow
 
     async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
-        // block the request if made from the hidden iframe
+        // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         const silentRequest: AuthenticationParameters = {
@@ -358,6 +358,9 @@ export class PublicClientApplication {
      *
      */
     async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return await this.authModule.getValidToken(tokenRequest);
     }
