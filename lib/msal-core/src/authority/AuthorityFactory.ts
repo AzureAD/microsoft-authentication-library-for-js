@@ -9,25 +9,42 @@
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
-import { UrlUtils } from "../utils/UrlUtils";
 import { StringUtils } from "../utils/StringUtils";
+import { UrlUtils } from "../utils/UrlUtils";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+
+export const B2CTrustedHostList: object = {};
 
 export class AuthorityFactory {
     /**
+     * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
+     */
+    public static setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>): void {
+        if (validateAuthority && !Object.keys(B2CTrustedHostList).length){
+            knownAuthorities.forEach(function(authority){
+                B2CTrustedHostList[authority] = authority;
+            });
+        }
+    }
+
+    /**
      * Parse the url and determine the type of authority
      */
-    private static DetectAuthorityFromUrl(authorityUrl: string): AuthorityType {
+    private static detectAuthorityFromUrl(authorityUrl: string): AuthorityType {
         authorityUrl = UrlUtils.CanonicalizeUri(authorityUrl);
         const components = UrlUtils.GetUrlComponents(authorityUrl);
         const pathSegments = components.PathSegments;
-        switch (pathSegments[0]) {
-            case "tfp":
-                return AuthorityType.B2C;
-            default:
-                return AuthorityType.Aad;
+
+        if (pathSegments[0] === "adfs") {
+            return AuthorityType.Adfs;
         }
-    }
+        else if (Object.keys(B2CTrustedHostList).length) {
+            return AuthorityType.B2C;
+        }
+
+        // Defaults to Aad
+        return AuthorityType.Aad;
+    }	    
 
     /**
      * Create an authority object of the correct type based on the url
@@ -37,7 +54,7 @@ export class AuthorityFactory {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
-        const type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
+        const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.B2C:
@@ -45,7 +62,7 @@ export class AuthorityFactory {
             case AuthorityType.Aad:
                 return new AadAuthority(authorityUrl, validateAuthority);
             default:
-                throw ClientConfigurationErrorMessage.invalidAuthorityType;
+                throw ClientConfigurationError.createInvalidAuthorityTypeError();
         }
     }
 

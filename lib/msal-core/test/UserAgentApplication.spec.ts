@@ -1721,7 +1721,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
         });
     });
-
+  
     describe('Logger', () => {
         it('getLogger and setLogger', done => {
             const config: Configuration = {
