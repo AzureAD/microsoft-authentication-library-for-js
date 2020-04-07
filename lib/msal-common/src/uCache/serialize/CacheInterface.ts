@@ -3,24 +3,40 @@
  * Licensed under the MIT License.
  */
 
+export type JSONContent = {
+    accessTokens: Array<string>;
+    idTokens: Array<string>;
+    refreshTokens: Array<string>;
+    accounts: Array<string>;
+    appMetadata: Array<string>;
+    ParsedJSON: any;
+};
+
 export class CacheInterface {
-    // TODO: should this be the type: string or a custom type that indicates a in-memory JSON Object
-    static retrieveJSONBlob(json: string) {
-        let JSONBlob;
 
-        json ? (JSONBlob = json) : (JSONBlob = {});
-        return JSONBlob;
-    }
-
-    // serialize
-    static serializeJSONBlob(data: string) {
+    /**
+     * serialize the JSON blob
+     * @param data
+     */
+    static serializeJSONBlob(data: string): string {
         return JSON.stringify(data);
     }
 
-    // de-serialize
-    static deserializeJSONBlob(data: string) {
-        if (Object.keys(data).length < 1) return {};
+    /**
+     * Parse the JSON blob in memory and deserialize the content
+     * @param cachedJson
+     */
+    static deserializeJSONBlob(cachedJson?: any): JSONContent {
+        let ParsedJSON = cachedJson ? cachedJson : {};
 
-        return JSON.parse(data);
+        // retrieve the current JSON file
+        const accessTokens: Array<string> = ParsedJSON.AccessToken ? ParsedJSON.AccessToken : {};
+        const idTokens: Array<string> = ParsedJSON.IdToken ? ParsedJSON.IdToken : {};
+        const refreshTokens: Array<string> = ParsedJSON.RefreshToken ? ParsedJSON.RefreshToken : {};
+        const accounts: Array<string> = ParsedJSON.Account ? ParsedJSON.Account : {};
+        const appMetadata: Array<string> = ParsedJSON.AppMetadata ? ParsedJSON.AppMetadata : {};
+
+        let jsonContent: JSONContent = { accessTokens, idTokens, refreshTokens, accounts, appMetadata, ParsedJSON };
+        return jsonContent;
     }
 }

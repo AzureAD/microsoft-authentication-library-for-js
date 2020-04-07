@@ -3,10 +3,14 @@
  * Licensed under the MIT License.
  */
 import { Authority } from "./Authority";
-import { B2CTrustedHostList } from "./AuthorityFactory";
 import { INetworkModule } from "../network/INetworkModule";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { AuthorityType } from "./AuthorityType";
+
+/**
+ * Initialize B2CTrustedHostList
+ */
+export const B2CTrustedHostList = {};
 
 /**
  * The B2cAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.

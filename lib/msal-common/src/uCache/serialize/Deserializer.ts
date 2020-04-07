@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenCache } from "../entities/AccessTokenCache";
-import { IdTokenCache } from "../entities/IdTokenCache";
-import { RefreshTokenCache } from "../entities/RefreshTokenCache";
-import { AccountCache } from "../entities/AccountCache";
-import { AppMetadataCache } from "../entities/AppMetaDataCache";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity";
+import { IdTokenEntity } from "../entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
+import { AccountEntity } from "../entities/AccountEntity";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { CacheHelper } from "../utils/CacheHelper";
 import {
     AccessTokenCacheMaps,
@@ -20,17 +20,17 @@ import {
 // TODO: Can we write generalized code for this with Generics?
 export class Deserializer {
     /**
-     * Deserializes access tokens to AccessTokenCache objects
+     * Deserializes access tokens to AccessTokenEntity objects
      * @param accessTokens
      */
-    static deSerializeAccessTokens(accessTokens: Array<string>): Array<AccessTokenCache> {
-        let atObjects: Array<AccessTokenCache> = [];
-        accessTokens.forEach((element: any) => {
+    static deSerializeAccessTokens(accessTokens: Array<string>): Array<AccessTokenEntity> {
+        const atObjects: Array<AccessTokenEntity> = [];
+        Array.prototype.forEach.call(accessTokens, (element: string) => {
             const mappedAT: string = CacheHelper.renameKeys(
                 element,
                 AccessTokenCacheMaps.fromCacheMap
             );
-            const accessToken: AccessTokenCache = new AccessTokenCache();
+            const accessToken: AccessTokenEntity = new AccessTokenEntity();
             accessToken.toObject(mappedAT);
             atObjects.push(accessToken);
         });
@@ -39,36 +39,36 @@ export class Deserializer {
     }
 
     /**
-     * Deserializes id tokens to IdTokenCache objects
+     * Deserializes id tokens to IdTokenEntity objects
      * @param idTokens
      */
-    static deSerializeIdTokens(idTokens: Array<string>): Array<IdTokenCache> {
-        let idObjects: Array<IdTokenCache> = [];
-        idTokens.forEach((element: any) => {
+    static deSerializeIdTokens(idTokens: Array<string>): Array<IdTokenEntity> {
+        const idObjects: Array<IdTokenEntity> = [];
+        idTokens.forEach((element: string) => {
             const mappedId: string = CacheHelper.renameKeys(
                 element,
                 IdTokenCacheMaps.fromCacheMap
             );
-            const idToken: IdTokenCache = new IdTokenCache();
+            const idToken: IdTokenEntity = new IdTokenEntity();
             idToken.toObject(mappedId);
             idObjects.push(idToken);
-            });
+        });
 
         return idObjects;
     }
 
     /**
-     * Deserializes refresh tokens to RefreshTokenCache objects
+     * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deSerializeRefresTokens(refreshTokens: Array<string>): Array<RefreshTokenCache> {
-        let rtObjects: Array<RefreshTokenCache> = [];
-        refreshTokens.forEach((element: any) => {
+    static deSerializeRefreshTokens(refreshTokens: Array<string>): Array<RefreshTokenEntity> {
+        const rtObjects: Array<RefreshTokenEntity> = [];
+        refreshTokens.forEach((element: string) => {
             const mappedRT: string = CacheHelper.renameKeys(
                 element,
                 RefreshTokenCacheMaps.fromCacheMap
             );
-            const refreshToken: RefreshTokenCache = new RefreshTokenCache();
+            const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
             refreshToken.toObject(mappedRT);
             rtObjects.push(refreshToken);
         });
@@ -77,17 +77,17 @@ export class Deserializer {
     }
 
     /**
-     * Deserializes accounts to AccountCache objects
+     * Deserializes accounts to AccountEntity objects
      * @param accounts
      */
-    static deSerializeAccounts(accounts: Array<string>): Array<AccountCache> {
-        let accountObjects: Array<AccountCache> = [];
-        accounts.forEach((element: any) => {
+    static deSerializeAccounts(accounts: Array<string>): Array<AccountEntity> {
+        const accountObjects: Array<AccountEntity> = [];
+        accounts.forEach((element: string) => {
             const mappedAc: string = CacheHelper.renameKeys(
                 element,
                 AccountCacheMaps.fromCacheMap
             );
-            const account: AccountCache = new AccountCache();
+            const account: AccountEntity = new AccountEntity();
             account.toObject(mappedAc);
             accountObjects.push(account);
         });
@@ -99,14 +99,14 @@ export class Deserializer {
      * Deserializes appMetadata to AppMetaData objects
      * @param appMetadata
      */
-    static deserializeAppMetadata<T>(appMetadata: Array<string>): Array<AppMetadataCache> {
-        let appMetadataObjects: Array<AppMetadataCache> = [];
-        appMetadata.forEach((element: any) => {
+    static deserializeAppMetadata(appMetadata: Array<string>): Array<AppMetadataEntity> {
+        const appMetadataObjects: Array<AppMetadataEntity> = [];
+        appMetadata.forEach((element: string) => {
             const mappedAppMetadata: string = CacheHelper.renameKeys(
                 element,
                 AppMetadataCacheMaps.fromCacheMap
             );
-            const appMetadataEntry: AppMetadataCache = new AppMetadataCache();
+            const appMetadataEntry: AppMetadataEntity = new AppMetadataEntity();
             appMetadataEntry.toObject(mappedAppMetadata);
             appMetadataObjects.push(appMetadataEntry);
         });
