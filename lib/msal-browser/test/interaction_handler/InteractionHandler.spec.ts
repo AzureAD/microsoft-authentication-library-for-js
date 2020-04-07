@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { PublicClientSPA, PkceCodes, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: PublicClientSPA, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
     }
 
@@ -52,7 +52,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authCodeModule = new PublicClientSPA({
+        const authCodeModule = new SPAClient({
             auth: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
