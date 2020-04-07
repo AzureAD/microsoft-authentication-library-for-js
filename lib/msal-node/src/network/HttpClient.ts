@@ -12,6 +12,10 @@ import axios, {AxiosRequestConfig} from 'axios';
  */
 export class HttpClient implements INetworkModule {
 
+    constructor() {
+        axios.defaults.validateStatus = () => true;
+    }
+
     /**
      * Http client for REST endpoints - Get request
      * @param url
@@ -25,7 +29,6 @@ export class HttpClient implements INetworkModule {
          method: HttpMethod.GET,
          url: url,
          headers: options && options.headers,
-         validateStatus: () => { return true }
         };
 
         const response = await axios(request);
@@ -50,7 +53,6 @@ export class HttpClient implements INetworkModule {
             url: url,
             data: (options && options.body) || '',
             headers: options && options.headers,
-            validateStatus: () => { return true }
         };
 
         const response = await axios(request);

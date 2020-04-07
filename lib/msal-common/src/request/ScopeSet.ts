@@ -30,9 +30,7 @@ export class ScopeSet {
         this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items
-        const filteredInput = (inputScopes)
-            ? StringUtils.removeEmptyStringsFromArray(inputScopes)
-            : inputScopes;
+        const filteredInput = inputScopes && StringUtils.removeEmptyStringsFromArray(inputScopes)
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
