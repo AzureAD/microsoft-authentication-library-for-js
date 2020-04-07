@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenCache } from "../entities/AccessTokenCache";
-import { IdTokenCache } from "../entities/IdTokenCache";
-import { RefreshTokenCache } from "../entities/RefreshTokenCache";
-import { AccountCache } from "../entities/AccountCache";
-import { AppMetadataCache } from "../entities/AppMetaDataCache";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity";
+import { IdTokenEntity } from "../entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
+import { AccountEntity } from "../entities/AccountEntity";
+import { AppMetadataEntity} from "../entities/AppMetadataEntity";
 import { CacheHelper } from "../utils/CacheHelper";
 import {
     AccessTokenCacheMaps,
@@ -15,21 +15,21 @@ import {
     RefreshTokenCacheMaps,
     AccountCacheMaps,
     AppMetadataCacheMaps
-} from "./JSONKeys";
+} from "./JsonKeys";
 
 export class Serializer {
     /**
      * generate an access token CacheEntity
      * @param accessToken
      */
-    static createAccessTokenCacheEntity(accessToken: AccessTokenCache) {
+    static serializeAccessTokenEntity(accessToken: AccessTokenEntity) {
         const mappedAT: string = CacheHelper.renameKeys(
             accessToken,
             AccessTokenCacheMaps.toCacheMap
         );
-        const atKey: string = accessToken.generateAccessTokenKey();
+        const atKey: string = accessToken.generateAccessTokenEntityKey();
 
-        let atCacheEntity: any = {};
+        const atCacheEntity = {};
         atCacheEntity[atKey] = mappedAT;
         return atCacheEntity;
     }
@@ -38,14 +38,14 @@ export class Serializer {
      * generate an id token CacheEntity
      * @param idToken
      */
-    static createIdTokenCacheEntity(idToken: IdTokenCache) {
+    static serializeIdTokenCacheEntity(idToken: IdTokenEntity) {
         const mappedIdToken: string = CacheHelper.renameKeys(
             idToken,
             IdTokenCacheMaps.toCacheMap
         );
-        const idTokenKey: string = idToken.generateIdTokenKey();
+        const idTokenKey: string = idToken.generateIdTokenEntityKey();
 
-        let idTokenCacheEntity: any = {};
+        const idTokenCacheEntity: any = {};
         idTokenCacheEntity[idTokenKey] = mappedIdToken;
         return idTokenCacheEntity;
     }
@@ -54,14 +54,14 @@ export class Serializer {
      * generate a refreshToken CacheEntity
      * @param refreshToken
      */
-    static createRefreshTokenCacheEntity(refreshToken: RefreshTokenCache) {
+    static serializeRefreshTokenCacheEntity(refreshToken: RefreshTokenEntity) {
         const mappedRT: string = CacheHelper.renameKeys(
             refreshToken,
             RefreshTokenCacheMaps.toCacheMap
         );
-        const rtKey: string = refreshToken.generateRefreshTokenKey();
+        const rtKey: string = refreshToken.generateRefreshTokenEntityKey();
 
-        let rtCacheEntity: any = {};
+        const rtCacheEntity: any = {};
         rtCacheEntity[rtKey] = mappedRT;
         return rtCacheEntity;
     }
@@ -70,14 +70,14 @@ export class Serializer {
      * generate an account CacheEntity
      * @param account
      */
-    static createAccountCacheEntity(account: AccountCache) {
+    static serializeAccountCacheEntity(account: AccountEntity) {
         const mappedAccount: string = CacheHelper.renameKeys(
             account,
             AccountCacheMaps.toCacheMap
         );
-        const acKey: string = account.generateAccountCacheKey();
+        const acKey: string = account.generateAccountEntityKey();
 
-        let accountCacheEntity: any = {};
+        const accountCacheEntity: any = {};
         accountCacheEntity[acKey] = mappedAccount;
         return accountCacheEntity;
     }
@@ -86,14 +86,14 @@ export class Serializer {
      * generate an appMetadata CacheEntity
      * @param appMetadata
      */
-    static createAppMetadataCacheEntity(appMetadata: AppMetadataCache) {
+    static serializeAppMetadataCacheEntity(appMetadata: AppMetadataEntity) {
         const mappedAppMetadata: string = CacheHelper.renameKeys(
             appMetadata,
             AppMetadataCacheMaps.toCacheMap
         );
-        const appMetadataKey: string = appMetadata.generateAppMetaDataKey();
+        const appMetadataKey: string = appMetadata.generateAppMetaDataEntityKey();
 
-        let appMetadataCacheEntity: any = {};
+        const appMetadataCacheEntity: any = {};
         appMetadataCacheEntity[appMetadataKey] = mappedAppMetadata;
         return appMetadataCacheEntity;
     }

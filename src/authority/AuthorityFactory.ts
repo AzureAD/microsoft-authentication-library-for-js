@@ -10,12 +10,7 @@ import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
 import { StringUtils } from "./../utils/StringUtils";
 import { UrlString } from "./../url/UrlString";
-import { B2cAuthority } from "./B2cAuthority";
-
-/**
- * Initialize B2CTrustedHostList
- */
-export const B2CTrustedHostList = {};
+import { B2cAuthority, B2CTrustedHostList } from "./B2cAuthority";
 
 export class AuthorityFactory {
 

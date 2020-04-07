@@ -9,8 +9,8 @@ export class CacheHelper {
      * @param cacheMap
      */
     static swap(cacheMap: object) {
-        var ret = {};
-        for (var key in cacheMap) {
+        const ret = {};
+        for (const key in cacheMap) {
             ret[cacheMap[key]] = key;
         }
         return ret;
@@ -23,8 +23,11 @@ export class CacheHelper {
      */
     static renameKeys(objAT: Object, keysMap: Object) {
         const keyValues = Object.keys(objAT).map(key => {
-            const newKey = keysMap[key] || key;
-            return { [newKey]: objAT[key] };
+            if (objAT[key]) {
+                const newKey = keysMap[key] || key;
+                return { [newKey]: objAT[key] };
+            }
+            return null;
         });
         return Object.assign({}, ...keyValues);
     }

@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 import { APP_META_DATA, Separators } from "../../utils/Constants";
+import { Serializable } from "../serialize/Serializable";
 
 /**
  * APP_META_DATA Cache
  */
-export class AppMetadataEntity {
+export class AppMetadataEntity extends Serializable {
     clientId: string;
     environment: string;
     familyId?: string;
