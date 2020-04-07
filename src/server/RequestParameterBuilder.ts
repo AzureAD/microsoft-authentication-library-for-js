@@ -21,8 +21,7 @@ export class RequestParameterBuilder {
      */
     addResponseTypeCode(): void {
         this.parameters.set(
-            `${AADServerParamKeys.RESPONSE_TYPE}`,
-            encodeURIComponent(Constants.CODE_RESPONSE_TYPE)
+            AADServerParamKeys.RESPONSE_TYPE, encodeURIComponent(Constants.CODE_RESPONSE_TYPE)
         );
     }
 
@@ -32,7 +31,7 @@ export class RequestParameterBuilder {
      */
     addResponseMode(responseMode?: string): void {
         this.parameters.set(
-            `${AADServerParamKeys.RESPONSE_MODE}`,
+            AADServerParamKeys.RESPONSE_MODE,
             encodeURIComponent((responseMode) ? responseMode : Constants.QUERY_RESPONSE_MODE)
         );
     }
@@ -42,9 +41,7 @@ export class RequestParameterBuilder {
      * @param scopeSet
      */
     addScopes(scopeSet: ScopeSet): void {
-        this.parameters.set(
-            `${AADServerParamKeys.SCOPE}`,
-            encodeURIComponent(scopeSet.printScopes())
+        this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes())
         );
     }
 
@@ -53,9 +50,7 @@ export class RequestParameterBuilder {
      * @param clientId
      */
     addClientId(clientId: string): void {
-        this.parameters.set(
-            `${AADServerParamKeys.CLIENT_ID}`,
-            encodeURIComponent(clientId)
+        this.parameters.set(AADServerParamKeys.CLIENT_ID, encodeURIComponent(clientId)
         );
     }
 
@@ -64,19 +59,16 @@ export class RequestParameterBuilder {
      * @param redirectUri
      */
     addRedirectUri(redirectUri: string): void {
-        this.parameters.set(
-            `${AADServerParamKeys.REDIRECT_URI}`,
-            encodeURIComponent(redirectUri)
+        this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri)
         );
     }
 
     /**
      * add domain_hint
-     * @param params
      * @param domainHint
      */
     addDomainHint(domainHint: string): void {
-        this.parameters.set(`${SSOTypes.DOMAIN_HINT}`, encodeURIComponent(domainHint));
+        this.parameters.set(SSOTypes.DOMAIN_HINT, encodeURIComponent(domainHint));
     }
 
     /**
@@ -84,7 +76,7 @@ export class RequestParameterBuilder {
      * @param loginHint
      */
     addLoginHint(loginHint: string): void {
-        this.parameters.set(`${SSOTypes.LOGIN_HINT}`, encodeURIComponent(loginHint));
+        this.parameters.set(SSOTypes.LOGIN_HINT, encodeURIComponent(loginHint));
     }
 
     /**
@@ -92,18 +84,15 @@ export class RequestParameterBuilder {
      * @param claims
      */
     addClaims(claims: string): void {
-        this.parameters.set(`${AADServerParamKeys.CLAIMS}`, encodeURIComponent(claims));
+        this.parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(claims));
     }
 
     /**
      * add correlationId
-     * @param params
      * @param correlationId
      */
     addCorrelationId(correlationId: string): void {
-        this.parameters.set(
-            `${AADServerParamKeys.CLIENT_REQUEST_ID}`,
-            encodeURIComponent(correlationId)
+        this.parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, encodeURIComponent(correlationId)
         );
     }
 
@@ -120,7 +109,7 @@ export class RequestParameterBuilder {
      * @param state
      */
     addState(state: string): void {
-        this.parameters.set(`${AADServerParamKeys.STATE}`, encodeURIComponent(state));
+        this.parameters.set(AADServerParamKeys.STATE, encodeURIComponent(state));
     }
 
     /**
@@ -128,7 +117,7 @@ export class RequestParameterBuilder {
      * @param nonce
      */
     addNonce(nonce: string): void {
-        this.parameters.set(`${AADServerParamKeys.NONCE}`, encodeURIComponent(nonce));
+        this.parameters.set(AADServerParamKeys.NONCE, encodeURIComponent(nonce));
     }
 
     /**
@@ -142,14 +131,8 @@ export class RequestParameterBuilder {
         codeChallengeMethod: string
     ): void {
         if (codeChallenge && codeChallengeMethod) {
-            this.parameters.set(
-                `${AADServerParamKeys.CODE_CHALLENGE}`,
-                encodeURIComponent(codeChallenge)
-            );
-            this.parameters.set(
-                `${AADServerParamKeys.CODE_CHALLENGE_METHOD}`,
-                encodeURIComponent(codeChallengeMethod)
-            );
+            this.parameters.set(AADServerParamKeys.CODE_CHALLENGE, encodeURIComponent(codeChallenge));
+            this.parameters.set(AADServerParamKeys.CODE_CHALLENGE_METHOD, encodeURIComponent(codeChallengeMethod));
         } else {
             throw ClientConfigurationError.createInvalidCodeChallengeParams();
         }
@@ -160,7 +143,7 @@ export class RequestParameterBuilder {
      * @param code
      */
     addAuthorizationCode(code: string): void {
-        this.parameters.set(`${AADServerParamKeys.CODE}`, encodeURIComponent(code));
+        this.parameters.set(AADServerParamKeys.CODE, encodeURIComponent(code));
     }
 
     /**
@@ -168,7 +151,7 @@ export class RequestParameterBuilder {
      * @param code
      */
     addDeviceCode(code: string): void {
-        this.parameters.set(`${AADServerParamKeys.DEVICE_CODE}`, encodeURIComponent(code));
+        this.parameters.set(AADServerParamKeys.DEVICE_CODE, encodeURIComponent(code));
     }
 
     /**
@@ -176,7 +159,7 @@ export class RequestParameterBuilder {
      * @param codeVerifier
      */
     addCodeVerifier(codeVerifier: string): void {
-        this.parameters.set(`${AADServerParamKeys.CODE_VERIFIER}`, codeVerifier);
+        this.parameters.set(AADServerParamKeys.CODE_VERIFIER, codeVerifier);
     }
 
     /**
@@ -189,7 +172,7 @@ export class RequestParameterBuilder {
     // }
 
     addGrantType(grantType: string): void {
-        this.parameters.set(`${AADServerParamKeys.GRANT_TYPE}`, encodeURIComponent(grantType));
+        this.parameters.set(AADServerParamKeys.GRANT_TYPE, encodeURIComponent(grantType));
     }
 
     /**
@@ -199,8 +182,7 @@ export class RequestParameterBuilder {
         const queryParameterArray: Array<string> = new Array<string>();
 
         this.parameters.forEach((value, key) => {
-            const keyValuePair = key + "=" + value;
-            queryParameterArray.push(keyValuePair);
+            queryParameterArray.push(`${key}=${value}`);
         });
 
         return queryParameterArray.join("&");
