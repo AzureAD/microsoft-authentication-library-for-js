@@ -39,7 +39,7 @@ import { Constants,
     libraryVersion,
     TemporaryCacheKeys,
     PersistentCacheKeys,
-    ErrorCacheKeys,
+    ErrorCacheKeys
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 
@@ -216,6 +216,8 @@ export class UserAgentApplication {
         this.inCookie = this.config.cache.storeAuthStateInCookie;
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
+
+        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
