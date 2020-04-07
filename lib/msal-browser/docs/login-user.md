@@ -2,7 +2,7 @@
 
 Before you start here, make sure you understand how to [initialize the application object](./initialization.md).
 
-The login APIs in MSAL retrieve an `authorization code` which can be exchanged for an [`id token`](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) for a signed in user, while consenting scopes for an additional resource. If your application does not use `id tokens`, please see [here](./acquiretoken.md) for information on how to acquire `access tokens` without an `id token`.
+The login APIs in MSAL retrieve an `authorization code` which can be exchanged for an [`id token`](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) for a signed in user, while consenting scopes for an additional resource. If your application does not use `id tokens`, please see [here](./acquire-token.md) for information on how to acquire `access tokens` without an `id token`.
 
 You can read more about `id tokens` on our [Azure Docs pages](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
 
@@ -12,7 +12,7 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 ## Login the user
 
-You must pass a request object to the login APIs. This object allows you to use different parameters in the request. See [here](./requestresponseobject.md) for more information on the request object parameters. 
+You must pass a request object to the login APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. 
 
 For login requests, all parameters are optional, so you can just send an empty object.
 
@@ -32,7 +32,7 @@ try {
 }
 ```
 
-Or you can send a set of [scopes](./requestresponseobject.md#scopes) to pre-consent to:
+Or you can send a set of [scopes](./request-response-object.md#scopes) to pre-consent to:
 - Popup
 ```javascript
 var loginRequest = {
@@ -64,4 +64,4 @@ const myAccount = msalInstance.getAccount();
 
 # Next Steps
 
-Learn how to [acquire and use an access token](./acquiretoken.md)!
+Learn how to [acquire and use an access token](./acquire-token.md)!
