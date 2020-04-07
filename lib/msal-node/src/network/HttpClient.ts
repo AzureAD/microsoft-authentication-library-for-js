@@ -13,7 +13,7 @@ import axios, {AxiosRequestConfig} from 'axios';
 export class HttpClient implements INetworkModule {
 
     /**
-     * Http client for REST endpoints - Get request
+     * Http Get request
      * @param url
      * @param options
      */
@@ -37,7 +37,7 @@ export class HttpClient implements INetworkModule {
     }
 
     /**
-     * Http client for REST endpoints - Post request
+     * Http Post request
      * @param url
      * @param options
      */
