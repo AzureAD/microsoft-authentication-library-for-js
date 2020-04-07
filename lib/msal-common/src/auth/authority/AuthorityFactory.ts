@@ -18,7 +18,7 @@ export class AuthorityFactory {
      * Use when Authority is B2C to provide list of trusted/allowed domains.
      */
     public static setKnownAuthorities(knownAuthorities: Array<string>): void {
-        if (!Object.keys(B2CTrustedHostList).length){
+        if (!B2CTrustedHostList.length){
             knownAuthorities.forEach(function(authority){
                 B2CTrustedHostList.push(authority);
             });
