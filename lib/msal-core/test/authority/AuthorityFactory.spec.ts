@@ -56,6 +56,14 @@ describe("AuthorityFactory.ts Class", function () {
 
         expect(B2CTrustedHostList["fabrikamb2c.b2clogin.com"]).to.be.equal("fabrikamb2c.b2clogin.com");
         expect(Object.keys(B2CTrustedHostList)).to.have.length(1);
+    });
 
+    it("Do not add additional authorities to trusted host list if it has already been populated", () => {
+        AuthorityFactory.setKnownAuthorities(true, B2C_TEST_CONFIG.knownAuthorities)
+        AuthorityFactory.setKnownAuthorities(true, ["contoso.b2clogin.com"])
+
+        expect(B2CTrustedHostList["fabrikamb2c.b2clogin.com"]).to.be.equal("fabrikamb2c.b2clogin.com");
+        expect(Object.keys(B2CTrustedHostList)).not.to.include("contoso.b2clogin.com")
+        expect(Object.keys(B2CTrustedHostList)).to.have.length(1);
     });
 });
