@@ -62,7 +62,7 @@ export class AuthorityFactory {
                 return new B2cAuthority(authorityUrl, networkInterface);
             // TODO: Support ADFS here in a later PR
             default:
-                throw ClientAuthError.createInvalidAuthorityTypeError(`Given Url: ${authorityUrl}`);
+                throw ClientAuthError.createInvalidAuthorityTypeError(`${authorityUrl}`);
         }
     }
 }

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { AuthorityFactory, B2CTrustedHostList } from "../../../src/auth/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { ClientConfigurationErrorMessage, Constants, Authority } from "../../../src";
+import { ClientConfigurationErrorMessage, Constants, Authority, ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
 import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority"
 import { TEST_CONFIG } from "../../utils/StringConstants";
@@ -50,4 +50,18 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(B2CTrustedHostList).not.to.include("fake.b2clogin.com");
         expect(B2CTrustedHostList.length).to.equal(1);
     });
+
+    it("Throws error if AuthorityType is not AAD or B2C", (done) => {
+        //Right now only way to throw this is to send adfs authority. This will need to change when we implement ADFS
+        const errorAuthority = "https://login.microsoftonline.com/adfs"
+        try{  
+            const authorityInstance = AuthorityFactory.createInstance(errorAuthority, networkInterface);
+        }
+        catch(e) {
+            expect(e).to.be.instanceOf(ClientAuthError)
+            expect(e.errorCode).to.be.equal(ClientAuthErrorMessage.invalidAuthorityType.code)
+            expect(e.errorMessage).to.be.equal(`${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${errorAuthority}`)
+            done();
+        }
+    })
 });
