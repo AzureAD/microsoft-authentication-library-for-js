@@ -13,6 +13,7 @@ import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
 import {NetworkResponse} from "../network/NetworkManager";
+import {ScopeSet} from "../request/ScopeSet";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -75,16 +76,15 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        // validate and add scopes
-        const scopes = RequestValidator.validateAndGenerateScopes(
-            request.scopes,
-            this.config.authOptions.clientId
-        );
-        parameterBuilder.addScopes(scopes);
-
         // validate the redirectUri (to be a non null value)
         RequestValidator.validateRedirectUri(request.redirectUri);
         parameterBuilder.addRedirectUri(request.redirectUri);
+
+        const scopeSet = new ScopeSet(
+            request.scopes || [],
+            this.config.authOptions.clientId,
+            false);
+        parameterBuilder.addScopes(scopeSet);
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -108,12 +108,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        // validate and add scopes
-        const scopes = RequestValidator.validateAndGenerateScopes(
-            request.scopes,
-            this.config.authOptions.clientId
-        );
-        parameterBuilder.addScopes(scopes);
+        const scopeSet = new ScopeSet(request.scopes || [],
+            this.config.authOptions.clientId,
+            false);
+        parameterBuilder.addScopes(scopeSet);
 
         // validate the redirectUri (to be a non null value)
         RequestValidator.validateRedirectUri(request.redirectUri);

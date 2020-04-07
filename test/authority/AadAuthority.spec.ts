@@ -75,7 +75,7 @@ describe("AadAuthority.ts Class Unit Tests", () => {
             };
             const aadAuthority = new AadAuthority(hostUri, networkInterface);
 
-            await expect(aadAuthority.getOpenIdConfigurationEndpointAsync()).to.eventually.eq(TEST_TENANT_DISCOVERY_RESPONSE.tenant_discovery_endpoint);
+            await expect(aadAuthority.getOpenIdConfigurationEndpointAsync()).to.eventually.eq(TEST_TENANT_DISCOVERY_RESPONSE.body.tenant_discovery_endpoint);
             expect(numCalls).to.be.eq(1);
         });
     });
