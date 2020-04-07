@@ -101,7 +101,7 @@ export const ClientAuthErrorMessage = {
     },
     DeviceCodePollingCancelled: {
         code: "device_code_polling_cancelled",
-        desc: "Caller has cancelled token endpoint polling during device code flow by setting CancellationToken.cancel = true."
+        desc: "Caller has cancelled token endpoint polling during device code flow by setting DeviceCodeRequest.cancel = true."
     },
     DeviceCodeExpired: {
         code: "device_code_expired",

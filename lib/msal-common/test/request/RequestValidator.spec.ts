@@ -14,7 +14,7 @@ describe("RequestValidator unit tests", () => {
 
         it("Throws UrlEmptyError if redirect uri is empty", () => {
             expect( function () {RequestValidator.validateRedirectUri("")})
-                .to.throw(ClientConfigurationError.createUrlEmptyError().message);
+                .to.throw(ClientConfigurationError.createRedirectUriEmptyError().message);
         });
     });
 
