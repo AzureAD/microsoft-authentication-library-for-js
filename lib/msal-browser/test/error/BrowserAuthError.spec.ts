@@ -14,7 +14,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof Error).to.be.true;
         expect(err.errorCode).to.equal(TEST_ERROR_CODE);
         expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
-        expect(err.message).to.equal(TEST_ERROR_MSG);
+        expect(err.message).to.equal(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
@@ -137,14 +137,14 @@ describe("BrowserAuthError Unit Tests", () => {
     });
 
     it("createPopupWindowTimeoutError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createPopupWindowTimeoutError("https://contoso.com/redirect");
+        const err: BrowserAuthError = BrowserAuthError.createMonitorWindowTimeoutError("https://contoso.com/redirect");
 
         expect(err instanceof BrowserAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.popupWindowTimeoutError.code);
-        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.popupWindowTimeoutError.desc);
-        expect(err.message).to.include(BrowserAuthErrorMessage.popupWindowTimeoutError.desc);
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.monitorWindowTimeoutError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
