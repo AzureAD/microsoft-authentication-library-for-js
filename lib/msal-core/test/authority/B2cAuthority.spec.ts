@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { AuthorityType } from "../../src/authority/Authority";
-import { B2cAuthority } from "../../src/authority/B2cAuthority";
+import { B2cAuthority, B2CTrustedHostList } from "../../src/authority/B2cAuthority";
 import { B2C_TEST_CONFIG } from "../TestConstants";
-import { B2CTrustedHostList, AuthorityFactory } from "../../src/authority/AuthorityFactory";
+import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 
 describe("B2cAuthority.ts Class", function () {
     let authority = null;

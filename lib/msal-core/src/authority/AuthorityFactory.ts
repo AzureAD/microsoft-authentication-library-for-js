@@ -7,13 +7,11 @@
  * @hidden
  */
 import { AadAuthority } from "./AadAuthority";
-import { B2cAuthority } from "./B2cAuthority";
+import { B2cAuthority, B2CTrustedHostList } from "./B2cAuthority";
 import { Authority, AuthorityType } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlUtils } from "../utils/UrlUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-
-export const B2CTrustedHostList: object = {};
 
 export class AuthorityFactory {
     /**
