@@ -39,7 +39,7 @@ import { Constants,
     libraryVersion,
     TemporaryCacheKeys,
     PersistentCacheKeys,
-    ErrorCacheKeys,
+    ErrorCacheKeys
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 
@@ -216,6 +216,8 @@ export class UserAgentApplication {
         this.inCookie = this.config.cache.storeAuthStateInCookie;
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
+
+        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -1071,7 +1073,14 @@ export class UserAgentApplication {
                 window.location.href = "/";
                 return;
             } else if (currentUrl !== loginRequestUrl) {
-                window.location.href = `${loginRequestUrl}${hash}`;
+                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
+                if (loginRequestUrl.indexOf("#") > -1) {
+                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
+                    this.processCallBack(hash, stateInfo, null);
+                    window.location.href = loginRequestUrl;
+                } else {
+                    window.location.href = `${loginRequestUrl}${hash}`;
+                }
                 return;
             }
         }
