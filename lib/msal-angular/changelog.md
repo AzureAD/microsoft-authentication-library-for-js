@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0-beta.5
+
+* Requires `msal@1.3.0-beta.0`.
+* When MSAL Guard fails to silent SSO, prompt for interaction. (#1455)
+* MSAL Guard should properly support hash routing and non-root base urls. (#1452)
+* Fix isEmpty check for unprotectedResources. (#1454)
+* Update handleRedirectCallback in Angular samples to log entire response. (#1428)
+* Don't broadcast `msal:login` events from MSAL Guard. (#1435)
+* Add guide for [Configuration](./docs/configuration.md).
+
 ## 1.0.0-beta.4
 
 * Requires `msal@1.2.2-beta.2`, which add `redirectStartUrl` to `AuthenticationParameters`, so that when a redirect operation from MSAL Guard is succesfully completed, redirect to the desired destination page. (#1343)

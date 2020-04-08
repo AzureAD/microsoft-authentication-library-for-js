@@ -6,7 +6,7 @@ Microsoft Authentication Library for JavaScript (MSAL.js)
 | --- | --- | --- | --- | --- |
 
 
-The MSAL library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+MSAL for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 [![npm version](https://img.shields.io/npm/v/msal.svg?style=flat)](https://www.npmjs.com/package/msal)[![npm version](https://img.shields.io/npm/dm/msal.svg)](https://nodei.co/npm/msal/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
@@ -110,7 +110,7 @@ Before using MSAL.js you will need to [register an application in Azure AD](http
 
 `UserAgentApplication` can be configured with a variety of different options, detailed in our [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#configuration-options), but the only required parameter is `auth.clientId`.
 
-After instantiating your instance, if you plan on using a redirect flow in MSAL 1.2.x or earlier (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handler using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. As of MSAL 1.3.0 this is optional. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises. 
+After instantiating your instance, if you plan on using a redirect flow in MSAL 1.2.x or earlier (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handler using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. As of MSAL 1.3.0 this is optional. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
 
 ```JavaScript
     import * as Msal from "msal";
