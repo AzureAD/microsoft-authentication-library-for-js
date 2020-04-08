@@ -248,20 +248,7 @@ export class AuthorizationCodeModule extends AuthModule {
                 request.authority = cachedTokenItem.key.authority;
                 const { tokenEndpoint } = acquireTokenAuthority;
 
-                // Initialize request parameters.
-                const tokenReqParams = new ServerTokenRequestParameters(
-                    this.clientConfig.auth.clientId,
-                    request,
-                    null,
-                    this.getRedirectUri(),
-                    this.cryptoObj,
-                    cachedTokenItem.value.refreshToken
-                );
-
-                // User helper to retrieve token response.
-                // Need to await function call before return to catch any thrown errors.
-                // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-                return await this.getTokenResponse(tokenEndpoint, tokenReqParams, request);
+                return this.renewToken(request, tokenEndpoint, cachedTokenItem.value.refreshToken);
             }
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.
@@ -418,6 +405,29 @@ export class AuthorizationCodeModule extends AuthModule {
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;
+    }
+
+    /**
+     * Creates refreshToken request and sends to given token endpoint.
+     * @param refreshTokenRequest 
+     * @param tokenEndpoint 
+     * @param refreshToken 
+     */
+    private async renewToken(refreshTokenRequest: TokenRenewParameters, tokenEndpoint: string, refreshToken: string): Promise<TokenResponse> {
+        // Initialize request parameters.
+        const tokenReqParams = new ServerTokenRequestParameters(
+            this.clientConfig.auth.clientId,
+            refreshTokenRequest,
+            null,
+            this.getRedirectUri(),
+            this.cryptoObj,
+            refreshToken
+        );
+
+        // User helper to retrieve token response.
+        // Need to await function call before return to catch any thrown errors.
+        // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
+        return await this.getTokenResponse(tokenEndpoint, tokenReqParams, refreshTokenRequest);
     }
 
     // #endregion

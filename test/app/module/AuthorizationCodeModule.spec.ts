@@ -630,26 +630,26 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             describe("Error cases", () => {
 
                 it("Throws error if request object is null or undefined", async () => {
-                    await expect(authModule.renewToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-                    await expect(authModule.renewToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authModule.getValidToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authModule.getValidToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
                 });
 
                 it("Throws error if scopes are not included in request object", async () => {
-                    await expect(authModule.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authModule.getValidToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: []
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if login hasn't been completed and client id is passed as scope", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
                 });
 
                 it("Throws error if endpoint discovery could not be completed", async () => {
@@ -659,7 +659,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
 
                 it("Throws error if it does not find token in empty cache", async () => {
@@ -667,7 +667,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it does not find token in non-empty cache", async () => {
@@ -693,7 +693,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope2]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it finds too many tokens in cache for the same scope and client id but no authority, resource or account is given", async () => {
@@ -726,7 +726,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 });
             });
 
@@ -754,7 +754,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope1]
                     };
-                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    const tokenResponse = await authModule.getValidToken(tokenRequest);
                     expect(tokenResponse.uniqueId).to.be.empty;
                     expect(tokenResponse.tenantId).to.be.empty;
                     expect(tokenResponse.scopes).to.be.deep.eq([testScope1, Constants.OFFLINE_ACCESS_SCOPE]);
@@ -823,7 +823,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScopes[0]]
                     };
-                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    const tokenResponse = await authModule.getValidToken(tokenRequest);
 
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);

@@ -12,7 +12,7 @@ import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
-import { PersistentCacheKeys, TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
