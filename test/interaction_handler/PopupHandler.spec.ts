@@ -115,14 +115,14 @@ describe("PopupHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("showUI()", () => {
+    describe("initiateAuthRequest()", () => {
 
         it("throws error if request uri is empty", () => {
-            expect(() => popupHandler.showUI("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.showUI("")).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest("")).to.throw(BrowserAuthError);
 
-            expect(() => popupHandler.showUI(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.showUI(null)).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest(null)).to.throw(BrowserAuthError);
         });
 
         it("opens a popup window", () => {
@@ -135,7 +135,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return window;
             };
 
-            const popupWindow = popupHandler.showUI(TEST_URIS.ALTERNATE_INSTANCE);
+            const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
