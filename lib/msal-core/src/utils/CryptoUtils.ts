@@ -157,7 +157,8 @@ export class CryptoUtils {
         const obj: {} = {};
         match = search.exec(query);
         while (match) {
-            obj[decode(match[1])] = decode(match[2]);
+            // Some values (e.g. state) may need to be decoded twice
+            obj[decode(match[1])] = decode(decode(match[2]));
             match = search.exec(query);
         }
         return obj;

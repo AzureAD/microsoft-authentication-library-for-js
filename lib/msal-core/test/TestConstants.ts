@@ -38,18 +38,20 @@ export const TEST_TOKEN_LIFETIMES = {
     TEST_ACCESS_TOKEN_EXP: 1537234948
 };
 
+
+
 // Test Hashes
-export const TEST_HASHES = {
-    TEST_SUCCESS_ID_TOKEN_HASH: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
-    TEST_SUCCESS_ACCESS_TOKEN_HASH: `#access_token=${TEST_TOKENS.ACCESSTOKEN}&id_token=${TEST_TOKENS.IDTOKEN_V2}&scope=test&expiresIn=${TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=RANDOM-GUID-HERE|`,
-    TEST_ERROR_HASH: "#error=error_code&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
-    TEST_INTERACTION_REQ_ERROR_HASH1: "#error=interaction_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
-    TEST_INTERACTION_REQ_ERROR_HASH2: "#error=interaction_required&error_description=msal+error+description+interaction_required&state=RANDOM-GUID-HERE|",
-    TEST_LOGIN_REQ_ERROR_HASH1: "#error=login_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
-    TEST_LOGIN_REQ_ERROR_HASH2: "#error=login_required&error_description=msal+error+description+login_required&state=RANDOM-GUID-HERE|",
-    TEST_CONSENT_REQ_ERROR_HASH1: "#error=consent_required&error_description=msal+error+description&state=RANDOM-GUID-HERE|",
-    TEST_CONSENT_REQ_ERROR_HASH2: "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|"
-};
+export const testHashesForState = state => ({
+    TEST_SUCCESS_ID_TOKEN_HASH: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${state}|`,
+    TEST_SUCCESS_ACCESS_TOKEN_HASH: `#access_token=${TEST_TOKENS.ACCESSTOKEN}&id_token=${TEST_TOKENS.IDTOKEN_V2}&scope=test&expiresIn=${TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${state}|`,
+    TEST_ERROR_HASH: `#error=error_code&error_description=msal+error+description&state=${state}|`,
+    TEST_INTERACTION_REQ_ERROR_HASH1: `#error=interaction_required&error_description=msal+error+description&state=${state}|`,
+    TEST_INTERACTION_REQ_ERROR_HASH2: `#error=interaction_required&error_description=msal+error+description+interaction_required&state=${state}|`,
+    TEST_LOGIN_REQ_ERROR_HASH1: `#error=login_required&error_description=msal+error+description&state=${state}|`,
+    TEST_LOGIN_REQ_ERROR_HASH2: `#error=login_required&error_description=msal+error+description+login_required&state=${state}|`,
+    TEST_CONSENT_REQ_ERROR_HASH1: `#error=consent_required&error_description=msal+error+description&state=${state}|`,
+    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${state}|`
+});
 
 // Test MSAL config params
 export const TEST_CONFIG = {
@@ -64,9 +66,15 @@ export const TEST_CONFIG = {
     CorrelationId: "ed2a3125-a597-416f-9d12-68b9add1c268"
 };
 
+export const B2C_TEST_CONFIG = {
+    validAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
+    MSAL_CLIENT_ID: "e760cab2-b9a1-4c0d-86fb-ff7084abd902",
+    knownAuthorities: ["fabrikamb2c.b2clogin.com"]
+};
+
 export const TEST_RESPONSE_TYPE = {
     id_token: "id_token",
     token: "token",
     id_token_token: "id_token token"
-}
+};
 

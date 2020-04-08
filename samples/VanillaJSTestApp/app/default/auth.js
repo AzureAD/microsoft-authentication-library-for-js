@@ -12,7 +12,7 @@ let signInType;
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-const myMSALObj = new msal.PublicClientApplication(msalConfig); 
+const myMSALObj = new Msal.UserAgentApplication(msalConfig);
 
 // Register Callbacks for Redirect flow
 myMSALObj.handleRedirectCallback(authRedirectCallBack);
@@ -21,10 +21,9 @@ function authRedirectCallBack(error, response) {
     if (error) {
         console.log(error);
     } else {
-        if (myMSALObj.getAccount()) {
+        if (response.tokenType === "id_token" && myMSALObj.getAccount() && !myMSALObj.isCallback(window.location.hash)) {
             console.log('id_token acquired at: ' + new Date().toString());
             showWelcomeMessage(myMSALObj.getAccount());
-            getTokenRedirect(loginRequest);
         } else if (response.tokenType === "access_token") {
             console.log('access_token acquired at: ' + new Date().toString());
         } else {
@@ -34,22 +33,24 @@ function authRedirectCallBack(error, response) {
 }
 
 // Redirect: once login is successful and redirects with tokens, call Graph API
-if (myMSALObj.getAccount()) {
+if (myMSALObj.getAccount() && !myMSALObj.isCallback(window.location.hash)) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
     showWelcomeMessage(myMSALObj.getAccount());
 }
 
-async function signIn(method) {
-    signInType = isIE ? "Redirect" : method;
-    if (signInType === "Popup") {
-        const loginResponse = await myMSALObj.loginPopup(loginRequest).catch(function (error) {
+function signIn(method) {
+    signInType = isIE ? "loginRedirect" : method;
+    if (signInType === "loginPopup") {
+        myMSALObj.loginPopup(loginRequest)
+            .then(loginResponse => {
+            console.log(loginResponse);
+            if (myMSALObj.getAccount()) {
+                showWelcomeMessage(myMSALObj.getAccount());
+            }
+        }).catch(function (error) {
             console.log(error);
         });
-        console.log(loginResponse);
-        if (myMSALObj.getAccount()) {
-            showWelcomeMessage(myMSALObj.getAccount());
-        }
-    } else if (signInType === "Redirect") {
+    } else if (signInType === "loginRedirect") {
         myMSALObj.loginRedirect(loginRequest)
     }
 }
@@ -58,19 +59,25 @@ function signOut() {
     myMSALObj.logout();
 }
 
-async function getTokenPopup(request) {
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
+function getTokenPopup(request) {
+    return myMSALObj.acquireTokenSilent(request).catch(error => {
         console.log("silent token acquisition fails. acquiring token using popup");
         // fallback to interaction when silent call fails
-        return await myMSALObj.acquireTokenPopup(request).catch(error => {
+        return myMSALObj.acquireTokenPopup(request).then(tokenResponse => {
+            console.log(tokenResponse);
+            return tokenResponse;
+        }).catch(error => {
             console.log(error);
         });
     });
 }
 
 // This function can be removed if you do not need to support IE
-async function getTokenRedirect(request) {
-    return await myMSALObj.acquireTokenSilent(request).catch(error => {
+function getTokenRedirect(request) {
+    return myMSALObj.acquireTokenSilent(request).then((response) => {
+        console.log(response);
+        return response;
+    }).catch(error => {
         console.log("silent token acquisition fails. acquiring token using redirect");
         // fallback to interaction when silent call fails
         return myMSALObj.acquireTokenRedirect(request)

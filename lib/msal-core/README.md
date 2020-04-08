@@ -27,10 +27,10 @@ The MSAL library for JavaScript enables client-side JavaScript web applications,
 
 #### Alternate region URLs
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.0/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.2/js/msal.js"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.0/js/msal.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.2/js/msal.min.js"></script>
 ```
 
 ### Via Latest Microsoft CDN Version (with SRI Hash):
@@ -38,10 +38,10 @@ The MSAL library for JavaScript enables client-side JavaScript web applications,
 #### Latest compiled and minified JavaScript
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.0/js/msal.js" integrity="sha384-LSjD9o5MhT3UejOHZ5BJrlAp3TxNM6z68DPYw3o7Q3ApJviS9kOGP0oQyTaJJd9O" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.2/js/msal.js" integrity="sha384-n2/wxR+doMGeL8Lmj4kdPRfZBUg2d/OAVqaKCoHPWOfOs1HUFU3laBvp3gv/HBOu" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.0/js/msal.min.js" integrity="sha384-bUAfT3zjpyf+nuTqeGYWk7ZKN6E89ouvkiXth6G45RG55uQERls6TtStVOBM6v4O" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.2/js/msal.min.js" integrity="sha384-eSH2oPL3slP7xPzrIISf+chfkjBTLlhmdW4oqNqSQ0wrS0EkHUZ9wiQfW575BjC6" crossorigin="anonymous"></script>
 ```
 
 #### Alternate region URLs
@@ -49,18 +49,18 @@ The MSAL library for JavaScript enables client-side JavaScript web applications,
 To help ensure reliability, Microsoft provides a second CDN:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.0/js/msal.js" integrity="sha384-LSjD9o5MhT3UejOHZ5BJrlAp3TxNM6z68DPYw3o7Q3ApJviS9kOGP0oQyTaJJd9O" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.2/js/msal.js" integrity="sha384-n2/wxR+doMGeL8Lmj4kdPRfZBUg2d/OAVqaKCoHPWOfOs1HUFU3laBvp3gv/HBOu" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.0/js/msal.min.js" integrity="sha384-bUAfT3zjpyf+nuTqeGYWk7ZKN6E89ouvkiXth6G45RG55uQERls6TtStVOBM6v4O" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.2.2/js/msal.min.js" integrity="sha384-eSH2oPL3slP7xPzrIISf+chfkjBTLlhmdW4oqNqSQ0wrS0EkHUZ9wiQfW575BjC6" crossorigin="anonymous"></script>
 ```
 
 Below is an example of how to use one CDN as a fallback when the other CDN is not working:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.0/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.2/js/msal.js"></script>
 <script type="text/javascript">
-    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.2.0/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
+    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.2.2/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
 </script>
 ```
 
@@ -102,7 +102,7 @@ If you would like to skip a cached token and go to the server, please pass in th
 ## Usage
 The example below walks you through how to login a user and acquire a token to be used for Microsoft's Graph Api.
 
-#### Prerequisite
+#### Prerequisites
 
 Before using MSAL.js you will need to [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 
@@ -110,7 +110,7 @@ Before using MSAL.js you will need to [register an application in Azure AD](http
 
 `UserAgentApplication` can be configured with a variety of different options, detailed in our [Wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL.js-1.0.0-api-release#configuration-options), but the only required parameter is `auth.clientId`.
 
-After instantiating your instance, if you plan on using a redirect flow (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handlers  using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises.
+After instantiating your instance, if you plan on using a redirect flow in MSAL 1.2.x or earlier (`loginRedirect` and `acquireTokenRedirect`), you must register a callback handler using `handleRedirectCallback(authCallback)` where `authCallback = function(AuthError, AuthResponse)`. As of MSAL 1.3.0 this is optional. The callback function is called after the authentication request is completed either successfully or with a failure. This is not required for the popup flows since they return promises. 
 
 ```JavaScript
     import * as Msal from "msal";
