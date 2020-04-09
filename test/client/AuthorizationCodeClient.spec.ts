@@ -19,7 +19,8 @@ import {
 } from "../utils/StringConstants";
 import {BaseClient} from "../../src/client/BaseClient";
 import {AADServerParamKeys, PromptValue, ResponseMode, SSOTypes} from "../../src/utils/Constants";
-import {ClientTestUtils} from "./ClientTestUtils";
+import { ClientTestUtils } from "./ClientTestUtils";
+import { B2CTrustedHostList } from "../../src/authority/B2cAuthority";
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -33,7 +34,11 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     afterEach(() => {
+        config = null;
         sinon.restore();
+        while (B2CTrustedHostList.length) {
+            B2CTrustedHostList.pop();
+        }
     });
 
     describe("Constructor", () => {
