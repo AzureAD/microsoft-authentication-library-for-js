@@ -30,7 +30,7 @@ export type Configuration = {
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto,
-    clientInfo?: ClientInfo
+    libraryInfo?: LibraryInfo
 };
 
 /**
@@ -79,7 +79,7 @@ export type LoggerOptions = {
 /**
  * Telemetry info about library
  */
-export type ClientInfo = {
+export type LibraryInfo = {
     sku: string,
     version: string,
     cpu: string,
@@ -162,7 +162,7 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     }
 };
 
-const DEFAULT_CLIENT_INFO: ClientInfo = {
+const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: Constants.SKU,
     version: version,
     cpu: process.platform || "",
@@ -184,7 +184,7 @@ export function buildConfiguration(
         storageInterface: storageImplementation,
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
-        clientInfo: clientInfo
+        libraryInfo: libraryInfo
     } : Configuration): Configuration {
 
     return {
@@ -194,6 +194,6 @@ export function buildConfiguration(
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        clientInfo: clientInfo || DEFAULT_CLIENT_INFO
+        libraryInfo: libraryInfo|| DEFAULT_LIBRARY_INFO
     };
 }

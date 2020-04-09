@@ -86,7 +86,7 @@ export abstract class ClientApplication {
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
             storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
-            clientInfo: {
+            libraryInfo: {
                 sku: ClientInfo.MSAL_SKU_VALUE,
                 version: version,
                 cpu: process.platform || "",
