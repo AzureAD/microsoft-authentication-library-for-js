@@ -7,6 +7,8 @@ import {
     DEVICE_CODE_RESPONSE
 } from "../utils/StringConstants";
 import {RequestParameterBuilder} from "../../src/server/RequestParameterBuilder";
+import {ScopeSet} from "../../src/request/ScopeSet";
+import {ClientAuthErrorMessage, ClientConfigurationError, ClientConfigurationErrorMessage} from "../../src";
 
 describe("RequestParameterBuilder unit tests", () => {
 
@@ -19,7 +21,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addResponseTypeCode();
         requestParameterBuilder.addResponseMode(ResponseMode.FORM_POST);
-        requestParameterBuilder.addScopes(TEST_CONFIG.DEFAULT_SCOPES);
+        requestParameterBuilder.addScopes(new ScopeSet(TEST_CONFIG.DEFAULT_SCOPES, TEST_CONFIG.MSAL_CLIENT_ID, false));
         requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
         requestParameterBuilder.addRedirectUri(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST);
         requestParameterBuilder.addDomainHint(TEST_CONFIG.DOMAIN_HINT);
@@ -53,5 +55,15 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE}=${encodeURIComponent(TEST_TOKENS.AUTHORIZATION_CODE)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.body.device_code)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`);
+    });
+
+    it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallengeMethod empty", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        expect(() => requestParameterBuilder.addCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, "")).to.throw(ClientConfigurationError.createInvalidCodeChallengeParamsError().errorMessage);
+    });
+
+    it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallenge empty", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        expect(() => requestParameterBuilder.addCodeChallengeParams("", AADServerParamKeys.CODE_CHALLENGE_METHOD)).to.throw(ClientConfigurationError.createInvalidCodeChallengeParamsError().errorMessage);
     });
 });

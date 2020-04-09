@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { IdTokenEntity } from "../../src/uCache/entities/IdTokenEntity";
-import { IdTValues } from "./cacheConstants";
+import { IdTokenEntity } from "../../../src/uCache/entities/IdTokenEntity";
+import { mockIdTokenEntity } from "./cacheConstants";
 
 describe("IdTokenEntity.ts Unit Tests", () => {
     it("Verify an IdTokenEntity", () => {
@@ -10,7 +10,7 @@ describe("IdTokenEntity.ts Unit Tests", () => {
 
     it("Create an IdTokenEntity", () => {
         let idT = new IdTokenEntity();
-        Object.assign(idT, IdTValues);
+        Object.assign(idT, mockIdTokenEntity);
         expect(idT.generateIdTokenEntityKey()).to.eql(
             "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-"
         );

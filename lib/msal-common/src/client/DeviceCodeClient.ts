@@ -9,12 +9,12 @@ import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { Authority } from "../authority/Authority";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
-import { RequestValidator } from "../request/RequestValidator";
 import { Constants, GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 import { TimeUtils } from "../utils/TimeUtils";
 import {NetworkResponse} from "..";
 import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
+import {ScopeSet} from "../request/ScopeSet";
 
 /**
  * OAuth2.0 Device code client
@@ -89,11 +89,10 @@ export class DeviceCodeClient extends BaseClient {
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        const scopes = RequestValidator.validateAndGenerateScopes(
-            request.scopes,
-            this.config.authOptions.clientId
-        );
-        parameterBuilder.addScopes(scopes);
+        const scopeSet = new ScopeSet(request.scopes || [],
+            this.config.authOptions.clientId,
+            false);
+        parameterBuilder.addScopes(scopeSet);
 
         return parameterBuilder.createQueryString();
     }
@@ -116,16 +115,14 @@ export class DeviceCodeClient extends BaseClient {
 
         // Poll token endpoint while (device code is not expired AND operation has not been cancelled by
         // setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
-        let intervalId: ReturnType<typeof setTimeout>;
         return new Promise<ServerAuthorizationTokenResponse>((resolve, reject) => {
 
-            intervalId = setInterval(async () => {
+            const intervalId: ReturnType<typeof setTimeout> = setInterval(async () => {
                 try {
-                    if(request.cancellationToken && request.cancellationToken.cancel){
+                    if(request.cancel){
 
                         // TODO use logger here
                         clearInterval(intervalId);
-
                         reject(ClientAuthError.createDeviceCodeCancelledError());
 
                     } else if(TimeUtils.nowSeconds() > deviceCodeExpirationTime){
@@ -165,15 +162,17 @@ export class DeviceCodeClient extends BaseClient {
      */
     private createTokenRequestBody(request: DeviceCodeRequest, deviceCodeResponse: DeviceCodeResponse): string {
 
-        const scopes = RequestValidator.validateAndGenerateScopes(
-            request.scopes,
-            this.config.authOptions.clientId
-        );
-
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
-        requestParameters.addScopes( scopes);
+
+        const scopeSet = new ScopeSet(request.scopes || [],
+            this.config.authOptions.clientId,
+            true);
+        requestParameters.addScopes(scopeSet);
+
         requestParameters.addClientId(this.config.authOptions.clientId);
+
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
+
         requestParameters.addDeviceCode(deviceCodeResponse.device_code);
 
         return requestParameters.createQueryString();

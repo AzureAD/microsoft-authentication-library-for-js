@@ -32,6 +32,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         config = ClientTestUtils.createTestClientConfiguration();
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("Constructor", () => {
 
         it("creates a AuthorizationCodeClient", () => {
@@ -43,11 +47,6 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     describe("Authorization url creation", () => {
-
-        afterEach(() => {
-            sinon.restore();
-        });
-
 
         it("Creates an authorization url with default parameters", async () => {
 
@@ -137,7 +136,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authCodeRequest: AuthorizationCodeRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest);
@@ -152,6 +152,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
         });
     });
 });
