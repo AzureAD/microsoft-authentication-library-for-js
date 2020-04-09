@@ -11,10 +11,10 @@ describe('ClientConfiguration tests', () => {
         const config: ClientConfiguration = buildConfiguration({});
 
         // network options
-        expect(config.system.networkClient).toBeDefined();
-        expect(config.system.networkClient).toBeInstanceOf(HttpClient);
-        expect(config.system.networkClient.sendGetRequestAsync).toBeDefined();
-        expect(config.system.networkClient.sendPostRequestAsync).toBeDefined();
+        expect(config.system!.networkClient).toBeDefined();
+        expect(config.system!.networkClient).toBeInstanceOf(HttpClient);
+        expect(config.system!.networkClient!.sendGetRequestAsync).toBeDefined();
+        expect(config.system!.networkClient!.sendPostRequestAsync).toBeDefined();
 
         // logger options checks
         console.error = jest.fn();
@@ -22,14 +22,14 @@ describe('ClientConfiguration tests', () => {
         console.debug = jest.fn();
         console.warn = jest.fn();
 
-        expect(config.system.loggerOptions).toBeDefined();
-        expect(config.system.loggerOptions.piiLoggingEnabled).toBe(false);
+        expect(config.system!.loggerOptions).toBeDefined();
+        expect(config.system!.loggerOptions!.piiLoggingEnabled).toBe(false);
 
-        config.system.loggerOptions.loggerCallback(LogLevel.Error,"error", false);
-        config.system.loggerOptions.loggerCallback(LogLevel.Info,"info", false);
-        config.system.loggerOptions.loggerCallback(LogLevel.Verbose,"verbose", false);
-        config.system.loggerOptions.loggerCallback(LogLevel.Warning,"warning", false);
-        config.system.loggerOptions.loggerCallback(LogLevel.Warning,"warning", true);
+        config.system!.loggerOptions!.loggerCallback!(LogLevel.Error,"error", false);
+        config.system!.loggerOptions!.loggerCallback!(LogLevel.Info,"info", false);
+        config.system!.loggerOptions!.loggerCallback!(LogLevel.Verbose,"verbose", false);
+        config.system!.loggerOptions!.loggerCallback!(LogLevel.Warning,"warning", false);
+        config.system!.loggerOptions!.loggerCallback!(LogLevel.Warning,"warning", true);
 
         expect(console.error).toHaveBeenLastCalledWith("error");
         expect(console.info).toHaveBeenLastCalledWith("info");
@@ -39,12 +39,12 @@ describe('ClientConfiguration tests', () => {
 
 
         // auth options
-        expect(config.auth.authority).toEqual("");
-        expect(config.auth.clientId).toEqual("");
+        expect(config.auth!.authority).toEqual("");
+        expect(config.auth!.clientId).toEqual("");
 
         // cache options
-        expect(config.cache.cacheLocation).toEqual(CACHE.FILE_CACHE);
-        expect(config.cache.storeAuthStateInCookie).toEqual(false);
+        expect(config.cache!.cacheLocation).toEqual(CACHE.FILE_CACHE);
+        expect(config.cache!.storeAuthStateInCookie).toEqual(false);
     });
 
     test('builds configuration and assigns default functions', () => {
@@ -92,19 +92,19 @@ describe('ClientConfiguration tests', () => {
         };
 
         // network options
-        expect(config.system.networkClient.sendGetRequestAsync(TEST_CONSTANTS.AUTH_CODE_URL, testNetworkOptions)).resolves.toEqual(testNetworkResult);
-        expect(config.system.networkClient.sendPostRequestAsync(TEST_CONSTANTS.AUTH_CODE_URL, testNetworkOptions)).resolves.toEqual(testNetworkResult);
+        expect(config.system!.networkClient!.sendGetRequestAsync(TEST_CONSTANTS.AUTH_CODE_URL, testNetworkOptions)).resolves.toEqual(testNetworkResult);
+        expect(config.system!.networkClient!.sendPostRequestAsync(TEST_CONSTANTS.AUTH_CODE_URL, testNetworkOptions)).resolves.toEqual(testNetworkResult);
 
         // Logger options checks
-        expect(config.system.loggerOptions).toBeDefined();
-        expect(config.system.loggerOptions.piiLoggingEnabled).toBe(true);
+        expect(config.system!.loggerOptions).toBeDefined();
+        expect(config.system!.loggerOptions!.piiLoggingEnabled).toBe(true);
 
         // auth options
-        expect(config.auth.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
-        expect(config.auth.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+        expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
+        expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
 
         // cache options
-        expect(config.cache.cacheLocation).toEqual(TEST_CONSTANTS.CACHE_LOCATION);
-        expect(config.cache.storeAuthStateInCookie).toEqual(true);
+        expect(config.cache!.cacheLocation).toEqual(TEST_CONSTANTS.CACHE_LOCATION);
+        expect(config.cache!.storeAuthStateInCookie).toEqual(true);
     });
 });
