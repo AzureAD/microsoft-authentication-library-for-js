@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { AccessTokenEntity } from "../../src/uCache/entities/AccessTokenEntity";
-import { ATValues } from "./cacheConstants";
+import { AccessTokenEntity } from "../../../src/uCache/entities/AccessTokenEntity";
+import { mockCache } from "./cacheConstants";
 
 describe("AccessTokenEntity.ts Unit Tests", () => {
 
@@ -10,8 +10,7 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
     });
 
     it("Create an AccessTokenCacheEntity entity", () => {
-        let at = new AccessTokenEntity();
-        Object.assign(at, ATValues);
+        let at = mockCache.createMockATOne();
         expect(at.generateAccessTokenEntityKey()).to.eql(
             "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3"
         );

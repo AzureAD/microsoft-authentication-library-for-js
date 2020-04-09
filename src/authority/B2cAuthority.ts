@@ -3,45 +3,42 @@
  * Licensed under the MIT License.
  */
 import { Authority } from "./Authority";
-import { B2CTrustedHostList } from "./AuthorityFactory";
-import { INetworkModule } from "../network/INetworkModule";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { AuthorityType } from "./AuthorityType";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { INetworkModule } from "../network/INetworkModule";
+
+export const B2CTrustedHostList: string[] = [];
 
 /**
- * The B2cAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
+ * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
  */
 export class B2cAuthority extends Authority {
-    /**
-     * Set authority type to B2C
-     */
+    // Set authority type to AAD
     public get authorityType(): AuthorityType {
         return AuthorityType.B2C;
     }
+
     public constructor(authority: string, networkInterface: INetworkModule) {
         super(authority, networkInterface);
     }
 
     /**
-     * Returns a promise with the TenantDiscoveryEndpoint
+     * Returns a promise which resolves to the OIDC endpoint
+     * Only responds with the endpoint
      */
     public async getOpenIdConfigurationEndpointAsync(): Promise<string> {
         if (this.isInTrustedHostList(this.canonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.defaultOpenIdConfigurationEndpoint;
         }
 
-        throw ClientConfigurationError.createUnsupportedAuthorityValidationError();
+        throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
     /**
      * Checks to see if the host is in a list of trusted hosts
      * @param {string} The host to look up
      */
-    public isInTrustedHostList(host: string): boolean {
-        if (!Object.keys(B2CTrustedHostList).length) {
-            throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
-        }
-
-        return B2CTrustedHostList[host.toLowerCase()];
+    private isInTrustedHostList(host: string): boolean {
+        return B2CTrustedHostList.includes(host);
     }
 }

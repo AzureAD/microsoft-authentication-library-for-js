@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
@@ -25,15 +26,12 @@ export class ScopeSet {
         inputScopes: Array<string>,
         clientId: string,
         scopesRequired: boolean,
-        nonSPA?: boolean
     ) {
         this.clientId = clientId;
         this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items
-        const filteredInput = (inputScopes)
-            ? StringUtils.removeEmptyStringsFromArray(inputScopes)
-            : inputScopes;
+        const filteredInput = inputScopes && StringUtils.removeEmptyStringsFromArray(inputScopes);
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
@@ -45,8 +43,7 @@ export class ScopeSet {
         }
         this.originalScopes = new Set<string>(this.scopes);
 
-        // add default scopes
-        nonSPA ? this.addDefaultScopes() : this.replaceDefaultScopes();
+        this.replaceDefaultScopes();
     }
 
     /**
@@ -74,15 +71,6 @@ export class ScopeSet {
             this.appendScope(Constants.OPENID_SCOPE);
             this.appendScope(Constants.PROFILE_SCOPE);
         }
-        this.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
-    }
-
-    /**
-     * Replace client id with the default scopes used for token acquisition.
-     */
-    private addDefaultScopes(): void {
-        this.appendScope(Constants.OPENID_SCOPE);
-        this.appendScope(Constants.PROFILE_SCOPE);
         this.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
     }
 
@@ -244,17 +232,6 @@ export class ScopeSet {
         if (this.scopes) {
             const scopeArr = this.asArray();
             return scopeArr.join(" ");
-        }
-        return "";
-    }
-
-    /**
-     * Prints scopes into a space-delimited string
-     * @param scopes
-     */
-    static finalScopes(scopes: Array<string>): string {
-        if (scopes) {
-            return scopes.join(" ");
         }
         return "";
     }

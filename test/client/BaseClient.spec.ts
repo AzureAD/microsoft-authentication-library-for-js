@@ -7,6 +7,7 @@ import { Configuration } from "../../src/config/Configuration";
 import {Constants} from "../../src";
 import {AADServerParamKeys, HeaderNames} from "../../src/utils/Constants";
 import {ClientTestUtils} from "./ClientTestUtils";
+import sinon from "sinon";
 
 class TestClient extends BaseClient {
 
@@ -62,6 +63,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
         config = ClientTestUtils.createTestClientConfiguration();
         });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("Constructor", () => {
 
         it("Creates a valid BaseClient object", () => {
@@ -83,7 +88,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
             expect(client.getNetworkClient()).to.be.not.null;
         });
     });
-
 
     describe("Header utils", () => {
 
