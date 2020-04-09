@@ -1,4 +1,10 @@
-export const mockAccessTokenEntity = {
+import { AccessTokenEntity } from "../../../src/uCache/entities/AccessTokenEntity";
+import { IdTokenEntity } from "../../../src/uCache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../../../src/uCache/entities/RefreshTokenEntity";
+import { AccountEntity } from "../../../src/uCache/entities/AccountEntity";
+import { AppMetadataEntity } from "../../../src/uCache/entities/AppMetadataEntity";
+
+export const mockAccessTokenEntity_1 = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
     credentialType: "AccessToken",
@@ -9,6 +15,19 @@ export const mockAccessTokenEntity = {
     cachedAt: "1000",
     expiresOn: "4600",
     extendedExpiresOn: "4600",
+};
+
+export const mockAccessTokenEntity_2 = {
+    homeAccountId: "uid.utid",
+    environment: "login.microsoftonline.com",
+    credentialType: "AccessToken",
+    clientId: "mock_client_id",
+    secret: "an access token",
+    realm: "microsoft",
+    target: "scope4 scope5",
+    cachedAt: "1000",
+    expiresOn: "4600",
+    extendedExpiresOn: "4600"
 };
 
 export const mockIdTokenEntity = {
@@ -52,4 +71,56 @@ export const mockAppMetaDataEntity = {
     clientId: "mock_client_id",
     environment: "login.microsoftonline.com",
     familyId: "1"
+}
+
+export class mockCache {
+
+    static createMockATOne(): AccessTokenEntity {
+        const at = new AccessTokenEntity();
+        Object.assign(at, mockAccessTokenEntity_1);
+
+        return at;
+    }
+
+    static createMockATTwo(): AccessTokenEntity {
+        const at = new AccessTokenEntity();
+        Object.assign(at, mockAccessTokenEntity_2);
+
+        return at;
+    }
+
+    static createMockIdT(): IdTokenEntity {
+        let idt = new IdTokenEntity();
+        Object.assign(idt, mockIdTokenEntity);
+
+        return idt;
+    }
+
+    static createMockRT(): RefreshTokenEntity {
+        let rt = new RefreshTokenEntity();
+        Object.assign(rt, mockRefreshTokenEntity);
+
+        return rt;
+    }
+
+    static createMockRTWithFamilyId(): RefreshTokenEntity {
+        let rt = new RefreshTokenEntity();
+        Object.assign(rt, mockRefreshTokenEntityWithFamilyId);
+
+        return rt;
+    }
+
+    static createMockAcc(): AccountEntity {
+        let acc = new AccountEntity();
+        Object.assign(acc, mockAccountEntity);
+
+        return acc;
+    }
+
+    static createMockAmdt(): AppMetadataEntity {
+        let amdt = new AppMetadataEntity();
+        Object.assign(amdt, mockAppMetaDataEntity);
+
+        return amdt;
+    }
 }
