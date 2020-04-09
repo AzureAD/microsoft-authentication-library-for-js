@@ -11,8 +11,9 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {NetworkResponse} from "../network/NetworkManager";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ResponseHandler } from "../response/ResponseHandler";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -49,8 +50,11 @@ export class AuthorizationCodeClient extends BaseClient {
         this.logger.info("in acquireToken call");
         const authority: Authority = await this.createAuthority(request && request.authority);
         const response = await this.executeTokenRequest(authority, request);
+
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        responseHandler.validateServerAuthorizationTokenResponse(response.body);
+
         return JSON.stringify(response.body);
-        // TODO add response_handler here to send the response
     }
 
     /**
