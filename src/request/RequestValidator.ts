@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ScopeSet } from "./ScopeSet";
 import { StringUtils } from "./../utils/StringUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues } from "./../utils/Constants";

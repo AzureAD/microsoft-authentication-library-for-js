@@ -4,7 +4,7 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 import sinon from "sinon";
 import {
-    Authority, CancellationToken, ClientAuthErrorMessage,
+    Authority, ClientAuthErrorMessage,
     Configuration, Constants,
     DeviceCodeClient, DeviceCodeRequest,
 } from "../../src";
