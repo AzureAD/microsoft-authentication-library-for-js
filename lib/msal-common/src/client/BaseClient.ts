@@ -105,9 +105,12 @@ export abstract class BaseClient {
      */
     protected createDefaultLibraryHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
-        // library version
-        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, Constants.LIBRARY_NAME);
-        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, "0.0.1");
+        // client info headers
+        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, this.config.clientInfo.sku);
+        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, this.config.clientInfo.version);
+        headers.set(`${AADServerParamKeys.X_CLIENT_OS}`, this.config.clientInfo.os);
+        headers.set(`${AADServerParamKeys.X_CLIENT_CPU}`, this.config.clientInfo.cpu);
+
         return headers;
     }
 

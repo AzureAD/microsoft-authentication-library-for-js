@@ -9,13 +9,14 @@ import {
     AuthorizationCodeRequest,
     Configuration,
 } from '@azure/msal-common';
-import { ClientConfiguration, buildConfiguration } from '../config/ClientConfiguration';
+import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
+import { version } from '../../package.json';
+import { ClientInfo } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
-    // Input configuration by developer/user
     protected config: ClientConfiguration;
 
     /**
@@ -34,14 +35,12 @@ export abstract class ClientApplication {
      * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
-     * Full B2C functionality will be available in this library in future versions.
+     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/ls
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     protected constructor(configuration: ClientConfiguration) {
-
-        this.config = buildConfiguration(configuration);
+        this.config = buildAppConfiguration(configuration);
     }
 
     /**
@@ -86,10 +85,13 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(
-                this.config.auth!.clientId,
-                this.config.cache!
-            ),
+            storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
+            clientInfo: {
+                sku: ClientInfo.MSAL_SKU_VALUE,
+                version: version,
+                cpu: process.platform || "",
+                os: process.arch || ""
+            },
         };
     }
 }
