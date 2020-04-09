@@ -2,10 +2,10 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, AuthorizationCodeModule, NetworkRequestOptions, LogLevel, Account, TokenResponse, CodeResponse } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, Account, TokenResponse, CodeResponse } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_DATA_CLIENT_INFO, TEST_URIS, RANDOM_TEST_GUID, TEST_HASHES } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
@@ -48,7 +48,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authCodeModule = new AuthorizationCodeModule({
+        const authCodeModule = new SPAClient({
             auth: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
@@ -181,9 +181,9 @@ describe("PopupHandler.ts Unit Tests", () => {
                 uniqueId: idTokenClaims.oid,
                 userRequestState: "testState"
             };
-            sinon.stub(AuthorizationCodeModule.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(AuthorizationCodeModule.prototype, "acquireToken").resolves(testTokenResponse);
-            
+            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+
             const tokenResponse = await popupHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
         });

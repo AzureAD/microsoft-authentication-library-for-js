@@ -11,6 +11,9 @@ export const Constants = {
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
+
+    // Device code endpoint path
+    DEVICE_CODE_ENDPOINT_PATH: "oauth2/v2.0/devicecode",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -28,14 +31,16 @@ export const Constants = {
     CODE_GRANT_TYPE: "authorization_code",
     RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
+    QUERY_RESPONSE_MODE: "query",
     S256_CODE_CHALLENGE_METHOD: "S256",
-    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded"
+    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
+    AUTHORIZATION_PENDING: "authorization_pending"
 };
 
 /**
  * Request header names
  */
-export enum HEADER_NAMES {
+export enum HeaderNames {
     CONTENT_TYPE = "Content-Type"
 };
 
@@ -67,7 +72,7 @@ export enum PersistentCacheKeys {
 };
 
 /**
- * List of pre-established trusted host URLs. 
+ * List of pre-established trusted host URLs.
  */
 export const AADTrustedHostList: string[] = [
     "login.windows.net",
@@ -117,7 +122,8 @@ export enum AADServerParamKeys {
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
     X_CLIENT_VER = "x-client-Ver",
-    POST_LOGOUT_URI = "post_logout_redirect_uri"
+    POST_LOGOUT_URI = "post_logout_redirect_uri",
+    DEVICE_CODE = "device_code"
 };
 
 /**
@@ -172,3 +178,41 @@ export const BlacklistedEQParams = [
     SSOTypes.SID,
     SSOTypes.LOGIN_HINT
 ];
+
+/**
+ * allowed values for codeVerifier
+ */
+export const CodeChallengeMethodValues = {
+    PLAIN: "plain",
+    S256: "S256"
+};
+
+/**
+ *
+ */
+export const CodeChallengeMethodValuesArray: string[] = [
+    CodeChallengeMethodValues.PLAIN,
+    CodeChallengeMethodValues.S256
+];
+
+/**
+ * allowed values for response_mode
+ */
+export enum ResponseMode {
+    QUERY = "query",
+    FRAGMENT = "fragment",
+    FORM_POST = "form_post"
+}
+
+/**
+ * allowed grant_type
+ */
+export enum GrantType {
+    IMPLICIT_GRANT = "implicit",
+    AUTHORIZATION_CODE_GRANT = "authorization_code",
+    CLIENT_CREDENTIALS_GRANT = "client_credentials",
+    RESOURCE_OWNER_PASSWORD_GRANT = "password",
+    REFRESH_TOKEN_GRANT = "refresh_token",
+    DEVICE_CODE_GRANT = "device_code"
+};
+

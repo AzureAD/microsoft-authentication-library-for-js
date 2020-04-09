@@ -8,6 +8,7 @@ import { UrlString } from "./../url/UrlString";
 import { IUri } from "./../url/IUri";
 import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
+import {NetworkResponse} from "..";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -138,7 +139,7 @@ export abstract class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      * @param openIdConfigurationEndpoint
      */
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<TenantDiscoveryResponse> {
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<TenantDiscoveryResponse>> {
         return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);
     }
 
@@ -152,6 +153,7 @@ export abstract class Authority {
      */
     public async resolveEndpointsAsync(): Promise<void> {
         const openIdConfigEndpoint = await this.getOpenIdConfigurationEndpointAsync();
-        this.tenantDiscoveryResponse = await this.discoverEndpoints(openIdConfigEndpoint);
+        const response = await this.discoverEndpoints(openIdConfigEndpoint);
+        this.tenantDiscoveryResponse = response.body;
     }
 }

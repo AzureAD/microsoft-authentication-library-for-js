@@ -12,6 +12,7 @@ export const TEST_TOKENS = {
     LOGIN_AT_STRING: "O35pBcPgsXxS0K54JcJ2bO2lPQzy59r98BM3TLUNV5lJfzLYv5ZL2c8i3IODbS9qx93DzmpKlOgdQLrFDctgSbutgFXUKLdNIeR1ZvzCSEbwtV4zOe0EJU0CkVaWo1Vg8iKrdJdGtEqOtOB3Pbqe2zMg0cuMXW4B6xtbDy5gYO78McdjKWiljdltJqPTZkb1ESbGOGM2",
     ACCESS_TOKEN: "thisIs.an.accessT0ken",
     REFRESH_TOKEN: "thisIsARefreshT0ken",
+    AUTHORIZATION_CODE: "0.ASgAqPq4kJXMDkamGO53C-4XWVm3ypmrKgtCkdhePY1PBjsoAJg.AQABAAIAAAAm-06blBE1TpVMil8KPQ41DOje1jDj1oK3KxTXGKg89VjLYJi71gx_npOoxVfC7X49MqOX7IltTJOilUId-IAHndHXlfWzoSGq3GUmwAOLMisftceBRtq3YBsvHX7giiuSZXJgpgu03uf3V2h5Z3GJNpnSXT1f7iVFuRvGh1-jqjWxKs2un8AS5rhti1ym1zxkeicKT43va5jQeHVUlTQo69llnwQJ3iKmKLDVq_Q25Au4EQjYaeEx6TP5IZSqPPm7x0bynmjE8cqR5r4ySP4wH8fjnxlLySrUEZObk2VgREB1AdH6-xKIa04EnJEj9dUgTwiFvQumkuHHetFOgH7ep_9diFOdAOQLUK8C9N4Prlj0JiOcgn6l0xYd5Q9691Ylw8UfifLwq_B7f30mMLN64_XgoBY9K9CR1L4EC1kPPwIhVv3m6xmbhXZ3efx-A-bbV2SYcO4D4ZlnQztHzie_GUlredtsdEMAOE3-jaMJs7i2yYMuIEEtRcHIjV_WscVooCDdKmVncHOObWhNUSdULAejBr3pFs0v3QO_xZ269eLu5Z0qHzCZ_EPg2aL-ERz-rpgdclQ_H_KnEtMsC4F1RgAnDjVmSRKJZZdnNLfKSX_Wd40t_nuo4kjN2cSt8QzzeL533zIZ4CxthOsC4HH2RcUZDIgHdLDLT2ukg-Osc6J9URpZP-IUpdjXg_uwbkHEjrXDMBMo2pmCqaWbMJKo5Lr7CrystifnDITXzZmmOah8HV83Xyb6EP8Gno6JRuaG80j8BKDWyb1Yof4rnLI1kZ59n_t2d0LnRBXz50PdWCWX6vtkg-kAV-bGJQr45XDSKBSv0Q_fVsdLMk24NacUZcF5ujUtqv__Bv-wATzCHWlbUDGHC8nHEi84PcYAjSsgAA",
     SAMPLE_JWT_HEADER: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
     SAMPLE_JWT_PAYLOAD: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
     SAMPLE_JWT_SIG: "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
@@ -60,7 +61,8 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT_ORGS: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_TENANT_ID: "https://login.microsoftonline.com/sample-tenantID/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_WITH_PARAMS1: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1",
-    TEST_AUTH_ENDPT_WITH_PARAMS2: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2"
+    TEST_AUTH_ENDPT_WITH_PARAMS2: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+    TEST_REDIRECT_URI_LOCALHOST: "https://localhost:3000"
 };
 
 // Test MSAL config params
@@ -74,10 +76,17 @@ export const TEST_CONFIG = {
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
     STATE: "1234",
+    NONCE: "a1b2c3",
     TEST_VERIFIER: "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
+    CODE_CHALLENGE_METHOD: "S256",
     TOKEN_TYPE_BEARER: "Bearer",
-    DEFAULT_SCOPES: ["openid", "profile", "offline_access"]
+    DEFAULT_SCOPES: ["openid", "profile", "offline_access"],
+    DEFAULT_GRAPH_SCOPE: ["user.read"],
+    LOGIN_HINT: "user@test.com",
+    DOMAIN_HINT: "test.com",
+    CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
+    CLAIMS: "claims"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -92,73 +101,132 @@ export const TEST_HOST_LIST = [
 ];
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
-    "tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+    body: {
+        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+    }
 };
 
 export const TEST_TENANT_DISCOVERY_RESPONSE = {
-    "tenant_discovery_endpoint":"https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+    body: {
+        "tenant_discovery_endpoint": "https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+    }
 };
 
-export const DEFAULT_OPENID_CONFIG_RESPONSE = { 
-    "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
-    "token_endpoint_auth_methods_supported": [
-        "client_secret_post", 
-        "private_key_jwt", 
-        "client_secret_basic"
-    ],
-    "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys", 
-    "response_modes_supported": [
-        "query", 
-        "fragment", 
-        "form_post"
-    ], 
-    "subject_types_supported": ["pairwise"], 
-    "id_token_signing_alg_values_supported": ["RS256"], 
-    "response_types_supported": ["code", "id_token", "code id_token", "id_token token"], 
-    "scopes_supported": ["openid", "profile", "email", "offline_access"], 
-    "issuer": "https://login.microsoftonline.com/{tenant}/v2.0", 
-    "request_uri_parameter_supported": false, 
-    "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo", 
-    "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize", 
-    "http_logout_supported": true, 
-    "frontchannel_logout_supported": true, 
-    "end_session_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout", 
-    "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"], 
-    "tenant_region_scope": null, 
-    "cloud_instance_name": "microsoftonline.com", 
-    "cloud_graph_host_name": "graph.windows.net", 
-    "msgraph_host": "graph.microsoft.com", 
-    "rbac_url": "https://pas.windows.net" 
+export const DEFAULT_OPENID_CONFIG_RESPONSE = {
+    body: {
+        "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+        "token_endpoint_auth_methods_supported": [
+            "client_secret_post",
+            "private_key_jwt",
+            "client_secret_basic"
+        ],
+        "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+        "response_modes_supported": [
+            "query",
+            "fragment",
+            "form_post"
+        ],
+        "subject_types_supported": ["pairwise"],
+        "id_token_signing_alg_values_supported": ["RS256"],
+        "response_types_supported": ["code", "id_token", "code id_token", "id_token token"],
+        "scopes_supported": ["openid", "profile", "email", "offline_access"],
+        "issuer": "https://login.microsoftonline.com/{tenant}/v2.0",
+        "request_uri_parameter_supported": false,
+        "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo",
+        "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+        "http_logout_supported": true,
+        "frontchannel_logout_supported": true,
+        "end_session_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+        "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"],
+        "tenant_region_scope": null,
+        "cloud_instance_name": "microsoftonline.com",
+        "cloud_graph_host_name": "graph.windows.net",
+        "msgraph_host": "graph.microsoft.com",
+        "rbac_url": "https://pas.windows.net"
+    }
 };
 
-export const ALTERNATE_OPENID_CONFIG_RESPONSE = { 
-    "token_endpoint": "https://login.windows.net/common/oauth2/v2.0/token",
-    "token_endpoint_auth_methods_supported": [
-        "client_secret_post", 
-        "private_key_jwt", 
-        "client_secret_basic"
-    ],
-    "jwks_uri": "https://login.windows.net/common/discovery/v2.0/keys", 
-    "response_modes_supported": [
-        "query", 
-        "fragment", 
-        "form_post"
-    ], 
-    "subject_types_supported": ["pairwise"], 
-    "id_token_signing_alg_values_supported": ["RS256"], 
-    "response_types_supported": ["code", "id_token", "code id_token", "id_token token"], 
-    "scopes_supported": ["openid", "profile", "email", "offline_access"], 
-    "issuer": "https://login.windows.net/{tenantid}/v2.0", 
-    "request_uri_parameter_supported": false, 
-    "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo", 
-    "authorization_endpoint": "https://login.windows.net/common/oauth2/v2.0/authorize", 
-    "http_logout_supported": true, 
-    "frontchannel_logout_supported": true, 
-    "end_session_endpoint": "https://login.windows.net/common/oauth2/v2.0/logout", 
-    "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"], 
-    "tenant_region_scope": null, 
-    "cloud_instance_name": "windows.net", 
-    "cloud_graph_host_name": "graph.windows.net", 
-    "msgraph_host": "graph.microsoft.com", 
-    "rbac_url": "https://pas.windows.net" 
+export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
+    body: {
+        "token_endpoint": "https://login.windows.net/common/oauth2/v2.0/token",
+        "token_endpoint_auth_methods_supported": [
+            "client_secret_post",
+            "private_key_jwt",
+            "client_secret_basic"
+        ],
+        "jwks_uri": "https://login.windows.net/common/discovery/v2.0/keys",
+        "response_modes_supported": [
+            "query",
+            "fragment",
+            "form_post"
+        ],
+        "subject_types_supported": ["pairwise"],
+        "id_token_signing_alg_values_supported": ["RS256"],
+        "response_types_supported": ["code", "id_token", "code id_token", "id_token token"],
+        "scopes_supported": ["openid", "profile", "email", "offline_access"],
+        "issuer": "https://login.windows.net/{tenantid}/v2.0",
+        "request_uri_parameter_supported": false,
+        "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo",
+        "authorization_endpoint": "https://login.windows.net/common/oauth2/v2.0/authorize",
+        "http_logout_supported": true,
+        "frontchannel_logout_supported": true,
+        "end_session_endpoint": "https://login.windows.net/common/oauth2/v2.0/logout",
+        "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"],
+        "tenant_region_scope": null,
+        "cloud_instance_name": "windows.net",
+        "cloud_graph_host_name": "graph.windows.net",
+        "msgraph_host": "graph.microsoft.com",
+        "rbac_url": "https://pas.windows.net"
+    }
+};
+
+export const AUTHENTICATION_RESULT = {
+    status: 200,
+    body: {
+        "token_type": "Bearer",
+        "scope": "openid profile User.Read email",
+        "expires_in": 3599,
+        "ext_expires_in": 3599,
+        "access_token": "thisIs.an.accessT0ken",
+        "refresh_token": "thisIsARefreshT0ken",
+        "id_token": "thisIsAIdT0ken"
+    }
+};
+
+export const DEVICE_CODE_RESPONSE = {
+    status: 200,
+    body: {
+        "user_code": "FRWQDE7YL",
+        "device_code": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
+        "verification_uri": "https://microsoft.com/devicelogin",
+        "expires_in": 900,
+        "interval": 5,
+        "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
+    }
+};
+
+export const DEVICE_CODE_EXPIRED_RESPONSE = {
+    body: {
+        "user_code": "FRWQDE7YL",
+        "device_code": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
+        "verification_uri": "https://microsoft.com/devicelogin",
+        "expires_in": 0,
+        "interval": 5,
+        "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
+    }
+};
+
+export const AUTHORIZATION_PENDING_RESPONSE = {
+    body : {
+        error: 'authorization_pending',
+        error_description: 'AADSTS70016: OAuth 2.0 device flow error. Authorization is pending. Continue polling.' +
+            'Trace ID: 01707a0c-640b-4049-8cbb-ee2304dc0700' +
+            'Correlation ID: 78b0fdfc-dd0e-4dfb-b13a-d316333783f6' +
+            'Timestamp: 2020-03-26 22:54:14Z',
+        error_codes: [ 70016 ],
+        timestamp: '2020-03-26 22:54:14Z',
+        trace_id: '01707a0c-640b-4049-8cbb-ee2304dc0700',
+        correlation_id: '78b0fdfc-dd0e-4dfb-b13a-d316333783f6',
+        error_uri: 'https://login.microsoftonline.com/error?code=70016'
+    }
 };

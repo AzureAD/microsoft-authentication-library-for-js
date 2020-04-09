@@ -1,4 +1,4 @@
-const { ConfidentialClientApplication } = require('./../dist/');
+import { ConfidentialClientApplication } from './../../src/client/ConfidentialClientApplication';
 
 describe('ConfidentialClientApplication', () => {
     test('exports a class', () => {

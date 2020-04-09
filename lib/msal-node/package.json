@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.1.0",
   "name": "@azure/msal-node",
   "author": {
     "name": "Microsoft",
@@ -15,6 +15,8 @@
   "keywords": [
     "implicit",
     "js",
+    "ts",
+    "node",
     "AAD",
     "msal",
     "oauth"
@@ -27,11 +29,12 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
+    "build:modules:watch": "tsdx watch --verbose",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "lint:fix": "tsdx lint --fix"
   },
   "peerDependencies": {},
   "husky": {
@@ -43,14 +46,34 @@
     "printWidth": 80,
     "semi": true,
     "singleQuote": true,
-    "trailingComma": "es5"
+    "trailingComma": "es5",
+    "endOfLine": "lf"
+  },
+  "jest": {
+    "verbose": true,
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json",
+      "jsx",
+      "node"
+    ],
+    "testMatch": [
+      "<rootDir>/test/**/*.spec.ts"
+    ]
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
     "@types/jest": "^25.1.2",
+    "@types/uuid": "^7.0.0",
     "husky": "^4.2.3",
     "tsdx": "^0.12.3",
     "tslib": "^1.10.0",
     "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@azure/msal-common": "1.0.0-alpha.0",
+    "axios": "^0.19.2"
   }
 }

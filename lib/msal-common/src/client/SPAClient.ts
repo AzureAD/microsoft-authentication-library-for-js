@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 import { BaseClient } from "./BaseClient";
-import { PublicClientConfiguration, buildPublicClientConfiguration } from "../config/PublicClientConfiguration";
+import {
+    SPAConfiguration,
+    buildPublicClientSPAConfiguration
+} from "../config/SPAConfiguration";
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { TokenRenewParameters } from "../request/TokenRenewParameters";
@@ -24,19 +27,21 @@ import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants 
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
+import { Account } from "../account/Account";
+import { buildClientInfo } from "../account/ClientInfo";
 
 /**
- * AuthorizationCodeModule class
+ * SPAClient class
  *
  * Object instance which will construct requests to send to and handle responses
  * from the Microsoft STS using the authorization code flow.
  */
-export class PublicClient extends BaseClient {
+export class SPAClient extends BaseClient {
 
     // Application config
-    private clientConfig: PublicClientConfiguration;
+    private clientConfig: SPAConfiguration;
 
-    constructor(configuration: PublicClientConfiguration) {
+    constructor(configuration: SPAConfiguration) {
         // Implement base module
         super({
             systemOptions: configuration.systemOptions,
@@ -46,7 +51,7 @@ export class PublicClient extends BaseClient {
             cryptoInterface: configuration.cryptoInterface
         });
         // Implement defaults in config
-        this.clientConfig = buildPublicClientConfiguration(configuration);
+        this.clientConfig = buildPublicClientSPAConfiguration(configuration);
 
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
@@ -94,7 +99,7 @@ export class PublicClient extends BaseClient {
                 request,
                 this.getAccount(),
                 this.getRedirectUri(),
-                this.cryptoObj,
+                this.cryptoUtils,
                 isLoginCall
             );
 
@@ -104,7 +109,7 @@ export class PublicClient extends BaseClient {
                 // Only check for adal token if no SSO params are being used
                 const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (!StringUtils.isEmpty(adalIdTokenString)) {
-                    adalIdToken = new IdToken(adalIdTokenString, this.cryptoObj);
+                    adalIdToken = new IdToken(adalIdTokenString, this.cryptoUtils);
                     this.cacheStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 }
             }
@@ -127,7 +132,7 @@ export class PublicClient extends BaseClient {
                 authority: requestParameters.authorityInstance.canonicalAuthority,
                 correlationId: requestParameters.correlationId
             };
-            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
+            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoUtils.base64Encode(JSON.stringify(tokenRequest)));
 
             return urlNavigate;
         } catch (e) {
@@ -171,7 +176,7 @@ export class PublicClient extends BaseClient {
                 tokenRequest,
                 codeResponse,
                 this.getRedirectUri(),
-                this.cryptoObj
+                this.cryptoUtils
             );
 
             // User helper to retrieve token response.
@@ -242,7 +247,7 @@ export class PublicClient extends BaseClient {
 
                 // Only populate id token if it exists in cache item.
                 return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse :
-                    ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoObj));
+                    ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoUtils));
             } else {
                 // Renew the tokens.
                 request.authority = cachedTokenItem.key.authority;
@@ -254,7 +259,7 @@ export class PublicClient extends BaseClient {
                     request,
                     null,
                     this.getRedirectUri(),
-                    this.cryptoObj,
+                    this.cryptoUtils,
                     cachedTokenItem.value.refreshToken
                 );
 
@@ -320,7 +325,7 @@ export class PublicClient extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -347,7 +352,7 @@ export class PublicClient extends BaseClient {
         try {
             // Get token request from cache and parse as TokenExchangeParameters.
             const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
-            const parsedRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+            const parsedRequest = JSON.parse(this.cryptoUtils.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
             // Get cached authority and use if no authority is cached with request.
             if (StringUtils.isEmpty(parsedRequest.authority)) {
@@ -410,11 +415,11 @@ export class PublicClient extends BaseClient {
         );
 
         // Create response handler
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
-        responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse);
+        responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
+        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;
@@ -459,6 +464,33 @@ export class PublicClient extends BaseClient {
         }
         // This should never throw unless window.location.href is returning empty.
         throw ClientConfigurationError.createPostLogoutRedirectUriEmptyError();
+    }
+
+    /**
+     * Returns the signed in account
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link Account} - the account object stored in MSAL
+     */
+    getAccount(): Account {
+        if (this.account) {
+            return this.account;
+        }
+
+        // Get id token and client info from cache
+        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
+
+        if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
+            const idToken = new IdToken(rawIdToken, this.cryptoUtils);
+            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoUtils);
+
+            this.account = Account.createAccount(idToken, clientInfo, this.cryptoUtils);
+            return this.account;
+        }
+
+        // if login is not yet done, return null
+        return null;
     }
 
     // #endregion
