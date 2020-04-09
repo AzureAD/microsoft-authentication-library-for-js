@@ -37,6 +37,22 @@ function authRedirectCallBack(error, response) {
 if (myMSALObj.getAccount()) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
     showWelcomeMessage(myMSALObj.getAccount());
+} else {
+    myMSALObj.ssoSilent(silentRequest).then((tokenResponse) => {
+        if (myMSALObj.getAccount()) {
+            console.log('id_token acquired at: ' + new Date().toString());
+            showWelcomeMessage(myMSALObj.getAccount());
+            getTokenRedirect(loginRequest);
+        } else if (tokenResponse.tokenType === "Bearer") {
+            console.log('access_token acquired at: ' + new Date().toString());
+        } else {
+            console.log("token type is:" + response.tokenType);
+        }
+    }).catch(error => {
+        if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+            signIn("loginPopup");
+        }
+    });
 }
 
 async function signIn(method) {
