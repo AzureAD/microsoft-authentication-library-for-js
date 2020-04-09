@@ -11,9 +11,9 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {NetworkResponse} from "../network/NetworkManager";
-import {ScopeSet} from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { NetworkResponse }  from "../network/NetworkManager";
+import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * Oauth2.0 Authorization Code client
