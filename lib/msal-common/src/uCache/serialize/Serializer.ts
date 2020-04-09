@@ -29,7 +29,7 @@ export class Serializer {
         );
         const atKey: string = accessToken.generateAccessTokenEntityKey();
 
-        const atCacheEntity = {};
+        const atCacheEntity: any = {};
         atCacheEntity[atKey] = mappedAT;
         return atCacheEntity;
     }

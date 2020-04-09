@@ -17,6 +17,14 @@
             "secret": "a refresh token",
             "client_id": "mock_client_id",
             "home_account_id": "uid.utid"
+        },
+        "uid.utid-login.microsoftonline.com-refreshtoken-1--": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "RefreshToken",
+            "secret": "a refresh token",
+            "client_id": "mock_client_id",
+            "home_account_id": "uid.utid",
+            "familyId": "1"
         }
     },
     "AccessToken": {

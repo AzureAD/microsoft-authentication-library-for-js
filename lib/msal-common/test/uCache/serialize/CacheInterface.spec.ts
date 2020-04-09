@@ -1,80 +1,101 @@
 import { expect } from "chai";
 import { CacheInterface } from "../../../src/uCache/serialize/CacheInterface";
-import { mockAccessTokenEntity, mockIdTokenEntity, mockRefreshTokenEntity, mockAccountEntity, mockAppMetaDataEntity } from "../entities/cacheConstants";
-import { Serializer } from "../../../src/uCache/serialize/Serializer";
-import { Deserializer } from "../../../src/uCache/serialize/Deserializer";
-import { AccessTokenEntity } from "../../../src/uCache/entities/AccessTokenEntity";
-import { IdTokenEntity } from "../../../src/uCache/entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../../../src/uCache/entities/RefreshTokenEntity";
-import { AccountEntity } from "../../../src/uCache/entities/AccountEntity";
-import { AppMetadataEntity } from "../../../src/uCache/entities/AppMetadataEntity";
+import { mockCache } from "../entities/cacheConstants";
 
 const cachedJson = require("./cache.json");
+const accountJson = require("./Account.json");
 
 describe("CacheInterface test cases", () => {
-    it.only("retrieve JSON blob: AccessTokens", () => {
-        const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
 
-        let at = new AccessTokenEntity();
-        Object.assign(at, mockAccessTokenEntity);
-        const atKey = at.generateAccessTokenEntityKey();
-        const serializedAt = Serializer.serializeAccessTokenEntity(at);
+    const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
 
-        expect(serializedAt[atKey]).to.eql(jsonContent.accessTokens[atKey]);
-
-        console.log("jsonContent.accessTokens: \n", jsonContent.accessTokens);
-        const deserializedAt = Deserializer.deSerializeAccessTokens(jsonContent.accessTokens);
-        console.log("deserializedAt: \n", deserializedAt);
-        console.log("at: \n", at);
-        // expect(deserializedAt).to.eql(at[atKey]);
+    it("serializeJSONBlob", () => {
+        const json = CacheInterface.serializeJSONBlob(cachedJson);
+        expect(JSON.parse(json)).to.eql(cachedJson);
     });
 
-    it.only("retrieve JSON blob: IdTokens", () => {
-        const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
-
-        let idt = new IdTokenEntity();
-        Object.assign(idt, mockIdTokenEntity);
-        const serializedIdToken = Serializer.serializeIdTokenCacheEntity(idt);
-
-        expect(serializedIdToken).to.eql(jsonContent.idTokens);
+    it("deserializeJSONBlob", () => {
+        const mockAccount = {
+            "uid.utid-login.microsoftonline.com-microsoft": {
+                username: "John Doe",
+                local_account_id: "object1234",
+                realm: "microsoft",
+                environment: "login.microsoftonline.com",
+                home_account_id: "uid.utid",
+                authority_type: "MSSTS",
+                client_info: "base64encodedjson"
+            }
+        };
+        const acc = CacheInterface.deserializeJSONBlob(accountJson);
+        expect(acc.accounts).to.eql(mockAccount);
     });
 
-    it.only("retrieve JSON blob: RefreshTokens", () => {
-        const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
 
-        let rt = new RefreshTokenEntity();
-        Object.assign(rt, mockRefreshTokenEntity);
-        const serializedRT = Serializer.serializeRefreshTokenCacheEntity(rt);
-
-        expect(serializedRT).to.eql(jsonContent.refreshTokens);
-    });
-
-    it.only("retrieve JSON blob: Accounts", () => {
-        const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
-
-        let ac = new AccountEntity();
-        Object.assign(ac, mockAccountEntity);
-        const serializedAc = Serializer.serializeAccountCacheEntity(ac);
-
-        expect(serializedAc).to.eql(jsonContent.accounts);
-    });
-
-    it.only("retrieve JSON blob: AppMetadata", () => {
-        const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
-
-        let appMetadata = new AppMetadataEntity();
-        Object.assign(appMetadata, mockAppMetaDataEntity);
-        const serializedAmdt= Serializer.serializeAppMetadataCacheEntity(appMetadata);
-
-        expect(serializedAmdt).to.eql(jsonContent.appMetadata);
-    });
-
-    it.only("retrieve empty JSON blob", () => {
+    it("retrieve empty JSON blob", () => {
         const jsonContent = CacheInterface.deserializeJSONBlob();
+
         expect(jsonContent.accounts).to.eql({});
         expect(jsonContent.accessTokens).to.eql({});
         expect(jsonContent.idTokens).to.eql({});
         expect(jsonContent.refreshTokens).to.eql({});
         expect(jsonContent.appMetadata).to.eql({});
     });
+
+    it("generateAccessTokenCache", () => {
+        // create mock AccessToken
+        const atOne = mockCache.createMockATOne();
+        const atOneKey = atOne.generateAccessTokenEntityKey();
+        const atTwo = mockCache.createMockATTwo();
+        const atTwoKey = atTwo.generateAccessTokenEntityKey();
+
+        // deserialize the  AccessToken from memory and Test equivalency with the generated mock AccessToken
+        const accessTokens = CacheInterface.generateAccessTokenCache(jsonContent.accessTokens);
+        expect(accessTokens[atOneKey]).to.eql(atOne);
+        expect(accessTokens[atTwoKey]).to.eql(atTwo);
+    });
+
+    it("generateIdTokenCache", () => {
+        // create mock IdToken
+        const idt = mockCache.createMockIdT();
+        const idTKey = idt.generateIdTokenEntityKey();
+
+        // deserialize the  IdToken from memory and Test equivalency with the generated mock IdToken
+        const idTokens = CacheInterface.generateIdTokenCache(jsonContent.idTokens);
+        expect(idTokens[idTKey]).to.eql(idt);
+    });
+
+    it("generateRefreshTokenCache", () => {
+        // create mock Refresh Token
+        const rt = mockCache.createMockRT();
+        const rtKey = rt.generateRefreshTokenEntityKey();
+
+        const rtF = mockCache.createMockRTWithFamilyId();
+        const rtFKey = rtF.generateRefreshTokenEntityKey();
+
+        // deserialize the RefreshToken from memory and Test equivalency with the generated mock Refresh Token
+        const refreshTokens = CacheInterface.generateRefreshTokenCache(jsonContent.refreshTokens);
+        expect(refreshTokens[rtKey]).to.eql(rt);
+        expect(refreshTokens[rtFKey]).to.eql(rtF);
+    });
+
+    it("generateAccountCache", () => {
+        // create mock Account
+        const acc = mockCache.createMockAcc();
+        const accKey = acc.generateAccountEntityKey();
+
+        // deserialize the Account from memory and Test equivalency with the generated mock Account
+        const accounts = CacheInterface.generateAccountCache(jsonContent.accounts);
+        expect(accounts[accKey]).to.eql(acc);
+    });
+
+    it("generateAppMetadataCache", () => {
+        // create mock AppMetadata
+        const amdt = mockCache.createMockAmdt();
+        const amdtKey = amdt.generateAppMetaDataEntityKey();
+
+        // deserialize the AppMetadata from memory and Test equivalency with the generated mock AppMetadata
+        const appMetadata = CacheInterface.generateAppMetadataCache(jsonContent.appMetadata);
+        expect(appMetadata[amdtKey]).to.eql(amdt);
+    });
+
 });
