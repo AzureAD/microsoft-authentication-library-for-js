@@ -1,13 +1,13 @@
 import { PkceCodes } from '@azure/msal-common';
-import { CryptoOps } from './../../src/index';
+import { CryptoProvider } from './../../src/index';
 import { GuidGenerator } from './../../src/crypto/GuidGenerator';
 
 describe('CryptoOps', () => {
-    const cryptoOps = new CryptoOps();
+    const cryptoOps = new CryptoProvider();
 
     // tests instantiating CryptoOps class
     test('CryptoOps() generates a valid instance', () => {
-        expect(cryptoOps).toBeInstanceOf(CryptoOps);
+        expect(cryptoOps).toBeInstanceOf(CryptoProvider);
     });
 
     // tests createNewGuid() generates a GUID

@@ -3,7 +3,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { PublicClientSPA } from "../../src/client/PublicClientSPA";
+import { SPAClient } from "../../src/client/SPAClient";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
@@ -14,7 +14,7 @@ import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestP
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
 import { LogLevel } from "../../src/logger/Logger";
-import { PublicClientConfiguration } from "../../src/config/PublicClientConfiguration";
+import { SPAConfiguration } from "../../src/config/SPAConfiguration";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
@@ -27,17 +27,19 @@ import { buildClientInfo } from "../../src/account/ClientInfo";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
+import { Configuration } from "../../src/config/Configuration";
+import { ClientInfo } from "../../src/account/ClientInfo";
 
-describe("PublicClient.ts Class Unit Tests", () => {
+describe("SPAClient.ts Class Unit Tests", () => {
 
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
             console.log(`Log level: ${level} Message: ${message}`);
         }
-    }
+    };
 
     let store = {};
-    let defaultAuthConfig: PublicClientConfiguration;
+    let defaultAuthConfig: SPAConfiguration;
 
     beforeEach(() => {
         defaultAuthConfig = {
@@ -89,7 +91,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                     return {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
                         verifier: TEST_CONFIG.TEST_VERIFIER
-                    }
+                    };
                 }
             },
             loggerOptions: {
@@ -100,20 +102,20 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
     describe("Constructor", () => {
 
-        it("creates an PublicClientSPA that extends the Client", () => {
-            const client = new PublicClientSPA(defaultAuthConfig);
+        it("creates an SPAClient that extends the Client", () => {
+            const client = new SPAClient(defaultAuthConfig);
             expect(client).to.be.not.null;
-            expect(client instanceof PublicClientSPA).to.be.true;
+            expect(client instanceof SPAClient).to.be.true;
             expect(client instanceof BaseClient).to.be.true;
         });
     });
 
     describe("Login Url Creation", () => {
 
-        let Client: PublicClientSPA;
+        let Client: SPAClient;
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
         });
 
         afterEach(() => {
@@ -125,7 +127,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             const emptyRequest: AuthenticationParameters = {};
             const loginUrl = await Client.createLoginUrl(emptyRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -170,7 +172,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const loginUrl = await Client.createLoginUrl(loginRequest);
             expect(loginUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -179,7 +181,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         it("Throws endpoint discovery error if resolveEndpointsAsync fails", async () => {
             sinon.restore();
-            const exceptionString = "Could not make a network request."
+            const exceptionString = "Could not make a network request.";
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const emptyRequest: AuthenticationParameters = {};
             await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
@@ -191,7 +193,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
                 throw AuthError.createUnexpectedError(guidCreationErr);
             };
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
             await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(guidCreationErr);
             expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
         });
@@ -211,7 +213,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
             const emptyRequest: AuthenticationParameters = {};
             await Client.createLoginUrl(emptyRequest);
             expect(queryParamSpy.calledWith(testToken)).to.be.true;
@@ -232,7 +234,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
             const loginRequest: AuthenticationParameters = {
                 loginHint: "AbeLi@microsoft.com"
             };
@@ -243,10 +245,10 @@ describe("PublicClient.ts Class Unit Tests", () => {
     });
 
     describe("Acquire Token Url Creation", () => {
-        let Client: PublicClientSPA;
+        let Client: SPAClient;
         beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
         });
 
         afterEach(() => {
@@ -262,7 +264,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -275,7 +277,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -329,7 +331,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(acquireTokenUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(acquireTokenUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -338,7 +340,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         it("Throws endpoint discovery error if resolveEndpointsAsync fails", async () => {
             sinon.restore();
-            const exceptionString = "Could not make a network request."
+            const exceptionString = "Could not make a network request.";
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
@@ -354,7 +356,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
                 throw AuthError.createUnexpectedError(guidCreationErr);
             };
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
             await expect(Client.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(guidCreationErr);
             expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
         });
@@ -374,7 +376,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             };
@@ -397,7 +399,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
             const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
             const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
-            Client = new PublicClientSPA(defaultAuthConfig);
+            Client = new SPAClient(defaultAuthConfig);
             const tokenRequest: AuthenticationParameters = {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 loginHint: "AbeLi@microsoft.com"
@@ -411,9 +413,9 @@ describe("PublicClient.ts Class Unit Tests", () => {
     describe("Token Acquisition", () => {
 
         describe("Exchange code for token with acquireToken()", () => {
-            let Client: PublicClientSPA;
+            let Client: SPAClient;
             beforeEach(() => {
-                Client = new PublicClientSPA(defaultAuthConfig);
+                Client = new SPAClient(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -468,7 +470,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                         code: "This is an auth code",
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    const exceptionString = "Could not make a network request."
+                    const exceptionString = "Could not make a network request.";
                     sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
 
                     const cachedRequest: TokenExchangeParameters = {
@@ -491,13 +493,15 @@ describe("PublicClient.ts Class Unit Tests", () => {
                     // Set up required objects and mocked return values
                     defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                         return {
-                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                            ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                            access_token: TEST_TOKENS.LOGIN_AT_STRING,
-                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                            id_token: TEST_TOKENS.IDTOKEN_V2
+                            body : {
+                                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                                access_token: TEST_TOKENS.LOGIN_AT_STRING,
+                                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                                id_token: TEST_TOKENS.IDTOKEN_V2
+                            }
                         };
                     };
                     defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
@@ -518,7 +522,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    Client = new PublicClientSPA(defaultAuthConfig);
+                    Client = new SPAClient(defaultAuthConfig);
 
                     testState = "{stateObject}";
                     codeResponse = {
@@ -617,9 +621,9 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         describe("Renew token", () => {
 
-            let Client: PublicClientSPA;
+            let Client: SPAClient;
             beforeEach(() => {
-                Client = new PublicClientSPA(defaultAuthConfig);
+                Client = new SPAClient(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -653,7 +657,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                 });
 
                 it("Throws error if endpoint discovery could not be completed", async () => {
-                    const exceptionString = "Could not make a network request."
+                    const exceptionString = "Could not make a network request.";
                     sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
 
                     const tokenRequest: TokenRenewParameters = {
@@ -787,7 +791,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    Client = new PublicClientSPA(defaultAuthConfig);
+                    Client = new SPAClient(defaultAuthConfig);
                     const idTokenClaims = {
                         "ver": "2.0",
                         "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -829,7 +833,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
                     const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
                     const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
-                    testScopes.push(Constants.OFFLINE_ACCESS_SCOPE)
+                    testScopes.push(Constants.OFFLINE_ACCESS_SCOPE);
                     expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
                     expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
                     expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
@@ -848,15 +852,15 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
     describe("Getters and setters", () => {
 
-        let redirectUriFunc = () => {
+        const redirectUriFunc = () => {
             return TEST_URIS.TEST_REDIR_URI;
         };
 
-        let postLogoutRedirectUriFunc = () => {
+        const postLogoutRedirectUriFunc = () => {
             return TEST_URIS.TEST_LOGOUT_URI;
         };
 
-        let Client_functionRedirectUris = new PublicClientSPA({
+        const Client_functionRedirectUris = new SPAClient({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -871,7 +875,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             }
         });
 
-        let Client_noRedirectUris = new PublicClientSPA({
+        const Client_noRedirectUris = new SPAClient({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority
@@ -885,7 +889,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
         });
 
         it("gets configured redirect uri", () => {
-            const Client = new PublicClientSPA(defaultAuthConfig);
+            const Client = new SPAClient(defaultAuthConfig);
             expect(Client.getRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_REDIR_URI);
         });
 
@@ -898,7 +902,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
         });
 
         it("gets configured post logout redirect uri", () => {
-            const Client = new PublicClientSPA(defaultAuthConfig);
+            const Client = new SPAClient(defaultAuthConfig);
             expect(Client.getPostLogoutRedirectUri()).to.be.deep.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
 
@@ -908,6 +912,106 @@ describe("PublicClient.ts Class Unit Tests", () => {
 
         it("throws error if post logout redirect uri is null/empty", () => {
             expect(() => Client_noRedirectUris.getPostLogoutRedirectUri()).to.throw(ClientConfigurationError.createPostLogoutRedirectUriEmptyError().message);
+        });
+    });
+
+    describe("getAccount()", () => {
+        let store;
+        let config: Configuration;
+        let client: SPAClient;
+        let idToken: IdToken;
+        let clientInfo: ClientInfo;
+        let testAccount: Account;
+        beforeEach(() => {
+            store = {};
+            config = {
+                auth: {},
+                systemOptions: null,
+                cryptoInterface: {
+                    createNewGuid(): string {
+                        return RANDOM_TEST_GUID;
+                    },
+                    base64Decode(input: string): string {
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    },
+                    base64Encode(input: string): string {
+                        switch (input) {
+                            case "123-test-uid":
+                                return "MTIzLXRlc3QtdWlk";
+                            case "456-test-utid":
+                                return "NDU2LXRlc3QtdXRpZA==";
+                            default:
+                                return input;
+                        }
+                    },
+                    async generatePkceCodes(): Promise<PkceCodes> {
+                        return {
+                            challenge: TEST_CONFIG.TEST_CHALLENGE,
+                            verifier: TEST_CONFIG.TEST_VERIFIER
+                        };
+                    }
+                },
+                networkInterface: null,
+                storageInterface: {
+                    setItem(key: string, value: string): void {
+                        store[key] = value;
+                    },
+                    getItem(key: string): string {
+                        return store[key];
+                    },
+                    removeItem(key: string): void {
+                        delete store[key];
+                    },
+                    containsKey(key: string): boolean {
+                        return !!store[key];
+                    },
+                    getKeys(): string[] {
+                        return Object.keys(store);
+                    },
+                    clear(): void {
+                        store = {};
+                    }
+                },
+                loggerOptions: null
+            };
+
+            const idTokenClaims: IdTokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": "1536361411",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
+            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.cryptoInterface);
+            testAccount = Account.createAccount(idToken, clientInfo, config.cryptoInterface);
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            client = new SPAClient(defaultAuthConfig);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+            store = {};
+        });
+
+        it("returns null if nothing is in the cache", () => {
+            expect(client.getAccount()).to.be.null;
+        });
+
+        it("returns the current account if it exists", () => {
+
+            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
+        });
+
+        it("Creates account object from cached id token and client info", () => {
+            store[PersistentCacheKeys.ID_TOKEN] = idToken;
+            store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
+            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
         });
     });
 });

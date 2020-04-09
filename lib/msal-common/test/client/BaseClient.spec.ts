@@ -1,165 +1,113 @@
-import * as Mocha from "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { BaseClient } from "../../src/client/BaseClient";
 import { Configuration } from "../../src/config/Configuration";
-import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
-import { TokenResponse } from "../../src/response/TokenResponse";
-import { CodeResponse } from "../../src/response/CodeResponse";
-import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
+import {Constants} from "../../src";
+import {AADServerParamKeys, HeaderNames} from "../../src/utils/Constants";
+import {ClientTestUtils} from "./ClientTestUtils";
 import sinon from "sinon";
-import { Account, PkceCodes, PersistentCacheKeys, ICrypto } from "../../src";
-import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG, RANDOM_TEST_GUID } from "../utils/StringConstants";
-import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
-import { IdToken } from "../../src/account/IdToken";
-import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 
 class TestClient extends BaseClient {
 
-    constructor(config: Configuration, testAccount: Account) {
+    constructor(config: Configuration) {
         super(config);
-        this.account = testAccount
     }
 
-    handleFragmentResponse(hashFragment: string): CodeResponse {
-        throw new Error("Method not implemented.");
+    getLogger(){
+        return this.logger;
     }
 
-    createLoginUrl(request: AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
+    getConfig(){
+        return this.config;
     }
 
-    createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
-        throw new Error("Method not implemented.");
+    getCryptoUtils(){
+        return this.cryptoUtils;
     }
 
-    acquireToken(codeResponse: CodeResponse): Promise<TokenResponse> {
-        throw new Error("Method not implemented.");
+    getCacheStorage(){
+        return this.cacheManager;
     }
 
-    renewToken(request: TokenRenewParameters): Promise<TokenResponse> {
-        throw new Error("Method not implemented.");
+    getNetworkClient(){
+        return this.networkClient;
     }
 
-    logout(authorityUri?: string): Promise<string> {
-        throw new Error("Method not implemented.");
+    getCacheManger(){
+        return this.cacheManager;
+    }
+
+    getAccount(){
+        return this.account;
+    }
+
+    getDefaultAuthorityInstance(){
+        return this.defaultAuthorityInstance;
+    }
+
+    createDefaultLibraryHeaders(): Map<string, string> {
+        return super.createDefaultLibraryHeaders();
+    }
+
+    createDefaultTokenRequestHeaders(): Map<string, string> {
+        return super.createDefaultTokenRequestHeaders();
     }
 }
 
 describe("BaseClient.ts Class Unit Tests", () => {
+
+    let config: Configuration;
+    beforeEach(() => {
+        config = ClientTestUtils.createTestClientConfiguration();
+        });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("Constructor", () => {
 
         it("Creates a valid BaseClient object", () => {
-            let config: Configuration = {
-                systemOptions: null,
-                cryptoInterface: null,
-                networkInterface: null,
-                storageInterface: null,
-                loggerOptions: null
-            };
-            let client = new TestClient(config, null);
+
+            const client = new TestClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof BaseClient).to.be.true;
         });
+
+        it("Sets fields on BaseClient object", () => {
+
+            const client = new TestClient(config);
+            expect(client.getAccount()).to.be.not.null;
+            expect(client.getCacheManger()).to.be.not.null;
+            expect(client.getCacheStorage()).to.be.not.null;
+            expect(client.getConfig()).to.be.not.null;
+            expect(client.getCryptoUtils()).to.be.not.null;
+            expect(client.getDefaultAuthorityInstance()).to.be.not.null;
+            expect(client.getNetworkClient()).to.be.not.null;
+        });
     });
 
-    describe("getAccount()", () => {
-        let store;
-        let config: Configuration;
-        let client: TestClient;
-        let idToken: IdToken;
-        let clientInfo: ClientInfo;
-        let testAccount: Account;
-        beforeEach(() => {
-            store = {};
-            config = {
-                systemOptions: null,
-                cryptoInterface: {
-                    createNewGuid(): string {
-                        return RANDOM_TEST_GUID;
-                    },
-                    base64Decode(input: string): string {
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    },
-                    base64Encode(input: string): string {
-                        switch (input) {
-                            case "123-test-uid":
-                                return "MTIzLXRlc3QtdWlk";
-                            case "456-test-utid":
-                                return "NDU2LXRlc3QtdXRpZA==";
-                            default:
-                                return input;
-                        }
-                    },
-                    async generatePkceCodes(): Promise<PkceCodes> {
-                        return {
-                            challenge: TEST_CONFIG.TEST_CHALLENGE,
-                            verifier: TEST_CONFIG.TEST_VERIFIER
-                        }
-                    }
-                },
-                networkInterface: null,
-                storageInterface: {
-                    setItem(key: string, value: string): void {
-                        store[key] = value;
-                    },
-                    getItem(key: string): string {
-                        return store[key];
-                    },
-                    removeItem(key: string): void {
-                        delete store[key];
-                    },
-                    containsKey(key: string): boolean {
-                        return !!store[key];
-                    },
-                    getKeys(): string[] {
-                        return Object.keys(store);
-                    },
-                    clear(): void {
-                        store = {};
-                    }
-                },
-                loggerOptions: null
-            };
+    describe("Header utils", () => {
 
-            const idTokenClaims: IdTokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "exp": "1536361411",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
-            };
-            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-            idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
-            clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.cryptoInterface);
-            testAccount = Account.createAccount(idToken, clientInfo, config.cryptoInterface);
+        it("Creates default library headers", () => {
+
+            const client = new TestClient(config);
+            const headers = client.createDefaultLibraryHeaders();
+
+            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.LIBRARY_NAME);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq("0.0.1");
         });
 
-        afterEach(() => {
-            sinon.restore();
-        });
+        it("Creates default token request headers", () => {
 
-        it("returns null if nothing is in the cache", () => {
-            client = new TestClient(config, null);
-            expect(client.getAccount()).to.be.null;
-        });
+            const client = new TestClient(config);
+            const headers = client.createDefaultTokenRequestHeaders();
 
-        it("returns the current account if it exists", () => {
-            client = new TestClient(config, testAccount);
-            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.true;
-        });
-
-        it("Creates account object from cached id token and client info", () => {
-            store[PersistentCacheKeys.ID_TOKEN] = idToken;
-            store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
-            client = new TestClient(config, null);
-            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.true;
+            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.LIBRARY_NAME);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq("0.0.1");
+            expect(headers.get(HeaderNames.CONTENT_TYPE)).to.eq(Constants.URL_FORM_CONTENT_TYPE);
         });
     });
 });

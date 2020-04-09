@@ -30,3 +30,23 @@ export const CharSet = {
     CV_CHARSET:
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~',
 };
+
+/**
+ * Cache Constants
+ */
+export const CACHE = {
+    FILE_CACHE: 'file_cache',
+    EXTENSION_LIB: 'extenstion_library',
+};
+
+/**
+ * Constants for headers
+ */
+export const Header = {
+    MSAL_SKU_KEY: "x-client-SKU",
+    MSAL_SKU_VALUE: "MSAL.node",
+    MSAL_VERSION: "x-client-VER",
+    CPU: "x-client-CPU",
+    OS: "x-client-OS"
+    // TODO will also add appName and appVersion here
+}

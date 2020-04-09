@@ -3,51 +3,63 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, NetworkRequestOptions } from '@azure/msal-common';
+import { INetworkModule, NetworkRequestOptions, NetworkResponse } from '@azure/msal-common';
 import { HttpMethod } from './../utils/Constants';
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 
 /**
- * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+ * This class implements the API for network requests.
  */
 export class HttpClient implements INetworkModule {
-    /**
-     * Axios CLient library for REST endpoints - Get request
-     * @param url
-     * @param headers
-     * @param body
-     */
-    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
 
-        // axios config
-        const request = {
-            method: HttpMethod.GET,
-            url: url,
-            headers: (options && options.headers)
-        };
-
-        // GET call
-        const response = await axios(request);
-        return response.data as T;
+    constructor() {
+        axios.defaults.validateStatus = () => true;
     }
 
     /**
-     * Axios Client for REST endpoints - Post request
+     * Http Get request
      * @param url
-     * @param headers
-     * @param body
+     * @param options
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
-
-        // axios config
-        const request = {
-            method: HttpMethod.POST,
-            url: url,
-            body: (options && options.body) || '',
-            headers: (options && options.headers)
+    async sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
+     const request: AxiosRequestConfig = {
+         method: HttpMethod.GET,
+         url: url,
+         headers: options && options.headers,
         };
 
         const response = await axios(request);
-        return response.data as T;
+        return {
+            headers: response.headers,
+            body: response.data as T,
+            status: response.status
+        };
+    }
+
+    /**
+     * Http Post request
+     * @param url
+     * @param options
+     */
+    async sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
+        const request: AxiosRequestConfig = {
+            method: HttpMethod.POST,
+            url: url,
+            data: (options && options.body) || '',
+            headers: options && options.headers,
+        };
+
+        const response = await axios(request);
+        return {
+            headers: response.headers,
+            body: response.data as T,
+            status: response.status
+        };
     }
 }

@@ -3,37 +3,21 @@
  * Licensed under the MIT License.
  */
 import { Configuration, buildConfiguration } from "../config/Configuration";
-import { AuthenticationParameters } from "../request/AuthenticationParameters";
-import { TokenRenewParameters } from "../request/TokenRenewParameters";
-import { CodeResponse } from "../response/CodeResponse";
-import { TokenResponse } from "../response/TokenResponse";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { CacheHelpers } from "../cache/CacheHelpers";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
-import { IdToken } from "../account/IdToken";
-import { buildClientInfo } from "../account/ClientInfo";
-import { StringUtils } from "../utils/StringUtils";
 import { Logger } from "../logger/Logger";
-import { PersistentCacheKeys } from "../utils/Constants";
+import { AuthorityFactory } from "../authority/AuthorityFactory";
+import {AADServerParamKeys, Constants, HeaderNames} from "../utils/Constants";
+import {ClientAuthError} from "../error/ClientAuthError";
+import {NetworkResponse} from "../network/NetworkManager";
+import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
 
 /**
- * @hidden
- * @ignore
- * Data type to hold information about state returned from the server
- */
-export type ResponseStateInfo = {
-    state: string;
-    stateMatch: boolean;
-};
-
-/**
- * BaseClient class
- *
- * Parent object instance which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
- *
+ * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
  */
 export abstract class BaseClient {
 
@@ -41,10 +25,10 @@ export abstract class BaseClient {
     public logger: Logger;
 
     // Application config
-    private config: Configuration;
+    protected config: Configuration;
 
     // Crypto Interface
-    protected cryptoObj: ICrypto;
+    protected cryptoUtils: ICrypto;
 
     // Storage Interface
     protected cacheStorage: ICacheStorage;
@@ -61,7 +45,7 @@ export abstract class BaseClient {
     // Default authority object
     protected defaultAuthorityInstance: Authority;
 
-    constructor(configuration: Configuration) {
+    protected constructor(configuration: Configuration) {
         // Set the configuration
         this.config = buildConfiguration(configuration);
 
@@ -69,7 +53,7 @@ export abstract class BaseClient {
         this.logger = new Logger(this.config.loggerOptions);
 
         // Initialize crypto
-        this.cryptoObj = this.config.cryptoInterface;
+        this.cryptoUtils = this.config.cryptoInterface;
 
         // Initialize storage interface
         this.cacheStorage = this.config.storageInterface;
@@ -79,85 +63,70 @@ export abstract class BaseClient {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
+
+        // Default authority instance.
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(
+            this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
+            this.networkClient
+        );
     }
 
-    // #region Abstract Functions
-
     /**
-     * Creates a url for logging in a user. This will by default append the client id to the list of scopes,
-     * allowing you to retrieve an id token in the subsequent code exchange. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request
+     * Create authority instance if not set already, resolve well-known-endpoint
+     * @param authorityString
      */
-    abstract async createLoginUrl(request: AuthenticationParameters): Promise<string>;
+    protected async createAuthority(authorityString: string): Promise<Authority> {
 
-    /**
-     * Creates a url for logging in a user. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request
-     */
-    abstract async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string>;
+        // TODO expensive to resolve authority endpoints every time.
+        const authority: Authority = authorityString
+            ? AuthorityFactory.createInstance(authorityString, this.networkClient)
+            : this.defaultAuthorityInstance;
 
-    /**
-     * Handles the hash fragment response from public client code request. Returns a code response used by
-     * the client to exchange for a token in acquireToken.
-     * @param hashFragment
-     */
-    abstract handleFragmentResponse(hashFragment: string): CodeResponse;
+        await authority.resolveEndpointsAsync().catch(error => {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        });
 
-    /**
-     * Given an authorization code, it will perform a token exchange using cached values from a previous call to
-     * createLoginUrl() or createAcquireTokenUrl(). You must call this AFTER using one of those APIs first. You should
-     * also use the handleFragmentResponse() API to pass the codeResponse to this function afterwards.
-     * @param codeResponse
-     */
-    abstract async acquireToken(codeResponse: CodeResponse): Promise<TokenResponse>;
-
-    /**
-     * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
-     * the given token and returns the renewed token. Will throw an error if login is not completed (unless
-     * id tokens are not being renewed).
-     * @param request
-     */
-    abstract async renewToken(request: TokenRenewParameters): Promise<TokenResponse>;
-
-    /**
-     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
-     * Default behaviour is to redirect the user to `window.location.href`.
-     * @param authorityUri
-     */
-    abstract async logout(authorityUri?: string): Promise<string>;
-
-    // #endregion
-
-    // #region Getters and Setters
-
-    /**
-     * Returns the signed in account
-     * (the account object is created at the time of successful login)
-     * or null when no state is found
-     * @returns {@link Account} - the account object stored in MSAL
-     */
-    getAccount(): Account {
-        if (this.account) {
-            return this.account;
-        }
-
-        // Get id token and client info from cache
-        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
-        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
-
-        if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
-            const idToken = new IdToken(rawIdToken, this.cryptoObj);
-            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoObj);
-
-            this.account = Account.createAccount(idToken, clientInfo, this.cryptoObj);
-            return this.account;
-        }
-
-        // if login is not yet done, return null
-        return null;
+        return authority;
     }
 
-    // #endregion
+    /**
+     * Creates default headers for requests to token endpoint
+     */
+    protected createDefaultTokenRequestHeaders(): Map<string, string> {
+
+        const headers = this.createDefaultLibraryHeaders();
+        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+
+        return headers;
+    }
+
+    /**
+     * addLibraryData
+     */
+    protected createDefaultLibraryHeaders(): Map<string, string> {
+        const headers = new Map<string, string>();
+        // library version
+        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, Constants.LIBRARY_NAME);
+        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, "0.0.1");
+        return headers;
+    }
+
+    /**
+     * Http post to token endpoint
+     * @param tokenEndpoint
+     * @param queryString
+     * @param headers
+     */
+    protected executePostToTokenEndpoint(
+        tokenEndpoint: string,
+        queryString: string,
+        headers: Map<string, string> ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+
+        return this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
+            tokenEndpoint,
+            {
+                body: queryString,
+                headers: headers,
+            });
+    }
 }
