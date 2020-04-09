@@ -1,10 +1,9 @@
 import { expect } from "chai";
 import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
-import { B2CTrustedHostList } from "../../../src/auth/authority/B2CTrustedHostList";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { ClientConfigurationErrorMessage, Constants, Authority, ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
-import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority"
+import { B2cAuthority, B2CTrustedHostList } from "../../../src/auth/authority/B2cAuthority"
 import { TEST_CONFIG } from "../../utils/StringConstants";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {

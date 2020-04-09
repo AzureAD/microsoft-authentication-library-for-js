@@ -6,7 +6,8 @@ import { Authority } from "./Authority";
 import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { INetworkModule } from "../../network/INetworkModule";
-import { B2CTrustedHostList } from "./B2CTrustedHostList";
+
+export const B2CTrustedHostList: string[] = [];
 
 /**
  * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.

@@ -4,14 +4,13 @@
  */
 import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
-import { B2cAuthority } from "./B2cAuthority";
+import { B2cAuthority, B2CTrustedHostList } from "./B2cAuthority";
 import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
-import { B2CTrustedHostList } from "./B2CTrustedHostList";
 
 export class AuthorityFactory {  
     /**
