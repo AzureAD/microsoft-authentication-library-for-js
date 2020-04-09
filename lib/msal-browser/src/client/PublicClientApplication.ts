@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, PublicClientSPA, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils } from "@azure/msal-common";
+import { Account, SPAClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -24,7 +24,7 @@ export class PublicClientApplication {
     private config: Configuration;
 
     // auth functions imported from @azure/msal-common module
-    private authModule: PublicClientSPA;
+    private authModule: SPAClient;
 
     // callback for error/token response
     private authCallback: AuthCallback = null;
@@ -73,7 +73,7 @@ export class PublicClientApplication {
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Create auth module.
-        this.authModule = new PublicClientSPA({
+        this.authModule = new SPAClient({
             auth: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,

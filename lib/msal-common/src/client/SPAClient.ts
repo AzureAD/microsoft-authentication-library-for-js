@@ -99,7 +99,7 @@ export class SPAClient extends BaseClient {
                 request,
                 this.getAccount(),
                 this.getRedirectUri(),
-                this.cryptoObj,
+                this.cryptoUtils,
                 isLoginCall
             );
 
@@ -109,7 +109,7 @@ export class SPAClient extends BaseClient {
                 // Only check for adal token if no SSO params are being used
                 const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (!StringUtils.isEmpty(adalIdTokenString)) {
-                    adalIdToken = new IdToken(adalIdTokenString, this.cryptoObj);
+                    adalIdToken = new IdToken(adalIdTokenString, this.cryptoUtils);
                     this.cacheStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 }
             }
@@ -132,7 +132,7 @@ export class SPAClient extends BaseClient {
                 authority: requestParameters.authorityInstance.canonicalAuthority,
                 correlationId: requestParameters.correlationId
             };
-            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
+            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoUtils.base64Encode(JSON.stringify(tokenRequest)));
 
             return urlNavigate;
         } catch (e) {
@@ -176,7 +176,7 @@ export class SPAClient extends BaseClient {
                 tokenRequest,
                 codeResponse,
                 this.getRedirectUri(),
-                this.cryptoObj
+                this.cryptoUtils
             );
 
             // User helper to retrieve token response.
@@ -247,7 +247,7 @@ export class SPAClient extends BaseClient {
 
                 // Only populate id token if it exists in cache item.
                 return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse :
-                    ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoObj));
+                    ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoUtils));
             } else {
                 // Renew the tokens.
                 request.authority = cachedTokenItem.key.authority;
@@ -259,7 +259,7 @@ export class SPAClient extends BaseClient {
                     request,
                     null,
                     this.getRedirectUri(),
-                    this.cryptoObj,
+                    this.cryptoUtils,
                     cachedTokenItem.value.refreshToken
                 );
 
@@ -325,7 +325,7 @@ export class SPAClient extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -352,7 +352,7 @@ export class SPAClient extends BaseClient {
         try {
             // Get token request from cache and parse as TokenExchangeParameters.
             const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
-            const parsedRequest = JSON.parse(this.cryptoObj.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
+            const parsedRequest = JSON.parse(this.cryptoUtils.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
             // Get cached authority and use if no authority is cached with request.
             if (StringUtils.isEmpty(parsedRequest.authority)) {
@@ -415,7 +415,7 @@ export class SPAClient extends BaseClient {
         );
 
         // Create response handler
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoObj, this.logger);
+        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
@@ -482,10 +482,10 @@ export class SPAClient extends BaseClient {
         const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
 
         if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
-            const idToken = new IdToken(rawIdToken, this.cryptoObj);
-            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoObj);
+            const idToken = new IdToken(rawIdToken, this.cryptoUtils);
+            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoUtils);
 
-            this.account = Account.createAccount(idToken, clientInfo, this.cryptoObj);
+            this.account = Account.createAccount(idToken, clientInfo, this.cryptoUtils);
             return this.account;
         }
 

@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { Constants } from "../utils/Constants";
@@ -30,7 +31,7 @@ export class ScopeSet {
         this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items
-        const filteredInput = inputScopes && StringUtils.removeEmptyStringsFromArray(inputScopes)
+        const filteredInput = inputScopes && StringUtils.removeEmptyStringsFromArray(inputScopes);
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);

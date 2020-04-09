@@ -134,7 +134,7 @@ export class RequestParameterBuilder {
             this.parameters.set(AADServerParamKeys.CODE_CHALLENGE, encodeURIComponent(codeChallenge));
             this.parameters.set(AADServerParamKeys.CODE_CHALLENGE_METHOD, encodeURIComponent(codeChallengeMethod));
         } else {
-            throw ClientConfigurationError.createInvalidCodeChallengeParams();
+            throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         }
     }
 
@@ -171,6 +171,10 @@ export class RequestParameterBuilder {
     //     params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
     // }
 
+    /**
+     * add grant type
+     * @param grantType
+     */
     addGrantType(grantType: string): void {
         this.parameters.set(AADServerParamKeys.GRANT_TYPE, encodeURIComponent(grantType));
     }

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ScopeSet } from "./ScopeSet";
 import { StringUtils } from "./../utils/StringUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues } from "./../utils/Constants";
@@ -47,7 +46,7 @@ export class RequestValidator {
      */
     static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) : void  {
         if (!(codeChallenge && codeChallengeMethod)) {
-            throw ClientConfigurationError.createInvalidCodeChallengeParams();
+            throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
         }

@@ -30,7 +30,7 @@ import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 import { Configuration } from "../../src/config/Configuration";
 import { ClientInfo } from "../../src/account/ClientInfo";
 
-describe("PublicClient.ts Class Unit Tests", () => {
+describe("SPAClient.ts Class Unit Tests", () => {
 
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -127,7 +127,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             const emptyRequest: AuthenticationParameters = {};
             const loginUrl = await Client.createLoginUrl(emptyRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -172,7 +172,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const loginUrl = await Client.createLoginUrl(loginRequest);
             expect(loginUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -264,7 +264,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -277,7 +277,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -331,7 +331,7 @@ describe("PublicClient.ts Class Unit Tests", () => {
             };
             const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
             expect(acquireTokenUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(acquireTokenUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.authorization_endpoint);
+            expect(acquireTokenUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -493,13 +493,15 @@ describe("PublicClient.ts Class Unit Tests", () => {
                     // Set up required objects and mocked return values
                     defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                         return {
-                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                            ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                            access_token: TEST_TOKENS.LOGIN_AT_STRING,
-                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                            id_token: TEST_TOKENS.IDTOKEN_V2
+                            body : {
+                                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                                access_token: TEST_TOKENS.LOGIN_AT_STRING,
+                                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                                id_token: TEST_TOKENS.IDTOKEN_V2
+                            }
                         };
                     };
                     defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {

@@ -4,7 +4,6 @@
  */
 import {
     AuthOptions,
-    SystemOptions,
     LoggerOptions,
     INetworkModule,
     LogLevel,
@@ -12,7 +11,7 @@ import {
 import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
 
-export type NodeAuthOptions = AuthOptions & {};
+export type NodeAuthOptions = AuthOptions;
 
 /**
  * Use this to configure the below cache configuration options:
@@ -30,9 +29,9 @@ export type CacheOptions = {
  * Type for configuring logger and http client options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
- * - loadFrameTimeout             - maximum time the library should wait for a frame to load
+ * - networkClient                -
  */
-export type NodeSystemOptions = SystemOptions & {
+export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
 };
