@@ -5,6 +5,11 @@
 * Fix behavior of `handleRedirectCallback`, and make it no longer required. (#1358)
 * `domain_hint` is no longer supported in silent calls or when `sid` or `login_hint` is passed. (#1299)
 
+## Bugs
+* Ensure responses from redirect requests are always processed. (#1413)
+* Ensure state is decoded before it is processed. (#1456)
+* B2C Authority Fixes. (#1276)
+
 # 1.2.2
 
 ## Features
