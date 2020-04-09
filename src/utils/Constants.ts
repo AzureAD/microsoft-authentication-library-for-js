@@ -4,7 +4,8 @@
  */
 
 export const Constants = {
-    LIBRARY_NAME: "MSAL.JS",
+    LIBRARY_NAME: "MSAL.JS", // TODO JS should be broken up into common, browser, node. What dore core/angular use?
+    SKU: "MSAL.JS.common",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // default authority
@@ -121,7 +122,9 @@ export enum AADServerParamKeys {
     CODE_VERIFIER = "code_verifier",
     CLIENT_REQUEST_ID = "client-request-id",
     X_CLIENT_SKU = "x-client-SKU",
-    X_CLIENT_VER = "x-client-Ver",
+    X_CLIENT_VER = "x-client-VER",
+    X_CLIENT_OS = "x-client-OS",
+    X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     DEVICE_CODE = "device_code"
 };
