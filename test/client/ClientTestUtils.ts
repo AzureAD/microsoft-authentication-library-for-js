@@ -65,7 +65,7 @@ export class ClientTestUtils {
             loggerOptions: {
                 loggerCallback: testLoggerCallback
             },
-            clientInfo: {
+            libraryInfo: {
                 sku: Constants.SKU,
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,

@@ -62,10 +62,10 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw(AuthError);
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
         // Client info checks
-        expect(emptyConfig.clientInfo.sku).to.be.eq(Constants.SKU);
-        expect(emptyConfig.clientInfo.version).to.be.eq(version);
-        expect(emptyConfig.clientInfo.os).to.be.eq((process.arch || ""));
-        expect(emptyConfig.clientInfo.cpu).to.be.eq((process.platform || ""));
+        expect(emptyConfig.libraryInfo.sku).to.be.eq(Constants.SKU);
+        expect(emptyConfig.libraryInfo.version).to.be.eq(version);
+        expect(emptyConfig.libraryInfo.os).to.be.eq((process.arch || ""));
+        expect(emptyConfig.libraryInfo.cpu).to.be.eq((process.platform || ""));
     });
 
     const clearFunc = (): void => {
@@ -137,7 +137,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                 },
                 piiLoggingEnabled: true
             },
-            clientInfo: {
+            libraryInfo: {
                 sku: TEST_CONFIG.TEST_SKU,
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,
@@ -177,9 +177,9 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.loggerOptions.loggerCallback).to.be.not.null;
         expect(newConfig.loggerOptions.piiLoggingEnabled).to.be.true;
         // Client info tests
-        expect(newConfig.clientInfo.sku).to.be.eq(TEST_CONFIG.TEST_SKU);
-        expect(newConfig.clientInfo.version).to.be.eq(TEST_CONFIG.TEST_VERSION);
-        expect(newConfig.clientInfo.os).to.be.eq(TEST_CONFIG.TEST_OS);
-        expect(newConfig.clientInfo.cpu).to.be.eq(TEST_CONFIG.TEST_CPU);
+        expect(newConfig.libraryInfo.sku).to.be.eq(TEST_CONFIG.TEST_SKU);
+        expect(newConfig.libraryInfo.version).to.be.eq(TEST_CONFIG.TEST_VERSION);
+        expect(newConfig.libraryInfo.os).to.be.eq(TEST_CONFIG.TEST_OS);
+        expect(newConfig.libraryInfo.cpu).to.be.eq(TEST_CONFIG.TEST_CPU);
     });
 });
