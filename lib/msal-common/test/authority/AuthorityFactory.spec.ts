@@ -31,6 +31,12 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         }
     };
 
+    beforeEach(() => {
+        while (B2CTrustedHostList.length) {
+            B2CTrustedHostList.pop();
+        }
+    });
+
     it("AuthorityFactory returns null if given url is null or empty", () => {
         expect(() =>
             AuthorityFactory.createInstance("", networkInterface)
@@ -81,13 +87,13 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         );
         expect(authorityInstance instanceof B2cAuthority);
         expect(authorityInstance instanceof Authority);
+
+
     });
 
     it("Do not add additional authorities to trusted host list if it has already been populated", () => {
         AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
         AuthorityFactory.setKnownAuthorities(["fake.b2clogin.com"]);
-
-        console.log(B2CTrustedHostList);
 
         expect(B2CTrustedHostList).to.include("fabrikamb2c.b2clogin.com");
         expect(B2CTrustedHostList).not.to.include("fake.b2clogin.com");

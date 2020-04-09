@@ -87,7 +87,9 @@ const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
 
 // Default logger implementation
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
-    loggerCallback: () => {},
+    loggerCallback: () => {
+        // allows users to not pass loggerCallback implementation
+    },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info
 };
