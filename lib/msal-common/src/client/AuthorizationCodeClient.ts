@@ -118,9 +118,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addRedirectUri(request.redirectUri);
 
         // generate the correlationId if not set by the user and add
-        const correlationId = request.correlationId
-            ? request.correlationId
-            : this.config.cryptoInterface.createNewGuid();
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
         // add response_mode. If not passed in it defaults to query.
