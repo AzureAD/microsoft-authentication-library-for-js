@@ -13,6 +13,16 @@ import { UrlString } from "./../url/UrlString";
 import { B2cAuthority, B2CTrustedHostList } from "./B2cAuthority";
 
 export class AuthorityFactory {
+    /**
+     * Use when Authority is B2C to provide list of trusted/allowed domains.
+     */
+    public static setKnownAuthorities(knownAuthorities: Array<string>): void {
+        if (!B2CTrustedHostList.length) {
+            knownAuthorities.forEach(function(authority){
+                B2CTrustedHostList.push(authority);
+            });
+        }
+    }
 
     /**
      * Parse the url and determine the type of authority
@@ -25,25 +35,12 @@ export class AuthorityFactory {
         if (pathSegments[0] === "adfs") {
             return AuthorityType.Adfs;
         }
-        else if (Object.keys(B2CTrustedHostList).length) {
+        else if (!B2CTrustedHostList.length) {
             return AuthorityType.B2C;
         }
+
         // defaults to Aad
         return AuthorityType.Aad;
-    }
-
-    /**
-     * @hidden
-     * @ignore
-     * Use when Authority is B2C is set to True to provide list of allowed domains.
-     * @param knownAuthorities
-     */
-    public static setKnownAuthorities(knownAuthorities: Array<string>): void {
-        if (!Object.keys(B2CTrustedHostList).length && knownAuthorities) {
-            knownAuthorities.forEach(function (authority) {
-                B2CTrustedHostList[authority] = authority;
-            });
-        }
     }
 
     /**
@@ -66,7 +63,7 @@ export class AuthorityFactory {
             // TODO: Support ADFS here in a later PR
             default:
                 throw ClientAuthError.createInvalidAuthorityTypeError(
-                    `Given Url: ${authorityUrl}`
+                    `${authorityUrl}`
                 );
         }
     }
