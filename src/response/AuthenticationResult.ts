@@ -3,13 +3,23 @@
  * Licensed under the MIT License.
  */
 
+import { StringDict } from "../utils/MsalTypes";
+
 /**
  * Result returned from the authority's token endpoint.
  */
-export type AuthenticationResult = {
+export class AuthenticationResult {
     // TODO this is temp class, it will be updated.
+    uniqueId: string;
+    tenantId: string;
+    scopes: Array<string>;
+    tokenType: string;
+    idToken: string;
+    idTokenClaims: StringDict;
     accessToken: string;
     refreshToken: string;
-    idToken: string;
-    expiresOn: string;
+    expiresOn: Date;
+    extExpiresOn?: Date;
+    account: Account;
+    userRequestState: string;
 };

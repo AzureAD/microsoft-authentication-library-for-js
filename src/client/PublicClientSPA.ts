@@ -14,7 +14,7 @@ import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParamete
 import { ServerTokenRequestParameters } from "../server/ServerTokenRequestParameters";
 import { CodeResponse } from "../response/CodeResponse";
 import { TokenResponse } from "../response/TokenResponse";
-import { ResponseHandler } from "../response/ResponseHandler";
+import { SPAResponseHandler } from "../response/SPAResponseHandler";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -247,7 +247,7 @@ export class PublicClientSPA extends BaseClient {
 
                 // Only populate id token if it exists in cache item.
                 return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse :
-                    ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoUtils));
+                    SPAResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoUtils));
             } else {
                 // Renew the tokens.
                 request.authority = cachedTokenItem.key.authority;
@@ -325,12 +325,12 @@ export class PublicClientSPA extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        const spaResponseHandler = new SPAResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
         // Get code response
-        return responseHandler.handleServerCodeResponse(serverParams);
+        return spaResponseHandler.handleServerCodeResponse(serverParams);
     }
 
     // #endregion
@@ -415,11 +415,16 @@ export class PublicClientSPA extends BaseClient {
         );
 
         // Create response handler
-        const responseHandler = new ResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        const spaResponseHandler = new SPAResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
-        responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
+        spaResponseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
+        const tokenResponse = spaResponseHandler.createTokenResponse(
+            acquiredTokenResponse.body,
+            tokenRequest.authority,
+            tokenRequest.resource,
+            codeResponse && codeResponse.userRequestState
+        );
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;
