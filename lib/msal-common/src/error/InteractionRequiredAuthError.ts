@@ -6,9 +6,9 @@
 import { ClientAuthError } from "./ClientAuthError";
 
 /**
- * AuthenticationRequiredError class containing string constants used by error codes and messages.
+ * InteractionRequiredAuthErrorMessage class containing string constants used by error codes and messages.
  */
-export const AuthenticationRequiredErrorMessage = {
+export const InteractionRequiredAuthErrorMessage = {
     interactionRequired: {
         code: "interaction_required"
     },
@@ -20,20 +20,23 @@ export const AuthenticationRequiredErrorMessage = {
     }
 };
 
-export class AuthenticationRequiredError extends ClientAuthError {
+/**
+ * Error thrown when user interaction is required at the auth server.
+ */
+export class InteractionRequiredAuthError extends ClientAuthError {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
-        this.name = "AuthenticationRequiredError";
+        this.name = "InteractionRequiredAuthError";
 
-        Object.setPrototypeOf(this, AuthenticationRequiredError.prototype);
+        Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
 
     static isInteractionRequiredError(errorCode: string, errorString: string) : boolean {
         const interactionRequiredCodes = [
-            AuthenticationRequiredErrorMessage.interactionRequired.code,
-            AuthenticationRequiredErrorMessage.consentRequired.code,
-            AuthenticationRequiredErrorMessage.loginRequired.code
+            InteractionRequiredAuthErrorMessage.interactionRequired.code,
+            InteractionRequiredAuthErrorMessage.consentRequired.code,
+            InteractionRequiredAuthErrorMessage.loginRequired.code
         ];
 
         const isInteractionRequiredErrorCode = errorCode && interactionRequiredCodes.indexOf(errorCode) > -1;

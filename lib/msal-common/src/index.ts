@@ -26,7 +26,7 @@ export { CodeResponse } from "./response/CodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel } from "./logger/Logger";
 // Errors
-export { AuthenticationRequiredError } from "./error/AuthenticationRequiredError";
+export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";

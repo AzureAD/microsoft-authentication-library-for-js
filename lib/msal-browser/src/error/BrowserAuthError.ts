@@ -50,7 +50,7 @@ export const BrowserAuthErrorMessage = {
     },
     monitorWindowTimeoutError: {
         code: "monitor_window_timeout",
-        desc: "Token acquisition operation failed - monitorWindowForHash timed out."
+        desc: "Token acquisition in popup failed due to timeout."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
