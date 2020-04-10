@@ -22,8 +22,7 @@
 
 ## About
 
->[!NOTE]
->MSAL.js 2.0 with Authorization Code Flow **is not yet available for B2C tennant** (comming soon) 
+**Important:** MSAL.js 2.0 with Authorization Code Flow is **not** yet available for B2C tenants (coming soon).
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
@@ -56,10 +55,6 @@ See [here](./FAQ.md).
     1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the affected redirect URIs from the Web platform Authentication tab - that's OK! We are working on getting UI set up for this.
 
     ![Changing Redirect URI type](./docs/images/redirectURIRegistrationUpdate.png)
-
-    2. Ensure your `Default Client Type` settings have "Treat application as public client" set to "Yes". 
-
-    ![Changing Default Client type](./docs/images/clientTypeRegistrationUpdate.png)
 
 ## Installation
 ### Via NPM:
