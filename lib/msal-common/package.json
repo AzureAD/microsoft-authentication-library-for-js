@@ -1,0 +1,89 @@
+{
+    "name": "@azure/msal-common",
+    "author": {
+        "name": "Microsoft",
+        "email": "nugetaad@microsoft.com",
+        "url": "https://www.microsoft.com"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    },
+    "version": "1.0.0-beta.0",
+    "description": "Microsoft Authentication Library for js",
+    "keywords": [
+        "implicit",
+        "authorization code",
+        "PKCE",
+        "js",
+        "AAD",
+        "msal",
+        "oauth"
+    ],
+    "main": "./dist/index.js",
+    "module": "./dist/index.es.js",
+    "types": "./dist/src/index.d.ts",
+    "browserslist": [
+        "last 1 version",
+        "> 1%",
+        "maintained node versions",
+        "not dead"
+    ],
+    "engines": {
+        "node": ">=0.8.0"
+    },
+    "directories": {
+        "test": "test"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "clean": "shx rm -rf dist lib",
+        "clean:coverage": "rimraf ../../.nyc_output/*",
+        "lint": "eslint src --ext .ts",
+        "test": "mocha",
+        "test:coverage": "nyc --reporter=text mocha --exit",
+        "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
+        "build:modules": "rollup -c",
+        "build:modules:watch": "rollup -cw",
+        "build": "npm run clean && npm run lint && npm run build:modules",
+        "prepack": "npm run build"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.7.2",
+        "@babel/plugin-proposal-class-properties": "^7.7.0",
+        "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
+        "@babel/polyfill": "^7.7.0",
+        "@babel/preset-env": "^7.7.1",
+        "@babel/preset-typescript": "^7.7.2",
+        "@babel/register": "^7.7.0",
+        "@istanbuljs/nyc-config-babel": "^2.1.1",
+        "@rollup/plugin-json": "^4.0.0",
+        "@types/chai": "^4.2.5",
+        "@types/chai-as-promised": "^7.1.2",
+        "@types/mocha": "^5.2.7",
+        "@types/sinon": "^7.5.0",
+        "@typescript-eslint/eslint-plugin": "^2.4.0",
+        "@typescript-eslint/eslint-plugin-tslint": "^2.4.0",
+        "@typescript-eslint/parser": "^2.4.0",
+        "babel-plugin-istanbul": "^5.2.0",
+        "chai": "^4.2.0",
+        "chai-as-promised": "^7.1.1",
+        "eslint": "^6.5.1",
+        "husky": "^3.0.9",
+        "mocha": "^6.2.2",
+        "nyc": "^14.1.1",
+        "rimraf": "^3.0.2",
+        "rollup": "^1.24.0",
+        "rollup-plugin-typescript2": "^0.24.3",
+        "rollup-plugin-uglify": "^6.0.3",
+        "shx": "^0.3.2",
+        "sinon": "^7.5.0",
+        "tslib": "^1.10.0",
+        "tslint": "^5.20.0",
+        "typescript": "^3.6.4"
+    },
+    "dependencies": {}
+}

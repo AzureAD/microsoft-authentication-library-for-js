@@ -17,16 +17,22 @@
       "stripInternal": true,
       "skipLibCheck": true,
       "outDir": "dist",
-      "rootDir": "src"
+      "rootDir": "src",
+      "paths": {
+        "@angular/*": [
+          "./node_modules/@angular/*"
+        ]
+      }
     },
     "files": [
-      "src/index.ts"
+      "./public_api.ts"
     ],
     "angularCompilerOptions": {
       "genDir": "dist",
       "debug": false,
       "skipTemplateCodegen": true,
       "skipMetadataEmit": false,
-      "strictMetadataEmit": true
+      "strictMetadataEmit": true,
+      "enableIvy": false
     }
   }

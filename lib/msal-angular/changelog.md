@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.0-beta.5
+
+* Requires `msal@1.3.0-beta.0`.
+* When MSAL Guard fails to silent SSO, prompt for interaction. (#1455)
+* MSAL Guard should properly support hash routing and non-root base urls. (#1452)
+* Fix isEmpty check for unprotectedResources. (#1454)
+* Update handleRedirectCallback in Angular samples to log entire response. (#1428)
+* Don't broadcast `msal:login` events from MSAL Guard. (#1435)
+* Add guide for [Configuration](./docs/configuration.md).
+
+## 1.0.0-beta.4
+
+* Requires `msal@1.2.2-beta.2`, which add `redirectStartUrl` to `AuthenticationParameters`, so that when a redirect operation from MSAL Guard is succesfully completed, redirect to the desired destination page. (#1343)
+* Short-circuit MSAL Guard if it detects it is loaded in an iframe, to prevent timeouts that occur as a result of redirecting. (#1337)
+* If framework.protectedResourceMap/unprotectedResources is empty, use msalAngularConfig.protectedResourceMap/unprotectedResources. (#1355)
+
+## 1.0.0-beta.3
+
+Fixes issues related to support for Angular 9 and Ivy.
+
+* Library is now built using the Angular 9 CLI and `ng-packagr`. (#1323)
+* Angular 9 sample now available in the [samples folder](../../samples/angular9-sample-app/). (#1312)
+* `MSAL_CONFIG` and `MSAL_CONFIG_ANGULAR` available from the package's main export. (#1323)
+* Removes the `WindowWrapper` class. (#1323)
+
 ## 1.0.0-beta.2
 
 Fixes two issues related to `aot` mode.

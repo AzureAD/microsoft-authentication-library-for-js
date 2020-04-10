@@ -8,5 +8,8 @@
     ],
     "eslint.quiet": true,
     "files.eol": "\n",
-    "github-pr.targetBranch": "dev"
+    "github-pr.targetBranch": "dev",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
 }

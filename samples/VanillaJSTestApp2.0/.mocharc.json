@@ -1,0 +1,4 @@
+{
+    "require": ["e2eTests/testSetup.js", "@babel/polyfill"],
+    "spec":  ["./test/*.spec.ts", "./test/**/*.spec.ts"]
+}

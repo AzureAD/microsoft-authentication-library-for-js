@@ -35,7 +35,7 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
@@ -57,15 +57,27 @@ export class WindowUtils {
                     href = contentWindow.location.href;
                 } catch (e) {}
 
-                // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
-                    return;
+                if (isSilentCall) {
+                    /*
+                     * Always run clock for silent calls
+                     * as silent operations should be short,
+                     * and to ensure they always at worst timeout.
+                     */
+                    ticks++;
+                } else {
+                    // Don't process blank pages or cross domain
+                    if (!href || href === "about:blank") {
+                        return;
+                    }
+
+                    /*
+                     * Only run clock when we are on same domain for popups
+                     * as popup operations can take a long time.
+                     */
+                    ticks++;
                 }
 
-                // Only run clock when we are on same domain
-                ticks++;
-
-                if (UrlUtils.urlContainsHash(href)) {
+                if (href && UrlUtils.urlContainsHash(href)) {
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
@@ -166,7 +178,7 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        if (document.body !== iframe.parentNode) {
+        if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
     }
