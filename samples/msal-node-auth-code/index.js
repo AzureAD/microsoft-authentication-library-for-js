@@ -41,7 +41,10 @@ function redirectToAzureAd(req, res){
             console.log(response);
             res.redirect(response);
         })
-        .catch((error) => console.log(JSON.stringify(error)));
+        .catch((error) => {
+            console.log(error);
+            console.log(JSON.stringify(error))
+        });
 }
 
 function acquireToken(req, res){

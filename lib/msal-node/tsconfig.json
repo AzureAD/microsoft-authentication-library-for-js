@@ -10,7 +10,7 @@
     "rootDir": "./",
     "strict": true,
     "noImplicitAny": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": false,
     "noImplicitThis": true,
