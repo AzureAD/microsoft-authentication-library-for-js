@@ -96,8 +96,7 @@ export class PublicClientApplication {
     // #region Redirect Flow
 
     /**
-     * Set the callback functions for the redirect flow to send back the success or error object, and process
-     * any redirect-related data.
+     * Process any redirect-related data and send back the success or error object.
      * IMPORTANT: Please do not use this function when using the popup APIs, as it may break the response handling
      * in the main window.
      * 
@@ -393,13 +392,16 @@ export class PublicClientApplication {
     // #region Helpers
 
     /**
-     * Helper to check whether interaction is in progress
+     * Helper to check whether interaction is in progress.
      */
     private interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
     }
 
+    /**
+     * Helper to validate app environment before making a request.
+     */
     private preflightRequest(): void {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
