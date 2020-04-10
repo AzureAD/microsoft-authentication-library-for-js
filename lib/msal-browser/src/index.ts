@@ -14,5 +14,6 @@ export {
     AuthErrorMessage,
     INetworkModule,
     // Logger Object
-    Logger
+    Logger,
+    LogLevel
 } from "@azure/msal-common";
