@@ -89,6 +89,7 @@ export class PublicClientApplication {
             storageInterface: this.browserStorage
         });
 
+        // Check for hash and save response promise
         this.tokenExchangePromise = this.handleRedirectResponse();
     }
 
