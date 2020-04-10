@@ -276,10 +276,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("loginRedirect", () => {
 
+            it("loginRedirect throws an error if authCallback is not set", () => {
+                expect(() => pca.loginRedirect({})).to.throw(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
+                expect(() => pca.loginRedirect({})).to.throw(BrowserConfigurationAuthError);
+            });
+
             it("loginRedirect throws an error if interaction is currently in progress", async () => {
+                await pca.handleRedirectCallback((authErr: AuthError, response: AuthResponse) => {
+                    expect(authErr instanceof BrowserAuthError).to.be.true;
+                    expect(authErr.errorMessage).to.be.eq(BrowserAuthErrorMessage.interactionInProgress.desc);
+                });
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                expect(() => pca.loginRedirect({})).to.throw(BrowserAuthErrorMessage.interactionInProgress.desc);
-                expect(() => pca.loginRedirect({})).to.throw(BrowserAuthError);
+                pca.loginRedirect({});
             });
 
             it("loginRedirect navigates to created login url", async () => {
@@ -316,10 +324,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("acquireTokenRedirect", () => {
 
+            it("acquireTokenRedirect throws an error if authCallback is not set", () => {
+                expect(() => pca.acquireTokenRedirect({})).to.throw(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
+                expect(() => pca.acquireTokenRedirect({})).to.throw(BrowserConfigurationAuthError);
+            });
+
             it("acquireTokenRedirect throws an error if interaction is currently in progress", async () => {
+                await pca.handleRedirectCallback((authErr: AuthError, response: AuthResponse) => {
+                    expect(authErr instanceof BrowserAuthError).to.be.true;
+                    expect(authErr.errorMessage).to.be.eq(BrowserAuthErrorMessage.interactionInProgress.desc);
+                });
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                expect(() => pca.acquireTokenRedirect({})).to.throw(BrowserAuthErrorMessage.interactionInProgress.desc);
-                expect(() => pca.acquireTokenRedirect({})).to.throw(BrowserAuthError);
+                pca.acquireTokenRedirect({});
             });
 
             it("acquireTokenRedirect navigates to created login url", async () => {
