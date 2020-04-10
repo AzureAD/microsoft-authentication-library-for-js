@@ -20,12 +20,6 @@ export abstract class ClientApplication {
     // Input configuration by developer/user
     protected config: ClientConfiguration;
 
-    // Crypto interface implementation
-    protected crypto: CryptoProvider;
-
-    // Storage interface implementation
-    protected storage: Storage;
-
     /**
      * @constructor
      * Constructor for the ClientApplication to instantiate the PublicClientApplication object
@@ -48,18 +42,7 @@ export abstract class ClientApplication {
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     protected constructor(configuration: ClientConfiguration) {
-        // Set the configuration.
         this.config = buildConfiguration(configuration);
-
-        // Initialize the crypto class.
-        this.crypto = new CryptoProvider();
-        // Initialize the network module class.
-
-        // Initialize the browser storage class.
-        this.storage = new Storage(
-            this.config.auth.clientId,
-            this.config.cache
-        );
     }
 
     /**
@@ -101,16 +84,21 @@ export abstract class ClientApplication {
     }
 
     protected buildOauthClientConfiguration(): Configuration {
+        // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: this.config.auth,
             loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions
+                loggerCallback: this.config.system!.loggerOptions!
+                    .loggerCallback,
+                piiLoggingEnabled: this.config.system!.loggerOptions!
                     .piiLoggingEnabled,
             },
-            cryptoInterface: this.crypto,
-            networkInterface: this.config.system.networkClient,
-            storageInterface: this.storage,
+            cryptoInterface: new CryptoProvider(),
+            networkInterface: this.config.system!.networkClient,
+            storageInterface: new Storage(
+                this.config.auth!.clientId,
+                this.config.cache!
+            ),
         };
     }
 }

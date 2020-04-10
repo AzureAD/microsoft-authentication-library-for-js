@@ -32,7 +32,7 @@ export class Storage implements ICacheStorage {
     constructor(clientId: string, cacheConfig: CacheOptions) {
         this.cacheConfig = cacheConfig;
         this.fileStorage = this.initializeFileStorage(
-            this.cacheConfig.cacheLocation
+            this.cacheConfig.cacheLocation!
         );
         this.clientId = clientId;
     }
