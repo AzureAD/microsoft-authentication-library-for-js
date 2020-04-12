@@ -55,7 +55,7 @@ export class AccountEntity extends Serializable {
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
         const homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
         account.homeAccountId =
-            policy != null
+            policy !== null
                 ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
                 : homeAccountId;
         account.environment =
