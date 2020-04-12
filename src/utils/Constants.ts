@@ -252,3 +252,4 @@ export enum CacheEntity {
 }
 
 export const APP_META_DATA = "appmetadata";
+export const ClientInfo = "client_info";
