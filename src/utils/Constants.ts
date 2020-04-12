@@ -215,3 +215,5 @@ export enum GrantType {
     REFRESH_TOKEN_GRANT = "refresh_token",
     DEVICE_CODE_GRANT = "device_code"
 };
+
+export const ClientInfo = "client_info";
