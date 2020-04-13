@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { CacheInterface } from "../../../src/unifiedCache/serialize/CacheInterface";
 import { mockCache } from "../entities/cacheConstants";
-import { StringDict } from "../../../src/utils/MsalTypes";
 
 const cachedJson = require("./cache.json");
 const accountJson = require("./Account.json");

@@ -6,55 +6,80 @@
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
-import { AuthorizationCodeRequest } from '../../request/AuthorizationCodeRequest';
+import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 export class TokenCacheGenerator {
 
-    // create access token cache
-    static createAccessTokenCacheEntity(clientId: string, request: AuthorizationCodeRequest, secret: string, expiresOn: string): AccessTokenEntity {
-        let accessToken: AccessTokenEntity = new AccessTokenEntity();
+    /**
+     * Create AccessTokenEntity
+     * @param homeAccountId
+     * @param authenticationResult
+     * @param clientId
+     * @param authority
+     */
+    static createAccessTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): AccessTokenEntity {
+        const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
-        // accessToken.credentialType = "AccessToken";
-        // accessToken.homeAccountId = homeAccountId;
+        atEntity.homeAccountId = homeAccountId;
+        atEntity.credentialType = "AccessToken";
+        atEntity.secret = authenticationResult.accessToken;
 
-        // accessToken.environment = request.authority;
-        // accessToken.clientId = clientId;
+        const date = new Date();
+        const currentTime = date.getMilliseconds() / 1000;
+        atEntity.cachedAt = currentTime.toString();
 
-        // accessToken.secret = secret;
+        // TODO: Crosscheck the exact conversion
+        atEntity.expiresOn = authenticationResult.expiresOn.getMilliseconds().toString();
+        atEntity.extendedExpiresOn = authenticationResult.extExpiresOn.getMilliseconds().toString();
 
-        // accessToken.realm = request.tenant;
-        // accessToken.target = request.scopes;
+        atEntity.environment = environment;
+        atEntity.clientId = clientId;
+        atEntity.realm = authenticationResult.tenantId;
+        atEntity.target = authenticationResult.scopes.join(" ");
 
-        // const date = new Date();
-        // const currentTime = date.getMilliseconds() / 1000;
-        // accessToken.cachedAt = currentTime.toString();
-        // accessToken.expiresOn = expiresOn;
-        // accessToken.extendedExpiresOn = expiresOn;
-
-        return accessToken;
+        return atEntity;
     }
 
-    // // create id token cache
-    // static createIdTokenCacheEntity(
-    //     homeAccountId: string,
-    //     request: Request,
-    //     secret: string
-    // ): IdTokenCache {
-    //     let idToken: IdTokenCache = new IdTokenCache();
+    /**
+     * Create IdTokenEntity
+     * @param homeAccountId
+     * @param authenticationResult
+     * @param clientId
+     * @param authority
+     */
+    static createIdTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): IdTokenEntity {
+        const idTokenEntity = new IdTokenEntity();
 
-    //     idToken.credentialType = "IdToken";
-    //     idToken.homeAccountId = homeAccountId;
-    //     idToken.environment = request.authority;
-    //     idToken.clientId = request.clientId;
-    //     idToken.secret = secret;
-    //     idToken.realm = request.tenant;
+        idTokenEntity.credentialType = "IdToken";
+        idTokenEntity.homeAccountId = homeAccountId;
+        idTokenEntity.environment = environment;
+        idTokenEntity.clientId = clientId;
+        idTokenEntity.secret = authenticationResult.idToken;
+        idTokenEntity.realm = authenticationResult.tenantId;
 
-    //     return idToken;
-    // }
+        return idTokenEntity;
+    }
 
-    // create refresh token cache
-    static createRefreshTokenCacheEntity(): RefreshTokenEntity {
-        return null;
+    /**
+     * Create RefreshTokenEntity
+     * @param homeAccountId
+     * @param authenticationResult
+     * @param clientId
+     * @param authority
+     */
+    static createRefreshTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): RefreshTokenEntity {
+        const rtEntity = new RefreshTokenEntity();
+
+        rtEntity.clientId = clientId;
+        rtEntity.credentialType = "RefreshToken";
+        rtEntity.environment = environment;
+        rtEntity.homeAccountId = homeAccountId;
+        rtEntity.secret = authenticationResult.refreshToken;
+
+        if (authenticationResult.familyId)
+            rtEntity.familyId = authenticationResult.familyId;
+
+        return rtEntity;
     }
 }
 

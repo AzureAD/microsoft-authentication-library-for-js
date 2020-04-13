@@ -20,6 +20,6 @@ export class AuthenticationResult {
     refreshToken: string;
     expiresOn: Date;
     extExpiresOn?: Date;
-    account: Account;
-    userRequestState: string;
+    userRequestState?: string;
+    familyId?: string;
 };
