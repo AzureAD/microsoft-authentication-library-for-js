@@ -99,6 +99,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
+        parameterBuilder.addClientInfo();
 
         return parameterBuilder.createQueryString();
     }

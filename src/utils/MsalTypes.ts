@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity } from "../uCache/entities/AccessTokenEntity";
-import { IdTokenEntity } from "../uCache/entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../uCache/entities/RefreshTokenEntity";
-import { AccountEntity } from "../uCache/entities/AccountEntity";
-import { AppMetadataEntity } from "../uCache/entities/AppMetadataEntity";
+import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
+import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { AppMetadataEntity } from "../unifiedCache/entities/AppMetadataEntity";
 
 /**
  * Key-Value type to support queryParams, extraQueryParams and claims

@@ -22,15 +22,11 @@ export class RefreshTokenEntity extends Credential {
             this.credentialType
         ];
 
-        if (this.familyId) {
-            refreshTokenKeyArray.push(this.familyId);
-        } else {
-            refreshTokenKeyArray.push(this.clientId);
-        }
+        // append  familyId if populted, else fallback to clientId
+        refreshTokenKeyArray.push(this.familyId ||  this.clientId);
 
-        // realm and target - empty string "" for REFRESH_TOKEN type
+        // realm and target - empty string "" for REFRESH_TOKEN type; target (scopes) is added only if it is resource specific refresh token
         refreshTokenKeyArray.push("");
-        // target (scopes) is added only if it is resource specific refresh token
         refreshTokenKeyArray.push("");
 
         return refreshTokenKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();

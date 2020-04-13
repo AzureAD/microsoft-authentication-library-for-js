@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { B2cAuthority } from "../../src/authority/B2cAuthority";
+import { B2cAuthority, B2CTrustedHostList } from "../../src/authority/B2cAuthority";
 import {
     INetworkModule,
     NetworkRequestOptions
@@ -38,6 +38,12 @@ describe("B2cAuthority.ts Class Unit Tests", () => {
             );
         });
 
+        afterEach(() => {
+            while (B2CTrustedHostList.length) {
+                B2CTrustedHostList.pop();
+            }
+        });
+
         it("Creates an B2cAuthority that extends the Authority class", () => {
             expect(b2cAuthority).to.be.not.null;
             expect(b2cAuthority instanceof B2cAuthority).to.be.true;
@@ -50,6 +56,7 @@ describe("B2cAuthority.ts Class Unit Tests", () => {
     });
 
     describe("Public APIs", () => {
+
         it("Returns default OpenID endpoint if the given authority is in the trusted host list", async () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(

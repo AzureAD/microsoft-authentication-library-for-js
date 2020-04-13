@@ -28,26 +28,14 @@ export class CacheInterface {
      * Parse the JSON blob in memory and deserialize the content
      * @param cachedJson
      */
-    static deserializeJSONBlob(jsonFile?: any): JSONContent {
-        let jsonContent: JSONContent = {
-            accessTokens: {},
-            idTokens: {},
-            refreshTokens: {},
-            accounts: {},
-            appMetadata: {}
-        };
+    static deserializeJSONBlob(parsedJSON: any): JSONContent {
+        const jsonContent: JSONContent = {
+            accessTokens: parsedJSON.AccessToken ? parsedJSON.AccessToken : {},
+            idTokens: parsedJSON.IdToken ? parsedJSON.IdToken : {},
+            refreshTokens: parsedJSON.RefreshToken ? parsedJSON.RefreshToken : {},
+            accounts: parsedJSON.Account ? parsedJSON.Account : {},
+            appMetadata: parsedJSON.AppMetadata ? parsedJSON.AppMetadata : {}
 
-        const ParsedJSON = jsonFile ? jsonFile : null;
-        if (!ParsedJSON) {
-            return jsonContent;
-        }
-
-        jsonContent = {
-            accessTokens: ParsedJSON.AccessToken,
-            idTokens: ParsedJSON.IdToken,
-            refreshTokens: ParsedJSON.RefreshToken,
-            accounts: ParsedJSON.Account,
-            appMetadata: ParsedJSON.AppMetadata
         };
 
         return jsonContent;
