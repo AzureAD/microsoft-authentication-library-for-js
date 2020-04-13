@@ -26,7 +26,7 @@ export class Deserializer {
      */
     static deSerializeAccessTokens(accessTokens: StringDict): AccessTokenCache {
         const atObjects = {};
-        Object.keys(accessTokens).map(function(key) {
+        Object.keys(accessTokens).map(function (key) {
             const mappedAT = CacheHelper.renameKeys(
                 accessTokens[key],
                 AccessTokenCacheMaps.fromCacheMap

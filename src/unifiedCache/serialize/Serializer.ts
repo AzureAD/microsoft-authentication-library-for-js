@@ -29,9 +29,9 @@ export class Serializer {
         );
         const atKey: string = accessToken.generateAccessTokenEntityKey();
 
-        const atCacheEntity: any = {};
-        atCacheEntity[atKey] = mappedAT;
-        return atCacheEntity;
+        return {
+            [atKey]: mappedAT
+        };
     }
 
     /**
@@ -45,9 +45,9 @@ export class Serializer {
         );
         const idTokenKey: string = idToken.generateIdTokenEntityKey();
 
-        const idTokenCacheEntity: any = {};
-        idTokenCacheEntity[idTokenKey] = mappedIdToken;
-        return idTokenCacheEntity;
+        return {
+            [idTokenKey]: mappedIdToken
+        }
     }
 
     /**
@@ -61,9 +61,9 @@ export class Serializer {
         );
         const rtKey: string = refreshToken.generateRefreshTokenEntityKey();
 
-        const rtCacheEntity: any = {};
-        rtCacheEntity[rtKey] = mappedRT;
-        return rtCacheEntity;
+        return {
+            [rtKey]: mappedRT
+        }
     }
 
     /**
@@ -77,9 +77,9 @@ export class Serializer {
         );
         const acKey: string = account.generateAccountEntityKey();
 
-        const accountCacheEntity: any = {};
-        accountCacheEntity[acKey] = mappedAccount;
-        return accountCacheEntity;
+        return {
+            [acKey]: mappedAccount
+        }
     }
 
     /**
@@ -93,8 +93,8 @@ export class Serializer {
         );
         const appMetadataKey: string = appMetadata.generateAppMetaDataEntityKey();
 
-        const appMetadataCacheEntity: any = {};
-        appMetadataCacheEntity[appMetadataKey] = mappedAppMetadata;
-        return appMetadataCacheEntity;
+        return {
+            [appMetadataKey]: mappedAppMetadata
+        }
     }
 }
