@@ -5,7 +5,7 @@ import {
     RefreshTokenCacheMaps,
     AccountCacheMaps,
     AppMetadataCacheMaps
-} from "../../../src/uCache/serialize/JsonKeys";
+} from "../../../src/unifiedCache/serialize/JsonKeys";
 
 
 describe("JsonKets.ts Unit Tests", () => {

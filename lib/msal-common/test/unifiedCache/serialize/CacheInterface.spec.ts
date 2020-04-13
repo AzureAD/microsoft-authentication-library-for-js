@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CacheInterface } from "../../../src/uCache/serialize/CacheInterface";
+import { CacheInterface } from "../../../src/unifiedCache/serialize/CacheInterface";
 import { mockCache } from "../entities/cacheConstants";
 
 const cachedJson = require("./cache.json");
@@ -92,6 +92,8 @@ describe("CacheInterface test cases", () => {
         // create mock AppMetadata
         const amdt = mockCache.createMockAmdt();
         const amdtKey = amdt.generateAppMetaDataEntityKey();
+
+        console.log("amdtKey :", amdtKey);
 
         // deserialize the AppMetadata from memory and Test equivalency with the generated mock AppMetadata
         const appMetadata = CacheInterface.generateAppMetadataCache(jsonContent.appMetadata);
