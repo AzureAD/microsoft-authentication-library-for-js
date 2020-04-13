@@ -419,12 +419,7 @@ export class SPAClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         spaResponseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = spaResponseHandler.createTokenResponse(
-            acquiredTokenResponse.body,
-            tokenRequest.authority,
-            tokenRequest.resource,
-            codeResponse && codeResponse.userRequestState
-        );
+        const tokenResponse = spaResponseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;

@@ -12,17 +12,21 @@ import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { NetworkResponse } from "../network/NetworkManager";
-import { ResponseHandler } from "../response/ResponseHandler";
+import { NetworkResponse }  from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
+import { ResponseHandler } from '../response/ResponseHandler';
 
 /**
  * Oauth2.0 Authorization Code client
  */
 export class AuthorizationCodeClient extends BaseClient {
 
+    // config
+    private clientConfig: Configuration;
+
     constructor(configuration: Configuration) {
         super(configuration);
+        this.clientConfig = configuration;
     }
 
     /**
@@ -52,10 +56,16 @@ export class AuthorizationCodeClient extends BaseClient {
         const authority: Authority = await this.createAuthority(request && request.authority);
         const response = await this.executeTokenRequest(authority, request);
 
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
-        responseHandler.validateServerAuthorizationTokenResponse(response.body);
+        const responseHandler = new ResponseHandler(
+            this.clientConfig.authOptions.clientId,
+            this.cacheStorage,
+            this.cacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
 
         return JSON.stringify(response.body);
+
     }
 
     /**

@@ -30,6 +30,7 @@ export type ServerAuthorizationTokenResponse = {
     access_token?: string;
     refresh_token?: string;
     id_token?: string;
+    client_info?: string;
     // Error
     error?: string;
     error_description?: string;
