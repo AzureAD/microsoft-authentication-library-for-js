@@ -9,12 +9,11 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { Serializable } from "../serialize/Serializable";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
  */
-export class AccountEntity extends Serializable {
+export class AccountEntity {
     homeAccountId: string;
     environment: string;
     realm: string;
