@@ -14,7 +14,8 @@ import { Configuration } from "../config/Configuration";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { NetworkResponse }  from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
-import { ResponseHandler } from '../response/ResponseHandler';
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from '../response/AuthenticationResult';
 
 /**
  * Oauth2.0 Authorization Code client
@@ -50,7 +51,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
+    async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
 
         this.logger.info("in acquireToken call");
         const authority: Authority = await this.createAuthority(request && request.authority);
@@ -59,13 +60,12 @@ export class AuthorizationCodeClient extends BaseClient {
         const responseHandler = new ResponseHandler(
             this.clientConfig.authOptions.clientId,
             this.cacheStorage,
-            this.cacheManager,
             this.cryptoUtils,
             this.logger
         );
 
-        return JSON.stringify(response.body);
-
+        responseHandler.validateServerAuthorizationTokenResponse(response.body);
+        return responseHandler.generateAuthenticationResult(response.body, authority);
     }
 
     /**

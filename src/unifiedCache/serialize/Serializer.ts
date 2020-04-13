@@ -47,7 +47,7 @@ export class Serializer {
 
         return {
             [idTokenKey]: mappedIdToken
-        }
+        };
     }
 
     /**
@@ -63,7 +63,7 @@ export class Serializer {
 
         return {
             [rtKey]: mappedRT
-        }
+        };
     }
 
     /**
@@ -79,7 +79,7 @@ export class Serializer {
 
         return {
             [acKey]: mappedAccount
-        }
+        };
     }
 
     /**
@@ -95,6 +95,6 @@ export class Serializer {
 
         return {
             [appMetadataKey]: mappedAppMetadata
-        }
+        };
     }
 }
