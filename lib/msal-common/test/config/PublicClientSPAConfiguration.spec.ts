@@ -56,10 +56,9 @@ describe("SPAConfiguration.ts Class Unit Tests", () => {
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
         // Logger options checks
-        // expect(emptyConfig.loggerOptions).to.be.not.null;
-        // expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw("Unexpected error in authentication.: Logger - loggerCallbackInterface() has not been implemented.");
-        // expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw(AuthError);
-        // expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
+        expect(emptyConfig.loggerOptions).to.be.not.null;
+        expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
+        expect(emptyConfig.loggerOptions.logLevel).to.be.equal(LogLevel.Info);
     });
 
     const clearFunc = (): void => {

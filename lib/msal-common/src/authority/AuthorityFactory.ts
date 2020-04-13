@@ -35,7 +35,7 @@ export class AuthorityFactory {
         if (pathSegments[0] === "adfs") {
             return AuthorityType.Adfs;
         }
-        else if (!B2CTrustedHostList.length) {
+        else if (B2CTrustedHostList.length) {
             return AuthorityType.B2C;
         }
 
@@ -54,6 +54,7 @@ export class AuthorityFactory {
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
+
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.Aad:

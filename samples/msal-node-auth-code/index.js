@@ -41,7 +41,10 @@ function redirectToAzureAd(req, res){
             console.log(response);
             res.redirect(response);
         })
-        .catch((error) => console.log(JSON.stringify(error)));
+        .catch((error) => {
+            console.log(error);
+            console.log(JSON.stringify(error))
+        });
 }
 
 function acquireToken(req, res){
@@ -53,7 +56,7 @@ function acquireToken(req, res){
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log(JSON.stringify(response));
+        console.log(response);
         res.send(200);
     }).catch((error) => {
         res.send(500);

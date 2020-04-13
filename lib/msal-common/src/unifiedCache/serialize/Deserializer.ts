@@ -26,13 +26,13 @@ export class Deserializer {
      */
     static deSerializeAccessTokens(accessTokens: StringDict): AccessTokenCache {
         const atObjects = {};
-        Object.keys(accessTokens).map(function(key) {
+        Object.keys(accessTokens).map(function (key) {
             const mappedAT = CacheHelper.renameKeys(
                 accessTokens[key],
                 AccessTokenCacheMaps.fromCacheMap
             );
             const accessToken: AccessTokenEntity = new AccessTokenEntity();
-            accessToken.toObject(mappedAT);
+            CacheHelper.toObject(accessToken, mappedAT);
             atObjects[key] = accessToken;
         });
 
@@ -51,7 +51,7 @@ export class Deserializer {
                 IdTokenCacheMaps.fromCacheMap
             );
             const idToken: IdTokenEntity = new IdTokenEntity();
-            idToken.toObject(mappedIdT);
+            CacheHelper.toObject(idToken, mappedIdT);
             idObjects[key] = idToken;
         });
 
@@ -70,7 +70,7 @@ export class Deserializer {
                 RefreshTokenCacheMaps.fromCacheMap
             );
             const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
-            refreshToken.toObject(mappedRT);
+            CacheHelper.toObject(refreshToken, mappedRT);
             rtObjects[key] = refreshToken;
         });
 
@@ -88,7 +88,7 @@ export class Deserializer {
                 AccountCacheMaps.fromCacheMap
             );
             const account: AccountEntity = new AccountEntity();
-            account.toObject(mappedAcc);
+            CacheHelper.toObject(account, mappedAcc);
             accountObjects[key] = account;
         });
 
@@ -107,7 +107,7 @@ export class Deserializer {
                 AppMetadataCacheMaps.fromCacheMap
             );
             const amd: AppMetadataEntity = new AppMetadataEntity();
-            amd.toObject(mappedAmd);
+            CacheHelper.toObject(amd, mappedAmd);
             appMetadataObjects[key] = amd;
         });
 

@@ -1,6 +1,7 @@
 import { expect } from "chai";
-import { CacheInterface } from "../../../src/uCache/serialize/CacheInterface";
+import { CacheInterface } from "../../../src/unifiedCache/serialize/CacheInterface";
 import { mockCache } from "../entities/cacheConstants";
+import { StringDict } from "../../../src/utils/MsalTypes";
 
 const cachedJson = require("./cache.json");
 const accountJson = require("./Account.json");
@@ -30,15 +31,15 @@ describe("CacheInterface test cases", () => {
         expect(acc.accounts).to.eql(mockAccount);
     });
 
-
     it("retrieve empty JSON blob", () => {
-        const jsonContent = CacheInterface.deserializeJSONBlob();
+        const emptyCacheJson = {};
+        const emptyJsonContent = CacheInterface.deserializeJSONBlob(emptyCacheJson);
 
-        expect(jsonContent.accounts).to.eql({});
-        expect(jsonContent.accessTokens).to.eql({});
-        expect(jsonContent.idTokens).to.eql({});
-        expect(jsonContent.refreshTokens).to.eql({});
-        expect(jsonContent.appMetadata).to.eql({});
+        expect(emptyJsonContent.accounts).to.eql({});
+        expect(emptyJsonContent.accessTokens).to.eql({});
+        expect(emptyJsonContent.idTokens).to.eql({});
+        expect(emptyJsonContent.refreshTokens).to.eql({});
+        expect(emptyJsonContent.appMetadata).to.eql({});
     });
 
     it("generateAccessTokenCache", () => {
@@ -97,5 +98,4 @@ describe("CacheInterface test cases", () => {
         const appMetadata = CacheInterface.generateAppMetadataCache(jsonContent.appMetadata);
         expect(appMetadata[amdtKey]).to.eql(amdt);
     });
-
 });
