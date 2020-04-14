@@ -19,10 +19,10 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 
 #### Latest compiled and minified JavaScript
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.0/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.2/js/msal.js"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.0/js/msal.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.2.2/js/msal.min.js"></script>
 ````
 
 #### Alternate region URLs
