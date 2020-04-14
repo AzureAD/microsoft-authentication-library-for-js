@@ -39,7 +39,7 @@ import { Constants,
     libraryVersion,
     TemporaryCacheKeys,
     PersistentCacheKeys,
-    ErrorCacheKeys,
+    ErrorCacheKeys
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 
@@ -95,6 +95,7 @@ export interface CacheResult {
 export type ResponseStateInfo = {
     state: string;
     timestamp: number,
+    method: string;
     stateMatch: boolean;
     requestType: string;
 };
@@ -216,6 +217,8 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
+        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
+
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
 
@@ -236,8 +239,11 @@ export class UserAgentApplication {
         WindowUtils.checkIfBackButtonIsPressed(this.cacheStorage);
 
         // On the server 302 - Redirect, handle this
-        if (urlContainsHash && !WindowUtils.isInIframe() && !WindowUtils.isInPopup()) {
-            this.handleRedirectAuthenticationResponse(urlHash);
+        if (urlContainsHash) {
+            const stateInfo = this.getResponseState(urlHash);
+            if (stateInfo.method === Constants.interactionTypeRedirect) {
+                this.handleRedirectAuthenticationResponse(urlHash);
+            }
         }
     }
 
@@ -318,7 +324,7 @@ export class UserAgentApplication {
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -330,7 +336,7 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -343,7 +349,7 @@ export class UserAgentApplication {
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -362,7 +368,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -510,7 +516,7 @@ export class UserAgentApplication {
 
             this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
 
-            // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+            // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
 
             // Construct urlNavigate
@@ -614,7 +620,7 @@ export class UserAgentApplication {
         apiEvent.apiCode = API_CODE.AcquireTokenSilent;
         this.telemetryManager.startEvent(apiEvent);
         // validate the request
-        const request = RequestUtils.validateRequest(userRequest, false, this.clientId);
+        const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
@@ -649,16 +655,16 @@ export class UserAgentApplication {
                 request.correlationId,
             );
 
-            // populate QueryParameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer
+            // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
-                serverAuthenticationRequest.populateQueryParams(account, request);
+                serverAuthenticationRequest.populateQueryParams(account, request, null, true);
             }
             // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
                 this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
-                serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject);
+                serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
             }
 
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
@@ -1089,7 +1095,14 @@ export class UserAgentApplication {
                 window.location.href = "/";
                 return;
             } else if (currentUrl !== loginRequestUrl) {
-                window.location.href = `${loginRequestUrl}${hash}`;
+                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
+                if (loginRequestUrl.indexOf("#") > -1) {
+                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
+                    this.processCallBack(hash, stateInfo, null);
+                    window.location.href = loginRequestUrl;
+                } else {
+                    window.location.href = `${loginRequestUrl}${hash}`;
+                }
                 return;
             }
         }
@@ -1117,6 +1130,7 @@ export class UserAgentApplication {
                 requestType: Constants.unknown,
                 state: parameters.state,
                 timestamp: parsedState.ts,
+                method: parsedState.method,
                 stateMatch: false
             };
         } else {
