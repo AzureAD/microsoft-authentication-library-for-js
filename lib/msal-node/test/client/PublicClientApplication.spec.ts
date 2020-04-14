@@ -1,8 +1,12 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import {AuthorizationCodeRequest, ClientConfiguration} from './../../src/index';
-import { DeviceCodeRequest } from "@azure/msal-common/dist/src/request/DeviceCodeRequest";
-import {AuthorizationCodeClient, AuthorizationCodeUrlRequest, DeviceCodeClient} from "@azure/msal-common";
 import {AUTHENTICATION_RESULT, TEST_CONSTANTS} from "../utils/TestConstants";
+import {
+    AuthorizationCodeClient,
+    AuthorizationCodeUrlRequest,
+    DeviceCodeClient,
+    DeviceCodeRequest,
+    RefreshTokenRequest} from "@azure/msal-common";
 
 describe('PublicClientApplication', () => {
 
@@ -61,6 +65,27 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+        };
+
+        const authApp = new PublicClientApplication(msalConfig);
+        authApp.acquireTokenByCode(request)
+            .then((response) => {
+                // expect(result).toBeInstanceOf(""); // TODO add check when response type is decided on
+                expect(response).toEqual(JSON.stringify(AUTHENTICATION_RESULT));
+            });
+    });
+
+    test('acquireTokenByRefreshToken', () => {
+        const msalConfig: ClientConfiguration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+            }
+        };
+
+        const request: RefreshTokenRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            refreshToken: TEST_CONSTANTS.REFRESH_TOKEN
         };
 
         const authApp = new PublicClientApplication(msalConfig);

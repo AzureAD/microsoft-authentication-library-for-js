@@ -14,6 +14,7 @@ import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { ClientInfo } from "./../utils/Constants";
+import {RefreshTokenClient, RefreshTokenRequest} from "../../../msal-common/src";
 
 export abstract class ClientApplication {
 
@@ -73,6 +74,19 @@ export abstract class ClientApplication {
 
         const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
         return authorizationCodeClient.acquireToken(request);
+    }
+
+    /**
+     * Acquires a token by exchanging the refresh token provided for a new set of tokens.
+     *
+     * This API is provided only for scenarios where you would like to migrate from ADAL to MSAL. Instead, it is
+     * recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent, MSAL will
+     * handle the caching and refreshing of tokens automatically.
+     * @param request
+     */
+    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
+        const refreshTokenClient = new RefreshTokenClient(this.buildOauthClientConfiguration());
+        return refreshTokenClient.acquireToken(request);
     }
 
     protected buildOauthClientConfiguration(): Configuration {
