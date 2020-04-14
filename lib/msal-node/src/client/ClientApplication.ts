@@ -8,13 +8,14 @@ import {
     AuthorizationCodeUrlRequest,
     AuthorizationCodeRequest,
     Configuration,
+    RefreshTokenClient,
+    RefreshTokenRequest
 } from '@azure/msal-common';
 import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { ClientInfo } from "./../utils/Constants";
-import {RefreshTokenClient, RefreshTokenRequest} from "../../../msal-common/src";
 
 export abstract class ClientApplication {
 
