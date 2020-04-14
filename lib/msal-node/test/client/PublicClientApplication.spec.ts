@@ -89,7 +89,7 @@ describe('PublicClientApplication', () => {
         };
 
         const authApp = new PublicClientApplication(msalConfig);
-        authApp.acquireTokenByCode(request)
+        authApp.acquireTokenByRefreshToken(request)
             .then((response) => {
                 // expect(result).toBeInstanceOf(""); // TODO add check when response type is decided on
                 expect(response).toEqual(JSON.stringify(AUTHENTICATION_RESULT));
