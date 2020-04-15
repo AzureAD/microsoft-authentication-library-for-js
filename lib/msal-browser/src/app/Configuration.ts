@@ -60,8 +60,8 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     authority: null,
-    redirectUri: () => BrowserUtils.getDefaultRedirectUri(),
-    postLogoutRedirectUri: () => BrowserUtils.getDefaultRedirectUri(),
+    redirectUri: () => BrowserUtils.getCurrentUri(),
+    postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),
     navigateToLoginRequestUrl: true
 };
 
