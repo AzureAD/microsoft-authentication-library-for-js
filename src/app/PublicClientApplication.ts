@@ -132,22 +132,31 @@ export class PublicClientApplication {
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+
+        const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
+        const currentUrl = BrowserUtils.getCurrentUri();
+        if (loginRequestUrl === currentUrl) {
+            // We don't need to navigate - check for hash and prepare to process
+            if (isResponseHash) {
+                BrowserUtils.clearHash();
+                return this.handleHash(hash);
+            } else {
+                // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
+                return this.handleHash(cachedHash);
+            }
+        }
+
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
-            const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
-            const currentUrl = BrowserUtils.getCurrentUri();
+            
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow("/", true);
-            } else if (currentUrl !== loginRequestUrl) {
+            } else {
                 // Navigate to target url
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
-            } else {
-                // We don't need to navigate - check for hash and prepare to process
-                BrowserUtils.clearHash();
-                return this.handleHash(hash);
             }
             return null;
         }
