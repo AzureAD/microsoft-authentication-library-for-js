@@ -291,6 +291,22 @@ export class PublicClientApplication {
 
     // #region Silent Flow
 
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
+     * - Any browser using a form of Intelligent Tracking Prevention
+     * - If there is not an established session with the service
+     * 
+     * In these cases, the request must be done inside a popup or full frame redirect. 
+     * 
+     * For the cases where interaction is required, you cannot send a request with prompt=none.
+     * 
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as 
+     * you session on the server still exists.
+     * @param {@link AuthenticationParameters} 
+     * 
+     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
+     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
     async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
