@@ -60,7 +60,7 @@ export class MsalService extends UserAgentApplication {
             for (var i = 0; i < router.config.length; i++) {
                 if (!router.config[i].canActivate) {
                     if (this.msalAngularConfig.unprotectedResources) {
-                        if (!this.isUnprotectedResource(router.config[i].path) && !this.isEmpty(router.config[i].path)) {
+                        if (!this.isEmpty(router.config[i].path) && !this.isUnprotectedResource(router.config[i].path)) {
                             this.msalAngularConfig.unprotectedResources.push(router.config[i].path);
                         }
                     }

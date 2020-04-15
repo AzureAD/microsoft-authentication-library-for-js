@@ -1,3 +1,15 @@
+# 1.3.0
+
+## Enhancements
+* Turn library state into encoded string that contains guid and timestamp. (#1395)
+* Fix behavior of `handleRedirectCallback`, and make it no longer required. (#1358)
+* `domain_hint` is no longer supported in silent calls or when `sid` or `login_hint` is passed. (#1299)
+
+## Bugs
+* Ensure responses from redirect requests are always processed. (#1413)
+* Ensure state is decoded before it is processed. (#1456)
+* B2C Authority Fixes. (#1276)
+
 # 1.2.2
 
 ## Features
@@ -11,6 +23,7 @@
 * Properly remove temporary cache entries. (#1339)
 * Always send back the accessToken and scopes if the response includes them. (#1351)
 * Ensure silent operations timeout if the iframe never returns to the app domain. (#1354)
+* Ensure hidden iframes are properly removed. (#1415)
 
 ## Logging / Telemetry
 * Add telemetry for `acquireTokenSilent`. (#1388)

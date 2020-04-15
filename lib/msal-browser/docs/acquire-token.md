@@ -19,7 +19,9 @@ It is best practice to attempt an `acquireTokenSilent` call before using the int
 
 If the `acquireTokenSilent` call fails, you need to initiate an interactive request. This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes.
 
-You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./requestresponseobject.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
+You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md).
+
+You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
 
 - Popup
 ```javascript
@@ -70,4 +72,4 @@ fetch(graphEndpoint, options)
 
 # Next Steps
 
-Learn about [token lifetimes, expiration and renewal](./renewtoken.md).
+Learn about [token lifetimes, expiration and renewal](./token-lifetimes.md).

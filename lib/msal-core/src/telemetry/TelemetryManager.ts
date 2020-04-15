@@ -149,6 +149,7 @@ export default class TelemetryManager {
     }
 
     createAndStartHttpEvent(correlation: string, httpMethod: string, url: string): HttpEvent {
+        console.log(url);
         const httpEvent = new HttpEvent(correlation);
         httpEvent.url = url;
         httpEvent.httpMethod = httpMethod;

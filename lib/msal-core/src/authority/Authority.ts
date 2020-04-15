@@ -43,17 +43,17 @@ export abstract class Authority {
 
     public get AuthorizationEndpoint(): string {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace("{tenant}", this.Tenant);
+        return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
     public get EndSessionEndpoint(): string {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.EndSessionEndpoint.replace("{tenant}", this.Tenant);
+        return this.tenantDiscoveryResponse.EndSessionEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
     public get SelfSignedJwtAudience(): string {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.Issuer.replace("{tenant}", this.Tenant);
+        return this.tenantDiscoveryResponse.Issuer.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
     private validateResolved() {

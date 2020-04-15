@@ -8,7 +8,6 @@ import { XhrClient, XhrResponse } from "../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
 import HttpEvent from "../telemetry/HttpEvent";
 import TelemetryManager from "../telemetry/TelemetryManager";
-import { url } from 'inspector';
 
 /**
  * @hidden
