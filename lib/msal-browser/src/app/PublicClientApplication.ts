@@ -142,7 +142,12 @@ export class PublicClientApplication {
                 this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow("/", true);
             } else if (currentUrl !== loginRequestUrl) {
+                // Navigate to target url
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
+            } else {
+                // We don't need to navigate - check for hash and prepare to process
+                BrowserUtils.clearHash();
+                return this.handleHash(hash);
             }
             return null;
         }
