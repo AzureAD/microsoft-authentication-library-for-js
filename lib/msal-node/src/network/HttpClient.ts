@@ -3,15 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, NetworkRequestOptions, NetworkResponse } from '@azure/msal-common';
+import {
+    INetworkModule,
+    NetworkRequestOptions,
+    NetworkResponse,
+} from '@azure/msal-common';
 import { HttpMethod } from './../utils/Constants';
-import axios, {AxiosRequestConfig} from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 /**
  * This class implements the API for network requests.
  */
 export class HttpClient implements INetworkModule {
-
     constructor() {
         axios.defaults.validateStatus = () => true;
     }
@@ -25,17 +28,17 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-     const request: AxiosRequestConfig = {
-         method: HttpMethod.GET,
-         url: url,
-         headers: options && options.headers,
+        const request: AxiosRequestConfig = {
+            method: HttpMethod.GET,
+            url: url,
+            headers: options && options.headers,
         };
 
         const response = await axios(request);
         return {
             headers: response.headers,
             body: response.data as T,
-            status: response.status
+            status: response.status,
         };
     }
 
@@ -59,7 +62,7 @@ export class HttpClient implements INetworkModule {
         return {
             headers: response.headers,
             body: response.data as T,
-            status: response.status
+            status: response.status,
         };
     }
 }

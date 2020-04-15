@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest } from "@azure/msal-common";
-import { ClientConfiguration} from '../config/ClientConfiguration';
+import { DeviceCodeClient, DeviceCodeRequest } from '@azure/msal-common';
+import { ClientConfiguration } from '../config/ClientConfiguration';
 import { ClientApplication } from './ClientApplication';
 
 /**
@@ -12,7 +12,6 @@ import { ClientApplication } from './ClientApplication';
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
  */
 export class PublicClientApplication extends ClientApplication {
-
     /**
      * @constructor
      * Constructor for the PublicClientApplication
@@ -46,9 +45,12 @@ export class PublicClientApplication extends ClientApplication {
      * until the end-user completes input of credentials.
      * @param request
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string>{
-
-        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(this.buildOauthClientConfiguration());
+    public async acquireTokenByDeviceCode(
+        request: DeviceCodeRequest
+    ): Promise<string> {
+        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(
+            this.buildOauthClientConfiguration()
+        );
         return deviceCodeClient.acquireToken(request);
     }
 }

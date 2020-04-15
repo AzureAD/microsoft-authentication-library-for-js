@@ -43,10 +43,10 @@ export const CACHE = {
  * Constants for headers
  */
 export const Header = {
-    MSAL_SKU_KEY: "x-client-SKU",
-    MSAL_SKU_VALUE: "MSAL.node",
-    MSAL_VERSION: "x-client-VER",
-    CPU: "x-client-CPU",
-    OS: "x-client-OS"
+    MSAL_SKU_KEY: 'x-client-SKU',
+    MSAL_SKU_VALUE: 'MSAL.node',
+    MSAL_VERSION: 'x-client-VER',
+    CPU: 'x-client-CPU',
+    OS: 'x-client-OS',
     // TODO will also add appName and appVersion here
-}
+};
