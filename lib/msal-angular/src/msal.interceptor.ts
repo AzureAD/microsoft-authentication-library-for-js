@@ -33,8 +33,8 @@ export class MsalInterceptor implements HttpInterceptor {
         return from(
             this.auth.acquireTokenSilent({ scopes })
                 .then((response: AuthResponse) => {
-                    accessToken = response.accessToken;
-                    const authHeader = `Bearer ${response.accessToken}`;
+                    accessToken = response.idToken.rawIdToken;
+                    const authHeader = `Bearer ${accessToken}`;
                     return req.clone({
                         setHeaders: {
                             Authorization: authHeader,
