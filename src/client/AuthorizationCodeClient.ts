@@ -15,7 +15,9 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { NetworkResponse }  from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from '../response/AuthenticationResult';
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { CacheInMemObjects } from "../unifiedCache/serialize/CacheInterface";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -24,10 +26,19 @@ export class AuthorizationCodeClient extends BaseClient {
 
     // config
     private clientConfig: Configuration;
+    private uCacheManager: UnifiedCacheManager;
 
-    constructor(configuration: Configuration) {
+    constructor(configuration: Configuration, inMemCache?: CacheInMemObjects) {
         super(configuration);
         this.clientConfig = configuration;
+        this.uCacheManager = new UnifiedCacheManager(inMemCache);
+    }
+
+    /**
+     * TODO: change up comments Send up the data
+     */
+    getCacheInMemoryCache() {
+        return this.uCacheManager.inMemoryCache;
     }
 
     /**
@@ -54,18 +65,22 @@ export class AuthorizationCodeClient extends BaseClient {
     async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
 
         this.logger.info("in acquireToken call");
+
         const authority: Authority = await this.createAuthority(request && request.authority);
         const response = await this.executeTokenRequest(authority, request);
 
         const responseHandler = new ResponseHandler(
             this.clientConfig.authOptions.clientId,
             this.cacheStorage,
+            this.uCacheManager,
             this.cryptoUtils,
             this.logger
         );
 
         responseHandler.validateServerAuthorizationTokenResponse(response.body);
-        return responseHandler.generateAuthenticationResult(response.body, authority);
+        const authenticationResult = responseHandler.generateAuthenticationResult(response.body, authority);
+
+        return authenticationResult;
     }
 
     /**

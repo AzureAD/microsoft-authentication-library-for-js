@@ -28,7 +28,9 @@ export class TokenCacheGenerator {
         const currentTime = date.getMilliseconds() / 1000;
         atEntity.cachedAt = currentTime.toString();
 
-        // TODO: Crosscheck the exact conversion
+        // TODO: Crosscheck the exact conversion UTC
+        // Token expiry time. 
+        // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
         atEntity.expiresOn = authenticationResult.expiresOn.getMilliseconds().toString();
         atEntity.extendedExpiresOn = authenticationResult.extExpiresOn.getMilliseconds().toString();
 

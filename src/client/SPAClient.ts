@@ -115,7 +115,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Update required cache entries for request.
-            this.cacheManager.updateCacheEntries(requestParameters, request.account);
+            this.spaCacheManager.updateCacheEntries(requestParameters, request.account);
 
             // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer.
             requestParameters.populateQueryParams(adalIdToken);
@@ -137,7 +137,7 @@ export class SPAClient extends BaseClient {
             return urlNavigate;
         } catch (e) {
             // Reset cache items before re-throwing.
-            this.cacheManager.resetTempCacheItems(requestParameters && requestParameters.state);
+            this.spaCacheManager.resetTempCacheItems(requestParameters && requestParameters.state);
             throw e;
         }
     }
@@ -185,7 +185,7 @@ export class SPAClient extends BaseClient {
             return await this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.
-            this.cacheManager.resetTempCacheItems(codeResponse && codeResponse.userRequestState);
+            this.spaCacheManager.resetTempCacheItems(codeResponse && codeResponse.userRequestState);
             this.account = null;
             throw e;
         }
@@ -270,7 +270,7 @@ export class SPAClient extends BaseClient {
             }
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.
-            this.cacheManager.resetTempCacheItems();
+            this.spaCacheManager.resetTempCacheItems();
             this.account = null;
             throw e;
         }
@@ -288,7 +288,7 @@ export class SPAClient extends BaseClient {
         // Check for homeAccountIdentifier. Do not send anything if it doesn't exist.
         const homeAccountIdentifier = currentAccount ? currentAccount.homeAccountIdentifier : "";
         // Remove all pertinent access tokens.
-        this.cacheManager.removeAllAccessTokens(this.clientConfig.auth.clientId, authorityUri, "", homeAccountIdentifier);
+        this.spaCacheManager.removeAllAccessTokens(this.clientConfig.auth.clientId, authorityUri, "", homeAccountIdentifier);
         // Clear remaining cache items.
         this.cacheStorage.clear();
         // Clear current account.
@@ -325,7 +325,7 @@ export class SPAClient extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
-        const spaResponseHandler = new SPAResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        const spaResponseHandler = new SPAResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.spaCacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -342,7 +342,7 @@ export class SPAClient extends BaseClient {
      */
     public cancelRequest(): void {
         const cachedState = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
-        this.cacheManager.resetTempCacheItems(cachedState || "");
+        this.spaCacheManager.resetTempCacheItems(cachedState || "");
     }
 
     /**
@@ -356,7 +356,7 @@ export class SPAClient extends BaseClient {
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
             // Get cached authority and use if no authority is cached with request.
             if (StringUtils.isEmpty(parsedRequest.authority)) {
-                const authorityKey: string = this.cacheManager.generateAuthorityKey(state);
+                const authorityKey: string = this.spaCacheManager.generateAuthorityKey(state);
                 const cachedAuthority: string = this.cacheStorage.getItem(authorityKey);
                 parsedRequest.authority = cachedAuthority;
             }
@@ -375,7 +375,7 @@ export class SPAClient extends BaseClient {
      */
     private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): AccessTokenCacheItem {
         // Get all access tokens with matching authority, resource id and home account ID
-        const tokenCacheItems: Array<AccessTokenCacheItem> = this.cacheManager.getAllAccessTokens(this.clientConfig.auth.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
+        const tokenCacheItems: Array<AccessTokenCacheItem> = this.spaCacheManager.getAllAccessTokens(this.clientConfig.auth.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
         if (tokenCacheItems.length === 0) {
             throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
         }
@@ -415,7 +415,7 @@ export class SPAClient extends BaseClient {
         );
 
         // Create response handler
-        const spaResponseHandler = new SPAResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        const spaResponseHandler = new SPAResponseHandler(this.clientConfig.auth.clientId, this.cacheStorage, this.spaCacheManager, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
         spaResponseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters

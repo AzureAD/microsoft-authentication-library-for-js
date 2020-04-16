@@ -18,3 +18,5 @@ export type IdTokenCache = { [key: string]: IdTokenEntity };
 export type RefreshTokenCache = { [key: string]: RefreshTokenEntity };
 export type AccountCache = { [key: string]: AccountEntity };
 export type AppMetadataCache = { [key: string]: AppMetadataEntity };
+
+export type CacheEntity = AccessTokenCache | IdTokenCache | RefreshTokenCache | AccessTokenCache | AppMetadataCache;

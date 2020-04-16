@@ -12,7 +12,7 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { IdToken } from "../account/IdToken";
-import { CacheManager } from "../unifiedCache/CacheManager";
+import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { TokenCacheGenerator } from "../unifiedCache/generator/TokenCacheGenerator";
@@ -27,21 +27,16 @@ import { AuthorityType } from "../authority/AuthorityType";
 export class ResponseHandler {
     private clientId: string;
     private cacheStorage: ICacheStorage;
-    private cacheManager: CacheManager;
+    private uCacheManager: UnifiedCacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(
-        clientId: string,
-        cacheStorage: ICacheStorage,
-        cryptoObj: ICrypto,
-        logger: Logger
-    ) {
+    constructor(clientId: string, cacheStorage: ICacheStorage, unifiedCacheManager: UnifiedCacheManager, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
-        this.cacheManager = new CacheManager({});
+        this.uCacheManager = unifiedCacheManager;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
     }
@@ -103,24 +98,11 @@ export class ResponseHandler {
      * @param resource
      * @param state
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, state?: string): AuthenticationResult {
-        let authenticationResult: AuthenticationResult = {
-            uniqueId: "",
-            tenantId: "",
-            tokenType: "",
-            idToken: null,
-            idTokenClaims: null,
-            accessToken: "",
-            refreshToken: "",
-            scopes: [],
-            expiresOn: null,
-            familyId: null
-        };
-
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
         // Retrieve current account if in Cache
         // TODO: add this once the req for cache look up for tokens is confirmed
 
-        authenticationResult = { ...this.processTokenResponse(authenticationResult, serverTokenResponse, authority) };
+        const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
 
         const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         this.addCredentialsToCache(authenticationResult, environment);
@@ -133,15 +115,22 @@ export class ResponseHandler {
      * @param authenticationResult
      * @param idTokenString(raw idToken in the server response)
      */
-    processTokenResponse(authenticationResult: AuthenticationResult, serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+    processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+        const authenticationResult: AuthenticationResult = {
+            uniqueId: "",
+            tenantId: "",
+            tokenType: "",
+            idToken: null,
+            idTokenClaims: null,
+            accessToken: "",
+            refreshToken: "",
+            scopes: [],
+            expiresOn: null,
+            familyId: null
+        };
 
         // IdToken
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
-        if (!authenticationResult) {
-            return null;
-        } else if (!idTokenObj) {
-            return authenticationResult;
-        }
 
         // if account is not in cache, append it to the cache
         this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
@@ -182,11 +171,11 @@ export class ResponseHandler {
     addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority) {
         const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         let accountEntity: AccountEntity;
-        const cachedAccount = this.cacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
+        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
         if (!cachedAccount) {
             accountEntity = this.generateAccountEntity(serverTokenResponse, idToken, authority);
+            this.uCacheManager.addAccountEntity(accountEntity);
         }
-        this.cacheManager.addAccountEntity(accountEntity);
     }
 
     /**
@@ -222,6 +211,6 @@ export class ResponseHandler {
         const accessTokenEntity = TokenCacheGenerator.createAccessTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
         const refreshTokenEntity = TokenCacheGenerator.createRefreshTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
 
-        this.cacheManager.addCredentialCache(idTokenEntity, accessTokenEntity, refreshTokenEntity);
+        this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
     }
 }

@@ -6,12 +6,28 @@
 import { Deserializer } from "./Deserializer";
 import { AccessTokenCache, IdTokenCache, RefreshTokenCache, AccountCache, AppMetadataCache, StringDict } from "../../utils/MsalTypes";
 
-export type JSONContent = {
+export type CacheContent = {
     accessTokens: StringDict;
     idTokens: StringDict;
     refreshTokens: StringDict;
     accounts: StringDict;
     appMetadata: StringDict;
+};
+
+export type CacheJson = {
+    AccessToken?: StringDict;
+    IdToken?: StringDict;
+    RefreshToken?: StringDict;
+    Account?: StringDict;
+    AppMetadata?: StringDict;
+};
+
+export type CacheInMemObjects = {
+    accessTokens: AccessTokenCache;
+    idTokens: IdTokenCache;
+    refreshTokens: RefreshTokenCache;
+    accounts: AccountCache;
+    appMetadata: AppMetadataCache;
 };
 
 export class CacheInterface {
@@ -20,7 +36,7 @@ export class CacheInterface {
      * serialize the JSON blob
      * @param data
      */
-    static serializeJSONBlob(data: string): string {
+    static serializeJSONBlob(data: CacheJson): string {
         return JSON.stringify(data);
     }
 
@@ -28,17 +44,17 @@ export class CacheInterface {
      * Parse the JSON blob in memory and deserialize the content
      * @param cachedJson
      */
-    static deserializeJSONBlob(parsedJSON: any): JSONContent {
-        const jsonContent: JSONContent = {
+    static deserializeJSONBlob(jsonFile: string): CacheContent {
+        const parsedJSON: CacheJson = JSON.parse(jsonFile);
+
+        const cache: CacheContent = {
             accessTokens: parsedJSON.AccessToken ? parsedJSON.AccessToken : {},
             idTokens: parsedJSON.IdToken ? parsedJSON.IdToken : {},
-            refreshTokens: parsedJSON.RefreshToken ? parsedJSON.RefreshToken : {},
+            refreshTokens: parsedJSON.RefreshToken ? parsedJSON.RefreshToken: {},
             accounts: parsedJSON.Account ? parsedJSON.Account : {},
-            appMetadata: parsedJSON.AppMetadata ? parsedJSON.AppMetadata : {}
-
+            appMetadata: parsedJSON.AppMetadata ? parsedJSON.AppMetadata : {},
         };
-
-        return jsonContent;
+        return cache;
     }
 
     /**
@@ -80,4 +96,5 @@ export class CacheInterface {
     static generateAppMetadataCache(jsonAmdt: StringDict): AppMetadataCache {
         return Deserializer.deserializeAppMetadata(jsonAmdt);
     }
+
 }
