@@ -1,4 +1,3 @@
-
 # Microsoft Authentication Library for JavaScript (MSAL.js)
 
 The Microsoft Authentication Library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
@@ -7,19 +6,21 @@ The Microsoft Authentication Library for JavaScript enables client-side JavaScri
 
 ### Core and wrapper libaries
 
-The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective Readme.md.
+The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
 
-- [Microsoft Authentication Library for JavaScript](lib/msal-core/README.md): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
+- [Microsoft Authentication Library for JavaScript v2.x (Preview)](lib/msal-browser/): A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Authorization Code Flow with PKCE](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
-- [Microsoft Authentication Library for Angular](lib/msal-angular/README.md) :
-A wrapper of the core library for apps using Angular framework.
+- [Microsoft Authentication Library for JavaScript v1.x](lib/msal-core/): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
-- [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/README.md) :
-A wrapper of the core library for apps using AngularJS framework.
+- [Microsoft Authentication Library for Angular](lib/msal-angular/) :
+A wrapper of the core 1.x library for apps using Angular framework.
+
+- [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/) :
+A wrapper of the core 1.x library for apps using AngularJS framework.
 
 ### Samples
 
-The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. A complete list of samples can be found [on our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
+The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. A complete list of samples can be found in the respective package folders or [on our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
 
 ## Package versioning
 
