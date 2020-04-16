@@ -1,6 +1,6 @@
 // App Auth Modules and Configuration
 export { SPAClient } from "./client/SPAClient";
-export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
+export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { SPAConfiguration, SPAAuthOptions } from "./config/SPAConfiguration";
 export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
@@ -13,6 +13,9 @@ export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
+export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
+export { CacheInterface, CacheJson, CacheContent, CacheInMemObjects } from "./unifiedCache/serialize/CacheInterface";
+export { Serializer } from "./unifiedCache/serialize/Serializer";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";
@@ -39,5 +42,6 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export { Constants, TemporaryCacheKeys, PersistentCacheKeys, CacheTypes } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
+export { StringDict, CacheEntity } from "./utils/MsalTypes";

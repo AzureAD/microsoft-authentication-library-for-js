@@ -28,7 +28,7 @@ class TestClient extends BaseClient {
     }
 
     getCacheStorage(){
-        return this.cacheManager;
+        return this.spaCacheManager;
     }
 
     getNetworkClient(){
@@ -36,7 +36,7 @@ class TestClient extends BaseClient {
     }
 
     getCacheManger(){
-        return this.cacheManager;
+        return this.spaCacheManager;
     }
 
     getAccount(){

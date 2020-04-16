@@ -17,6 +17,7 @@ export class CacheHelper {
         }
         return obj;
     }
+
     /**
      * helper function to swap keys and objects
      * @param cacheMap

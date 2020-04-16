@@ -8,17 +8,30 @@ import {
     AuthorizationCodeUrlRequest,
     AuthorizationCodeRequest,
     Configuration,
+    AuthenticationResult,
+    CacheInMemObjects,
 } from '@azure/msal-common';
 import {
     ClientConfiguration,
     buildConfiguration,
 } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
-import { Storage } from '../cache/Storage';
+import { NodeStorage } from '../cache/NodeStorage';
+import { NodeCacheManager } from '../cache/NodeCacheManager';
 
 export abstract class ClientApplication {
     // Input configuration by developer/user
     protected config: ClientConfiguration;
+    protected nodeStorage: NodeStorage;
+    protected nodeCacheManager: NodeCacheManager;
+    protected cachePath: string;
+    protected memCache: CacheInMemObjects = {
+        accessTokens: {},
+        idTokens: {},
+        refreshTokens: {},
+        accounts: {},
+        appMetadata: {},
+    };
 
     /**
      * @constructor
@@ -43,6 +56,31 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: ClientConfiguration) {
         this.config = buildConfiguration(configuration);
+        this.nodeStorage = new NodeStorage(this.config.cache!);
+
+        this.cachePath = this.nodeStorage.getCachePath();
+        this.nodeCacheManager = new NodeCacheManager(this.cachePath);
+
+        // TODO: Move this to the sample soon; read the cache from file
+        this.initializePCAWithCache(this.cachePath);
+        this.memCache = this.nodeCacheManager.inMemoryCache;
+    }
+
+    /**
+     * intialize the client application with external cache
+     * @param cachePath
+     */
+    initializePCAWithCache(cachePath: string): void {
+        const cacheContent = this.nodeCacheManager.readFromFile(cachePath);
+        this.nodeCacheManager.initializeCacheFromJson(cacheContent);
+    }
+
+    /**
+     * Write  the final JSON in memory cache to external cache
+     */
+    writeFinalJson(cachePath: string, cacheInMem: CacheInMemObjects) {
+        const cacheJson = this.nodeCacheManager.getFinalJSONCache(cacheInMem);
+        this.nodeCacheManager.writeToFile(cachePath, cacheJson);
     }
 
     /**
@@ -76,11 +114,20 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
-    ): Promise<string> {
+    ): Promise<AuthenticationResult> {
         const authorizationCodeClient = new AuthorizationCodeClient(
-            this.buildOauthClientConfiguration()
+            this.buildOauthClientConfiguration(),
+            this.memCache
         );
-        return authorizationCodeClient.acquireToken(request);
+        const result = await authorizationCodeClient.acquireToken(request);
+
+        // TODO: move this out of acquireTokenByCode
+        this.writeFinalJson(
+            this.cachePath,
+            authorizationCodeClient.getCacheInMemoryCache()
+        );
+
+        return result;
     }
 
     protected buildOauthClientConfiguration(): Configuration {
@@ -95,10 +142,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(
-                this.config.auth!.clientId,
-                this.config.cache!
-            ),
+            storageInterface: this.nodeStorage,
         };
     }
 }

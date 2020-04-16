@@ -4,7 +4,8 @@ export {
     ClientConfiguration,
     buildConfiguration,
 } from './config/ClientConfiguration';
-export { Storage } from './cache/Storage';
+export { NodeStorage } from './cache/NodeStorage';
+export { NodeCacheManager } from './cache/NodeCacheManager';
 
 // crypto
 export { CryptoProvider } from './crypto/CryptoProvider';

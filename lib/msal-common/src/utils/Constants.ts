@@ -251,5 +251,19 @@ export enum CacheEntity {
     APP_META_DATA = "AppMetaData"
 }
 
+/**
+ * Combine all cache types
+ */
+export enum CacheTypes {
+    ACCESS_TOKEN,
+    ID_TOKEN,
+    REFRESH_TOKEN,
+    ACCOUNT,
+    APP_META_DATA
+};
+
+/**
+ * More Cache related constants
+ */
 export const APP_META_DATA = "appmetadata";
 export const ClientInfo = "client_info";

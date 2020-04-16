@@ -11,10 +11,11 @@ import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
-import {AADServerParamKeys, Constants, HeaderNames} from "../utils/Constants";
-import {ClientAuthError} from "../error/ClientAuthError";
-import {NetworkResponse} from "../network/NetworkManager";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
+import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -37,7 +38,7 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Helper API object for running cache functions
-    protected cacheManager: CacheHelpers;
+    protected spaCacheManager: CacheHelpers;
 
     // Account object
     protected account: Account;
@@ -59,7 +60,7 @@ export abstract class BaseClient {
         this.cacheStorage = this.config.storageInterface;
 
         // Initialize storage helper object
-        this.cacheManager = new CacheHelpers(this.cacheStorage);
+        this.spaCacheManager = new CacheHelpers(this.cacheStorage);
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;

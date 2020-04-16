@@ -20,9 +20,10 @@ const publicClientConfig = {
         redirectUri: "http://localhost:3000/redirect",
     },
     cache: {
-        cacheLocation: "fileCache", // This configures where your cache will be stored
-        storeAuthStateInCookie: false // Set this to "true" if you are having issues on IE11 or Edge
-    }
+        cacheLocation:
+            "/Users/sameeragajjarapu/Documents/cache.json", // This configures where your cache will be stored
+        storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+    },
 };
 
 const pca = new msal.PublicClientApplication(publicClientConfig);

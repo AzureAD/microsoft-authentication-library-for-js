@@ -1,15 +1,16 @@
 import { expect } from "chai";
-import { CacheManager, CacheContent } from "../../src/unifiedCache/CacheManager";
+import { UnifiedCacheManager } from "../../src/unifiedCache/UnifiedCacheManager";
+import { CacheContent } from "../../src/unifiedCache/serialize/CacheInterface";
 import { mockCache } from "./entities/cacheConstants";
 import { CacheEntity } from "../../src/utils/Constants";
 
 const cachedJson = require("./serialize/cache.json");
 
-describe("CacheManager test cases", () => {
+describe("UnifiedCacheManager test cases", () => {
 
-    let cacheManager = new CacheManager(cachedJson);
+    let unifiedCacheManager = new UnifiedCacheManager(cachedJson);
 
-    it.only("initCache", () => {
+    it("initCache", () => {
 
         // create mock AccessToken
         const atOne = mockCache.createMockATOne();
@@ -17,12 +18,12 @@ describe("CacheManager test cases", () => {
         const atTwo = mockCache.createMockATTwo();
         const atTwoKey = atTwo.generateAccessTokenEntityKey();
 
-        expect(Object.keys(cacheManager.cacheContent.accessTokens).length).to.equal(2);
-        expect(cacheManager.cacheContent.accessTokens[atOneKey]).to.eql(atOne);
-        expect(cacheManager.cacheContent.accessTokens[atTwoKey]).to.eql(atTwo);
+        expect(Object.keys(unifiedCacheManager.inMemoryCache.accessTokens).length).to.equal(2);
+        expect(unifiedCacheManager.inMemoryCache.accessTokens[atOneKey]).to.eql(atOne);
+        expect(unifiedCacheManager.inMemoryCache.accessTokens[atTwoKey]).to.eql(atTwo);
     });
 
-    it.only("getAccount", () => {
+    it("getAccount", () => {
 
         // create mock Account
         const acc = mockCache.createMockAcc();
@@ -30,10 +31,10 @@ describe("CacheManager test cases", () => {
         const environment = "login.microsoftonline.com";
         const realm = "microsoft";
 
-        const genAcc = cacheManager.getAccount(homeAccountId, environment, realm);
+        const genAcc = unifiedCacheManager.getAccount(homeAccountId, environment, realm);
         expect(acc).to.eql(genAcc);
 
-        const randomAcc = cacheManager.getAccount("", "", "");
+        const randomAcc = unifiedCacheManager.getAccount("", "", "");
         expect(randomAcc).to.be.undefined;
     });
 
