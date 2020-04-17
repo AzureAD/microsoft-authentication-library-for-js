@@ -23,7 +23,7 @@ export class AccountCacheMaps {
         name: "name",
         clientInfo: "client_info",
         lastModificationTime: "last_modification_time",
-        lastModificationApp: "last_modification_app"
+        lastModificationApp: "last_modification_app",
     };
 
     static fromCacheMap = CacheHelper.swap(AccountCacheMaps.toCacheMap);
@@ -39,7 +39,7 @@ export class IdTokenCacheMaps {
         credentialType: "credential_type",
         clientId: "client_id",
         secret: "secret",
-        realm: "realm"
+        realm: "realm",
     };
 
     static fromCacheMap = CacheHelper.swap(IdTokenCacheMaps.toCacheMap);
@@ -59,7 +59,7 @@ export class AccessTokenCacheMaps {
         extendedExpiresOn: "extended_expires_on",
         refreshOn: "refresh_on",
         keyId: "key_id",
-        tokenType: "token_type"
+        tokenType: "token_type",
     };
 
     static fromCacheMap = CacheHelper.swap(AccessTokenCacheMaps.toCacheMap);
@@ -74,7 +74,7 @@ export class RefreshTokenCacheMaps {
         environment: "environment",
         credentialType: "credential_type",
         clientId: "client_id",
-        secret: "secret"
+        secret: "secret",
     };
 
     static fromCacheMap = CacheHelper.swap(RefreshTokenCacheMaps.toCacheMap);

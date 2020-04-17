@@ -1,41 +1,16 @@
 import { expect } from "chai";
-import { CacheInterface } from "../../../src/unifiedCache/serialize/CacheInterface";
 import { mockCache } from "../entities/cacheConstants";
 import { Serializer } from "../../../src/unifiedCache/serialize/Serializer";
+import { Deserializer } from "../../../src/unifiedCache/serialize/Deserializer";
 
 const cachedJson = require("./cache.json");
 
 describe("Serializer test cases", () => {
-    const jsonContent = CacheInterface.deserializeJSONBlob(cachedJson);
+    const jsonContent = Deserializer.deserializeJSONBlob(cachedJson);
 
-    it("serializeAccessTokenEntity", () => {
-        // create mock AccessToken
-        const at = mockCache.createMockATOne();
-        const atKey = at.generateAccessTokenEntityKey();
-
-        // serialize the mock AccessToken and Test equivalency with the cache.json provided
-        const serializedAt = Serializer.serializeAccessTokenEntity(at);
-        expect(serializedAt[atKey]).to.eql(jsonContent.accessTokens[atKey]);
-    });
-
-    it("serializeIdTokenCacheEntity", () => {
-        // create mock IdToken
-        const idt = mockCache.createMockIdT();
-        const idTKey = idt.generateIdTokenEntityKey();
-
-        // serialize the mock IdToken and Test equivalency with the cache.json provided
-        const serializedIdT = Serializer.serializeIdTokenCacheEntity(idt);
-        expect(serializedIdT[idTKey]).to.eql(jsonContent.idTokens[idTKey]);
-    });
-
-    it("serializeRefreshTokenCacheEntity", () => {
-        // create mock Refresh Token
-        const rt = mockCache.createMockRT();
-        const rtKey = rt.generateRefreshTokenEntityKey();
-
-        // serialize the mock RefreshToken and Test equivalency with the cache.json provided
-        const serializedRT = Serializer.serializeRefreshTokenCacheEntity(rt);
-        expect(serializedRT[rtKey]).to.eql(jsonContent.refreshTokens[rtKey]);
+    it("serializeJSONBlob", () => {
+        const json = Serializer.serializeJSONBlob(cachedJson);
+        expect(JSON.parse(json)).to.eql(cachedJson);
     });
 
     it("serializeAccountCacheEntity", () => {
@@ -44,8 +19,38 @@ describe("Serializer test cases", () => {
         const accKey = acc.generateAccountEntityKey();
 
         // serialize the mock Account and Test equivalency with the cache.json provided
-        const serializedAcc = Serializer.serializeAccountCacheEntity(acc);
-        expect(serializedAcc[accKey]).to.eql(jsonContent.accounts[accKey]);
+        const serializedAcc = Serializer.serializeAccounts({acc});
+        expect(serializedAcc[accKey]).to.eql(jsonContent.Account[accKey]);
+    });
+
+    it("serializeIdTokenCacheEntity", () => {
+        // create mock IdToken
+        const idt = mockCache.createMockIdT();
+        const idTKey = idt.generateIdTokenEntityKey();
+
+        // serialize the mock IdToken and Test equivalency with the cache.json provided
+        const serializedIdT = Serializer.serializeIdTokens({ idt });
+        expect(serializedIdT[idTKey]).to.eql(jsonContent.IdToken[idTKey]);
+    });
+
+    it("serializeAccessTokenEntity", () => {
+        // create mock AccessToken
+        const at = mockCache.createMockATOne();
+        const atKey = at.generateAccessTokenEntityKey();
+
+        // serialize the mock AccessToken and Test equivalency with the cache.json provided
+        const serializedAt = Serializer.serializeAccessTokens({at});
+        expect(serializedAt[atKey]).to.eql(jsonContent.AccessToken[atKey]);
+    });
+
+    it("serializeRefreshTokenCacheEntity", () => {
+        // create mock Refresh Token
+        const rt = mockCache.createMockRT();
+        const rtKey = rt.generateRefreshTokenEntityKey();
+
+        // serialize the mock RefreshToken and Test equivalency with the cache.json provided
+        const serializedRT = Serializer.serializeRefreshTokens({ rt });
+        expect(serializedRT[rtKey]).to.eql(jsonContent.RefreshToken[rtKey]);
     });
 
     it("serializeAppMetadataCacheEntity", () => {
@@ -54,9 +59,8 @@ describe("Serializer test cases", () => {
         const amdtKey = amdt.generateAppMetaDataEntityKey();
 
         // serialize the mock AppMetadata and Test equivalency with the cache.json provided
-        const serializedAmdt = Serializer.serializeAppMetadataCacheEntity(amdt);
-        expect(serializedAmdt[amdtKey]).to.eql(
-            jsonContent.appMetadata[amdtKey]
-        );
+        const serializedAmdt = Serializer.serializeAppMetadata({amdt});
+        expect(serializedAmdt[amdtKey]).to.eql(jsonContent.AppMetadata[amdtKey]);
     });
+
 });
