@@ -57,10 +57,10 @@ function acquireToken(req, res){
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log(response);
+        console.log("\nResponse: \n:", response);
+        pca.setCache();
         res.send(200);
     }).catch((error) => {
         res.send(500);
-        console.log(JSON.stringify(error.response));
     })
 }

@@ -40,6 +40,9 @@ export abstract class BaseClient {
     // Helper API object for running cache functions
     protected spaCacheManager: CacheHelpers;
 
+    // Helper API object for serialized cache operations
+    protected unifiedCacheManager: UnifiedCacheManager;
+
     // Account object
     protected account: Account;
 
@@ -61,6 +64,9 @@ export abstract class BaseClient {
 
         // Initialize storage helper object
         this.spaCacheManager = new CacheHelpers(this.cacheStorage);
+
+        // Initialize serialized cache manager
+        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;

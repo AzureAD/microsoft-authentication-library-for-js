@@ -9,7 +9,6 @@ import {
     AuthorizationCodeRequest,
     Configuration,
     AuthenticationResult,
-    CacheInMemObjects,
 } from '@azure/msal-common';
 import {
     ClientConfiguration,
@@ -25,13 +24,6 @@ export abstract class ClientApplication {
     protected nodeStorage: NodeStorage;
     protected nodeCacheManager: NodeCacheManager;
     protected cachePath: string;
-    protected memCache: CacheInMemObjects = {
-        accessTokens: {},
-        idTokens: {},
-        refreshTokens: {},
-        accounts: {},
-        appMetadata: {},
-    };
 
     /**
      * @constructor
@@ -57,30 +49,6 @@ export abstract class ClientApplication {
     protected constructor(configuration: ClientConfiguration) {
         this.config = buildConfiguration(configuration);
         this.nodeStorage = new NodeStorage(this.config.cache!);
-
-        this.cachePath = this.nodeStorage.getCachePath();
-        this.nodeCacheManager = new NodeCacheManager(this.cachePath);
-
-        // TODO: Move this to the sample soon; read the cache from file
-        this.initializePCAWithCache(this.cachePath);
-        this.memCache = this.nodeCacheManager.inMemoryCache;
-    }
-
-    /**
-     * intialize the client application with external cache
-     * @param cachePath
-     */
-    initializePCAWithCache(cachePath: string): void {
-        const cacheContent = this.nodeCacheManager.readFromFile(cachePath);
-        this.nodeCacheManager.initializeCacheFromJson(cacheContent);
-    }
-
-    /**
-     * Write  the final JSON in memory cache to external cache
-     */
-    writeFinalJson(cachePath: string, cacheInMem: CacheInMemObjects) {
-        const cacheJson = this.nodeCacheManager.getFinalJSONCache(cacheInMem);
-        this.nodeCacheManager.writeToFile(cachePath, cacheJson);
     }
 
     /**
@@ -116,18 +84,23 @@ export abstract class ClientApplication {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
         const authorizationCodeClient = new AuthorizationCodeClient(
-            this.buildOauthClientConfiguration(),
-            this.memCache
+            this.buildOauthClientConfiguration()
         );
-        const result = await authorizationCodeClient.acquireToken(request);
+        return authorizationCodeClient.acquireToken(request);
+    }
 
-        // TODO: move this out of acquireTokenByCode
-        this.writeFinalJson(
-            this.cachePath,
-            authorizationCodeClient.getCacheInMemoryCache()
-        );
+    /**
+     * API to retrieve application cache
+     */
+    public getCache(): string {
+        return this.nodeStorage.getSerializedCache();
+    }
 
-        return result;
+    /**
+     * API to write cache to a file
+     */
+    public setCache(): void {
+        this.nodeStorage.setSerializedCache(this.getCache());
     }
 
     protected buildOauthClientConfiguration(): Configuration {

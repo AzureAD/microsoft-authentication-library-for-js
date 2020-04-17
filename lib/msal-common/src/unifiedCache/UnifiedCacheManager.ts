@@ -3,27 +3,54 @@
  * Licensed under the MIT License.
  */
 
-import { CacheInterface, CacheContent, CacheInMemObjects  } from "./serialize/CacheInterface";
+import { InMemoryCache, JsonCache  } from "./utils/CacheTypes";
 import { Separators } from "../utils/Constants";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
 import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { AccountEntity } from "./entities/AccountEntity";
+import { ICacheStorage } from "../cache/ICacheStorage";
+import { Deserializer } from "./serialize/Deserializer";
+import { Serializer } from "./serialize/Serializer";
 
 export class UnifiedCacheManager {
 
     // Storage interface
-    inMemoryCache: CacheInMemObjects;
+    private inMemoryCache: InMemoryCache;
+    private cacheStorage: ICacheStorage;
 
-    constructor(inMemCache: CacheInMemObjects) {
-        this.inMemoryCache = inMemCache;
+    constructor(cacheImpl: ICacheStorage) {
+        this.cacheStorage = cacheImpl;
+        this.inMemoryCache = this.generateInMemoryCache(this.cacheStorage.getSerializedCache());
     }
 
     /**
-     * set the memory
+     * set the cache memory
      */
-    setCacheInMemory(cache: CacheInMemObjects): void {
+    setCacheInMemory(cache: InMemoryCache): void {
         this.inMemoryCache = cache;
+    }
+
+    /**
+     * get the cache in memory
+     */
+    getCacheInMemory(): InMemoryCache {
+        return this.inMemoryCache;
+    }
+
+    /**
+     * Initialize in memory cache from an exisiting cache vault
+     */
+    generateInMemoryCache(cache: string): InMemoryCache {
+        return Deserializer.deserializeAllCache(Deserializer.deserializeJSONBlob(cache));
+    }
+
+    /**
+     * retrieves the final JSON
+     * TODO: move this to msal-common
+     */
+    generateJsonCache(inMemoryCache: InMemoryCache) {
+        return Serializer.serializeAllCache(inMemoryCache);
     }
 
     /**

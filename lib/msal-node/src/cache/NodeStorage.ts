@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage, CacheInterface, CacheTypes } from '@azure/msal-common';
+import { ICacheStorage } from '@azure/msal-common';
 import { NodeCacheManager } from './NodeCacheManager';
 import { CacheOptions } from '../config/ClientConfiguration';
 
@@ -16,12 +16,12 @@ export class NodeStorage implements ICacheStorage {
     // Cache configuration, either set by user or default values.
     private cacheConfig: CacheOptions;
     private cachePath: string;
-    nodeCacheManager: NodeCacheManager;
+    private nodeCacheManager: NodeCacheManager;
 
     constructor(cacheConfig: CacheOptions) {
         this.cacheConfig = cacheConfig;
         this.cachePath = this.cacheConfig.cacheLocation!;
-        this.nodeCacheManager = new NodeCacheManager(this.cachePath);
+        this.nodeCacheManager = new NodeCacheManager();
     }
 
     /**
@@ -31,35 +31,32 @@ export class NodeStorage implements ICacheStorage {
         return this.cachePath;
     }
 
+    /**
+     * read JSON formatted cache from disk
+     */
+    getSerializedCache(): string {
+        return this.nodeCacheManager.readFromFile(this.cachePath);
+    }
+
+    /**
+     * write the JSON formatted cache to disk
+     * @param jsonCache
+     */
+    setSerializedCache(cache: string): void {
+        this.nodeCacheManager.writeToFile(this.cachePath, cache);
+    }
+
     // TODO: get rid of the switch statements after the lookup
 
     /**
      * Sets the cache item with the key and value given.
-     * Stores in cookie if storeAuthStateInCookie is set to true.
-     * This can cause cookie overflow if used incorrectly.
      * @param key
      * @param value
+     * TODO: implement after the lookup implementation
      */
-    setItem(key: string, value: string, cacheType?: CacheTypes): void {
-        const cacheItem = { [key]: value };
-        switch (cacheType) {
-            case CacheTypes.ACCESS_TOKEN:
-                CacheInterface.generateAccessTokenCache(cacheItem);
-                break;
-            case CacheTypes.ID_TOKEN:
-                CacheInterface.generateIdTokenCache(cacheItem);
-                break;
-            case CacheTypes.REFRESH_TOKEN:
-                CacheInterface.generateRefreshTokenCache(cacheItem);
-                break;
-            case CacheTypes.ACCOUNT:
-                CacheInterface.generateAccountCache(cacheItem);
-                break;
-            case CacheTypes.APP_META_DATA:
-                CacheInterface.generateAppMetadataCache(cacheItem);
-                break;
-            default:
-                return;
+    setItem(key: string, value: string): void {
+        if (key && value) {
+            return;
         }
     }
 
@@ -67,49 +64,20 @@ export class NodeStorage implements ICacheStorage {
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
+     * TODO: implement after the lookup implementation
      */
-    getItem(key: string, cacheType?: CacheTypes): any {
-        switch (cacheType) {
-            case CacheTypes.ACCESS_TOKEN:
-                return this.nodeCacheManager.inMemoryCache.accessTokens[key];
-            case CacheTypes.ID_TOKEN:
-                return this.nodeCacheManager.inMemoryCache.idTokens[key];
-            case CacheTypes.REFRESH_TOKEN:
-                return this.nodeCacheManager.inMemoryCache.refreshTokens[key];
-            case CacheTypes.ACCOUNT:
-                return this.nodeCacheManager.inMemoryCache.accounts[key];
-            case CacheTypes.APP_META_DATA:
-                return this.nodeCacheManager.inMemoryCache.appMetadata[key];
-            default:
-                return null;
-        }
+    getItem(key: string): string {
+        return key ? 'random' : 'truly random';
     }
 
     /**
      * Removes the cache item with the given key.
      * Will also clear the cookie item if storeAuthStateInCookie is set to true.
      * @param key
+     * TODO: implement after the lookup implementation
      */
-    removeItem(key: string, cacheType?: CacheTypes): void {
-        switch (cacheType) {
-            case CacheTypes.ACCESS_TOKEN:
-                delete this.nodeCacheManager.inMemoryCache.accessTokens[key];
-                return;
-            case CacheTypes.ID_TOKEN:
-                delete this.nodeCacheManager.inMemoryCache.idTokens[key];
-                return;
-            case CacheTypes.REFRESH_TOKEN:
-                delete this.nodeCacheManager.inMemoryCache.refreshTokens[key];
-                return;
-            case CacheTypes.ACCOUNT:
-                delete this.nodeCacheManager.inMemoryCache.accounts[key];
-                return;
-            case CacheTypes.APP_META_DATA:
-                delete this.nodeCacheManager.inMemoryCache.appMetadata[key];
-                return;
-            default:
-                return;
-        }
+    removeItem(key: string): void {
+        if (!key) return;
     }
 
     /**

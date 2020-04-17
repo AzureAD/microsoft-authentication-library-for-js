@@ -8,6 +8,43 @@ import { CacheHelper } from "../utils/CacheHelper";
 /**
  * Map for AccessTokenCache entity serialization and deserialization
  */
+
+/**
+ * Map for AccountCache entity serialization and deserialization
+ */
+export class AccountCacheMaps {
+    static toCacheMap = {
+        homeAccountId: "home_account_id",
+        environment: "environment",
+        realm: "realm",
+        localAccountId: "local_account_id",
+        username: "username",
+        authorityType: "authority_type",
+        name: "name",
+        clientInfo: "client_info",
+        lastModificationTime: "last_modification_time",
+        lastModificationApp: "last_modification_app"
+    };
+
+    static fromCacheMap = CacheHelper.swap(AccountCacheMaps.toCacheMap);
+}
+
+/**
+ * Map for IdTokenCache entity serialization and deserialization
+ */
+export class IdTokenCacheMaps {
+    static toCacheMap = {
+        homeAccountId: "home_account_id",
+        environment: "environment",
+        credentialType: "credential_type",
+        clientId: "client_id",
+        secret: "secret",
+        realm: "realm"
+    };
+
+    static fromCacheMap = CacheHelper.swap(IdTokenCacheMaps.toCacheMap);
+}
+
 export class AccessTokenCacheMaps {
     static toCacheMap = {
         homeAccountId: "home_account_id",
@@ -29,22 +66,6 @@ export class AccessTokenCacheMaps {
 }
 
 /**
- * Map for IdTokenCache entity serialization and deserialization
- */
-export class IdTokenCacheMaps {
-    static toCacheMap = {
-        homeAccountId: "home_account_id",
-        environment: "environment",
-        credentialType: "credential_type",
-        clientId: "client_id",
-        secret: "secret",
-        realm: "realm"
-    };
-
-    static fromCacheMap = CacheHelper.swap(IdTokenCacheMaps.toCacheMap);
-}
-
-/**
  * Map for RefreshTokenCache entity serialization and deserialization
  */
 export class RefreshTokenCacheMaps {
@@ -57,26 +78,6 @@ export class RefreshTokenCacheMaps {
     };
 
     static fromCacheMap = CacheHelper.swap(RefreshTokenCacheMaps.toCacheMap);
-}
-
-/**
- * Map for AccountCache entity serialization and deserialization
- */
-export class AccountCacheMaps {
-    static toCacheMap = {
-        homeAccountId: "home_account_id",
-        environment: "environment",
-        realm: "realm",
-        localAccountId: "local_account_id",
-        username: "username",
-        authorityType: "authority_type",
-        name: "name",
-        clientInfo: "client_info",
-        lastModificationTime: "last_modification_time",
-        lastModificationApp: "last_modification_app"
-    };
-
-    static fromCacheMap = CacheHelper.swap(AccountCacheMaps.toCacheMap);
 }
 
 /**

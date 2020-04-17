@@ -11,6 +11,26 @@ import { AuthenticationResult } from "../../response/AuthenticationResult";
 export class TokenCacheGenerator {
 
     /**
+     * Create IdTokenEntity
+     * @param homeAccountId
+     * @param authenticationResult
+     * @param clientId
+     * @param authority
+     */
+    static createIdTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): IdTokenEntity {
+        const idTokenEntity = new IdTokenEntity();
+
+        idTokenEntity.credentialType = "IdToken";
+        idTokenEntity.homeAccountId = homeAccountId;
+        idTokenEntity.environment = environment;
+        idTokenEntity.clientId = clientId;
+        idTokenEntity.secret = authenticationResult.idToken;
+        idTokenEntity.realm = authenticationResult.tenantId;
+
+        return idTokenEntity;
+    }
+
+    /**
      * Create AccessTokenEntity
      * @param homeAccountId
      * @param authenticationResult
@@ -40,26 +60,6 @@ export class TokenCacheGenerator {
         atEntity.target = authenticationResult.scopes.join(" ");
 
         return atEntity;
-    }
-
-    /**
-     * Create IdTokenEntity
-     * @param homeAccountId
-     * @param authenticationResult
-     * @param clientId
-     * @param authority
-     */
-    static createIdTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): IdTokenEntity {
-        const idTokenEntity = new IdTokenEntity();
-
-        idTokenEntity.credentialType = "IdToken";
-        idTokenEntity.homeAccountId = homeAccountId;
-        idTokenEntity.environment = environment;
-        idTokenEntity.clientId = clientId;
-        idTokenEntity.secret = authenticationResult.idToken;
-        idTokenEntity.realm = authenticationResult.tenantId;
-
-        return idTokenEntity;
     }
 
     /**
