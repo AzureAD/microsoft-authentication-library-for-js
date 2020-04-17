@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue } from "@azure/msal-common";
+import { Account, AuthorizationCodeModule, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue, ServerError } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "./Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -318,31 +318,47 @@ export class PublicClientApplication {
     // #endregion
 
     // #region Silent Flow
-
+    
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
+     * - Any browser using a form of Intelligent Tracking Prevention
+     * - If there is not an established session with the service
+     * 
+     * In these cases, the request must be done inside a popup or full frame redirect. 
+     * 
+     * For the cases where interaction is required, you cannot send a request with prompt=none.
+     * 
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as 
+     * you session on the server still exists.
+     * @param {@link AuthenticationParameters} 
+     * 
+     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
+     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
     async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
+        // Check that we have some SSO data
+        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && !request.account) {
+            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+        }
+
+        // Check that prompt is set to none, log message if it is set to anything else.
+        if (request.prompt && request.prompt !== PromptValue.NONE) {
+            console.log(`Prompt must be set to none for silent requests. The given value was ${request.prompt}`);
+        }
+
+        // Create silent request
         const silentRequest: AuthenticationParameters = {
             ...request,
             prompt: PromptValue.NONE
         };
 
-        // Create acquire token url
-        const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
+        // Create authorize request url
+        const navigateUrl = await this.authModule.createLoginUrl(silentRequest);
 
-        try {
-            // Create silent handler
-            const silentHandler = new SilentHandler(this.authModule, this.browserStorage, this.config.system.loadFrameTimeout);
-            // Get the frame handle for the silent request
-            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
-            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
-            // Handle response from hash string.
-            return await silentHandler.handleCodeResponse(hash);
-        } catch(e) {
-            throw e;
-        }
+        return this.silentTokenHelper(navigateUrl);
     }
 
     /**
@@ -361,8 +377,52 @@ export class PublicClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-        return await this.authModule.getValidToken(tokenRequest);
+        try {
+            // Send request to renew token. Auth module will throw errors if token cannot be renewed.
+            return await this.authModule.getValidToken(tokenRequest);
+        } catch (e) {
+            const isServerError = e instanceof ServerError;
+            const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+            if (isServerError && isInvalidGrantError) {
+                const silentRequest: AuthenticationParameters = {
+                    scopes: tokenRequest.scopes,
+                    resource: tokenRequest.resource,
+                    extraQueryParameters: tokenRequest.extraQueryParameters,
+                    authority: tokenRequest.authority,
+                    correlationId: tokenRequest.correlationId,
+                    prompt: PromptValue.NONE,
+                    account: tokenRequest.account,
+                    sid: tokenRequest.sid,
+                    loginHint: tokenRequest.loginHint
+                };
+
+                // Create authorize request url
+                const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
+
+                return this.silentTokenHelper(navigateUrl);
+            }
+
+            throw e;
+        }
+    }
+
+    /**
+     * Helper which acquires an authorization code silently using a hidden iframe from given url, and exchanges the code for a set of OAuth tokens.
+     * @param navigateUrl 
+     */
+    private async silentTokenHelper(navigateUrl: string): Promise<TokenResponse> {
+        try {
+            // Create silent handler
+            const silentHandler = new SilentHandler(this.authModule, this.browserStorage, this.config.system.loadFrameTimeout);
+            // Get the frame handle for the silent request
+            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
+            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
+            // Handle response from hash string.
+            return await silentHandler.handleCodeResponse(hash);
+        } catch(e) {
+            throw e;
+        }
     }
 
     // #endregion
