@@ -4,9 +4,8 @@
  */
 
 import { CacheHelper } from "../utils/CacheHelper";
-import { AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AccountCacheMaps, AppMetadataCacheMaps} from "./JsonKeys";
-import { AccessTokenCache, IdTokenCache, RefreshTokenCache, AccountCache, AppMetadataCache } from "../utils/CacheTypes";
-import { JsonCache, InMemoryCache } from "../utils/CacheTypes";
+import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
+import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, JsonCache, InMemoryCache } from "../utils/CacheTypes";
 
 export class Serializer {
 

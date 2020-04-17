@@ -4,6 +4,7 @@ import { RefreshTokenEntity } from "../../../src/unifiedCache/entities/RefreshTo
 import { AccountEntity } from "../../../src/unifiedCache/entities/AccountEntity";
 import { AppMetadataEntity } from "../../../src/unifiedCache/entities/AppMetadataEntity";
 
+// mock tokens
 export const mockAccessTokenEntity_1 = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
@@ -73,6 +74,7 @@ export const mockAppMetaDataEntity = {
     familyId: "1"
 }
 
+// generate mockCache
 export class mockCache {
 
     static createMockATOne(): AccessTokenEntity {
@@ -123,4 +125,21 @@ export class mockCache {
 
         return amdt;
     }
+}
+
+export const MockCache = {
+    atOne: mockCache.createMockATOne(),
+    atOneKey: mockCache.createMockATOne().generateAccessTokenEntityKey(),
+    atTwo: mockCache.createMockATTwo(),
+    atTwoKey: mockCache.createMockATTwo().generateAccessTokenEntityKey(),
+    idT: mockCache.createMockIdT(),
+    idTKey: mockCache.createMockIdT().generateIdTokenEntityKey(),
+    rt: mockCache.createMockRT(),
+    rtKey: mockCache.createMockRT().generateRefreshTokenEntityKey(),
+    rtF: mockCache.createMockRTWithFamilyId(),
+    rtFKey: mockCache.createMockRTWithFamilyId().generateRefreshTokenEntityKey(),
+    acc: mockCache.createMockAcc(),
+    accKey: mockCache.createMockAcc().generateAccountEntityKey(),
+    amdt: mockCache.createMockAmdt(),
+    amdtKey: mockCache.createMockAmdt().generateAppMetaDataEntityKey()
 }

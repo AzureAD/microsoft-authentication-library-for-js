@@ -36,7 +36,7 @@ export class CacheHelper {
      * @param keysMap
      */
     static renameKeys(objAT: Object, keysMap: Object) {
-        const keyValues = Object.keys(objAT).map(key => {
+        const keyValues = Object.keys(objAT).map((key) => {
             if (objAT[key]) {
                 const newKey = keysMap[key] || key;
                 return { [newKey]: objAT[key] };
