@@ -41,7 +41,7 @@ export class Deserializer {
      * Deserializes accounts to AccountEntity objects
      * @param accounts
      */
-    static deSerializeAccounts(accounts: StringDict): AccountCache {
+    static deserializeAccounts(accounts: StringDict): AccountCache {
         const accountObjects = {};
         Object.keys(accounts).map(function (key) {
             const mappedAcc = CacheHelper.renameKeys(
@@ -60,7 +60,7 @@ export class Deserializer {
      * Deserializes id tokens to IdTokenEntity objects
      * @param idTokens
      */
-    static deSerializeIdTokens(idTokens: StringDict): IdTokenCache {
+    static deserializeIdTokens(idTokens: StringDict): IdTokenCache {
         const idObjects = {};
         Object.keys(idTokens).map(function (key) {
             const mappedIdT = CacheHelper.renameKeys(
@@ -79,7 +79,7 @@ export class Deserializer {
      * Deserializes access tokens to AccessTokenEntity objects
      * @param accessTokens
      */
-    static deSerializeAccessTokens(accessTokens: StringDict): AccessTokenCache {
+    static deserializeAccessTokens(accessTokens: StringDict): AccessTokenCache {
         const atObjects = {};
         Object.keys(accessTokens).map(function (key) {
             const mappedAT = CacheHelper.renameKeys(
@@ -98,7 +98,7 @@ export class Deserializer {
      * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deSerializeRefreshTokens(
+    static deserializeRefreshTokens(
         refreshTokens: StringDict
     ): RefreshTokenCache {
         const rtObjects = {};
@@ -140,21 +140,11 @@ export class Deserializer {
      */
     static deserializeAllCache(jsonCache: JsonCache): InMemoryCache {
         return {
-            accounts: jsonCache.Account
-                ? this.deSerializeAccounts(jsonCache.Account)
-                : {},
-            idTokens: jsonCache.IdToken
-                ? this.deSerializeIdTokens(jsonCache.IdToken)
-                : {},
-            accessTokens: jsonCache.AccessToken
-                ? this.deSerializeAccessTokens(jsonCache.AccessToken)
-                : {},
-            refreshTokens: jsonCache.RefreshToken
-                ? this.deSerializeRefreshTokens(jsonCache.RefreshToken)
-                : {},
-            appMetadata: jsonCache.AppMetadata
-                ? this.deserializeAppMetadata(jsonCache.AppMetadata)
-                : {},
+            accounts: jsonCache.Account? this.deserializeAccounts(jsonCache.Account): {},
+            idTokens: jsonCache.IdToken? this.deserializeIdTokens(jsonCache.IdToken): {},
+            accessTokens: jsonCache.AccessToken? this.deserializeAccessTokens(jsonCache.AccessToken) : {},
+            refreshTokens: jsonCache.RefreshToken? this.deserializeRefreshTokens(jsonCache.RefreshToken): {},
+            appMetadata: jsonCache.AppMetadata? this.deserializeAppMetadata(jsonCache.AppMetadata): {}
         };
     }
 }
