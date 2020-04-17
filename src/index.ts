@@ -14,7 +14,7 @@ export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
-export { CacheInterface, CacheJson, CacheContent, CacheInMemObjects } from "./unifiedCache/serialize/CacheInterface";
+export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
@@ -44,4 +44,4 @@ export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./err
 // Constants and Utils
 export { Constants, TemporaryCacheKeys, PersistentCacheKeys, CacheTypes } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
-export { StringDict, CacheEntity } from "./utils/MsalTypes";
+export { StringDict } from "./utils/MsalTypes";

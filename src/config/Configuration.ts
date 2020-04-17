@@ -7,6 +7,7 @@ import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../logger/Logger";
+import { JsonCache } from "../unifiedCache/utils/CacheTypes";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -118,6 +119,14 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     },
     setItem: () => {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    getSerializedCache: (): string => {
+        const notImplErr = "Storage interface - getSerializedCache() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    setSerializedCache: (): void => {
+        const notImplErr = "Storage interface - setSerializedCache() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };

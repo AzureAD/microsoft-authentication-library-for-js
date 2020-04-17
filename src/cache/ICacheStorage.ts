@@ -3,35 +3,55 @@
  * Licensed under the MIT License.
  */
 
+import { JsonCache } from "../unifiedCache/utils/CacheTypes";
+
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  */
 export interface ICacheStorage {
     /**
+     * Function to read serialized Cache
+     * @param key
+     * @param value
+     */
+    getSerializedCache(): string;
+
+    /**
+     * Function to write serialized Cache
+     * @param jsonCache
+     */
+    setSerializedCache(cache: string): void;
+
+    /**
      * Function to set item in cache.
-     * @param key 
-     * @param value 
+     * @param key
+     * @param value
      */
     setItem(key: string, value: string): void;
+
     /**
      * Function which retrieves item from cache.
-     * @param key 
+     * @param key
      */
     getItem(key: string): string;
+
     /**
      * Function which removes item from cache.
-     * @param key 
+     * @param key
      */
     removeItem(key: string): void;
+
     /**
      * Function which returns boolean whether cache contains a specific key.
-     * @param key 
+     * @param key
      */
     containsKey(key: string): boolean;
+
     /**
      * Function which retrieves all current keys from the cache.
      */
     getKeys(): string[];
+
     /**
      * Function which clears cache.
      */
