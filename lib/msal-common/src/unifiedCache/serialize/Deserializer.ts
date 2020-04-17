@@ -3,23 +3,78 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AccountEntity } from "../entities/AccountEntity";
+import { IdTokenEntity } from "../entities/IdTokenEntity";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { CacheHelper } from "../utils/CacheHelper";
 import {
-    AccessTokenCacheMaps,
-    IdTokenCacheMaps,
-    RefreshTokenCacheMaps,
     AccountCacheMaps,
-    AppMetadataCacheMaps
+    IdTokenCacheMaps,
+    AccessTokenCacheMaps,
+    RefreshTokenCacheMaps,
+    AppMetadataCacheMaps,
 } from "../serialize/JsonKeys";
-import { AccessTokenCache, IdTokenCache, RefreshTokenCache, AccountCache, AppMetadataCache, StringDict } from "../../utils/MsalTypes";
+import {
+    AccountCache,
+    IdTokenCache,
+    AccessTokenCache,
+    RefreshTokenCache,
+    AppMetadataCache,
+    InMemoryCache,
+    JsonCache,
+} from "../utils/CacheTypes";
+import { StringDict } from "../../utils/MsalTypes";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
+    /**
+     * Parse the JSON blob in memory and deserialize the content
+     * @param cachedJson
+     */
+    static deserializeJSONBlob(jsonFile: string): JsonCache {
+        return JSON.parse(jsonFile);
+    }
+
+    /**
+     * Deserializes accounts to AccountEntity objects
+     * @param accounts
+     */
+    static deSerializeAccounts(accounts: StringDict): AccountCache {
+        const accountObjects = {};
+        Object.keys(accounts).map(function (key) {
+            const mappedAcc = CacheHelper.renameKeys(
+                accounts[key],
+                AccountCacheMaps.fromCacheMap
+            );
+            const account: AccountEntity = new AccountEntity();
+            CacheHelper.toObject(account, mappedAcc);
+            accountObjects[key] = account;
+        });
+
+        return accountObjects;
+    }
+
+    /**
+     * Deserializes id tokens to IdTokenEntity objects
+     * @param idTokens
+     */
+    static deSerializeIdTokens(idTokens: StringDict): IdTokenCache {
+        const idObjects = {};
+        Object.keys(idTokens).map(function (key) {
+            const mappedIdT = CacheHelper.renameKeys(
+                idTokens[key],
+                IdTokenCacheMaps.fromCacheMap
+            );
+            const idToken: IdTokenEntity = new IdTokenEntity();
+            CacheHelper.toObject(idToken, mappedIdT);
+            idObjects[key] = idToken;
+        });
+
+        return idObjects;
+    }
+
     /**
      * Deserializes access tokens to AccessTokenEntity objects
      * @param accessTokens
@@ -40,31 +95,14 @@ export class Deserializer {
     }
 
     /**
-     * Deserializes id tokens to IdTokenEntity objects
-     * @param idTokens
-     */
-    static deSerializeIdTokens(idTokens: StringDict): IdTokenCache {
-        const idObjects = {};
-        Object.keys(idTokens).map(function(key) {
-            const mappedIdT = CacheHelper.renameKeys(
-                idTokens[key],
-                IdTokenCacheMaps.fromCacheMap
-            );
-            const idToken: IdTokenEntity = new IdTokenEntity();
-            CacheHelper.toObject(idToken, mappedIdT);
-            idObjects[key] = idToken;
-        });
-
-        return idObjects;
-    }
-
-    /**
      * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deSerializeRefreshTokens(refreshTokens: StringDict): RefreshTokenCache {
+    static deSerializeRefreshTokens(
+        refreshTokens: StringDict
+    ): RefreshTokenCache {
         const rtObjects = {};
-        Object.keys(refreshTokens).map(function(key) {
+        Object.keys(refreshTokens).map(function (key) {
             const mappedRT = CacheHelper.renameKeys(
                 refreshTokens[key],
                 RefreshTokenCacheMaps.fromCacheMap
@@ -75,24 +113,6 @@ export class Deserializer {
         });
 
         return rtObjects;
-    }
-    /**
-     * Deserializes accounts to AccountEntity objects
-     * @param accounts
-     */
-    static deSerializeAccounts(accounts: StringDict): AccountCache {
-        const accountObjects = {};
-        Object.keys(accounts).map(function(key) {
-            const mappedAcc = CacheHelper.renameKeys(
-                accounts[key],
-                AccountCacheMaps.fromCacheMap
-            );
-            const account: AccountEntity = new AccountEntity();
-            CacheHelper.toObject(account, mappedAcc);
-            accountObjects[key] = account;
-        });
-
-        return accountObjects;
     }
 
     /**
@@ -112,5 +132,29 @@ export class Deserializer {
         });
 
         return appMetadataObjects;
+    }
+
+    /**
+     * Deserialize an inMemory Cache
+     * @param jsonCache
+     */
+    static deserializeAllCache(jsonCache: JsonCache): InMemoryCache {
+        return {
+            accounts: jsonCache.Account
+                ? this.deSerializeAccounts(jsonCache.Account)
+                : {},
+            idTokens: jsonCache.IdToken
+                ? this.deSerializeIdTokens(jsonCache.IdToken)
+                : {},
+            accessTokens: jsonCache.AccessToken
+                ? this.deSerializeAccessTokens(jsonCache.AccessToken)
+                : {},
+            refreshTokens: jsonCache.RefreshToken
+                ? this.deSerializeRefreshTokens(jsonCache.RefreshToken)
+                : {},
+            appMetadata: jsonCache.AppMetadata
+                ? this.deserializeAppMetadata(jsonCache.AppMetadata)
+                : {},
+        };
     }
 }
