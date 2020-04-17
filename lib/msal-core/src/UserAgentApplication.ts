@@ -33,6 +33,7 @@ import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
 import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
+import HttpEvent from "./telemetry/HttpEvent";
 import { Constants,
     ServerHashParamKeys,
     InteractionType,
@@ -350,13 +351,20 @@ export class UserAgentApplication {
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
-        }).catch((error: AuthError) => {
-            this.cacheStorage.resetTempCacheItems(request.state);
-            throw error;
-        });
+        })
+            .then((resp) => {
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
+                return resp;
+            })
+            .catch((error: AuthError) => {
+                this.cacheStorage.resetTempCacheItems(request.state);
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
+                throw error;
+            });
     }
 
     /**
@@ -369,13 +377,20 @@ export class UserAgentApplication {
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
-        }).catch((error: AuthError) => {
-            this.cacheStorage.resetTempCacheItems(request.state);
-            throw error;
-        });
+        })
+            .then((resp) => {
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
+                return resp;
+            })
+            .catch((error: AuthError) => {
+                this.cacheStorage.resetTempCacheItems(request.state);
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
+                throw error;
+            });
     }
 
     // #region Acquire Token
@@ -387,7 +402,7 @@ export class UserAgentApplication {
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
 
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
@@ -435,7 +450,7 @@ export class UserAgentApplication {
                         this.logger.error("Error occurred during unified cache ATS: " + error);
 
                         // proceed to login since ATS failed
-                        this.acquireTokenHelper(null, interactionType, isLoginCall, request,resolve, reject);
+                        this.acquireTokenHelper(null, interactionType, isLoginCall, request, resolve, reject);
                     });
                 }
                 // No ADAL token found, proceed to login
@@ -467,7 +482,7 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request?: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
@@ -498,7 +513,7 @@ export class UserAgentApplication {
             }
         }
 
-        acquireTokenAuthority.resolveEndpointsAsync().then(async () => {
+        acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
 
@@ -614,13 +629,9 @@ export class UserAgentApplication {
      *
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
-        const requestCorrelationId = userRequest.correlationId || CryptoUtils.createNewGuid();
-        const apiEvent: ApiEvent = new ApiEvent(requestCorrelationId, this.logger);
-        apiEvent.apiEventIdentifier = API_EVENT_IDENTIFIER.AcquireTokenSilent;
-        apiEvent.apiCode = API_CODE.AcquireTokenSilent;
-        this.telemetryManager.startEvent(apiEvent);
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
@@ -708,7 +719,9 @@ export class UserAgentApplication {
                     serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
                 }
                 // cache miss
-                return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync()
+
+                // start http event
+                return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, request.correlationId)
                     .then(() => {
                         /*
                          * refresh attempt with iframe
@@ -742,18 +755,13 @@ export class UserAgentApplication {
             }
         })
             .then(res => {
-                apiEvent.wasSuccessful = true;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return res;
             })
             .catch((error: AuthError) => {
                 this.cacheStorage.resetTempCacheItems(request.state);
-                apiEvent.apiErrorCode = error.errorCode;
-                apiEvent.wasSuccessful = false;
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
-            })
-            .finally(() => {
-                this.telemetryManager.stopEvent(apiEvent);
-                this.telemetryManager.flush(requestCorrelationId);
             });
     }
 
@@ -791,7 +799,7 @@ export class UserAgentApplication {
             const top = ((height / 2) - (popUpHeight / 2)) + winTop;
 
             // open the window
-            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
+            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left + ', scrollbars=yes');
             if (!popupWindow) {
                 throw ClientAuthError.createPopupWindowError();
             }
@@ -931,19 +939,28 @@ export class UserAgentApplication {
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      */
-    logout(): void {
+    logout(correlationId?: string): void {
+        // TODO this new correlation id passed in, is not appended to logout request, should add
+        const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
+        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
+
         this.clearCache();
         this.account = null;
         let logout = "";
         if (this.getPostLogoutRedirectUri()) {
             logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
         }
-        this.authorityInstance.resolveEndpointsAsync().then(authority => {
-            const urlNavigate = authority.EndSessionEndpoint
-                ? `${authority.EndSessionEndpoint}?${logout}`
-                : `${this.authority}oauth2/v2.0/logout?${logout}`;
-            this.navigateWindow(urlNavigate);
-        });
+        this.authorityInstance.resolveEndpointsAsync(this.telemetryManager, requestCorrelationId)
+            .then(authority => {
+                const urlNavigate = authority.EndSessionEndpoint
+                    ? `${authority.EndSessionEndpoint}?${logout}`
+                    : `${this.authority}oauth2/v2.0/logout?${logout}`;
+                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
+                this.navigateWindow(urlNavigate);
+            })
+            .catch((error: AuthError) => {
+                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
+            });
     }
 
     /**
@@ -2123,7 +2140,8 @@ export class UserAgentApplication {
             scopes: [this.clientId],
             authority: this.authority,
             account: this.getAccount(),
-            extraQueryParameters: request.extraQueryParameters
+            extraQueryParameters: request.extraQueryParameters,
+            correlationId: request.correlationId
         };
 
         return tokenRequest;
