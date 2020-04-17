@@ -777,7 +777,7 @@ export class UserAgentApplication {
             const top = ((height / 2) - (popUpHeight / 2)) + winTop;
 
             // open the window
-            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left + ', scrollbars=yes');
+            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left + ", scrollbars=yes");
             if (!popupWindow) {
                 throw ClientAuthError.createPopupWindowError();
             }
