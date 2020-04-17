@@ -49,7 +49,8 @@ if (myMSALObj.getAccount()) {
             console.log("token type is:" + response.tokenType);
         }
     }).catch(error => {
-        if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+        console.error("Silent Error: " + error);
+        if (msal.InteractionRequiredAuthError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
             signIn("loginPopup");
         }
     });
@@ -77,8 +78,8 @@ function signOut() {
 async function getTokenPopup(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
-        if (error instanceof msal.AuthenticationRequiredError) {
-            if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            if (msal.InteractionRequiredAuthError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
                 // fallback to interaction when silent call fails
                 console.log("acquiring token using popup");
                 return myMSALObj.acquireTokenPopup(request).catch(error => {

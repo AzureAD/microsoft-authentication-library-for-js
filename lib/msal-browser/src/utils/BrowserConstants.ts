@@ -15,6 +15,8 @@ export const BrowserConstants = {
     INTERACTION_STATUS_KEY: "interaction.status",
     // Interaction in progress cache value
     INTERACTION_IN_PROGRESS_VALUE: "interaction_in_progress",
+    // Invalid grant error code
+    INVALID_GRANT_ERROR: "invalid_grant",
     // Default popup window width
     POPUP_WIDTH: 483,
     // Default popup window height

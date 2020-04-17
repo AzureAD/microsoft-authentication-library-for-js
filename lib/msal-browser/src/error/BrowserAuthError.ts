@@ -63,6 +63,10 @@ export const BrowserAuthErrorMessage = {
     iframeClosedPrematurelyError: {
         code: "iframe_closed_prematurely",
         desc: "The iframe being monitored was closed prematurely."
+    },
+    silentSSOInsufficientInfoError: {
+        code: "silent_sso_error",
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a login_hint, sid or account object."
     }
 };
 
@@ -192,5 +196,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createIframeClosedPrematurelyError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code, BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the login_hint, sid or account object is not provided in the ssoSilent API.
+     */
+    static createSilentSSOInsufficientInfoError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
     }
 }
