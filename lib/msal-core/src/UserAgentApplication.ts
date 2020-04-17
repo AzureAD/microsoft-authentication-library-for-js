@@ -591,7 +591,7 @@ export class UserAgentApplication {
         }
 
         // throw an error on no hints passed
-        if(!request.sid || !request.loginHint) {
+        if (!request.sid && !request.loginHint) {
             throw ClientConfigurationError.createSsoSilentError();
         }
 
