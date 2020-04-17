@@ -127,6 +127,7 @@ export abstract class Authority {
         return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;
+                telemetryManager.stopEvent(httpEvent);
                 return <ITenantDiscoveryResponse>{
                     AuthorizationEndpoint: response.body.authorization_endpoint,
                     EndSessionEndpoint: response.body.end_session_endpoint,
@@ -135,10 +136,8 @@ export abstract class Authority {
             })
             .catch(err => {
                 httpEvent.serverErrorCode = err;
-                throw err;
-            })
-            .finally(() => {
                 telemetryManager.stopEvent(httpEvent);
+                throw err;
             });
     }
 
