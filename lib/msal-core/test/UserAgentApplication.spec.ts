@@ -1763,9 +1763,10 @@ describe("UserAgentApplication.ts Class", function () {
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
                 expect(request.loginHint).to.equal(loginHint);
+                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
 
                 atsStub.restore();
-                return done();
+                done();
             });
 
             msal.ssoSilent({
@@ -1778,9 +1779,10 @@ describe("UserAgentApplication.ts Class", function () {
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
                 expect(request.sid).to.equal(sid);
+                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
 
                 atsStub.restore();
-                return done();
+                done();
             });
 
             msal.ssoSilent({
