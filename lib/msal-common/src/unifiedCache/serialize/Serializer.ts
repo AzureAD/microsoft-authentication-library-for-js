@@ -80,7 +80,7 @@ export class Serializer {
                 rtCache[key],
                 RefreshTokenCacheMaps.toCacheMap
             );
-            rtCache[key] = mappedRT;
+            refreshTokens[key] = mappedRT;
         });
 
         return refreshTokens;

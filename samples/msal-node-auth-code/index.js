@@ -20,8 +20,7 @@ const publicClientConfig = {
         redirectUri: "http://localhost:3000/redirect",
     },
     cache: {
-        cacheLocation:
-            "/Users/sameeragajjarapu/Documents/cache.json", // This configures where your cache will be stored
+        cacheLocation: "/Users/sameeragajjarapu/Documents/cache.json", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
 };
@@ -58,7 +57,7 @@ function acquireToken(req, res){
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        pca.setCache();
+        // console.log(pca.getCache());
         res.send(200);
     }).catch((error) => {
         res.send(500);

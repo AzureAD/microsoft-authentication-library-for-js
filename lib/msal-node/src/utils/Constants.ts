@@ -35,7 +35,7 @@ export const CharSet = {
  * Cache Constants
  */
 export const CACHE = {
-    FILE_CACHE: '/Users/sameeragajjarapu/Documents/cache.json',
+    FILE_CACHE: '',
     EXTENSION_LIB: 'extenstion_library',
 };
 

@@ -16,6 +16,7 @@ import { NetworkResponse }  from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { Serializer } from '../unifiedCache/serialize/Serializer';
 
 /**
  * Oauth2.0 Authorization Code client
@@ -67,9 +68,20 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         responseHandler.validateServerAuthorizationTokenResponse(response.body);
-        const authenticationResult = responseHandler.generateAuthenticationResult(response.body, authority);
+        const tokenResponse = await responseHandler.generateAuthenticationResult(response.body, authority);
 
-        return authenticationResult;
+        // set the final cache and return the auth response
+        this.setCache();
+        return tokenResponse;
+    }
+
+    /**
+     * Set the cache post acquireToken call
+     */
+    private setCache() {
+        const inMemCache = this.unifiedCacheManager.getCacheInMemory();
+        const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
+        this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));
     }
 
     /**
