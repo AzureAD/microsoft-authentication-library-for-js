@@ -17,6 +17,7 @@ export class AuthenticationResult {
     tokenType: string; // TODO: get rid of this if we can
     idToken: string;
     idTokenClaims: StringDict;
+    refreshToken: string;
     accessToken: string;
     expiresOn: Date;
     extExpiresOn?: Date; // TODO: Check what this maps to in other libraries
