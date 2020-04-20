@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ClientAuthError } from "./ClientAuthError";
+import { StringUtils } from "../utils/StringUtils";
+import { ServerError } from "./ServerError";
 
 /**
  * InteractionRequiredAuthErrorMessage class containing string constants used by error codes and messages.
@@ -23,7 +24,7 @@ export const InteractionRequiredAuthErrorMessage = {
 /**
  * Error thrown when user interaction is required at the auth server.
  */
-export class InteractionRequiredAuthError extends ClientAuthError {
+export class InteractionRequiredAuthError extends ServerError {
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
@@ -39,8 +40,10 @@ export class InteractionRequiredAuthError extends ClientAuthError {
             InteractionRequiredAuthErrorMessage.loginRequired.code
         ];
 
-        const isInteractionRequiredErrorCode = errorCode && interactionRequiredCodes.indexOf(errorCode) > -1;
-        const isInteractionRequiredErrorDesc = errorString && interactionRequiredCodes.indexOf(errorString) > -1;
+        const isInteractionRequiredErrorCode = !StringUtils.isEmpty(errorCode) && interactionRequiredCodes.indexOf(errorCode) > -1;
+        const isInteractionRequiredErrorDesc = !StringUtils.isEmpty(errorString) && interactionRequiredCodes.some((irErrorCode) => {
+            return errorString.indexOf(irErrorCode) > -1;
+        });
 
         return isInteractionRequiredErrorCode || isInteractionRequiredErrorDesc;
     }

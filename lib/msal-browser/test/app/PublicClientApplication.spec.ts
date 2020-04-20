@@ -562,7 +562,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
 
-        it("throws error that renewToken throws", async () => {
+        it("throws error that getValidToken throws", async () => {
             const testError = "Error in creating a login url";
             sinon.stub(AuthorizationCodeModule.prototype, "getValidToken").throws(testError);
             try {
