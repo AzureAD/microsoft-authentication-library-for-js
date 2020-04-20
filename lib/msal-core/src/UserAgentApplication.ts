@@ -596,6 +596,27 @@ export class UserAgentApplication {
     }
 
     /**
+     * API interfacing idToken request when applications already have a session/hint acquired by authorization client applications
+     * @param request
+     */
+    ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        // throw an error on an empty request
+        if (!request) {
+            throw ClientConfigurationError.createEmptyRequestError();
+        }
+
+        // throw an error on no hints passed
+        if (!request.sid && !request.loginHint) {
+            throw ClientConfigurationError.createSsoSilentError();
+        }
+
+        return this.acquireTokenSilent({
+            ...request,
+            scopes: [this.clientId]
+        });
+    }
+
+    /**
      * Use this function to obtain a token before every call to the API / resource provider
      *
      * MSAL return's a cached token when available
@@ -656,6 +677,7 @@ export class UserAgentApplication {
                 this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
                 serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
             }
+
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
             let authErr: AuthError;
