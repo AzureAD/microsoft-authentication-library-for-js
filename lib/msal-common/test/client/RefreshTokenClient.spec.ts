@@ -1,5 +1,4 @@
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import { expect } from "chai";
 import sinon from "sinon";
 import {
     Authority,
@@ -16,8 +15,6 @@ import {
 import {BaseClient} from "../../src/client/BaseClient";
 import {AADServerParamKeys, GrantType} from "../../src/utils/Constants";
 import {ClientTestUtils} from "./ClientTestUtils";
-
-chai.use(chaiAsPromised);
 
 describe("RefreshTokenClient unit tests", () => {
 
