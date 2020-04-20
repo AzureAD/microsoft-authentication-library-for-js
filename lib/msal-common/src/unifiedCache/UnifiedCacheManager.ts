@@ -12,7 +12,7 @@ import { AccountEntity } from "./entities/AccountEntity";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
-import { AccountCache } from "../utils/MsalTypes";
+import { AccountCache } from "../unifiedCache/utils/CacheTypes";
 
 export class UnifiedCacheManager {
 
