@@ -24,7 +24,7 @@ export default class HttpEvent extends TelemetryEvent {
     }
 
     public set url(url: string) {
-        const scrubbedUri = scrubTenantFromUri(url)
+        const scrubbedUri = scrubTenantFromUri(url);
         this.event[EVENT_KEYS.URL] = scrubbedUri && scrubbedUri.toLowerCase();
     }
 
