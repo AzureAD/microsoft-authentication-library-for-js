@@ -10,14 +10,16 @@ export const scrubTenantFromUri = (uri: string): String => {
 
     // validate trusted host
     if (!AADTrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
-        // Should this return null or what was passed?
-        return null;
+        // returning what was passed because the library needs to work with uris that are non
+        // AAD trusted but passed by users such as B2C or others.
+        // HTTP Events for instance can take a url to the open id config endpoint
+        return uri;
     }
 
     const pathParams = url.PathSegments;
 
     if (pathParams && pathParams.length >= 2) {
-        const tenantPosition = pathParams[1] ===  B2cAuthority.B2C_PREFIX ? 2 : 1;
+        const tenantPosition = pathParams[1] ===  "tfp" ? 2 : 1;
         if (tenantPosition < pathParams.length) {
             pathParams[tenantPosition] = TENANT_PLACEHOLDER;
         }

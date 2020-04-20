@@ -1721,7 +1721,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
         });
     });
-  
+
     describe('Logger', () => {
         it('getLogger and setLogger', done => {
             const config: Configuration = {
@@ -1755,5 +1755,48 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal.getLogger().info('Message');
         });
-    })
+    });
+
+    describe("ssoSilent", () => {
+        it("invokes acquireTokenSilent with loginHint", done => {
+            const loginHint = "test@example.com";
+
+            const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
+                expect(request.loginHint).to.equal(loginHint);
+                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+
+                atsStub.restore();
+                done();
+            });
+
+            msal.ssoSilent({
+                loginHint
+            });
+        });
+
+        it("invokes acquireTokenSilent with sid", done => {
+            const sid = "fakesid";
+
+            const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
+                expect(request.sid).to.equal(sid);
+                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+
+                atsStub.restore();
+                done();
+            });
+
+            msal.ssoSilent({
+                sid
+            });
+        });
+
+        it("throws if sid or login isnt provided", done => {
+            try {
+                msal.ssoSilent({});
+            } catch (e) {
+                expect(e.errorCode).to.equal("sso_silent_error");
+                done();
+            }
+        });
+    });
 });
