@@ -104,8 +104,8 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: ClientInfo.MSAL_SKU_VALUE,
                 version: version,
-                cpu: process.platform || "",
-                os: process.arch || ""
+                cpu: process.arch || "",
+                os: process.platform || ""
             },
         };
     }

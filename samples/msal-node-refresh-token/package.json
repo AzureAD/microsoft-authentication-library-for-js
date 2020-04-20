@@ -4,7 +4,7 @@
   "description": "Command line app showing how to use a refresh token to acquire new tokens from Azure AD",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+      "start": "node ./index.js"
   },
   "author": "",
   "license": "MIT",
