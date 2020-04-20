@@ -26,7 +26,7 @@ import { ServerError } from "../error/ServerError";
 /**
  * Class that handles response parsing.
  */
-export class ResponseHandler {
+export class SPAResponseHandler {
     private clientId: string;
     private cacheStorage: ICacheStorage;
     private cacheManager: CacheHelpers;
@@ -239,7 +239,7 @@ export class ResponseHandler {
         const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
         if (serverTokenResponse.id_token) {
             idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
-            tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
+            tokenResponse = SPAResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
 
             // If state is empty, refresh token is being used
             if (!StringUtils.isEmpty(state)) {
@@ -256,7 +256,7 @@ export class ResponseHandler {
             }
         } else if (cachedIdToken) {
             idTokenObj = new IdToken(cachedIdToken, this.cryptoObj);
-            tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
+            tokenResponse = SPAResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
         } else {
             idTokenObj = null;
         }

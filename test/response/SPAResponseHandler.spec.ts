@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { ResponseHandler } from "../../src/response/ResponseHandler";
+import { SPAResponseHandler } from "../../src/response/SPAResponseHandler";
 import { TEST_CONFIG, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { CacheHelpers } from "../../src/cache/CacheHelpers";
 import { ICacheStorage } from "../../src/cache/ICacheStorage";
@@ -19,7 +19,7 @@ import { CodeResponse } from "../../src";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 
-describe("ResponseHandler.ts Class Unit Tests", () => {
+describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
     let store = {};
     let cacheStorage: ICacheStorage;
@@ -106,8 +106,8 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
     describe("Constructor", () => {
 
         it("Correctly creates a ResponseHandler object", () => {
-            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            expect(responseHandler instanceof ResponseHandler).to.be.true;
+            const responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            expect(responseHandler instanceof SPAResponseHandler).to.be.true;
         });
     });
 
@@ -136,11 +136,11 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 idTokenClaims: idToken.claims,
                 expiresOn: new Date(Number(idToken.claims.exp) * 1000)
             };
-            expect(ResponseHandler.setResponseIdToken(tokenResponse, idToken)).to.be.deep.eq(expectedTokenResponse);
+            expect(SPAResponseHandler.setResponseIdToken(tokenResponse, idToken)).to.be.deep.eq(expectedTokenResponse);
         });
 
         it("returns null if original response is null or empty", () => {
-            expect(ResponseHandler.setResponseIdToken(null, null)).to.be.null;
+            expect(SPAResponseHandler.setResponseIdToken(null, null)).to.be.null;
         });
 
         it("returns originalResponse if no idTokenObj given", () => {
@@ -157,15 +157,15 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 account: testAccount,
                 userRequestState: TEST_CONFIG.STATE
             };
-            expect(ResponseHandler.setResponseIdToken(tokenResponse, null)).to.be.deep.eq(tokenResponse);
+            expect(SPAResponseHandler.setResponseIdToken(tokenResponse, null)).to.be.deep.eq(tokenResponse);
         });
     });
 
     describe("handleServerCodeResponse()", () => {
 
-        let responseHandler: ResponseHandler;
+        let responseHandler: SPAResponseHandler;
         beforeEach(() => {
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
         });
 
         it("throws state mismatch error if cached state does not match hash state", () => {
@@ -212,7 +212,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 throw "decoding error";
             };
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
             expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(store).to.be.empty;
@@ -237,7 +237,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
             const codeResponse: CodeResponse = responseHandler.handleServerCodeResponse(testServerParams);
             expect(codeResponse).to.be.not.null;
@@ -266,9 +266,9 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
 
     describe("createTokenResponse()", () => {
 
-        let responseHandler: ResponseHandler;
+        let responseHandler: SPAResponseHandler;
         beforeEach(() => {
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
         });
 
         it("throws error if idToken nonce is null or empty", () => {
@@ -357,7 +357,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             const expectedTokenResponse: TokenResponse = {
                 uniqueId: idToken.claims.oid,
                 tenantId: idToken.claims.tid,
