@@ -3,15 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "../../utils/MsalTypes";
-
 export class CacheHelper {
     /**
      * Helper to convert serialized data to object
      * @param obj
      * @param json
      */
-    static toObject<T>(obj: T, json: StringDict): T {
+    static toObject<T>(obj: T, json: object): T {
         for (const propertyName in json) {
             obj[propertyName] = json[propertyName];
         }
