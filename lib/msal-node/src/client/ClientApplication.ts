@@ -14,7 +14,7 @@ import {
     buildConfiguration,
 } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
-import { Storage } from '../cache/Storage';
+import { NodeStorage } from '../cache/NodeStorage';
 
 export abstract class ClientApplication {
     // Input configuration by developer/user
@@ -95,10 +95,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(
-                this.config.auth!.clientId,
-                this.config.cache!
-            ),
+            storageInterface: new NodeStorage(this.config.cache!),
         };
     }
 }
