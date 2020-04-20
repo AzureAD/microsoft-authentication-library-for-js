@@ -16,12 +16,7 @@ export class TokenCacheGenerator {
      * @param clientId
      * @param authority
      */
-    static createIdTokenEntity(
-        homeAccountId: string,
-        authenticationResult: AuthenticationResult,
-        clientId: string,
-        environment: string
-    ): IdTokenEntity {
+    static createIdTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): IdTokenEntity {
         const idTokenEntity = new IdTokenEntity();
 
         idTokenEntity.credentialType = "IdToken";
@@ -41,12 +36,7 @@ export class TokenCacheGenerator {
      * @param clientId
      * @param authority
      */
-    static createAccessTokenEntity(
-        homeAccountId: string,
-        authenticationResult: AuthenticationResult,
-        clientId: string,
-        environment: string
-    ): AccessTokenEntity {
+    static createAccessTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
         atEntity.homeAccountId = homeAccountId;
@@ -57,15 +47,10 @@ export class TokenCacheGenerator {
         const currentTime = date.getMilliseconds() / 1000;
         atEntity.cachedAt = currentTime.toString();
 
-        // TODO: Crosscheck the exact conversion UTC
-        // Token expiry time.
-        // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
-        atEntity.expiresOn = authenticationResult.expiresOn
-            .getMilliseconds()
-            .toString();
-        atEntity.extendedExpiresOn = authenticationResult.extExpiresOn
-            .getMilliseconds()
-            .toString();
+        // TODO: This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+        // Token expiry time. 
+        atEntity.expiresOn = authenticationResult.expiresOn.toString();
+        atEntity.extendedExpiresOn = authenticationResult.extExpiresOn.toString();
 
         atEntity.environment = environment;
         atEntity.clientId = clientId;
@@ -82,12 +67,7 @@ export class TokenCacheGenerator {
      * @param clientId
      * @param authority
      */
-    static createRefreshTokenEntity(
-        homeAccountId: string,
-        authenticationResult: AuthenticationResult,
-        clientId: string,
-        environment: string
-    ): RefreshTokenEntity {
+    static createRefreshTokenEntity(homeAccountId: string, authenticationResult: AuthenticationResult, clientId: string, environment: string): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
 
         rtEntity.clientId = clientId;

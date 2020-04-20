@@ -16,10 +16,14 @@ import {
 } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { NodeStorage } from '../cache/NodeStorage';
+import { NodeCacheManager } from '../cache/NodeCacheManager';
 
 export abstract class ClientApplication {
     // Input configuration by developer/user
     protected config: ClientConfiguration;
+    protected nodeStorage: NodeStorage;
+    protected nodeCacheManager: NodeCacheManager;
+    protected cachePath: string;
 
     /**
      * @constructor
@@ -44,6 +48,7 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: ClientConfiguration) {
         this.config = buildConfiguration(configuration);
+        this.nodeStorage = new NodeStorage(this.config.cache!);
     }
 
     /**
@@ -84,6 +89,20 @@ export abstract class ClientApplication {
         return authorizationCodeClient.acquireToken(request);
     }
 
+    /**
+     * API to retrieve application cache
+     */
+    public getCache(): string {
+        return this.nodeStorage.getSerializedCache();
+    }
+
+    /**
+     * API to write cache to a file
+     */
+    public setCache(): void {
+        this.nodeStorage.setSerializedCache(this.getCache());
+    }
+
     protected buildOauthClientConfiguration(): Configuration {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
@@ -96,7 +115,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new NodeStorage(this.config.cache!),
+            storageInterface: this.nodeStorage,
         };
     }
 }

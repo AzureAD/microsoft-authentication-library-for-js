@@ -67,20 +67,17 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         responseHandler.validateServerAuthorizationTokenResponse(response.body);
-        const tokenResponse = await responseHandler.generateAuthenticationResult(
-            response.body,
-            authority
-        );
+        const tokenResponse = await responseHandler.generateAuthenticationResult(response.body, authority);
 
         // set the final cache and return the auth response
         this.setCache();
         return tokenResponse;
     }
 
-     /**
+    /**
      * Set the cache post acquireToken call
      */
-    private setCache() {
+    private setCache(): void {
         const inMemCache = this.unifiedCacheManager.getCacheInMemory();
         const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
         this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));
