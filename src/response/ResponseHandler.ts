@@ -5,7 +5,6 @@
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
@@ -32,12 +31,7 @@ export class ResponseHandler {
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(
-        clientId: string,
-        unifiedCacheManager: UnifiedCacheManager,
-        cryptoObj: ICrypto,
-        logger: Logger
-    ) {
+    constructor(clientId: string, unifiedCacheManager: UnifiedCacheManager, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
         this.uCacheManager = unifiedCacheManager;
         this.cryptoObj = cryptoObj;
@@ -87,18 +81,9 @@ export class ResponseHandler {
 
         // generate homeAccountId
         if (serverResponse.client_info) {
-            this.clientInfo = buildClientInfo(
-                serverResponse.client_info,
-                this.cryptoObj
-            );
-            if (
-                !StringUtils.isEmpty(this.clientInfo.uid) &&
-                !StringUtils.isEmpty(this.clientInfo.utid)
-            ) {
-                this.homeAccountIdentifier =
-                    this.cryptoObj.base64Encode(this.clientInfo.uid) +
-                    "." +
-                    this.cryptoObj.base64Encode(this.clientInfo.utid);
+            this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
+            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
+                this.homeAccountIdentifier = this.cryptoObj.base64Encode(this.clientInfo.uid) + "." + this.cryptoObj.base64Encode(this.clientInfo.utid);
             }
         }
     }
@@ -110,20 +95,13 @@ export class ResponseHandler {
      * @param resource
      * @param state
      */
-    generateAuthenticationResult(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        authority: Authority
-    ): AuthenticationResult {
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
         // Retrieve current account if in Cache
         // TODO: add this once the req for cache look up for tokens is confirmed
 
-        const authenticationResult = this.processTokenResponse(
-            serverTokenResponse,
-            authority
-        );
+        const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
 
-        const environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         this.addCredentialsToCache(authenticationResult, environment);
 
         return authenticationResult;
@@ -134,10 +112,7 @@ export class ResponseHandler {
      * @param authenticationResult
      * @param idTokenString(raw idToken in the server response)
      */
-    processTokenResponse(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        authority: Authority
-    ): AuthenticationResult {
+    processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
         const authenticationResult: AuthenticationResult = {
             uniqueId: "",
             tenantId: "",
@@ -148,14 +123,11 @@ export class ResponseHandler {
             refreshToken: "",
             scopes: [],
             expiresOn: null,
-            familyId: null,
+            familyId: null
         };
 
         // IdToken
-        const idTokenObj = new IdToken(
-            serverTokenResponse.id_token,
-            this.cryptoObj
-        );
+        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
         // if account is not in cache, append it to the cache
         this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
@@ -167,16 +139,10 @@ export class ResponseHandler {
         }
 
         // Expiration calculation
-        const expiresInSeconds =
-            TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
-        const extendedExpiresInSeconds =
-            expiresInSeconds + serverTokenResponse.ext_expires_in;
+        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
+        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
         // Set consented scopes in response
-        const responseScopes = ScopeSet.fromString(
-            serverTokenResponse.scope,
-            this.clientId,
-            true
-        );
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
         return {
             ...authenticationResult,
@@ -199,25 +165,12 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    addAccountToCache(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        idToken: IdToken,
-        authority: Authority
-    ) {
-        const environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+    addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): void {
+        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         let accountEntity: AccountEntity;
-        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(
-            this.homeAccountIdentifier,
-            environment,
-            idToken.claims.tid
-        );
+        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
         if (!cachedAccount) {
-            accountEntity = this.generateAccountEntity(
-                serverTokenResponse,
-                idToken,
-                authority
-            );
+            accountEntity = this.generateAccountEntity(serverTokenResponse, idToken, authority);
             this.uCacheManager.addAccountEntity(accountEntity);
         }
     }
@@ -228,38 +181,20 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    generateAccountEntity(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
-        idToken: IdToken,
-        authority: Authority
-    ): AccountEntity {
+    generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
         if (!serverTokenResponse.client_info)
-            throw ClientAuthError.createClientInfoEmptyError(
-                serverTokenResponse.client_info
-            );
+            throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
 
         switch (authorityType) {
             case AuthorityType.B2C:
-                return AccountEntity.createAccount(
-                    serverTokenResponse.client_info,
-                    authority,
-                    idToken,
-                    "policy",
-                    this.cryptoObj
-                );
+                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, "policy", this.cryptoObj);
             case AuthorityType.Adfs:
                 return AccountEntity.createADFSAccount(authority, idToken);
             // default to AAD
             default:
-                return AccountEntity.createAccount(
-                    serverTokenResponse.client_info,
-                    authority,
-                    idToken,
-                    null,
-                    this.cryptoObj
-                );
+                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, null, this.cryptoObj);
         }
     }
 
@@ -268,33 +203,11 @@ export class ResponseHandler {
      * @param authenticationResult
      * @param authority
      */
-    addCredentialsToCache(
-        authenticationResult: AuthenticationResult,
-        authority: string
-    ) {
-        const idTokenEntity = TokenCacheGenerator.createIdTokenEntity(
-            this.homeAccountIdentifier,
-            authenticationResult,
-            this.clientId,
-            authority
-        );
-        const accessTokenEntity = TokenCacheGenerator.createAccessTokenEntity(
-            this.homeAccountIdentifier,
-            authenticationResult,
-            this.clientId,
-            authority
-        );
-        const refreshTokenEntity = TokenCacheGenerator.createRefreshTokenEntity(
-            this.homeAccountIdentifier,
-            authenticationResult,
-            this.clientId,
-            authority
-        );
+    addCredentialsToCache(authenticationResult: AuthenticationResult, authority: string): void {
+        const idTokenEntity = TokenCacheGenerator.createIdTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
+        const accessTokenEntity = TokenCacheGenerator.createAccessTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
+        const refreshTokenEntity = TokenCacheGenerator.createRefreshTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
 
-        this.uCacheManager.addCredentialCache(
-            accessTokenEntity,
-            idTokenEntity,
-            refreshTokenEntity
-        );
+        this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
     }
 }

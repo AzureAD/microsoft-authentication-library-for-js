@@ -9,6 +9,7 @@ import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMet
 import { StringDict } from "../../utils/MsalTypes";
 
 export class Serializer {
+
     /**
      * serialize the JSON blob
      * @param data
