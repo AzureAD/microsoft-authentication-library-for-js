@@ -7,6 +7,7 @@ import {
     AuthorizationCodeClient,
     AuthorizationCodeUrlRequest,
     AuthorizationCodeRequest,
+    AuthenticationResult,
     Configuration,
 } from '@azure/msal-common';
 import {
@@ -76,7 +77,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
-    ): Promise<string> {
+    ): Promise<AuthenticationResult> {
         const authorizationCodeClient = new AuthorizationCodeClient(
             this.buildOauthClientConfiguration()
         );
