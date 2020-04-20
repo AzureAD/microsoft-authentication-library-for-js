@@ -4,7 +4,7 @@ import { UrlUtils } from "../../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
-import { ServerHashParamKeys } from "../../src/utils/Constants";
+import { ServerHashParamKeys, Constants } from "../../src/utils/Constants";
 
 describe("UrlUtils.ts class", () => {
 
@@ -95,4 +95,17 @@ describe("UrlUtils.ts class", () => {
         });
     });
 
+    describe("deserializeHash", () => {
+        it("properly decodes a twice encoded value", () => {
+            // This string is double encoded
+            // "%257C" = | encoded twice
+            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%257Chello";
+
+            const { state } = UrlUtils.deserializeHash(hash);
+
+            const stateParts = state.split(Constants.resourceDelimiter);
+            expect(stateParts[0]).to.equal("eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9");
+            expect(stateParts[1]).to.equal("hello");
+        });
+    })
 });

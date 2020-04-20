@@ -7,7 +7,7 @@ import { ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("WindowUtils", () => {
     describe("monitorWindowForHash", () => {
-        it("times out", done => {
+        it("times out (popup)", done => {
             const iframe = {
                 contentWindow: {
                     location: {
@@ -19,6 +19,21 @@ describe("WindowUtils", () => {
 
             // @ts-ignore
             WindowUtils.monitorWindowForHash(iframe.contentWindow, 500)
+                .catch((err: ClientAuthError) => {
+                    done();
+                });
+        });
+
+        it("times out (iframe)", done => {
+            const iframe = {
+                contentWindow: {
+                    // @ts-ignore
+                    location: null // example of scenario that would never otherwise resolve
+                }
+            };
+
+            // @ts-ignore
+            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", true)
                 .catch((err: ClientAuthError) => {
                     done();
                 });

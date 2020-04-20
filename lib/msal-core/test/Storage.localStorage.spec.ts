@@ -236,6 +236,24 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
         });
 
+        it("resetTempCacheItems removes entries when user state includes resource delimeter", function () {
+            const userState = `stateValue1${Constants.resourceDelimiter}stateValue2`
+            const testState = `${TEST_STATE}${Constants.resourceDelimiter}${userState}`;
+
+            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, testState);
+            let authorityKey = AuthCache.generateAuthorityKey(testState);
+
+            msalCacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(ACCOUNT));
+            msalCacheStorage.setItem(authorityKey, validAuthority)
+
+            expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.eq(JSON.stringify(ACCOUNT));
+            expect(msalCacheStorage.getItem(authorityKey)).to.be.eq(validAuthority);
+
+            msalCacheStorage.resetTempCacheItems(testState);
+            expect(msalCacheStorage.getItem(acquireTokenAccountKey)).to.be.null;
+            expect(msalCacheStorage.getItem(authorityKey)).to.be.null;
+        });
+
         it("resetTempCacheItems removes specific acquireToken or authorityKey entries in the cache", function () {
             let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
             let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);

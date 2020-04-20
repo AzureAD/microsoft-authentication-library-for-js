@@ -3,26 +3,19 @@
  * Licensed under the MIT License.
  */
 
-import { AadAuthority } from "./AadAuthority";
+import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
-import { UrlUtils } from "../utils/UrlUtils";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+
+export const B2CTrustedHostList: object = {};
 
 /**
  * @hidden
  */
-export class B2cAuthority extends AadAuthority {
+export class B2cAuthority extends Authority {
     public static B2C_PREFIX: String = "tfp";
     public constructor(authority: string, validateAuthority: boolean) {
         super(authority, validateAuthority);
-        const urlComponents = UrlUtils.GetUrlComponents(authority);
-
-        const pathSegments = urlComponents.PathSegments;
-        if (pathSegments.length < 3) {
-            throw ClientConfigurationErrorMessage.b2cAuthorityUriInvalidPath;
-        }
-
-        this.CanonicalAuthority = `https://${urlComponents.HostNameAndPort}/${pathSegments[0]}/${pathSegments[1]}/${pathSegments[2]}/`;
     }
 
     public get AuthorityType(): AuthorityType {
@@ -37,6 +30,18 @@ export class B2cAuthority extends AadAuthority {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
 
-        throw ClientConfigurationErrorMessage.unsupportedAuthorityValidation;
+        throw ClientConfigurationError.createUntrustedAuthorityError();
+    }
+
+    /**
+     * Checks to see if the host is in a list of trusted hosts
+     * @param {string} The host to look up
+     */
+    public IsInTrustedHostList(host: string): boolean {
+        if (this.IsValidationEnabled && !Object.keys(B2CTrustedHostList).length) {
+            throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
+        }
+        
+        return B2CTrustedHostList[host.toLowerCase()];
     }
 }
