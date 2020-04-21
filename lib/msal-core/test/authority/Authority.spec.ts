@@ -2,6 +2,18 @@ import { expect } from "chai";
 import { Authority, AuthorityType } from "../../src/authority/Authority";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError"
 import { TEST_CONFIG } from "../TestConstants";
+import TelemetryManager from "../../src/telemetry/TelemetryManager";
+import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
+
+const stubbedTelemetryConfig: TelemetryConfig = {
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    platform: {
+        applicationName: TEST_CONFIG.applicationName,
+        applicationVersion: TEST_CONFIG.applicationVersion
+    }
+};
+
+const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {});
 
 class testAuthority extends Authority{
     public constructor(authority: string, validateAuthority: boolean) {
@@ -44,7 +56,7 @@ describe("Authority.ts Class", function () {
     });
 
     it("tests EndSessionEndpoint", async function () {
-        const response = await authority.resolveEndpointsAsync();
+        const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
         const endSessionEndpoint = response.EndSessionEndpoint
 
         expect(response).to.be.instanceOf(testAuthority);
@@ -52,7 +64,7 @@ describe("Authority.ts Class", function () {
     });
 
     it("tests SelfSignedJwtAudience", async function () {
-        const response = await authority.resolveEndpointsAsync();
+        const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
         const selfSignedJwtAudience = response.SelfSignedJwtAudience
 
         expect(response).to.be.instanceOf(testAuthority);
@@ -85,6 +97,6 @@ describe("Authority.ts Class", function () {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath)
         }
     });
-    
+
 
 });

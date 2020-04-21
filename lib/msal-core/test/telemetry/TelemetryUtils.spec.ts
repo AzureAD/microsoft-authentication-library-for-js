@@ -7,9 +7,9 @@ describe("TelemetryUtils", () => {
         const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/banana/orange");
         expect(uri).to.eq("https://login.microsoftonline.com/abc-123/<tenant>/orange");
     });
-    it("TelemtryUtils.scrubTenantFromUri returns null on untrusted uri", () => {
+    it("TelemtryUtils.scrubTenantFromUri returns uri on untrusted uri", () => {
         const uri = scrubTenantFromUri("https://pizza.burger.com/abc-123/banana/orange");
-        expect(uri).to.be.null;
+        expect(uri).to.eql(uri);
     });
     it("TelemtryUtils.scrubTenantFromUri doesnt change when it doesnt contain enough path params", () => {
         const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/");

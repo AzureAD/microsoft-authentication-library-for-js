@@ -648,6 +648,55 @@ describe("UserAgentApplication.ts Class", function () {
             done();
         });
 
+        it("Account is cached on acquireTokenRedirect call", (done) => {
+            const tokenRequest: AuthenticationParameters = {
+                scopes: ["S1"], 
+                account: account
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        const state = UrlUtils.deserializeHash(url).state;
+                        const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
+
+                        expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect(tokenRequest);
+        });
+
+        it("State is cached on acquireTokenRedirect call", (done) => {
+            const tokenRequest: AuthenticationParameters = {
+                scopes: ["S1"], 
+                account: account
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        const state = UrlUtils.deserializeHash(url).state;
+
+                        expect(cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${state}`)).to.be.equal(state);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect(tokenRequest);
+        });
+
         it("tests if error is thrown when null scopes are passed", function (done) {
             msal.handleRedirectCallback(authCallback);
             let authErr: AuthError;
@@ -1634,6 +1683,7 @@ describe("UserAgentApplication.ts Class", function () {
         const oldWindow = window;
 
         beforeEach(function() {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1642,11 +1692,13 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
+            setTestCacheItems();
 
             delete window.location;
         });
 
         afterEach(function() {
+            window = oldWindow;
             window.location = oldWindowLocation;
             cacheStorage.clear();
             sinon.restore();
@@ -1669,6 +1721,42 @@ describe("UserAgentApplication.ts Class", function () {
             expect(acquireTokenPromise instanceof Promise).to.be.true;
             acquireTokenPromise.catch(error => {});
         });
+
+        it("Account is cached on acquireTokenPopup call", (done) => {
+            const tokenRequest: AuthenticationParameters = {
+                scopes: ["S1"], 
+                account: account
+            };
+
+            const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
+
+            window = {
+                ...oldWindow,
+                location: {
+                    ...oldWindowLocation,
+                    href: TEST_URIS.TEST_REDIR_URI + "/" + testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
+                    hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
+                    assign: function (url) {
+                        const state = UrlUtils.deserializeHash(url).state;
+                        const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
+
+                        expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
+                        done();
+                    }   
+                },
+                open: function (url?, target?, features?, replace?): Window {
+                    return window
+                },
+                close: function(): void {},
+                focus: null
+            };
+
+            const acquireTokenPromise = msal.acquireTokenPopup(tokenRequest);
+            expect(acquireTokenPromise instanceof Promise).to.be.true;
+
+            acquireTokenPromise.catch(error => {console.log(error)});
+        });
+
     });
 
     describe("Silent Flow", function () {
@@ -1721,7 +1809,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
         });
     });
-  
+
     describe('Logger', () => {
         it('getLogger and setLogger', done => {
             const config: Configuration = {
@@ -1755,5 +1843,48 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal.getLogger().info('Message');
         });
-    })
+    });
+
+    describe("ssoSilent", () => {
+        it("invokes acquireTokenSilent with loginHint", done => {
+            const loginHint = "test@example.com";
+
+            const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
+                expect(request.loginHint).to.equal(loginHint);
+                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+
+                atsStub.restore();
+                done();
+            });
+
+            msal.ssoSilent({
+                loginHint
+            });
+        });
+
+        it("invokes acquireTokenSilent with sid", done => {
+            const sid = "fakesid";
+
+            const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
+                expect(request.sid).to.equal(sid);
+                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+
+                atsStub.restore();
+                done();
+            });
+
+            msal.ssoSilent({
+                sid
+            });
+        });
+
+        it("throws if sid or login isnt provided", done => {
+            try {
+                msal.ssoSilent({});
+            } catch (e) {
+                expect(e.errorCode).to.equal("sso_silent_error");
+                done();
+            }
+        });
+    });
 });
