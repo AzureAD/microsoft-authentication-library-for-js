@@ -36,7 +36,6 @@ const testNetworkResult = {
 
 const testKeySet = ["testKey1", "testKey2"];
 
-
 describe("PopupHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;

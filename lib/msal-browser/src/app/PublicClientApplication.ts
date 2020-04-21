@@ -359,7 +359,7 @@ export class PublicClientApplication {
         // Create authorize request url
         const navigateUrl = await this.authModule.createLoginUrl(silentRequest);
 
-        return this.silentTokenHelper(navigateUrl);
+        return this.silentTokenHelper(navigateUrl, silentRequest.scopes.join(" "));
     }
 
     /**
@@ -400,7 +400,7 @@ export class PublicClientApplication {
                 // Create authorize request url
                 const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
 
-                return this.silentTokenHelper(navigateUrl);
+                return this.silentTokenHelper(navigateUrl, tokenRequest.scopes.join(" "));
             }
 
             throw e;
@@ -408,15 +408,17 @@ export class PublicClientApplication {
     }
 
     /**
-     * Helper which acquires an authorization code silently using a hidden iframe from given url, and exchanges the code for a set of OAuth tokens.
+     * Helper which acquires an authorization code silently using a hidden iframe from given url 
+     * using the scopes requested as part of the id, and exchanges the code for a set of OAuth tokens.
      * @param navigateUrl 
+     * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string): Promise<TokenResponse> {
+    private async silentTokenHelper(navigateUrl: string, userRequestScopes: string): Promise<TokenResponse> {
         try {
             // Create silent handler
             const silentHandler = new SilentHandler(this.authModule, this.browserStorage, this.config.system.loadFrameTimeout);
             // Get the frame handle for the silent request
-            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
+            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, userRequestScopes);
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
             // Handle response from hash string.
