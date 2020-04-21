@@ -92,9 +92,10 @@ describe("WindowUtils", () => {
         it("test idToken frame name created", () => {
             const scopes = ["s1", "s2", "s3"];
             const authority = TEST_CONFIG.validAuthority;
+            const requestSignature = `${scopes.join(" ").toLowerCase()}|${authority}`;
 
-            const idTokenFrameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, scopes, authority);
-            const tokenFrameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, scopes, authority);
+            const idTokenFrameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
+            const tokenFrameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
 
             expect(idTokenFrameName).to.equal(`${FramePrefix.ID_TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
             expect(tokenFrameName).to.equal(`${FramePrefix.TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);

@@ -36,8 +36,8 @@ export class WindowUtils {
      * @param scopes
      * @param authority
      */
-    static generateFrameName(prefix: string, scopes: string[], authority: string): string {
-        return `${prefix}${Constants.resourceDelimiter}${scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${authority}`;
+    static generateFrameName(prefix: string, requestSignature: string): string {
+        return `${prefix}${Constants.resourceDelimiter}${requestSignature}`;
     }
 
     /**
