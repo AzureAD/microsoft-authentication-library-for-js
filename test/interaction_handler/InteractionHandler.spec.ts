@@ -15,9 +15,9 @@ class TestInteractionHandler extends InteractionHandler {
         throw new Error("Method not implemented.");
     }    
     
-    handleCodeResponse(locationHash: string): Promise<import("@azure/msal-common").TokenResponse> {
+    initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
         throw new Error("Method not implemented.");
-    }    
+    }  
 }
 
 const clearFunc = (): void => {

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, AuthorizationCodeModule } from "@azure/msal-common";
+import { UrlString, AuthorizationCodeModule, StringUtils } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -17,11 +17,17 @@ export class SilentHandler extends InteractionHandler {
     }
 
     /**
-     * Creates a hidden iframe to given URL.
+     * Creates a hidden iframe to given URL using user-requested scopes as an id.
      * @param urlNavigate 
+     * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
-        const frameName = "msalIdTokenFrame";
+    async initiateAuthRequest(requestUrl: string, userRequestScopes?: string): Promise<HTMLIFrameElement> {
+        if (StringUtils.isEmpty(requestUrl)) {
+            // Throw error if request URL is empty.
+            this.authModule.logger.info("Navigate url is empty");
+            throw BrowserAuthError.createEmptyNavigationUriError();
+        }
+        const frameName = `msalTokenFrame${userRequestScopes}`;
         return this.loadFrameTimeout ? await this.loadFrame(requestUrl, frameName) : this.loadFrameSync(requestUrl, frameName);
     }
 
