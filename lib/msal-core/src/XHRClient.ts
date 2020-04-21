@@ -9,7 +9,6 @@
  * @hidden
  */
 
-
 export class XhrClient {
 
     public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<XhrResponse> {
@@ -71,4 +70,4 @@ export class XhrClient {
 export type XhrResponse = {
     body: any,
     statusCode: number
-}
+};
