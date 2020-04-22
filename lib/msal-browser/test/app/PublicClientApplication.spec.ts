@@ -58,6 +58,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca).to.be.not.null;
             expect(pca instanceof PublicClientApplication).to.be.true;
         });
+
+        it("navigates and caches hash if navigateToLoginRequestUri is true", () => {
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
+            sinon.stub(BrowserUtils, "getCurrentUri").returns("notAUri");
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+                expect(noHistory).to.be.true;
+                expect(urlNavigate).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+            });
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+        });
     });
 
     describe("Redirect Flow Unit tests", () => {
@@ -73,22 +89,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.handleRedirectCallback(authCallback);
                 expect(window.localStorage.length).to.be.eq(0);
                 expect(window.sessionStorage.length).to.be.eq(0);
-            });
-
-            it("navigates and caches hash if navigateToLoginRequestUri is true", () => {
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
-                    expect(noHistory).to.be.true;
-                    expect(urlNavigate).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-                });
-                pca = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                    }
-                });
-                pca.handleRedirectCallback(authCallback);
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             });
 
             it("gets hash from cache and processes response", async () => {
