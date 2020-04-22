@@ -113,7 +113,7 @@ export class ServerRequestParameters {
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        const eQParams: StringDict = request ? request.extraQueryParameters : null;
+        const eQParams: StringDict|null = request?.extraQueryParameters;
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
