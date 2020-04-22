@@ -67,6 +67,10 @@ export const BrowserAuthErrorMessage = {
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
         desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a login_hint, sid or account object."
+    },
+    silentPromptValueError: {
+        code: "silent_prompt_value_error",
+        desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none'."
     }
 };
 
@@ -203,5 +207,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createSilentSSOInsufficientInfoError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+    }
+
+    /**
+     * Creates an error thrown when a given prompt value is invalid for silent requests.
+     */
+    static createSilentPromptValueError(givenPrompt: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentPromptValueError.code, `${BrowserAuthErrorMessage.silentPromptValueError.desc} Given value: ${givenPrompt}`);
     }
 }

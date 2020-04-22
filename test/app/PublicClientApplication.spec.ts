@@ -527,20 +527,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.ssoSilent({})).to.be.rejectedWith(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
         });
 
-        it("sets prompt to none by default", async () => {
-            const createLoginUrlStub = sinon.stub(AuthorizationCodeModule.prototype, "createLoginUrl").resolves(testNavUrl);
-            sinon.stub(pca, <any>"silentTokenHelper").returns(null);
-
+        it("throws error if prompt is not set to 'none'", async () => {
             const req: AuthenticationParameters = {
                 prompt: PromptValue.SELECT_ACCOUNT,
                 loginHint: "testLoginHint"
             };
-            const silentReq: AuthenticationParameters = {
-                ...req,
-                prompt: PromptValue.NONE
-            };
-            await pca.ssoSilent(req);
-            expect(createLoginUrlStub.calledWith(silentReq)).to.be.true;
+
+            await expect(pca.ssoSilent(req)).to.be.rejectedWith(BrowserAuthError);
+            await expect(pca.ssoSilent(req)).to.be.rejectedWith(BrowserAuthErrorMessage.silentPromptValueError.desc);
         });
 
         it("successfully returns a token response", async () => {
