@@ -114,7 +114,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         });
     });
 
-    describe.only("initiateAuthRequest()", () => {
+    describe("initiateAuthRequest()", () => {
         
         it("throws error if requestUrl is empty", async () => {
             await expect(silentHandler.initiateAuthRequest("")).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
