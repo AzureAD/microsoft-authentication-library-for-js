@@ -344,10 +344,9 @@ export class PublicClientApplication {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
-        // Check that prompt is set to none, log message if it is set to anything else.
+        // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
-            // TODO: Update to use the logger class
-            console.log(`Prompt must be set to none for silent requests. The given value was ${request.prompt}`);
+            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
         // Create silent request
