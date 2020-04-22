@@ -27,7 +27,7 @@ export class SilentHandler extends InteractionHandler {
             this.authModule.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
-        const frameName = userRequestScopes ? `msalTokenFrame${userRequestScopes}` : `msalTokenFrame`;
+        const frameName = userRequestScopes ? `msalTokenFrame${userRequestScopes}` : "msalTokenFrame";
         return this.loadFrameTimeout ? await this.loadFrame(requestUrl, frameName) : this.loadFrameSync(requestUrl, frameName);
     }
 
@@ -86,7 +86,7 @@ export class SilentHandler extends InteractionHandler {
             }, BrowserConstants.POLL_INTERVAL_MS);
         });
     }
-    
+
     /**
      * @hidden
      * Loads iframe with authorization endpoint URL
