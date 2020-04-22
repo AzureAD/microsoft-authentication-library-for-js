@@ -33,7 +33,7 @@ import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
 import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
-import HttpEvent from "./telemetry/HttpEvent";
+
 import { Constants,
     ServerHashParamKeys,
     InteractionType,

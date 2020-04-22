@@ -48,13 +48,25 @@ export const BrowserAuthErrorMessage = {
         code: "user_cancelled",
         desc: "User cancelled the flow."
     },
-    popupWindowTimeoutError: {
-        code: "popup_window_timeout",
-        desc: "Popup window token acquisition operation failed due to timeout."
+    monitorWindowTimeoutError: {
+        code: "monitor_window_timeout",
+        desc: "Token acquisition in popup failed due to timeout."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
         desc: "Code flow is not supported inside an iframe. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
+    },
+    blockTokenRequestsInHiddenIframeError: {
+        code: "block_iframe_reload",
+        desc: "Request was blocked inside an iframe because MSAL detected an authentication response. Please ensure monitorWindowForHash was called."
+    },
+    iframeClosedPrematurelyError: {
+        code: "iframe_closed_prematurely",
+        desc: "The iframe being monitored was closed prematurely."
+    },
+    silentSSOInsufficientInfoError: {
+        code: "silent_sso_error",
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a login_hint, sid or account object."
     }
 };
 
@@ -156,9 +168,9 @@ export class BrowserAuthError extends AuthError {
      * Creates an error thrown when monitorWindowFromHash times out for a given popup.
      * @param urlNavigate 
      */
-    static createPopupWindowTimeoutError(urlNavigate: string): BrowserAuthError {
-        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.popupWindowTimeoutError.desc}`;
-        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowTimeoutError.code,
+    static createMonitorWindowTimeoutError(urlNavigate: string): BrowserAuthError {
+        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.monitorWindowTimeoutError.desc}`;
+        return new BrowserAuthError(BrowserAuthErrorMessage.monitorWindowTimeoutError.code,
             errorMessage);
     }
 
@@ -169,5 +181,27 @@ export class BrowserAuthError extends AuthError {
     static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.redirectInIframeError.code, 
             `${BrowserAuthErrorMessage.redirectInIframeError.desc} (window.parent !== window) => ${windowParentCheck}`);
+    }
+
+    /**
+     * Creates an error thrown when an auth reload is done inside an iframe.
+     */
+    static createBlockReloadInHiddenIframeError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code,
+            BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
+    }
+
+    /**
+     * Creates an error thrown when an iframe is found to be closed before the timeout is reached.
+     */
+    static createIframeClosedPrematurelyError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code, BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the login_hint, sid or account object is not provided in the ssoSilent API.
+     */
+    static createSilentSSOInsufficientInfoError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
     }
 }
