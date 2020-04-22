@@ -10,41 +10,48 @@ import { ServerError } from "./ServerError";
  * InteractionRequiredAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const InteractionRequiredAuthErrorMessage = {
-    interactionRequired: {
-        code: "interaction_required"
-    },
-    consentRequired: {
-        code: "consent_required"
-    },
-    loginRequired: {
-        code: "login_required"
-    }
+    interactionRequired: "interaction_required",
+    consentRequired: "consent_required",
+    loginRequired: "login_required"
+};
+
+export const InteractionRequiredAuthSubErrorMessage = {
+    messageOnly: "message_only",
+    additionalAction: "additional_action",
+    basicAction: "basic_action",
+    userPasswordExpired: "user_password_expired",
+    consentRequired: "consent_required"
 };
 
 /**
  * Error thrown when user interaction is required at the auth server.
  */
 export class InteractionRequiredAuthError extends ServerError {
+    subError: string;
 
-    constructor(errorCode: string, errorMessage?: string) {
+    constructor(errorCode: string, errorMessage?: string, subError?: string) {
         super(errorCode, errorMessage);
         this.name = "InteractionRequiredAuthError";
+        this.subError = InteractionRequiredAuthError.validateSubError(subError);
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
 
-    static isInteractionRequiredError(errorCode: string, errorString: string) : boolean {
-        const interactionRequiredCodes = [
-            InteractionRequiredAuthErrorMessage.interactionRequired.code,
-            InteractionRequiredAuthErrorMessage.consentRequired.code,
-            InteractionRequiredAuthErrorMessage.loginRequired.code
-        ];
+    static validateSubError(subError: string) {
+        if (subError && Object.values(InteractionRequiredAuthSubErrorMessage).includes(subError)) {
+            return subError
+        }
 
-        const isInteractionRequiredErrorCode = !StringUtils.isEmpty(errorCode) && interactionRequiredCodes.indexOf(errorCode) > -1;
-        const isInteractionRequiredErrorDesc = !StringUtils.isEmpty(errorString) && interactionRequiredCodes.some((irErrorCode) => {
+        return "";
+    }
+
+    static isInteractionRequiredError(errorCode: string, errorString: string, subError?: string) : boolean {
+        const isInteractionRequiredErrorCode = !StringUtils.isEmpty(errorCode) && Object.values(InteractionRequiredAuthErrorMessage).includes(errorCode);
+        const isInteractionRequiredSubError = !StringUtils.isEmpty(subError) && Object.values(InteractionRequiredAuthSubErrorMessage).includes(subError);
+        const isInteractionRequiredErrorDesc = !StringUtils.isEmpty(errorString) && Object.values(InteractionRequiredAuthErrorMessage).some((irErrorCode) => {
             return errorString.indexOf(irErrorCode) > -1;
         });
 
-        return isInteractionRequiredErrorCode || isInteractionRequiredErrorDesc;
+        return isInteractionRequiredErrorCode || isInteractionRequiredErrorDesc || isInteractionRequiredSubError;
     }
 }
