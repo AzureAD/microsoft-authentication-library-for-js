@@ -22,6 +22,10 @@
 
 ## About
 
+**Important:** MSAL.js 2.0 with Authorization Code Flow is **not** yet available for B2C tenants (coming soon).
+
+Want to join our Private Preview and test out the lastest changes to the Azure Portal? Fill out [this form]( https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_XA414hlD9MhfBiqanxI2JUOElQMk1LUjNBWDY4R0w3MFlPR0FIMkxMVC4u)
+
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](../msal-common/) as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-core` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
@@ -53,10 +57,6 @@ See [here](./FAQ.md).
     1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the affected redirect URIs from the Web platform Authentication tab - that's OK! We are working on getting UI set up for this.
 
     ![Changing Redirect URI type](./docs/images/redirectURIRegistrationUpdate.png)
-
-    2. Ensure your `Default Client Type` settings have "Treat application as public client" set to "Yes". 
-
-    ![Changing Default Client type](./docs/images/clientTypeRegistrationUpdate.png)
 
 ## Installation
 ### Via NPM:
