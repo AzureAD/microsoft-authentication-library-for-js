@@ -5,7 +5,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl } from "../utils/StringConstants";
-import { AuthError, ServerError, AuthResponse, LogLevel, Constants, TemporaryCacheKeys, TokenResponse, Account, TokenExchangeParameters, IdTokenClaims, AuthorizationCodeModule } from "@azure/msal-common";
+import { AuthError, ServerError, AuthResponse, LogLevel, Constants, TemporaryCacheKeys, TokenResponse, Account, TokenExchangeParameters, IdTokenClaims, AuthorizationCodeModule, PromptValue, AuthenticationParameters } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import sinon from "sinon";
@@ -16,6 +16,7 @@ import { XhrClient } from "../../src/network/XhrClient";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
+import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
         
@@ -519,6 +520,76 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("ssoSilent() Tests", () => {
+
+        it("throws error if loginHint or sid are empty", async () => {
+            await expect(pca.ssoSilent({})).to.be.rejectedWith(BrowserAuthError);
+            await expect(pca.ssoSilent({})).to.be.rejectedWith(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+        });
+
+        it("sets prompt to none by default", async () => {
+            const createLoginUrlStub = sinon.stub(AuthorizationCodeModule.prototype, "createLoginUrl").resolves(testNavUrl);
+            sinon.stub(pca, <any>"silentTokenHelper").returns(null);
+
+            const req: AuthenticationParameters = {
+                prompt: PromptValue.SELECT_ACCOUNT,
+                loginHint: "testLoginHint"
+            };
+            const silentReq: AuthenticationParameters = {
+                ...req,
+                prompt: PromptValue.NONE
+            };
+            await pca.ssoSilent(req);
+            expect(createLoginUrlStub.calledWith(silentReq)).to.be.true;
+        });
+
+        it("successfully returns a token response", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            const testIdTokenClaims: IdTokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount = new Account(testIdTokenClaims.oid, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdTokenClaims, TEST_TOKENS.IDTOKEN_V2);
+            const testTokenResponse: TokenResponse = {
+                uniqueId: testIdTokenClaims.oid,
+                tenantId: testIdTokenClaims.tid,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                refreshToken: testServerTokenResponse.refresh_token,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                userRequestState: ""                    
+            };
+            sinon.stub(AuthorizationCodeModule.prototype, "createLoginUrl").resolves(testNavUrl);
+            const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
+            sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+            const tokenResp = await pca.ssoSilent({
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                loginHint: "testLoginHint"
+            });
+            expect(loadFrameSyncSpy.calledOnce).to.be.true;
+            expect(tokenResp).to.be.deep.eq(testTokenResponse);
+        });
+    });
+
     describe("Acquire Token Silent (Iframe) Tests", () => {
 
         it("successfully renews token", async () => {
@@ -574,6 +645,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.sessionStorage).to.be.empty;
             }
         });
+
+        it("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
+            const invalidGrantError: ServerError = new ServerError("invalid_grant", "AADSTS700081: The refresh token has expired due to maximum lifetime. The token was issued on xxxxxxx and the maximum allowed lifetime for this application is 1.00:00:00.\r\nTrace ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nCorrelation ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nTimestamp: 2020-0x-0x XX:XX:XXZ");
+            sinon.stub(AuthorizationCodeModule.prototype, "getValidToken").rejects(invalidGrantError);
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            const testIdTokenClaims: IdTokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount = new Account(testIdTokenClaims.oid, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdTokenClaims, TEST_TOKENS.IDTOKEN_V2);
+            const testTokenResponse: TokenResponse = {
+                uniqueId: testIdTokenClaims.oid,
+                tenantId: testIdTokenClaims.tid,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                refreshToken: testServerTokenResponse.refresh_token,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                userRequestState: ""                    
+            };
+            const createAcqTokenStub = sinon.stub(AuthorizationCodeModule.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+            const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);
+            const tokenResp = await pca.acquireTokenSilent({
+                scopes: TEST_CONFIG.DEFAULT_SCOPES
+            });
+            expect(tokenResp).to.be.deep.eq(testTokenResponse);
+            expect(createAcqTokenStub.calledOnce).to.be.true;
+            expect(silentTokenHelperStub.calledWith(testNavUrl, TEST_CONFIG.DEFAULT_SCOPES.join(" "))).to.be.true;
+        });
     });
 
     describe("logout", () => {
@@ -607,5 +724,5 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(pca_alternate_redirUris.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
-    }); 
+    });
 });

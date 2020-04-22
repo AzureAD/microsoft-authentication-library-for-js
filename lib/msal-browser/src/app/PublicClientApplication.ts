@@ -356,10 +356,13 @@ export class PublicClientApplication {
             prompt: PromptValue.NONE
         };
 
+        // Get scopeString for iframe ID
+        const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
+
         // Create authorize request url
         const navigateUrl = await this.authModule.createLoginUrl(silentRequest);
 
-        return this.silentTokenHelper(navigateUrl, silentRequest.scopes.join(" "));
+        return this.silentTokenHelper(navigateUrl, scopeString);
     }
 
     /**
@@ -400,7 +403,10 @@ export class PublicClientApplication {
                 // Create authorize request url
                 const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
 
-                return this.silentTokenHelper(navigateUrl, tokenRequest.scopes.join(" "));
+                // Get scopeString for iframe ID
+                const scopeString = tokenRequest.scopes ? tokenRequest.scopes.join(" ") : "";
+
+                return this.silentTokenHelper(navigateUrl, scopeString);
             }
 
             throw e;
