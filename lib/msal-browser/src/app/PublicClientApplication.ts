@@ -389,15 +389,8 @@ export class PublicClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError) {
                 const tokenRequest: AuthenticationParameters = {
-                    scopes: silentRequest.scopes,
-                    resource: silentRequest.resource,
-                    extraQueryParameters: silentRequest.extraQueryParameters,
-                    authority: silentRequest.authority,
-                    correlationId: silentRequest.correlationId,
-                    prompt: PromptValue.NONE,
-                    account: silentRequest.account,
-                    sid: silentRequest.sid,
-                    loginHint: silentRequest.loginHint
+                    ...silentRequest,
+                    prompt: PromptValue.NONE
                 };
 
                 // Create authorize request url
