@@ -2,7 +2,7 @@ export { UserAgentApplication, authResponseCallback, errorReceivedCallback, toke
 export { Logger } from "./Logger";
 export { LogLevel } from "./Logger";
 export { Account } from "./Account";
-export { Constants } from "./utils/Constants";
+export { Constants, ServerHashParamKeys } from "./utils/Constants";
 export { Authority } from "./authority/Authority";
 export { CacheResult } from "./UserAgentApplication";
 export { CacheLocation, Configuration } from "./Configuration";
