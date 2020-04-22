@@ -529,7 +529,7 @@ export class UserAgentApplication {
                 request.correlationId
             );
 
-            this.updateCacheEntries(serverAuthenticationRequest, account, loginStartPage);
+            this.updateCacheEntries(serverAuthenticationRequest, account, isLoginCall, loginStartPage);
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
@@ -799,7 +799,7 @@ export class UserAgentApplication {
             const top = ((height / 2) - (popUpHeight / 2)) + winTop;
 
             // open the window
-            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left + ', scrollbars=yes');
+            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left + ", scrollbars=yes");
             if (!popupWindow) {
                 throw ClientAuthError.createPopupWindowError();
             }
@@ -1344,7 +1344,7 @@ export class UserAgentApplication {
         const frameName = `msalRenewFrame${scope}`;
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
-        this.updateCacheEntries(serverAuthenticationRequest, account);
+        this.updateCacheEntries(serverAuthenticationRequest, account, false);
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
@@ -1368,7 +1368,7 @@ export class UserAgentApplication {
         const frameName = "msalIdTokenFrame";
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
-        this.updateCacheEntries(serverAuthenticationRequest, account);
+        this.updateCacheEntries(serverAuthenticationRequest, account, false);
 
         this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
 
@@ -2093,9 +2093,9 @@ export class UserAgentApplication {
      * @hidden
      * @ignore
      */
-    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, loginStartPage?: any) {
+    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, isLoginCall: boolean, loginStartPage?: string) {
         // Cache account and authority
-        if (loginStartPage) {
+        if (isLoginCall) {
             // Cache the state, nonce, and login request data
             this.cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${serverAuthenticationRequest.state}`, loginStartPage, this.inCookie);
             this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${serverAuthenticationRequest.state}`, serverAuthenticationRequest.state, this.inCookie);
