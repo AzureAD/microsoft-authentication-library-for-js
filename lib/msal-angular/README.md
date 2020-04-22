@@ -19,6 +19,15 @@ The MSAL Angular package is available on NPM:
 - [Upgrade Guide (0.x-1.x)](./docs/0.x-1.x-upgrade-guide.md)
 - [Configuration](./docs/configuration.md)
 
+## Version Support
+
+At a minimum, MSAL Angular will follow the [support schedule of the main Angular project](https://angular.io/guide/releases#support-policy-and-schedule). We may continue to support certain versions of Angular that are no under Active or LTS support from the main Angular project on a version-by-version basis, as defined below.
+
+| MSAL Angular version | MSAL support status     | Supported Angular versions |
+|----------------------|-------------------------|----------------------------|
+| 1.x.x                | Active development      | 6, 7, 8, 9                 |
+| 0.x.x                | In maintenance          | 4, 5                       |
+
 ## Samples
 
 * [Angular Quickstart](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-angular)

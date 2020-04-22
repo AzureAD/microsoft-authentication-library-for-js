@@ -10,10 +10,9 @@ steps:
     optionsXS: 1
     optionsHMENABLE: 0
 
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
-  displayName: 'Run CredScan2'
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
+  displayName: 'Run CredScan3'
   inputs:
-    toolMajorVersion: 'V2'
     scanFolder: './'
     debugMode: false
 

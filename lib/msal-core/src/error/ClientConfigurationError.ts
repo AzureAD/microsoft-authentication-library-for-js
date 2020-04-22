@@ -89,6 +89,10 @@ export const ClientConfigurationErrorMessage = {
     telemetryConfigError: {
         code: "telemetry_config_error",
         desc: "Telemetry config is not configured with required values"
+    },
+    ssoSilentError: {
+        code: "sso_silent_error",
+        desc: "request must contain either sid or login_hint"
     }
 };
 
@@ -191,5 +195,10 @@ export class ClientConfigurationError extends ClientAuthError {
             }, []);
 
         return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
+    }
+
+    static createSsoSilentError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.ssoSilentError.code,
+            ClientConfigurationErrorMessage.ssoSilentError.desc);
     }
 }

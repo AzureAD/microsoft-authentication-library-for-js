@@ -50,7 +50,7 @@ export const BrowserAuthErrorMessage = {
     },
     monitorWindowTimeoutError: {
         code: "monitor_window_timeout",
-        desc: "Token acquisition operation failed - monitorWindowForHash timed out."
+        desc: "Token acquisition in popup failed due to timeout."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
@@ -63,6 +63,14 @@ export const BrowserAuthErrorMessage = {
     iframeClosedPrematurelyError: {
         code: "iframe_closed_prematurely",
         desc: "The iframe being monitored was closed prematurely."
+    },
+    silentSSOInsufficientInfoError: {
+        code: "silent_sso_error",
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a login_hint, sid or account object."
+    },
+    silentPromptValueError: {
+        code: "silent_prompt_value_error",
+        desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none'."
     }
 };
 
@@ -192,5 +200,19 @@ export class BrowserAuthError extends AuthError {
      */
     static createIframeClosedPrematurelyError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code, BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the login_hint, sid or account object is not provided in the ssoSilent API.
+     */
+    static createSilentSSOInsufficientInfoError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+    }
+
+    /**
+     * Creates an error thrown when a given prompt value is invalid for silent requests.
+     */
+    static createSilentPromptValueError(givenPrompt: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentPromptValueError.code, `${BrowserAuthErrorMessage.silentPromptValueError.desc} Given value: ${givenPrompt}`);
     }
 }
