@@ -115,7 +115,7 @@ describe("SilentHandler.ts Unit Tests", () => {
     });
 
     describe("initiateAuthRequest()", () => {
-        
+
         it("throws error if requestUrl is empty", async () => {
             await expect(silentHandler.initiateAuthRequest("")).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
             await expect(silentHandler.initiateAuthRequest("")).to.be.rejectedWith(BrowserAuthError);
@@ -124,16 +124,15 @@ describe("SilentHandler.ts Unit Tests", () => {
             await expect(silentHandler.initiateAuthRequest(null)).to.be.rejectedWith(BrowserAuthError);
         });
 
-        it("Creates a frame synchronously when created with default timeout", async () => {
-            silentHandler = new SilentHandler(authCodeModule, browserStorage, 0);
+        it("Creates a frame asynchronously when created with default timeout", async () => {
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
             const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
-            expect(loadFrameSpy.called).to.be.false;
+            expect(loadFrameSpy.called).to.be.true;
             expect(authFrame instanceof HTMLIFrameElement).to.be.true;
             expect(authFrame.id).to.be.eq("msalTokenFrame");
-        });
+        }).timeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000);
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
             silentHandler = new SilentHandler(authCodeModule, browserStorage, 0);
