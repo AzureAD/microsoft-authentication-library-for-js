@@ -377,34 +377,34 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+    async acquireTokenSilent(silentRequest: TokenRenewParameters): Promise<TokenResponse> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         try {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await this.authModule.getValidToken(tokenRequest);
+            return await this.authModule.getValidToken(silentRequest);
         } catch (e) {
             const isServerError = e instanceof ServerError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError) {
-                const silentRequest: AuthenticationParameters = {
-                    scopes: tokenRequest.scopes,
-                    resource: tokenRequest.resource,
-                    extraQueryParameters: tokenRequest.extraQueryParameters,
-                    authority: tokenRequest.authority,
-                    correlationId: tokenRequest.correlationId,
+                const tokenRequest: AuthenticationParameters = {
+                    scopes: silentRequest.scopes,
+                    resource: silentRequest.resource,
+                    extraQueryParameters: silentRequest.extraQueryParameters,
+                    authority: silentRequest.authority,
+                    correlationId: silentRequest.correlationId,
                     prompt: PromptValue.NONE,
-                    account: tokenRequest.account,
-                    sid: tokenRequest.sid,
-                    loginHint: tokenRequest.loginHint
+                    account: silentRequest.account,
+                    sid: silentRequest.sid,
+                    loginHint: silentRequest.loginHint
                 };
 
                 // Create authorize request url
-                const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
+                const navigateUrl = await this.authModule.createAcquireTokenUrl(tokenRequest);
 
                 // Get scopeString for iframe ID
-                const scopeString = tokenRequest.scopes ? tokenRequest.scopes.join(" ") : "";
+                const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
 
                 return this.silentTokenHelper(navigateUrl, scopeString);
             }
