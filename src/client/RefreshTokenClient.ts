@@ -22,8 +22,7 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     public async acquireToken(request: RefreshTokenRequest): Promise<string>{
-        const authority = await this.createAuthority(request.authority);
-        const response = await this.executeTokenRequest(request, authority);
+        const response = await this.executeTokenRequest(request, this.authority);
         // TODO add response_handler here to send the response
         return JSON.stringify(response.body);
     }

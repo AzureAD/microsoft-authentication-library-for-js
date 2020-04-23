@@ -4,11 +4,11 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { BaseClient } from "../../src/client/BaseClient";
 import { Configuration } from "../../src/config/Configuration";
-import {Constants} from "../../src";
-import {AADServerParamKeys, HeaderNames} from "../../src/utils/Constants";
-import {ClientTestUtils} from "./ClientTestUtils";
+import { Authority, Constants } from "../../src";
+import { AADServerParamKeys, HeaderNames } from "../../src/utils/Constants";
+import { ClientTestUtils } from "./ClientTestUtils";
 import sinon from "sinon";
-import {TEST_CONFIG} from "../utils/StringConstants";
+import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../utils/StringConstants";
 
 class TestClient extends BaseClient {
 
@@ -45,7 +45,7 @@ class TestClient extends BaseClient {
     }
 
     getDefaultAuthorityInstance(){
-        return this.defaultAuthorityInstance;
+        return this.authority;
     }
 
     createDefaultLibraryHeaders(): Map<string, string> {
@@ -59,27 +59,27 @@ class TestClient extends BaseClient {
 
 describe("BaseClient.ts Class Unit Tests", () => {
 
-    let config: Configuration;
     beforeEach(() => {
-        config = ClientTestUtils.createTestClientConfiguration();
-        });
-
-    afterEach(() => {
         sinon.restore();
     });
 
     describe("Constructor", () => {
 
-        it("Creates a valid BaseClient object", () => {
+        it("Creates a valid BaseClient object", async () => {
 
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof BaseClient).to.be.true;
         });
 
-        it("Sets fields on BaseClient object", () => {
+        it("Sets fields on BaseClient object", async () => {
 
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
+
             expect(client.getAccount()).to.be.not.null;
             expect(client.getCacheManger()).to.be.not.null;
             expect(client.getCacheStorage()).to.be.not.null;
@@ -92,8 +92,11 @@ describe("BaseClient.ts Class Unit Tests", () => {
 
     describe("Header utils", () => {
 
-        it("Creates default library headers", () => {
+        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        it("Creates default library headers", async () => {
 
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             const headers = client.createDefaultLibraryHeaders();
 
@@ -103,8 +106,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
             expect(headers.get(AADServerParamKeys.X_CLIENT_CPU)).to.eq(TEST_CONFIG.TEST_CPU);
         });
 
-        it("Creates default token request headers", () => {
+        it("Creates default token request headers", async () => {
 
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             const headers = client.createDefaultTokenRequestHeaders();
 
