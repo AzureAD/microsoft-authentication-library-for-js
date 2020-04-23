@@ -1,21 +1,19 @@
-import {Inject, Injectable, InjectionToken} from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import {
     UserAgentApplication,
     Configuration,
     AuthenticationParameters,
     AuthResponse,
     AuthError,
-    Logger
+    authResponseCallback,
+    errorReceivedCallback,
+    tokenReceivedCallback,
+    UrlUtils
 } from "msal";
-import {
-     Router
-} from "@angular/router";
+import { Router } from "@angular/router";
 import {BroadcastService} from "./broadcast.service";
-import {MSALError} from "./MSALError";
-import { AuthCache } from "msal/lib-commonjs/cache/AuthCache";
+import { MSALError } from "./MSALError";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
-import { authResponseCallback, errorReceivedCallback, tokenReceivedCallback } from "msal/lib-commonjs/UserAgentApplication";
-import { UrlUtils } from "msal/lib-commonjs/utils/UrlUtils";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
 const buildMsalConfig = (config: Configuration) : Configuration => {
@@ -80,10 +78,6 @@ export class MsalService extends UserAgentApplication {
 
     private isEmpty(str: string): boolean {
         return (typeof str === "undefined" || !str || 0 === str.length);
-    }
-
-    public getCacheStorage(): AuthCache {
-        return this.cacheStorage;
     }
 
     public loginPopup(request?: AuthenticationParameters): Promise<any> {
