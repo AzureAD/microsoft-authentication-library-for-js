@@ -16,8 +16,8 @@ The MSAL Angular package is available on NPM:
 ## Guides
 
 - [Quickstart](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-angular)
-- [Upgrade Guide (0.x-1.x)](./docs/0.x-1.x-upgrade-guide.md)
-- [Configuration](./docs/configuration.md)
+- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/0.x-1.x-upgrade-guide.md)
+- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/configuration.md)
 
 ## Version Support
 
@@ -32,10 +32,10 @@ At a minimum, MSAL Angular will follow the [support schedule of the main Angular
 
 * [Angular Quickstart](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-angular)
 * [B2C Angular SPA](https://github.com/Azure-Samples/active-directory-b2c-javascript-angular-spa)
-* [Angular v6](../../samples/angular6-sample-app)
-* [Angular v7](../../samples/angular7-sample-app)
-* [Angular v8](../../samples/angular8-sample-app)
-* [Angular v9](../../samples/angular9-sample-app)
+* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular6-sample-app)
+* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular7-sample-app)
+* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular8-sample-app)
+* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular9-sample-app)
 
 ## Usage
 
