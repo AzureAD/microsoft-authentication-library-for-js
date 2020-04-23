@@ -27,9 +27,6 @@ export class PublicClientApplication {
     // auth functions imported from @azure/msal-common module
     private authModule: AuthorizationCodeModule;
 
-    // callback for error/token response
-    private authCallback: AuthCallback = null;
-
     // Crypto interface implementation
     private browserCrypto: CryptoOps;
 
@@ -38,6 +35,9 @@ export class PublicClientApplication {
 
     // Network interface implementation
     private networkClient: INetworkModule;
+
+    // Response promise
+    private tokenExchangePromise: Promise<TokenResponse>;
 
     /**
      * @constructor
@@ -88,13 +88,15 @@ export class PublicClientApplication {
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage
         });
+
+        // Check for hash and save response promise
+        this.tokenExchangePromise = this.handleRedirectResponse();
     }
 
     // #region Redirect Flow
 
     /**
-     * Set the callback functions for the redirect flow to send back the success or error object, and process
-     * any redirect-related data.
+     * Process any redirect-related data and send back the success or error object.
      * IMPORTANT: Please do not use this function when using the popup APIs, as it may break the response handling
      * in the main window.
      * 
@@ -109,14 +111,14 @@ export class PublicClientApplication {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
         }
 
-        // Set the callback object.
-        this.authCallback = authCallback;
-
         // Check if we need to navigate, otherwise handle hash
         try {
-            await this.handleRedirectResponse();
+            const tokenResponse = await this.tokenExchangePromise;
+            if (tokenResponse) {
+                authCallback(null, tokenResponse);
+            }
         } catch (err) {
-            this.authCallback(err);
+            authCallback(err);
         }
     }
 
@@ -125,23 +127,38 @@ export class PublicClientApplication {
      * - if true, performs logic to cache and navigate 
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<void> {
+    private async handleRedirectResponse(): Promise<TokenResponse> {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+
+        const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
+        const currentUrl = BrowserUtils.getCurrentUri();
+        if (loginRequestUrl === currentUrl) {
+            // We don't need to navigate - check for hash and prepare to process
+            if (isResponseHash) {
+                BrowserUtils.clearHash();
+                return this.handleHash(hash);
+            } else {
+                // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
+                return this.handleHash(cachedHash);
+            }
+        }
+
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
-            const loginRequestUrl = this.browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI);
+            
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow("/", true);
             } else {
+                // Navigate to target url
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
             }
-            return;
+            return null;
         }
 
         if (!isResponseHash) {
@@ -154,6 +171,8 @@ export class PublicClientApplication {
             BrowserUtils.clearHash();
             return this.handleHash(hash);
         }
+
+        return null;
     }
 
     /**
@@ -161,16 +180,16 @@ export class PublicClientApplication {
      * @param responseHash 
      * @param interactionHandler 
      */
-    private async handleHash(responseHash: string): Promise<void> {
+    private async handleHash(responseHash: string): Promise<TokenResponse> {
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
         if (!StringUtils.isEmpty(responseHash)) {
             // Hash contains known properties - handle and return in callback
-            const tokenResponse = await interactionHandler.handleCodeResponse(responseHash);
-            this.authCallback(null, tokenResponse);
-        } else {
-            // There is no hash - assume we are in clean state and clear any current request data.
-            this.cleanRequest();
+            return interactionHandler.handleCodeResponse(responseHash);
         }
+
+        // There is no hash - assume we are in clean state and clear any current request data.
+        this.cleanRequest();
+        return null;
     }
 
     /**
@@ -179,19 +198,8 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthenticationParameters): void {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
-        // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
-        if (!this.authCallback) {
-            throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
-        }
-
-        // Check if interaction is in progress. Throw error in callback and return if true.
-        if (this.interactionInProgress()) {
-            this.authCallback(BrowserAuthError.createInteractionInProgressError());
-            return;
-        }
+        // Preflight request
+        this.preflightRequest();
 
         try {
             // Create redirect interaction handler.
@@ -216,19 +224,8 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(request: AuthenticationParameters): void {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
-        // Check if callback has been set. If not, handleRedirectCallbacks wasn't called correctly.
-        if (!this.authCallback) {
-            throw BrowserConfigurationAuthError.createRedirectCallbacksNotSetError();
-        }
-
-        // Check if interaction is in progress. Throw error in callback and return if true.
-        if (this.interactionInProgress()) {
-            this.authCallback(BrowserAuthError.createInteractionInProgressError());
-            return;
-        }
+        // Preflight request
+        this.preflightRequest();
 
         try {
             // Create redirect interaction handler.
@@ -257,13 +254,8 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
-        // Check if interaction is in progress. Throw error if true.
-        if (this.interactionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
+        // Preflight request
+        this.preflightRequest();
 
         // Create login url, which will by default append the client id scope to the call.
         const navigateUrl = await this.authModule.createLoginUrl(request);
@@ -280,13 +272,8 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-
-        // Check if interaction is in progress. Throw error if true.
-        if (this.interactionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
+        // Preflight request
+        this.preflightRequest();
 
         // Create acquire token url.
         const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
@@ -344,10 +331,9 @@ export class PublicClientApplication {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
-        // Check that prompt is set to none, log message if it is set to anything else.
+        // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
-            // TODO: Update to use the logger class
-            console.log(`Prompt must be set to none for silent requests. The given value was ${request.prompt}`);
+            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
         // Create silent request
@@ -356,10 +342,13 @@ export class PublicClientApplication {
             prompt: PromptValue.NONE
         };
 
+        // Get scopeString for iframe ID
+        const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
+
         // Create authorize request url
         const navigateUrl = await this.authModule.createLoginUrl(silentRequest);
 
-        return this.silentTokenHelper(navigateUrl, silentRequest.scopes.join(" "));
+        return this.silentTokenHelper(navigateUrl, scopeString);
     }
 
     /**
@@ -374,33 +363,29 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(tokenRequest: TokenRenewParameters): Promise<TokenResponse> {
+    async acquireTokenSilent(silentRequest: TokenRenewParameters): Promise<TokenResponse> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         try {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await this.authModule.getValidToken(tokenRequest);
+            return await this.authModule.getValidToken(silentRequest);
         } catch (e) {
             const isServerError = e instanceof ServerError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError) {
-                const silentRequest: AuthenticationParameters = {
-                    scopes: tokenRequest.scopes,
-                    resource: tokenRequest.resource,
-                    extraQueryParameters: tokenRequest.extraQueryParameters,
-                    authority: tokenRequest.authority,
-                    correlationId: tokenRequest.correlationId,
-                    prompt: PromptValue.NONE,
-                    account: tokenRequest.account,
-                    sid: tokenRequest.sid,
-                    loginHint: tokenRequest.loginHint
+                const tokenRequest: AuthenticationParameters = {
+                    ...silentRequest,
+                    prompt: PromptValue.NONE
                 };
 
                 // Create authorize request url
-                const navigateUrl = await this.authModule.createAcquireTokenUrl(silentRequest);
+                const navigateUrl = await this.authModule.createAcquireTokenUrl(tokenRequest);
 
-                return this.silentTokenHelper(navigateUrl, tokenRequest.scopes.join(" "));
+                // Get scopeString for iframe ID
+                const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
+
+                return this.silentTokenHelper(navigateUrl, scopeString);
             }
 
             throw e;
@@ -483,11 +468,24 @@ export class PublicClientApplication {
     // #region Helpers
 
     /**
-     * Helper to check whether interaction is in progress
+     * Helper to check whether interaction is in progress.
      */
     private interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return this.browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+    }
+
+    /**
+     * Helper to validate app environment before making a request.
+     */
+    private preflightRequest(): void {
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
+        // Check if interaction is in progress. Throw error if true.
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
     }
 
     /**
