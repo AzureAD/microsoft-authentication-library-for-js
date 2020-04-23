@@ -36,19 +36,18 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
-        const authority: Authority = await this.createAuthority(request && request.authority);
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${authority.authorizationEndpoint}?${queryString}`;
+        return `${this.authority.authorizationEndpoint}?${queryString}`;
     }
 
     /**
-     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
+     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the
+     * authorization_code_grant
      * @param request
      */
     async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
 
-        const authority: Authority = await this.createAuthority(request && request.authority);
-        const response = await this.executeTokenRequest(authority, request);
+        const response = await this.executeTokenRequest(this.authority, request);
         return JSON.stringify(response.body);
         // TODO add response_handler here to send the response
     }
@@ -58,7 +57,8 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest)
+        : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();

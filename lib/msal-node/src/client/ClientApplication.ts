@@ -9,7 +9,11 @@ import {
     AuthorizationCodeRequest,
     Configuration,
     RefreshTokenClient,
-    RefreshTokenRequest
+    RefreshTokenRequest,
+    Authority,
+    AuthorityFactory,
+    ClientAuthError,
+    Constants
 } from '@azure/msal-common';
 import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -19,7 +23,8 @@ import { ClientInfo } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
-    protected config: ClientConfiguration;
+    protected appConfig: ClientConfiguration;
+    protected _authority: Authority;
 
     /**
      * @constructor
@@ -42,7 +47,7 @@ export abstract class ClientApplication {
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     protected constructor(configuration: ClientConfiguration) {
-        this.config = buildAppConfiguration(configuration);
+        this.appConfig = buildAppConfiguration(configuration);
     }
 
     /**
@@ -57,7 +62,8 @@ export abstract class ClientApplication {
      */
     async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
-        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+        const authClientConfig = await this.buildOauthClientConfiguration(request.authority);
+        const authorizationCodeClient = new AuthorizationCodeClient(authClientConfig);
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
 
@@ -73,7 +79,8 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<string> {
 
-        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+        const authClientConfig = await this.buildOauthClientConfiguration(request.authority);
+        const authorizationCodeClient = new AuthorizationCodeClient(authClientConfig);
         return authorizationCodeClient.acquireToken(request);
     }
 
@@ -86,21 +93,26 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
-        const refreshTokenClient = new RefreshTokenClient(this.buildOauthClientConfiguration());
+
+        const refreshTokenClientConfig = await this.buildOauthClientConfiguration(request.authority);
+        const refreshTokenClient = new RefreshTokenClient(refreshTokenClientConfig);
         return refreshTokenClient.acquireToken(request);
     }
 
-    protected buildOauthClientConfiguration(): Configuration {
+    protected async buildOauthClientConfiguration(authority?: string): Promise<Configuration> {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
-            authOptions: this.config.auth,
+            authOptions: {
+                clientId: this.appConfig.auth.clientId,
+                authority: await this.createAuthority(authority)
+            },
             loggerOptions: {
-                loggerCallback: this.config.system!.loggerOptions!.loggerCallback,
-                piiLoggingEnabled: this.config.system!.loggerOptions!.piiLoggingEnabled,
+                loggerCallback: this.appConfig.system!.loggerOptions!.loggerCallback,
+                piiLoggingEnabled: this.appConfig.system!.loggerOptions!.piiLoggingEnabled,
             },
             cryptoInterface: new CryptoProvider(),
-            networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
+            networkInterface: this.appConfig.system!.networkClient,
+            storageInterface: new Storage(this.appConfig.auth!.clientId, this.appConfig.cache!),
             libraryInfo: {
                 sku: ClientInfo.MSAL_SKU_VALUE,
                 version: version,
@@ -108,5 +120,32 @@ export abstract class ClientApplication {
                 os: process.platform || ""
             },
         };
+    }
+
+    /**
+     * Create authority instance. If authority not passed in request, default to authority set on the application
+     * object. If no authority set in application object, then default to common authority.
+     * @param authorityString
+     */
+    private async createAuthority(authorityString?: string): Promise<Authority> {
+        const authority: Authority = authorityString
+            ? AuthorityFactory.createInstance(authorityString,  this.appConfig.system!.networkClient!)
+            : this.authority;
+
+        await authority.resolveEndpointsAsync().catch(error => {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        });
+        return authority;
+    }
+
+    private get authority(){
+        if(this._authority){
+            return this._authority;
+        }
+
+        return AuthorityFactory.createInstance(
+            this.appConfig.auth.authority || Constants.DEFAULT_AUTHORITY,
+            this.appConfig.system!.networkClient!
+        );
     }
 }

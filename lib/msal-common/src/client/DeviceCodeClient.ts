@@ -6,7 +6,6 @@
 import { DeviceCodeResponse } from "../response/DeviceCodeResponse";
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
-import { Authority } from "../authority/Authority";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
@@ -21,8 +20,6 @@ import {ScopeSet} from "../request/ScopeSet";
  */
 export class DeviceCodeClient extends BaseClient {
 
-    private authority: Authority;
-
     constructor(configuration: Configuration){
         super(configuration);
     }
@@ -33,7 +30,6 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<string> {
-        this.authority = await this.createAuthority(request.authority);
         const deviceCodeResponse: NetworkResponse<DeviceCodeResponse> = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse.body);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
