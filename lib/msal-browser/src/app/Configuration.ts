@@ -6,8 +6,9 @@ import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } f
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
-// Default timeout for popup windows in milliseconds
+// Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
+const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 
 export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
@@ -37,6 +38,8 @@ export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     windowHashTimeout?: number;
+    iframeHashTimeout?: number;
+    loadFrameTimeout?: number;
 };
 
 /**
@@ -96,7 +99,9 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
-    windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS
+    windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
+    iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
+    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0
 };
 
 /**

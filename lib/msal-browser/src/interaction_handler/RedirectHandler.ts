@@ -14,7 +14,7 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate 
      */
-    showUI(requestUrl: string): Window {
+    initiateAuthRequest(requestUrl: string): Window {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.

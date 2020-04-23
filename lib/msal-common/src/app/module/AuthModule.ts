@@ -119,7 +119,7 @@ export abstract class AuthModule {
      * id tokens are not being renewed).
      * @param request 
      */
-    abstract async renewToken(request: TokenRenewParameters): Promise<TokenResponse>;
+    abstract async getValidToken(request: TokenRenewParameters): Promise<TokenResponse>;
 
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.

@@ -13,9 +13,13 @@ import { Account } from "../auth/Account";
  * - authority: authority to request tokens from
  * - correlationId: custom correlationId given by user
  * - account: Account object to perform SSO
+ * - sid: session id for SSO
+ * - loginHint: login hint for SSO
  * - forceRefresh: Forces silent requests to make network calls if true
  */
 export type TokenRenewParameters = ClientRequestParameters & {
     account?: Account;
+    sid?: string;
+    loginHint?: string;
     forceRefresh?: boolean;
 };
