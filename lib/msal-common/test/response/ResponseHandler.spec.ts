@@ -206,8 +206,8 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
         });
 
         it("throws InteractionRequiredAuthError if hash contains error parameters", () => {
-            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired.code;
-            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired.code} test error`;
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired;
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired} test error`;
             const testServerParams: ServerAuthorizationCodeResponse = {
                 error: TEST_ERROR_CODE,
                 error_description: TEST_ERROR_MSG,
