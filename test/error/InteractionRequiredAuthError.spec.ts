@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
+import { IdToken } from "../../src/auth/IdToken";
 
 
 describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
@@ -47,6 +48,15 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired, `This is a ${InteractionRequiredAuthErrorMessage.consentRequired.code} error!`)).to.be.true;
             expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired, `This is a ${InteractionRequiredAuthErrorMessage.loginRequired.code} error!`)).to.be.true;
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "This is not an interaction required error")).to.be.false;
+        });
+
+        it("Returns expected value for given sub-error", () => {
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", InteractionRequiredAuthSubErrorMessage.additionalAction)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", InteractionRequiredAuthSubErrorMessage.basicAction)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", InteractionRequiredAuthSubErrorMessage.consentRequired)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", InteractionRequiredAuthSubErrorMessage.messageOnly)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", InteractionRequiredAuthSubErrorMessage.userPasswordExpired)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", "bad_token")).to.be.false;
         });
     });
 });

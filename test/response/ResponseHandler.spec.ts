@@ -18,7 +18,7 @@ import { ServerError } from "../../src/error/ServerError";
 import { CodeResponse } from "../../src";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { TimeUtils } from "../../src/utils/TimeUtils";
-import { InteractionRequiredAuthErrorMessage, InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
+import { InteractionRequiredAuthErrorMessage, InteractionRequiredAuthError, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 
@@ -282,6 +282,35 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
+        });
+
+        it("throws InteractionRequiredAuthError if hash contains error parameters", () => {
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired;
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired} test error`;
+            const testServerParams: ServerAuthorizationTokenResponse = {
+                error: TEST_ERROR_CODE,
+                error_description: TEST_ERROR_MSG
+            };
+
+            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
+        });
+
+        it("throws InteractionRequiredAuthError if hash contains interaction required sub-error", () => {
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired;
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired} test error`;
+            const testServerParams: ServerAuthorizationTokenResponse = {
+                error: "invalid_grant",
+                error_description: "test error",
+                suberror: InteractionRequiredAuthSubErrorMessage.consentRequired
+            };
+
+            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
+            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
         });
     });
 
