@@ -37,9 +37,9 @@ export class InteractionRequiredAuthError extends ServerError {
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
 
-    static validateSubError(subError: string) {
+    static validateSubError(subError: string): string {
         if (subError && Object.values(InteractionRequiredAuthSubErrorMessage).includes(subError)) {
-            return subError
+            return subError;
         }
 
         return "";
