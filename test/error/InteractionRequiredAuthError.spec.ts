@@ -29,23 +29,23 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         });
 
         it("Returns expected value for given error code", () => {
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.interactionRequired.code, "")).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired.code, "")).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired.code, "")).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.interactionRequired, "")).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired, "")).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired, "")).to.be.true;
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "")).to.be.false;
         });
 
         it("Returns expected value for given error string", () => {
-            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.interactionRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.consentRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.loginRequired.code} error!`)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.interactionRequired} error!`)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.consentRequired} error!`)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.loginRequired} error!`)).to.be.true;
             expect(InteractionRequiredAuthError.isInteractionRequiredError("", "This is not an interaction required error")).to.be.false;
         });
 
         it("Returns expected value for given error code and error string", () => {
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.interactionRequired.code, `This is a ${InteractionRequiredAuthErrorMessage.interactionRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired.code, `This is a ${InteractionRequiredAuthErrorMessage.consentRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired.code, `This is a ${InteractionRequiredAuthErrorMessage.loginRequired.code} error!`)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.interactionRequired, `This is a ${InteractionRequiredAuthErrorMessage.interactionRequired.code} error!`)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired, `This is a ${InteractionRequiredAuthErrorMessage.consentRequired.code} error!`)).to.be.true;
+            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired, `This is a ${InteractionRequiredAuthErrorMessage.loginRequired.code} error!`)).to.be.true;
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "This is not an interaction required error")).to.be.false;
         });
     });
