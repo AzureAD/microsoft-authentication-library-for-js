@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeResponse } from "../response/DeviceCodeResponse";
+import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/DeviceCodeResponse";
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { Authority } from "../authority/Authority";
@@ -14,7 +14,8 @@ import { Configuration } from "../config/Configuration";
 import { TimeUtils } from "../utils/TimeUtils";
 import {NetworkResponse} from "..";
 import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {ScopeSet} from "../request/ScopeSet";
+import { ScopeSet } from "../request/ScopeSet";
+import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
 
 /**
  * OAuth2.0 Device code client
@@ -34,11 +35,11 @@ export class DeviceCodeClient extends BaseClient {
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<string> {
         this.authority = await this.createAuthority(request.authority);
-        const deviceCodeResponse: NetworkResponse<DeviceCodeResponse> = await this.getDeviceCode(request);
-        request.deviceCodeCallback(deviceCodeResponse.body);
+        const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
+        request.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
             request,
-            deviceCodeResponse.body);
+            deviceCodeResponse);
 
         // TODO handle response
         return JSON.stringify(response);
@@ -48,7 +49,7 @@ export class DeviceCodeClient extends BaseClient {
      * Creates device code request and executes http GET
      * @param request
      */
-    private async getDeviceCode(request: DeviceCodeRequest): Promise<NetworkResponse<DeviceCodeResponse>> {
+    private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
 
         const deviceCodeUrl = this.createDeviceCodeUrl(request);
         const headers = this.createDefaultLibraryHeaders();
@@ -61,13 +62,24 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeUrl
      * @param headers
      */
-    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<NetworkResponse<DeviceCodeResponse>>{
+    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<DeviceCodeResponse>{
 
-        return this.networkClient.sendGetRequestAsync<DeviceCodeResponse>(
+        const serverDeviceCodeResponse = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(
             deviceCodeUrl,
             {
                 headers: headers
             });
+
+        const deviceCodeResponse: DeviceCodeResponse = {
+            userCode: serverDeviceCodeResponse.body.user_code,
+            deviceCode: serverDeviceCodeResponse.body.device_code,
+            verificationUri: serverDeviceCodeResponse.body.verification_uri,
+            expiresIn: serverDeviceCodeResponse.body.expires_in,
+            interval: serverDeviceCodeResponse.body.interval,
+            message: serverDeviceCodeResponse.body.message
+        }
+
+        return deviceCodeResponse;
     }
 
     /**
@@ -110,7 +122,7 @@ export class DeviceCodeClient extends BaseClient {
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
-        const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expires_in;
+        const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
         // Poll token endpoint while (device code is not expired AND operation has not been cancelled by
@@ -173,7 +185,7 @@ export class DeviceCodeClient extends BaseClient {
 
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
 
-        requestParameters.addDeviceCode(deviceCodeResponse.device_code);
+        requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
 
         return requestParameters.createQueryString();
     }
