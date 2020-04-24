@@ -8,7 +8,11 @@ describe('ClientConfiguration tests', () => {
 
     test('builds configuration and assigns default functions', () => {
 
-        const config: ClientConfiguration = buildAppConfiguration({});
+        const config: ClientConfiguration = buildAppConfiguration({
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID
+            }
+        });
 
         // network options
         expect(config.system!.networkClient).toBeDefined();
@@ -40,7 +44,7 @@ describe('ClientConfiguration tests', () => {
 
         // auth options
         expect(config.auth!.authority).toEqual("");
-        expect(config.auth!.clientId).toEqual("");
+        expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
 
         // cache options
         expect(config.cache!.cacheLocation).toEqual(CACHE.FILE_CACHE);
