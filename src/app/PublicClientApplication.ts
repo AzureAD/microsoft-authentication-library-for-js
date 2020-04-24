@@ -123,6 +123,14 @@ export class PublicClientApplication {
     }
 
     /**
+     * Event handler function which allows users to fire events after the PublicClientApplication object 
+     * has loaded during redirect flows.
+     */
+    async onRedirectAppLoad(): Promise<TokenResponse> {
+        return this.tokenExchangePromise;
+    }
+
+    /**
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate 
      * - if false, handles hash string and parses response
