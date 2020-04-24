@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { AccountEntity } from "../../src/uCache/entities/AccountEntity";
+import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
 import { AccountValues } from "./cacheConstants";
 
 describe("AccountEntity.ts Unit Tests", () => {

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { IdTokenEntity } from "../../src/uCache/entities/IdTokenEntity";
+import { IdTokenEntity } from "../../src/unifiedCache/entities/IdTokenEntity";
 import { IdTValues } from "./cacheConstants";
 
 describe("IdTokenEntity.ts Unit Tests", () => {
