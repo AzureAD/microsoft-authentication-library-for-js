@@ -159,11 +159,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                    idToken: testServerTokenResponse.id_token,
+                    idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
-                    accessToken: testServerTokenResponse.access_token,
-                    refreshToken: testServerTokenResponse.refresh_token,
-                    expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                    accessToken: testServerTokenResponse.body.access_token,
+                    refreshToken: testServerTokenResponse.body.refresh_token,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
                 };
@@ -260,11 +260,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                    idToken: testServerTokenResponse.id_token,
+                    idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
-                    accessToken: testServerTokenResponse.access_token,
-                    refreshToken: testServerTokenResponse.refresh_token,
-                    expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                    accessToken: testServerTokenResponse.body.access_token,
+                    refreshToken: testServerTokenResponse.body.refresh_token,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
                 };
