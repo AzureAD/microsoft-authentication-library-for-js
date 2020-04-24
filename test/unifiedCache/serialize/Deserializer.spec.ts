@@ -1,13 +1,13 @@
 import { expect } from "chai";
-import { CacheInterface } from "../../../src/unifiedCache/serialize/CacheInterface";
-import { mockCache, MockCache } from "../entities/cacheConstants";
+import { MockCache } from "../entities/cacheConstants";
 import { Deserializer } from "../../../src/unifiedCache/serialize/Deserializer";
-import { IdToken } from "../../../src/account/IdToken";
 import { InMemoryCache } from "../../../src/unifiedCache/utils/CacheTypes";
 
 const cacheJson = require("./cache.json");
 
 describe("Deserializer test cases", () => {
+
+    const cache = JSON.stringify(cacheJson);
 
     it("deserializeJSONBlob", () => {
         const mockAccount = {
@@ -21,21 +21,19 @@ describe("Deserializer test cases", () => {
                 client_info: "base64encodedjson",
             },
         };
-        const acc = CacheInterface.deserializeJSONBlob(cacheJson);
-        expect(acc.accounts).to.eql(mockAccount);
+        const acc = Deserializer.deserializeJSONBlob(cache);
+        expect(acc.Account).to.eql(mockAccount);
     });
 
     it("retrieve empty JSON blob", () => {
-        const emptyCacheJson = {};
-        const emptyJsonContent = CacheInterface.deserializeJSONBlob(
-            emptyCacheJson
-        );
+        const emptyCache: string = "";
+        const emptyJsonContent = Deserializer.deserializeJSONBlob(emptyCache);
 
-        expect(emptyJsonContent.accounts).to.eql({});
-        expect(emptyJsonContent.accessTokens).to.eql({});
-        expect(emptyJsonContent.idTokens).to.eql({});
-        expect(emptyJsonContent.refreshTokens).to.eql({});
-        expect(emptyJsonContent.appMetadata).to.eql({});
+        expect(emptyJsonContent.IdToken).to.eql({});
+        expect(emptyJsonContent.Account).to.eql({});
+        expect(emptyJsonContent.AccessToken).to.eql({});
+        expect(emptyJsonContent.RefreshToken).to.eql({});
+        expect(emptyJsonContent.AppMetadata).to.eql({});
     });
 
     it("deSerializeAccounts", () => {
