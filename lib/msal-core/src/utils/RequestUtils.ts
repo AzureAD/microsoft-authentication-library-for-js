@@ -203,4 +203,12 @@ export class RequestUtils {
         }
         return CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
     }
+
+    /**
+     * Create a request signature
+     * @param request
+     */
+    static createRequestSignature(request: AuthenticationParameters): string {
+        return `${request.scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${request.authority}`;
+    }
 }
