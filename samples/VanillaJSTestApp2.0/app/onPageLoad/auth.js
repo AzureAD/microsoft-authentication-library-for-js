@@ -18,13 +18,18 @@ const myMSALObj = new msal.PublicClientApplication(msalConfig);
 myMSALObj.onRedirectAppLoad().then((tokenResponse) => {
     const accountObj = tokenResponse ? tokenResponse.account : myMSALObj.getAccount();
     if (accountObj) {
+        // Account object was retrieved, continue with app progress
         console.log('id_token acquired at: ' + new Date().toString());
         showWelcomeMessage(accountObj);
         seeProfileRedirect();
     } else if (tokenResponse && tokenResponse.tokenType === "Bearer") {
+        // No account object available, but access token was retrieved
         console.log('access_token acquired at: ' + new Date().toString());
-    } else {
+    } else if (tokenResponse === null) {
+        // tokenResponse was null, attempt sign in or enter unauthenticated state for app
         signIn("loginRedirect");
+    } else {
+        console.log("tokenResponse was not null but did not have any tokens: " + tokenResponse);
     }
 }).catch((error) => {
     console.log(error);

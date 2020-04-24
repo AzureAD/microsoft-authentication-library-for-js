@@ -96,6 +96,7 @@ export class PublicClientApplication {
     // #region Redirect Flow
 
     /**
+     * WARNING: This function will be deprecated soon.
      * Process any redirect-related data and send back the success or error object.
      * IMPORTANT: Please do not use this function when using the popup APIs, as it may break the response handling
      * in the main window.
@@ -106,6 +107,7 @@ export class PublicClientApplication {
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
+        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using onRedirectAppLoad().");
         // Check whether callback object was passed.
         if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
@@ -124,9 +126,10 @@ export class PublicClientApplication {
 
     /**
      * Event handler function which allows users to fire events after the PublicClientApplication object 
-     * has loaded during redirect flows.
+     * has loaded during redirect flows. 
+     * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async onRedirectAppLoad(): Promise<TokenResponse> {
+    async onRedirectAppLoad(): Promise<TokenResponse|null> {
         return this.tokenExchangePromise;
     }
 
