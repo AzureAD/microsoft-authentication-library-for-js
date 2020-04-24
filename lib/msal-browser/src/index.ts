@@ -17,6 +17,7 @@ export {
     // Response
     AuthResponse,
     // Error
+    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
     INetworkModule
