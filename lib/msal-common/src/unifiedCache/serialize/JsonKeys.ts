@@ -6,10 +6,6 @@
 import { CacheHelper } from "../utils/CacheHelper";
 
 /**
- * Map for AccessTokenCache entity serialization and deserialization
- */
-
-/**
  * Map for AccountCache entity serialization and deserialization
  */
 export class AccountCacheMaps {
@@ -45,6 +41,9 @@ export class IdTokenCacheMaps {
     static fromCacheMap = CacheHelper.swap(IdTokenCacheMaps.toCacheMap);
 }
 
+/**
+ * Map for AccessTokenCache entity serialization and deserialization
+ */
 export class AccessTokenCacheMaps {
     static toCacheMap = {
         homeAccountId: "home_account_id",
