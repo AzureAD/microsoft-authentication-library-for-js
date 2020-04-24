@@ -11,7 +11,7 @@ import { IdToken } from "../IdToken";
  */
 export class ResponseUtils {
 
-    static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
+    static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse|null {
         if (!originalResponse) {
             return null;
         } else if (!idTokenObj) {
@@ -22,7 +22,7 @@ export class ResponseUtils {
         if (exp && !originalResponse.expiresOn) {
             originalResponse.expiresOn = new Date(exp * 1000);
         }
-    
+
         return {
             ...originalResponse,
             idToken: idTokenObj,

@@ -80,7 +80,7 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
+    static validateInputScope(scopes: Array<string>|undefined|null, scopesRequired: boolean, clientId: string): void {
         if (!scopes) {
             if (scopesRequired) {
                 throw ClientConfigurationError.createScopesRequiredError(scopes);
@@ -130,11 +130,11 @@ export class ScopeSet {
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
      */
-    static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
+    static appendScopes(reqScopes: Array<string>|undefined, reqExtraScopesToConsent: Array<string>|undefined): Array<string>|undefined {
         if(reqScopes) {
             return reqExtraScopesToConsent ? [...reqScopes, ...reqExtraScopesToConsent]: reqScopes;
         }
-        return null;
+        return undefined;
     }
 
     // #endregion

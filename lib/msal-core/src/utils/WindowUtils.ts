@@ -131,7 +131,7 @@ export class WindowUtils {
      * @param frameName
      * @param logger
      */
-    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
+    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement|null {
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
 
         // returning to handle null in loadFrame, also to avoid null object access errors
@@ -151,7 +151,7 @@ export class WindowUtils {
      * Adds the hidden iframe for silent token renewal.
      * @ignore
      */
-    static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement {
+    static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement|null {
         if (typeof iframeId === "undefined") {
             return null;
         }
@@ -204,7 +204,7 @@ export class WindowUtils {
 
         return iframeArray.filter((iframe: HTMLIFrameElement) => {
             try {
-                return iframe.contentWindow.location.hash === hash;
+                return (iframe && iframe.contentWindow) && iframe.contentWindow.location.hash === hash;
             } catch (e) {
                 return false;
             }
@@ -280,7 +280,10 @@ export class WindowUtils {
         if(redirectCache && !UrlUtils.urlContainsHash(window.location.hash)) {
             const splitCache = redirectCache.split(Constants.resourceDelimiter);
             const state = splitCache.length > 1 ? splitCache[splitCache.length-1]: null;
-            cacheStorage.resetTempCacheItems(state);
+            // TODO: log warning?
+            if (state) {
+                cacheStorage.resetTempCacheItems(state);
+            }
         }
     }
 }
