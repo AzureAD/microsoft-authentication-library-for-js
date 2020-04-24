@@ -98,9 +98,7 @@ export class Deserializer {
      * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deserializeRefreshTokens(
-        refreshTokens: StringDict
-    ): RefreshTokenCache {
+    static deserializeRefreshTokens(refreshTokens: StringDict): RefreshTokenCache {
         const rtObjects = {};
         Object.keys(refreshTokens).map(function (key) {
             const mappedRT = CacheHelper.renameKeys(

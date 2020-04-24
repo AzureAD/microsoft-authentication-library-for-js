@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import { MockCache } from "../entities/cacheConstants";
 import { Deserializer } from "../../../src/unifiedCache/serialize/Deserializer";
-import { InMemoryCache } from "../../../src/unifiedCache/utils/CacheTypes";
+import { InMemoryCache, JsonCache } from "../../../src/unifiedCache/utils/CacheTypes";
 
 const cacheJson = require("./cache.json");
 
 describe("Deserializer test cases", () => {
 
     const cache = JSON.stringify(cacheJson);
+    const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
 
     it("deserializeJSONBlob", () => {
         const mockAccount = {
@@ -25,45 +26,34 @@ describe("Deserializer test cases", () => {
         expect(acc.Account).to.eql(mockAccount);
     });
 
-    it("retrieve empty JSON blob", () => {
-        const emptyCache: string = "";
-        const emptyJsonContent = Deserializer.deserializeJSONBlob(emptyCache);
-
-        expect(emptyJsonContent.IdToken).to.eql({});
-        expect(emptyJsonContent.Account).to.eql({});
-        expect(emptyJsonContent.AccessToken).to.eql({});
-        expect(emptyJsonContent.RefreshToken).to.eql({});
-        expect(emptyJsonContent.AppMetadata).to.eql({});
-    });
-
     it("deSerializeAccounts", () => {
         // serialize the mock Account and Test equivalency with the cache.json provided
-        const accCache = Deserializer.deSerializeAccounts(jsonCache.accounts);
+        const accCache = Deserializer.deserializeAccounts(jsonCache.Account);
         expect(accCache[MockCache.accKey]).to.eql(MockCache.acc);
     });
 
     it("deSerializeIdTokens", () => {
         // serialize the mock IdToken and Test equivalency with the cache.json provided
-        const idTCache = Deserializer.deSerializeIdTokens(jsonCache.idTokens);
+        const idTCache = Deserializer.deserializeIdTokens(jsonCache.IdToken);
         expect(idTCache[MockCache.idTKey]).to.eql(MockCache.idT);
     });
 
 
     it("deSerializeAccessTokens", () => {
         // serialize the mock AccessToken and Test equivalency with the cache.json provided
-        const atCache = Deserializer.deSerializeAccessTokens(jsonCache.accessTokens);
+        const atCache = Deserializer.deserializeAccessTokens(jsonCache.AccessToken);
         expect(atCache[MockCache.atOneKey]).to.eql(MockCache.atOne);
     });
 
     it("deSerializeRefreshTokens", () => {
         // serialize the mock RefreshToken and Test equivalency with the cache.json provided
-        const rtCache = Deserializer.deSerializeRefreshTokens(jsonCache.refreshTokens);
+        const rtCache = Deserializer.deserializeRefreshTokens(jsonCache.RefreshToken);
         expect(rtCache[MockCache.rtKey]).to.eql(MockCache.rt);
     });
 
     it("deserializeAppMetadata", () => {
         // serialize the mock AppMetadata and Test equivalency with the cache.json provided
-        const amdtCache = Deserializer.deserializeAppMetadata(jsonCache.appMetadata);
+        const amdtCache = Deserializer.deserializeAppMetadata(jsonCache.AppMetadata);
         expect(amdtCache[MockCache.amdtKey]).to.eql(MockCache.amdt);
     });
 
