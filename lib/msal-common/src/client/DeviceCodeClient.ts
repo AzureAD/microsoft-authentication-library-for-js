@@ -62,19 +62,24 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<DeviceCodeResponse>{
 
-        const serverDeviceCodeResponse = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(
-            deviceCodeUrl,
-            {
-                headers: headers
-            });
+        const {
+            body: {
+                user_code: userCode,
+                device_code: deviceCode,
+                verification_uri: verificationUri,
+                expires_in: expiresIn,
+                interval,
+                message
+            }
+        } = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(deviceCodeUrl, { headers });
 
         return {
-            userCode: serverDeviceCodeResponse.body.user_code,
-            deviceCode: serverDeviceCodeResponse.body.device_code,
-            verificationUri: serverDeviceCodeResponse.body.verification_uri,
-            expiresIn: serverDeviceCodeResponse.body.expires_in,
-            interval: serverDeviceCodeResponse.body.interval,
-            message: serverDeviceCodeResponse.body.message
+            userCode,
+            deviceCode,
+            verificationUri,
+            expiresIn,
+            interval,
+            message
         };
     }
 
@@ -95,12 +100,12 @@ export class DeviceCodeClient extends BaseClient {
     private createQueryString(request: DeviceCodeRequest): string {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
             false);
         parameterBuilder.addScopes(scopeSet);
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         return parameterBuilder.createQueryString();
     }
@@ -145,7 +150,7 @@ export class DeviceCodeClient extends BaseClient {
                             headers);
 
                         if(response.body && response.body.error == Constants.AUTHORIZATION_PENDING){
-                            // user authorization is pending. Will sleep for polling interval and try again
+                            // user authorization is pending. Sleep for polling interval and try again
                             this.logger.info(response.body.error_description);
                         } else {
                             clearInterval(intervalId);
@@ -173,13 +178,9 @@ export class DeviceCodeClient extends BaseClient {
             this.config.authOptions.clientId,
             true);
         requestParameters.addScopes(scopeSet);
-
         requestParameters.addClientId(this.config.authOptions.clientId);
-
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
-
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
-
         return requestParameters.createQueryString();
     }
 }
