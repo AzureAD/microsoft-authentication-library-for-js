@@ -1,5 +1,5 @@
 // App and config
-export { PublicClientApplication } from "./client/PublicClientApplication";
+export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
 
 // Browser Errors
