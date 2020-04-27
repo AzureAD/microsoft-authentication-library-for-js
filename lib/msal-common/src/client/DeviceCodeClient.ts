@@ -12,10 +12,8 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 import { TimeUtils } from "../utils/TimeUtils";
-import {NetworkResponse} from "..";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
-import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
 
 /**
  * OAuth2.0 Device code client
@@ -70,16 +68,14 @@ export class DeviceCodeClient extends BaseClient {
                 headers: headers
             });
 
-        const deviceCodeResponse: DeviceCodeResponse = {
+        return {
             userCode: serverDeviceCodeResponse.body.user_code,
             deviceCode: serverDeviceCodeResponse.body.device_code,
             verificationUri: serverDeviceCodeResponse.body.verification_uri,
             expiresIn: serverDeviceCodeResponse.body.expires_in,
             interval: serverDeviceCodeResponse.body.interval,
             message: serverDeviceCodeResponse.body.message
-        }
-
-        return deviceCodeResponse;
+        };
     }
 
     /**
@@ -133,18 +129,16 @@ export class DeviceCodeClient extends BaseClient {
                 try {
                     if(request.cancel){
 
-                        // TODO use logger here
+                        this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeCancelledError());
 
                     } else if(TimeUtils.nowSeconds() > deviceCodeExpirationTime){
-
-                        // TODO use logger here
+                        this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeExpiredError());
 
                     } else {
-
                         const response = await this.executePostToTokenEndpoint(
                             this.authority.tokenEndpoint,
                             requestBody,
@@ -152,8 +146,7 @@ export class DeviceCodeClient extends BaseClient {
 
                         if(response.body && response.body.error == Constants.AUTHORIZATION_PENDING){
                             // user authorization is pending. Will sleep for polling interval and try again
-                            // TODO use logger here
-                            console.log(JSON.stringify(response.body));
+                            this.logger.info(response.body.error_description);
                         } else {
                             clearInterval(intervalId);
                             resolve(response.body);
