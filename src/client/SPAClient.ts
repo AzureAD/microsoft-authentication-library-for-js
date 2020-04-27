@@ -425,7 +425,7 @@ export class SPAClient extends BaseClient {
             refreshTokenRequest,
             null,
             this.getRedirectUri(),
-            this.cryptoObj,
+            this.cryptoUtils,
             refreshToken
         );
 
