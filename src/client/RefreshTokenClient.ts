@@ -4,13 +4,13 @@
  */
 
 import { Configuration } from "../config/Configuration";
-import {BaseClient} from "./BaseClient";
-import {RefreshTokenRequest} from "../request/RefreshTokenRequest";
-import {Authority, NetworkResponse} from "..";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {RequestParameterBuilder} from "../server/RequestParameterBuilder";
-import {ScopeSet} from "../request/ScopeSet";
-import {GrantType} from "../utils/Constants";
+import { BaseClient } from "./BaseClient";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
+import { Authority, NetworkResponse } from "..";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { ScopeSet } from "../request/ScopeSet";
+import { GrantType } from "../utils/Constants";
 
 /**
  * OAuth2.0 refresh token client
@@ -40,15 +40,12 @@ export class RefreshTokenClient extends BaseClient {
     private createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
-
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
             true);
         parameterBuilder.addScopes(scopeSet);
-
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
-
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         return parameterBuilder.createQueryString();
