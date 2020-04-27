@@ -15,7 +15,7 @@ import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConf
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { ClientInfo } from "./../utils/Constants";
+import { Constants } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
@@ -55,9 +55,12 @@ export abstract class ClientApplication {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
-
-        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+    async getAuthCodeUrl(
+        request: AuthorizationCodeUrlRequest
+    ): Promise<string> {
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            this.buildOauthClientConfiguration()
+        );
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
 
@@ -71,9 +74,12 @@ export abstract class ClientApplication {
      *
      * @param request
      */
-    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<string> {
-
-        const authorizationCodeClient = new AuthorizationCodeClient(this.buildOauthClientConfiguration());
+    async acquireTokenByCode(
+        request: AuthorizationCodeRequest
+    ): Promise<string> {
+        const authorizationCodeClient = new AuthorizationCodeClient(
+            this.buildOauthClientConfiguration()
+        );
         return authorizationCodeClient.acquireToken(request);
     }
 
@@ -95,14 +101,16 @@ export abstract class ClientApplication {
         return {
             authOptions: this.config.auth,
             loggerOptions: {
-                loggerCallback: this.config.system!.loggerOptions!.loggerCallback,
-                piiLoggingEnabled: this.config.system!.loggerOptions!.piiLoggingEnabled,
+                loggerCallback: this.config.system!.loggerOptions!
+                    .loggerCallback,
+                piiLoggingEnabled: this.config.system!.loggerOptions!
+                    .piiLoggingEnabled,
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
             storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
             libraryInfo: {
-                sku: ClientInfo.MSAL_SKU_VALUE,
+                sku: Constants.MSAL_SKU,
                 version: version,
                 cpu: process.arch || "",
                 os: process.platform || ""

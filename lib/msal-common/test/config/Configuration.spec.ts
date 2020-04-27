@@ -58,8 +58,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
         // Logger options checks
         expect(emptyConfig.loggerOptions).to.be.not.null;
-        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw("Unexpected error in authentication.: Logger - loggerCallbackInterface() has not been implemented.");
-        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw(AuthError);
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
         // Client info checks
         expect(emptyConfig.libraryInfo.sku).to.be.eq(Constants.SKU);

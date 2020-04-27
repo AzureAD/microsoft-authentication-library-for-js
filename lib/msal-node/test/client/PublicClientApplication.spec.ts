@@ -41,8 +41,10 @@ describe('PublicClientApplication', () => {
     test('acquireTokenByDeviceCode', async () => {
 
         const request: DeviceCodeRequest = {
-            deviceCodeCallback: response => {console.log(response)},
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE
+            deviceCodeCallback: response => {
+                console.log(response);
+            },
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
         const authApp = new PublicClientApplication(appConfig);
