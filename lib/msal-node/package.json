@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0",
   "name": "@azure/msal-node",
+  "version": "0.1.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -37,11 +37,6 @@
     "lint:fix": "tsdx lint --fix"
   },
   "peerDependencies": {},
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
   "prettier": {
     "printWidth": 80,
     "semi": true,
@@ -73,7 +68,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@azure/msal-common": "1.0.0-alpha.0",
+    "@azure/msal-common": "1.0.0-beta.0",
     "axios": "^0.19.2"
   }
 }

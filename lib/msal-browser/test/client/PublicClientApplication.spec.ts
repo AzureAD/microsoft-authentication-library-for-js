@@ -5,7 +5,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl } from "../utils/StringConstants";
-import { AuthError, ServerError, AuthResponse, LogLevel, Constants, TemporaryCacheKeys, TokenResponse, Account, TokenExchangeParameters, IdTokenClaims, AuthorizationCodeModule, PromptValue, AuthenticationParameters } from "@azure/msal-common";
+import { AuthError, ServerError, AuthResponse, LogLevel, Constants, TemporaryCacheKeys, TokenResponse, Account, TokenExchangeParameters, IdTokenClaims, SPAClient, PromptValue, AuthenticationParameters } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import sinon from "sinon";
@@ -134,11 +134,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                    idToken: testServerTokenResponse.id_token,
+                    idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
-                    accessToken: testServerTokenResponse.access_token,
-                    refreshToken: testServerTokenResponse.refresh_token,
-                    expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                    accessToken: testServerTokenResponse.body.access_token,
+                    refreshToken: testServerTokenResponse.body.refresh_token,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
                 };
@@ -235,11 +235,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                    idToken: testServerTokenResponse.id_token,
+                    idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
-                    accessToken: testServerTokenResponse.access_token,
-                    refreshToken: testServerTokenResponse.refresh_token,
-                    expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                    accessToken: testServerTokenResponse.body.access_token,
+                    refreshToken: testServerTokenResponse.body.refresh_token,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
                 };
@@ -253,7 +253,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 await pca.handleRedirectCallback((authErr: AuthError, tokenResponse: TokenResponse) => {
                     if (authErr) {
-                        console.log(authErr);
+                        console.error(authErr);
                         return;
                     }
                     expect(tokenResponse.uniqueId).to.be.eq(testTokenResponse.uniqueId);
@@ -559,7 +559,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 userRequestState: ""                    
             };
-            sinon.stub(AuthorizationCodeModule.prototype, "createLoginUrl").resolves(testNavUrl);
+            sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
             sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
@@ -630,7 +630,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
             const invalidGrantError: ServerError = new ServerError("invalid_grant", "AADSTS700081: The refresh token has expired due to maximum lifetime. The token was issued on xxxxxxx and the maximum allowed lifetime for this application is 1.00:00:00.\r\nTrace ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nCorrelation ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nTimestamp: 2020-0x-0x XX:XX:XXZ");
-            sinon.stub(AuthorizationCodeModule.prototype, "getValidToken").rejects(invalidGrantError);
+            sinon.stub(SPAClient.prototype, "getValidToken").rejects(invalidGrantError);
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -664,7 +664,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 userRequestState: ""                    
             };
-            const createAcqTokenStub = sinon.stub(AuthorizationCodeModule.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+            const createAcqTokenStub = sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
             const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);
             const tokenResp = await pca.acquireTokenSilent({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES
