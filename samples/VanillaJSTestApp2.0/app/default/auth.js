@@ -25,7 +25,7 @@ function authRedirectCallBack(error, response) {
             console.log('id_token acquired at: ' + new Date().toString());
             showWelcomeMessage(myMSALObj.getAccount());
             getTokenRedirect(loginRequest);
-        } else if (response.tokenType === "access_token") {
+        } else if (response.tokenType === "Bearer") {
             console.log('access_token acquired at: ' + new Date().toString());
         } else {
             console.log("token type is:" + response.tokenType);
@@ -60,19 +60,33 @@ function signOut() {
 
 async function getTokenPopup(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails. acquiring token using popup");
-        // fallback to interaction when silent call fails
-        return await myMSALObj.acquireTokenPopup(request).catch(error => {
-            console.log(error);
-        });
+        console.log("silent token acquisition fails.");
+        if (error instanceof msal.AuthenticationRequiredError) {
+            if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using popup");
+                return myMSALObj.acquireTokenPopup(request).catch(error => {
+                    console.error(error);
+                });
+            }
+        } else {
+            console.error(error);
+        }
     });
 }
 
 // This function can be removed if you do not need to support IE
 async function getTokenRedirect(request) {
-    return await myMSALObj.acquireTokenSilent(request).catch(error => {
-        console.log("silent token acquisition fails. acquiring token using redirect");
-        // fallback to interaction when silent call fails
-        return myMSALObj.acquireTokenRedirect(request)
+    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
+        console.log("silent token acquisition fails.");
+        if (error instanceof AuthenticationRequiredError) {
+            if (AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using redirect");
+                myMSALObj.acquireTokenRedirect(request);
+            }
+        } else {
+            console.error(error);
+        }
     });
 }

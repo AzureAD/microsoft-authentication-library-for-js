@@ -32,6 +32,16 @@ export class WindowUtils {
 
     /**
      * @hidden
+     * @param prefix
+     * @param scopes
+     * @param authority
+     */
+    static generateFrameName(prefix: string, requestSignature: string): string {
+        return `${prefix}${Constants.resourceDelimiter}${requestSignature}`;
+    }
+
+    /**
+     * @hidden
      * Monitors a window until it loads a url with a hash
      * @ignore
      */

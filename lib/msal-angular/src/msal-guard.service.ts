@@ -7,11 +7,9 @@ import {
 import { MsalService } from "./msal.service";
 import { Location, PlatformLocation } from "@angular/common";
 import { BroadcastService } from "./broadcast.service";
-import { Configuration, AuthResponse, AuthError, InteractionRequiredAuthError } from "msal";
+import { Configuration, AuthError, InteractionRequiredAuthError, UrlUtils, WindowUtils } from "msal";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
-import { UrlUtils } from "msal/lib-commonjs/utils/UrlUtils";
-import { WindowUtils } from "msal/lib-commonjs/utils/WindowUtils";
 
 @Injectable()
 export class MsalGuard implements CanActivate {

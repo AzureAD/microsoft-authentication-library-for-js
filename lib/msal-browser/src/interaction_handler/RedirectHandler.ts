@@ -14,11 +14,11 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate 
      */
-    showUI(requestUrl: string): Window {
+    initiateAuthRequest(requestUrl: string): Window {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.
-            this.browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, window.location.href);
+            this.browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, BrowserUtils.getCurrentUri());
             this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();

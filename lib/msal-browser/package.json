@@ -40,7 +40,6 @@
         "doc": "npm run doc:generate && npm run doc:deploy",
         "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
         "doc:deploy": "gh-pages -d ref -a -e ref/msal-browser",
-        "pretest": "npm link @azure/msal-common",
         "test": "mocha",
         "test:coverage": "nyc --reporter=text mocha",
         "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
@@ -88,7 +87,7 @@
         "tslib": "^1.10.0",
         "tslint": "^5.20.0",
         "typedoc": "^0.16.11",
-        "typescript": "^3.6.4"
+        "typescript": "^3.8.3"
     },
     "dependencies": {
         "@azure/msal-common": "1.0.0-beta.0"
