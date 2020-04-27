@@ -1,6 +1,4 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-import sinon from "sinon";
+import { expect } from "chai";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
@@ -10,13 +8,11 @@ import { Constants } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG} from "../utils/StringConstants";
 
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 
 describe("Configuration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        let emptyConfig: Configuration = buildConfiguration({});
+        const emptyConfig: Configuration = buildConfiguration({});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -90,7 +86,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testKeySet = ["testKey1", "testKey2"];
 
     it("buildConfiguration correctly assigns new values", () => {
-        let newConfig: Configuration = buildConfiguration({
+        const newConfig: Configuration = buildConfiguration({
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";
