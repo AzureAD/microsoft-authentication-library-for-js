@@ -7,7 +7,7 @@
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "./src/",
+    "rootDir": "../msal-node/",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
