@@ -2,9 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule } from "@azure/msal-common";
+import { INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * Utility class for browser specific functions
@@ -45,7 +46,7 @@ export class BrowserUtils {
     /**
      * Returns current window URL as redirect uri
      */
-    static getDefaultRedirectUri(): string {
+    static getCurrentUri(): string {
         return window.location.href.split("?")[0].split("#")[0];
     }
 
@@ -58,5 +59,30 @@ export class BrowserUtils {
         } else {
             return new XhrClient();
         }
+    }
+
+    /**
+     * Throws error if we have completed an auth and are 
+     * attempting another auth request inside an iframe.
+     */
+    static blockReloadInHiddenIframes(): void {
+        const isResponseHash = UrlString.hashContainsKnownProperties(window.location.hash);
+        // return an error if called from the hidden iframe created by the msal js silent calls
+        if (isResponseHash && BrowserUtils.isInIframe()) {
+            throw BrowserAuthError.createBlockReloadInHiddenIframeError();
+        }
+    }
+
+    /**
+     * Returns boolean of whether current browser is an Internet Explorer or Edge browser.
+     */
+    static detectIEOrEdge(): boolean {
+        const ua = window.navigator.userAgent;
+        const msie = ua.indexOf("MSIE ");
+        const msie11 = ua.indexOf("Trident/");
+        const msedge = ua.indexOf("Edge/");
+        const isIE = msie > 0 || msie11 > 0;
+        const isEdge = msedge > 0;
+        return isIE || isEdge;
     }
 }
