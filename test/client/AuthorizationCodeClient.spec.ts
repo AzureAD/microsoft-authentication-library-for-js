@@ -1,5 +1,4 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
+import { expect } from "chai";
 import sinon from "sinon";
 import {
     Authority,
@@ -20,9 +19,6 @@ import {
 import {BaseClient} from "../../src/client/BaseClient";
 import {AADServerParamKeys, PromptValue, ResponseMode, SSOTypes} from "../../src/utils/Constants";
 import {ClientTestUtils} from "./ClientTestUtils";
-
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 
 describe("AuthorizationCodeClient unit tests", () => {
 

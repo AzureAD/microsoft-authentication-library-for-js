@@ -1,8 +1,4 @@
-import * as Mocha from "mocha";
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
+import { expect } from "chai";
 import { SPAClient } from "../../src/client/SPAClient";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
