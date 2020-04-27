@@ -17,7 +17,7 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 
 ### Via Latest Microsoft CDN Version:
 
-#### Latest compiled and minified JavaScript
+#### Latest compiled and minified JavaScript (US West region)
 ```html
 <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.0/js/msal.js"></script>
 ```
@@ -25,7 +25,7 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.0/js/msal.min.js"></script>
 ````
 
-#### Alternate region URLs
+#### Alternate region URLs (Europe region)
 ```html
 <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.0/js/msal.js"></script>
 ```
@@ -38,10 +38,10 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 #### Latest compiled and minified JavaScript
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.0/js/msal.js" integrity="sha384-n2/wxR+doMGeL8Lmj4kdPRfZBUg2d/OAVqaKCoHPWOfOs1HUFU3laBvp3gv/HBOu" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.0/js/msal.js" integrity="sha384-xeOjp8/l8VazdeNFRbrC9LWPR1InyrS8E1Na/0lv6V2r09iwX6vJC47FXlczokMi" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.0/js/msal.min.js" integrity="sha384-eSH2oPL3slP7xPzrIISf+chfkjBTLlhmdW4oqNqSQ0wrS0EkHUZ9wiQfW575BjC6" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.0/js/msal.min.js" integrity="sha384-CffO5BkITSJhYPN8BUPR9pm6G6FQyzwV5n9JCMtcP98ik6IHSMJSAZPE2JO3AXDh" crossorigin="anonymous"></script>
 ```
 
 #### Alternate region URLs
@@ -49,10 +49,10 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 To help ensure reliability, Microsoft provides a second CDN:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.0/js/msal.js" integrity="sha384-n2/wxR+doMGeL8Lmj4kdPRfZBUg2d/OAVqaKCoHPWOfOs1HUFU3laBvp3gv/HBOu" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.0/js/msal.js" integrity="sha384-xeOjp8/l8VazdeNFRbrC9LWPR1InyrS8E1Na/0lv6V2r09iwX6vJC47FXlczokMi" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.0/js/msal.min.js" integrity="sha384-eSH2oPL3slP7xPzrIISf+chfkjBTLlhmdW4oqNqSQ0wrS0EkHUZ9wiQfW575BjC6" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.0/js/msal.min.js" integrity="sha384-CffO5BkITSJhYPN8BUPR9pm6G6FQyzwV5n9JCMtcP98ik6IHSMJSAZPE2JO3AXDh" crossorigin="anonymous"></script>
 ```
 
 Below is an example of how to use one CDN as a fallback when the other CDN is not working:
