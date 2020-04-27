@@ -68,8 +68,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         expect(BrowserUtils.isInIframe()).to.be.true;
     });
 
-    it("getDefaultRedirectUri returns current location uri of browser", () => {
-        expect(BrowserUtils.getDefaultRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+    it("getCurrentUri() returns current location uri of browser", () => {
+        expect(BrowserUtils.getCurrentUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
     });
 
     it("getBrowserNetworkClient() returns fetch client if available", () => {
