@@ -8,7 +8,7 @@ import { Account } from "../auth/Account";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { ScopeSet } from "../auth/ScopeSet";
 import { IdToken } from "../auth/IdToken";
-import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
+import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
@@ -160,11 +160,6 @@ export class ServerCodeRequestParameters {
             if (this.userRequest.prompt) {
                 this.validatePromptParameter(this.userRequest.prompt);
             }
-
-            // Add claims challenge to serverRequestParameters if passed
-            if (this.userRequest.claimsRequest) {
-                validateClaimsRequest(this.userRequest);
-            }
         }
 
         /*
@@ -235,11 +230,6 @@ export class ServerCodeRequestParameters {
             str.push(`${AADServerParamKeys.PROMPT}=${(encodeURIComponent(this.userRequest.prompt))}`);
         }
 
-        // Append claims request
-        if (this.userRequest && this.userRequest.claimsRequest) {
-            str.push(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(this.userRequest.claimsRequest)}`);
-        }
-
         // Append query params
         if (this.queryParameters) {
             str.push(this.queryParameters);
@@ -273,11 +263,6 @@ export class ServerCodeRequestParameters {
         const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
             return null;
-        }
-
-        if (request.claimsRequest) {
-            // TODO: this.logger.error("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-            delete eQParams[Constants.CLAIMS];
         }
 
         // Remove any query parameters that are blacklisted

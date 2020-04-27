@@ -344,23 +344,6 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationError);
         });
 
-        it("throws error if claimsRequest is not a a valid JSON object", () => {
-            loginRequest = {
-                claimsRequest: "notAClaimsRequest"
-            };
-            const codeRequestParams = new ServerCodeRequestParameters(
-                aadAuthority,
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                loginRequest,
-                null,
-                TEST_URIS.TEST_REDIR_URI,
-                cryptoInterface,
-                true
-            );
-            expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationErrorMessage.claimsRequestParsingError.desc);
-            expect(() => codeRequestParams.populateQueryParams()).to.throw(ClientConfigurationError);
-        });
-
         it("adds sid from account claims to query parameters if prompt === NONE", () => {
             loginRequest = {
                 prompt: PromptValue.NONE
@@ -500,32 +483,6 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
 
             codeRequestParams.populateQueryParams(adalToken);
             expect(codeRequestParams.queryParameters).to.include(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(adalTokenClaims.upn)}`);
-        });
-
-        it("sanitizeEQParams() removes claims from extraQueryParameters string if claims are provided in request", () => {
-            const param1 = "param1";
-            const val1 = "val1";
-            const claimsString = JSON.stringify({
-                param1: val1
-            });
-            loginRequest = {
-                claimsRequest: claimsString,
-                extraQueryParameters: {
-                    "claims": claimsString
-                }
-            };
-            const codeRequestParams = new ServerCodeRequestParameters(
-                aadAuthority,
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                loginRequest,
-                null,
-                TEST_URIS.TEST_REDIR_URI,
-                cryptoInterface,
-                true
-            );
-            codeRequestParams.populateQueryParams();
-            expect(codeRequestParams.queryParameters).to.be.empty;
-            expect(codeRequestParams.extraQueryParameters).to.not.include(`${Constants.CLAIMS}=${claimsString}`);
         });
 
         it("sanitizeEQParams() removes BlacklistedEQParams from extraQueryParameters string", () => {
@@ -733,47 +690,6 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.PROMPT}=${encodeURIComponent(loginRequest.prompt)}`);
             expect(navUrl).to.not.contain(`${AADServerParamKeys.CLAIMS}`);
-            expect(codeRequestParams.queryParameters).to.be.empty;
-            expect(codeRequestParams.extraQueryParameters).to.be.empty;
-        });
-
-        it("creates a url with the claims request from the request", async () => {
-            await aadAuthority.resolveEndpointsAsync();
-            const claimsString = JSON.stringify({
-                "param1": "val1",
-                "param2": "val2"
-            });
-            loginRequest = {
-                claimsRequest: claimsString
-            };
-            const codeRequestParams = new ServerCodeRequestParameters(
-                aadAuthority,
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                loginRequest,
-                null,
-                TEST_URIS.TEST_REDIR_URI,
-                cryptoInterface,
-                true
-            );
-            codeRequestParams.populateQueryParams();
-            const navUrl = await codeRequestParams.createNavigateUrl();
-            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
-            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${encodeURIComponent(codeRequestParams.xClientVer)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(codeRequestParams.generatedPkce.challenge)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${Constants.FRAGMENT_RESPONSE_MODE}`);
-            expect(navUrl).to.not.contain(`${AADServerParamKeys.RESOURCE}}`);
-            expect(navUrl).to.not.contain(`${AADServerParamKeys.PROMPT}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(loginRequest.claimsRequest)}`);
             expect(codeRequestParams.queryParameters).to.be.empty;
             expect(codeRequestParams.extraQueryParameters).to.be.empty;
         });

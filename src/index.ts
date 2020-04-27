@@ -26,10 +26,11 @@ export { CodeResponse } from "./response/CodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
+export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export { Constants, PromptValue, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
