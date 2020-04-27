@@ -126,10 +126,11 @@ export class PublicClientApplication {
 
     /**
      * Event handler function which allows users to fire events after the PublicClientApplication object 
-     * has loaded during redirect flows. 
+     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect 
+     * auth flows.
      * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async onRedirectAppLoad(): Promise<TokenResponse|null> {
+    async handleRedirectPromise(): Promise<TokenResponse|null> {
         return this.tokenExchangePromise;
     }
 
