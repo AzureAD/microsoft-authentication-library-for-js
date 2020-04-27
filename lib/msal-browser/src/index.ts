@@ -20,5 +20,8 @@ export {
     InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
-    INetworkModule
+    INetworkModule,
+    // Logger Object
+    Logger,
+    LogLevel
 } from "@azure/msal-common";
