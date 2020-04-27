@@ -16,6 +16,7 @@ export {
     TokenExchangeParameters,
     // Response
     AuthResponse,
+    TokenResponse,
     // Error
     InteractionRequiredAuthError,
     AuthError,
