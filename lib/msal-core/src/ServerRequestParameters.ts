@@ -82,7 +82,7 @@ export class ServerRequestParameters {
      * @param request
      * @param serverAuthenticationRequest
      */
-    populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: object, silentCall?: boolean): void {
+    populateQueryParams(account: Account, request: AuthenticationParameters|null, adalIdTokenObject?: object, silentCall?: boolean): void {
         let queryParameters: StringDict = {};
 
         if (request) {
@@ -113,7 +113,7 @@ export class ServerRequestParameters {
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        const eQParams: StringDict = request.extraQueryParameters;
+        const eQParams: StringDict|null = request ? request.extraQueryParameters : null;
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
@@ -245,8 +245,8 @@ export class ServerRequestParameters {
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
-    static generateQueryParametersString(queryParameters: StringDict, silentCall?: boolean): string {
-        let paramsString: string = null;
+    static generateQueryParametersString(queryParameters?: StringDict, silentCall?: boolean): string|null {
+        let paramsString: string|null = null;
 
         if (queryParameters) {
             Object.keys(queryParameters).forEach((key: string) => {
