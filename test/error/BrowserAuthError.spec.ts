@@ -14,7 +14,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof Error).to.be.true;
         expect(err.errorCode).to.equal(TEST_ERROR_CODE);
         expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
-        expect(err.message).to.equal(TEST_ERROR_MSG);
+        expect(err.message).to.equal(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
@@ -123,6 +123,35 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
 
+    it("createPopupWindowError() with error message", () => {
+        const testErrMessage = "Test Error message";
+        const err: BrowserAuthError = BrowserAuthError.createPopupWindowError(testErrMessage);
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.popUpWindowError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.popUpWindowError.desc);
+        expect(err.errorMessage).to.include(testErrMessage);
+        expect(err.message).to.include(BrowserAuthErrorMessage.popUpWindowError.desc);
+        expect(err.message).to.include(testErrMessage);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
+    it("createEmptyWindowCreatedError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createEmptyWindowCreatedError();
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.emptyWindowError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.emptyWindowError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.emptyWindowError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
     it("createUserCancelledError()", () => {
         const err: BrowserAuthError = BrowserAuthError.createUserCancelledError();
 
@@ -136,15 +165,15 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
 
-    it("createPopupWindowTimeoutError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createPopupWindowTimeoutError("https://contoso.com/redirect");
+    it("createMonitorWindowTimeoutError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createMonitorWindowTimeoutError("https://contoso.com/redirect");
 
         expect(err instanceof BrowserAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.popupWindowTimeoutError.code);
-        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.popupWindowTimeoutError.desc);
-        expect(err.message).to.include(BrowserAuthErrorMessage.popupWindowTimeoutError.desc);
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.monitorWindowTimeoutError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
@@ -158,6 +187,61 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.errorCode).to.equal(BrowserAuthErrorMessage.redirectInIframeError.code);
         expect(err.errorMessage).to.include(BrowserAuthErrorMessage.redirectInIframeError.desc);
         expect(err.message).to.include(BrowserAuthErrorMessage.redirectInIframeError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
+    it("createBlockReloadInHiddenIframeError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createBlockReloadInHiddenIframeError();
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
+    it("createIframeClosedPrematurelyError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createIframeClosedPrematurelyError();
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
+    it("createSilentSSOInsufficientInfoError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createSilentSSOInsufficientInfoError();
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
+    it("createSilentSSOInsufficientInfoError()", () => {
+        const promptVal = "notAPrompt";
+        const err: BrowserAuthError = BrowserAuthError.createSilentPromptValueError(promptVal);
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.silentPromptValueError.code);
+        expect(err.errorMessage).to.include(promptVal);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.silentPromptValueError.desc);
+        expect(err.message).to.include(promptVal);
+        expect(err.message).to.include(BrowserAuthErrorMessage.silentPromptValueError.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });

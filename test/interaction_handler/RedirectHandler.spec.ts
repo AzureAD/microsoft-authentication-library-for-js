@@ -114,27 +114,27 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("showUI()", () => {
+    describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
-            expect(() => redirectHandler.showUI("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.showUI("")).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest("")).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.showUI(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.showUI(null)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(null)).to.throw(BrowserAuthError);
         });
 
         it("throws error if we are not in top frame", () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", () => {
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            const windowObj = redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             expect(window).to.be.eq(windowObj);
             expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
