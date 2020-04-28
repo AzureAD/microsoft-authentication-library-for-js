@@ -5,27 +5,22 @@
 
 var msal = require('@azure/msal-node');
 
-const msalConfig = {
+const config = {
     auth: {
         clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
         authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com",
     }
 };
 
-const pca = new msal.PublicClientApplication(msalConfig);
+const pca = new msal.PublicClientApplication(config);
 
-const deviceCodeRequest = {
-    deviceCodeCallback: (response) => (console.log(response.message)),
+const refreshTokenRequest = {
+    refreshToken: "",
     scopes: ["user.read"],
 };
 
-pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
+pca.acquireTokenByRefreshToken(refreshTokenRequest).then((response) => {
     console.log(JSON.stringify(response));
 }).catch((error) => {
     console.log(JSON.stringify(error));
 });
-
-// Uncomment to test cancellation
-// setTimeout(function() {
-//     deviceCodeRequest.cancel = true;
-// }, 12000);
