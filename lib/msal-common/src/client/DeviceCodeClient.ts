@@ -22,7 +22,7 @@ export class DeviceCodeClient extends BaseClient {
 
     private authority: Authority;
 
-    constructor(configuration: Configuration){
+    constructor(configuration: Configuration) {
         super(configuration);
     }
 
@@ -60,7 +60,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeUrl
      * @param headers
      */
-    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<DeviceCodeResponse>{
+    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<DeviceCodeResponse> {
 
         const {
             body: {
@@ -71,7 +71,7 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message
             }
-        } = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(deviceCodeUrl, { headers });
+        } = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(deviceCodeUrl, {headers});
 
         return {
             userCode,
@@ -87,7 +87,7 @@ export class DeviceCodeClient extends BaseClient {
      * Create device code endpoint url
      * @param request
      */
-    private createDeviceCodeUrl(request: DeviceCodeRequest) : string {
+    private createDeviceCodeUrl(request: DeviceCodeRequest): string {
         const queryString: string = this.createQueryString(request);
 
         // TODO add device code endpoint to authority class
@@ -132,13 +132,13 @@ export class DeviceCodeClient extends BaseClient {
 
             const intervalId: ReturnType<typeof setTimeout> = setInterval(async () => {
                 try {
-                    if(request.cancel){
+                    if (request.cancel) {
 
                         this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeCancelledError());
 
-                    } else if(TimeUtils.nowSeconds() > deviceCodeExpirationTime){
+                    } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
                         this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeExpiredError());
@@ -149,7 +149,7 @@ export class DeviceCodeClient extends BaseClient {
                             requestBody,
                             headers);
 
-                        if(response.body && response.body.error == Constants.AUTHORIZATION_PENDING){
+                        if (response.body && response.body.error == Constants.AUTHORIZATION_PENDING) {
                             // user authorization is pending. Sleep for polling interval and try again
                             this.logger.info(response.body.error_description);
                         } else {
@@ -157,7 +157,7 @@ export class DeviceCodeClient extends BaseClient {
                             resolve(response.body);
                         }
                     }
-                } catch(error){
+                } catch (error) {
                     clearInterval(intervalId);
                     reject(error);
                 }
