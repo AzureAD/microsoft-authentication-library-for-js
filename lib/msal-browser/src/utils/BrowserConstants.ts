@@ -20,7 +20,9 @@ export const BrowserConstants = {
     // Default popup window height
     POPUP_HEIGHT: 600,
     // Default popup monitor poll interval in milliseconds
-    POPUP_POLL_INTERVAL_MS: 50
+    POPUP_POLL_INTERVAL_MS: 50,
+    // msal-browser SKU
+    MSAL_SKU: "msal.js.browser",
 };
 
 /**
