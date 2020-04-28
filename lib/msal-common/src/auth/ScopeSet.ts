@@ -147,13 +147,21 @@ export class ScopeSet {
 
     /**
      * Check if scopes intersect between this set and another.
+     * Do not allow offline_access to be the only intersecting scope
      * @param otherScopes 
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
             throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
-        return this.unionScopeSets(otherScopes).size < (this.scopes.size + otherScopes.getScopeCount());
+
+        const unionScopes = this.unionScopeSets(otherScopes);
+
+        const sizeOtherScopes = otherScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)? otherScopes.getScopeCount() - 1 : otherScopes.getScopeCount();
+        const sizeThisScopes = this.containsScope(Constants.OFFLINE_ACCESS_SCOPE)? this.getScopeCount() - 1: this.getScopeCount();
+        const sizeUnionScopes = unionScopes.has(Constants.OFFLINE_ACCESS_SCOPE)? unionScopes.size - 1: unionScopes.size;
+
+        return sizeUnionScopes < (sizeThisScopes + sizeOtherScopes);
     }
 
     /**
