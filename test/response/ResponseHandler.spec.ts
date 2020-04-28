@@ -288,12 +288,15 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
     describe("createTokenResponse()", () => {
 
         let responseHandler: ResponseHandler;
+        let testServerParams: ServerAuthorizationTokenResponse;
+        let expectedTokenResponse: TokenResponse;
+        let atKey: AccessTokenKey;
+        let atValue: AccessTokenValue;
+        
         beforeEach(() => {
             responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-        });
 
-        it("throws error if idToken nonce is null or empty", () => {
-            const testServerParams: ServerAuthorizationTokenResponse = {
+            testServerParams = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: "openid profile email",
                 expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
@@ -302,6 +305,39 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2
             };
+
+            expectedTokenResponse = {
+                uniqueId: idToken.claims.oid,
+                tenantId: idToken.claims.tid,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES, 
+                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                idToken: idToken.rawIdToken,
+                idTokenClaims: idToken.claims,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                expiresOn: null,
+                account: testAccount,
+                userRequestState: ""
+            };
+
+            atKey = {
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                resource: "",
+                homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID 
+            };
+            atValue = {
+                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
+                extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
+            };
+        });
+
+        it("throws error if idToken nonce is null or empty", () => {     
             sinon.restore();
             const idTokenClaims: IdTokenClaims = {
                 "ver": "2.0",
@@ -315,22 +351,13 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 "nonce": ""
             };
             sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-            const testResource = "https://login.contoso.com/endpt";
+            const testResource = "";
             expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.invalidIdToken.desc);
             expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthError);
         });
 
         it("throws error if nonce does not match", () => {
-            const testServerParams: ServerAuthorizationTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: "openid profile email",
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
-            };
-            const testResource = "https://login.contoso.com/endpt";
+            const testResource = "";
             cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), "ThisDoesNotMatch");
             expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.nonceMismatchError.desc);
             expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthError);
@@ -345,17 +372,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            const testServerParams: ServerAuthorizationTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: "openid profile email",
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
-            };
-            const testResource = "https://login.contoso.com/endpt";
+
             const testAccount2: Account = {
                 ...testAccount,
                 accountIdentifier: RANDOM_TEST_GUID,
@@ -366,7 +383,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount2));
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.accountMismatchError.desc);
+            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.accountMismatchError.desc);
         });
 
         it("Successfully saves a token in the cache and returns a valid response", () => {
@@ -378,34 +395,14 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            const expectedTokenResponse: TokenResponse = {
-                uniqueId: idToken.claims.oid,
-                tenantId: idToken.claims.tid,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES, 
-                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                idToken: idToken.rawIdToken,
-                idTokenClaims: idToken.claims,
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                expiresOn: null,
-                account: testAccount,
-                userRequestState: ""
-            };
-            const testServerParams: ServerAuthorizationTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: "openid profile offline_access",
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
-            };
-            const testResource = "https://login.contoso.com/endpt";
+
+            testServerParams.scope = "openid profile offline_access";
+
             cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID);
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
             expect(tokenResponse.scopes).to.be.deep.eq(expectedTokenResponse.scopes);
@@ -428,53 +425,19 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            const testResource = "https://login.contoso.com/endpt";
-            const atKey: AccessTokenKey = {
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                resource: testResource,
-                homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID 
-            };
-            const atValue: AccessTokenValue = {
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
-                extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
-            };
+
             cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            const expectedScopes = [...TEST_CONFIG.DEFAULT_SCOPES, "user.read"]
-            const expectedTokenResponse: TokenResponse = {
-                uniqueId: idToken.claims.oid,
-                tenantId: idToken.claims.tid,
-                scopes: expectedScopes, 
-                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                idToken: idToken.rawIdToken,
-                idTokenClaims: idToken.claims,
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                expiresOn: null,
-                account: testAccount,
-                userRequestState: ""
-            };
-            const testServerParams: ServerAuthorizationTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: "openid profile offline_access user.read",
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
-            };
+            const expectedScopes = [...TEST_CONFIG.DEFAULT_SCOPES, "user.read"];
+            expectedTokenResponse.scopes= expectedScopes;
+            
+            testServerParams.scope = "openid profile offline_access user.read";
             
             cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
             expect(cacheStorage.getKeys().length).to.be.eq(4);
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID);
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
             expect(tokenResponse.scopes).to.be.deep.eq(expectedTokenResponse.scopes);
@@ -487,6 +450,53 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
             expect(cacheStorage.getKeys().length).to.be.eq(4);
+        });
+
+        it("Successfully creates a new token if the scopes are not intersecting", () => {
+            cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+
+            cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
+
+            const expectedScopes = ["offline_access", "testscope"];
+            expectedTokenResponse.scopes = expectedScopes;
+            
+            const testScopes = "offline_access testscope";
+            testServerParams.scope = testScopes;
+
+            const expectedNewAtKey: AccessTokenKey = atKey;
+            expectedNewAtKey.scopes = testScopes;
+            const expectedNewAtValue: AccessTokenValue = atValue;
+
+            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
+            expect(cacheStorage.getKeys().length).to.be.eq(4);
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+
+            expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
+            expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
+            expect(tokenResponse.scopes).to.be.deep.eq(expectedTokenResponse.scopes);
+            expect(tokenResponse.tokenType).to.be.eq(expectedTokenResponse.tokenType);
+            expect(tokenResponse.idToken).to.be.eq(expectedTokenResponse.idToken);
+            expect(tokenResponse.idTokenClaims).to.be.deep.eq(expectedTokenResponse.idTokenClaims);
+            expect(tokenResponse.accessToken).to.be.eq(expectedTokenResponse.accessToken);
+            expect(tokenResponse.refreshToken).to.be.eq(expectedTokenResponse.refreshToken);
+            expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
+            expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
+            expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
+            expect(cacheStorage.getKeys().length).to.be.eq(5);
+            expect(cacheStorage.containsKey(JSON.stringify(atKey))).to.be.true;
+            expect(cacheStorage.containsKey(JSON.stringify(expectedNewAtKey))).to.be.true;
+            expect(cacheStorage.getItem(JSON.stringify(atKey))).to.be.eq(JSON.stringify(atValue));
+            expect(cacheStorage.getItem(JSON.stringify(expectedNewAtKey))).to.be.eq(JSON.stringify(expectedNewAtValue));
+
         });
     });
 });
