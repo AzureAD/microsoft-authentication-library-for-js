@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import pkg from "../../package.json";
-import debug from "debug";
 import { StringUtils } from "../utils/StringUtils";
 import { LoggerOptions } from "../config/Configuration";
 
@@ -69,7 +68,7 @@ export class Logger {
         const timestamp = new Date().toUTCString();
         const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
         const log = `${logHeader} : ${pkg.version} : ${LogLevel[options.logLevel]} - ${logMessage}`;
-        debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
+        // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii);
     }
 
