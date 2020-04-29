@@ -1,4 +1,4 @@
-import {Configuration, LogLevel, NetworkRequestOptions, PkceCodes} from "../../src";
+import {Configuration, Constants, LogLevel, NetworkRequestOptions, PkceCodes} from "../../src";
 import {RANDOM_TEST_GUID, TEST_CONFIG} from "../utils/StringConstants";
 
 export class ClientTestUtils {
@@ -64,6 +64,12 @@ export class ClientTestUtils {
             },
             loggerOptions: {
                 loggerCallback: testLoggerCallback
+            },
+            libraryInfo: {
+                sku: Constants.SKU,
+                version: TEST_CONFIG.TEST_VERSION,
+                os: TEST_CONFIG.TEST_OS,
+                cpu: TEST_CONFIG.TEST_CPU,
             }
         };
     }
