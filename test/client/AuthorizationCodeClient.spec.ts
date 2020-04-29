@@ -125,8 +125,8 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Acquires a token successfully", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            sinon.stub(AuthorizationCodeClient.prototype, "executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, "createTokenRequestBody");
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
 
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
