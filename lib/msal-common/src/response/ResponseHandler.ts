@@ -111,12 +111,12 @@ export class ResponseHandler {
         }
     
         // Check for error
-        if (serverResponseHash.error || serverResponseHash.error_description) {
-            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description)) {
-                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description);
+        if (serverResponseHash.error || serverResponseHash.error_description || serverResponseHash.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
             }
 
-            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
+            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
         }
 
         if (serverResponseHash.client_info) {

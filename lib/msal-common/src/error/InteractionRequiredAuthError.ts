@@ -27,22 +27,12 @@ export const InteractionRequiredAuthSubErrorMessage = {
  * Error thrown when user interaction is required at the auth server.
  */
 export class InteractionRequiredAuthError extends ServerError {
-    subError: string;
 
     constructor(errorCode: string, errorMessage?: string, subError?: string) {
-        super(errorCode, errorMessage);
+        super(errorCode, errorMessage, subError);
         this.name = "InteractionRequiredAuthError";
-        this.subError = InteractionRequiredAuthError.validateSubError(subError);
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
-    }
-
-    static validateSubError(subError: string): string {
-        if (subError && Object.values(InteractionRequiredAuthSubErrorMessage).includes(subError)) {
-            return subError;
-        }
-
-        return "";
     }
 
     static isInteractionRequiredError(errorCode: string, errorString: string, subError?: string) : boolean {
