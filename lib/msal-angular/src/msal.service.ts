@@ -125,7 +125,7 @@ export class MsalService extends UserAgentApplication {
     handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
         super.handleRedirectCallback((authError: AuthError, authResponse: AuthResponse) => {
             if (authError) {
-                if (authResponse.tokenType === "id_token") {
+                if (!this.getAccount()) {
                     this.broadcastService.broadcast("msal:loginFailure", authError);
 
                 } else {

@@ -20,7 +20,7 @@ import {
 } from "@angular/platform-browser-dynamic/testing";
 import {RouterTestingModule} from '@angular/router/testing';
 import {} from 'jasmine';
-import { Configuration, UserAgentApplication, AuthResponse, AuthError } from "msal";
+import { Configuration, UserAgentApplication, AuthResponse, AuthError, Account } from "msal";
 import { RequestUtils } from "../../msal-core/src/utils/RequestUtils";
 import { Constants, TemporaryCacheKeys } from "../../msal-core/src/utils/Constants";
 import { testHashesForState, TEST_TOKENS } from "./TestConstants";
@@ -386,11 +386,53 @@ describe('Msal Angular Pubic API tests', function () {
             authService.handleRedirectCallback(redirectReturn);
         });
 
+        it('failure with token type id_token', done => {
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
+            initializeMsal();
+
+            spyOn(UserAgentApplication.prototype, 'getAccount').and.returnValue((null));
+
+            let expectedResponse : AuthResponse = {
+                uniqueId: "",
+                tenantId: "",
+                tokenType: "",
+                idToken: null,
+                idTokenClaims: null,
+                accessToken: "",
+                scopes: null,
+                expiresOn: null,
+                account: null,
+                accountState: TEST_USER_STATE_NUM,
+                fromCache: false
+            };
+
+            function redirectReturn(error: AuthError, response: AuthResponse){
+                expect(response).toBeTruthy();
+                expect(response).toEqual(expectedResponse);
+                expect(error).toBeTruthy();
+            }
+
+            broadcastService.subscribe("msal:loginFailure", (error: AuthError) => {
+                expect(error.message).toEqual("msal error description")
+                done();
+            });
+
+            authService.handleRedirectCallback(redirectReturn);
+        });
+
         it('failure with token type access_token', done => {
             cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
+
+            const account: Account = new Account("test", "testHomeID", "testUser", "testName", {"testClaimKey": "testClaimVal"}, "testSID", "testEnv")
+
+            spyOn(UserAgentApplication.prototype, 'getAccount').and.returnValue((
+                account
+            ));
 
             let expectedResponse : AuthResponse = {
                 uniqueId: "",
