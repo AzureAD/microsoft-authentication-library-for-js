@@ -135,7 +135,7 @@ export class MsalService extends UserAgentApplication {
                 if (errorReceivedCallback) {
                     errorReceivedCallback(authError, authResponse.accountState);
                 } else {
-                    (authOrTokenCallback as authResponseCallback)(authError);
+                    (authOrTokenCallback as authResponseCallback)(authError, authResponse);
                 }
 
             } else if (authResponse) {
