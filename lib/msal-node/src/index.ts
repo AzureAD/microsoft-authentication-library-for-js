@@ -1,9 +1,6 @@
 export { PublicClientApplication } from './client/PublicClientApplication';
 export { ConfidentialClientApplication } from './client/ConfidentialClientApplication';
-export {
-    ClientConfiguration,
-    buildConfiguration,
-} from './config/ClientConfiguration';
+export { ClientConfiguration, buildAppConfiguration } from './config/ClientConfiguration';
 export { Storage } from './cache/Storage';
 
 // crypto

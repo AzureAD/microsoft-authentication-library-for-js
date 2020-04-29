@@ -155,6 +155,14 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * add the `refreshToken` passed by the user
+     * @param refreshToken
+     */
+    addRefreshToken(refreshToken: string): void {
+        this.parameters.set(AADServerParamKeys.REFRESH_TOKEN, encodeURIComponent(refreshToken));
+    }
+
+    /**
      * add the `code_verifier` passed by the user to exchange for a token
      * @param codeVerifier
      */

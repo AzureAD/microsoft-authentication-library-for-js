@@ -2,6 +2,7 @@
 export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
+export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { SPAConfiguration, SPAAuthOptions } from "./config/SPAConfiguration";
 export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 export { Configuration } from "./config/Configuration";
@@ -24,6 +25,7 @@ export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthorizationCodeUrlRequest } from "./request/AuthorizationCodeUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";

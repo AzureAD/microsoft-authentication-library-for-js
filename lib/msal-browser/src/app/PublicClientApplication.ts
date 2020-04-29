@@ -14,6 +14,7 @@ import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuth
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
+import { version } from "../../package.json";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -86,7 +87,13 @@ export class PublicClientApplication {
             },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
-            storageInterface: this.browserStorage
+            storageInterface: this.browserStorage,
+            libraryInfo: {
+                sku: BrowserConstants.MSAL_SKU,
+                version: version,
+                cpu: "",
+                os: ""
+            }
         });
 
         // Check for hash and save response promise

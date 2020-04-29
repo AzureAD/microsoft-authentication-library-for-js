@@ -1,13 +1,11 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
+import { expect } from "chai";
 import { BaseClient } from "../../src/client/BaseClient";
 import { Configuration } from "../../src/config/Configuration";
 import {Constants} from "../../src";
 import {AADServerParamKeys, HeaderNames} from "../../src/utils/Constants";
 import {ClientTestUtils} from "./ClientTestUtils";
 import sinon from "sinon";
+import {TEST_CONFIG} from "../utils/StringConstants";
 
 class TestClient extends BaseClient {
 
@@ -61,7 +59,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
     let config: Configuration;
     beforeEach(() => {
         config = ClientTestUtils.createTestClientConfiguration();
-        });
+    });
 
     afterEach(() => {
         sinon.restore();
@@ -96,8 +94,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const client = new TestClient(config);
             const headers = client.createDefaultLibraryHeaders();
 
-            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.LIBRARY_NAME);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq("0.0.1");
+            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.SKU);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq(TEST_CONFIG.TEST_VERSION);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_OS)).to.eq(TEST_CONFIG.TEST_OS);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_CPU)).to.eq(TEST_CONFIG.TEST_CPU);
         });
 
         it("Creates default token request headers", () => {
@@ -105,8 +105,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const client = new TestClient(config);
             const headers = client.createDefaultTokenRequestHeaders();
 
-            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.LIBRARY_NAME);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq("0.0.1");
+            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.SKU);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq(TEST_CONFIG.TEST_VERSION);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_OS)).to.eq(TEST_CONFIG.TEST_OS);
+            expect(headers.get(AADServerParamKeys.X_CLIENT_CPU)).to.eq(TEST_CONFIG.TEST_CPU);
             expect(headers.get(HeaderNames.CONTENT_TYPE)).to.eq(Constants.URL_FORM_CONTENT_TYPE);
         });
     });
