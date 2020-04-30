@@ -1,14 +1,24 @@
 # 1.3.0
 
+## Features
+* Add ssoSilent API (#1166)
+
 ## Enhancements
 * Turn library state into encoded string that contains guid and timestamp. (#1395)
 * Fix behavior of `handleRedirectCallback`, and make it no longer required. (#1358)
 * `domain_hint` is no longer supported in silent calls or when `sid` or `login_hint` is passed. (#1299)
+* Update the framename to reflect authority and scopes (#1267)
+* Switch to file-based sourcemaps for msal.js and msal.min.js (#1525)
+* Set sideEffects to false to enable better tree-shaking (#1526)
+* Add TelemetryManager to public APIs (#1399)
 
 ## Bugs
 * Ensure responses from redirect requests are always processed. (#1413)
 * Ensure state is decoded before it is processed. (#1456)
 * B2C Authority Fixes. (#1276)
+* Check if request is null in populateQueryParams (#1531)
+* Fix token caching for acquireToken calls (#1516)
+* Unblock popup scrolling for IE11 (#1426)
 
 # 1.2.2
 
