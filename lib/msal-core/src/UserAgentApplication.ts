@@ -1343,7 +1343,6 @@ export class UserAgentApplication {
         this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
-        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
@@ -1355,7 +1354,6 @@ export class UserAgentApplication {
         window.requestType = Constants.renewToken;
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
-        frameHandle.src = "about:blank";
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
@@ -1368,7 +1366,6 @@ export class UserAgentApplication {
         this.logger.info("renewidToken is called");
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
-        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
 
@@ -1388,7 +1385,6 @@ export class UserAgentApplication {
         // note: scope here is clientId
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
-        frameHandle.src = "about:blank";
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
