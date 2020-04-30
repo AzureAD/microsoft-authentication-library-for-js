@@ -10,10 +10,10 @@ import { INetworkModule } from "../../network/INetworkModule";
 export const B2CTrustedHostList: string[] = [];
 
 /**
- * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
+ * The B2CAuthority class extends the Authority class and adds functionality specific to B2C Authorities.
  */
 export class B2cAuthority extends Authority {
-    // Set authority type to AAD
+    // Set authority type to B2C
     public get authorityType(): AuthorityType {
         return AuthorityType.B2C;
     }
