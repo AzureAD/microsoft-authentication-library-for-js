@@ -90,7 +90,9 @@ export type LibraryInfo = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: null
+    authority: null,
+    redirectUri: "",
+    postLogoutRedirectUri: ""
 };
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
