@@ -29,6 +29,7 @@ import {
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
+import { B2cAuthority } from "../../auth/authority/B2cAuthority";
 
 /**
  * AuthorizationCodeModule class
@@ -53,7 +54,7 @@ export class AuthorizationCodeModule extends AuthModule {
         // Implement defaults in config
         this.clientConfig = buildPublicClientSPAConfiguration(configuration);
 
-        AuthorityFactory.setKnownAuthorities(this.clientConfig.auth.knownAuthorities);
+        B2cAuthority.setKnownAuthorities(this.clientConfig.auth.knownAuthorities);
 
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);

@@ -1,17 +1,17 @@
 import { expect } from "chai";
-import { B2cAuthority, B2CTrustedHostList } from "../../../src/auth/authority/B2cAuthority";
+import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { Authority } from "../../../src/auth/authority/Authority";
 import { AuthorityType } from "../../../src/auth/authority/AuthorityType";
 import { TEST_CONFIG } from "../../utils/StringConstants";
-import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src";
 
 describe("B2cAuthority.ts Class Unit Tests", () => {
 
     afterEach(() => {
-        while (B2CTrustedHostList.length) {
-            B2CTrustedHostList.pop();
+        // Reinitializes the B2C Trusted Host List between tests
+        while (B2cAuthority.B2CTrustedHostList.length) {
+            B2cAuthority.B2CTrustedHostList.pop();
         }
     });
 
@@ -27,7 +27,7 @@ describe("B2cAuthority.ts Class Unit Tests", () => {
                     return null;
                 }
             };
-            AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+            B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
             b2cAuthority = new B2cAuthority(TEST_CONFIG.b2cValidAuthority, networkInterface);
         });
 
@@ -54,7 +54,7 @@ describe("B2cAuthority.ts Class Unit Tests", () => {
                 }
             };
 
-            AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+            B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
             const b2cAuthority = new B2cAuthority(TEST_CONFIG.b2cValidAuthority, networkInterface);
             await expect(b2cAuthority.getOpenIdConfigurationEndpointAsync()).to.eventually.eq(`${TEST_CONFIG.b2cValidAuthority}/v2.0/.well-known/openid-configuration`);
         });

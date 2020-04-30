@@ -4,25 +4,16 @@
  */
 import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
-import { B2cAuthority, B2CTrustedHostList } from "./B2cAuthority";
+import { B2cAuthority } from "./B2cAuthority";
 import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { INetworkModule } from "../../network/INetworkModule";
 import { StringUtils } from "../../utils/StringUtils";
 import { UrlString } from "../../url/UrlString";
+import { Constants } from "../../utils/Constants";
 
 export class AuthorityFactory {  
-    /**
-     * Use when Authority is B2C to provide list of trusted/allowed domains.
-     */
-    public static setKnownAuthorities(knownAuthorities: Array<string>): void {
-        if (!B2CTrustedHostList.length){
-            knownAuthorities.forEach(function(authority){
-                B2CTrustedHostList.push(authority);
-            });
-        }
-    }
 
     /**
      * Parse the url and determine the type of authority
@@ -32,9 +23,9 @@ export class AuthorityFactory {
         const components = authorityUrl.getUrlComponents();
         const pathSegments = components.PathSegments;
 
-        if (pathSegments[0].toLowerCase() === "adfs")
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
             return AuthorityType.Adfs;
-        else if (Object.keys(B2CTrustedHostList).length)
+        else if (Object.keys(B2cAuthority.B2CTrustedHostList).length)
             return AuthorityType.B2C;
 
         // defaults to Aad

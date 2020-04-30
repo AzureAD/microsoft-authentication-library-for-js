@@ -3,7 +3,7 @@ import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { ClientConfigurationErrorMessage, Constants, Authority, ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { AadAuthority } from "../../../src/auth/authority/AadAuthority";
-import { B2cAuthority, B2CTrustedHostList } from "../../../src/auth/authority/B2cAuthority"
+import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority"
 import { TEST_CONFIG } from "../../utils/StringConstants";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
@@ -18,8 +18,9 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
     };
 
     beforeEach(() => {
-        while(B2CTrustedHostList.length) {
-            B2CTrustedHostList.pop();
+        // Reinitializes the B2C Trusted Host List between tests
+        while(B2cAuthority.B2CTrustedHostList.length) {
+            B2cAuthority.B2CTrustedHostList.pop();
         }
     });
     
@@ -42,19 +43,19 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
     });
 
     it("createInstance returns B2C instance if knownAuthorities is provided", () => {
-        AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+        B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
         const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.b2cValidAuthority, networkInterface);
         expect(authorityInstance instanceof B2cAuthority);
         expect(authorityInstance instanceof Authority);
     });
 
     it("Do not add additional authorities to trusted host list if it has already been populated", () => {
-        AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
-        AuthorityFactory.setKnownAuthorities(["fake.b2clogin.com"]);
+        B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+        B2cAuthority.setKnownAuthorities(["fake.b2clogin.com"]);
 
-        expect(B2CTrustedHostList).to.include("fabrikamb2c.b2clogin.com");
-        expect(B2CTrustedHostList).not.to.include("fake.b2clogin.com");
-        expect(B2CTrustedHostList.length).to.equal(1);
+        expect(B2cAuthority.B2CTrustedHostList).to.include("fabrikamb2c.b2clogin.com");
+        expect(B2cAuthority.B2CTrustedHostList).not.to.include("fake.b2clogin.com");
+        expect(B2cAuthority.B2CTrustedHostList.length).to.equal(1);
     });
 
     it("Throws error if AuthorityType is not AAD or B2C", (done) => {
