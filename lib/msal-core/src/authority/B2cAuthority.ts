@@ -6,6 +6,7 @@
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ITenantDiscoveryResponse } from './ITenantDiscoveryResponse';
 
 export const B2CTrustedHostList: object = {};
 
@@ -14,8 +15,8 @@ export const B2CTrustedHostList: object = {};
  */
 export class B2cAuthority extends Authority {
     public static B2C_PREFIX: String = "tfp";
-    public constructor(authority: string, validateAuthority: boolean) {
-        super(authority, validateAuthority);
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+        super(authority, validateAuthority, authorityMetadata);
     }
 
     public get AuthorityType(): AuthorityType {
@@ -41,7 +42,7 @@ export class B2cAuthority extends Authority {
         if (this.IsValidationEnabled && !Object.keys(B2CTrustedHostList).length) {
             throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
         }
-        
+
         return B2CTrustedHostList[host.toLowerCase()];
     }
 }

@@ -24,11 +24,12 @@ export enum AuthorityType {
  * @hidden
  */
 export abstract class Authority {
-    constructor(authority: string, validateAuthority: boolean) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
         this.validateAsUri();
+        this.tenantDiscoveryResponse = authorityMetadata;
     }
 
     public abstract get AuthorityType(): AuthorityType;
@@ -57,7 +58,7 @@ export abstract class Authority {
     }
 
     private validateResolved() {
-        if (!this.tenantDiscoveryResponse) {
+        if (!this.validateTenantDiscoveryResponse()) {
             throw "Please call ResolveEndpointsAsync first";
         }
     }
@@ -147,11 +148,21 @@ export abstract class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public async resolveEndpointsAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Authority> {
+    public async resolveEndpointsAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<ITenantDiscoveryResponse> {
         const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpointAsync(telemetryManager, correlationId);
         this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 
-        return this;
+        return this.tenantDiscoveryResponse;
+    }
+
+    /**
+     * Checks if there is a cached tenant discovery response with required fields.
+     */
+    public validateTenantDiscoveryResponse(): boolean {
+        return !!(this.tenantDiscoveryResponse &&
+            this.tenantDiscoveryResponse.AuthorizationEndpoint &&
+            this.tenantDiscoveryResponse.EndSessionEndpoint &&
+            this.tenantDiscoveryResponse.Issuer);
     }
 
     /**

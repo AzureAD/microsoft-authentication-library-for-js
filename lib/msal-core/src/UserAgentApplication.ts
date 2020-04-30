@@ -220,6 +220,7 @@ export class UserAgentApplication {
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
         AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
+        AuthorityFactory.parseAuthorityMetadata(this.config.auth.authority, this.config.auth.authorityMetadata);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -483,13 +484,13 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
 
         let popUpWindow: Window;
 
@@ -514,7 +515,11 @@ export class UserAgentApplication {
             }
         }
 
-        acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
+        try {
+            if (!acquireTokenAuthority.validateTenantDiscoveryResponse()) {
+                await AuthorityFactory.resolveAuthorityAsync(serverAuthenticationRequest.authorityInstance);
+            }
+
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
 
@@ -586,14 +591,14 @@ export class UserAgentApplication {
                     }
                 }
             }
-        }).catch((err) => {
+        } catch (err) {
             this.logger.warning("could not resolve endpoints");
             this.cacheStorage.resetTempCacheItems(request.state);
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
             if (popUpWindow) {
                 popUpWindow.close();
             }
-        });
+        }
     }
 
     /**
@@ -635,7 +640,7 @@ export class UserAgentApplication {
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
-        return new Promise<AuthResponse>((resolve, reject) => {
+        return new Promise<AuthResponse>(async (resolve, reject) => {
 
             // block the request if made from the hidden iframe
             WindowUtils.blockReloadInHiddenIframes();
@@ -659,7 +664,7 @@ export class UserAgentApplication {
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
-                AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
+                AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata),
                 this.clientId,
                 responseType,
                 this.getRedirectUri(request.redirectUri),
@@ -718,42 +723,43 @@ export class UserAgentApplication {
 
                 // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
                 if (!serverAuthenticationRequest.authorityInstance) {
-                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
                 }
-                // cache miss
 
-                // start http event
-                return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, request.correlationId)
-                    .then(() => {
-                        /*
-                         * refresh attempt with iframe
-                         * Already renewing for this scope, callback when we get the token.
-                         */
-                        if (window.activeRenewals[requestSignature]) {
-                            this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
-                            // Active renewals contains the state for each renewal.
-                            this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
+                try {
+                    if (!serverAuthenticationRequest.authorityInstance.validateTenantDiscoveryResponse()) {
+                        await AuthorityFactory.resolveAuthorityAsync(serverAuthenticationRequest.authorityInstance);
+                    }
+
+                    /*
+                    * refresh attempt with iframe
+                    * Already renewing for this scope, callback when we get the token.
+                    */
+                    if (window.activeRenewals[requestSignature]) {
+                        this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
+                        // Active renewals contains the state for each renewal.
+                        this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
+                    }
+                    else {
+                        if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
+                            /*
+                            * App uses idToken to send to api endpoints
+                            * Default scope is tracked as clientId to store this token
+                            */
+                            this.logger.verbose("renewing idToken");
+                            this.silentLogin = true;
+                            this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
+                        } else {
+                            // renew access token
+                            this.logger.verbose("renewing accesstoken");
+                            this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                         }
-                        else {
-                            if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
-                                /*
-                                 * App uses idToken to send to api endpoints
-                                 * Default scope is tracked as clientId to store this token
-                                 */
-                                this.logger.verbose("renewing idToken");
-                                this.silentLogin = true;
-                                this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
-                            } else {
-                                // renew access token
-                                this.logger.verbose("renewing accesstoken");
-                                this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
-                            }
-                        }
-                    }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
-                        reject(ClientAuthError.createEndpointResolutionError(err.toString()));
-                        return null;
-                    });
+                    }
+                } catch (err) {
+                    this.logger.warning("could not resolve endpoints");
+                    reject(ClientAuthError.createEndpointResolutionError(err.toString()));
+                    return null;
+                }
             }
         })
             .then(res => {
@@ -942,27 +948,40 @@ export class UserAgentApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      */
     logout(correlationId?: string): void {
-        // TODO this new correlation id passed in, is not appended to logout request, should add
+        this.logoutAsync(correlationId);
+    }
+
+    /**
+     * Async version of logout(). Use to log out the current user.
+     * @param correlationId Request correlationId
+     */
+    private async logoutAsync(correlationId?: string): Promise<void> {
         const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
         const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
 
         this.clearCache();
         this.account = null;
-        let logout = "";
-        if (this.getPostLogoutRedirectUri()) {
-            logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
+
+        try {
+            if (!this.authorityInstance.validateTenantDiscoveryResponse()) {
+                await AuthorityFactory.resolveAuthorityAsync(this.authorityInstance);
+            }
+
+            const correlationIdParam = `client-request-id=${requestCorrelationId}`
+
+            const postLogoutQueryParam = this.getPostLogoutRedirectUri()
+                ? `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`
+                : "";
+
+            const urlNavigate = this.authorityInstance.EndSessionEndpoint
+                ? `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`
+                : `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
+
+            this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
+            this.navigateWindow(urlNavigate);
+        } catch (error) {
+            this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
         }
-        this.authorityInstance.resolveEndpointsAsync(this.telemetryManager, requestCorrelationId)
-            .then(authority => {
-                const urlNavigate = authority.EndSessionEndpoint
-                    ? `${authority.EndSessionEndpoint}?${logout}`
-                    : `${this.authority}oauth2/v2.0/logout?${logout}`;
-                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
-                this.navigateWindow(urlNavigate);
-            })
-            .catch((error: AuthError) => {
-                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
-            });
     }
 
     /**
