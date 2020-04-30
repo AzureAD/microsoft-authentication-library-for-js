@@ -16,6 +16,12 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             return null;
         }
     };
+
+    beforeEach(() => {
+        while(B2CTrustedHostList.length) {
+            B2CTrustedHostList.pop();
+        }
+    });
     
     it("AuthorityFactory returns null if given url is null or empty", () => {
         expect(() => AuthorityFactory.createInstance("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);

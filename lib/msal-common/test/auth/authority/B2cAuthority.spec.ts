@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority";
+import { B2cAuthority, B2CTrustedHostList } from "../../../src/auth/authority/B2cAuthority";
 import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
 import { Authority } from "../../../src/auth/authority/Authority";
 import { AuthorityType } from "../../../src/auth/authority/AuthorityType";
@@ -8,6 +8,12 @@ import { AuthorityFactory } from "../../../src/auth/authority/AuthorityFactory";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src";
 
 describe("B2cAuthority.ts Class Unit Tests", () => {
+
+    afterEach(() => {
+        while (B2CTrustedHostList.length) {
+            B2CTrustedHostList.pop();
+        }
+    });
 
     describe("Constructor", () => {
 
