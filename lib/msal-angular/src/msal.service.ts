@@ -93,6 +93,19 @@ export class MsalService extends UserAgentApplication {
             });
     }
 
+    public ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        return super.ssoSilent(request)
+            .then((authResponse: AuthResponse) => {
+                this.broadcastService.broadcast("msal:ssoSuccess", authResponse);
+                return authResponse;
+            })
+            .catch((error: AuthError) => {
+                this.broadcastService.broadcast("msal:ssoFailure", error);
+                this.getLogger().error("Error during login:\n" + error.errorMessage);
+                throw error;
+            });
+    }
+
     public acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
         return super.acquireTokenSilent(request)
             .then((authResponse: AuthResponse) => {

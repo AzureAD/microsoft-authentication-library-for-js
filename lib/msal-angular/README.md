@@ -128,7 +128,19 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", payload => {
 });
 ```
 
-3. It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
+3. SSO-related events (`ssoSilent()`)
+
+```js
+this.broadcastService.subscribe("msal:ssoSuccess", payload => {
+    // do something here
+});
+
+this.broadcastService.subscribe("msal:ssoFailure", payload => {
+    // do something here
+});
+```
+
+4. It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
 
 ```js
  private subscription: Subscription;
@@ -156,6 +168,7 @@ The wrapper exposes APIs for login, logout, acquiring access token and more.
 5. `acquireTokenPopup()`
 6. `acquireTokenRedirect()`
 7. `getAccount()`
+8. `ssoSilent()`
 
 ## Advanced Topics
 
