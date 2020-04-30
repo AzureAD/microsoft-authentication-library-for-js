@@ -66,7 +66,7 @@
 
     // acquire the accessToken and access the resource
     function acquireTokenPopupAndCallMSGraph(endpoint, request) {
-        myMSALObj.acquireTokenSilent(request).then(function (request) {
+        myMSALObj.acquireTokenSilent(request).then(function (tokenResponse) {
             console.log("acquireTokenSilent scopes: ", tokenResponse.scopes);
             callMSGraph(endpoint, tokenResponse.accessToken, graphAPICallback);
         }).catch(function (error) {
