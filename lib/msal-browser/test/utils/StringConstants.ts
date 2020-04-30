@@ -79,6 +79,8 @@ export const TEST_HASHES = {
 };
 
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
+    headers: null,
+    status: 200,
     body : {
         "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
         "token_endpoint_auth_methods_supported": [
