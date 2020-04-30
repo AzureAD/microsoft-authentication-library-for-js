@@ -1,25 +1,43 @@
-What are the dev apps?
-----------------------
-index.html shows how to get profile data and read email with the Microsoft Graph, using msal.js loginRedirect()/loginPopup()/acquireTokenSilent-acquireTokenPopup() APIs. 
+# MSAL.js 1.x Sample - Authorization Code Flow in Single-Page Applications
 
-If loginRedirect() is used, the web page redirects to the Azure AD or Azure AD B2C login screen for authentication. Once authentication is completed, the page redirects back to the redirect uri given with the requested tokens.
+## About this sample
+This developer sample is used to run basic use cases for the MSAL library. You can also alter the configuration in `./app/<sample-name>/authConfig.js` to execute other behaviors.
 
-If loginPopup() is used, the authentication occurs inside a popup window created by the browser. The main window will handle token retrieval once authentication has been completed in the popup.
+## How to run the sample:
 
-How to run the dev apps:
---------------------
-Pre-requisite
-- Install node.js if needed (https://nodejs.org/en/)
-- Build the `msal-core` project.
+### Pre-requisites
+- Ensure [all pre-requisites](../../lib/msal-core/README.md#pre-requisites) have been completed to run msal-core.
+- Install node.js if needed (https://nodejs.org/en/).
+- Build the `msal-core` project with instructions provided in the [`README.md`](../../lib/msal-core/README.md) or using the command `npm run build:package`.
 
-Resolving the server.js references
-- In a command prompt, run `npm install`
+### Configure the application
+- Open `./app/<sample-name>/authConfig.js` in an editor.
+- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+    - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
 
-Running the sample
-- In a command prompt, run `npm start`
+#### Install npm dependencies for sample
+- In a command prompt, run `npm install`.
 
-You may also run `npm run start:build` to build the `msal-core` project and start the server in one command.
+#### Running the sample
+1. In a command prompt, run `npm start`.
+    - If you wish to specify a different sample than the default, you may provide the sample name in the command prompt:
+    ```javascript
+    npm start -- -sample <sample-name> // defaults to vanilla sample in `default` folder
+    ```
 
-- Navigate to http://localhost:30662 with the browser of your choice
+    ```javascript
+    npm start -- -s <sample-name> // defaults to vanilla sample in 'default' folder
+    ```
 
-- In the web page, click on the "Sign In" button and select either `Sign in using Popup` or `Sign in using Redirect`
+    - If you wish to specify the port, you can provide the `-p` or `-port` flag:
+    ```javascript
+    npm start -- -port <port-#> // defaults to 30662
+    ```
+
+    ```javascript
+    npm start -- -p <port-#> // defaults to 30662
+    ```
+
+- Navigate to http://localhost:30662 (or whatever port number specified) with the browser of your choice.
+
+- In the web page, click on the "Sign In" button and select either `Sign in using Popup` or `Sign in using Redirect` to begin the auth flow.

@@ -58,8 +58,8 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Client info checks
         expect(emptyConfig.libraryInfo.sku).to.be.eq(Constants.SKU);
         expect(emptyConfig.libraryInfo.version).to.be.eq(version);
-        expect(emptyConfig.libraryInfo.os).to.be.eq((process.arch || ""));
-        expect(emptyConfig.libraryInfo.cpu).to.be.eq((process.platform || ""));
+        expect(emptyConfig.libraryInfo.os).to.be.empty;
+        expect(emptyConfig.libraryInfo.cpu).to.be.empty;
     });
 
     const clearFunc = (): void => {

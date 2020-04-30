@@ -164,8 +164,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: Constants.SKU,
     version: version,
-    cpu: process.platform || "",
-    os: process.arch || "",
+    cpu: "",
+    os: ""
 };
 
 /**

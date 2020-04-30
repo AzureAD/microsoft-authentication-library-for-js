@@ -1,16 +1,18 @@
-import { expect } from "chai";
+import * as Mocha from "mocha";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+const expect = chai.expect;
+chai.use(chaiAsPromised);
+import sinon from "sinon";
 import { SPAClient } from "../../src/client/SPAClient";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
-import sinon from "sinon";
 import { AADServerParamKeys, TemporaryCacheKeys, PersistentCacheKeys, Constants } from "../../src/utils/Constants";
 import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
 import { LogLevel } from "../../src/logger/Logger";
-import { SPAConfiguration } from "../../src/config/SPAConfiguration";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
@@ -18,15 +20,19 @@ import { TokenExchangeParameters } from "../../src/request/TokenExchangeParamete
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { CodeResponse } from "../../src/response/CodeResponse";
-import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "../../src";
-import { buildClientInfo } from "../../src/account/ClientInfo";
+import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
-import { Configuration } from "../../src/config/Configuration";
-import { ClientInfo } from "../../src/account/ClientInfo";
+import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
+import { BaseClient } from "../../src/client/BaseClient";
+import { SPAConfiguration } from "../../src/config/SPAConfiguration";
+import { Account } from "../../src/account/Account";
+import { TokenResponse } from "../../src/response/TokenResponse";
+import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
+import { ServerError } from "../../src/error/ServerError";
 
-describe("SPAClient.ts Class Unit Tests", () => {
+describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -617,9 +623,9 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
         describe("Renew token", () => {
 
-            let Client: SPAClient;
+            let authClient: SPAClient;
             beforeEach(() => {
-                Client = new SPAClient(defaultAuthConfig);
+                authClient = new SPAClient(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -630,26 +636,26 @@ describe("SPAClient.ts Class Unit Tests", () => {
             describe("Error cases", () => {
 
                 it("Throws error if request object is null or undefined", async () => {
-                    await expect(Client.renewToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-                    await expect(Client.renewToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authClient.getValidToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authClient.getValidToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
                 });
 
                 it("Throws error if scopes are not included in request object", async () => {
-                    await expect(Client.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authClient.getValidToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: []
                     };
-                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if login hasn't been completed and client id is passed as scope", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
                     };
-                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
                 });
 
                 it("Throws error if endpoint discovery could not be completed", async () => {
@@ -659,7 +665,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
 
                 it("Throws error if it does not find token in empty cache", async () => {
@@ -667,7 +673,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it does not find token in non-empty cache", async () => {
@@ -693,7 +699,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope2]
                     };
-                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it finds too many tokens in cache for the same scope and client id but no authority, resource or account is given", async () => {
@@ -726,7 +732,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope]
                     };
-                    await expect(Client.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 });
             });
 
@@ -754,7 +760,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope1]
                     };
-                    const tokenResponse = await Client.renewToken(tokenRequest);
+                    const tokenResponse = await authClient.getValidToken(tokenRequest);
                     expect(tokenResponse.uniqueId).to.be.empty;
                     expect(tokenResponse.tenantId).to.be.empty;
                     expect(tokenResponse.scopes).to.be.deep.eq([testScope1, Constants.OFFLINE_ACCESS_SCOPE]);
@@ -787,7 +793,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    Client = new SPAClient(defaultAuthConfig);
+                    authClient = new SPAClient(defaultAuthConfig);
                     const idTokenClaims = {
                         "ver": "2.0",
                         "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -823,7 +829,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScopes[0]]
                     };
-                    const tokenResponse = await Client.renewToken(tokenRequest);
+                    const tokenResponse = await authClient.getValidToken(tokenRequest);
 
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
@@ -842,6 +848,58 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     expect(tokenResponse.scopes).to.be.deep.eq(testScopes);
                     expect(tokenResponse.userRequestState).to.be.empty;
                 });
+            });
+        });
+
+        describe("handleFragmentResponse()", () => {
+
+            let authModule: SPAClient;
+            beforeEach(() => {
+                authModule = new SPAClient(defaultAuthConfig);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+                store = {};
+            });
+
+            it("returns valid server code response", () => {
+                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+                const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${RANDOM_TEST_GUID}`;
+                defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
+                    switch (input) {
+                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                        default:
+                            return input;
+                    }
+                };
+                defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
+                    switch (input) {
+                        case "123-test-uid":
+                            return "MTIzLXRlc3QtdWlk";
+                        case "456-test-utid":
+                            return "NDU2LXRlc3QtdXRpZA==";
+                        default:
+                            return input;
+                    }
+                };
+                authModule = new SPAClient(defaultAuthConfig);
+                const codeResponse = authModule.handleFragmentResponse(testSuccessHash);
+                expect(codeResponse.code).to.be.eq(`thisIsATestCode`);
+                expect(codeResponse.userRequestState).to.be.eq(RANDOM_TEST_GUID);
+            });
+
+            it("throws server error when error is in hash", () => {
+                const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
+            
+                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+                expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw("msal error description");
+                expect(store).to.be.empty;
+
+                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+                expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw(ServerError);
+                expect(store).to.be.empty;
             });
         });
     });
@@ -913,7 +971,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
     describe("getAccount()", () => {
         let store;
-        let config: Configuration;
+        let config: SPAConfiguration;
         let client: SPAClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
@@ -921,7 +979,9 @@ describe("SPAClient.ts Class Unit Tests", () => {
         beforeEach(() => {
             store = {};
             config = {
-                auth: {},
+                auth: {
+                    clientId: RANDOM_TEST_GUID
+                },
                 systemOptions: null,
                 cryptoInterface: {
                     createNewGuid(): string {
