@@ -32,7 +32,7 @@ export class AuthorityFactory {
         const components = authorityUrl.getUrlComponents();
         const pathSegments = components.PathSegments;
 
-        if (pathSegments[0] === "adfs")
+        if (pathSegments[0].toLowerCase() === "adfs")
             return AuthorityType.Adfs;
         else if (Object.keys(B2CTrustedHostList).length)
             return AuthorityType.B2C;
