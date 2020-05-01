@@ -2,11 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../logger/Logger";
+import { Constants } from "../utils/Constants";
+import { version } from "../../package.json";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -26,7 +29,8 @@ export type Configuration = {
     loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,
     networkInterface?: INetworkModule,
-    cryptoInterface?: ICrypto
+    cryptoInterface?: ICrypto,
+    libraryInfo?: LibraryInfo
 };
 
 /**
@@ -44,7 +48,7 @@ export type AuthOptions = {
 /**
  * Telemetry Config Options
  * - applicationName              - Name of the consuming apps application
- * - applicationVersion           - Verison of the consuming application
+ * - applicationVersion           - Version of the consuming application
  * - telemetryEmitter             - Function where telemetry events are flushed to
  */
 export type TelemetryOptions = {
@@ -73,19 +77,27 @@ export type LoggerOptions = {
     logLevel?: LogLevel
 };
 
+/**
+ * Telemetry info about library
+ */
+export type LibraryInfo = {
+    sku: string,
+    version: string,
+    cpu: string,
+    os: string
+};
+
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: []
 };
 
-// Default module system options
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };
 
-// Default logger implementation
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     loggerCallback: () => {
         // allow users to not set loggerCallback
@@ -94,7 +106,6 @@ const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     logLevel: LogLevel.Info
 };
 
-// Default storage implementation
 const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     clear: () => {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
@@ -120,7 +131,7 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    getSerializedCache: (): string => {
+    getSerializedCache: (): Promise<string> => {
         const notImplErr = "Storage interface - getSerializedCache() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
@@ -130,7 +141,6 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     }
 };
 
-// Default network implementation
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     async sendGetRequestAsync<T>(): Promise<T> {
         const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
@@ -142,7 +152,6 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     }
 };
 
-// Default crypto implementation
 const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
         const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
@@ -162,23 +171,38 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     }
 };
 
+const DEFAULT_LIBRARY_INFO: LibraryInfo = {
+    sku: Constants.SKU,
+    version: version,
+    cpu: "",
+    os: ""
+};
+
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
- * @param TStorageOptions
- * @param TSystemOptions
- * @param TFrameworkOptions
+ * @param Configuration
  *
- * @returns MsalConfiguration object
+ * @returns Configuration
  */
-export function buildConfiguration({ authOptions: authOptions, systemOptions: userSystemOptions, loggerOptions: userLoggerOption, storageInterface: storageImplementation, networkInterface: networkImplementation, cryptoInterface: cryptoImplementation }: Configuration): Configuration {
-    const overlayedConfig: Configuration = {
+export function buildConfiguration(
+    {
+        authOptions: authOptions,
+        systemOptions: userSystemOptions,
+        loggerOptions: userLoggerOption,
+        storageInterface: storageImplementation,
+        networkInterface: networkImplementation,
+        cryptoInterface: cryptoImplementation,
+        libraryInfo: libraryInfo
+    } : Configuration): Configuration {
+
+    return {
         authOptions: authOptions || DEFAULT_AUTH_OPTIONS,
         systemOptions: userSystemOptions || DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
-        cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION
+        cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
+        libraryInfo: libraryInfo|| DEFAULT_LIBRARY_INFO
     };
-    return overlayedConfig;
 }

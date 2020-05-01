@@ -12,7 +12,7 @@ export interface ICacheStorage {
      * @param key
      * @param value
      */
-    getSerializedCache(): string;
+    getSerializedCache(): Promise<string>;
 
     /**
      * Function to write serialized Cache to disk

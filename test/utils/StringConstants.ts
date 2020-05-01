@@ -17,6 +17,7 @@ export const TEST_TOKENS = {
     SAMPLE_JWT_PAYLOAD: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
     SAMPLE_JWT_SIG: "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
     SAMPLE_MALFORMED_JWT: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+    CACHE_IDTOKEN: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Imk2bEdrM0ZaenhSY1ViMkMzbkVRN3N5SEpsWSIsImtpZCI6Imk2bEdrM0ZaenhSY1ViMkMzbkVRN3N5SEpsWSJ9.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.D3H6pMUtQnoJAGq6AHd"
 };
 
 // Test Expiration Vals
@@ -34,7 +35,9 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_INVALID_JSON_CLIENT_INFO: `{"uid":"123-test-uid""utid":"456-test-utid"}`,
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
-    TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA=="
+    TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
+    TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+    TEST_CACHE_DECODED_CLIENT_INFO:`{"uid":"uid", "utid":"utid"}`
 };
 
 // Test Hashes
@@ -87,7 +90,11 @@ export const TEST_CONFIG = {
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
     CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
-    CLAIMS: "claims"
+    CLAIMS: "claims",
+    TEST_SKU: "test.sku",
+    TEST_VERSION: "1.0.0",
+    TEST_OS: "win32",
+    TEST_CPU: "x86",
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
