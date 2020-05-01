@@ -24,7 +24,7 @@ export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
 export { TokenResponse } from "./response/TokenResponse";
 export { CodeResponse } from "./response/CodeResponse";
 // Logger Callback
-export { ILoggerCallback, LogLevel } from "./logger/Logger";
+export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
 export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
