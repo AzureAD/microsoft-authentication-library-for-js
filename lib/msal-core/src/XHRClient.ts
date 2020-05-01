@@ -8,9 +8,11 @@
  * https://www.npmjs.com/package/async-promise
  * @hidden
  */
+
 export class XhrClient {
-    public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<any> {
-        return new Promise<string>((resolve, reject) => {
+
+    public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<XhrResponse> {
+        return new Promise<XhrResponse>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             if (enableCaching) {
@@ -30,8 +32,11 @@ export class XhrClient {
                 } catch (e) {
                     reject(this.handleError(xhr.responseText));
                 }
-
-                resolve(jsonResponse);
+                const response: XhrResponse = {
+                    statusCode: xhr.status,
+                    body: jsonResponse
+                };
+                resolve(response);
             };
 
             xhr.onerror = (ev) => {
@@ -61,3 +66,8 @@ export class XhrClient {
         }
     }
 }
+
+export type XhrResponse = {
+    body: any,
+    statusCode: number
+};

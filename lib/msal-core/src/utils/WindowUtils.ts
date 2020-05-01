@@ -32,6 +32,16 @@ export class WindowUtils {
 
     /**
      * @hidden
+     * @param prefix
+     * @param scopes
+     * @param authority
+     */
+    static generateFrameName(prefix: string, requestSignature: string): string {
+        return `${prefix}${Constants.resourceDelimiter}${requestSignature}`;
+    }
+
+    /**
+     * @hidden
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
@@ -178,7 +188,7 @@ export class WindowUtils {
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
-        if (document.body !== iframe.parentNode) {
+        if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
     }

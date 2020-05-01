@@ -1,5 +1,4 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
+import { expect } from "chai";
 import sinon from "sinon";
 import {
     Authority,
@@ -21,9 +20,6 @@ import {BaseClient} from "../../src/client/BaseClient";
 import {AADServerParamKeys, PromptValue, ResponseMode, SSOTypes} from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { B2CTrustedHostList } from "../../src/authority/B2cAuthority";
-
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 
 describe("AuthorizationCodeClient unit tests", () => {
 
@@ -134,8 +130,8 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Acquires a token successfully", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            sinon.stub(AuthorizationCodeClient.prototype, "executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, "createTokenRequestBody");
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
 
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
@@ -149,8 +145,6 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(JSON.parse(authenticationResult)).to.deep.eq(AUTHENTICATION_RESULT.body);
             expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
-
-            console.log(createTokenRequestBodySpy.returnValues);
 
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
