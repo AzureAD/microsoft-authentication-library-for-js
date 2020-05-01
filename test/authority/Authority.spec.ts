@@ -14,7 +14,7 @@ class TestAuthority extends Authority {
     }
 
     public async getOpenIdConfigurationEndpointAsync(): Promise<string> {
-        return DEFAULT_TENANT_DISCOVERY_RESPONSE.tenant_discovery_endpoint;
+        return DEFAULT_TENANT_DISCOVERY_RESPONSE.body.tenant_discovery_endpoint;
     }
 };
 

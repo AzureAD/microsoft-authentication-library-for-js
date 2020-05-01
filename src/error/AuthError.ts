@@ -24,7 +24,8 @@ export class AuthError extends Error {
     errorMessage: string;
 
     constructor(errorCode: string, errorMessage?: string) {
-        super(errorMessage);
+        const errorString = errorMessage ? `${errorCode}: ${errorMessage}` : errorCode;
+        super(errorString);
         Object.setPrototypeOf(this, AuthError.prototype);
 
         this.errorCode = errorCode;
