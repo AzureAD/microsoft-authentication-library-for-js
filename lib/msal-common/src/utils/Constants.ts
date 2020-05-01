@@ -9,6 +9,8 @@ export const Constants = {
     CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    // ADFS String
+    ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
     // Resource delimiter - used for certain cache entries
@@ -67,7 +69,7 @@ export enum PersistentCacheKeys {
 };
 
 /**
- * List of pre-established trusted host URLs. 
+ * List of pre-established trusted host URLs.
  */
 export const AADTrustedHostList: string[] = [
     "login.windows.net",
