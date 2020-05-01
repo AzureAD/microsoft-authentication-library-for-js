@@ -56,8 +56,6 @@ export class SPAClient extends BaseClient {
 
         B2cAuthority.setKnownAuthorities(this.clientConfig.authOptions.knownAuthorities);
 
-        B2cAuthority.setKnownAuthorities(this.clientConfig.auth.knownAuthorities);
-
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.authOptions.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
     }
