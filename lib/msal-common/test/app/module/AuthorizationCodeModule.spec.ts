@@ -4,7 +4,7 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { AuthorizationCodeModule } from "../../../src/app/module/AuthorizationCodeModule";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_TOKENS, ALTERNATE_OPENID_CONFIG_RESPONSE, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../../utils/StringConstants";
 import { AuthModule } from "../../../src/app/module/AuthModule";
 import { AuthenticationParameters } from "../../../src/request/AuthenticationParameters";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src/error/ClientConfigurationError";
@@ -22,7 +22,7 @@ import { TokenExchangeParameters } from "../../../src/request/TokenExchangeParam
 import { ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { AuthError } from "../../../src/error/AuthError";
 import { CodeResponse } from "../../../src/response/CodeResponse";
-import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters } from "../../../src";
+import { TokenResponse, Account, AuthorityFactory, TokenRenewParameters, ServerError } from "../../../src";
 import { buildClientInfo } from "../../../src/auth/ClientInfo";
 import { TimeUtils } from "../../../src/utils/TimeUtils";
 import { AccessTokenKey } from "../../../src/cache/AccessTokenKey";
@@ -630,26 +630,26 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             describe("Error cases", () => {
 
                 it("Throws error if request object is null or undefined", async () => {
-                    await expect(authModule.renewToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-                    await expect(authModule.renewToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authModule.getValidToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authModule.getValidToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
                 });
 
                 it("Throws error if scopes are not included in request object", async () => {
-                    await expect(authModule.renewToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authModule.getValidToken({})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: []
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if login hasn't been completed and client id is passed as scope", async () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
                 });
 
                 it("Throws error if endpoint discovery could not be completed", async () => {
@@ -659,7 +659,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
 
                 it("Throws error if it does not find token in empty cache", async () => {
@@ -667,7 +667,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: ["scope1"]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it does not find token in non-empty cache", async () => {
@@ -693,7 +693,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope2]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
 
                 it("Throws error if it finds too many tokens in cache for the same scope and client id but no authority, resource or account is given", async () => {
@@ -726,7 +726,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope]
                     };
-                    await expect(authModule.renewToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
+                    await expect(authModule.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
                 });
             });
 
@@ -754,7 +754,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScope1]
                     };
-                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    const tokenResponse = await authModule.getValidToken(tokenRequest);
                     expect(tokenResponse.uniqueId).to.be.empty;
                     expect(tokenResponse.tenantId).to.be.empty;
                     expect(tokenResponse.scopes).to.be.deep.eq([testScope1, Constants.OFFLINE_ACCESS_SCOPE]);
@@ -823,7 +823,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const tokenRequest: TokenRenewParameters = {
                         scopes: [testScopes[0]]
                     };
-                    const tokenResponse = await authModule.renewToken(tokenRequest);
+                    const tokenResponse = await authModule.getValidToken(tokenRequest);
 
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
@@ -842,6 +842,58 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     expect(tokenResponse.scopes).to.be.deep.eq(testScopes);
                     expect(tokenResponse.userRequestState).to.be.empty;
                 });
+            });
+        });
+
+        describe("handleFragmentResponse()", () => {
+
+            let authModule: AuthorizationCodeModule;
+            beforeEach(() => {
+                authModule = new AuthorizationCodeModule(defaultAuthConfig);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+                store = {};
+            });
+
+            it("returns valid server code response", () => {
+                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+                const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${RANDOM_TEST_GUID}`;
+                defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
+                    switch (input) {
+                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                        default:
+                            return input;
+                    }
+                };
+                defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
+                    switch (input) {
+                        case "123-test-uid":
+                            return "MTIzLXRlc3QtdWlk";
+                        case "456-test-utid":
+                            return "NDU2LXRlc3QtdXRpZA==";
+                        default:
+                            return input;
+                    }
+                };
+                authModule = new AuthorizationCodeModule(defaultAuthConfig);
+                const codeResponse = authModule.handleFragmentResponse(testSuccessHash);
+                expect(codeResponse.code).to.be.eq(`thisIsATestCode`);
+                expect(codeResponse.userRequestState).to.be.eq(RANDOM_TEST_GUID);
+            });
+
+            it("throws server error when error is in hash", () => {
+                const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
+            
+                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+                expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw("msal error description");
+                expect(store).to.be.empty;
+
+                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+                expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw(ServerError);
+                expect(store).to.be.empty;
             });
         });
     });

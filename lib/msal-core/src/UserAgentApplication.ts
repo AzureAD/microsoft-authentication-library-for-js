@@ -33,14 +33,15 @@ import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
 import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
-import HttpEvent from "./telemetry/HttpEvent";
+
 import { Constants,
     ServerHashParamKeys,
     InteractionType,
     libraryVersion,
     TemporaryCacheKeys,
     PersistentCacheKeys,
-    ErrorCacheKeys
+    ErrorCacheKeys,
+    FramePrefix
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 
@@ -632,6 +633,7 @@ export class UserAgentApplication {
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
+        const requestSignature = RequestUtils.createRequestSignature(request);
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
@@ -727,10 +729,10 @@ export class UserAgentApplication {
                          * refresh attempt with iframe
                          * Already renewing for this scope, callback when we get the token.
                          */
-                        if (window.activeRenewals[scope]) {
-                            this.logger.verbose("Renew token for scope: " + scope + " is in progress. Registering callback");
+                        if (window.activeRenewals[requestSignature]) {
+                            this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
                             // Active renewals contains the state for each renewal.
-                            this.registerCallback(window.activeRenewals[scope], scope, resolve, reject);
+                            this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
                         }
                         else {
                             if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
@@ -740,11 +742,11 @@ export class UserAgentApplication {
                                  */
                                 this.logger.verbose("renewing idToken");
                                 this.silentLogin = true;
-                                this.renewIdToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+                                this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             } else {
                                 // renew access token
                                 this.logger.verbose("renewing accesstoken");
-                                this.renewToken(request.scopes, resolve, reject, account, serverAuthenticationRequest);
+                                this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             }
                         }
                     }).catch((err) => {
@@ -825,10 +827,10 @@ export class UserAgentApplication {
      * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
      * @ignore
      */
-    private async loadIframeTimeout(urlNavigate: string, frameName: string, scope: string): Promise<void> {
+    private async loadIframeTimeout(urlNavigate: string, frameName: string, requestSignature: string): Promise<void> {
         // set iframe session to pending
-        const expectedState = window.activeRenewals[scope];
-        this.logger.verbose("Set loading state to pending for: " + scope + ":" + expectedState);
+        const expectedState = window.activeRenewals[requestSignature];
+        this.logger.verbose("Set loading state to pending for: " + requestSignature + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
@@ -845,7 +847,7 @@ export class UserAgentApplication {
         } catch (error) {
             if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.inProgress) {
                 // fail the iframe session if it's in pending state
-                this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope " + scope + ":" + expectedState);
+                this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope/authority " + requestSignature + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
                     window.callbackMappedToRenewStates[expectedState](null, error);
@@ -891,9 +893,9 @@ export class UserAgentApplication {
      * @param {Function} reject - The reject function of the promise object.
      * @ignore
      */
-    private registerCallback(expectedState: string, scope: string, resolve: Function, reject: Function): void {
+    private registerCallback(expectedState: string, requestSignature: string, resolve: Function, reject: Function): void {
         // track active renewals
-        window.activeRenewals[scope] = expectedState;
+        window.activeRenewals[requestSignature] = expectedState;
 
         // initialize callbacks mapped array
         if (!window.promiseMappedToRenewStates[expectedState]) {
@@ -906,7 +908,7 @@ export class UserAgentApplication {
         if (!window.callbackMappedToRenewStates[expectedState]) {
             window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
                 // reset active renewals
-                window.activeRenewals[scope] = null;
+                window.activeRenewals[requestSignature] = null;
 
                 // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
                 for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
@@ -1337,11 +1339,10 @@ export class UserAgentApplication {
      * Acquires access token using a hidden iframe.
      * @ignore
      */
-    private renewToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        const scope = scopes.join(" ").toLowerCase();
-        this.logger.verbose("renewToken is called for scope:" + scope);
+    private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+        this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
 
-        const frameName = `msalRenewFrame${scope}`;
+        const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
@@ -1352,10 +1353,10 @@ export class UserAgentApplication {
 
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = Constants.renewToken;
-        this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
+        this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, frameName, scope).catch(error => reject(error));
+        this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
     /**
@@ -1363,9 +1364,10 @@ export class UserAgentApplication {
      * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
      * @ignore
      */
-    private renewIdToken(scopes: Array<string>, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+    private renewIdToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.info("renewidToken is called");
-        const frameName = "msalIdTokenFrame";
+
+        const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
@@ -1384,10 +1386,10 @@ export class UserAgentApplication {
         }
 
         // note: scope here is clientId
-        this.registerCallback(serverAuthenticationRequest.state, this.clientId, resolve, reject);
+        this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
         frameHandle.src = "about:blank";
-        this.loadIframeTimeout(urlNavigate, frameName, this.clientId).catch(error => reject(error));
+        this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
     /**

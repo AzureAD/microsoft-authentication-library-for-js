@@ -14,7 +14,7 @@ export const scrubTenantFromUri = (uri: string): String => {
          * returning what was passed because the library needs to work with uris that are non
          * AAD trusted but passed by users such as B2C or others.
          * HTTP Events for instance can take a url to the open id config endpoint
-         */ 
+         */
         return uri;
     }
 

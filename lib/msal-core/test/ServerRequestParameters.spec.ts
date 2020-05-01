@@ -1,13 +1,15 @@
 import { expect } from "chai";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
-import { Authority, ClientConfigurationError } from "../src";
+import { Authority, ClientConfigurationError, Account } from "../src";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { UrlUtils } from "../src/utils/UrlUtils";
-import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "./TestConstants";
+import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { AuthenticationParameters } from "../src/AuthenticationParameters";
 import { RequestUtils } from "../src/utils/RequestUtils";
 import sinon from "sinon";
+import { IdToken } from "../src/IdToken";
+import { ClientInfo } from "../src/ClientInfo";
 
 describe("ServerRequestParameters.ts Class", function () {
 
@@ -129,7 +131,7 @@ describe("ServerRequestParameters.ts Class", function () {
         });
     });
 
-    describe("Query Parameters", function () {
+    describe("generateQueryParametersString", function () {
 
         it("test hints populated using queryParameters", function () {
             const eQParams = {domain_hint: "MyDomain.com", locale: "en-us"};
@@ -145,5 +147,38 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(extraQueryParameters).to.include("locale");
         });
 
+        it("properly handles null", () => {
+            const extraQueryParamaters = ServerRequestParameters.generateQueryParametersString(null);
+            expect(extraQueryParamaters).to.be.null;
+        });
+
+    });
+
+    describe("populateQueryParams", () => {
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
+        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+
+        it("populates parameters", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), {
+                scopes: [ "user.read" ],
+                extraQueryParameters: {
+                    key: "value"
+                }
+            });
+
+            expect(serverRequestParameters.queryParameters).to.equal("login_hint=AbeLi%40microsoft.com");
+            expect(serverRequestParameters.extraQueryParameters).to.equal("key=value");
+        });
+
+        it("populates parameters (null request)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), null);
+
+            expect(serverRequestParameters.queryParameters).to.equal("login_hint=AbeLi%40microsoft.com");
+            expect(serverRequestParameters.extraQueryParameters).to.equal(null);
+        });
     });
 });
