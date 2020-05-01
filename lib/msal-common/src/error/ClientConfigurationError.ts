@@ -51,6 +51,14 @@ export const ClientConfigurationErrorMessage = {
     tokenRequestEmptyError: {
         code: "token_request_empty",
         desc: "Token request was empty and not found in cache."
+    },
+    b2cKnownAuthoritiesNotSet: {
+        code: "b2c_known_authorities_not_set",
+        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
+    },
+    untrustedAuthority: {
+        code: "untrusted_authority",
+        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
     }
 };
 
@@ -58,7 +66,7 @@ export const ClientConfigurationErrorMessage = {
  * Error thrown when there is an error in configuration of the MSAL.js library.
  */
 export class ClientConfigurationError extends ClientAuthError {
-    
+
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientConfigurationError";
@@ -91,7 +99,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if authority uri is given an insecure protocol.
-     * @param urlString 
+     * @param urlString
      */
     static createInsecureAuthorityUriError(urlString: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityUriInsecure.code,
@@ -100,7 +108,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if URL string does not parse into separate segments.
-     * @param urlString 
+     * @param urlString
      */
     static createUrlParseError(urlParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlParseError.code,
@@ -109,7 +117,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if URL string is empty or null.
-     * @param urlString 
+     * @param urlString
      */
     static createUrlEmptyError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code, ClientConfigurationErrorMessage.urlEmptyError.desc);
@@ -117,7 +125,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when scopes are not an array
-     * @param inputScopes 
+     * @param inputScopes
      */
     static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
@@ -126,7 +134,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when scopes are empty.
-     * @param scopesValue 
+     * @param scopesValue
      */
     static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
@@ -135,7 +143,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when client id scope is not provided as single scope.
-     * @param inputScopes 
+     * @param inputScopes
      */
     static createClientIdSingleScopeError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.clientIdSingleScopeError.code,
@@ -144,7 +152,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when prompt is not an allowed type.
-     * @param promptValue 
+     * @param promptValue
      */
     static createInvalidPromptError(promptValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
@@ -156,5 +164,21 @@ export class ClientConfigurationError extends ClientAuthError {
      */
     static createEmptyTokenRequestError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.tokenRequestEmptyError.code, ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+    }
+
+    /**
+     * Throws an error when the user passes B2C authority and does not set knownAuthorities
+     */
+    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
+            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
+    }
+
+    /**
+     * Throws error when provided authority is not a member of the trusted host list
+     */
+    static createUntrustedAuthorityError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
+            ClientConfigurationErrorMessage.untrustedAuthority.desc);
     }
 }

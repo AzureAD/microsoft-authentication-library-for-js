@@ -15,6 +15,7 @@ import { ModuleConfiguration, buildModuleConfiguration } from "./ModuleConfigura
 export type AuthOptions = {
     clientId: string;
     authority?: string;
+    knownAuthorities?: Array<string>,
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
 };
@@ -32,6 +33,7 @@ export type PublicClientSPAConfiguration = ModuleConfiguration & {
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
+    knownAuthorities: [],
     redirectUri: "",
     postLogoutRedirectUri: ""
 };
