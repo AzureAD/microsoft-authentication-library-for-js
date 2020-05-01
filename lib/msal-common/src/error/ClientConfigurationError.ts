@@ -52,6 +52,14 @@ export const ClientConfigurationErrorMessage = {
         code: "token_request_empty",
         desc: "Token request was empty and not found in cache."
     },
+    invalidCodeChallengeMethod: {
+        code: "invalid_code_challenge_method",
+        desc: "code_challenge_method passed is invalid. Valid values are \"plain\" and \"S256\"."
+    },
+    invalidCodeChallengeParams: {
+        code: "one_of_code_challenge_code_challenge_method_params_missing",
+        desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
+    },
     b2cKnownAuthoritiesNotSet: {
         code: "b2c_known_authorities_not_set",
         desc: "Must set known authorities when validateAuthority is set to True and using B2C"
@@ -120,7 +128,8 @@ export class ClientConfigurationError extends ClientAuthError {
      * @param urlString
      */
     static createUrlEmptyError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code, ClientConfigurationErrorMessage.urlEmptyError.desc);
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code,
+            ClientConfigurationErrorMessage.urlEmptyError.desc);
     }
 
     /**
@@ -163,7 +172,30 @@ export class ClientConfigurationError extends ClientAuthError {
      * Throws error when token request is empty and nothing cached in storage.
      */
     static createEmptyTokenRequestError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.tokenRequestEmptyError.code, ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.tokenRequestEmptyError.code,
+            ClientConfigurationErrorMessage.tokenRequestEmptyError.desc
+        );
+    }
+
+    /**
+     * Throws error when an invalid code_challenge_method is passed by the user
+     */
+    static createInvalidCodeChallengeMethodError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.invalidCodeChallengeMethod.code,
+            ClientConfigurationErrorMessage.invalidCodeChallengeMethod.desc
+        );
+    }
+
+    /**
+     * Throws error when both params: code_challenge and code_challenge_method are not passed together
+     */
+    static createInvalidCodeChallengeParamsError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.invalidCodeChallengeParams.code,
+            ClientConfigurationErrorMessage.invalidCodeChallengeParams.desc
+        );
     }
 
     /**
