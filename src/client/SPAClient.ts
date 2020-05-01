@@ -407,16 +407,16 @@ export class SPAClient extends BaseClient {
         responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
         const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
-        // Set current account to received response accoßunt, if any.
+        // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;
     }
 
     /**
      * Creates refreshToken request and sends to given token endpoint.
-     * @param refreshTokenRequest 
-     * @param tokenEndpoint 
-     * @param refreshToken 
+     * @param refreshTokenRequest
+     * @param tokenEndpoint
+     * @param refreshToken
      */
     private async renewToken(refreshTokenRequest: TokenRenewParameters, tokenEndpoint: string, refreshToken: string): Promise<TokenResponse> {
         // Initialize request parameters.
