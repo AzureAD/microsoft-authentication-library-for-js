@@ -33,7 +33,8 @@ export class Storage implements ICacheStorage {
      * read JSON formatted cache from disk
      */
     async getSerializedCache(): Promise<string> {
-        return this.cacheManager.readFromFile(this.cachePath);
+        const serializedCache = await this.cacheManager.readFromFile(this.cachePath);
+        return serializedCache;
     }
 
     /**
