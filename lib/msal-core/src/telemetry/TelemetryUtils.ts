@@ -1,5 +1,4 @@
-import { B2cAuthority } from "../authority/B2cAuthority";
-import { AADTrustedHostList } from "../utils/Constants";
+import { Authority } from "../authority/Authority";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { UrlUtils } from "../utils/UrlUtils";
@@ -9,7 +8,7 @@ export const scrubTenantFromUri = (uri: string): String => {
     const url = UrlUtils.GetUrlComponents(uri);
 
     // validate trusted host
-    if (!AADTrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
+    if (!Authority.TrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
         /**
          * returning what was passed because the library needs to work with uris that are non
          * AAD trusted but passed by users such as B2C or others.

@@ -100,14 +100,7 @@ export enum ErrorCacheKeys {
     ERROR_DESC = "error.description"
 }
 
-export const AADTrustedHostList =  {
-    "login.windows.net": "login.windows.net",
-    "login.chinacloudapi.cn": "login.chinacloudapi.cn",
-    "login.cloudgovapi.us": "login.cloudgovapi.us",
-    "login.microsoftonline.com": "login.microsoftonline.com",
-    "login.microsoftonline.de": "login.microsoftonline.de",
-    "login.microsoftonline.us": "login.microsoftonline.us"
-};
+export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common"
 
 /**
  * @hidden

@@ -219,7 +219,7 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
-        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
+        Authority.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities, this.telemetryManager, CryptoUtils.createNewGuid());
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
