@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { B2cAuthority } from "../../../src/auth/authority/B2cAuthority";
-import { INetworkModule, NetworkRequestOptions } from "../../../src/network/INetworkModule";
-import { Authority } from "../../../src/auth/authority/Authority";
-import { AuthorityType } from "../../../src/auth/authority/AuthorityType";
-import { TEST_CONFIG } from "../../utils/StringConstants";
-import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../../src";
+import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { TEST_CONFIG } from "../utils/StringConstants";
+import { B2cAuthority } from "../../src/authority/B2cAuthority";
+import { Authority } from "../../src/authority/Authority";
+import { AuthorityType } from "../../src/authority/AuthorityType";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 
 describe("B2cAuthority.ts Class Unit Tests", () => {
 
