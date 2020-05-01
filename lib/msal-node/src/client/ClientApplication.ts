@@ -9,20 +9,20 @@ import {
     AuthorizationCodeRequest,
     AuthenticationResult,
     Configuration,
+    RefreshTokenClient,
+    RefreshTokenRequest
 } from '@azure/msal-common';
-import {
-    ClientConfiguration,
-    buildConfiguration,
-} from '../config/ClientConfiguration';
+import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
-import { NodeStorage } from '../cache/NodeStorage';
-import { NodeCacheManager } from '../cache/NodeCacheManager';
+import { Storage } from '../cache/Storage';
+import { version } from '../../package.json';
+import { Constants } from "./../utils/Constants";
 
 export abstract class ClientApplication {
-    // Input configuration by developer/user
+
     protected config: ClientConfiguration;
-    protected nodeStorage: NodeStorage;
-    protected nodeCacheManager: NodeCacheManager;
+    protected nodeStorage: Storage;
+    protected nodeCacheManager: CacheManager;
     protected cachePath: string;
 
     /**
@@ -41,14 +41,12 @@ export abstract class ClientApplication {
      * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
-     * Full B2C functionality will be available in this library in future versions.
+     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/ls
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     protected constructor(configuration: ClientConfiguration) {
-        this.config = buildConfiguration(configuration);
-        this.nodeStorage = new NodeStorage(this.config.cache!);
+        this.config = buildAppConfiguration(configuration);
     }
 
     /**
@@ -90,17 +88,16 @@ export abstract class ClientApplication {
     }
 
     /**
-     * API to retrieve application cache
+     * Acquires a token by exchanging the refresh token provided for a new set of tokens.
+     *
+     * This API is provided only for scenarios where you would like to migrate from ADAL to MSAL. Instead, it is
+     * recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent, MSAL will
+     * handle the caching and refreshing of tokens automatically.
+     * @param request
      */
-    public getCache(): string {
-        return this.nodeStorage.getSerializedCache();
-    }
-
-    /**
-     * API to write cache to a file
-     */
-    public setCache(): void {
-        this.nodeStorage.setSerializedCache(this.getCache());
+    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
+        const refreshTokenClient = new RefreshTokenClient(this.buildOauthClientConfiguration());
+        return refreshTokenClient.acquireToken(request);
     }
 
     protected buildOauthClientConfiguration(): Configuration {
@@ -115,7 +112,13 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: this.nodeStorage,
+            storageInterface: new Storage(this.config.cache!),
+            libraryInfo: {
+                sku: Constants.MSAL_SKU,
+                version: version,
+                cpu: process.arch || "",
+                os: process.platform || ""
+            },
         };
     }
 }

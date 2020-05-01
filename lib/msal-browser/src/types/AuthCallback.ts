@@ -11,4 +11,3 @@ import { AuthError, AuthResponse } from "@azure/msal-common";
  * @param response response containing token strings in success cases, or just state value in error cases
  */
 export type AuthCallback = (authErr: AuthError, response?: AuthResponse) => void;
-

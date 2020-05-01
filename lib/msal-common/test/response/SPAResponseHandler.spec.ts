@@ -18,6 +18,9 @@ import { ServerError } from "../../src/error/ServerError";
 import { CodeResponse } from "../../src";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { TimeUtils } from "../../src/utils/TimeUtils";
+import { InteractionRequiredAuthErrorMessage, InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
+import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
+import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 
 describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
@@ -199,6 +202,24 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
             expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ServerError);
+            expect(store).to.be.empty;
+        });
+
+        it("throws InteractionRequiredAuthError if hash contains error parameters", () => {
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired.code;
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired.code} test error`;
+            const testServerParams: ServerAuthorizationCodeResponse = {
+                error: TEST_ERROR_CODE,
+                error_description: TEST_ERROR_MSG,
+                state: RANDOM_TEST_GUID
+            };
+
+            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            expect(store).to.be.empty;
+
+            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
             expect(store).to.be.empty;
         });
 
@@ -396,6 +417,76 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
+        });
+
+        it("Successfully overwrites a token if the scopes are intersecting", () => {
+            cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+            const testResource = "https://login.contoso.com/endpt";
+            const atKey: AccessTokenKey = {
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                resource: testResource,
+                homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID 
+            };
+            const atValue: AccessTokenValue = {
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
+                extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
+            };
+            cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
+            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            const expectedScopes = [...TEST_CONFIG.DEFAULT_SCOPES, "user.read"]
+            const expectedTokenResponse: TokenResponse = {
+                uniqueId: idToken.claims.oid,
+                tenantId: idToken.claims.tid,
+                scopes: expectedScopes, 
+                tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                idToken: idToken.rawIdToken,
+                idTokenClaims: idToken.claims,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                expiresOn: null,
+                account: testAccount,
+                userRequestState: ""
+            };
+            const testServerParams: ServerAuthorizationTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: "openid profile offline_access user.read",
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            
+            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
+            expect(cacheStorage.getKeys().length).to.be.eq(4);
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID);
+            expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
+            expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
+            expect(tokenResponse.scopes).to.be.deep.eq(expectedTokenResponse.scopes);
+            expect(tokenResponse.tokenType).to.be.eq(expectedTokenResponse.tokenType);
+            expect(tokenResponse.idToken).to.be.eq(expectedTokenResponse.idToken);
+            expect(tokenResponse.idTokenClaims).to.be.deep.eq(expectedTokenResponse.idTokenClaims);
+            expect(tokenResponse.accessToken).to.be.eq(expectedTokenResponse.accessToken);
+            expect(tokenResponse.refreshToken).to.be.eq(expectedTokenResponse.refreshToken);
+            expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
+            expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
+            expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
+            expect(cacheStorage.getKeys().length).to.be.eq(4);
         });
     });
 });

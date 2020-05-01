@@ -1,15 +1,13 @@
-import {
-    buildConfiguration,
-    ClientConfiguration,
-} from '../../src/config/ClientConfiguration';
-import { CACHE } from '../../src/utils/Constants';
-import { HttpClient } from '../../src/network/HttpClient';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
-import { LogLevel, NetworkRequestOptions } from '@azure/msal-common';
+import {buildAppConfiguration, ClientConfiguration} from "../../src/config/ClientConfiguration";
+import {CACHE} from "../../src/utils/Constants";
+import {HttpClient} from "../../src/network/HttpClient";
+import {TEST_CONSTANTS} from "../utils/TestConstants";
+import {LogLevel, NetworkRequestOptions} from "@azure/msal-common";
 
 describe('ClientConfiguration tests', () => {
     test('builds configuration and assigns default functions', () => {
-        const config: ClientConfiguration = buildConfiguration({});
+
+        const config: ClientConfiguration = buildAppConfiguration({});
 
         // network options
         expect(config.system!.networkClient).toBeDefined();

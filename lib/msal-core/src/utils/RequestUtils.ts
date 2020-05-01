@@ -4,12 +4,20 @@
  */
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
-import { Constants, PromptState, BlacklistedEQParams } from "../utils/Constants";
+import { Constants, PromptState, BlacklistedEQParams, InteractionType } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
 import { StringUtils } from "../utils/StringUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
+import { TimeUtils } from "./TimeUtils";
+import { ClientAuthError } from "../error/ClientAuthError";
+
+export type LibraryStateObject = {
+    id: string,
+    ts: number
+    method: string
+};
 
 /**
  * @hidden
@@ -21,23 +29,16 @@ export class RequestUtils {
      *
      * @param request
      * @param isLoginCall
-     * @param requestType
-     * @param redirectCallbacksSet
      * @param cacheStorage
      * @param clientId
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, requestType?: string, redirectCallbacksSet?: boolean): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
             throw ClientConfigurationError.createEmptyRequestError();
-        }
-
-        // Throw error if callbacks are not set before redirect
-        if(requestType == Constants.interactionTypeRedirect && !redirectCallbacksSet) {
-            throw ClientConfigurationError.createRedirectCallbacksNotSetError();
         }
 
         let scopes: Array<string>;
@@ -60,7 +61,7 @@ export class RequestUtils {
         }
 
         // validate and generate state and correlationId
-        const state = this.validateAndGenerateState(request && request.state);
+        const state = this.validateAndGenerateState(request && request.state, interactionType);
         const correlationId = this.validateAndGenerateCorrelationId(request && request.correlationId);
 
         const validatedRequest: AuthenticationParameters = {
@@ -136,11 +137,57 @@ export class RequestUtils {
      * @ignore
      *
      * generate unique state per request
-     * @param request
+     * @param userState User-provided state value
+     * @returns State string include library state and user state
      */
-    static validateAndGenerateState(state: string): string {
-        // append GUID to user set state  or set one for the user if null
-        return !StringUtils.isEmpty(state) ? CryptoUtils.createNewGuid() + "|" + state : CryptoUtils.createNewGuid();
+    static validateAndGenerateState(userState: string, interactionType: InteractionType): string {
+        return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState(interactionType)}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState(interactionType);
+    }
+
+    /**
+     * Generates the state value used by the library.
+     *
+     * @returns Base64 encoded string representing the state
+     */
+    static generateLibraryState(interactionType: InteractionType): string {
+        const stateObject: LibraryStateObject = {
+            id: CryptoUtils.createNewGuid(),
+            ts: TimeUtils.now(),
+            method: interactionType
+        };
+
+        const stateString = JSON.stringify(stateObject);
+
+        return CryptoUtils.base64Encode(stateString);
+    }
+
+    /**
+     * Decodes the state value into a StateObject
+     *
+     * @param state State value returned in the request
+     * @returns Parsed values from the encoded state value
+     */
+    static parseLibraryState(state: string): LibraryStateObject {
+        const libraryState = decodeURIComponent(state).split(Constants.resourceDelimiter)[0];
+
+        if (CryptoUtils.isGuid(libraryState)) {
+            // If state is guid, assume timestamp is now and is redirect, as redirect should be only method where this can happen.
+            return {
+                id: libraryState,
+                ts: TimeUtils.now(),
+                method: Constants.interactionTypeRedirect
+            };
+        }
+
+        try {
+            const stateString = CryptoUtils.base64Decode(libraryState);
+
+            const stateObject = JSON.parse(stateString);
+
+            return stateObject;
+        } catch (e) {
+            throw ClientAuthError.createInvalidStateError(state, null);
+        }
     }
 
     /**
@@ -155,5 +202,13 @@ export class RequestUtils {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
         return CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+    }
+
+    /**
+     * Create a request signature
+     * @param request
+     */
+    static createRequestSignature(request: AuthenticationParameters): string {
+        return `${request.scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${request.authority}`;
     }
 }

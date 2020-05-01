@@ -14,11 +14,13 @@ import { IdToken } from "../account/IdToken";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
-import { TokenCacheGenerator } from "../unifiedCache/generator/TokenCacheGenerator";
 import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
 import { AuthorityType } from "../authority/AuthorityType";
+import { IdTokenEntity } from '../unifiedCache/entities/IdTokenEntity';
+import { AccessTokenEntity } from '../unifiedCache/entities/AccessTokenEntity';
+import { RefreshTokenEntity } from '../unifiedCache/entities/RefreshTokenEntity';
 
 /**
  * Class that handles response parsing.
@@ -70,7 +72,7 @@ export class ResponseHandler {
      * Function which validates server authorization token response.
      * @param serverResponse
      */
-    validateServerAuthorizationTokenResponse(
+    validateTokenResponse(
         serverResponse: ServerAuthorizationTokenResponse
     ): void {
         // Check for error
@@ -102,7 +104,7 @@ export class ResponseHandler {
         const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
 
         const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        this.addCredentialsToCache(authenticationResult, environment);
+        this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
 
         return authenticationResult;
     }
@@ -120,7 +122,6 @@ export class ResponseHandler {
             idToken: null,
             idTokenClaims: null,
             accessToken: "",
-            refreshToken: "",
             scopes: [],
             expiresOn: null,
             familyId: null
@@ -151,7 +152,6 @@ export class ResponseHandler {
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
-            refreshToken: serverTokenResponse.refresh_token,
             expiresOn: new Date(expiresInSeconds),
             extExpiresOn: new Date(extendedExpiresInSeconds),
             scopes: responseScopes.asArray(),
@@ -203,10 +203,30 @@ export class ResponseHandler {
      * @param authenticationResult
      * @param authority
      */
-    addCredentialsToCache(authenticationResult: AuthenticationResult, authority: string): void {
-        const idTokenEntity = TokenCacheGenerator.createIdTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
-        const accessTokenEntity = TokenCacheGenerator.createAccessTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
-        const refreshTokenEntity = TokenCacheGenerator.createRefreshTokenEntity(this.homeAccountIdentifier, authenticationResult, this.clientId, authority);
+    addCredentialsToCache(
+        authenticationResult: AuthenticationResult,
+        authority: string,
+        refreshToken: string
+    ) {
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            this.homeAccountIdentifier,
+            authenticationResult,
+            this.clientId,
+            authority
+        );
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            this.homeAccountIdentifier,
+            authenticationResult,
+            this.clientId,
+            authority
+        );
+        const refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
+            this.homeAccountIdentifier,
+            authenticationResult,
+            refreshToken,
+            this.clientId,
+            authority
+        );
 
         this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
     }

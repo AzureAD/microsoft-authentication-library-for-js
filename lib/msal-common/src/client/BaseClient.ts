@@ -16,6 +16,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { Serializer } from "../unifiedCache/serialize/Serializer";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -118,9 +119,12 @@ export abstract class BaseClient {
      */
     protected createDefaultLibraryHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
-        // library version
-        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, Constants.LIBRARY_NAME);
-        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, "0.0.1");
+        // client info headers
+        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`, this.config.libraryInfo.sku);
+        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, this.config.libraryInfo.version);
+        headers.set(`${AADServerParamKeys.X_CLIENT_OS}`, this.config.libraryInfo.os);
+        headers.set(`${AADServerParamKeys.X_CLIENT_CPU}`, this.config.libraryInfo.cpu);
+
         return headers;
     }
 
@@ -141,5 +145,14 @@ export abstract class BaseClient {
                 body: queryString,
                 headers: headers,
             });
+    }
+
+        /**
+     * Set the cache post acquireToken call
+     */
+    protected setCache() {
+        const inMemCache = this.unifiedCacheManager.getCacheInMemory();
+        const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
+        this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));
     }
 }

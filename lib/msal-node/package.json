@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0",
   "name": "@azure/msal-node",
+  "version": "0.1.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -37,11 +37,6 @@
     "lint:fix": "tsdx lint --fix"
   },
   "peerDependencies": {},
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
   "prettier": {
     "printWidth": 80,
     "semi": true,
@@ -65,15 +60,18 @@
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
+    "@types/debug": "^4.1.5",
     "@types/jest": "^25.1.2",
+    "@types/node": "^13.13.4",
     "@types/uuid": "^7.0.0",
     "husky": "^4.2.3",
-    "tsdx": "^0.12.3",
+    "tsdx": "^0.13.2",
     "tslib": "^1.10.0",
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@azure/msal-common": "1.0.0-alpha.0",
-    "axios": "^0.19.2"
+    "@azure/msal-common": "1.0.0-beta.0",
+    "axios": "^0.19.2",
+    "debug": "^4.1.1"
   }
 }
