@@ -1,18 +1,18 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-import sinon from "sinon";
+import { expect } from "chai";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
+import { Constants } from "../../src";
+import { version } from "../../package.json";
+import {TEST_CONFIG} from "../utils/StringConstants";
+
 
 describe("Configuration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        let emptyConfig: Configuration = buildConfiguration({});
+        const emptyConfig: Configuration = buildConfiguration({});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -55,7 +55,11 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Logger options checks
         expect(emptyConfig.loggerOptions).to.be.not.null;
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
-        expect(emptyConfig.loggerOptions.logLevel).to.be.equal(LogLevel.Info);
+        // Client info checks
+        expect(emptyConfig.libraryInfo.sku).to.be.eq(Constants.SKU);
+        expect(emptyConfig.libraryInfo.version).to.be.eq(version);
+        expect(emptyConfig.libraryInfo.os).to.be.empty;
+        expect(emptyConfig.libraryInfo.cpu).to.be.empty;
     });
 
     const clearFunc = (): void => {
@@ -82,7 +86,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testKeySet = ["testKey1", "testKey2"];
 
     it("buildConfiguration correctly assigns new values", () => {
-        let newConfig: Configuration = buildConfiguration({
+        const newConfig: Configuration = buildConfiguration({
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";
@@ -126,6 +130,12 @@ describe("Configuration.ts Class Unit Tests", () => {
                     }
                 },
                 piiLoggingEnabled: true
+            },
+            libraryInfo: {
+                sku: TEST_CONFIG.TEST_SKU,
+                version: TEST_CONFIG.TEST_VERSION,
+                os: TEST_CONFIG.TEST_OS,
+                cpu: TEST_CONFIG.TEST_CPU
             }
         });
         // Crypto interface tests
@@ -160,5 +170,10 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.loggerOptions).to.be.not.null;
         expect(newConfig.loggerOptions.loggerCallback).to.be.not.null;
         expect(newConfig.loggerOptions.piiLoggingEnabled).to.be.true;
+        // Client info tests
+        expect(newConfig.libraryInfo.sku).to.be.eq(TEST_CONFIG.TEST_SKU);
+        expect(newConfig.libraryInfo.version).to.be.eq(TEST_CONFIG.TEST_VERSION);
+        expect(newConfig.libraryInfo.os).to.be.eq(TEST_CONFIG.TEST_OS);
+        expect(newConfig.libraryInfo.cpu).to.be.eq(TEST_CONFIG.TEST_CPU);
     });
 });

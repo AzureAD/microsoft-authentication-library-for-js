@@ -22,6 +22,7 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { CodeResponse } from "./CodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
+import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 
 /**
  * Class that handles response parsing.
@@ -111,6 +112,10 @@ export class SPAResponseHandler {
 
         // Check for error
         if (serverResponseHash.error || serverResponseHash.error_description) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description)) {
+                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description);
+            }
+
             throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
         }
 
