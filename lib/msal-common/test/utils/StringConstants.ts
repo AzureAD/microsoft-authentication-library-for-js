@@ -87,7 +87,11 @@ export const TEST_CONFIG = {
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
     CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
-    CLAIMS: "claims"
+    CLAIMS: "claims",
+    TEST_SKU: "test.sku",
+    TEST_VERSION: "1.0.0",
+    TEST_OS: "win32",
+    TEST_CPU: "x86",
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";

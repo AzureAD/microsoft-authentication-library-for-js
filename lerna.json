@@ -2,7 +2,15 @@
   "lerna": "3.16.4",
   "command": {
     "run": {
-      "scope": ["msal", "@azure/msal-common", "@azure/msal-browser", "@azure/msal-angular", "@azure/msal-node"]
+      "scope": [
+        "msal", 
+        "@azure/msal-common", 
+        "@azure/msal-browser", 
+        "@azure/msal-angular",
+        "@azure/msal-node",
+        "vanilla-js-test-app",
+        "vanilla-js-test-app-2.0"
+      ]
     }
   },
   "packages": [

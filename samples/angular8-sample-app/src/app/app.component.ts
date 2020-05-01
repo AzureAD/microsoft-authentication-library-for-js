@@ -30,7 +30,7 @@ export class AppComponent implements OnInit {
         return;
       }
 
-      console.log('Redirect Success: ', response.accessToken);
+      console.log('Redirect Success: ', response);
     });
 
     this.authService.setLogger(new Logger((logLevel, message, piiEnabled) => {

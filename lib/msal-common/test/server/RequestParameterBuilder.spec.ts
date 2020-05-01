@@ -6,9 +6,9 @@ import {
     TEST_TOKENS,
     DEVICE_CODE_RESPONSE
 } from "../utils/StringConstants";
-import {RequestParameterBuilder} from "../../src/server/RequestParameterBuilder";
-import {ScopeSet} from "../../src/request/ScopeSet";
-import {ClientAuthErrorMessage, ClientConfigurationError, ClientConfigurationErrorMessage} from "../../src";
+import { RequestParameterBuilder } from "../../src/server/RequestParameterBuilder";
+import { ScopeSet } from "../../src/request/ScopeSet";
+import { ClientConfigurationError } from "../../src";
 
 describe("RequestParameterBuilder unit tests", () => {
 

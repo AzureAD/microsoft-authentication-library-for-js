@@ -16,7 +16,7 @@ const pca = new msal.PublicClientApplication(msalConfig);
 
 const deviceCodeRequest = {
     deviceCodeCallback: (response) => (console.log(response.message)),
-    scopes: ["user.read"], //TODO should add code to validate that passed in value is an array
+    scopes: ["user.read"],
 };
 
 pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {

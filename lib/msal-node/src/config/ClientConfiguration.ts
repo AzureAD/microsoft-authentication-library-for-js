@@ -10,6 +10,7 @@ import {
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
+import debug from "debug";
 
 export type NodeAuthOptions = AuthOptions;
 
@@ -62,7 +63,9 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: () => {},
+    loggerCallback: (level: LogLevel, message: string, containsPii: boolean) => {
+        debug(`msal:${LogLevel[level]}${containsPii ? "-Pii": ""}`)(message);
+    },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
 };
@@ -81,7 +84,7 @@ const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
  *
  * @returns ClientConfiguration
  */
-export function buildConfiguration({
+export function buildAppConfiguration({
     auth,
     cache,
     system,

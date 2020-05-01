@@ -7,7 +7,7 @@
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "./",
+    "rootDir": "../msal-node/",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -19,6 +19,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
