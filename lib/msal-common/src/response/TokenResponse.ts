@@ -17,6 +17,7 @@ import { StringDict } from "../utils/MsalTypes";
  * - refreshToken: refresh token string
  * - expiresOn: expiration of access token or id token (depends on token type)
  * - account: logged in account object
+ * - userRequestState: User given state
  */
 export type TokenResponse = AuthResponse & {
     uniqueId: string;

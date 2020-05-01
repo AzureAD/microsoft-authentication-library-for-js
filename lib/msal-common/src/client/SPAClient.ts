@@ -30,6 +30,7 @@ import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
 import { B2cAuthority } from "../authority/B2cAuthority";
+import { Authority } from "../authority/Authority";
 
 /**
  * SPAClient class
@@ -86,12 +87,14 @@ export class SPAClient extends BaseClient {
      */
     private async createUrl(request: AuthenticationParameters, isLoginCall: boolean): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-        try {
-            await acquireTokenAuthority.resolveEndpointsAsync();
-        } catch (e) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-        }
+        // const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+        // try {
+        //     await acquireTokenAuthority.resolveEndpointsAsync();
+        // } catch (e) {
+        //     throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        // }
+        const requestAuthorityUri = request ? request.authority : "";
+        const acquireTokenAuthority = await this.getDiscoveredAuthority(requestAuthorityUri);
 
         // Create and validate request parameters.
         let requestParameters: ServerCodeRequestParameters;
@@ -159,17 +162,20 @@ export class SPAClient extends BaseClient {
             }
 
             // Get request from cache
-            const tokenRequest: TokenExchangeParameters = this.getCachedRequest(codeResponse.userRequestState);
+            const tokenRequest: TokenExchangeParameters = this.getCachedRequest(codeResponse);
 
             // Initialize authority or use default, and perform discovery endpoint check.
-            const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthorityInstance;
-            if (!acquireTokenAuthority.discoveryComplete()) {
-                try {
-                    await acquireTokenAuthority.resolveEndpointsAsync();
-                } catch (e) {
-                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-                }
-            }
+            const requestAuthorityUri = tokenRequest ? tokenRequest.authority : "";
+            const acquireTokenAuthority = await this.getDiscoveredAuthority(requestAuthorityUri);
+
+            // const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthorityInstance;
+            // if (!acquireTokenAuthority.discoveryComplete()) {
+            //     try {
+            //         await acquireTokenAuthority.resolveEndpointsAsync();
+            //     } catch (e) {
+            //         throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            //     }
+            // }
 
             // Get token endpoint.
             const { tokenEndpoint } = acquireTokenAuthority;
@@ -218,14 +224,17 @@ export class SPAClient extends BaseClient {
             }
 
             // Initialize authority or use default, and perform discovery endpoint check.
-            const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
-            if (!acquireTokenAuthority.discoveryComplete()) {
-                try {
-                    await acquireTokenAuthority.resolveEndpointsAsync();
-                } catch (e) {
-                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-                }
-            }
+            const requestAuthorityUri = request ? request.authority : "";
+            const acquireTokenAuthority = await this.getDiscoveredAuthority(requestAuthorityUri);
+            
+            // const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
+            // if (!acquireTokenAuthority.discoveryComplete()) {
+            //     try {
+            //         await acquireTokenAuthority.resolveEndpointsAsync();
+            //     } catch (e) {
+            //         throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            //     }
+            // }
 
             // Get current cached tokens
             const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
@@ -235,6 +244,7 @@ export class SPAClient extends BaseClient {
             if (!request.forceRefresh && expirationSec && expirationSec > offsetCurrentTimeSec) {
                 const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.clientConfig.authOptions.clientId, true);
                 const defaultTokenResponse: TokenResponse = {
+                    authority: cachedTokenItem.key.authority,
                     uniqueId: "",
                     tenantId: "",
                     scopes: cachedScopes.asArray(),
@@ -290,14 +300,15 @@ export class SPAClient extends BaseClient {
         } catch (e) {}
 
         // Acquire token authorities.
-        const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthorityInstance;
-        if (!acquireTokenAuthority.discoveryComplete()) {
-            try {
-                await acquireTokenAuthority.resolveEndpointsAsync();
-            } catch (e) {
-                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-            }
-        }
+        const acquireTokenAuthority = await this.getDiscoveredAuthority(authorityUri);
+        // const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthorityInstance;
+        // if (!acquireTokenAuthority.discoveryComplete()) {
+        //     try {
+        //         await acquireTokenAuthority.resolveEndpointsAsync();
+        //     } catch (e) {
+        //         throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        //     }
+        // }
 
         // Construct logout URI.
         const logoutUri = `${acquireTokenAuthority.endSessionEndpoint}${postLogoutRedirectUri}`;
@@ -336,17 +347,55 @@ export class SPAClient extends BaseClient {
     }
 
     /**
+     * Gets a valid authority object and resolves endpoints if needed.
+     * @param authorityUri 
+     */
+    private async getDiscoveredAuthority(authorityUri: string): Promise<Authority> {
+        const acquireTokenAuthority = this.getAuthorityObject(authorityUri);        
+
+        if (!acquireTokenAuthority.discoveryComplete()) {
+            try {
+                await acquireTokenAuthority.resolveEndpointsAsync();
+            } catch (e) {
+                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            }
+        }
+
+        return acquireTokenAuthority;
+    }
+
+    /**
+     * Creates a new authority or returns the default authority based on given uri.
+     * @param authorityUri 
+     */
+    private getAuthorityObject(authorityUri: string): Authority {
+        if (StringUtils.isEmpty(authorityUri)) {
+            return this.defaultAuthorityInstance;
+        } else {
+            // Validate and canonicalize authority
+            const authorityUrlString = new UrlString(authorityUri);
+            // Boolean check for authority string
+            const createNewAuthorityCheck = authorityUrlString.urlString !== this.defaultAuthorityInstance.canonicalAuthority;
+            // Initialize authority or use default, and perform discovery endpoint check.
+            return createNewAuthorityCheck ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthorityInstance;
+        }
+    }
+
+    /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    private getCachedRequest(state: string): TokenExchangeParameters {
+    private getCachedRequest(codeResponse: CodeResponse): TokenExchangeParameters {
         try {
             // Get token request from cache and parse as TokenExchangeParameters.
             const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
             const parsedRequest = JSON.parse(this.cryptoUtils.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
             this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            if (!StringUtils.isEmpty(codeResponse.authority)) {
+                parsedRequest.authority = codeResponse.authority;
+            }
             // Get cached authority and use if no authority is cached with request.
-            if (StringUtils.isEmpty(parsedRequest.authority)) {
-                const authorityKey: string = this.cacheManager.generateAuthorityKey(state);
+            else if (StringUtils.isEmpty(parsedRequest.authority)) {
+                const authorityKey: string = this.cacheManager.generateAuthorityKey(codeResponse.userRequestState);
                 const cachedAuthority: string = this.cacheStorage.getItem(authorityKey);
                 parsedRequest.authority = cachedAuthority;
             }

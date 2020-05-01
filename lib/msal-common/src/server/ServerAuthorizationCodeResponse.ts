@@ -8,13 +8,23 @@
  * - code: authorization code from server
  * - client_info: client info object
  * - state: OAuth2 request state
+ * - cloud_instance_name: cloud authority name
+ * - cloud_instance_host_name: host uri of cloud authority
+ * - cloud_graph_host_name: host uri of cloud graph instance
+ * - msgraph_host: host uri of MSGraph Instance
  * - error: error sent back in hash
  * - error: description
  */
 export type ServerAuthorizationCodeResponse = {
+    // Success case
     code?: string;
     client_info?: string;
     state?: string;
+    cloud_instance_name?: string;
+    cloud_instance_host_name?: string;
+    cloud_graph_host_name?: string;
+    msgraph_host?: string;
+    // Error case
     error?: string,
     error_description?: string;
 };

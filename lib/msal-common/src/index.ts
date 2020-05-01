@@ -28,7 +28,7 @@ export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
-export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
+export { AuthResponse } from "./response/AuthResponse";
 export { TokenResponse } from "./response/TokenResponse";
 export { CodeResponse } from "./response/CodeResponse";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";

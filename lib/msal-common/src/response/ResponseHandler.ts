@@ -88,6 +88,7 @@ export class ResponseHandler {
 
             // Create response object
             const response: CodeResponse = {
+                authority: serverParams.cloud_instance_host_name ? `https://${serverParams.cloud_instance_host_name}/common/` : "",
                 code: serverParams.code,
                 userRequestState: serverParams.state
             };
@@ -226,6 +227,7 @@ export class ResponseHandler {
      */
     public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): TokenResponse {
         let tokenResponse: TokenResponse = {
+            authority: authorityString,
             uniqueId: "",
             tenantId: "",
             tokenType: "",

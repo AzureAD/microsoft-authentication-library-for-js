@@ -13,7 +13,10 @@ const msalConfig = {
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"],
-    forceRefresh: false
+    forceRefresh: false, // Set this to "true" to skip a cached token and go to the server to get a new token
+    extraQueryParameters: {
+        "instance_aware": "true"
+    }
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
