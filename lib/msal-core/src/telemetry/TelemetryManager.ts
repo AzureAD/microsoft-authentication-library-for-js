@@ -9,6 +9,10 @@ import {
     TelemetryEmitter
 } from "./TelemetryTypes";
 import DefaultEvent from "./DefaultEvent";
+import { libraryVersion, Constants } from "../utils/Constants";
+import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
+import { Logger } from "../Logger";
+import HttpEvent from "./HttpEvent";
 
 // for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
@@ -35,7 +39,15 @@ export default class TelemetryManager {
 
     constructor(config: TelemetryConfig, telemetryEmitter: TelemetryEmitter) {
         // TODO THROW if bad options
-        this.telemetryPlatform = config.platform;
+        this.telemetryPlatform = {
+            sdk: Constants.libraryName,
+            sdkVersion: libraryVersion(),
+            networkInformation: {
+                // @ts-ignore
+                connectionSpeed: navigator && navigator.connection && navigator.connection.effectiveType
+            },
+            ...config.platform
+        };
         this.clientId = config.clientId;
         this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
         /*
@@ -44,6 +56,22 @@ export default class TelemetryManager {
          * optional?
          */
         this.telemetryEmitter = telemetryEmitter;
+    }
+
+    static getTelemetrymanagerStub(clientId: string) : TelemetryManager {
+        const applicationName = "UnSetStub";
+        const applicationVersion = "0.0";
+        const telemetryEmitter = () => {};
+        const telemetryPlatform: TelemetryPlatform = {
+            applicationName,
+            applicationVersion
+        };
+        const telemetryManagerConfig: TelemetryConfig = {
+            platform: telemetryPlatform,
+            clientId: clientId
+        };
+
+        return new this(telemetryManagerConfig, telemetryEmitter);
     }
 
     startEvent(event: TelemetryEvent) {
@@ -103,6 +131,30 @@ export default class TelemetryManager {
         const eventsWithDefaultEvent = [ ...eventsToFlush, defaultEvent ];
 
         this.telemetryEmitter(eventsWithDefaultEvent.map(e => e.get()));
+    }
+
+    createAndStartApiEvent(correlationId: string, apiEventIdentifier: API_EVENT_IDENTIFIER, logger: Logger): ApiEvent {
+        const apiEvent = new ApiEvent(correlationId, logger, apiEventIdentifier);
+        this.startEvent(apiEvent);
+        return apiEvent;
+    }
+
+    stopAndFlushApiEvent(correlationId: string, apiEvent: ApiEvent, wasSuccessful: boolean, errorCode?: string): void {
+        apiEvent.wasSuccessful = wasSuccessful;
+        if (errorCode) {
+            apiEvent.apiErrorCode = errorCode;
+        }
+        this.stopEvent(apiEvent);
+        this.flush(correlationId);
+    }
+
+    createAndStartHttpEvent(correlation: string, httpMethod: string, url: string): HttpEvent {
+        console.log(url);
+        const httpEvent = new HttpEvent(correlation);
+        httpEvent.url = url;
+        httpEvent.httpMethod = httpMethod;
+        this.startEvent(httpEvent);
+        return httpEvent;
     }
 
     private incrementEventCount(event: TelemetryEvent): void {

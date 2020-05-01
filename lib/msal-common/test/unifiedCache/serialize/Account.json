@@ -7,7 +7,7 @@
             "environment": "login.microsoftonline.com",
             "home_account_id": "uid.utid",
             "authority_type": "MSSTS",
-            "client_info": "base64encodedjson"
+            "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         }
     }
 }
