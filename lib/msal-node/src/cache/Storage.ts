@@ -4,24 +4,22 @@
  */
 
 import { ICacheStorage } from '@azure/msal-common';
-import { NodeCacheManager } from './NodeCacheManager';
+import { CacheManager } from './CacheManager';
 import { CacheOptions } from '../config/ClientConfiguration';
 
 /**
- * This class implements the cache storage interface for MSAL through browser local or session storage.
- * Cookies are only used if storeAuthStateInCookie is true, and are only used for
- * parameters such as state and nonce, generally.
+ * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
-export class NodeStorage implements ICacheStorage {
+export class Storage implements ICacheStorage {
     // Cache configuration, either set by user or default values.
     private cacheConfig: CacheOptions;
     private cachePath: string;
-    private nodeCacheManager: NodeCacheManager;
+    private cacheManager: CacheManager;
 
     constructor(cacheConfig: CacheOptions) {
         this.cacheConfig = cacheConfig;
         this.cachePath = this.cacheConfig.cacheLocation!;
-        this.nodeCacheManager = new NodeCacheManager();
+        this.cacheManager = new CacheManager();
     }
 
     /**
@@ -34,19 +32,17 @@ export class NodeStorage implements ICacheStorage {
     /**
      * read JSON formatted cache from disk
      */
-    getSerializedCache(): string {
-        return this.nodeCacheManager.readFromFile(this.cachePath);
+    async getSerializedCache(): Promise<string> {
+        return this.cacheManager.readFromFile(this.cachePath);
     }
 
     /**
      * write the JSON formatted cache to disk
      * @param jsonCache
      */
-    setSerializedCache(cache: string): void {
-        this.nodeCacheManager.writeToFile(this.cachePath, cache);
+    async setSerializedCache(cache: string): Promise<void> {
+        this.cacheManager.writeToFile(this.cachePath, cache);
     }
-
-    // TODO: get rid of the switch statements after the lookup
 
     /**
      * Sets the cache item with the key and value given.
