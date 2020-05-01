@@ -18,7 +18,6 @@ export class AuthenticationResult {
     idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
-    refreshToken: string; // TODO: Confirm if we need to return this to the user, follow up with msal-browser
     expiresOn: Date;
     extExpiresOn?: Date; // TODO: Check what this maps to in other libraries
     userRequestState?: string; // TODO: remove, just check how state is handled in other libraries

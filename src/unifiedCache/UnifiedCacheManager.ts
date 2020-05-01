@@ -25,7 +25,7 @@ export class UnifiedCacheManager {
         this.readSerializedCache();
     }
 
-    async readSerializedCache() {
+    async readSerializedCache(): Promise<void> {
         const serializedCache = await this.cacheStorage.getSerializedCache();
         this.inMemoryCache = this.generateInMemoryCache(serializedCache);
     }
