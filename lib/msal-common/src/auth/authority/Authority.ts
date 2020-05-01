@@ -107,10 +107,10 @@ export abstract class Authority {
 
     /**
      * Replaces tenant in url path with current tenant. Defaults to common.
-     * @param urlString 
+     * @param urlString
      */
     private replaceTenant(urlString: string): string {
-        return urlString.replace("{tenant}", this.tenant);
+        return urlString.replace(/{tenant}|{tenantid}/g, this.tenant);
     }
 
     /**
@@ -136,7 +136,7 @@ export abstract class Authority {
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
-     * @param openIdConfigurationEndpoint 
+     * @param openIdConfigurationEndpoint
      */
     private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<TenantDiscoveryResponse> {
         return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);
