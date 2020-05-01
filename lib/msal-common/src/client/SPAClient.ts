@@ -29,6 +29,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
+import { B2cAuthority } from "../authority/B2cAuthority";
 
 /**
  * SPAClient class
@@ -52,6 +53,8 @@ export class SPAClient extends BaseClient {
         });
         // Implement defaults in config
         this.clientConfig = buildPublicClientSPAConfiguration(configuration);
+
+        B2cAuthority.setKnownAuthorities(this.clientConfig.auth.knownAuthorities);
 
         // Initialize default authority instance
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.auth.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
