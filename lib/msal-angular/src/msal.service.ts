@@ -124,7 +124,21 @@ export class MsalService extends UserAgentApplication {
     handleRedirectCallback(authCallback: authResponseCallback): void;
     handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
         super.handleRedirectCallback((authError: AuthError, authResponse: AuthResponse) => {
-            if (authResponse) {
+            if (authError) {
+                if (!this.getAccount()) {
+                    this.broadcastService.broadcast("msal:loginFailure", authError);
+
+                } else {
+                    this.broadcastService.broadcast("msal:acquireTokenFailure", authError);
+                }
+
+                if (errorReceivedCallback) {
+                    errorReceivedCallback(authError, authResponse.accountState);
+                } else {
+                    (authOrTokenCallback as authResponseCallback)(authError, authResponse);
+                }
+
+            } else if (authResponse) {
                 if (authResponse.tokenType === "id_token") {
                     this.broadcastService.broadcast("msal:loginSuccess", authResponse);
                 } else {
@@ -135,20 +149,6 @@ export class MsalService extends UserAgentApplication {
                     (authOrTokenCallback as tokenReceivedCallback)(authResponse);
                 } else {
                     (authOrTokenCallback as authResponseCallback)(null, authResponse);
-                }
-
-            } else if (authError) {
-                if (authResponse.tokenType === "id_token") {
-                    this.broadcastService.broadcast("msal:loginFailure", authError);
-
-                } else {
-                    this.broadcastService.broadcast("msal:acquireTokenFailure", authError);
-                }
-
-                if (errorReceivedCallback) {
-                    errorReceivedCallback(authError, authResponse.accountState);
-                } else {
-                    (authOrTokenCallback as authResponseCallback)(authError);
                 }
 
             }
