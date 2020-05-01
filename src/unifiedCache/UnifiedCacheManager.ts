@@ -12,7 +12,7 @@ import { AccountEntity } from "./entities/AccountEntity";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
-import { AccountCache } from "../utils/MsalTypes";
+import { AccountCache } from "./utils/CacheTypes";
 
 export class UnifiedCacheManager {
     // Storage interface
@@ -27,7 +27,7 @@ export class UnifiedCacheManager {
     }
 
     /**
-     * set the cache memory
+     * setter  for in cache memory
      */
     setCacheInMemory(cache: InMemoryCache): void {
         this.inMemoryCache = cache;
@@ -51,7 +51,6 @@ export class UnifiedCacheManager {
 
     /**
      * retrieves the final JSON
-     * TODO: move this to msal-common
      */
     generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
         return Serializer.serializeAllCache(inMemoryCache);
@@ -85,11 +84,7 @@ export class UnifiedCacheManager {
             .join(Separators.CACHE_KEY_SEPARATOR)
             .toLowerCase();
 
-        if (this.inMemoryCache.accounts[accountKey])
-            return this.inMemoryCache.accounts[accountKey];
-        else {
-            return null;
-        }
+        return this.inMemoryCache.accounts[accountKey] || null;
     }
 
     /**
@@ -99,15 +94,13 @@ export class UnifiedCacheManager {
      * @param rt: RefreshTokenEntity
      */
     addCredentialCache(
-        at: AccessTokenEntity,
-        idT: IdTokenEntity,
-        rt: RefreshTokenEntity
+        accessToken: AccessTokenEntity,
+        idToken: IdTokenEntity,
+        refreshToken: RefreshTokenEntity
     ): void {
-        this.inMemoryCache.accessTokens[at.generateAccessTokenEntityKey()] = at;
-        this.inMemoryCache.idTokens[idT.generateIdTokenEntityKey()] = idT;
-        this.inMemoryCache.refreshTokens[
-            rt.generateRefreshTokenEntityKey()
-        ] = rt;
+        this.inMemoryCache.accessTokens[accessToken.generateAccessTokenEntityKey()] = accessToken;
+        this.inMemoryCache.idTokens[idToken.generateIdTokenEntityKey()] = idToken;
+        this.inMemoryCache.refreshTokens[refreshToken.generateRefreshTokenEntityKey()] = refreshToken;
     }
 
     /**

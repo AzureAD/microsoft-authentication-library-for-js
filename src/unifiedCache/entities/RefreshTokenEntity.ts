@@ -5,6 +5,7 @@
 
 import { Credential } from "./Credential";
 import { Separators } from "../../utils/Constants";
+import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 /**
  * REFRESH_TOKEN Cache
@@ -30,5 +31,33 @@ export class RefreshTokenEntity extends Credential {
         refreshTokenKeyArray.push("");
 
         return refreshTokenKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Create RefreshTokenEntity
+     * @param homeAccountId
+     * @param authenticationResult
+     * @param clientId
+     * @param authority
+     */
+    static createRefreshTokenEntity(
+        homeAccountId: string,
+        authenticationResult: AuthenticationResult,
+        refreshToken: string,
+        clientId: string,
+        environment: string
+    ): RefreshTokenEntity {
+        const rtEntity = new RefreshTokenEntity();
+
+        rtEntity.clientId = clientId;
+        rtEntity.credentialType = "RefreshToken";
+        rtEntity.environment = environment;
+        rtEntity.homeAccountId = homeAccountId;
+        rtEntity.secret = refreshToken;
+
+        if (authenticationResult.familyId)
+            rtEntity.familyId = authenticationResult.familyId;
+
+        return rtEntity;
     }
 }

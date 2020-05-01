@@ -5,6 +5,7 @@
 
 import { Credential } from "./Credential";
 import { Separators } from "../../utils/Constants";
+import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 /**
  * ID_TOKEN Cache
@@ -26,5 +27,30 @@ export class IdTokenEntity extends Credential {
         ];
 
         return idTokenKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Create IdTokenEntity
+     * @param homeAccountId
+     * @param authenticationResult
+     * @param clientId
+     * @param authority
+     */
+    static createIdTokenEntity(
+        homeAccountId: string,
+        authenticationResult: AuthenticationResult,
+        clientId: string,
+        environment: string
+    ): IdTokenEntity {
+        const idTokenEntity = new IdTokenEntity();
+
+        idTokenEntity.credentialType = "IdToken";
+        idTokenEntity.homeAccountId = homeAccountId;
+        idTokenEntity.environment = environment;
+        idTokenEntity.clientId = clientId;
+        idTokenEntity.secret = authenticationResult.idToken;
+        idTokenEntity.realm = authenticationResult.tenantId;
+
+        return idTokenEntity;
     }
 }
