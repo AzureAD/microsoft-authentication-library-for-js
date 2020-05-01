@@ -15,14 +15,15 @@ import {
 import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
+import { CacheManager } from '../cache/CacheManager';
 import { version } from '../../package.json';
 import { Constants } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
     protected config: ClientConfiguration;
-    protected nodeStorage: Storage;
-    protected nodeCacheManager: CacheManager;
+    protected storage: Storage;
+    protected cacheManager: CacheManager;
     protected cachePath: string;
 
     /**

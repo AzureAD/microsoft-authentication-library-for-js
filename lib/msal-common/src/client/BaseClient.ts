@@ -147,10 +147,10 @@ export abstract class BaseClient {
             });
     }
 
-        /**
+    /**
      * Set the cache post acquireToken call
      */
-    protected setCache() {
+    protected setCache(): void {
         const inMemCache = this.unifiedCacheManager.getCacheInMemory();
         const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
         this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));

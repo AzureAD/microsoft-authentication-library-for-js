@@ -16,7 +16,6 @@ import { NetworkResponse }  from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { Serializer } from "../unifiedCache/serialize/Serializer";
 
 /**
  * Oauth2.0 Authorization Code client

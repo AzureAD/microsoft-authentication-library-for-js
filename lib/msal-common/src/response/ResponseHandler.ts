@@ -18,9 +18,9 @@ import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
 import { AuthorityType } from "../authority/AuthorityType";
-import { IdTokenEntity } from '../unifiedCache/entities/IdTokenEntity';
-import { AccessTokenEntity } from '../unifiedCache/entities/AccessTokenEntity';
-import { RefreshTokenEntity } from '../unifiedCache/entities/RefreshTokenEntity';
+import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
 
 /**
  * Class that handles response parsing.
