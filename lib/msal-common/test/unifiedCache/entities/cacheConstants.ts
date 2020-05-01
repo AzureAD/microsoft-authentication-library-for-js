@@ -65,7 +65,7 @@ export const mockAccountEntity = {
     localAccountId: "object1234",
     username: "John Doe",
     authorityType: "MSSTS",
-    clientInfo: "base64encodedjson",
+    clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
 };
 
 export const mockAppMetaDataEntity = {

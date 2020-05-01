@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { MockCache } from "../entities/cacheConstants";
 import { Serializer } from "../../../src/unifiedCache/serialize/Serializer";
 import { Deserializer } from "../../../src/unifiedCache/serialize/Deserializer";
-import { JsonCache } from "../../../src/unifiedCache/utils/CacheTypes";
+import { JsonCache, InMemoryCache } from "../../../src/unifiedCache/utils/CacheTypes";
 
 const cachedJson = require("./cache.json");
 
@@ -58,6 +58,21 @@ describe("Serializer test cases", () => {
         // serialize the mock AppMetadata and Test equivalency with the cache.json provided
         const serializedAmdt = Serializer.serializeAppMetadata(amdt);
         expect(serializedAmdt[MockCache.amdtKey]).to.eql(jsonCache.AppMetadata[MockCache.amdtKey]);
+    });
+
+    it("serializeAll", () => {
+
+        // deserialize the cache from memory and Test equivalency with the generated mock cache
+        const inMemoryCache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
+        const jCache: JsonCache = Serializer.serializeAllCache(inMemoryCache);
+
+        expect(jCache.Account[MockCache.accKey]).to.eql(jsonCache.Account[MockCache.accKey]);
+        expect(jCache.IdToken[MockCache.idTKey]).to.eql(jsonCache.IdToken[MockCache.idTKey]);
+        expect(jCache.AccessToken[MockCache.atOneKey]).to.eql(jsonCache.AccessToken[MockCache.atOneKey]);
+        expect(jCache.AccessToken[MockCache.atTwoKey]).to.eql(jsonCache.AccessToken[MockCache.atTwoKey]);
+        expect(jCache.RefreshToken[MockCache.rtKey]).to.eql(jsonCache.RefreshToken[MockCache.rtKey]);
+        expect(jCache.RefreshToken[MockCache.rtFKey]).to.eql(jsonCache.RefreshToken[MockCache.rtFKey]);
+        expect(jCache.AppMetadata[MockCache.amdtKey]).to.eql(jsonCache.AppMetadata[MockCache.amdtKey]);
     });
 
 });
