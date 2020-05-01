@@ -1,6 +1,13 @@
 // App and config
-export { PublicClientApplication } from "./client/PublicClientApplication";
+export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
+
+// Browser Errors
+export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
+export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
+
+// AuthCallback type
+export type { AuthCallback } from "./types/AuthCallback";
 
 // Common Object Formats
 export {
@@ -10,7 +17,11 @@ export {
     // Response
     AuthResponse,
     // Error
+    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
-    INetworkModule
+    INetworkModule,
+    // Logger Object
+    Logger,
+    LogLevel
 } from "@azure/msal-common";

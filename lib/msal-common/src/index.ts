@@ -2,6 +2,7 @@
 export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
+export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { SPAConfiguration, SPAAuthOptions } from "./config/SPAConfiguration";
 export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
 export { Configuration } from "./config/Configuration";
@@ -24,6 +25,7 @@ export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthorizationCodeUrlRequest } from "./request/AuthorizationCodeUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
@@ -32,12 +34,13 @@ export { TokenResponse } from "./response/TokenResponse";
 export { CodeResponse } from "./response/CodeResponse";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 // Logger Callback
-export { ILoggerCallback, LogLevel } from "./logger/Logger";
+export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
+export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export { Constants, PromptValue, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";

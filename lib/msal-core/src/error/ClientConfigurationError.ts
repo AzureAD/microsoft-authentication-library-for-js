@@ -62,9 +62,17 @@ export const ClientConfigurationErrorMessage = {
         code: "unsupported_authority_validation",
         desc: "The authority validation is not supported for this authority type."
     },
+    untrustedAuthority: {
+        code: "untrusted_authority",
+        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+    },
     b2cAuthorityUriInvalidPath: {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
+    },
+    b2cKnownAuthoritiesNotSet: {
+        code: "b2c_known_authorities_not_set",
+        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
     },
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
@@ -81,6 +89,10 @@ export const ClientConfigurationErrorMessage = {
     telemetryConfigError: {
         code: "telemetry_config_error",
         desc: "Telemetry config is not configured with required values"
+    },
+    ssoSilentError: {
+        code: "sso_silent_error",
+        desc: "request must contain either sid or login_hint"
     }
 };
 
@@ -154,6 +166,21 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
     }
 
+    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
+            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
+    }
+
+    static createInvalidAuthorityTypeError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityType.code,
+            ClientConfigurationErrorMessage.invalidAuthorityType.desc);
+    }
+
+    static createUntrustedAuthorityError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
+            ClientConfigurationErrorMessage.untrustedAuthority.desc);
+    }
+
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
         const { code, desc } = ClientConfigurationErrorMessage.telemetryConfigError;
         const requiredKeys = {
@@ -168,5 +195,10 @@ export class ClientConfigurationError extends ClientAuthError {
             }, []);
 
         return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
+    }
+
+    static createSsoSilentError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.ssoSilentError.code,
+            ClientConfigurationErrorMessage.ssoSilentError.desc);
     }
 }

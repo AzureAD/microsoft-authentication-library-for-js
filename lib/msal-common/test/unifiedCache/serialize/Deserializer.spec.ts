@@ -1,13 +1,14 @@
 import { expect } from "chai";
-import { CacheInterface } from "../../../src/unifiedCache/serialize/CacheInterface";
-import { mockCache, MockCache } from "../entities/cacheConstants";
+import { MockCache } from "../entities/cacheConstants";
 import { Deserializer } from "../../../src/unifiedCache/serialize/Deserializer";
-import { IdToken } from "../../../src/account/IdToken";
-import { InMemoryCache } from "../../../src/unifiedCache/utils/CacheTypes";
+import { InMemoryCache, JsonCache } from "../../../src/unifiedCache/utils/CacheTypes";
 
 const cacheJson = require("./cache.json");
 
 describe("Deserializer test cases", () => {
+
+    const cache = JSON.stringify(cacheJson);
+    const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
 
     it("deserializeJSONBlob", () => {
         const mockAccount = {
@@ -18,54 +19,41 @@ describe("Deserializer test cases", () => {
                 environment: "login.microsoftonline.com",
                 home_account_id: "uid.utid",
                 authority_type: "MSSTS",
-                client_info: "base64encodedjson",
+                client_info: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
             },
         };
-        const acc = CacheInterface.deserializeJSONBlob(cacheJson);
-        expect(acc.accounts).to.eql(mockAccount);
-    });
-
-    it("retrieve empty JSON blob", () => {
-        const emptyCacheJson = {};
-        const emptyJsonContent = CacheInterface.deserializeJSONBlob(
-            emptyCacheJson
-        );
-
-        expect(emptyJsonContent.accounts).to.eql({});
-        expect(emptyJsonContent.accessTokens).to.eql({});
-        expect(emptyJsonContent.idTokens).to.eql({});
-        expect(emptyJsonContent.refreshTokens).to.eql({});
-        expect(emptyJsonContent.appMetadata).to.eql({});
+        const acc = Deserializer.deserializeJSONBlob(cache);
+        expect(acc.Account).to.eql(mockAccount);
     });
 
     it("deSerializeAccounts", () => {
         // serialize the mock Account and Test equivalency with the cache.json provided
-        const accCache = Deserializer.deSerializeAccounts(jsonCache.accounts);
+        const accCache = Deserializer.deserializeAccounts(jsonCache.Account);
         expect(accCache[MockCache.accKey]).to.eql(MockCache.acc);
     });
 
     it("deSerializeIdTokens", () => {
         // serialize the mock IdToken and Test equivalency with the cache.json provided
-        const idTCache = Deserializer.deSerializeIdTokens(jsonCache.idTokens);
+        const idTCache = Deserializer.deserializeIdTokens(jsonCache.IdToken);
         expect(idTCache[MockCache.idTKey]).to.eql(MockCache.idT);
     });
 
 
     it("deSerializeAccessTokens", () => {
         // serialize the mock AccessToken and Test equivalency with the cache.json provided
-        const atCache = Deserializer.deSerializeAccessTokens(jsonCache.accessTokens);
+        const atCache = Deserializer.deserializeAccessTokens(jsonCache.AccessToken);
         expect(atCache[MockCache.atOneKey]).to.eql(MockCache.atOne);
     });
 
     it("deSerializeRefreshTokens", () => {
         // serialize the mock RefreshToken and Test equivalency with the cache.json provided
-        const rtCache = Deserializer.deSerializeRefreshTokens(jsonCache.refreshTokens);
+        const rtCache = Deserializer.deserializeRefreshTokens(jsonCache.RefreshToken);
         expect(rtCache[MockCache.rtKey]).to.eql(MockCache.rt);
     });
 
     it("deserializeAppMetadata", () => {
         // serialize the mock AppMetadata and Test equivalency with the cache.json provided
-        const amdtCache = Deserializer.deserializeAppMetadata(jsonCache.appMetadata);
+        const amdtCache = Deserializer.deserializeAppMetadata(jsonCache.AppMetadata);
         expect(amdtCache[MockCache.amdtKey]).to.eql(MockCache.amdt);
     });
 

@@ -31,7 +31,7 @@ By default, MSAL is configured with the `common` tenant, which is used for multi
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/common/'
+        authority: 'https://login.microsoftonline.com/common/'
     }
 };
 ```
@@ -41,7 +41,7 @@ If your application audience is a single tenant, you must provide an authority w
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/{your_tenant_id}'
+        authority: 'https://login.microsoftonline.com/{your_tenant_id}'
     }
 };
 ```
@@ -53,13 +53,13 @@ By default, MSAL is configured to set the redirect URI to the current page that 
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/{your_tenant_id}',
+        authority: 'https://login.microsoftonline.com/{your_tenant_id}',
         redirectUri: 'https://contoso.com'
     }
 };
 ```
 
-Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./loginuser.md) and [request APIs](./acquiretoken.md).
+Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./login-user.md) and [request APIs](./acquire-token.md).
 
 ## (Optional) Additional Configuration
 
@@ -95,4 +95,4 @@ It is not recommended to use both interaction types in a single application.
 
 # Next Steps
 
-You are ready to perform a [login](./loginuser.md)!
+You are ready to perform a [login](./login-user.md)!
