@@ -21,9 +21,12 @@ export class UnifiedCacheManager {
 
     constructor(cacheImpl: ICacheStorage) {
         this.cacheStorage = cacheImpl;
-        this.inMemoryCache = this.generateInMemoryCache(
-            this.cacheStorage.getSerializedCache()
-        );
+        this.readSerializedCache();
+    }
+
+    async readSerializedCache() {
+        const serializedCache = await this.cacheStorage.getSerializedCache();
+        this.inMemoryCache = this.generateInMemoryCache(serializedCache);
     }
 
     /**

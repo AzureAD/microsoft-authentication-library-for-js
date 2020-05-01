@@ -5,7 +5,6 @@
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
@@ -15,11 +14,13 @@ import { IdToken } from "../account/IdToken";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
-import { TokenCacheGenerator } from "../unifiedCache/generator/TokenCacheGenerator";
 import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
 import { AuthorityType } from "../authority/AuthorityType";
+import { IdTokenEntity } from '../unifiedCache/entities/IdTokenEntity';
+import { AccessTokenEntity } from '../unifiedCache/entities/AccessTokenEntity';
+import { RefreshTokenEntity } from '../unifiedCache/entities/RefreshTokenEntity';
 
 /**
  * Class that handles response parsing.
@@ -76,7 +77,7 @@ export class ResponseHandler {
      * Function which validates server authorization token response.
      * @param serverResponse
      */
-    validateServerAuthorizationTokenResponse(
+    validateTokenResponse(
         serverResponse: ServerAuthorizationTokenResponse
     ): void {
         // Check for error
@@ -122,9 +123,8 @@ export class ResponseHandler {
             authority
         );
 
-        const environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        this.addCredentialsToCache(authenticationResult, environment);
+        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
 
         return authenticationResult;
     }
@@ -145,7 +145,6 @@ export class ResponseHandler {
             idToken: null,
             idTokenClaims: null,
             accessToken: "",
-            refreshToken: "",
             scopes: [],
             expiresOn: null,
             familyId: null,
@@ -167,16 +166,10 @@ export class ResponseHandler {
         }
 
         // Expiration calculation
-        const expiresInSeconds =
-            TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
-        const extendedExpiresInSeconds =
-            expiresInSeconds + serverTokenResponse.ext_expires_in;
+        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
+        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
         // Set consented scopes in response
-        const responseScopes = ScopeSet.fromString(
-            serverTokenResponse.scope,
-            this.clientId,
-            true
-        );
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
         return {
             ...authenticationResult,
@@ -185,7 +178,6 @@ export class ResponseHandler {
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
-            refreshToken: serverTokenResponse.refresh_token,
             expiresOn: new Date(expiresInSeconds),
             extExpiresOn: new Date(extendedExpiresInSeconds),
             scopes: responseScopes.asArray(),
@@ -270,23 +262,25 @@ export class ResponseHandler {
      */
     addCredentialsToCache(
         authenticationResult: AuthenticationResult,
-        authority: string
+        authority: string,
+        refreshToken: string
     ) {
-        const idTokenEntity = TokenCacheGenerator.createIdTokenEntity(
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
             authenticationResult,
             this.clientId,
             authority
         );
-        const accessTokenEntity = TokenCacheGenerator.createAccessTokenEntity(
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
             authenticationResult,
             this.clientId,
             authority
         );
-        const refreshTokenEntity = TokenCacheGenerator.createRefreshTokenEntity(
+        const refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
             this.homeAccountIdentifier,
             authenticationResult,
+            refreshToken,
             this.clientId,
             authority
         );

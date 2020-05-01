@@ -23,12 +23,8 @@ import { Serializer } from "../unifiedCache/serialize/Serializer";
  */
 export class AuthorizationCodeClient extends BaseClient {
 
-    // config
-    private clientConfig: Configuration;
-
     constructor(configuration: Configuration) {
         super(configuration);
-        this.clientConfig = configuration;
     }
 
     /**
@@ -60,13 +56,13 @@ export class AuthorizationCodeClient extends BaseClient {
         const response = await this.executeTokenRequest(authority, request);
 
         const responseHandler = new ResponseHandler(
-            this.clientConfig.authOptions.clientId,
+            this.config.authOptions.clientId,
             this.unifiedCacheManager,
             this.cryptoUtils,
             this.logger
         );
 
-        responseHandler.validateServerAuthorizationTokenResponse(response.body);
+        responseHandler.validateTokenResponse(response.body);
         const tokenResponse = await responseHandler.generateAuthenticationResult(
             response.body,
             authority
@@ -75,15 +71,6 @@ export class AuthorizationCodeClient extends BaseClient {
         // set the final cache and return the auth response
         this.setCache();
         return tokenResponse;
-    }
-
-     /**
-     * Set the cache post acquireToken call
-     */
-    private setCache() {
-        const inMemCache = this.unifiedCacheManager.getCacheInMemory();
-        const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
-        this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));
     }
 
     /**
