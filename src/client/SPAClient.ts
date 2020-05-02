@@ -42,13 +42,8 @@ export class SPAClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
         // Implement base module
         super(configuration);
-        // Implement defaults in config
-        // this.clientConfig = buildClientConfiguration(configuration);
 
         B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
-
-        // Initialize default authority instance
-        // this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.authOptions.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
     }
 
     /**
