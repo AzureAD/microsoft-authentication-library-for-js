@@ -91,7 +91,7 @@ export type LibraryInfo = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: null,
+    authority: "",
     knownAuthorities: [],
     redirectUri: "",
     postLogoutRedirectUri: ""
@@ -183,7 +183,7 @@ const DEFAULT_LIBRARY_INFO: LibraryInfo = {
  */
 export function buildClientConfiguration(
     {
-        authOptions: authOptions,
+        authOptions: userAuthOptions,
         systemOptions: userSystemOptions,
         loggerOptions: userLoggerOption,
         storageInterface: storageImplementation,
@@ -191,14 +191,13 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         libraryInfo: libraryInfo
     } : ClientConfiguration): ClientConfiguration {
-
     return {
-        authOptions: authOptions || DEFAULT_AUTH_OPTIONS,
-        systemOptions: userSystemOptions || DEFAULT_SYSTEM_OPTIONS,
-        loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
+        authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
+        systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
+        loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        libraryInfo: libraryInfo|| DEFAULT_LIBRARY_INFO
+        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
     };
 }

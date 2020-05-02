@@ -17,7 +17,7 @@ export class B2cAuthority extends Authority {
      * Use when Authority is B2C to provide list of trusted/allowed domains.
      */
     static setKnownAuthorities(knownAuthorities: Array<string>): void {
-        if (!B2cAuthority.B2CTrustedHostList.length){
+        if (B2cAuthority.B2CTrustedHostList.length === 0){
             knownAuthorities.forEach(function(authority){
                 B2cAuthority.B2CTrustedHostList.push(authority);
             });
