@@ -195,9 +195,9 @@ export function buildClientConfiguration(
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
-        storageInterface: { ...DEFAULT_STORAGE_IMPLEMENTATION, ...storageImplementation },
-        networkInterface: { ...DEFAULT_NETWORK_IMPLEMENTATION, ...networkImplementation },
-        cryptoInterface: { ...DEFAULT_CRYPTO_IMPLEMENTATION, ...cryptoImplementation },
+        storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
+        networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
+        cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
     };
 }
