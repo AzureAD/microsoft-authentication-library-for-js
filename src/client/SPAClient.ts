@@ -39,25 +39,16 @@ import { B2cAuthority } from "../authority/B2cAuthority";
  */
 export class SPAClient extends BaseClient {
 
-    // Application config
-    private clientConfig: ClientConfiguration;
-
     constructor(configuration: ClientConfiguration) {
         // Implement base module
-        super({
-            systemOptions: configuration.systemOptions,
-            loggerOptions: configuration.loggerOptions,
-            storageInterface: configuration.storageInterface,
-            networkInterface: configuration.networkInterface,
-            cryptoInterface: configuration.cryptoInterface
-        });
+        super(configuration);
         // Implement defaults in config
-        this.clientConfig = buildClientConfiguration(configuration);
+        // this.clientConfig = buildClientConfiguration(configuration);
 
-        B2cAuthority.setKnownAuthorities(this.clientConfig.authOptions.knownAuthorities);
+        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
         // Initialize default authority instance
-        this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.authOptions.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
+        // this.defaultAuthorityInstance = AuthorityFactory.createInstance(this.clientConfig.authOptions.authority || Constants.DEFAULT_AUTHORITY, this.networkClient);
     }
 
     /**
@@ -98,7 +89,7 @@ export class SPAClient extends BaseClient {
         try {
             requestParameters = new ServerCodeRequestParameters(
                 acquireTokenAuthority,
-                this.clientConfig.authOptions.clientId,
+                this.config.authOptions.clientId,
                 request,
                 this.getAccount(),
                 this.getRedirectUri(),
@@ -175,7 +166,7 @@ export class SPAClient extends BaseClient {
             const { tokenEndpoint } = acquireTokenAuthority;
             // Initialize request parameters.
             const tokenReqParams = new ServerTokenRequestParameters(
-                this.clientConfig.authOptions.clientId,
+                this.config.authOptions.clientId,
                 tokenRequest,
                 codeResponse,
                 this.getRedirectUri(),
@@ -209,7 +200,7 @@ export class SPAClient extends BaseClient {
 
             // Get account object for this request.
             const account = request.account || this.getAccount();
-            const requestScopes = new ScopeSet(request.scopes || [], this.clientConfig.authOptions.clientId, true);
+            const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
             // If this is an id token renewal, and no account is present, throw an error.
             if (requestScopes.isLoginScopeSet()) {
                 if (!account) {
@@ -230,10 +221,10 @@ export class SPAClient extends BaseClient {
             // Get current cached tokens
             const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
             const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
-            const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.clientConfig.systemOptions.tokenRenewalOffsetSeconds;
+            const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
             // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
             if (!request.forceRefresh && expirationSec && expirationSec > offsetCurrentTimeSec) {
-                const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.clientConfig.authOptions.clientId, true);
+                const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.config.authOptions.clientId, true);
                 const defaultTokenResponse: TokenResponse = {
                     uniqueId: "",
                     tenantId: "",
@@ -278,7 +269,7 @@ export class SPAClient extends BaseClient {
         // Check for homeAccountIdentifier. Do not send anything if it doesn't exist.
         const homeAccountIdentifier = currentAccount ? currentAccount.homeAccountIdentifier : "";
         // Remove all pertinent access tokens.
-        this.cacheManager.removeAllAccessTokens(this.clientConfig.authOptions.clientId, authorityUri, "", homeAccountIdentifier);
+        this.cacheManager.removeAllAccessTokens(this.config.authOptions.clientId, authorityUri, "", homeAccountIdentifier);
         // Clear remaining cache items.
         this.cacheStorage.clear();
         // Clear current account.
@@ -315,7 +306,7 @@ export class SPAClient extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string): CodeResponse {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.clientConfig.authOptions.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -365,14 +356,14 @@ export class SPAClient extends BaseClient {
      */
     private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): AccessTokenCacheItem {
         // Get all access tokens with matching authority, resource id and home account ID
-        const tokenCacheItems: Array<AccessTokenCacheItem> = this.cacheManager.getAllAccessTokens(this.clientConfig.authOptions.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
+        const tokenCacheItems: Array<AccessTokenCacheItem> = this.cacheManager.getAllAccessTokens(this.config.authOptions.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
         if (tokenCacheItems.length === 0) {
             throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
         }
 
         // Filter cache items based on available scopes.
         const filteredCacheItems: Array<AccessTokenCacheItem> = tokenCacheItems.filter(cacheItem => {
-            const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.clientConfig.authOptions.clientId, true);
+            const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.config.authOptions.clientId, true);
             return cachedScopes.containsScopeSet(requestScopes);
         });
 
@@ -405,7 +396,7 @@ export class SPAClient extends BaseClient {
         );
 
         // Create response handler
-        const responseHandler = new ResponseHandler(this.clientConfig.authOptions.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cacheManager, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
@@ -424,7 +415,7 @@ export class SPAClient extends BaseClient {
     private async renewToken(refreshTokenRequest: TokenRenewParameters, tokenEndpoint: string, refreshToken: string): Promise<TokenResponse> {
         // Initialize request parameters.
         const tokenReqParams = new ServerTokenRequestParameters(
-            this.clientConfig.authOptions.clientId,
+            this.config.authOptions.clientId,
             refreshTokenRequest,
             null,
             this.getRedirectUri(),
@@ -450,11 +441,11 @@ export class SPAClient extends BaseClient {
      *
      */
     public getRedirectUri(): string {
-        if (this.clientConfig.authOptions.redirectUri) {
-            if (typeof this.clientConfig.authOptions.redirectUri === "function") {
-                return this.clientConfig.authOptions.redirectUri();
-            } else if (!StringUtils.isEmpty(this.clientConfig.authOptions.redirectUri)) {
-                return this.clientConfig.authOptions.redirectUri;
+        if (this.config.authOptions.redirectUri) {
+            if (typeof this.config.authOptions.redirectUri === "function") {
+                return this.config.authOptions.redirectUri();
+            } else if (!StringUtils.isEmpty(this.config.authOptions.redirectUri)) {
+                return this.config.authOptions.redirectUri;
             }
         }
         // This should never throw unless window.location.href is returning empty.
@@ -468,11 +459,11 @@ export class SPAClient extends BaseClient {
      * @returns {string} post logout redirect URL
      */
     public getPostLogoutRedirectUri(): string {
-        if (this.clientConfig.authOptions.postLogoutRedirectUri) {
-            if (typeof this.clientConfig.authOptions.postLogoutRedirectUri === "function") {
-                return this.clientConfig.authOptions.postLogoutRedirectUri();
-            } else if (!StringUtils.isEmpty(this.clientConfig.authOptions.postLogoutRedirectUri)) {
-                return this.clientConfig.authOptions.postLogoutRedirectUri;
+        if (this.config.authOptions.postLogoutRedirectUri) {
+            if (typeof this.config.authOptions.postLogoutRedirectUri === "function") {
+                return this.config.authOptions.postLogoutRedirectUri();
+            } else if (!StringUtils.isEmpty(this.config.authOptions.postLogoutRedirectUri)) {
+                return this.config.authOptions.postLogoutRedirectUri;
             }
         }
         // This should never throw unless window.location.href is returning empty.
