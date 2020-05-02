@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 import { BaseClient } from "./BaseClient";
-import {
-    ClientConfiguration,
-    buildClientConfiguration
-} from "../config/ClientConfiguration";
+import { ClientConfiguration } from "../config/ClientConfiguration";
 import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { TokenRenewParameters } from "../request/TokenRenewParameters";
@@ -23,7 +20,7 @@ import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
-import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../utils/Constants";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
