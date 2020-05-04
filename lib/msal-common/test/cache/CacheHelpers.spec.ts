@@ -5,11 +5,11 @@ import sinon from "sinon";
 import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { TemporaryCacheKeys, Constants } from "../../src/utils/Constants";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { AadAuthority } from "../../src/auth/authority/AadAuthority";
-import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
-import { IdToken } from "../../src/auth/IdToken";
-import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
-import { Account } from "../../src/auth/Account";
+import { AadAuthority } from "../../src/authority/AadAuthority";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
+import { IdToken } from "../../src/account/IdToken";
+import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
+import { Account } from "../../src/account/Account";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
@@ -54,7 +54,7 @@ describe("CacheHelpers.ts Tests", () => {
     });
 
     describe("Generator functions", () => {
-        
+
         let cacheHelpers: CacheHelpers;
         beforeEach(() => {
             const cacheStorage: ICacheStorage = {
@@ -82,9 +82,9 @@ describe("CacheHelpers.ts Tests", () => {
         });
 
         afterEach(() => {
-            store = {}; 
+            store = {};
         });
-        
+
         it("generateAcquireTokenAccountKey() creates a valid cache key for account object", () => {
             const accountKey = cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
             expect(accountKey).to.be.eq(`${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`);
@@ -364,7 +364,7 @@ describe("CacheHelpers.ts Tests", () => {
             cacheHelpers.updateCacheEntries(serverAuthParams, testAccount);
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
             cacheStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
-            
+
             cacheHelpers.resetTempCacheItems(RANDOM_TEST_GUID);
             const accountKey = cacheHelpers.generateAcquireTokenAccountKey(testAccount.homeAccountIdentifier);
             const nonceKey = cacheHelpers.generateNonceKey(RANDOM_TEST_GUID);
@@ -444,17 +444,17 @@ describe("CacheHelpers.ts Tests", () => {
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 expiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP}`,
-                extExpiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}` 
+                extExpiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
             };
             cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue1));
 
             const atKey2 = new AccessTokenKey(
-                Constants.DEFAULT_AUTHORITY, 
-                TEST_CONFIG.MSAL_CLIENT_ID, 
-                scopeString, 
-                testResource2, 
-                TEST_DATA_CLIENT_INFO.TEST_UID, 
-                TEST_DATA_CLIENT_INFO.TEST_UTID, 
+                Constants.DEFAULT_AUTHORITY,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                scopeString,
+                testResource2,
+                TEST_DATA_CLIENT_INFO.TEST_UID,
+                TEST_DATA_CLIENT_INFO.TEST_UTID,
                 cryptoInterface
             );
             const atValue2: AccessTokenValue = {
