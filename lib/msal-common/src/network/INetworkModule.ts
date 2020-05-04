@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import {NetworkResponse} from "./NetworkManager";
+
 /**
  * Options allowed by network request APIs.
  */
@@ -19,17 +21,17 @@ export interface INetworkModule {
 
     /**
      * Interface function for async network "GET" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
-     * @param url 
-     * @param requestParams 
-     * @param enableCaching 
+     * @param url
+     * @param requestParams
+     * @param enableCaching
      */
-    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T>;
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
 
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
-     * @param url 
-     * @param requestParams 
-     * @param enableCaching 
+     * @param url
+     * @param requestParams
+     * @param enableCaching
      */
-    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T>;
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
 }

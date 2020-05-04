@@ -41,15 +41,15 @@ export class MsalService extends UserAgentApplication {
             this.getLogger().verbose("popUpHashChanged ");
         });
 
-        window.addEventListener('msal:popUpClosed', (e: CustomEvent) => {
-            var errorParts = e.detail.split('|');
+        window.addEventListener("msal:popUpClosed", (e: CustomEvent) => {
+            var errorParts = e.detail.split("|");
             var msalError = new MSALError(errorParts[0], errorParts[1]);
             if (this.getLoginInProgress()) {
-                broadcastService.broadcast('msal:loginFailure', msalError);
+                broadcastService.broadcast("msal:loginFailure", msalError);
                 this.setloginInProgress(false);
             }
             else if (this.getAcquireTokenInProgress()) {
-                broadcastService.broadcast('msal:acquireTokenFailure', msalError);
+                broadcastService.broadcast("msal:acquireTokenFailure", msalError);
                 this.setAcquireTokenInProgress(false);
             }
         });
@@ -93,15 +93,28 @@ export class MsalService extends UserAgentApplication {
             });
     }
 
-    public acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
-        return super.acquireTokenSilent(request)
+    public ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        return super.ssoSilent(request)
             .then((authResponse: AuthResponse) => {
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', authResponse);
+                this.broadcastService.broadcast("msal:ssoSuccess", authResponse);
                 return authResponse;
             })
             .catch((error: AuthError) => {
-                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
-                this.getLogger().error('Error when acquiring token for scopes: ' + request.scopes + " " + error);
+                this.broadcastService.broadcast("msal:ssoFailure", error);
+                this.getLogger().error("Error during login:\n" + error.errorMessage);
+                throw error;
+            });
+    }
+
+    public acquireTokenSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        return super.acquireTokenSilent(request)
+            .then((authResponse: AuthResponse) => {
+                this.broadcastService.broadcast("msal:acquireTokenSuccess", authResponse);
+                return authResponse;
+            })
+            .catch((error: AuthError) => {
+                this.broadcastService.broadcast("msal:acquireTokenFailure", error);
+                this.getLogger().error("Error when acquiring token for scopes: " + request.scopes + " " + error);
                 throw error;
             });
 
@@ -110,12 +123,12 @@ export class MsalService extends UserAgentApplication {
     public acquireTokenPopup(request: AuthenticationParameters): Promise<AuthResponse> {
         return super.acquireTokenPopup(request)
             .then((authResponse: AuthResponse) => {
-                this.broadcastService.broadcast('msal:acquireTokenSuccess', authResponse);
+                this.broadcastService.broadcast("msal:acquireTokenSuccess", authResponse);
                 return authResponse;
             })
             .catch((error: AuthError) => {
-                this.broadcastService.broadcast('msal:acquireTokenFailure', error);
-                this.getLogger().error('Error when acquiring token for scopes : ' + request.scopes +" "+  error);
+                this.broadcastService.broadcast("msal:acquireTokenFailure", error);
+                this.getLogger().error("Error when acquiring token for scopes : " + request.scopes + " " +  error);
                 throw error;
             });
     }
@@ -124,7 +137,21 @@ export class MsalService extends UserAgentApplication {
     handleRedirectCallback(authCallback: authResponseCallback): void;
     handleRedirectCallback(authOrTokenCallback: authResponseCallback | tokenReceivedCallback, errorReceivedCallback?: errorReceivedCallback): void {
         super.handleRedirectCallback((authError: AuthError, authResponse: AuthResponse) => {
-            if (authResponse) {
+            if (authError) {
+                if (!this.getAccount()) {
+                    this.broadcastService.broadcast("msal:loginFailure", authError);
+
+                } else {
+                    this.broadcastService.broadcast("msal:acquireTokenFailure", authError);
+                }
+
+                if (errorReceivedCallback) {
+                    errorReceivedCallback(authError, authResponse.accountState);
+                } else {
+                    (authOrTokenCallback as authResponseCallback)(authError, authResponse);
+                }
+
+            } else if (authResponse) {
                 if (authResponse.tokenType === "id_token") {
                     this.broadcastService.broadcast("msal:loginSuccess", authResponse);
                 } else {
@@ -135,20 +162,6 @@ export class MsalService extends UserAgentApplication {
                     (authOrTokenCallback as tokenReceivedCallback)(authResponse);
                 } else {
                     (authOrTokenCallback as authResponseCallback)(null, authResponse);
-                }
-
-            } else if (authError) {
-                if (authResponse.tokenType === "id_token") {
-                    this.broadcastService.broadcast("msal:loginFailure", authError);
-
-                } else {
-                    this.broadcastService.broadcast("msal:acquireTokenFailure", authError);
-                }
-
-                if (errorReceivedCallback) {
-                    errorReceivedCallback(authError, authResponse.accountState);
-                } else {
-                    (authOrTokenCallback as authResponseCallback)(authError);
                 }
 
             }

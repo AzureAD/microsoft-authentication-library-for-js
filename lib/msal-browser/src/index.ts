@@ -1,6 +1,6 @@
 // App and config
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration } from "./app/Configuration";
+export { Configuration } from "./config/Configuration";
 
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
@@ -20,5 +20,8 @@ export {
     InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
-    INetworkModule
+    INetworkModule,
+    // Logger Object
+    Logger,
+    LogLevel
 } from "@azure/msal-common";
