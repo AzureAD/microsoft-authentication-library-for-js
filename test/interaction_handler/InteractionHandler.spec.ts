@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { AuthorizationCodeModule, PkceCodes, NetworkRequestOptions, LogLevel, CodeResponse, Account, TokenResponse } from "@azure/msal-common";
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, CodeResponse, Account, TokenResponse } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, RANDOM_TEST_GUID, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -9,7 +9,7 @@ import sinon from "sinon";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
     }
 
@@ -47,7 +47,7 @@ const testKeySet = ["testKey1", "testKey2"];
 
 describe("InteractionHandler.ts Unit Tests", () => {
 
-    let authCodeModule: AuthorizationCodeModule;
+    let authCodeModule: SPAClient;
     let browserStorage: BrowserStorage;
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -56,7 +56,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        authCodeModule = new AuthorizationCodeModule({
+        authCodeModule = new SPAClient({
             auth: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
@@ -163,8 +163,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 uniqueId: idTokenClaims.oid,
                 userRequestState: "testState"
             };
-            sinon.stub(AuthorizationCodeModule.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(AuthorizationCodeModule.prototype, "acquireToken").resolves(testTokenResponse);
+            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
