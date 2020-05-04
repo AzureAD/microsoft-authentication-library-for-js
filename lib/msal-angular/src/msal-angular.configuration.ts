@@ -1,15 +1,17 @@
 export type MsalAngularConfiguration = {
     consentScopes?: Array<string>;
     popUp?: boolean;
-    extraQueryParameters?: {[key: string]: string};
+    extraQueryParameters?: { [key: string]: string };
     unprotectedResources?: string[];
-    protectedResourceMap?: [string, string[]][] | Map<string, Array<string>>
+    protectedResourceMap?: [string, string[]][] | Map<string, Array<string>>;
+    loginDeniedRoute?: string;
+    loginFailedRoute?: string;
 };
 
-export const defaultMsalAngularConfiguration : MsalAngularConfiguration = {
+export const defaultMsalAngularConfiguration: MsalAngularConfiguration = {
     consentScopes: [],
     popUp: false,
     extraQueryParameters: {},
     unprotectedResources: [],
-    protectedResourceMap: []
+    protectedResourceMap: [],
 };
