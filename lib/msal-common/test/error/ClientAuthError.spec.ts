@@ -8,7 +8,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         const TEST_ERROR_CODE: string = "test";
         const TEST_ERROR_MSG: string = "This is a test error";
         const err: ClientAuthError = new ClientAuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
-        
+
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
@@ -288,6 +288,32 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.errorCode).to.equal(ClientAuthErrorMessage.emptyInputScopeSetError.code);
         expect(err.errorMessage).to.include(ClientAuthErrorMessage.emptyInputScopeSetError.desc);
         expect(err.message).to.include(ClientAuthErrorMessage.emptyInputScopeSetError.desc);
+        expect(err.name).to.equal("ClientAuthError");
+        expect(err.stack).to.include("ClientAuthError.spec.ts");
+    });
+
+    it("createDeviceCodeCancelledError creates a ClientAuthError object", () => {
+        const err: ClientAuthError = ClientAuthError.createDeviceCodeCancelledError();
+
+        expect(err instanceof ClientAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.DeviceCodePollingCancelled.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.DeviceCodePollingCancelled.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.DeviceCodePollingCancelled.desc);
+        expect(err.name).to.equal("ClientAuthError");
+        expect(err.stack).to.include("ClientAuthError.spec.ts");
+    });
+
+    it("createDeviceCodeExpiredError creates a ClientAuthError object", () => {
+        const err: ClientAuthError = ClientAuthError.createDeviceCodeExpiredError();
+
+        expect(err instanceof ClientAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.DeviceCodeExpired.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.DeviceCodeExpired.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.DeviceCodeExpired.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
