@@ -251,6 +251,10 @@ paket-files/
 .idea/
 *.sln.iml
 
+# .DS_Store
+.DS_Store
+.DS_Store?
+
 # MSAL specific ignore files
 node_modules/
 .nyc_output/
