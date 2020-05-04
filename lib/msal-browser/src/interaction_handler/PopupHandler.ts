@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, AuthorizationCodeModule } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, SPAClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -16,7 +16,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.
@@ -25,7 +25,7 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Opens a popup window with given request Url.
-     * @param requestUrl 
+     * @param requestUrl
      */
     initiateAuthRequest(requestUrl: string): Window {
         // Check that request url is not empty.
@@ -159,7 +159,7 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Closes popup, removes any state vars created during popup calls.
-     * @param popupWindow 
+     * @param popupWindow
      */
     private cleanPopup(popupWindow?: Window): void {
         if (popupWindow) {

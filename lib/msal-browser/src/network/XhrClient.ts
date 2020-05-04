@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule, NetworkRequestOptions } from "@azure/msal-common";
+import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
@@ -17,7 +17,7 @@ export class XhrClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
     }
 
@@ -27,7 +27,7 @@ export class XhrClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.POST, options);
     }
 
@@ -37,8 +37,8 @@ export class XhrClient implements INetworkModule {
      * @param method 
      * @param options 
      */
-    private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
+    private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+        return new Promise<NetworkResponse<T>>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             this.setXhrHeaders(xhr, options);
@@ -48,7 +48,12 @@ export class XhrClient implements INetworkModule {
                 }
                 try {
                     const jsonResponse = JSON.parse(xhr.responseText) as T;
-                    resolve(jsonResponse);
+                    const networkResponse: NetworkResponse<T> = {
+                        headers: this.getHeaderMap(xhr),
+                        body: jsonResponse,
+                        status: xhr.status
+                    };
+                    resolve(networkResponse);
                 } catch (e) {
                     reject(xhr.responseText);
                 }
@@ -79,5 +84,25 @@ export class XhrClient implements INetworkModule {
                 xhr.setRequestHeader(key, value);
             });
         }
+    }
+
+    /**
+     * Gets a string map of the headers received in the response.
+     * 
+     * Algorithm comes from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
+     * @param xhr 
+     */
+    private getHeaderMap(xhr: XMLHttpRequest): Map<string, string> {
+        const headerString = xhr.getAllResponseHeaders();
+        const headerArr = headerString.trim().split(/[\r\n]+/);
+        const headerMap = new Map<string, string>();
+        headerArr.forEach((value: string) => {
+            const parts = value.split(": ");
+            const headerName = parts.shift();
+            const headerVal = parts.join(": ");
+            headerMap.set(headerName, headerVal);
+        });
+
+        return headerMap;
     }
 }
