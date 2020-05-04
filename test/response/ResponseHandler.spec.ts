@@ -6,10 +6,10 @@ import { CacheHelpers } from "../../src/cache/CacheHelpers";
 import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Logger, LogLevel } from "../../src/logger/Logger";
-import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
-import { IdToken } from "../../src/auth/IdToken";
-import { LoggerOptions } from "../../src/app/config/ModuleConfiguration";
-import { Account } from "../../src/auth/Account";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
+import { IdToken } from "../../src/account/IdToken";
+import { LoggerOptions } from "../../src/config/Configuration";
+import { Account } from "../../src/account/Account";
 import { TokenResponse } from "../../src/response/TokenResponse";
 import { ServerAuthorizationCodeResponse } from "../../src/server/ServerAuthorizationCodeResponse";
 import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
@@ -120,7 +120,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             const tokenResponse: TokenResponse = {
                 uniqueId: "",
                 tenantId: "",
-                scopes: ["openid", "profile"], 
+                scopes: ["openid", "profile"],
                 tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 idToken: "",
                 idTokenClaims: null,
@@ -150,7 +150,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             const tokenResponse: TokenResponse = {
                 uniqueId: "",
                 tenantId: "",
-                scopes: ["openid", "profile"], 
+                scopes: ["openid", "profile"],
                 tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 idToken: "",
                 idTokenClaims: null,
@@ -411,7 +411,7 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             const expectedTokenResponse: TokenResponse = {
                 uniqueId: idToken.claims.oid,
                 tenantId: idToken.claims.tid,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES, 
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 idToken: idToken.rawIdToken,
                 idTokenClaims: idToken.claims,
