@@ -1343,6 +1343,7 @@ export class UserAgentApplication {
         this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
+        WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
@@ -1366,6 +1367,7 @@ export class UserAgentApplication {
         this.logger.info("renewidToken is called");
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
+        WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
 
