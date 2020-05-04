@@ -1,7 +1,4 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
+import { expect } from "chai";
 import { BaseClient } from "../../src/client/BaseClient";
 import { Configuration } from "../../src/config/Configuration";
 import { Authority, Constants } from "../../src";

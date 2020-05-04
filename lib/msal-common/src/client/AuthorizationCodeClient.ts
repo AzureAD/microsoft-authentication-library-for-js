@@ -11,9 +11,9 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {NetworkResponse} from "../network/NetworkManager";
-import {ScopeSet} from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -70,7 +70,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: AuthorizationCodeRequest) : string {
+    private createTokenRequestBody(request: AuthorizationCodeRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -152,7 +152,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addNonce(request.nonce);
         }
 
-        if(request.claims) {
+        if (request.claims) {
             parameterBuilder.addClaims(request.claims);
         }
 

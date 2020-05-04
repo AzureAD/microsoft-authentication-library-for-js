@@ -17,15 +17,12 @@ export const TEST_CONSTANTS = {
 export const AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "Bearer",
-        "scope": "openid profile User.Read email",
-        "expires_in": 3599,
-        "ext_expires_in": 3599,
-        "access_token": "thisIs.an.accessT0ken",
-        "refresh_token": "thisIsARefreshT0ken",
-        "id_token": "thisIsAIdT0ken"
-    }
+        token_type: 'Bearer',
+        scope: 'openid profile User.Read email',
+        expires_in: 3599,
+        ext_expires_in: 3599,
+        access_token: 'thisIs.an.accessT0ken',
+        refresh_token: 'thisIsARefreshT0ken',
+        id_token: 'thisIsAIdT0ken',
+    },
 };
-
-
-

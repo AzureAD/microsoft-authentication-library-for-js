@@ -99,8 +99,7 @@ const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
 
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     loggerCallback: () => {
-        const notImplErr = "Logger - loggerCallbackInterface() has not been implemented.";
-        throw AuthError.createUnexpectedError(notImplErr);
+        // allow users to not set loggerCallback
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info
@@ -166,8 +165,8 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: Constants.SKU,
     version: version,
-    cpu: process.platform || "",
-    os: process.arch || "",
+    cpu: "",
+    os: ""
 };
 
 /**

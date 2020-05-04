@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeResponse } from "../response/DeviceCodeResponse";
+import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/DeviceCodeResponse";
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -11,9 +11,8 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
 import { Configuration } from "../config/Configuration";
 import { TimeUtils } from "../utils/TimeUtils";
-import {NetworkResponse} from "..";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {ScopeSet} from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * OAuth2.0 Device code client
@@ -30,11 +29,12 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<string> {
-        const deviceCodeResponse: NetworkResponse<DeviceCodeResponse> = await this.getDeviceCode(request);
-        request.deviceCodeCallback(deviceCodeResponse.body);
+
+        const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
+        request.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
             request,
-            deviceCodeResponse.body);
+            deviceCodeResponse);
 
         // TODO handle response
         return JSON.stringify(response);
@@ -44,7 +44,7 @@ export class DeviceCodeClient extends BaseClient {
      * Creates device code request and executes http GET
      * @param request
      */
-    private async getDeviceCode(request: DeviceCodeRequest): Promise<NetworkResponse<DeviceCodeResponse>> {
+    private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
 
         const deviceCodeUrl = this.createDeviceCodeUrl(request);
         const headers = this.createDefaultLibraryHeaders();
@@ -57,20 +57,34 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeUrl
      * @param headers
      */
-    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<NetworkResponse<DeviceCodeResponse>>{
+    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<DeviceCodeResponse> {
 
-        return this.networkClient.sendGetRequestAsync<DeviceCodeResponse>(
-            deviceCodeUrl,
-            {
-                headers: headers
-            });
+        const {
+            body: {
+                user_code: userCode,
+                device_code: deviceCode,
+                verification_uri: verificationUri,
+                expires_in: expiresIn,
+                interval,
+                message
+            }
+        } = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(deviceCodeUrl, {headers});
+
+        return {
+            userCode,
+            deviceCode,
+            verificationUri,
+            expiresIn,
+            interval,
+            message
+        };
     }
 
     /**
      * Create device code endpoint url
      * @param request
      */
-    private createDeviceCodeUrl(request: DeviceCodeRequest) : string {
+    private createDeviceCodeUrl(request: DeviceCodeRequest): string {
         const queryString: string = this.createQueryString(request);
 
         // TODO add device code endpoint to authority class
@@ -83,12 +97,12 @@ export class DeviceCodeClient extends BaseClient {
     private createQueryString(request: DeviceCodeRequest): string {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
             false);
         parameterBuilder.addScopes(scopeSet);
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         return parameterBuilder.createQueryString();
     }
@@ -106,7 +120,7 @@ export class DeviceCodeClient extends BaseClient {
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
-        const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expires_in;
+        const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
         // Poll token endpoint while (device code is not expired AND operation has not been cancelled by
@@ -115,35 +129,32 @@ export class DeviceCodeClient extends BaseClient {
 
             const intervalId: ReturnType<typeof setTimeout> = setInterval(async () => {
                 try {
-                    if(request.cancel){
+                    if (request.cancel) {
 
-                        // TODO use logger here
+                        this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeCancelledError());
 
-                    } else if(TimeUtils.nowSeconds() > deviceCodeExpirationTime){
-
-                        // TODO use logger here
+                    } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
+                        this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeExpiredError());
 
                     } else {
-
                         const response = await this.executePostToTokenEndpoint(
                             this.authority.tokenEndpoint,
                             requestBody,
                             headers);
 
-                        if(response.body && response.body.error == Constants.AUTHORIZATION_PENDING){
-                            // user authorization is pending. Will sleep for polling interval and try again
-                            // TODO use logger here
-                            console.log(JSON.stringify(response.body));
+                        if (response.body && response.body.error == Constants.AUTHORIZATION_PENDING) {
+                            // user authorization is pending. Sleep for polling interval and try again
+                            this.logger.info(response.body.error_description);
                         } else {
                             clearInterval(intervalId);
                             resolve(response.body);
                         }
                     }
-                } catch(error){
+                } catch (error) {
                     clearInterval(intervalId);
                     reject(error);
                 }
@@ -164,13 +175,9 @@ export class DeviceCodeClient extends BaseClient {
             this.config.authOptions.clientId,
             true);
         requestParameters.addScopes(scopeSet);
-
         requestParameters.addClientId(this.config.authOptions.clientId);
-
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
-
-        requestParameters.addDeviceCode(deviceCodeResponse.device_code);
-
+        requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
         return requestParameters.createQueryString();
     }
 }

@@ -19,7 +19,7 @@ import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConf
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { ClientInfo } from "./../utils/Constants";
+import { Constants as NodeConstants } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
@@ -114,7 +114,7 @@ export abstract class ClientApplication {
             networkInterface: this.appConfig.system!.networkClient,
             storageInterface: new Storage(this.appConfig.auth!.clientId, this.appConfig.cache!),
             libraryInfo: {
-                sku: ClientInfo.MSAL_SKU_VALUE,
+                sku: NodeConstants.MSAL_SKU,
                 version: version,
                 cpu: process.arch || "",
                 os: process.platform || ""

@@ -42,10 +42,6 @@ export const CACHE = {
 /**
  * Constants for headers
  */
-export const ClientInfo = {
-    MSAL_SKU_KEY: "x-client-SKU",
-    MSAL_SKU_VALUE: "msal.node",
-    MSAL_VERSION: "x-client-VER",
-    CPU: "x-client-CPU",
-    OS: "x-client-OS"
+export const Constants = {
+    MSAL_SKU: "msal.js.node",
 };

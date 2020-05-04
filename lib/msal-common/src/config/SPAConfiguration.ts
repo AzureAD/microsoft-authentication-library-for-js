@@ -15,6 +15,7 @@ import { Configuration, buildConfiguration } from "./Configuration";
 export type SPAAuthOptions = {
     clientId: string;
     authority?: string;
+    knownAuthorities?: Array<string>,
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
 };
@@ -32,6 +33,7 @@ export type SPAConfiguration = Configuration & {
 const DEFAULT_AUTH_OPTIONS: SPAAuthOptions = {
     clientId: "",
     authority: null,
+    knownAuthorities: [],
     redirectUri: "",
     postLogoutRedirectUri: ""
 };
