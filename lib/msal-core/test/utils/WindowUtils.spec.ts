@@ -103,7 +103,23 @@ describe("WindowUtils", () => {
         });
     });
 
-    describe.only("addHiddenIFrame", () => {
+    describe("loadFrameSync", () => {
+        it("loads iframe using addHiddenIFrame", () => {
+            const logger = new Logger(() => {});
+            const iframe = WindowUtils.loadFrameSync("https://test1.com/", "testFrame", logger);
+
+            expect(iframe.getAttribute("id")).to.equal("testFrame");
+        });
+
+        it("sets src for iframe", () => {
+            const logger = new Logger(() => {});
+            const iframe = WindowUtils.loadFrameSync("https://test2.com/", "testFrame2", logger);
+
+            expect(iframe.src).to.equal("https://test2.com/");
+        });
+    });
+
+    describe("addHiddenIFrame", () => {
         it("returns null if iframeId is undefined", () => {
             const iframe = WindowUtils.addHiddenIFrame(undefined, null);
             expect(iframe).to.equals(null);
