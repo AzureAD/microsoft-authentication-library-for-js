@@ -15,7 +15,7 @@ let signInType;
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
 // Register Callbacks for Redirect flow
-myMSALObj.onRedirectAppLoad().then((tokenResponse) => {
+myMSALObj.handleRedirectPromise().then((tokenResponse) => {
     const accountObj = tokenResponse ? tokenResponse.account : myMSALObj.getAccount();
     if (accountObj) {
         // Account object was retrieved, continue with app progress

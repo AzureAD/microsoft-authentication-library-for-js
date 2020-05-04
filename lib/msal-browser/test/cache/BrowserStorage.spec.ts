@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID } from "../utils/StringConstants";
-import { CacheOptions } from "../../src/app/Configuration";
+import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "@azure/msal-common";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
@@ -11,7 +11,7 @@ import { BrowserConstants } from "../../src/utils/BrowserConstants";
 class TestCacheStorage implements ICacheStorage {
     setItem(key: string, value: string): void {
         throw new Error("Method not implemented.");
-    }    
+    }
     getItem(key: string): string {
         throw new Error("Method not implemented.");
     }
@@ -26,7 +26,7 @@ class TestCacheStorage implements ICacheStorage {
     }
     clear(): void {
         throw new Error("Method not implemented.");
-    }    
+    }
 }
 
 describe("BrowserStorage() tests", () => {
@@ -279,7 +279,7 @@ describe("BrowserStorage() tests", () => {
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
             browserSessionStorage.clearItemCookie(msalCacheKey);
             expect(document.cookie).to.be.empty;
-            
+
             browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
             browserSessionStorage.clearItemCookie(msalCacheKey);
             expect(document.cookie).to.be.empty;
