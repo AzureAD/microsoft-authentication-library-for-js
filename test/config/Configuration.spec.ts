@@ -1,6 +1,4 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-import sinon from "sinon";
+import { expect } from "chai";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
@@ -10,13 +8,11 @@ import { Constants } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG} from "../utils/StringConstants";
 
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 
 describe("Configuration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        let emptyConfig: Configuration = buildConfiguration({});
+        const emptyConfig: Configuration = buildConfiguration({});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -58,14 +54,12 @@ describe("Configuration.ts Class Unit Tests", () => {
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
         // Logger options checks
         expect(emptyConfig.loggerOptions).to.be.not.null;
-        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw("Unexpected error in authentication.: Logger - loggerCallbackInterface() has not been implemented.");
-        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw(AuthError);
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
         // Client info checks
         expect(emptyConfig.libraryInfo.sku).to.be.eq(Constants.SKU);
         expect(emptyConfig.libraryInfo.version).to.be.eq(version);
-        expect(emptyConfig.libraryInfo.os).to.be.eq((process.arch || ""));
-        expect(emptyConfig.libraryInfo.cpu).to.be.eq((process.platform || ""));
+        expect(emptyConfig.libraryInfo.os).to.be.empty;
+        expect(emptyConfig.libraryInfo.cpu).to.be.empty;
     });
 
     const clearFunc = (): void => {
@@ -92,7 +86,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testKeySet = ["testKey1", "testKey2"];
 
     it("buildConfiguration correctly assigns new values", () => {
-        let newConfig: Configuration = buildConfiguration({
+        const newConfig: Configuration = buildConfiguration({
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";

@@ -1,7 +1,4 @@
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
+import { expect } from "chai";
 import { SPAConfiguration, buildPublicClientSPAConfiguration } from "../../src/config/SPAConfiguration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
@@ -57,9 +54,8 @@ describe("SPAConfiguration.ts Class Unit Tests", () => {
         await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
         // Logger options checks
         expect(emptyConfig.loggerOptions).to.be.not.null;
-        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw("Unexpected error in authentication.: Logger - loggerCallbackInterface() has not been implemented.");
-        expect(() => emptyConfig.loggerOptions.loggerCallback(null, "", false)).to.throw(AuthError);
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
+        expect(emptyConfig.loggerOptions.logLevel).to.be.equal(LogLevel.Info);
     });
 
     const clearFunc = (): void => {

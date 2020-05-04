@@ -4,12 +4,14 @@
  */
 
 export const Constants = {
-    LIBRARY_NAME: "MSAL.JS", // TODO JS should be broken up into common, browser, node. What dore core/angular use?
-    SKU: "MSAL.JS.common",
+    LIBRARY_NAME: "MSAL.JS",
+    SKU: "msal.js.common",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    // ADFS String
+    ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
 
