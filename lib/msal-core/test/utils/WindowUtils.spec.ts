@@ -4,6 +4,7 @@ import { WindowUtils } from "../../src/utils/WindowUtils";
 import { FramePrefix } from "../../src/utils/Constants";
 import { TEST_CONFIG } from "../TestConstants";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { Logger } from "../../src";
 
 describe("WindowUtils", () => {
     describe("monitorWindowForHash", () => {
@@ -99,6 +100,33 @@ describe("WindowUtils", () => {
 
             expect(idTokenFrameName).to.equal(`${FramePrefix.ID_TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
             expect(tokenFrameName).to.equal(`${FramePrefix.TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
+        });
+    });
+
+    describe.only("addHiddenIFrame", () => {
+        it("returns null if iframeId is undefined", () => {
+            const iframe = WindowUtils.addHiddenIFrame(undefined, null);
+            expect(iframe).to.equals(null);
+        });
+
+        it("creates and returns an iframe with expected attributes", () => {
+            const logger = new Logger(() => {});
+            const iframe = WindowUtils.addHiddenIFrame("testIframe", logger);
+
+            expect(iframe.getAttribute("id")).to.equals("testIframe");
+            expect(iframe.getAttribute("aria-hidden")).to.equals("true");
+            expect(iframe.getAttribute("sandbox")).to.equals("allow-scripts allow-same-origin allow-forms");
+            expect(iframe.style.visibility).to.equals("hidden");
+            expect(iframe.style.position).to.equals("absolute");
+            expect(iframe.style.width).to.equals("0px");
+            expect(iframe.style.border).to.equals("0px");
+        });
+
+        it("sets iframeId if window.frames exists", () => {
+            const logger = new Logger(() => {});
+            const iframe = WindowUtils.addHiddenIFrame("testId", logger);
+
+            expect(iframe).to.equals(window.frames["testId"]);
         });
     });
 });
