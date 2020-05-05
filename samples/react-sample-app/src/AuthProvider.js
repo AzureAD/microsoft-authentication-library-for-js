@@ -8,6 +8,7 @@ import {
     GRAPH_SCOPES,
     GRAPH_REQUESTS
 } from "./auth-utils";
+import { WindowUtils } from "msal";
 
 // If you support IE, our recommendation is that you sign-in using Redirect APIs
 const useRedirectFlow = isIE();
@@ -144,7 +145,7 @@ export default C =>
                 account
             });
 
-            if (account) {
+            if (account && !WindowUtils.isInIframe()) {
                 const tokenResponse = await this.acquireToken(
                     GRAPH_REQUESTS.LOGIN,
                     useRedirectFlow

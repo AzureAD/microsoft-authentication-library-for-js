@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 import pkg from "../../package.json";
-import { ScopeSet } from "../auth/ScopeSet";
+import { ScopeSet } from "../request/ScopeSet";
 import { TokenExchangeParameters } from "../request/TokenExchangeParameters";
 import { CodeResponse } from "../response/CodeResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICrypto } from "../crypto/ICrypto";
 import { StringUtils } from "../utils/StringUtils";
-import { Constants, HEADER_NAMES, AADServerParamKeys } from "../utils/Constants";
+import { Constants, HeaderNames, AADServerParamKeys } from "../utils/Constants";
 
 /**
  * This class extends the ServerRequestParameters class. This class validates token request parameters and generates a form body and headers required for the request.
@@ -47,8 +47,8 @@ export class ServerTokenRequestParameters {
 
         // Set scopes, always required for token request/exchange
         this.scopes = new ScopeSet(
-            (this.tokenRequest && this.tokenRequest.scopes) || [], 
-            this.clientId, 
+            (this.tokenRequest && this.tokenRequest.scopes) || [],
+            this.clientId,
             true
         );
 
@@ -61,7 +61,7 @@ export class ServerTokenRequestParameters {
      */
     createRequestHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
-        headers.set(HEADER_NAMES.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
         return headers;
     }
 

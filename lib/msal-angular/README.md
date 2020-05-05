@@ -128,7 +128,19 @@ this.broadcastService.subscribe("msal:acquireTokenFailure", payload => {
 });
 ```
 
-3. It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
+3. SSO-related events (`ssoSilent()`)
+
+```js
+this.broadcastService.subscribe("msal:ssoSuccess", payload => {
+    // do something here
+});
+
+this.broadcastService.subscribe("msal:ssoFailure", payload => {
+    // do something here
+});
+```
+
+4. It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
 
 ```js
  private subscription: Subscription;
@@ -156,9 +168,7 @@ The wrapper exposes APIs for login, logout, acquiring access token and more.
 5. `acquireTokenPopup()`
 6. `acquireTokenRedirect()`
 7. `getAccount()`
-
-> Note: Since MSAL Angular wrapper is inheriting from UserAgentApplication of msal-core, all the public APIs of msal-core are still accessible from msal-angular. But it is recommended not to use
-> any of the msal-core APIs like acquireTokenSilent(), acquireTokenPopup(), acquireTokenRedirect() etc from Angular application and use only the APIs which are exposed directly from the msal-angular wrapper itself.
+8. `ssoSilent()`
 
 ## Advanced Topics
 

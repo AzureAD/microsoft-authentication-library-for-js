@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { AuthResponse } from "./AuthResponse";
-import { Account } from "../auth/Account";
+import { Account } from "../account/Account";
 import { StringDict } from "../utils/MsalTypes";
 
 /**
