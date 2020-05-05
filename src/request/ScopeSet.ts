@@ -191,6 +191,7 @@ export class ScopeSet {
 
         const unionScopes = this.unionScopeSets(otherScopes);
 
+        // Do not allow offline_access to be the only intersecting scope
         const sizeOtherScopes = otherScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)? otherScopes.getScopeCount() - 1 : otherScopes.getScopeCount();
         const sizeThisScopes = this.containsScope(Constants.OFFLINE_ACCESS_SCOPE)? this.getScopeCount() - 1: this.getScopeCount();
         const sizeUnionScopes = unionScopes.has(Constants.OFFLINE_ACCESS_SCOPE)? unionScopes.size - 1: unionScopes.size;
