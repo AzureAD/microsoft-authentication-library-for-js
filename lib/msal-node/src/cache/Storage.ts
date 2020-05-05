@@ -8,7 +8,7 @@ import {
     PersistentCacheKeys,
     TemporaryCacheKeys,
 } from '@azure/msal-common';
-import { CacheOptions } from '../config/ClientConfiguration';
+import { CacheOptions } from '../config/Configuration';
 import { CACHE } from './../utils/Constants';
 
 const fs = require('fs');
