@@ -8,7 +8,7 @@ import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Logger, LogLevel } from "../../src/logger/Logger";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
-import { LoggerOptions } from "../../src/config/Configuration";
+import { LoggerOptions } from "../../src/config/ClientConfiguration";
 import { Account } from "../../src/account/Account";
 import { TokenResponse } from "../../src/response/TokenResponse";
 import { ServerAuthorizationCodeResponse } from "../../src/server/ServerAuthorizationCodeResponse";
