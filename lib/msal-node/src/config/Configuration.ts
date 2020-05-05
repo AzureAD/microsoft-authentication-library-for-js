@@ -45,7 +45,7 @@ export type NodeSystemOptions = {
  * - cache: this is where you configure cache location and whether to store cache in cookies
  * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
  */
-export type ClientConfiguration = {
+export type Configuration = {
     auth?: NodeAuthOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
@@ -81,13 +81,13 @@ const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
  * @param cache
  * @param system
  *
- * @returns ClientConfiguration
+ * @returns Configuration
  */
 export function buildAppConfiguration({
     auth,
     cache,
     system,
-}: ClientConfiguration): ClientConfiguration {
+}: Configuration): Configuration {
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },

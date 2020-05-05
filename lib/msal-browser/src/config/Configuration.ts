@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SPAAuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
+import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -10,7 +10,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 
-export type BrowserAuthOptions = SPAAuthOptions & {
+export type BrowserAuthOptions = AuthOptions & {
     navigateToLoginRequestUrl?: boolean;
 };
 
