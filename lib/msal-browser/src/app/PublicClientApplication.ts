@@ -76,7 +76,13 @@ export class PublicClientApplication {
 
         // Create auth module.
         this.authModule = new SPAClient({
-            auth: this.config.auth,
+            authOptions: {
+                clientId: this.config.auth.clientId,
+                authority: this.config.auth.authority,
+                knownAuthorities: this.config.auth.,
+                redirectUri: this.config.auth.,
+                postLogoutRedirectUri: this.config.auth.postLogoutRedirectUri
+            },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
                 telemetry: this.config.system.telemetry
@@ -132,8 +138,8 @@ export class PublicClientApplication {
     }
 
     /**
-     * Event handler function which allows users to fire events after the PublicClientApplication object 
-     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect 
+     * Event handler function which allows users to fire events after the PublicClientApplication object
+     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
@@ -168,7 +174,7 @@ export class PublicClientApplication {
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
-            
+
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
@@ -324,20 +330,20 @@ export class PublicClientApplication {
     // #endregion
 
     // #region Silent Flow
-    
+
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
      * - Any browser using a form of Intelligent Tracking Prevention
      * - If there is not an established session with the service
-     * 
-     * In these cases, the request must be done inside a popup or full frame redirect. 
-     * 
+     *
+     * In these cases, the request must be done inside a popup or full frame redirect.
+     *
      * For the cases where interaction is required, you cannot send a request with prompt=none.
-     * 
-     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as 
+     *
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthenticationParameters} 
-     * 
+     * @param {@link AuthenticationParameters}
+     *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
@@ -412,9 +418,9 @@ export class PublicClientApplication {
     }
 
     /**
-     * Helper which acquires an authorization code silently using a hidden iframe from given url 
+     * Helper which acquires an authorization code silently using a hidden iframe from given url
      * using the scopes requested as part of the id, and exchanges the code for a set of OAuth tokens.
-     * @param navigateUrl 
+     * @param navigateUrl
      * @param userRequestScopes
      */
     private async silentTokenHelper(navigateUrl: string, userRequestScopes: string): Promise<TokenResponse> {

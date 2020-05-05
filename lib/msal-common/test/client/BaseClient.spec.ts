@@ -1,15 +1,15 @@
 import { expect } from "chai";
 import { BaseClient } from "../../src/client/BaseClient";
-import { Configuration } from "../../src/config/Configuration";
 import { Authority, Constants } from "../../src";
 import { AADServerParamKeys, HeaderNames } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import sinon from "sinon";
 import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../utils/StringConstants";
 
 class TestClient extends BaseClient {
 
-    constructor(config: Configuration) {
+    constructor(config: ClientConfiguration) {
         super(config);
     }
 

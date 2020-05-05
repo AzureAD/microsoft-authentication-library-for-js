@@ -7,7 +7,7 @@ import {
     AuthorizationCodeClient,
     AuthorizationCodeUrlRequest,
     AuthorizationCodeRequest,
-    Configuration,
+    ClientConfiguration,
     RefreshTokenClient,
     RefreshTokenRequest,
     Authority,
@@ -15,7 +15,7 @@ import {
     ClientAuthError,
     Constants
 } from '@azure/msal-common';
-import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
+import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
@@ -23,8 +23,9 @@ import { Constants as NodeConstants } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
-    protected appConfig: ClientConfiguration;
+    protected config: Configuration;
     protected _authority: Authority;
+
 
     /**
      * @constructor
@@ -46,8 +47,8 @@ export abstract class ClientApplication {
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
-    protected constructor(configuration: ClientConfiguration) {
-        this.appConfig = buildAppConfiguration(configuration);
+    protected constructor(configuration: Configuration) {
+        this.config = buildAppConfiguration(configuration);
     }
 
     /**
@@ -99,20 +100,20 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(request);
     }
 
-    protected async buildOauthClientConfiguration(authority?: string): Promise<Configuration> {
+    protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: {
-                clientId: this.appConfig.auth.clientId,
+                clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority)
             },
             loggerOptions: {
-                loggerCallback: this.appConfig.system!.loggerOptions!.loggerCallback,
-                piiLoggingEnabled: this.appConfig.system!.loggerOptions!.piiLoggingEnabled,
+                loggerCallback: this.config.system!.loggerOptions!.loggerCallback,
+                piiLoggingEnabled: this.config.system!.loggerOptions!.piiLoggingEnabled,
             },
             cryptoInterface: new CryptoProvider(),
-            networkInterface: this.appConfig.system!.networkClient,
-            storageInterface: new Storage(this.appConfig.auth!.clientId, this.appConfig.cache!),
+            networkInterface: this.config.system!.networkClient,
+            storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
@@ -129,7 +130,7 @@ export abstract class ClientApplication {
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
         const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(authorityString, this.appConfig.system!.networkClient!)
+            ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!)
             : this.authority;
 
         try {
@@ -146,8 +147,8 @@ export abstract class ClientApplication {
         }
 
         this._authority = AuthorityFactory.createInstance(
-            this.appConfig.auth.authority || Constants.DEFAULT_AUTHORITY,
-            this.appConfig.system!.networkClient!
+            this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
+            this.config.system!.networkClient!
         );
 
         return this._authority;

@@ -4,7 +4,7 @@
  */
 
 import { DeviceCodeClient, DeviceCodeRequest } from '@azure/msal-common';
-import { ClientConfiguration } from '../config/ClientConfiguration';
+import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
 
 /**
@@ -31,7 +31,7 @@ export class PublicClientApplication extends ClientApplication {
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
-    constructor(configuration: ClientConfiguration) {
+    constructor(configuration: Configuration) {
         super(configuration);
     }
 
