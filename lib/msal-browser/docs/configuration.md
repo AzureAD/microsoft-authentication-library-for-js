@@ -46,7 +46,8 @@ const msalConfig = {
             piiLoggingEnabled: false
         },
         windowHashTimeout: 60000,
-        iframeHashTimeout: 
+        iframeHashTimeout: 6000,
+        loadFrameTimeout: 0
     };
 }
 
