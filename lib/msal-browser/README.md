@@ -5,7 +5,7 @@
 | --- | --- | --- |
 
 1. [About](#about)
-2. [FAQ](./FAQ.md)
+2. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
 3. [Releases](#releases)
 4. [Prerequisites](#prerequisites)
 5. [Installation](#installation)
@@ -28,7 +28,7 @@ Want to join our Private Preview and test out the lastest changes to the Azure P
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](../msal-common/) as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-core` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
+The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-common) as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#oauth-2.0-and-the-implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-core` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
 
 This is an improvement upon the current `msal-core` library which will utilize the authorization code flow in the browser. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `@azure/msal-browser` package does NOT support the implicit flow.
 
@@ -36,7 +36,7 @@ This is an improvement upon the current `msal-core` library which will utilize t
 
 ## FAQ
 
-See [here](./FAQ.md).
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md).
 
 ## Releases
 
@@ -56,7 +56,7 @@ See [here](./FAQ.md).
 - Once you have registered your application, you will need to do two things in order to ensure `@azure/msal-browser` will successfully retrieve tokens:
     1. Change your redirect URI type to enable CORS. You can do this by going to the manifest editor for your app registration in the portal, finding the `replyUrlsWithType` section and changing the type of your redirect URI to `SPA`. This may remove the affected redirect URIs from the Web platform Authentication tab - that's OK! We are working on getting UI set up for this.
 
-    ![Changing Redirect URI type](./docs/images/redirectURIRegistrationUpdate.png)
+    ![Changing Redirect URI type](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/images/redirectURIRegistrationUpdate.png)
 
 ## Installation
 ### Via NPM:
@@ -69,33 +69,35 @@ npm install @azure/msal-browser
 
 ### Migrating from Previous MSAL Versions
 
-If you have MSAL v1.x currently running in your application, you can follow the instructions [here](./docs/v1-migration.md) to migrate your application to using the `@azure/msal-browser` package.
+If you have MSAL v1.x currently running in your application, you can follow the instructions [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v1-migration.md) to migrate your application to using the `@azure/msal-browser` package.
 
 ### MSAL Basics
 
-1. [Initialization](./docs/initialization.md)
-2. [Logging in a User](./docs/login-user.md)
-3. [Acquiring and Using an Access Token](./docs/acquire-token.md)
-4. [Managing Token Lifetimes](./docs/token-lifetimes.md)
-5. [Logging Out a User](./docs/logout.md)
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md)
+2. [Logging in a User](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md)
+3. [Acquiring and Using an Access Token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
+4. [Managing Token Lifetimes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/token-lifetimes.md)
+5. [Logging Out a User](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
 
 ### Advanced Topics
 
-- [Configuration Options](./docs/configuration.md)
-- [Request and Response Details](./docs/request-response-object.md)
-- [Cache Storage](./docs/caching.md)
+- [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
+- [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+- [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
 
 ## Samples
 
-The [`VanillaJSTestApp2.0` folder](../../samples/VanillaJSTestApp2.0) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`. 
+The [`VanillaJSTestApp2.0` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`. 
 
 Here is a complete list of samples for the MSAL.js 2.x library:
 
 | Sample | Description | How to Run |
 | ------ | ----------- | ---------- |
-| [Basic Auth Sample](../../samples/VanillaJSTestApp2.0/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`@azure/msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
+| [Basic Auth Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`@azure/msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
+| [On Page Load Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/onPageLoad) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s onPageLoad` |
+| [ssoSilent() Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/ssoSilent) | A vanilla JS sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server. | `npm start -- -s ssoSilent` |
 
-More instructions to run the sample can be found in the [`README.md` file](../../samples/VanillaJSTestApp2.0/README.md) of the VanillaJSTestApp2.0 folder.
+More instructions to run the samples can be found in the [`README.md` file](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/VanillaJSTestApp2.0/Readme.md) of the VanillaJSTestApp2.0 folder.
 
 ## Build and Test
 
@@ -145,7 +147,7 @@ Our goal is that the library abstracts enough of the protocol away so that you c
 The MSAL library will now support the Authorization Code Flow with PKCE for Browser-Based Applications without a backend web server. 
 We plan to continue support for the implicit flow in the `msal-core` library.
 
-You can learn further details about `@azure/msal-browser` functionality documented in our [docs folder](./docs) and find complete [code samples](#samples).
+You can learn further details about `@azure/msal-browser` functionality documented in our [docs folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs) and find complete [code samples](#samples).
 
 ## Security Reporting
 

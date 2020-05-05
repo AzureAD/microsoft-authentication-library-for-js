@@ -5,7 +5,7 @@
 | --- | --- | --- | --- | --- |
 
 1. [About](#about)
-2. [FAQ](./FAQ.md)
+2. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/FAQ.md)
 3. [Releases](#releases)
 4. [Prerequisites](#prerequisites)
 5. [Installation](#installation)
@@ -22,7 +22,7 @@ The `@azure/msal-common` package described by the code in this folder serves as 
 
 ## FAQ
 
-See [here](./FAQ.md).
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/FAQ.md).
 
 ## Releases
 
@@ -36,7 +36,7 @@ See [here](./FAQ.md).
 ## Prerequisites and Usage
 This library is not meant for production use. Please use one of these packages specific to the platform you are developing for:
 
-- [MSAL for Single Page Applications (SPAs)](../msal-browser/README.md)
+- [MSAL for Single Page Applications (SPAs)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser)
 
 ## Installation
 ### Via NPM:
