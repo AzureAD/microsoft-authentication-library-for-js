@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { LoggerOptions } from "../../src/config/Configuration";
+import { LoggerOptions } from "../../src/config/ClientConfiguration";
 import { LogLevel, Logger } from "../../src/logger/Logger";
 import sinon from "sinon";
 

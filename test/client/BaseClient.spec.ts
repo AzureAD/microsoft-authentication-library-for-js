@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { BaseClient } from "../../src/client/BaseClient";
-import { Configuration } from "../../src/config/Configuration";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import {Constants} from "../../src";
 import {AADServerParamKeys, HeaderNames} from "../../src/utils/Constants";
 import {ClientTestUtils} from "./ClientTestUtils";
@@ -9,7 +9,7 @@ import {TEST_CONFIG} from "../utils/StringConstants";
 
 class TestClient extends BaseClient {
 
-    constructor(config: Configuration) {
+    constructor(config: ClientConfiguration) {
         super(config);
     }
 
@@ -56,7 +56,7 @@ class TestClient extends BaseClient {
 
 describe("BaseClient.ts Class Unit Tests", () => {
 
-    let config: Configuration;
+    let config: ClientConfiguration;
     beforeEach(() => {
         config = ClientTestUtils.createTestClientConfiguration();
     });
