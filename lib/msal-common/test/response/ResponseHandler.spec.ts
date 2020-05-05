@@ -125,7 +125,6 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 idToken: "",
                 idTokenClaims: null,
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 expiresOn: null,
                 account: testAccount,
                 userRequestState: TEST_CONFIG.STATE
@@ -155,7 +154,6 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 idToken: "",
                 idTokenClaims: null,
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 expiresOn: null,
                 account: testAccount,
                 userRequestState: TEST_CONFIG.STATE
@@ -314,7 +312,6 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 idToken: idToken.rawIdToken,
                 idTokenClaims: idToken.claims,
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 expiresOn: null,
                 account: testAccount,
                 userRequestState: ""
@@ -331,7 +328,6 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
                 extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
             };
@@ -410,7 +406,6 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.idToken).to.be.eq(expectedTokenResponse.idToken);
             expect(tokenResponse.idTokenClaims).to.be.deep.eq(expectedTokenResponse.idTokenClaims);
             expect(tokenResponse.accessToken).to.be.eq(expectedTokenResponse.accessToken);
-            expect(tokenResponse.refreshToken).to.be.eq(expectedTokenResponse.refreshToken);
             expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
@@ -445,11 +440,10 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.idToken).to.be.eq(expectedTokenResponse.idToken);
             expect(tokenResponse.idTokenClaims).to.be.deep.eq(expectedTokenResponse.idTokenClaims);
             expect(tokenResponse.accessToken).to.be.eq(expectedTokenResponse.accessToken);
-            expect(tokenResponse.refreshToken).to.be.eq(expectedTokenResponse.refreshToken);
             expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
-            expect(cacheStorage.getKeys().length).to.be.eq(4);
+            expect(cacheStorage.getKeys().length).to.be.eq(5);
         });
 
         it("Successfully creates a new token if the scopes are not intersecting", () => {
@@ -487,16 +481,14 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.idToken).to.be.eq(expectedTokenResponse.idToken);
             expect(tokenResponse.idTokenClaims).to.be.deep.eq(expectedTokenResponse.idTokenClaims);
             expect(tokenResponse.accessToken).to.be.eq(expectedTokenResponse.accessToken);
-            expect(tokenResponse.refreshToken).to.be.eq(expectedTokenResponse.refreshToken);
             expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
-            expect(cacheStorage.getKeys().length).to.be.eq(5);
+            expect(cacheStorage.getKeys().length).to.be.eq(6);
             expect(cacheStorage.containsKey(JSON.stringify(atKey))).to.be.true;
             expect(cacheStorage.containsKey(JSON.stringify(expectedNewAtKey))).to.be.true;
             expect(cacheStorage.getItem(JSON.stringify(atKey))).to.be.eq(JSON.stringify(atValue));
             expect(cacheStorage.getItem(JSON.stringify(expectedNewAtKey))).to.be.eq(JSON.stringify(expectedNewAtValue));
-
         });
     });
 });

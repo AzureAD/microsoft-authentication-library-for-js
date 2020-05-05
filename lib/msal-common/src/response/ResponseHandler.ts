@@ -154,13 +154,18 @@ export class ResponseHandler {
         const expirationSec = TimeUtils.nowSeconds() + expiresIn;
         const extendedExpirationSec = expirationSec + serverTokenResponse.ext_expires_in;
 
-        // Get id token
+        // Get and save id token
         if (!StringUtils.isEmpty(originalTokenResponse.idToken)) {
             this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, originalTokenResponse.idToken);
         }
 
+        // Get and save refresh token
+        if (serverTokenResponse && !StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
+            this.cacheStorage.setItem(PersistentCacheKeys.REFRESH_TOKEN, serverTokenResponse.refresh_token);
+        }
+
         // Save access token in cache
-        const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
+        const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, expirationSec.toString(), extendedExpirationSec.toString());
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
         const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
 
@@ -198,7 +203,6 @@ export class ResponseHandler {
             tokenType: serverTokenResponse.token_type,
             scopes: responseScopeArray,
             accessToken: serverTokenResponse.access_token,
-            refreshToken: serverTokenResponse.refresh_token,
             expiresOn: new Date(expirationSec * 1000)
         };
     }
@@ -231,7 +235,6 @@ export class ResponseHandler {
             idToken: null,
             idTokenClaims: null,
             accessToken: "",
-            refreshToken: "",
             scopes: [],
             expiresOn: null,
             account: null,

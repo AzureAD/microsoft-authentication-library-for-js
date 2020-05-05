@@ -20,13 +20,14 @@ import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
-import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants } from "../utils/Constants";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
 import { B2cAuthority } from "../authority/B2cAuthority";
+import { ServerError } from "../error/ServerError";
 
 /**
  * SPAClient class
@@ -225,7 +226,6 @@ export class SPAClient extends BaseClient {
                     idToken: "",
                     idTokenClaims: null,
                     accessToken: cachedTokenItem.value.accessToken,
-                    refreshToken: cachedTokenItem.value.refreshToken,
                     expiresOn: new Date(expirationSec * 1000),
                     account: account,
                     userRequestState: ""
@@ -235,11 +235,17 @@ export class SPAClient extends BaseClient {
                 return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse :
                     ResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoUtils));
             } else {
-                // Renew the tokens.
+                // Get the current refresh token
+                const refreshToken = this.cacheStorage.getItem(PersistentCacheKeys.REFRESH_TOKEN);
+                if (StringUtils.isEmpty(refreshToken)) {
+                    // TODO: Figure out what to throw in this case
+                    throw new ServerError(Constants.INVALID_GRANT_ERROR, "No refresh token found in cache.");
+                }
+                // Renew the tokens
                 request.authority = cachedTokenItem.key.authority;
                 const { tokenEndpoint } = acquireTokenAuthority;
 
-                return this.renewToken(request, tokenEndpoint, cachedTokenItem.value.refreshToken);
+                return this.renewToken(request, tokenEndpoint, refreshToken);
             }
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.

@@ -139,7 +139,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.body.access_token,
-                    refreshToken: testServerTokenResponse.body.refresh_token,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
@@ -164,7 +163,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.idToken).to.be.eq(testTokenResponse.idToken);
                     expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                     expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
-                    expect(tokenResponse.refreshToken).to.be.eq(testTokenResponse.refreshToken);
                     expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                     expect(tokenResponse.account.accountIdentifier).to.be.deep.eq(testTokenResponse.account.accountIdentifier);
                     expect(tokenResponse.account.environment).to.be.deep.eq(testTokenResponse.account.environment);
@@ -175,7 +173,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.account.sid).to.be.deep.eq(testTokenResponse.account.sid);
                     expect(tokenResponse.account.userName).to.be.deep.eq(testTokenResponse.account.userName);
                 });
-                expect(window.sessionStorage.length).to.be.eq(3);
+                expect(window.sessionStorage.length).to.be.eq(4);
             });
 
             it("gets hash from cache and processes error", () => {
@@ -242,7 +240,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.body.access_token,
-                    refreshToken: testServerTokenResponse.body.refresh_token,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
@@ -267,7 +264,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.idToken).to.be.eq(testTokenResponse.idToken);
                     expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                     expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
-                    expect(tokenResponse.refreshToken).to.be.eq(testTokenResponse.refreshToken);
                     expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                     expect(tokenResponse.account.accountIdentifier).to.be.deep.eq(testTokenResponse.account.accountIdentifier);
                     expect(tokenResponse.account.environment).to.be.deep.eq(testTokenResponse.account.environment);
@@ -278,7 +274,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.account.sid).to.be.deep.eq(testTokenResponse.account.sid);
                     expect(tokenResponse.account.userName).to.be.deep.eq(testTokenResponse.account.userName);
                 });
-                expect(window.sessionStorage.length).to.be.eq(3);
+                expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });
         });
@@ -406,7 +402,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
-                    refreshToken: testServerTokenResponse.refresh_token,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
@@ -475,7 +470,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
-                    refreshToken: testServerTokenResponse.refresh_token,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
@@ -558,7 +552,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
-                refreshToken: testServerTokenResponse.refresh_token,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 userRequestState: ""                    
@@ -607,7 +600,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
-                refreshToken: testServerTokenResponse.refresh_token,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 userRequestState: ""
@@ -663,7 +655,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
-                refreshToken: testServerTokenResponse.refresh_token,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 userRequestState: ""                    

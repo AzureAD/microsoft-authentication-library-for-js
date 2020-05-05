@@ -32,7 +32,7 @@ import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 
-describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
+describe("SPAClient.ts Class Unit Tests", () => {
 
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -415,9 +415,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     describe("Token Acquisition", () => {
 
         describe("Exchange code for token with acquireToken()", () => {
-            let Client: SPAClient;
+            let client: SPAClient;
             beforeEach(() => {
-                Client = new SPAClient(defaultAuthConfig);
+                client = new SPAClient(defaultAuthConfig);
             });
 
             afterEach(() => {
@@ -428,7 +428,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             describe("Error Cases", () => {
 
                 it("Throws error if null code response is passed", async () => {
-                    await expect(Client.acquireToken(null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+                    await expect(client.acquireToken(null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -437,7 +437,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         code: null,
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+                    await expect(client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -446,7 +446,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         code: "This is an auth code",
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
+                    await expect(client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -463,7 +463,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         code: "This is an auth code",
                         userRequestState: RANDOM_TEST_GUID
                     };
-                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
+                    await expect(client.acquireToken(codeResponse)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCacheError.desc);
                     expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
                 });
 
@@ -483,7 +483,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     };
                     const stringifiedRequest = JSON.stringify(cachedRequest);
                     defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
-                    await expect(Client.acquireToken(codeResponse)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
+                    await expect(client.acquireToken(codeResponse)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
                 });
             });
 
@@ -501,7 +501,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                                 expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                                 ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                                 access_token: TEST_TOKENS.LOGIN_AT_STRING,
-                                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                                 id_token: TEST_TOKENS.IDTOKEN_V2
                             }
                         };
@@ -524,7 +523,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                                 return input;
                         }
                     };
-                    Client = new SPAClient(defaultAuthConfig);
+                    client = new SPAClient(defaultAuthConfig);
 
                     testState = "{stateObject}";
                     codeResponse = {
@@ -569,19 +568,18 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, `${TEST_URIS.DEFAULT_INSTANCE}/common/`);
 
                     // Perform test
-                    const tokenResponse: TokenResponse = await Client.acquireToken(codeResponse);
+                    const tokenResponse: TokenResponse = await client.acquireToken(codeResponse);
                     expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
                     expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
                     expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
                     expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
                     expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
                     expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.LOGIN_AT_STRING);
-                    expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
                     expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
                     expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
                     expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
                     expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
-                    expect(Account.compareAccounts(Client.getAccount(), testAccount)).to.be.true;
+                    expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.true;
                 });
 
                 it("Uses authority from cache if not present in cached request", async () => {
@@ -615,7 +613,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     defaultAuthConfig.storageInterface.setItem(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${codeResponse.userRequestState}`, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
 
                     // Perform test
-                    await Client.acquireToken(codeResponse);
+                    await client.acquireToken(codeResponse);
                     expect(authoritySpy.calledOnceWith(`${TEST_URIS.ALTERNATE_INSTANCE}/common/`, defaultAuthConfig.networkInterface)).to.be.true;
                 });
             });
@@ -689,7 +687,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const atValue: AccessTokenValue = {
                         accessToken: TEST_TOKENS.ACCESS_TOKEN,
                         idToken: "",
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                         tokenType: "Bearer",
                         expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
                         extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
@@ -721,7 +718,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const atValue: AccessTokenValue = {
                         accessToken: TEST_TOKENS.ACCESS_TOKEN,
                         idToken: "",
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                         tokenType: "Bearer",
                         expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
                         extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
@@ -750,7 +746,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const atValue: AccessTokenValue = {
                         accessToken: TEST_TOKENS.ACCESS_TOKEN,
                         idToken: "",
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                         tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                         expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
                         extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
@@ -768,7 +763,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     expect(tokenResponse.idToken).to.be.empty;
                     expect(tokenResponse.idTokenClaims).to.be.null;
                     expect(tokenResponse.accessToken).to.be.eq(TEST_TOKENS.ACCESS_TOKEN);
-                    expect(tokenResponse.refreshToken).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
                     expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
                     expect(tokenResponse.account).to.be.null;
                     expect(tokenResponse.userRequestState).to.be.empty;
@@ -817,7 +811,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     const atValue: AccessTokenValue = {
                         accessToken: TEST_TOKENS.ACCESS_TOKEN,
                         idToken: TEST_TOKENS.IDTOKEN_V2,
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                         tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                         expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
                         extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
@@ -842,7 +835,6 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
                     expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
                     expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESS_TOKEN);
-                    expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
                     expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
                     expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
                     expect(tokenResponse.scopes).to.be.deep.eq(testScopes);

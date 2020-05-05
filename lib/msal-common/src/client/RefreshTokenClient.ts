@@ -42,7 +42,7 @@ export class RefreshTokenClient extends BaseClient {
 
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
-            true);
+            false);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
