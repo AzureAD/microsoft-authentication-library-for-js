@@ -114,7 +114,7 @@ export class PublicClientApplication {
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
-        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using onRedirectAppLoad().");
+        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using handleRedirectPromise().");
         // Check whether callback object was passed.
         if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
