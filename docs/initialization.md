@@ -88,10 +88,12 @@ The redirect APIs do not use Promises, but are `void` functions which redirect t
 msalInstance.handleRedirectPromise()
 .then((tokenResponse) => {
     // Check if the tokenResponse is null
-    // If the tokenResponse !== null, then you have successfully authenticated. 
-    // If the tokenResponse === null, you are not authenticated.
+    // If the tokenResponse !== null, then you are coming back from a successful authentication redirect. 
+    // If the tokenResponse === null, you are not coming back from an auth redirect.
 })
-.catch();
+.catch((error) => {
+    // handle error, either in the library or coming back from the server
+});
 ```
 This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
