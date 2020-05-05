@@ -1,6 +1,6 @@
 import {
     ClientAuthError,
-    Configuration,
+    ClientConfiguration,
     Constants,
     LogLevel,
     NetworkRequestOptions,
@@ -11,7 +11,7 @@ import { AuthorityFactory } from "../../src";
 
 export class ClientTestUtils {
 
-    static async createTestClientConfiguration(): Promise<Configuration>{
+    static async createTestClientConfiguration(): Promise<ClientConfiguration>{
 
         const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
             if (containsPii) {

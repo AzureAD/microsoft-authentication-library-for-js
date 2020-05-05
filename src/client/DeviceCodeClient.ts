@@ -9,7 +9,7 @@ import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
-import { Configuration } from "../config/Configuration";
+import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
@@ -19,7 +19,7 @@ import { ScopeSet } from "../request/ScopeSet";
  */
 export class DeviceCodeClient extends BaseClient {
 
-    constructor(configuration: Configuration){
+    constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
 

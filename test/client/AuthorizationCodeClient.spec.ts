@@ -5,7 +5,6 @@ import {
     AuthorizationCodeClient,
     AuthorizationCodeRequest,
     AuthorizationCodeUrlRequest,
-    Configuration,
     Constants
 } from "../../src";
 import {
@@ -16,9 +15,10 @@ import {
     TEST_TOKENS,
     TEST_URIS
 } from "../utils/StringConstants";
-import {BaseClient} from "../../src/client/BaseClient";
-import {AADServerParamKeys, PromptValue, ResponseMode, SSOTypes} from "../../src/utils/Constants";
-import {ClientTestUtils} from "./ClientTestUtils";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { BaseClient } from "../../src/client/BaseClient";
+import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes } from "../../src/utils/Constants";
+import { ClientTestUtils } from "./ClientTestUtils";
 
 describe("AuthorizationCodeClient unit tests", () => {
 
@@ -31,7 +31,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("creates a AuthorizationCodeClient", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            const config: Configuration = await ClientTestUtils.createTestClientConfiguration();
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof AuthorizationCodeClient).to.be.true;
@@ -44,7 +44,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Creates an authorization url with default parameters", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            const config: Configuration = await ClientTestUtils.createTestClientConfiguration();
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
@@ -64,7 +64,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Creates an authorization url passing in a default scope", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            const config: Configuration = await ClientTestUtils.createTestClientConfiguration();
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
@@ -86,7 +86,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Override with alternate authority openid_config
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
 
-            const config: Configuration = await ClientTestUtils.createTestClientConfiguration();
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
@@ -129,7 +129,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
 
-            const config: Configuration = await ClientTestUtils.createTestClientConfiguration();
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

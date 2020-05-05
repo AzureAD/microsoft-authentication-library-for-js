@@ -26,11 +26,11 @@ import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
 import { BaseClient } from "../../src/client/BaseClient";
-import { SPAConfiguration } from "../../src/config/SPAConfiguration";
 import { Account } from "../../src/account/Account";
 import { TokenResponse } from "../../src/response/TokenResponse";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 
 describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
@@ -41,11 +41,11 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     };
 
     let store = {};
-    let defaultAuthConfig: SPAConfiguration;
+    let defaultAuthConfig: ClientConfiguration;
 
     beforeEach(() => {
         defaultAuthConfig = {
-            auth: {
+            authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -915,7 +915,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         };
 
         const Client_functionRedirectUris = new SPAClient({
-            auth: {
+            authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: redirectUriFunc,
@@ -930,7 +930,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         });
 
         const Client_noRedirectUris = new SPAClient({
-            auth: {
+            authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority
             },
@@ -971,7 +971,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
     describe("getAccount()", () => {
         let store;
-        let config: SPAConfiguration;
+        let config: ClientConfiguration;
         let client: SPAClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
@@ -979,7 +979,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         beforeEach(() => {
             store = {};
             config = {
-                auth: {
+                authOptions: {
                     clientId: RANDOM_TEST_GUID
                 },
                 systemOptions: null,
