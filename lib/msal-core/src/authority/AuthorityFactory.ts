@@ -48,7 +48,7 @@ export class AuthorityFactory {
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean): Authority|null {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }

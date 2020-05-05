@@ -65,7 +65,7 @@ export class Account {
         const uid: string = clientInfo ? clientInfo.uid : "";
         const utid: string = clientInfo ? clientInfo.utid : "";
 
-        let homeAccountIdentifier: string;
+        let homeAccountIdentifier: string = "";
         if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
             homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
@@ -78,7 +78,7 @@ export class Account {
      * @param a1: Account object
      * @param a2: Account object
      */
-    static compareAccounts(a1: Account, a2: Account): boolean {
+    static compareAccounts(a1: Account|null, a2: Account|null): boolean {
         if (!a1 || !a2) {
             return false;
         }

@@ -11,12 +11,12 @@ export type AuthResponse = {
     uniqueId: string;
     tenantId: string;
     tokenType: string;
-    idToken: IdToken;
-    idTokenClaims: StringDict;
+    idToken: IdToken|null;
+    idTokenClaims: StringDict|null;
     accessToken: string;
-    scopes: Array<string>;
-    expiresOn: Date;
-    account: Account;
+    scopes: Array<string>|null;
+    expiresOn: Date|null;
+    account: Account|null;
     accountState: string;
     fromCache: boolean
 };

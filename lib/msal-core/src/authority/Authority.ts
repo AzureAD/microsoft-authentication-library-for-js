@@ -75,7 +75,7 @@ export abstract class Authority {
     }
 
     private canonicalAuthority: string;
-    private canonicalAuthorityUrlComponents: IUri;
+    private canonicalAuthorityUrlComponents: IUri|null;
 
     public get CanonicalAuthorityUrlComponents(): IUri {
         if (!this.canonicalAuthorityUrlComponents) {

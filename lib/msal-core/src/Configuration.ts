@@ -35,12 +35,12 @@ const NAVIGATE_FRAME_WAIT = 500;
  */
 export type AuthOptions = {
     clientId: string;
-    authority?: string;
-    validateAuthority?: boolean;
-    knownAuthorities?: Array<string>;
+    authority?: string|null|undefined;
+    validateAuthority?: boolean|undefined;
+    knownAuthorities?: Array<string>|undefined;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
-    navigateToLoginRequestUrl?: boolean;
+    navigateToLoginRequestUrl?: boolean|undefined;
 };
 
 /**
@@ -50,8 +50,8 @@ export type AuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-    cacheLocation?: CacheLocation;
-    storeAuthStateInCookie?: boolean;
+    cacheLocation?: CacheLocation|undefined;
+    storeAuthStateInCookie?: boolean|undefined;
 };
 
 /**
@@ -76,11 +76,11 @@ export type TelemetryOptions = {
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
-    logger?: Logger;
-    loadFrameTimeout?: number;
-    tokenRenewalOffsetSeconds?: number;
-    navigateFrameWait?: number;
-    telemetry?: TelemetryOptions
+    logger?: Logger|undefined;
+    loadFrameTimeout?: number|undefined;
+    tokenRenewalOffsetSeconds?: number|undefined;
+    navigateFrameWait?: number|undefined;
+    telemetry?: TelemetryOptions|undefined;
 };
 
 /**
@@ -92,9 +92,9 @@ export type SystemOptions = {
  *
  */
 export type FrameworkOptions = {
-    isAngular?: boolean;
-    unprotectedResources?: Array<string>;
-    protectedResourceMap?: Map<string, Array<string>>;
+    isAngular?: boolean|undefined;
+    unprotectedResources?: Array<string>|undefined;
+    protectedResourceMap?: Map<string, Array<string>>|undefined;
 };
 
 /**
@@ -108,9 +108,9 @@ export type FrameworkOptions = {
  */
 export type Configuration = {
     auth: AuthOptions,
-    cache?: CacheOptions,
-    system?: SystemOptions,
-    framework?: FrameworkOptions
+    cache?: CacheOptions|undefined,
+    system?: SystemOptions|undefined,
+    framework?: FrameworkOptions|undefined
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {

@@ -34,7 +34,7 @@ export class RequestUtils {
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters|undefined, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
@@ -196,12 +196,12 @@ export class RequestUtils {
      * validate correlationId and generate if not valid or not set by the user
      * @param correlationId
      */
-    static validateAndGenerateCorrelationId(correlationId: string|undefined): string|undefined {
+    static validateAndGenerateCorrelationId(correlationId: string|undefined): string {
         // validate user set correlationId or set one for the user if null
         if(correlationId && !CryptoUtils.isGuid(correlationId)) {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
-        return CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+        return CryptoUtils.isGuid(correlationId)? correlationId! : CryptoUtils.createNewGuid();
     }
 
     /**
