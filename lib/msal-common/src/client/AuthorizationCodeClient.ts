@@ -10,7 +10,7 @@ import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
-import { Configuration } from "../config/Configuration";
+import { ClientConfiguration } from "../config/ClientConfiguration";
 import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
 import {NetworkResponse} from "../network/NetworkManager";
 import {ScopeSet} from "../request/ScopeSet";
@@ -20,7 +20,7 @@ import {ScopeSet} from "../request/ScopeSet";
  */
 export class AuthorizationCodeClient extends BaseClient {
 
-    constructor(configuration: Configuration) {
+    constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
 

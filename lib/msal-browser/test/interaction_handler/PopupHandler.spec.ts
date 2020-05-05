@@ -48,7 +48,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         };
         const configObj = buildConfiguration(appConfig);
         const authCodeModule = new SPAClient({
-            auth: configObj.auth,
+            authOptions: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
                 telemetry: configObj.system.telemetry

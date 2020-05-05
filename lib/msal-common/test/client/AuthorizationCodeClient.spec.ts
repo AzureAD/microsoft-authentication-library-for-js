@@ -5,7 +5,7 @@ import {
     AuthorizationCodeClient,
     AuthorizationCodeRequest,
     AuthorizationCodeUrlRequest,
-    Configuration,
+    ClientConfiguration,
     Constants
 } from "../../src";
 import {
@@ -16,13 +16,13 @@ import {
     TEST_TOKENS,
     TEST_URIS
 } from "../utils/StringConstants";
-import {BaseClient} from "../../src/client/BaseClient";
-import {AADServerParamKeys, PromptValue, ResponseMode, SSOTypes} from "../../src/utils/Constants";
-import {ClientTestUtils} from "./ClientTestUtils";
+import { BaseClient } from "../../src/client/BaseClient";
+import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes } from "../../src/utils/Constants";
+import { ClientTestUtils } from "./ClientTestUtils";
 
 describe("AuthorizationCodeClient unit tests", () => {
 
-    let config: Configuration;
+    let config: ClientConfiguration;
 
     beforeEach(() => {
         config = ClientTestUtils.createTestClientConfiguration();

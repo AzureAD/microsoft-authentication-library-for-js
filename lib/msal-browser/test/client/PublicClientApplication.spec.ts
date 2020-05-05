@@ -108,6 +108,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
                 const testServerTokenResponse = {
+                    headers: null,
+                    status: 200,
                     body : {
                         token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                         scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -209,6 +211,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
                 const testServerTokenResponse = {
+                    headers: null,
+                    status: 200,
                     body : {
                         token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                         scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
