@@ -16,9 +16,10 @@ export class ScopeSet {
      */
     // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
     static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
-        for (let i = 0; i < scopes.length; i++) {
-            if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
+        const convertedCachedScopes = this.trimAndConvertToLowerCase([...cachedScopes]);
+        const requestScopes = this.trimAndConvertToLowerCase([...scopes]);
+        for (let i = 0; i < requestScopes.length; i++) {
+            if (convertedCachedScopes.indexOf(requestScopes[i].toLowerCase()) > -1) {
                 return true;
             }
         }
@@ -32,8 +33,9 @@ export class ScopeSet {
      * @param scopes
      */
     static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
-        return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
+        const convertedCachedScopes = this.trimAndConvertToLowerCase([...cachedScopes]);
+        const requestScopes = this.trimAndConvertToLowerCase([...scopes]);
+        return requestScopes.every((value: any): boolean => convertedCachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
     }
 
     /**
@@ -42,8 +44,8 @@ export class ScopeSet {
      * @param scopes
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
-    static convertToLowerCase(scopes: Array<string>): Array<string> {
-        return scopes.map(scope => scope.toLowerCase());
+    static trimAndConvertToLowerCase(scopes: Array<string>): Array<string> {
+        return scopes.map(scope => scope.trim().toLowerCase());
     }
 
     /**
@@ -54,7 +56,8 @@ export class ScopeSet {
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
     static removeElement(scopes: Array<string>, scope: string): Array<string> {
-        return scopes.filter(value => value !== scope);
+        const scopeVal = scope.trim().toLowerCase();
+        return scopes.filter(value => value !== scopeVal);
     }
 
     /**
@@ -131,8 +134,10 @@ export class ScopeSet {
      * @param {@link AuthenticationParameters}
      */
     static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
-        if(reqScopes) {
-            return reqExtraScopesToConsent ? [...reqScopes, ...reqExtraScopesToConsent]: reqScopes;
+        if (reqScopes) {
+            const convertedExtraScopes = reqExtraScopesToConsent ? this.trimAndConvertToLowerCase([...reqExtraScopesToConsent]) : null;
+            const convertedReqScopes = this.trimAndConvertToLowerCase([...reqScopes]);
+            return convertedExtraScopes ? [...convertedReqScopes, ...convertedExtraScopes] : convertedReqScopes;
         }
         return null;
     }
