@@ -79,7 +79,13 @@ const silentRequest = {
 try {
     const loginResponse = await msalInstance.ssoSilent(silentRequest);
 } catch (err) {
-    // handle error
+    if (err instanceof InteractionRequiredAuthError) {
+        const loginResponse = await msalInstance.loginPopup(silentRequest).catch(error => {
+            // handle error
+        });
+    } else {
+        // handle error
+    }
 }
 ```
 
