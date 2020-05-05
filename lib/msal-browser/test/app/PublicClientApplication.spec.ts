@@ -5,7 +5,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl } from "../utils/StringConstants";
-import { AuthError, ServerError, AuthResponse, LogLevel, Constants, TemporaryCacheKeys, TokenResponse, Account, TokenExchangeParameters, IdTokenClaims, SPAClient, PromptValue, AuthenticationParameters } from "@azure/msal-common";
+import { AuthError, ServerError, AuthResponse, LogLevel, Constants, TemporaryCacheKeys, TokenResponse, Account, TokenExchangeParameters, IdTokenClaims, SPAClient, PromptValue, AuthenticationParameters, PersistentCacheKeys } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import sinon from "sinon";
@@ -174,6 +174,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.account.userName).to.be.deep.eq(testTokenResponse.account.userName);
                 });
                 expect(window.sessionStorage.length).to.be.eq(4);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ID_TOKEN}`)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.REFRESH_TOKEN}`)).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
             });
 
             it("gets hash from cache and processes error", () => {
@@ -275,6 +277,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.account.userName).to.be.deep.eq(testTokenResponse.account.userName);
                 });
                 expect(window.sessionStorage.length).to.be.eq(4);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ID_TOKEN}`)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.REFRESH_TOKEN}`)).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
                 expect(window.location.hash).to.be.empty;
             });
         });
