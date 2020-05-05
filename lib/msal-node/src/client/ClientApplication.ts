@@ -92,7 +92,7 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      * @param request
      */
-    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
+    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string> {
 
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(request.authority);
         const refreshTokenClient = new RefreshTokenClient(refreshTokenClientConfig);
@@ -129,23 +129,27 @@ export abstract class ClientApplication {
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
         const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(authorityString,  this.appConfig.system!.networkClient!)
+            ? AuthorityFactory.createInstance(authorityString, this.appConfig.system!.networkClient!)
             : this.authority;
 
-        await authority.resolveEndpointsAsync().catch(error => {
+        try {
+            await authority.resolveEndpointsAsync();
+            return authority;
+        } catch (error) {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
-        });
-        return authority;
+        }
     }
 
-    private get authority(){
-        if(this._authority){
+    private get authority() {
+        if (this._authority) {
             return this._authority;
         }
 
-        return AuthorityFactory.createInstance(
+        this._authority = AuthorityFactory.createInstance(
             this.appConfig.auth.authority || Constants.DEFAULT_AUTHORITY,
             this.appConfig.system!.networkClient!
         );
+
+        return this._authority;
     }
 }
