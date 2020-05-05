@@ -206,8 +206,8 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
         });
 
         it("throws InteractionRequiredAuthError if hash contains error parameters", () => {
-            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired;
-            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired} test error`;
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage[0];
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage[0]} test error`;
             const testServerParams: ServerAuthorizationCodeResponse = {
                 error: TEST_ERROR_CODE,
                 error_description: TEST_ERROR_MSG,
@@ -285,8 +285,8 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
         });
 
         it("throws InteractionRequiredAuthError if hash contains error parameters", () => {
-            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired;
-            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired} test error`;
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage[0];
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage[0]} test error`;
             const testServerParams: ServerAuthorizationTokenResponse = {
                 error: TEST_ERROR_CODE,
                 error_description: TEST_ERROR_MSG
@@ -299,12 +299,12 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
         });
 
         it("throws InteractionRequiredAuthError if hash contains interaction required sub-error", () => {
-            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage.interactionRequired;
-            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage.interactionRequired} test error`;
+            const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage[0];
+            const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage[0]} test error`;
             const testServerParams: ServerAuthorizationTokenResponse = {
                 error: "invalid_grant",
                 error_description: "test error",
-                suberror: InteractionRequiredAuthSubErrorMessage.consentRequired
+                suberror: InteractionRequiredAuthSubErrorMessage[0]
             };
 
             const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
