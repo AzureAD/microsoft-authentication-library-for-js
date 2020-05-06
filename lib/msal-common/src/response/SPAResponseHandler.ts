@@ -30,14 +30,14 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 export class SPAResponseHandler {
     private clientId: string;
     private cacheStorage: ICacheStorage;
-    private cacheManager: CacheHelpers;
+    private spaCacheManager: CacheHelpers;
     private cryptoObj: ICrypto;
     private logger: Logger;
 
-    constructor(clientId: string, cacheStorage: ICacheStorage, cacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: ICacheStorage, spaCacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
-        this.cacheManager = cacheManager;
+        this.spaCacheManager = spaCacheManager;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
     }
@@ -94,7 +94,7 @@ export class SPAResponseHandler {
 
             return response;
         } catch(e) {
-            this.cacheManager.resetTempCacheItems(serverParams && serverParams.state);
+            this.spaCacheManager.resetTempCacheItems(serverParams && serverParams.state);
             throw e;
         }
     }
@@ -162,7 +162,7 @@ export class SPAResponseHandler {
         // Save access token in cache
         const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
-        const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
+        const accessTokenCacheItems = this.spaCacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
 
         // If no items in cache with these parameters, set new item.
         if (accessTokenCacheItems.length < 1) {
@@ -253,7 +253,7 @@ export class SPAResponseHandler {
                     throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
                 }
 
-                const nonce = this.cacheStorage.getItem(this.cacheManager.generateNonceKey(state));
+                const nonce = this.cacheStorage.getItem(this.spaCacheManager.generateNonceKey(state));
                 if (idTokenObj.claims.nonce !== nonce) {
                     throw ClientAuthError.createNonceMismatchError();
                 }
@@ -275,7 +275,7 @@ export class SPAResponseHandler {
             tokenResponse.account = Account.createAccount(idTokenObj, clientInfo, this.cryptoObj);
 
             // Save the access token if it exists
-            const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
+            const accountKey = this.spaCacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
 
             // Get cached account
             cachedAccount = this.getCachedAccount(accountKey);
@@ -284,7 +284,7 @@ export class SPAResponseHandler {
         // Return user set state in the response
         tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
 
-        this.cacheManager.resetTempCacheItems(state);
+        this.spaCacheManager.resetTempCacheItems(state);
         if (!cachedAccount || !tokenResponse.account || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo);
         } else {

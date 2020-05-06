@@ -11,9 +11,9 @@ import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
-import {AADServerParamKeys, Constants, HeaderNames} from "../utils/Constants";
-import {ClientAuthError} from "../error/ClientAuthError";
-import {NetworkResponse} from "../network/NetworkManager";
+import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 import { Serializer } from "../unifiedCache/serialize/Serializer";
@@ -39,9 +39,9 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Helper API object for running cache functions
-    protected cacheManager: CacheHelpers;
+    protected spaCacheManager: CacheHelpers;
 
-        // Helper API object for serialized cache operations
+    // Helper API object for serialized cache operations
     protected unifiedCacheManager: UnifiedCacheManager;
 
     // Account object
@@ -64,7 +64,7 @@ export abstract class BaseClient {
         this.cacheStorage = this.config.storageInterface;
 
         // Initialize storage helper object
-        this.cacheManager = new CacheHelpers(this.cacheStorage);
+        this.spaCacheManager = new CacheHelpers(this.cacheStorage);
 
         // Initialize serialized cache manager
         this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
@@ -140,10 +140,10 @@ export abstract class BaseClient {
             });
     }
 
-        /**
+    /**
      * Set the cache post acquireToken call
      */
-    protected setCache() {
+    protected setCache(): void {
         const inMemCache = this.unifiedCacheManager.getCacheInMemory();
         const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
         this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));
