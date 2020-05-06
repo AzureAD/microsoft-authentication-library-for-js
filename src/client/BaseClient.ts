@@ -64,10 +64,6 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        // Default authority instance.
-        AuthorityFactory.setKnownAuthorities(
-            this.config.authOptions.knownAuthorities
-        );
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
             this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
             this.networkClient
