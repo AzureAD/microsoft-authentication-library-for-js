@@ -2,7 +2,21 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, SPAClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue, ServerError } from "@azure/msal-common";
+import {
+    Account,
+    SPAClient,
+    AuthenticationParameters,
+    INetworkModule,
+    TokenResponse,
+    UrlString,
+    TemporaryCacheKeys,
+    TokenRenewParameters,
+    StringUtils,
+    PromptValue,
+    ServerError,
+    Authority,
+    AuthorityFactory,
+} from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -22,23 +36,25 @@ import { version } from "../../package.json";
  */
 export class PublicClientApplication {
 
+    // auth functions imported from @azure/msal-common module
+    private readonly authModule: SPAClient;
+
+    // Crypto interface implementation
+    private readonly browserCrypto: CryptoOps;
+
+    // Storage interface implementation
+    private readonly browserStorage: BrowserStorage;
+
+    // Network interface implementation
+    private readonly networkClient: INetworkModule;
+
+    // Response promise
+    private readonly tokenExchangePromise: Promise<TokenResponse>;
+
     // Input configuration by developer/user
     private config: Configuration;
 
-    // auth functions imported from @azure/msal-common module
-    private authModule: SPAClient;
-
-    // Crypto interface implementation
-    private browserCrypto: CryptoOps;
-
-    // Storage interface implementation
-    private browserStorage: BrowserStorage;
-
-    // Network interface implementation
-    private networkClient: INetworkModule;
-
-    // Response promise
-    private tokenExchangePromise: Promise<TokenResponse>;
+    protected defaultAuthorityInstance: Authority;
 
     /**
      * @constructor
@@ -74,13 +90,20 @@ export class PublicClientApplication {
         // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(
+            this.config.auth.authority || "https://login.microsoftonline.com/common",
+            this.config.system.networkClient
+        );
+
         // Create auth module.
         this.authModule = new SPAClient({
             authOptions: {
                 clientId: this.config.auth.clientId,
-                authority: this.config.auth.authority,
-                knownAuthorities: this.config.auth.,
-                redirectUri: this.config.auth.,
+                authority: this.config.auth.authority ?
+                    AuthorityFactory.createInstance(this.config.auth.authority, this.config.system.networkClient) :
+                    this.defaultAuthorityInstance,
+                knownAuthorities: this.config.auth.knownAuthorities,
+                redirectUri: this.config.auth.redirectUri,
                 postLogoutRedirectUri: this.config.auth.postLogoutRedirectUri
             },
             systemOptions: {
