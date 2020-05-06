@@ -37,7 +37,7 @@ export class AuthorizationCodeClient extends BaseClient {
     async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${this.authority.authorizationEndpoint}?${queryString}`;
+        return `${this.defaultAuthority.authorizationEndpoint}?${queryString}`;
     }
 
     /**
@@ -47,7 +47,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
 
-        const response = await this.executeTokenRequest(this.authority, request);
+        const response = await this.executeTokenRequest(this.defaultAuthority, request);
         return JSON.stringify(response.body);
         // TODO add response_handler here to send the response
     }

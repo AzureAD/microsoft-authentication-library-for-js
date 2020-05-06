@@ -42,7 +42,7 @@ class TestClient extends BaseClient {
     }
 
     getDefaultAuthorityInstance(){
-        return this.authority;
+        return this.defaultAuthority;
     }
 
     createDefaultLibraryHeaders(): Map<string, string> {
