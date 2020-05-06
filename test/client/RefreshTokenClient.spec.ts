@@ -3,7 +3,7 @@ import sinon from "sinon";
 import {
     Authority,
     AuthorizationCodeClient,
-    Configuration,
+    ClientConfiguration,
     Constants, RefreshTokenClient, RefreshTokenRequest
 } from "../../src";
 import {
@@ -18,7 +18,7 @@ import {ClientTestUtils} from "./ClientTestUtils";
 
 describe("RefreshTokenClient unit tests", () => {
 
-    let config: Configuration;
+    let config: ClientConfiguration;
 
     beforeEach(() => {
         config = ClientTestUtils.createTestClientConfiguration();
@@ -38,10 +38,10 @@ describe("RefreshTokenClient unit tests", () => {
         });
     });
 
-    describe("Acquire a token", async () => {
+    it("acquires a token", async () => {
         sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-        sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-        const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
+        sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+        const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
 
         const client = new RefreshTokenClient(config);
         const refreshTokenRequest: RefreshTokenRequest = {
@@ -52,9 +52,9 @@ describe("RefreshTokenClient unit tests", () => {
         const authResult = await client.acquireToken(refreshTokenRequest);
 
         expect(JSON.parse(authResult)).to.deep.eq(AUTHENTICATION_RESULT.body);
-        expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.ok;
+        expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.true;
 
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
