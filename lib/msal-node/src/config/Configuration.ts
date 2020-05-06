@@ -82,7 +82,7 @@ const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
  * @param cache
  * @param system
  *
- * @returns ClientConfiguration
+ * @returns Configuration
  */
 export function buildAppConfiguration({
     auth,

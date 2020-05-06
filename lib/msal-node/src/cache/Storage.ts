@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { ICacheStorage } from '@azure/msal-common';
 import { CacheManager } from './CacheManager';
 import { CacheOptions } from '../config/Configuration';

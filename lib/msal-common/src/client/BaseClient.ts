@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Configuration, buildConfiguration } from "../config/Configuration";
+import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { CacheHelpers } from "../cache/spacache/CacheHelpers";
 import { INetworkModule } from "../network/INetworkModule";
@@ -27,7 +27,7 @@ export abstract class BaseClient {
     public logger: Logger;
 
     // Application config
-    protected config: Configuration;
+    protected config: ClientConfiguration;
 
     // Crypto Interface
     protected cryptoUtils: ICrypto;
@@ -50,9 +50,9 @@ export abstract class BaseClient {
     // Default authority object
     protected defaultAuthorityInstance: Authority;
 
-    protected constructor(configuration: Configuration) {
+    protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
-        this.config = buildConfiguration(configuration);
+        this.config = buildClientConfiguration(configuration);
 
         // Initialize the logger
         this.logger = new Logger(this.config.loggerOptions);
@@ -69,16 +69,9 @@ export abstract class BaseClient {
         // Initialize serialized cache manager
         this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
 
-        // Initialize serialized cache manager
-        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
-
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        // Default authority instance.
-        AuthorityFactory.setKnownAuthorities(
-            this.config.authOptions.knownAuthorities
-        );
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
             this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
             this.networkClient

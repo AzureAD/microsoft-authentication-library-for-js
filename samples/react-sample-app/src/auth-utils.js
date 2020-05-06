@@ -1,4 +1,4 @@
-import { UserAgentApplication } from "msal";
+import { UserAgentApplication, Logger } from "msal";
 
 export const requiresInteraction = errorMessage => {
     if (!errorMessage || !errorMessage.length) {
@@ -71,16 +71,9 @@ export const msalApp = new UserAgentApplication({
         storeAuthStateInCookie: isIE()
     },
     system: {
-        navigateFrameWait: 0,
-        logger: {
-            error: console.error,
-            errorPii: console.error,
-            info: console.log,
-            infoPii: console.log,
-            verbose: console.log,
-            verbosePii: console.log,
-            warning: console.warn,
-            warningPii: console.warn
-        }
+        navigateFrameWait: 500,
+        logger: new Logger((logLevel, message) => {
+            console.log(message);
+        })
     }
 });
