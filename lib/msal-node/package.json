@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "start": "tsdx watch",
-    "build": "npm link @azure/msal-common && tsdx build",
+    "build": "tsdx build",
     "build:modules:watch": "tsdx watch --verbose",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",

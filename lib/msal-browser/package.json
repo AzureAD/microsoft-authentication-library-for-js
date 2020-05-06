@@ -47,7 +47,7 @@
         "build:common": "cd ../msal-common && npm run build",
         "build:modules": "rollup -c",
         "build:modules:watch": "rollup -cw",
-        "build": "npm link @azure/msal-common && npm run clean && npm run lint && npm run build:modules",
+        "build": "npm run clean && npm run lint && npm run build:modules",
         "prepack": "npm run build:all"
     },
     "devDependencies": {
