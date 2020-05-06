@@ -23,7 +23,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - network: this is where you can configure network implementation.
  * - crypto: implementation of crypto functions
  */
-export type Configuration = {
+export type ClientConfiguration = {
     authOptions?: AuthOptions,
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
@@ -42,6 +42,9 @@ export type Configuration = {
 export type AuthOptions = {
     clientId: string;
     authority?: string;
+    knownAuthorities?: Array<string>;
+    redirectUri?: string | (() => string);
+    postLogoutRedirectUri?: string | (() => string);
 };
 
 /**
@@ -88,7 +91,10 @@ export type LibraryInfo = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: null
+    authority: "",
+    knownAuthorities: [],
+    redirectUri: "",
+    postLogoutRedirectUri: ""
 };
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
@@ -175,24 +181,23 @@ const DEFAULT_LIBRARY_INFO: LibraryInfo = {
  *
  * @returns Configuration
  */
-export function buildConfiguration(
+export function buildClientConfiguration(
     {
-        authOptions: authOptions,
+        authOptions: userAuthOptions,
         systemOptions: userSystemOptions,
         loggerOptions: userLoggerOption,
         storageInterface: storageImplementation,
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
         libraryInfo: libraryInfo
-    } : Configuration): Configuration {
-
+    } : ClientConfiguration): ClientConfiguration {
     return {
-        authOptions: authOptions || DEFAULT_AUTH_OPTIONS,
-        systemOptions: userSystemOptions || DEFAULT_SYSTEM_OPTIONS,
-        loggerOptions: userLoggerOption || DEFAULT_LOGGER_IMPLEMENTATION,
+        authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
+        systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
+        loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
         storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        libraryInfo: libraryInfo|| DEFAULT_LIBRARY_INFO
+        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
     };
 }
