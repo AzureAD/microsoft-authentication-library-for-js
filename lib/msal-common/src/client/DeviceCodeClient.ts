@@ -173,7 +173,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
-            true);
+            false);
         requestParameters.addScopes(scopeSet);
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);

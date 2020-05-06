@@ -26,7 +26,6 @@ export abstract class ClientApplication {
     protected config: Configuration;
     protected _authority: Authority;
 
-
     /**
      * @constructor
      * Constructor for the ClientApplication to instantiate the PublicClientApplication object

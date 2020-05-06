@@ -118,7 +118,7 @@ describe('PublicClientApplication', () => {
     test('acquireToken default authority', async () => {
 
         // No authority set in app configuration or request, should default to common authority
-        const config: ClientConfiguration =  {
+        const config: Configuration =  {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
             }
