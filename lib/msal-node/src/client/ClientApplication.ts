@@ -7,11 +7,11 @@ import {
     AuthorizationCodeClient,
     AuthorizationCodeUrlRequest,
     AuthorizationCodeRequest,
-    Configuration,
+    ClientConfiguration,
     RefreshTokenClient,
     RefreshTokenRequest
 } from '@azure/msal-common';
-import { ClientConfiguration, buildAppConfiguration } from '../config/ClientConfiguration';
+import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
@@ -19,7 +19,7 @@ import { Constants } from "./../utils/Constants";
 
 export abstract class ClientApplication {
 
-    protected config: ClientConfiguration;
+    protected config: Configuration;
 
     /**
      * @constructor
@@ -41,7 +41,7 @@ export abstract class ClientApplication {
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
-    protected constructor(configuration: ClientConfiguration) {
+    protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
     }
 
@@ -96,7 +96,7 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(request);
     }
 
-    protected buildOauthClientConfiguration(): Configuration {
+    protected buildOauthClientConfiguration(): ClientConfiguration {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: this.config.auth,

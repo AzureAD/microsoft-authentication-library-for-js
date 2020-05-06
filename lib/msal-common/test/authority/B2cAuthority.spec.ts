@@ -1,47 +1,34 @@
 import { expect } from "chai";
-import { B2cAuthority, B2CTrustedHostList } from "../../src/authority/B2cAuthority";
-import {
-    INetworkModule,
-    NetworkRequestOptions
-} from "../../src/network/INetworkModule";
+import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { TEST_CONFIG } from "../utils/StringConstants";
+import { B2cAuthority } from "../../src/authority/B2cAuthority";
 import { Authority } from "../../src/authority/Authority";
 import { AuthorityType } from "../../src/authority/AuthorityType";
-import { TEST_CONFIG } from "../utils/StringConstants";
-import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
-import {
-    ClientConfigurationError,
-    ClientConfigurationErrorMessage
-} from "../../src";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 
 describe("B2cAuthority.ts Class Unit Tests", () => {
+
+    afterEach(() => {
+        // Reinitializes the B2C Trusted Host List between tests
+        while (B2cAuthority.B2CTrustedHostList.length) {
+            B2cAuthority.B2CTrustedHostList.pop();
+        }
+    });
+
     describe("Constructor", () => {
+
         let b2cAuthority: B2cAuthority;
         beforeEach(() => {
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
                     return null;
                 }
             };
-            AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
-            b2cAuthority = new B2cAuthority(
-                TEST_CONFIG.b2cValidAuthority,
-                networkInterface
-            );
-        });
-
-        afterEach(() => {
-            while (B2CTrustedHostList.length) {
-                B2CTrustedHostList.pop();
-            }
+            B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+            b2cAuthority = new B2cAuthority(TEST_CONFIG.b2cValidAuthority, networkInterface);
         });
 
         it("Creates an B2cAuthority that extends the Authority class", () => {
@@ -59,62 +46,39 @@ describe("B2cAuthority.ts Class Unit Tests", () => {
 
         it("Returns default OpenID endpoint if the given authority is in the trusted host list", async () => {
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
                     return null;
                 }
             };
 
-            AuthorityFactory.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
-            const b2cAuthority = new B2cAuthority(
-                TEST_CONFIG.b2cValidAuthority,
-                networkInterface
-            );
-            await expect(
-                b2cAuthority.getOpenIdConfigurationEndpointAsync()
-            ).to.eventually.eq(
-                `${TEST_CONFIG.b2cValidAuthority}/v2.0/.well-known/openid-configuration`
-            );
+            B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
+            const b2cAuthority = new B2cAuthority(TEST_CONFIG.b2cValidAuthority, networkInterface);
+            await expect(b2cAuthority.getOpenIdConfigurationEndpointAsync()).to.eventually.eq(`${TEST_CONFIG.b2cValidAuthority}/v2.0/.well-known/openid-configuration`);
         });
 
-        it("Throws Untrusted Authority Error if the given authority was not passed to knownAuthorities", async () => {
+        it("Throws Untrusted Authority Error if the given authority was not passed to knownAuthorities", async() => {
             // Can't use sinon here since INetworkModule is an interface, so using variables here instead
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
                     return null;
                 }
             };
 
-            const hostUri =
-                "https://contoso.b2clogin.com/contoso.onmicrosoft.com/b2c_1_susi";
+            const hostUri = "https://contoso.b2clogin.com/contoso.onmicrosoft.com/b2c_1_susi";
             const b2cAuthority = new B2cAuthority(hostUri, networkInterface);
-            try {
+            try{
                 await b2cAuthority.getOpenIdConfigurationEndpointAsync();
-            } catch (e) {
+            }
+            catch(e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
-                expect(e.errorCode).to.be.equal(
-                    ClientConfigurationErrorMessage.untrustedAuthority.code
-                );
-                expect(e.errorMessage).to.be.equal(
-                    ClientConfigurationErrorMessage.untrustedAuthority.desc
-                );
+                expect(e.errorCode).to.be.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
+                expect(e.errorMessage).to.be.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
             }
         });
     });

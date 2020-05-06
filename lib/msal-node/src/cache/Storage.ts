@@ -2,10 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { ICacheStorage } from '@azure/msal-common';
 import { CacheManager } from './CacheManager';
-import { CacheOptions } from '../config/ClientConfiguration';
+import { CacheOptions } from '../config/Configuration';
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
