@@ -1,9 +1,9 @@
-import {Configuration, Constants, LogLevel, NetworkRequestOptions, PkceCodes} from "../../src";
-import {RANDOM_TEST_GUID, TEST_CONFIG} from "../utils/StringConstants";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes} from "../../src";
+import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 
 export class ClientTestUtils {
 
-    static createTestClientConfiguration(): Configuration{
+    static createTestClientConfiguration(): ClientConfiguration {
 
         const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
             if (containsPii) {
