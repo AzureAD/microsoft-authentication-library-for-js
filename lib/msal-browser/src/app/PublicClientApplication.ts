@@ -76,7 +76,7 @@ export class PublicClientApplication {
 
         // Create auth module.
         this.authModule = new SPAClient({
-            auth: this.config.auth,
+            authOptions: this.config.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
                 telemetry: this.config.system.telemetry

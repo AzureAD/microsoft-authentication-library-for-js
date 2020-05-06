@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Configuration, buildConfiguration } from "../../src/config/Configuration";
+import { ClientConfiguration, buildClientConfiguration } from "../../src/config/ClientConfiguration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
@@ -12,7 +12,7 @@ import {TEST_CONFIG} from "../utils/StringConstants";
 describe("Configuration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        const emptyConfig: Configuration = buildConfiguration({});
+        const emptyConfig: ClientConfiguration = buildClientConfiguration({});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -86,7 +86,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testKeySet = ["testKey1", "testKey2"];
 
     it("buildConfiguration correctly assigns new values", () => {
-        const newConfig: Configuration = buildConfiguration({
+        const newConfig: ClientConfiguration = buildClientConfiguration({
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";
