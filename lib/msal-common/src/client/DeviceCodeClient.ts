@@ -88,7 +88,7 @@ export class DeviceCodeClient extends BaseClient {
         const queryString: string = this.createQueryString(request);
 
         // TODO add device code endpoint to authority class
-        return `${this.authority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}?${queryString}`;
+        return `${this.defaultAuthority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}?${queryString}`;
     }
 
     /**
@@ -142,7 +142,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else {
                         const response = await this.executePostToTokenEndpoint(
-                            this.authority.tokenEndpoint,
+                            this.defaultAuthority.tokenEndpoint,
                             requestBody,
                             headers);
 

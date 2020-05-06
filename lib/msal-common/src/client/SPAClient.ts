@@ -70,7 +70,7 @@ export class SPAClient extends BaseClient {
      */
     private async createUrl(request: AuthenticationParameters, isLoginCall: boolean): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.authority;
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
         try {
             await acquireTokenAuthority.resolveEndpointsAsync();
         } catch (e) {
@@ -146,7 +146,7 @@ export class SPAClient extends BaseClient {
             const tokenRequest: TokenExchangeParameters = this.getCachedRequest(codeResponse.userRequestState);
 
             // Initialize authority or use default, and perform discovery endpoint check.
-            const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.authority;
+            const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthority;
             if (!acquireTokenAuthority.discoveryComplete()) {
                 try {
                     await acquireTokenAuthority.resolveEndpointsAsync();
@@ -202,7 +202,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Initialize authority or use default, and perform discovery endpoint check.
-            const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.authority;
+            const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
             if (!acquireTokenAuthority.discoveryComplete()) {
                 try {
                     await acquireTokenAuthority.resolveEndpointsAsync();
@@ -274,7 +274,7 @@ export class SPAClient extends BaseClient {
         } catch (e) {}
 
         // Acquire token authorities.
-        const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.authority;
+        const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthority;
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
                 await acquireTokenAuthority.resolveEndpointsAsync();

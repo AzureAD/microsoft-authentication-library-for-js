@@ -42,7 +42,7 @@ export abstract class BaseClient {
     protected account: Account;
 
     // Default authority object
-    protected authority: Authority;
+    protected defaultAuthority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -64,7 +64,7 @@ export abstract class BaseClient {
         this.networkClient = this.config.networkInterface;
 
         // Default authority instance.
-        this.authority = this.config.authOptions.authority;
+        this.defaultAuthority = this.config.authOptions.authority;
     }
 
     /**
