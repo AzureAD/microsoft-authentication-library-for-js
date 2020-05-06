@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "npm link @azure/msal-common && tsdx build",
     "build:modules:watch": "tsdx watch --verbose",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
@@ -69,7 +69,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@azure/msal-common": "1.0.0-beta.0",
+    "@azure/msal-common": "1.0.0-beta.1",
     "axios": "^0.19.2",
     "debug": "^4.1.1"
   }
