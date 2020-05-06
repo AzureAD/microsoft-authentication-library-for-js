@@ -69,9 +69,6 @@ export abstract class BaseClient {
         // Initialize serialized cache manager
         this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
 
-        // Initialize serialized cache manager
-        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
-
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
