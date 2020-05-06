@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Configuration } from "../config/Configuration";
+import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { Authority, NetworkResponse } from "..";
@@ -17,7 +17,7 @@ import { GrantType } from "../utils/Constants";
  */
 export class RefreshTokenClient extends BaseClient {
 
-    constructor(configuration: Configuration) {
+    constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
 
