@@ -1,5 +1,5 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { AuthorizationCodeRequest, ClientConfiguration } from './../../src/index';
+import { AuthorizationCodeRequest, Configuration } from './../../src/index';
 import { TEST_CONSTANTS } from "../utils/TestConstants";
 import {
     AuthorizationCodeClient,
@@ -8,7 +8,7 @@ import {
     RefreshTokenClient,
     DeviceCodeRequest,
     RefreshTokenRequest,
-    Configuration,
+    ClientConfiguration,
 }
 from "@azure/msal-common";
 
@@ -16,14 +16,14 @@ jest.mock("@azure/msal-common");
 
 describe('PublicClientApplication', () => {
 
-    let appConfig: ClientConfiguration = {
+    let appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: TEST_CONSTANTS.AUTHORITY,
         }
     };
 
-    const expectedOauthClientConfig: Configuration = {
+    const expectedOauthClientConfig: ClientConfiguration = {
         authOptions: appConfig.auth
     };
 
