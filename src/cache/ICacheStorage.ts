@@ -10,7 +10,7 @@ export interface ICacheStorage {
     /**
      * Function to read serialized cache from disk
      */
-    getSerializedCache(): string;
+    getSerializedCache(): Promise<string>;
 
     /**
      * Function to write serialized cache to disk
