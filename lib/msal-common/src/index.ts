@@ -3,9 +3,8 @@ export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
-export { SPAConfiguration, SPAAuthOptions } from "./config/SPAConfiguration";
-export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/Configuration";
-export { Configuration } from "./config/Configuration";
+export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/ClientConfiguration";
+export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { Account } from "./account/Account";
 export { IdTokenClaims } from "./account/IdTokenClaims";
