@@ -1113,16 +1113,19 @@ export class UserAgentApplication {
                 this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
                 window.location.href = "/";
                 return;
-            } else if (currentUrl !== loginRequestUrl) {
-                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
-                if (loginRequestUrl.indexOf("#") > -1) {
-                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
-                    this.processCallBack(hash, stateInfo, null);
-                    window.location.href = loginRequestUrl;
-                } else {
+            } else {
+                if (!UrlUtils.isSamePage(currentUrl, loginRequestUrl)) {
                     window.location.href = `${loginRequestUrl}${hash}`;
+                    return;
+                } else {
+                    let loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
+                    if (loginRequestUrlComponents.Hash){
+                        window.location.hash = loginRequestUrlComponents.Hash;
+                    }
+                    if (loginRequestUrlComponents.Search){
+                        window.location.search = loginRequestUrlComponents.Search;
+                    }
                 }
-                return;
             }
         }
 

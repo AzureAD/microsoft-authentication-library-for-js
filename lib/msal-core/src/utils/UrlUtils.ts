@@ -148,7 +148,25 @@ export class UrlUtils {
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
         urlComponents.PathSegments = pathSegments;
+
+        if (match[6]){
+            urlComponents.Search = match[6]
+        }
+        if (match[8]){
+            urlComponents.Hash = match[8]
+        }
+        
         return urlComponents;
+    }
+
+    static isSamePage(url1: string, url2: string){
+        let urlComponents1 = UrlUtils.GetUrlComponents(url1);
+        let urlComponents2 = UrlUtils.GetUrlComponents(url2);
+
+        let urlPath1 = urlComponents1.HostNameAndPort + urlComponents1.AbsolutePath;
+        let urlPath2 = urlComponents2.HostNameAndPort + urlComponents2.AbsolutePath;
+
+        return urlPath1 === urlPath2;
     }
 
     /**
