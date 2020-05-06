@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 import { Configuration, buildConfiguration } from "../config/Configuration";
-import { ICacheStorage } from "../cache/ICacheStorage";
-import { CacheHelpers } from "../cache/CacheHelpers";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
+import { CacheHelpers } from "../cache/spacache/CacheHelpers";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Account } from "../account/Account";
@@ -15,8 +15,8 @@ import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
-import { Serializer } from "../unifiedCache/serialize/Serializer";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
+import { Serializer } from "../cache/serialize/Serializer";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.

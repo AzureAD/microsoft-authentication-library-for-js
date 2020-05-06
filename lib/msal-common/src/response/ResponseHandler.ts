@@ -11,16 +11,16 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { IdToken } from "../account/IdToken";
-import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
 import { AuthorityType } from "../authority/AuthorityType";
-import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
-import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 
 /**
  * Class that handles response parsing.
@@ -98,24 +98,7 @@ export class ResponseHandler {
      * @param state
      */
     generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
-        // Retrieve current account if in Cache
-        // TODO: add this once the req for cache look up for tokens is confirmed
-
-        const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
-
-        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
-
-        return authenticationResult;
-    }
-
-    /**
-     * Returns a new AuthenticationResult with the data from original result filled with the relevant data.
-     * @param authenticationResult
-     * @param idTokenString(raw idToken in the server response)
-     */
-    processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
-        const authenticationResult: AuthenticationResult = {
+        let authenticationResult: AuthenticationResult = {
             uniqueId: "",
             tenantId: "",
             tokenType: "",
@@ -127,11 +110,7 @@ export class ResponseHandler {
             familyId: null
         };
 
-        // IdToken
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
-
-        // if account is not in cache, append it to the cache
-        this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
 
         // TODO: Check how this changes for auth code response
         const expiresSeconds = Number(idTokenObj.claims.exp);
@@ -145,18 +124,25 @@ export class ResponseHandler {
         // Set consented scopes in response
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
-        return {
-            ...authenticationResult,
+        authenticationResult = { ...authenticationResult,
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
-            expiresOn: new Date(expiresInSeconds),
-            extExpiresOn: new Date(extendedExpiresInSeconds),
+            expiresOn: new Date(expiresInSeconds* 1000),
+            extExpiresOn: new Date(extendedExpiresInSeconds * 1000),
             scopes: responseScopes.asArray(),
             familyId: serverTokenResponse.foci,
         };
+
+
+        // if account is not in cache, append it to the cache
+        this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
+        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
+
+        return authenticationResult;
     }
 
     /**

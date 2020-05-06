@@ -2,8 +2,8 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { SPAResponseHandler } from "../../src/response/SPAResponseHandler";
 import { TEST_CONFIG, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
-import { CacheHelpers } from "../../src/cache/CacheHelpers";
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
+import { CacheHelpers } from "../../src/cache/spacache/CacheHelpers";
+import { ICacheStorage } from "../../src/cache/interface/ICacheStorage";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Logger, LogLevel } from "../../src/logger/Logger";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
@@ -19,8 +19,8 @@ import { CodeResponse } from "../../src";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { InteractionRequiredAuthErrorMessage, InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
-import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
-import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
+import { AccessTokenKey } from "../../src/cache/spacache/AccessTokenKey";
+import { AccessTokenValue } from "../../src/cache/spacache/AccessTokenValue";
 
 describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
@@ -33,6 +33,12 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
     let testAccount: Account;
     beforeEach(() => {
         cacheStorage = {
+            async getSerializedCache(): Promise<string> {
+                return "";
+            },
+            setSerializedCache(): void {
+                // placeholder
+            },
             setItem(key: string, value: string): void {
                 store[key] = value;
             },
@@ -166,9 +172,15 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
     describe("handleServerCodeResponse()", () => {
 
-        let spaResponseHandler: SPAResponseHandler;
+        let responseHandler: SPAResponseHandler;
         beforeEach(() => {
-            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheStorage,
+                cacheHelpers,
+                cryptoInterface,
+                logger
+            );
         });
 
         it("throws state mismatch error if cached state does not match hash state", () => {
@@ -179,11 +191,15 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.stateMismatchError.desc);
+            expect(() =>
+                responseHandler.handleServerCodeResponse(testServerParams)
+            ).to.throw(ClientAuthErrorMessage.stateMismatchError.desc);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
+            expect(() =>
+                responseHandler.handleServerCodeResponse(testServerParams)
+            ).to.throw(ClientAuthError);
             expect(store).to.be.empty;
         });
 
@@ -197,11 +213,15 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            expect(() =>
+                responseHandler.handleServerCodeResponse(testServerParams)
+            ).to.throw(TEST_ERROR_MSG);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ServerError);
+            expect(() =>
+                responseHandler.handleServerCodeResponse(testServerParams)
+            ).to.throw(ServerError);
             expect(store).to.be.empty;
         });
 
@@ -233,13 +253,23 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 throw "decoding error";
             };
-            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheStorage,
+                cacheHelpers,
+                cryptoInterface,
+                logger
+            );
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+            expect(() =>
+                responseHandler.handleServerCodeResponse(testServerParams)
+            ).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
+            expect(() =>
+                responseHandler.handleServerCodeResponse(testServerParams)
+            ).to.throw(ClientAuthError);
             expect(store).to.be.empty;
         });
 
@@ -258,9 +288,17 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            responseHandler = new SPAResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheStorage,
+                cacheHelpers,
+                cryptoInterface,
+                logger
+            );
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            const codeResponse: CodeResponse = spaResponseHandler.handleServerCodeResponse(testServerParams);
+            const codeResponse: CodeResponse = responseHandler.handleServerCodeResponse(
+                testServerParams
+            );
             expect(codeResponse).to.be.not.null;
             expect(codeResponse.code).to.be.eq(testServerParams.code);
             expect(codeResponse.userRequestState).to.be.eq(testServerParams.state);
@@ -434,7 +472,7 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
                 resource: testResource,
-                homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID 
+                homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
             };
             const atValue: AccessTokenValue = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
@@ -445,12 +483,12 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
             };
             cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
-            responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             const expectedScopes = [...TEST_CONFIG.DEFAULT_SCOPES, "user.read"]
             const expectedTokenResponse: TokenResponse = {
                 uniqueId: idToken.claims.oid,
                 tenantId: idToken.claims.tid,
-                scopes: expectedScopes, 
+                scopes: expectedScopes,
                 tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 idToken: idToken.rawIdToken,
                 idTokenClaims: idToken.claims,
@@ -469,12 +507,12 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2
             };
-            
+
             cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
             expect(cacheStorage.getKeys().length).to.be.eq(4);
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID);
+            const tokenResponse = spaResponseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID);
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
             expect(tokenResponse.scopes).to.be.deep.eq(expectedTokenResponse.scopes);

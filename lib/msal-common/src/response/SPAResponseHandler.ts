@@ -3,20 +3,20 @@
  * Licensed under the MIT License.
  */
 import { IdToken } from "../account/IdToken";
-import { CacheHelpers } from "../cache/CacheHelpers";
+import { CacheHelpers } from "../cache/spacache/CacheHelpers";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { Account } from "../account/Account";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
 import { PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { TimeUtils } from "../utils/TimeUtils";
-import { AccessTokenKey } from "../cache/AccessTokenKey";
-import { AccessTokenValue } from "../cache/AccessTokenValue";
+import { AccessTokenKey } from "../cache/spacache/AccessTokenKey";
+import { AccessTokenValue } from "../cache/spacache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { CodeResponse } from "./CodeResponse";

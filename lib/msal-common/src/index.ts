@@ -13,10 +13,10 @@ export { IdTokenClaims } from "./account/IdTokenClaims";
 export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
-export { ICacheStorage } from "./cache/ICacheStorage";
-export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
-export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
-export { Serializer } from "./unifiedCache/serialize/Serializer";
+export { ICacheStorage } from "./cache/interface/ICacheStorage";
+export { UnifiedCacheManager } from "./cache/UnifiedCacheManager";
+export { JsonCache, InMemoryCache } from "./cache/utils/CacheTypes";
+export { Serializer } from "./cache/serialize/Serializer";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";

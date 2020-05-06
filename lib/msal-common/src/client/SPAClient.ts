@@ -19,7 +19,7 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
+import { AccessTokenCacheItem } from "../cache/spacache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
