@@ -159,6 +159,12 @@ export class UrlUtils {
         return urlComponents;
     }
 
+    /**
+     * Given 2 urls determine if they are on the same the same path
+     *
+     * @param url1
+     * @param url2
+     */
     static isSamePage(url1: string, url2: string){
         let urlComponents1 = UrlUtils.GetUrlComponents(url1);
         let urlComponents2 = UrlUtils.GetUrlComponents(url2);
