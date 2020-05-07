@@ -1111,11 +1111,11 @@ export class UserAgentApplication {
             // Redirect to home page if login request url is null (real null or the string null)
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                window.location.href = "/";
+                window.location.assign("/");
                 return;
             } else {
                 if (!UrlUtils.isSamePage(currentUrl, loginRequestUrl)) {
-                    window.location.href = `${loginRequestUrl}${hash}`;
+                    window.location.assign(`${loginRequestUrl}${hash}`);
                     return;
                 } else {
                     let loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
