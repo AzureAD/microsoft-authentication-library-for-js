@@ -1115,7 +1115,8 @@ export class UserAgentApplication {
                 return;
             } else {
                 if (!UrlUtils.isSamePage(currentUrl, loginRequestUrl)) {
-                    window.location.assign(`${loginRequestUrl}${hash}`);
+                    let finalRedirectUrl = UrlUtils.getBaseUrl(loginRequestUrl);
+                    window.location.assign(`${finalRedirectUrl}${hash}`);
                     return;
                 } else {
                     let loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);

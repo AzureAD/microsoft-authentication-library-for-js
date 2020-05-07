@@ -1273,16 +1273,17 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
         });
 
-        it("tests navigation to loginRequestUrl inc. user hash after first redirect", function(done) {
+        it("tests navigation to loginRequestUrl after first redirect", function(done) {
             config.auth.navigateToLoginRequestUrl = true;
-            const loginStartPage = "http://localhost:8081/test/#testHash"
+            const baseStartUrl = "http://localhost:8081/test/"
+            const loginStartPage = baseStartUrl + "#testHash"
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location = {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.equal(loginStartPage + successHash);
+                        expect(url).to.equal(baseStartUrl + successHash);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -1303,14 +1304,15 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests navigation to loginRequestUrl inc. user querystring after first redirect", function(done) {
             config.auth.navigateToLoginRequestUrl = true;
-            const loginStartPage = "http://localhost:8081/test/?testKey=testVal"
+            const baseStartUrl = "http://localhost:8081/test/"
+            const loginStartPage = baseStartUrl + "?testKey=testVal"
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location = {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.equal(loginStartPage + successHash);
+                        expect(url).to.equal(baseStartUrl + successHash);
                         done();
                     } catch (e) {
                         console.error(e);

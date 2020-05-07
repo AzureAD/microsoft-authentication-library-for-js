@@ -103,6 +103,13 @@ export class UrlUtils {
     }
 
     /**
+     * Returns given URL with hash and query string removed
+     */
+    static getBaseUrl(url: string): string {
+        return url.split("?")[0].split("#")[0];
+    }
+
+    /**
      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
      * @param href The url
      * @param tenantId The tenant id to replace
