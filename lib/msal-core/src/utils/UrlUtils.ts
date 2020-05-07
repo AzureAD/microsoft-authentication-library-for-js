@@ -173,13 +173,10 @@ export class UrlUtils {
      * @param url2
      */
     static isSamePage(url1: string, url2: string){
-        let urlComponents1 = UrlUtils.GetUrlComponents(url1);
-        let urlComponents2 = UrlUtils.GetUrlComponents(url2);
+        let baseUrl1 = UrlUtils.getBaseUrl(url1);
+        let baseUrl2 = UrlUtils.getBaseUrl(url2);
 
-        let urlPath1 = urlComponents1.HostNameAndPort + urlComponents1.AbsolutePath;
-        let urlPath2 = urlComponents2.HostNameAndPort + urlComponents2.AbsolutePath;
-
-        return urlPath1 === urlPath2;
+        return baseUrl1 === baseUrl2;
     }
 
     /**
