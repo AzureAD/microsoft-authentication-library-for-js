@@ -35,6 +35,7 @@ There may be some small differences in the configuration object that is passed i
 Request and response object signatures have changed - `acquireTokenSilent` now has a separate object signature from the interactive APIs. Please see [here](./request-response-object.md) for more information on configuring the request APIs. 
 
 Most APIs from MSAL 1.x have been carried forward to MSAL 2.x without change. Some functions have been removed:
+- `handleRedirectCallback`
 - `urlContainsHash`
 - `getCurrentConfiguration`
 - `getLoginInProgress`
@@ -42,32 +43,32 @@ Most APIs from MSAL 1.x have been carried forward to MSAL 2.x without change. So
 - `getAccountState`
 - `isCallback`
 
-In MSAL 2.x, handling the response from the hash is an asynchronous operation, as MSAL will perform a token exchange as soon as it parses the authorization code from the response. Because of this, when performing redirect calls, MSAL provides the `handleRedirectCallback` function which will return the response to your defined callback when the token exchange has completed. 
+In MSAL 2.x, handling the response from the hash is an asynchronous operation, as MSAL will perform a token exchange as soon as it parses the authorization code from the response. Because of this, when performing redirect calls, MSAL provides the `handleRedirectPromise` function which will return a promise that resolves when the redirect has been fully handled by MSAL.
 
 ```javascript
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
 // Register Callbacks for Redirect flow
-myMSALObj.handleRedirectCallback(authRedirectCallBack);
-
-function authRedirectCallBack(error, response) {
-    if (error) {
-        console.log(error);
+myMSALObj.handleRedirectPromise().then((tokenResponse) => {
+    const accountObj = tokenResponse ? tokenResponse.account : myMSALObj.getAccount();
+    if (accountObj) {
+        // Account object was retrieved, continue with app progress
+        console.log('id_token acquired at: ' + new Date().toString());
+    } else if (tokenResponse && tokenResponse.tokenType === "Bearer") {
+        // No account object available, but access token was retrieved
+        console.log('access_token acquired at: ' + new Date().toString());
+    } else if (tokenResponse === null) {
+        // tokenResponse was null, attempt sign in or enter unauthenticated state for app
+        signIn();
     } else {
-        if (myMSALObj.getAccount()) {
-            console.log('acquired at: ' + new Date().toString());
-            showWelcomeMessage(myMSALObj.getAccount());
-        }
-        if (response.tokenType === "Bearer") {
-            console.log('access_token acquired at: ' + new Date().toString());
-        } else {
-            console.log("token type is:" + response.tokenType);
-        }
+        console.log("tokenResponse was not null but did not have any tokens: " + tokenResponse);
     }
-}
+}).catch((error) => {
+    console.log(error);
+});
 
-async function signIn(method) {
-    myMSALObj.loginRedirect(loginRequest)
+async function signIn() {
+    myMSALObj.loginRedirect(loginRequest);
 }
 
 async function getTokenRedirect(request) {
@@ -85,9 +86,12 @@ During `loginPopup`, `acquireTokenPopup`, or `acquireTokenSilent` calls, you can
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
 async function signIn(method) {
-    const loginResponse = await myMSALObj.loginPopup(loginRequest).catch(function (error) {
+    try {
+        const loginResponse = await myMSALObj.loginPopup(loginRequest);
+    } catch (err) {
         console.log(error);
-    });
+    }
+
     if (myMSALObj.getAccount()) {
         showWelcomeMessage(myMSALObj.getAccount());
     }

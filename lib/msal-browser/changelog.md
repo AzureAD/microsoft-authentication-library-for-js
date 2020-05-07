@@ -1,3 +1,14 @@
+# 2.0.0-beta.1
+## Features
+* Added a silent iframe flow in the @azure/msal-browser package (#1451)
+    * Includes an ssoSilent() API to acquire tokens silently with a user context (loginHint)
+
+## Bugs
+* Fixed an issue where TokenResponse is not exported
+
+## Enhancements
+* handleRedirectCallback flow was modified, will be deprecated in favor of handleRedirectPromise(), added log message (#1490, #1543)
+
 # 2.0.0-beta.0
 ## Features
 * Removed client_secret from config and added docs for new registration experience (#1421)
