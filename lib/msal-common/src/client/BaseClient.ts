@@ -14,6 +14,7 @@ import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { B2cAuthority } from "../authority/B2cAuthority";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -63,7 +64,8 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        // Default authority instance.
+        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
+
         this.defaultAuthority = this.config.authOptions.authority;
     }
 
