@@ -29,7 +29,7 @@ async function seeProfile() {
     }
 }
 
-async function readMail() {
+async function acquireSecondToken() {
     if (myMSALObj.getAccount()) {
         const response = await getTokenPopup(tokenRequest).catch(error => {
             console.log(error);

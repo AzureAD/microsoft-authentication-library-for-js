@@ -33,14 +33,14 @@
     <div id="card-div" class="col-md-3" style="display:none">
     <div class="card text-center">
       <div class="card-body">
-        <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
+        <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile</h5>
         <div id="profile-div"></div>
         <br>
         <br>
         <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
         <br>
         <br>
-        <button class="btn btn-primary" id="readMail" onclick="readMail()">Read Mails</button>
+        <button class="btn btn-primary" id="readMail" onclick="acquireSecondToken()">Acquire Token for Second Resource</button>
       </div>
     </div>
     </div>
@@ -64,5 +64,9 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     
     <!-- TODO: Import app scripts, order is important -->
+    <script type="text/javascript" src="./authConfig.js"></script>
+    <script type="text/javascript" src="./ui.js"></script>  
+    <script type="text/javascript" src="./auth.js"></script>
+    <script type="text/javascript" src="./graph.js"></script>
   </body>
 </html>
