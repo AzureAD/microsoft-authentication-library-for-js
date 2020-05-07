@@ -13,6 +13,7 @@ const msalConfig = {
     auth: {
         clientId: "enter_client_id_here",
         authority: "https://login.microsoftonline.com/common",
+        knownAuthorities: [],
         redirectUri: "enter_redirect_uri_here",
         postLogoutRedirectUri: "enter_postlogout_uri_here",
         navigateToLoginRequestUrl: true
@@ -44,7 +45,9 @@ const msalConfig = {
             },
             piiLoggingEnabled: false
         },
-        windowHashTimeout: 60000
+        windowHashTimeout: 60000,
+        iframeHashTimeout: 6000,
+        loadFrameTimeout: 0
     };
 }
 
@@ -58,6 +61,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | ------ | ----------- | ------ | ------------- |
 | `clientId` | App ID of your application. Can be found in your [portal registration](../README#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
+| `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
@@ -72,7 +76,9 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
-| `windowHashTimeout` | Timeout in milliseconds to wait for popup or iframe authentication to resolve. | integer (milliseconds) | `60000` |
+| `windowHashTimeout` | Timeout in milliseconds to wait for popup authentication to resolve. | integer (milliseconds) | `60000` |
+| `iframeHashTimeout` | Timeout in milliseconds to wait for iframe authentication to resolve | integer (milliseconds) | `6000` |
+| `loadFrameTimeout` | Timeout in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
 
 ### Logger Config Options
 | Option | Description | Format | Default Value |
