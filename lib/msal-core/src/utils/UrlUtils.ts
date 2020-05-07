@@ -173,8 +173,8 @@ export class UrlUtils {
      * @param url2
      */
     static isSamePage(url1: string, url2: string){
-        let baseUrl1 = UrlUtils.getBaseUrl(url1);
-        let baseUrl2 = UrlUtils.getBaseUrl(url2);
+        const baseUrl1 = UrlUtils.getBaseUrl(url1);
+        const baseUrl2 = UrlUtils.getBaseUrl(url2);
 
         return baseUrl1 === baseUrl2;
     }

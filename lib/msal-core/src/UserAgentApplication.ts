@@ -1115,11 +1115,11 @@ export class UserAgentApplication {
                 return;
             } else {
                 if (!UrlUtils.isSamePage(currentUrl, loginRequestUrl)) {
-                    let finalRedirectUrl = UrlUtils.getBaseUrl(loginRequestUrl);
+                    const finalRedirectUrl = UrlUtils.getBaseUrl(loginRequestUrl);
                     window.location.assign(`${finalRedirectUrl}${hash}`);
                     return;
                 } else {
-                    let loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
+                    const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
                     if (loginRequestUrlComponents.Hash){
                         window.location.hash = loginRequestUrlComponents.Hash;
                     }
