@@ -46,7 +46,7 @@ export class AccountEntity {
      * @param policy
      */
     static createAccount(clientInfo: string, authority: Authority, idToken: IdToken, policy: string, crypto: ICrypto): AccountEntity {
-        let account: AccountEntity;
+        const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
@@ -80,7 +80,7 @@ export class AccountEntity {
      * @param idToken
      */
     static createADFSAccount(authority: Authority, idToken: IdToken): AccountEntity {
-        let account: AccountEntity;
+        const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;

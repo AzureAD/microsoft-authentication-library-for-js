@@ -108,9 +108,9 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
     describe("Constructor", () => {
 
-        it("Correctly creates a ResponseHandler object", () => {
-            const responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            expect(responseHandler instanceof SPAResponseHandler).to.be.true;
+        it("Correctly creates a SPAResponseHandler object", () => {
+            const spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            expect(spaResponseHandler instanceof SPAResponseHandler).to.be.true;
         });
     });
 
@@ -166,9 +166,9 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
     describe("handleServerCodeResponse()", () => {
 
-        let responseHandler: SPAResponseHandler;
+        let spaResponseHandler: SPAResponseHandler;
         beforeEach(() => {
-            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
         });
 
         it("throws state mismatch error if cached state does not match hash state", () => {
@@ -179,11 +179,11 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.stateMismatchError.desc);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.stateMismatchError.desc);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
             expect(store).to.be.empty;
         });
 
@@ -197,11 +197,11 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(ServerError);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ServerError);
             expect(store).to.be.empty;
         });
 
@@ -233,13 +233,13 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 throw "decoding error";
             };
-            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
             expect(store).to.be.empty;
         });
 
@@ -258,9 +258,9 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-            responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            const codeResponse: CodeResponse = responseHandler.handleServerCodeResponse(testServerParams);
+            const codeResponse: CodeResponse = spaResponseHandler.handleServerCodeResponse(testServerParams);
             expect(codeResponse).to.be.not.null;
             expect(codeResponse.code).to.be.eq(testServerParams.code);
             expect(codeResponse.userRequestState).to.be.eq(testServerParams.state);
@@ -279,9 +279,9 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 correlation_id: RANDOM_TEST_GUID
             };
 
-            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
-            expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
+            const spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            expect(() => spaResponseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
+            expect(() => spaResponseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
         });
     });
 
@@ -372,7 +372,6 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                         return input;
                 }
             };
-
             const testAccount2: Account = {
                 ...testAccount,
                 accountIdentifier: RANDOM_TEST_GUID,

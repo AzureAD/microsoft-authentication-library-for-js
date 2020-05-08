@@ -11,9 +11,11 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {NetworkResponse} from "../network/NetworkManager";
-import {ScopeSet} from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ScopeSet } from "../request/ScopeSet";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -45,13 +47,29 @@ export class AuthorizationCodeClient extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
+    async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
 
         this.logger.info("in acquireToken call");
+
         const authority: Authority = await this.createAuthority(request && request.authority);
         const response = await this.executeTokenRequest(authority, request);
-        return JSON.stringify(response.body);
-        // TODO add response_handler here to send the response
+
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.unifiedCacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        responseHandler.validateTokenResponse(response.body);
+        const tokenResponse = await responseHandler.generateAuthenticationResult(
+            response.body,
+            authority
+        );
+
+        // set the final cache and return the auth response
+        this.setCache();
+        return tokenResponse;
     }
 
     /**

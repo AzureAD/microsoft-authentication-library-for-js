@@ -8,12 +8,14 @@
  */
 export interface ICacheStorage {
     /**
-     * Function to read serialized cache from disk
+     * Function to read serialized Cache from disk
+     * @param key
+     * @param value
      */
     getSerializedCache(): Promise<string>;
 
     /**
-     * Function to write serialized cache to disk
+     * Function to write serialized Cache to disk
      * @param cache
      */
     setSerializedCache(cache: string): void;

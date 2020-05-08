@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InMemoryCache, JsonCache } from "./utils/CacheTypes";
+import { InMemoryCache, JsonCache  } from "./utils/CacheTypes";
 import { Separators } from "../utils/Constants";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
 import { IdTokenEntity } from "./entities/IdTokenEntity";
@@ -15,15 +15,19 @@ import { Serializer } from "./serialize/Serializer";
 import { AccountCache } from "./utils/CacheTypes";
 
 export class UnifiedCacheManager {
+
     // Storage interface
     private inMemoryCache: InMemoryCache;
     private cacheStorage: ICacheStorage;
 
     constructor(cacheImpl: ICacheStorage) {
         this.cacheStorage = cacheImpl;
-        this.inMemoryCache = this.generateInMemoryCache(
-            this.cacheStorage.getSerializedCache()
-        );
+        this.readSerializedCache();
+    }
+
+    async readSerializedCache(): Promise<void> {
+        const serializedCache = await this.cacheStorage.getSerializedCache();
+        this.inMemoryCache = this.generateInMemoryCache(serializedCache);
     }
 
     /**
@@ -44,9 +48,7 @@ export class UnifiedCacheManager {
      * Initialize in memory cache from an exisiting cache vault
      */
     generateInMemoryCache(cache: string): InMemoryCache {
-        return Deserializer.deserializeAllCache(
-            Deserializer.deserializeJSONBlob(cache)
-        );
+        return Deserializer.deserializeAllCache(Deserializer.deserializeJSONBlob(cache));
     }
 
     /**
@@ -69,20 +71,14 @@ export class UnifiedCacheManager {
      * @param environment
      * @param realm
      */
-    getAccount(
-        homeAccountId: string,
-        environment: string,
-        realm: string
-    ): AccountEntity {
+    getAccount(homeAccountId: string, environment: string, realm: string): AccountEntity {
         const accountCacheKey: Array<string> = [
             homeAccountId,
             environment,
-            realm,
+            realm
         ];
 
-        const accountKey = accountCacheKey
-            .join(Separators.CACHE_KEY_SEPARATOR)
-            .toLowerCase();
+        const accountKey = accountCacheKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
 
         return this.inMemoryCache.accounts[accountKey] || null;
     }
