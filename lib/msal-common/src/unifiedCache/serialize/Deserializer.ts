@@ -9,26 +9,13 @@ import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { CacheHelper } from "../utils/CacheHelper";
-import {
-    AccountCacheMaps,
-    IdTokenCacheMaps,
-    AccessTokenCacheMaps,
-    RefreshTokenCacheMaps,
-    AppMetadataCacheMaps,
-} from "../serialize/JsonKeys";
-import {
-    AccountCache,
-    IdTokenCache,
-    AccessTokenCache,
-    RefreshTokenCache,
-    AppMetadataCache,
-    InMemoryCache,
-    JsonCache,
-} from "../utils/CacheTypes";
+import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "../serialize/JsonKeys";
+import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, InMemoryCache, JsonCache } from "../utils/CacheTypes";
 import { StringDict } from "../../utils/MsalTypes";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
+
     /**
      * Parse the JSON blob in memory and deserialize the content
      * @param cachedJson

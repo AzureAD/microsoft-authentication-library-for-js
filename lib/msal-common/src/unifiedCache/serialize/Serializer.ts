@@ -6,8 +6,10 @@
 import { CacheHelper } from "../utils/CacheHelper";
 import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
 import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, JsonCache, InMemoryCache } from "../utils/CacheTypes";
+import { StringDict } from "../../utils/MsalTypes";
 
 export class Serializer {
+
     /**
      * serialize the JSON blob
      * @param data
@@ -20,7 +22,7 @@ export class Serializer {
      * Serialize Accounts
      * @param accCache
      */
-    static serializeAccounts(accCache: AccountCache) {
+    static serializeAccounts(accCache: AccountCache): StringDict {
         const accounts = {};
         Object.keys(accCache).map(function (key) {
             const mappedAcc = CacheHelper.renameKeys(
@@ -37,7 +39,7 @@ export class Serializer {
      * Serialize IdTokens
      * @param idTCache
      */
-    static serializeIdTokens(idTCache: IdTokenCache) {
+    static serializeIdTokens(idTCache: IdTokenCache): StringDict{
         const idTokens = {};
         Object.keys(idTCache).map(function (key) {
             const mappedIdT = CacheHelper.renameKeys(
@@ -54,7 +56,7 @@ export class Serializer {
      * Serializes AccessTokens
      * @param atCache
      */
-    static serializeAccessTokens(atCache: AccessTokenCache) {
+    static serializeAccessTokens(atCache: AccessTokenCache): StringDict {
         // access tokens
         const accessTokens = {};
         Object.keys(atCache).map(function (key) {
@@ -72,7 +74,7 @@ export class Serializer {
      * Serialize refreshTokens
      * @param rtCache
      */
-    static serializeRefreshTokens(rtCache: RefreshTokenCache) {
+    static serializeRefreshTokens(rtCache: RefreshTokenCache): StringDict{
         const refreshTokens = {};
         Object.keys(rtCache).map(function (key) {
             const mappedRT = CacheHelper.renameKeys(
@@ -89,7 +91,7 @@ export class Serializer {
      * Serialize amdtCache
      * @param amdtCache
      */
-    static serializeAppMetadata(amdtCache: AppMetadataCache) {
+    static serializeAppMetadata(amdtCache: AppMetadataCache): StringDict {
         const appMetadata = {};
         Object.keys(amdtCache).map(function (key) {
             const mappedAmdt = CacheHelper.renameKeys(

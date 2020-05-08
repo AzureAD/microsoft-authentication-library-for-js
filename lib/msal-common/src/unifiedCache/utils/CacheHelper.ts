@@ -3,15 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "../../utils/MsalTypes";
-
 export class CacheHelper {
     /**
      * Helper to convert serialized data to object
      * @param obj
      * @param json
      */
-    static toObject<T>(obj: T, json: StringDict): T {
+    static toObject<T>(obj: T, json: object): T {
         for (const propertyName in json) {
             obj[propertyName] = json[propertyName];
         }
@@ -22,7 +20,7 @@ export class CacheHelper {
      * helper function to swap keys and objects
      * @param cacheMap
      */
-    static swap(cacheMap: object) {
+    static swap(cacheMap: object): object {
         const ret = {};
         for (const key in cacheMap) {
             ret[cacheMap[key]] = key;
@@ -35,7 +33,7 @@ export class CacheHelper {
      * @param objAT
      * @param keysMap
      */
-    static renameKeys(objAT: Object, keysMap: Object) {
+    static renameKeys(objAT: Object, keysMap: Object): object {
         const keyValues = Object.keys(objAT).map((key) => {
             if (objAT[key]) {
                 const newKey = keysMap[key] || key;

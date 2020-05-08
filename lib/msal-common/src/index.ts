@@ -1,6 +1,6 @@
 // App Auth Modules and Configuration
 export { SPAClient } from "./client/SPAClient";
-export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
+export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/ClientConfiguration";
@@ -13,6 +13,9 @@ export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
+export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
+export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
+export { Serializer } from "./unifiedCache/serialize/Serializer";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";
@@ -43,3 +46,4 @@ export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./err
 // Constants and Utils
 export { Constants, PromptValue, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
+export { StringDict } from "./utils/MsalTypes";
