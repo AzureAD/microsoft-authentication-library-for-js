@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEntity";
-import { AppMetadataValues } from "./cacheConstants";
+import { AppMetadataEntity } from "../../../src/unifiedCache/entities/AppMetadataEntity";
+import { mockAppMetaDataEntity } from "./cacheConstants";
 
 describe("AppMetadataEntity.ts Unit Tests", () => {
     it("Verify an AppMetadataEntity", () => {
@@ -10,7 +10,7 @@ describe("AppMetadataEntity.ts Unit Tests", () => {
 
     it("Create an AppMetadataEntity", () => {
         let appM = new AppMetadataEntity();
-        Object.assign(appM, AppMetadataValues);
+        Object.assign(appM, mockAppMetaDataEntity);
         expect(appM.generateAppMetaDataEntityKey()).to.eql(
             "appmetadata-login.microsoftonline.com-mock_client_id"
         );

@@ -9,13 +9,14 @@ import {
     AuthorizationCodeRequest,
     ClientConfiguration,
     RefreshTokenClient,
-    RefreshTokenRequest
+    RefreshTokenRequest,
+    AuthenticationResult
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { Constants } from "./../utils/Constants";
+import { Constants } from './../utils/Constants';
 
 export abstract class ClientApplication {
 
@@ -76,7 +77,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
-    ): Promise<string> {
+    ): Promise<AuthenticationResult> {
         const authorizationCodeClient = new AuthorizationCodeClient(
             this.buildOauthClientConfiguration()
         );
@@ -108,7 +109,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
+            storageInterface: new Storage(this.config.cache!),
             libraryInfo: {
                 sku: Constants.MSAL_SKU,
                 version: version,

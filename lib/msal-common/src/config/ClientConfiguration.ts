@@ -134,6 +134,14 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     setItem: () => {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
+    },
+    getSerializedCache: (): Promise<string> => {
+        const notImplErr = "Storage interface - getSerializedCache() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    setSerializedCache: () => {
+        const notImplErr = "Storage interface - setSerializedCache() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 

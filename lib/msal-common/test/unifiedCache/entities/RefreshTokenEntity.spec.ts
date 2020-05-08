@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { RefreshTokenEntity } from "../../src/unifiedCache/entities/RefreshTokenEntity";
-import { RTValues, RTValuesWithFamilyId } from "./cacheConstants";
+import { RefreshTokenEntity } from "../../../src/unifiedCache/entities/RefreshTokenEntity";
+import { mockRefreshTokenEntity, mockRefreshTokenEntityWithFamilyId } from "./cacheConstants";
 
 describe("RefreshTokenEntity.ts Unit Tests", () => {
     it("Verify a RefreshTokenEntity", () => {
@@ -10,7 +10,7 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
 
     it("Create a RefreshTokenEntity", () => {
         let rt = new RefreshTokenEntity();
-        Object.assign(rt, RTValues);
+        Object.assign(rt, mockRefreshTokenEntity);
         expect(rt.generateRefreshTokenEntityKey()).to.eql(
             "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id--"
         );
@@ -18,7 +18,7 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
 
     it("Create a RefreshTokenEntity with familyId", () => {
         let rt = new RefreshTokenEntity();
-        Object.assign(rt, RTValuesWithFamilyId);
+        Object.assign(rt, mockRefreshTokenEntityWithFamilyId);
         expect(rt.generateRefreshTokenEntityKey()).to.eql(
             "uid.utid-login.microsoftonline.com-refreshtoken-1--"
         );
