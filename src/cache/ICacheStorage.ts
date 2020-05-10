@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { InMemoryCache } from '../unifiedCache/utils/CacheTypes';
+
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  */
@@ -12,13 +14,13 @@ export interface ICacheStorage {
      * @param key
      * @param value
      */
-    getSerializedCache(): Promise<string>;
+    getCache(): InMemoryCache;
 
     /**
      * Function to write serialized Cache to disk
      * @param cache
      */
-    setSerializedCache(cache: string): void;
+    setCache(cache: InMemoryCache): void;
 
     /**
      * Function to set item in cache.
