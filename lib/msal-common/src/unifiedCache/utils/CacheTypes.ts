@@ -32,3 +32,8 @@ export type InMemoryCache = {
     refreshTokens: RefreshTokenCache;
     appMetadata: AppMetadataCache;
 };
+
+export type ClientCache = {
+    serializedCache: string,
+    inMemoryCache: InMemoryCache
+}

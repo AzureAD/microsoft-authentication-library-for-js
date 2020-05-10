@@ -11,7 +11,7 @@ export class CacheManager {
      * Read contents of the cache blob to in memoryCache
      * @param cachePath
      */
-    async readFromFile(cacheLocation: string): Promise<string> {
+    static async readFromFile(cacheLocation: string): Promise<string> {
         return await fs.readFile(cacheLocation, 'utf8');
     }
 
@@ -19,7 +19,7 @@ export class CacheManager {
      * Create the JSON file
      * @param jsonContent
      */
-    async writeToFile(cachePath: string, cache: string) {
+    static async writeToFile(cachePath: string, cache: string) {
         await fs.writeFile(cachePath, cache, 'utf8');
     }
 }

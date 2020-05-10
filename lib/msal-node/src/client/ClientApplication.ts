@@ -10,17 +10,22 @@ import {
     ClientConfiguration,
     RefreshTokenClient,
     RefreshTokenRequest,
-    AuthenticationResult
+    AuthenticationResult,
+    Serializer,
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants } from './../utils/Constants';
+import { CacheContext } from '../cache/CacheContext';
+import { CacheManager } from '../cache/CacheManager'
 
 export abstract class ClientApplication {
 
     protected config: Configuration;
+    protected cacheContext: CacheContext;
+    protected storage: Storage;
 
     /**
      * @constructor
@@ -44,6 +49,8 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
+        this.storage = new Storage(this.config.cache!);
+        this.cacheContext = new CacheContext();
     }
 
     /**
@@ -109,7 +116,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: new CryptoProvider(),
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(this.config.cache!),
+            storageInterface: this.storage,
             libraryInfo: {
                 sku: Constants.MSAL_SKU,
                 version: version,
@@ -117,5 +124,24 @@ export abstract class ClientApplication {
                 os: process.platform || ""
             },
         };
+    }
+
+    /**
+     * read JSON formatted cache from disk
+     */
+    async readCacheFromDisk(cachePath: string): Promise<void> {
+        this.cacheContext.setCachePath(cachePath);
+        this.cacheContext.setCurrentCache(this.storage);
+    }
+
+    /**
+     * write the JSON formatted cache to disk
+     * @param jsonCache
+     */
+    async writeCacheToDisk(cachePath: string): Promise<void> {
+        await this.readCacheFromDisk(cachePath);
+        const inMemCache = this.storage.getCache();
+        const cacheBlob = Serializer.serializeJSONBlob(Serializer.serializeAllCache(inMemCache));
+        CacheManager.writeToFile(cachePath, cacheBlob);
     }
 }

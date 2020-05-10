@@ -8,7 +8,7 @@ const express = require("express");
 const app = express();
 const port = 3000;
 app.get('/', (req, res) => redirectToAzureAd(req, res));
-app.get('/redirect', (req, res) =>  acquireToken(req, res));
+app.get('/redirect', (req, res) => acquireToken(req, res));
 
 // initialize msal public client application
 let msal = require('@azure/msal-node');
@@ -20,14 +20,15 @@ const publicClientConfig = {
         redirectUri: "http://localhost:3000/redirect",
     },
     cache: {
-        cacheLocation: "/Users/sameeragajjarapu/Documents/cache.json", // This configures where your cache will be stored
+        cacheLocation: "fileCache", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
 };
 
 const pca = new msal.PublicClientApplication(publicClientConfig);
+pca.readCacheFromDisk("/Users/sameeragajjarapu/Documents/cache.json");
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 function redirectToAzureAd(req, res){
 
@@ -61,5 +62,5 @@ function acquireToken(req, res){
         res.send(200);
     }).catch((error) => {
         res.send(500);
-    })
+    });
 }
