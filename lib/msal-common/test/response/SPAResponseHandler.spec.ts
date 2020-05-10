@@ -215,11 +215,11 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
             expect(store).to.be.empty;
         });
 
