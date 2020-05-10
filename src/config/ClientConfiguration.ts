@@ -137,11 +137,11 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
         throw AuthError.createUnexpectedError(notImplErr);
     },
     getCache: (): InMemoryCache => {
-        const notImplErr = "Storage interface - getInMemoryCache() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - getCache() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     setCache: () => {
-        const notImplErr = "Storage interface - setInMemoryCache() has not been implemented for the cacheStorage interface.";
+        const notImplErr = "Storage interface - setCache() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
