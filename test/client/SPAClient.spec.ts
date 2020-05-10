@@ -31,6 +31,7 @@ import { TokenResponse } from "../../src/response/TokenResponse";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
 
 describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
@@ -49,9 +50,21 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
             },
             storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
                 setItem(key: string, value: string): void {
                     store[key] = value;
                 },
@@ -69,15 +82,21 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 },
                 clear(): void {
                     store = {};
-                }
+                },
             },
             networkInterface: {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendGetRequestAsync<T>(
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendPostRequestAsync<T>(
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): T {
                     return null;
-                }
+                },
             },
             cryptoInterface: {
                 createNewGuid(): string {
@@ -92,13 +111,13 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 async generatePkceCodes(): Promise<PkceCodes> {
                     return {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER
+                        verifier: TEST_CONFIG.TEST_VERIFIER,
                     };
-                }
+                },
             },
             loggerOptions: {
-                loggerCallback: testLoggerCallback
-            }
+                loggerCallback: testLoggerCallback,
+            },
         };
     });
 
@@ -892,7 +911,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
             it("throws server error when error is in hash", () => {
                 const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
-            
+
                 defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
                 expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw("msal error description");
                 expect(store).to.be.empty;
@@ -919,27 +938,89 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: redirectUriFunc,
-                postLogoutRedirectUri: postLogoutRedirectUriFunc
+                postLogoutRedirectUri: postLogoutRedirectUriFunc,
             },
-            storageInterface: null,
+            storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
+                setItem(key: string, value: string): void {
+                    store[key] = value;
+                },
+                getItem(key: string): string {
+                    return store[key];
+                },
+                removeItem(key: string): void {
+                    delete store[key];
+                },
+                containsKey(key: string): boolean {
+                    return !!store[key];
+                },
+                getKeys(): string[] {
+                    return Object.keys(store);
+                },
+                clear(): void {
+                    store = {};
+                },
+            },
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
-                loggerCallback: testLoggerCallback
-            }
+                loggerCallback: testLoggerCallback,
+            },
         });
 
         const Client_noRedirectUris = new SPAClient({
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority
+                authority: TEST_CONFIG.validAuthority,
             },
-            storageInterface: null,
+            storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
+                setItem(key: string, value: string): void {
+                    store[key] = value;
+                },
+                getItem(key: string): string {
+                    return store[key];
+                },
+                removeItem(key: string): void {
+                    delete store[key];
+                },
+                containsKey(key: string): boolean {
+                    return !!store[key];
+                },
+                getKeys(): string[] {
+                    return Object.keys(store);
+                },
+                clear(): void {
+                    store = {};
+                },
+            },
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
-                loggerCallback: testLoggerCallback
-            }
+                loggerCallback: testLoggerCallback,
+            },
         });
 
         it("gets configured redirect uri", () => {
@@ -1009,6 +1090,18 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 },
                 networkInterface: null,
                 storageInterface: {
+                    getCache(): InMemoryCache {
+                        return {
+                            accounts: {},
+                            idTokens: {},
+                            accessTokens: {},
+                            refreshTokens: {},
+                            appMetadata: {}
+                        }
+                    },
+                    setCache(): void {
+                        // do nothing
+                    },
                     setItem(key: string, value: string): void {
                         store[key] = value;
                     },
