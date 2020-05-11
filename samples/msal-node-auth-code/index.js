@@ -60,6 +60,7 @@ function acquireToken(req, res){
         console.log("\nResponse: \n:", response);
         // console.log(pca.getCache());
         res.send(200);
+        pca.writeCacheToDisk("/Users/sameeragajjarapu/Documents/cache.json");
     }).catch((error) => {
         res.send(500);
     });

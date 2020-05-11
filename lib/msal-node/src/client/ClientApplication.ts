@@ -128,6 +128,7 @@ export abstract class ClientApplication {
 
     /**
      * read JSON formatted cache from disk
+     * TODO: File should be locked for this operation
      */
     async readCacheFromDisk(cachePath: string): Promise<void> {
         this.cacheContext.setCachePath(cachePath);
@@ -136,6 +137,7 @@ export abstract class ClientApplication {
 
     /**
      * write the JSON formatted cache to disk
+     * TODO: File should be locked for this operation
      * @param jsonCache
      */
     async writeCacheToDisk(cachePath: string): Promise<void> {
