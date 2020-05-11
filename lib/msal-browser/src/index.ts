@@ -1,6 +1,6 @@
 // App and config
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration } from "./app/Configuration";
+export { Configuration } from "./config/Configuration";
 
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
@@ -16,6 +16,7 @@ export {
     TokenExchangeParameters,
     // Response
     AuthResponse,
+    TokenResponse,
     // Error
     InteractionRequiredAuthError,
     AuthError,

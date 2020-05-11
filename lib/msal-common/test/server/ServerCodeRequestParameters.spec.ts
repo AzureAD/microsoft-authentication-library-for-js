@@ -1,16 +1,16 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { ServerCodeRequestParameters } from "../../src/server/ServerCodeRequestParameters";
-import { AadAuthority } from "../../src/auth/authority/AadAuthority";
+import { AadAuthority } from "../../src/authority/AadAuthority";
 import { Constants, SSOTypes, PromptValue, AADServerParamKeys } from "../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_TOKENS, TEST_DATA_CLIENT_INFO, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
 import { AuthenticationParameters } from "../../src/request/AuthenticationParameters";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
-import { IdTokenClaims } from "../../src/auth/IdTokenClaims";
-import { IdToken } from "../../src/auth/IdToken";
-import { buildClientInfo, ClientInfo } from "../../src/auth/ClientInfo";
-import { Account } from "../../src/auth/Account";
+import { IdTokenClaims } from "../../src/account/IdTokenClaims";
+import { IdToken } from "../../src/account/IdToken";
+import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
+import { Account } from "../../src/account/Account";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
 describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
@@ -84,7 +84,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 false
             );
             loginRequest.scopes.push(Constants.OFFLINE_ACCESS_SCOPE);
-            expect(codeRequestParams.xClientVer).to.be.eq("1.0.0-beta.0");
+            expect(codeRequestParams.xClientVer).to.be.eq("1.0.0-beta.1");
             expect(codeRequestParams.xClientSku).to.be.eq(Constants.LIBRARY_NAME);
             expect(codeRequestParams.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
             expect(codeRequestParams.scopes.asArray()).to.be.deep.eq(loginRequest.scopes);
@@ -470,7 +470,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             };
             sinon.stub(IdToken, "extractIdToken").returns(adalTokenClaims);
             const adalToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, cryptoInterface);
-            
+
             const codeRequestParams = new ServerCodeRequestParameters(
                 aadAuthority,
                 TEST_CONFIG.MSAL_CLIENT_ID,
@@ -599,7 +599,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             );
             codeRequestParams.populateQueryParams();
             const navUrl = await codeRequestParams.createNavigateUrl();
-            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
@@ -636,7 +636,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             );
             codeRequestParams.populateQueryParams();
             const navUrl = await codeRequestParams.createNavigateUrl();
-            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
@@ -673,7 +673,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             );
             codeRequestParams.populateQueryParams();
             const navUrl = await codeRequestParams.createNavigateUrl();
-            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
@@ -707,7 +707,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             );
             codeRequestParams.populateQueryParams();
             const navUrl = await codeRequestParams.createNavigateUrl();
-            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
@@ -750,7 +750,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             );
             codeRequestParams.populateQueryParams();
             const navUrl = await codeRequestParams.createNavigateUrl();
-            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.authorization_endpoint.replace("{tenant}", "common"));
+            expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
