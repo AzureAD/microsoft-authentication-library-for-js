@@ -639,25 +639,33 @@ export class UserAgentApplication {
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
-            // block the request if made from the hidden iframe
+            // block the request if made from the hidden iframe TODO: Ask about why to extend comment
             WindowUtils.blockReloadInHiddenIframes();
 
             const scope = request.scopes.join(" ").toLowerCase();
+            this.logger.verbose(`Serialized scopes: ${scope}`);
 
             // if the developer passes an account, give that account the priority
             const account: Account = request.account || this.getAccount();
+            this.logger.verbosePii(`Set account to: ${JSON.stringify(account)}`);
 
-            // extract if there is an adalIdToken stashed in the cache
+            // extract if there is an adalIdToken stashed in the cache TODO: Ask about why
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
-            // if there is no account logged in and no login_hint/sid is passed in the request
+            /**
+             * if there is no account logged in and no login_hint/sid is passed in the request
+             * TODO: consider explaining what sid is
+             * In the event of no account being passed in the config, no session id, and no pre-existing adalIdToken, user will need to log in
+             */
             if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
                 this.logger.info("User login is required");
+                // The promise rejects with a UserLoginRequiredError, which should be caught and user should be prompted to log in interactively
                 return reject(ClientAuthError.createUserLoginRequiredError());
             }
 
             // set the response type based on the current cache status / scopes set
             const responseType = this.getTokenType(account, request.scopes, true);
+            this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
@@ -670,11 +678,13 @@ export class UserAgentApplication {
                 request.correlationId,
             );
 
+            this.logger.verbose(`ServerAuthenticationRequest: ${JSON.stringify(serverAuthenticationRequest)}`);
+
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request, null, true);
             }
-            // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
+            // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken TODO: ask about why
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
@@ -682,11 +692,15 @@ export class UserAgentApplication {
                 serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
             }
 
+            this.logger.verbosePii(`Query Params has been populated: ${serverAuthenticationRequest.queryParameters}`);
+
+            // TODO: ask about why/ when they would not be undefined
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
             let authErr: AuthError;
             let cacheResultResponse;
 
+            // If request.forceRefresh is set to true, we want to force a request for a new token instead of getting it from the cache TODO:
             if (!userContainedClaims && !request.forceRefresh) {
                 try {
                     cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
@@ -697,7 +711,7 @@ export class UserAgentApplication {
 
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
-                this.logger.info("Token is already in cache for scope:" + scope);
+                this.logger.info("Token is already in cache for scope: " + scope);
                 resolve(cacheResultResponse);
                 return null;
             }
@@ -710,27 +724,33 @@ export class UserAgentApplication {
             else {
                 let logMessage;
                 if (userContainedClaims) {
-                    logMessage = "Skipped cache lookup since claims were given.";
+                    logMessage = "Skipped cache lookup since claims were given";
                 } else if (request.forceRefresh) {
                     logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
                 } else {
-                    logMessage = "Token is not in cache for scope:" + scope;
+                    logMessage = "Token is not in cache for scope: " + scope;
                 }
                 this.logger.verbose(logMessage);
 
-                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
                     serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+                    if (!request.authority){
+                        this.logger.verbose("Using default authority since no authority was passed to API");
+                    }
                 }
                 // cache miss
 
-                // start http event
+                // start http event TODO: add why
                 return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, request.correlationId)
                     .then(() => {
                         /*
                          * refresh attempt with iframe
                          * Already renewing for this scope, callback when we get the token.
                          */
+                        this.logger.verbose(`Updated authority: ${JSON.stringify(serverAuthenticationRequest.authorityInstance)}`);
+
+                        // TODO: ask about why
                         if (window.activeRenewals[requestSignature]) {
                             this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
                             // Active renewals contains the state for each renewal.
@@ -742,12 +762,12 @@ export class UserAgentApplication {
                                  * App uses idToken to send to api endpoints
                                  * Default scope is tracked as clientId to store this token
                                  */
-                                this.logger.verbose("renewing idToken");
+                                this.logger.verbose("renewing idToken"); // TODO: should logs start with caps or lower case?? variable or sentence?
                                 this.silentLogin = true;
                                 this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             } else {
                                 // renew access token
-                                this.logger.verbose("renewing accesstoken");
+                                this.logger.verbose("renewing access token");
                                 this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             }
                         }
@@ -759,12 +779,15 @@ export class UserAgentApplication {
             }
         })
             .then(res => {
+                this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
+                this.logger.info("Stopping telemetryManager and flushing API event");
                 return res;
             })
             .catch((error: AuthError) => {
                 this.cacheStorage.resetTempCacheItems(request.state);
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
+                this.logger.info("Stopping telemetryManager and flushing API event with error:");
                 throw error;
             });
     }
