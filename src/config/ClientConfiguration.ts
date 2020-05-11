@@ -10,7 +10,7 @@ import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
-import { InMemoryCache } from '../unifiedCache/utils/CacheTypes';
+import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
